@@ -203,16 +203,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-SHARED-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "shared",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/shared/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
       "id": "ARCH-SHARED-INFRASTRUCTURE-CONFIG-MISSING",
       "layer": "infrastructure",
       "module": "shared",
@@ -233,16 +223,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-TEMPLATE-HIERARCHY-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "template-hierarchy",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/template-hierarchy/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
       "id": "ARCH-TEMPLATE-HIERARCHY-INFRASTRUCTURE-CONFIG-MISSING",
       "layer": "infrastructure",
       "module": "template-hierarchy",
@@ -251,16 +231,6 @@
       "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
       "file": "/home/runner/workspace/server/modules/template-hierarchy/infrastructure/config",
       "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-TEMPLATE-VERSIONS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "template-versions",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/template-versions/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
     },
     {
       "id": "ARCH-TEMPLATE-VERSIONS-INFRASTRUCTURE-CONFIG-MISSING",
@@ -363,7 +333,7 @@
       "suggestedFix": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
     },
     {
-      "id": "DEP-AUTH-APP-1754877700047-express",
+      "id": "DEP-AUTH-APP-1754878169035-express",
       "layer": "application",
       "module": "auth",
       "severity": "high",
@@ -374,7 +344,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-BENEFICIARIES-APP-1754877700077-express",
+      "id": "DEP-BENEFICIARIES-APP-1754878169068-express",
       "layer": "application",
       "module": "beneficiaries",
       "severity": "high",
@@ -385,7 +355,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754877700078-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754878169070-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -396,7 +366,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754877700078-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754878169070-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -407,7 +377,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754877700079-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754878169070-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -418,7 +388,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOMERS-APP-1754877700081-express",
+      "id": "DEP-CUSTOMERS-APP-1754878169072-express",
       "layer": "application",
       "module": "customers",
       "severity": "high",
@@ -429,7 +399,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-DASHBOARD-APP-1754877700085-express",
+      "id": "DEP-DASHBOARD-APP-1754878169077-express",
       "layer": "application",
       "module": "dashboard",
       "severity": "high",
@@ -440,7 +410,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-FIELD-LAYOUT-APP-1754877700086-express",
+      "id": "DEP-FIELD-LAYOUT-APP-1754878169078-express",
       "layer": "application",
       "module": "field-layout",
       "severity": "high",
@@ -451,7 +421,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754877700089-express",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754878169082-express",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -462,7 +432,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700093-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169087-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -473,7 +443,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700093-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169087-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -484,7 +454,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700094-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169087-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -495,7 +465,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700094-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169088-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -506,7 +476,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700094-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169088-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -517,7 +487,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700094-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169088-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -528,7 +498,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700094-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169088-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -539,7 +509,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700094-drizzleormnodepostgres",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169088-drizzleormnodepostgres",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -550,7 +520,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700094-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169088-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -561,7 +531,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169089-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -572,7 +542,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169089-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -583,7 +553,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169089-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -594,7 +564,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169089-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -605,7 +575,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169089-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -616,7 +586,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169089-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -627,7 +597,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169089-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -638,7 +608,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169090-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -649,7 +619,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754877700095-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754878169090-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -660,7 +630,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-NOTIFICATIONS-APP-1754877700320-express",
+      "id": "DEP-NOTIFICATIONS-APP-1754878169396-express",
       "layer": "application",
       "module": "notifications",
       "severity": "high",
@@ -671,7 +641,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-PEOPLE-APP-1754877700321-express",
+      "id": "DEP-PEOPLE-APP-1754878169397-express",
       "layer": "application",
       "module": "people",
       "severity": "high",
@@ -682,7 +652,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754877700323-express",
+      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754878169400-express",
       "layer": "application",
       "module": "schedule-management",
       "severity": "high",
@@ -693,7 +663,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754877700323-express",
+      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754878169400-express",
       "layer": "application",
       "module": "schedule-management",
       "severity": "high",
@@ -704,7 +674,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754877700326-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754878169403-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -715,7 +685,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754877700326-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754878169403-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -726,7 +696,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754877700326-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754878169403-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -737,7 +707,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754877700326-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754878169403-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -748,7 +718,18 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKET-HISTORY-APP-1754877700330-express",
+      "id": "DEP-TICKET-HISTORY-APP-1754878169409-express",
+      "layer": "application",
+      "module": "ticket-history",
+      "severity": "high",
+      "type": "dependency_violation",
+      "description": "Application Layer: Dependência proibida encontrada -> express",
+      "file": "/home/runner/workspace/server/modules/ticket-history/application/controllers/TicketHistoryController.ts",
+      "line": 7,
+      "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
+    },
+    {
+      "id": "DEP-TICKET-HISTORY-APP-1754878169409-express",
       "layer": "application",
       "module": "ticket-history",
       "severity": "high",
@@ -759,7 +740,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKETS-APP-1754877700331-express",
+      "id": "DEP-TICKETS-APP-1754878169411-express",
       "layer": "application",
       "module": "tickets",
       "severity": "high",
@@ -770,7 +751,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754877700333-express",
+      "id": "DEP-TIMECARD-APP-1754878169413-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -781,7 +762,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754877700333-express",
+      "id": "DEP-TIMECARD-APP-1754878169413-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -2903,10 +2884,10 @@
     }
   ],
   "summary": {
-    "total": 286,
+    "total": 284,
     "critical": 4,
-    "high": 115,
+    "high": 116,
     "medium": 56,
-    "low": 111
+    "low": 108
   }
 }

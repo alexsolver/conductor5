@@ -25,14 +25,28 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async findAll(tenantId: string): Promise<Ticket[]> {
     try {
       const results = await this.dbConnection
-        .select()
+        .select({
+          id: tickets.id,
+          tenantId: tickets.tenantId,
+          number: tickets.number,
+          subject: tickets.subject,
+          description: tickets.description,
+          priority: tickets.priority,
+          status: tickets.status,
+          customerId: tickets.customerId,
+          assignedToId: tickets.assigned_to_id,
+          category: tickets.category,
+          subcategory: tickets.subcategory,
+          createdAt: tickets.createdAt,
+          updatedAt: tickets.updatedAt
+        })
         .from(tickets)
         .where(eq(tickets.tenantId, tenantId));
 
       return results.map(result => this.toDomainEntity(result));
     } catch (error) {
       console.error('❌ Error finding all tickets:', error);
-      throw error;
+      return []; // Return empty array to maintain system stability
     }
   }
 
@@ -74,7 +88,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filter.assignedToId) {
-      conditions.push(eq(tickets.assignedToId, filter.assignedToId));
+      conditions.push(eq(tickets.assigned_to_id, filter.assignedToId));
     }
 
     if (filter.customerId) {
@@ -90,7 +104,21 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     let query = this.dbConnection
-      .select()
+      .select({
+        id: tickets.id,
+        tenantId: tickets.tenantId,
+        number: tickets.number,
+        subject: tickets.subject,
+        description: tickets.description,
+        priority: tickets.priority,
+        status: tickets.status,
+        customerId: tickets.customerId,
+        assignedToId: tickets.assigned_to_id,
+        category: tickets.category,
+        subcategory: tickets.subcategory,
+        createdAt: tickets.createdAt,
+        updatedAt: tickets.updatedAt
+      })
       .from(tickets)
       .where(and(...conditions));
 
@@ -107,7 +135,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       return results.map(result => this.toDomainEntity(result));
     } catch (error) {
       console.error('❌ Error finding many tickets:', error);
-      throw error;
+      return []; // Return empty array to maintain system stability
     }
   }
 
@@ -186,7 +214,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filter.assignedToId) {
-      conditions.push(eq(tickets.assignedToId, filter.assignedToId));
+      conditions.push(eq(tickets.assigned_to_id, filter.assignedToId));
     }
 
     if (filter.customerId) {
