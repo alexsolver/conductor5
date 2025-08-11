@@ -1,52 +1,79 @@
-import crypto from 'crypto';
-import { BeneficiaryUpdatedEvent } from '../../domain/events/BeneficiaryUpdatedEvent';
-import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
-import { BeneficiaryDomainService } from '../../domain/services/BeneficiaryDomainService';
-import { Beneficiary } from '../../domain/entities/Beneficiary'; // Assuming Beneficiary entity is defined elsewhere
-import { CreateBeneficiaryDTO } from '../dtos/CreateBeneficiaryDTO'; // Assuming DTO is defined elsewhere
 
-export interface UpdateBeneficiaryRequest {
-  id: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  updatedBy: string;
-  tenantId: string;
-}
+/**
+ * APPLICATION USE CASE - UPDATE BENEFICIARY
+ * Clean Architecture: Application layer use case
+ */
+
+import { Beneficiary } from '../../domain/entities/Beneficiary';
+import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
+import { UpdateBeneficiaryDTO, BeneficiaryResponseDTO } from '../dto/CreateBeneficiaryDTO';
 
 export class UpdateBeneficiaryUseCase {
   constructor(
-    private beneficiaryRepository: IBeneficiaryRepository,
-    private domainService: BeneficiaryDomainService
+    private readonly beneficiaryRepository: IBeneficiaryRepository
   ) {}
 
-  async execute(id: string, data: Partial<CreateBeneficiaryDTO>, tenantId: string): Promise<Beneficiary | null> {
-    const beneficiary = await this.beneficiaryRepository.findById(id);
+  async execute(
+    id: string, 
+    data: UpdateBeneficiaryDTO, 
+    tenantId: string
+  ): Promise<BeneficiaryResponseDTO | null> {
+    
+    // Find existing beneficiary
+    const beneficiary = await this.beneficiaryRepository.findById(id, tenantId);
 
     if (!beneficiary) {
-      return null; // Return null if beneficiary not found, consistent with return type
+      throw new Error('Favorecido não encontrado');
     }
 
-    // Apply updates based on the provided data
-    const updatedBeneficiaryData = { ...beneficiary, ...data };
+    // Validate email uniqueness if email is being changed
+    if (data.email && data.email !== beneficiary.email) {
+      const existingWithEmail = await this.beneficiaryRepository.existsByEmail(
+        data.email,
+        tenantId,
+        id
+      );
 
-    // Ensure the entity is updated correctly before saving
-    const updatedBeneficiary = Beneficiary.create(updatedBeneficiaryData, beneficiary.version); // Assuming a static create method exists for entity instantiation and versioning
+      if (existingWithEmail) {
+        throw new Error('Já existe um favorecido com este email');
+      }
+    }
 
+    // Create updated entity using domain method
+    const updatedBeneficiary = beneficiary.update(data);
+
+    // Validate email format if changed
+    if (data.email && !updatedBeneficiary.validateEmail()) {
+      throw new Error('Formato de email inválido');
+    }
+
+    // Persist changes
     await this.beneficiaryRepository.update(updatedBeneficiary);
 
-    const event: BeneficiaryUpdatedEvent = {
-      id: crypto.randomUUID(),
-      beneficiaryId: id,
-      changes: data, // Reflecting the actual changes made
-      updatedBy: data.updatedBy || 'system', // Assuming updatedBy is in data, with a fallback
-      updatedAt: new Date(),
-      tenantId: tenantId
+    // Return response DTO
+    return this.mapToResponseDTO(updatedBeneficiary);
+  }
+
+  private mapToResponseDTO(beneficiary: Beneficiary): BeneficiaryResponseDTO {
+    return {
+      id: beneficiary.id,
+      tenantId: beneficiary.tenantId,
+      firstName: beneficiary.firstName,
+      lastName: beneficiary.lastName,
+      fullName: beneficiary.fullName,
+      email: beneficiary.email,
+      birthDate: beneficiary.birthDate,
+      rg: beneficiary.rg,
+      cpfCnpj: beneficiary.cpfCnpj,
+      isActive: beneficiary.isActive,
+      customerCode: beneficiary.customerCode,
+      customerId: beneficiary.customerId,
+      phone: beneficiary.phone,
+      cellPhone: beneficiary.cellPhone,
+      contactPerson: beneficiary.contactPerson,
+      contactPhone: beneficiary.contactPhone,
+      createdAt: beneficiary.createdAt.toISOString(),
+      updatedAt: beneficiary.updatedAt.toISOString()
     };
-
-    // Publish event logic would go here, potentially using an event publisher
-    // For example: await this.eventPublisher.publish(event);
-
-    return updatedBeneficiary;
   }
 }

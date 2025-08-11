@@ -1,37 +1,35 @@
-import { BeneficiaryDeletedEvent } from '../../domain/events/BeneficiaryDeletedEvent';
-import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
 
-export interface DeleteBeneficiaryRequest {
-  id: string;
-  deletedBy: string;
-  tenantId: string;
-}
+/**
+ * APPLICATION USE CASE - DELETE BENEFICIARY
+ * Clean Architecture: Application layer use case
+ */
+
+import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
 
 export class DeleteBeneficiaryUseCase {
   constructor(
-    private beneficiaryRepository: IBeneficiaryRepository
+    private readonly beneficiaryRepository: IBeneficiaryRepository
   ) {}
 
   async execute(id: string, tenantId: string): Promise<boolean> {
-    const beneficiary = await this.beneficiaryRepository.findById(id);
-
-    if (!beneficiary) {
-      return false; // Indicate that the beneficiary was not found
+    if (!id?.trim()) {
+      throw new Error('ID é obrigatório');
     }
 
-    await this.beneficiaryRepository.delete(id);
+    if (!tenantId?.trim()) {
+      throw new Error('Tenant ID é obrigatório');
+    }
 
-    const event: BeneficiaryDeletedEvent = {
-      id: crypto.randomUUID(),
-      beneficiaryId: id,
-      deletedBy: 'system', // Placeholder, actual user info would come from context or another parameter
-      deletedAt: new Date(),
-      tenantId: tenantId
-    };
+    // Check if beneficiary exists
+    const beneficiary = await this.beneficiaryRepository.findById(id, tenantId);
 
-    // Publish event logic would go here
-    console.log('BeneficiaryDeletedEvent published:', event); // Placeholder for actual event publishing
+    if (!beneficiary) {
+      throw new Error('Favorecido não encontrado');
+    }
 
-    return true; // Indicate successful deletion
+    // Delete the beneficiary
+    await this.beneficiaryRepository.delete(id, tenantId);
+
+    return true;
   }
 }

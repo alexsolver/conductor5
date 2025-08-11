@@ -1,71 +1,171 @@
+
 /**
- * BeneficiariesController - Clean Architecture Presentation Layer
- * Following AGENT_CODING_STANDARDS.md - Controllers Pattern
+ * APPLICATION CONTROLLER - BENEFICIARIES
+ * Clean Architecture: Application layer controller
  */
 
 import { Request, Response } from 'express';
+import { CreateBeneficiaryUseCase } from '../use-cases/CreateBeneficiaryUseCase';
+import { UpdateBeneficiaryUseCase } from '../use-cases/UpdateBeneficiaryUseCase';
+import { GetBeneficiariesUseCase } from '../use-cases/GetBeneficiariesUseCase';
+import { DeleteBeneficiaryUseCase } from '../use-cases/DeleteBeneficiaryUseCase';
+import { CreateBeneficiaryDTO, UpdateBeneficiaryDTO, GetBeneficiariesDTO } from '../dto/CreateBeneficiaryDTO';
 
 export class BeneficiariesController {
-  constructor() {}
+  constructor(
+    private readonly createBeneficiaryUseCase: CreateBeneficiaryUseCase,
+    private readonly updateBeneficiaryUseCase: UpdateBeneficiaryUseCase,
+    private readonly getBeneficiariesUseCase: GetBeneficiariesUseCase,
+    private readonly deleteBeneficiaryUseCase: DeleteBeneficiaryUseCase
+  ) {}
 
-  async getBeneficiaries(req: Request, res: Response): Promise<void> {
+  async createBeneficiary(req: Request, res: Response): Promise<void> {
     try {
-      // Get tenantId from authenticated user context following AGENT_CODING_STANDARDS
       const tenantId = (req as any).user?.tenantId;
-      const { search, customerId, active } = req.query;
-      
-      console.log('👥 [BeneficiariesController] Getting beneficiaries for tenant:', tenantId);
       
       if (!tenantId) {
         res.status(400).json({
           success: false,
-          message: 'Tenant ID is required'
+          message: 'Tenant ID é obrigatório'
         });
         return;
       }
-      
-      // Import database from server root following AGENT_CODING_STANDARDS
-      const { db, sql } = await import('../../../../db');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      // Execute direct query using sql template literals per standards
-      const result = await db.execute(sql`
-        SELECT 
-          id,
-          tenant_id,
-          first_name,
-          last_name,
-          email,
-          birth_date,
-          rg,
-          cpf_cnpj,
-          is_active,
-          customer_code,
-          customer_id,
-          phone,
-          cell_phone,
-          created_at,
-          updated_at
-        FROM ${sql.identifier(schemaName)}.beneficiaries
-        WHERE tenant_id = ${tenantId} AND is_active = true
-        ORDER BY created_at DESC
-        LIMIT 50
-      `);
-      
-      const beneficiaries = Array.isArray(result) ? result : (result.rows || []);
-      
-      console.log('👥 [BeneficiariesController] Beneficiaries found:', beneficiaries.length);
-      
-      res.json({
+
+      const createDTO: CreateBeneficiaryDTO = {
+        ...req.body,
+        tenantId
+      };
+
+      const result = await this.createBeneficiaryUseCase.execute(createDTO);
+
+      res.status(201).json({
         success: true,
-        message: 'Beneficiaries retrieved successfully',
-        data: beneficiaries,
-        filters: { search, customerId, active: active === 'true', tenantId }
+        message: 'Favorecido criado com sucesso',
+        data: result
       });
     } catch (error) {
-      console.error('👥 [BeneficiariesController] Error:', error);
-      const message = error instanceof Error ? error.message : 'Failed to retrieve beneficiaries';
-      res.status(500).json({ success: false, message });
+      console.error('Error creating beneficiary:', error);
+      const message = error instanceof Error ? error.message : 'Erro interno do servidor';
+      res.status(400).json({
+        success: false,
+        message
+      });
+    }
+  }
+
+  async updateBeneficiary(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).user?.tenantId;
+      const { id } = req.params;
+      
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          message: 'Tenant ID é obrigatório'
+        });
+        return;
+      }
+
+      const updateDTO: UpdateBeneficiaryDTO = req.body;
+
+      const result = await this.updateBeneficiaryUseCase.execute(id, updateDTO, tenantId);
+
+      if (!result) {
+        res.status(404).json({
+          success: false,
+          message: 'Favorecido não encontrado'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Favorecido atualizado com sucesso',
+        data: result
+      });
+    } catch (error) {
+      console.error('Error updating beneficiary:', error);
+      const message = error instanceof Error ? error.message : 'Erro interno do servidor';
+      res.status(400).json({
+        success: false,
+        message
+      });
+    }
+  }
+
+  async getBeneficiaries(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          message: 'Tenant ID é obrigatório'
+        });
+        return;
+      }
+
+      const getBeneficiariesDTO: GetBeneficiariesDTO = {
+        tenantId,
+        search: req.query.search as string,
+        customerId: req.query.customerId as string,
+        isActive: req.query.active === 'true' ? true : req.query.active === 'false' ? false : undefined,
+        page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
+        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 10
+      };
+
+      const result = await this.getBeneficiariesUseCase.execute(getBeneficiariesDTO);
+
+      res.json({
+        success: true,
+        message: 'Favorecidos recuperados com sucesso',
+        data: result.beneficiaries,
+        pagination: result.pagination
+      });
+    } catch (error) {
+      console.error('Error getting beneficiaries:', error);
+      const message = error instanceof Error ? error.message : 'Erro interno do servidor';
+      res.status(500).json({
+        success: false,
+        message
+      });
+    }
+  }
+
+  async deleteBeneficiary(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).user?.tenantId;
+      const { id } = req.params;
+      
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          message: 'Tenant ID é obrigatório'
+        });
+        return;
+      }
+
+      const success = await this.deleteBeneficiaryUseCase.execute(id, tenantId);
+
+      if (!success) {
+        res.status(404).json({
+          success: false,
+          message: 'Favorecido não encontrado'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Favorecido excluído com sucesso'
+      });
+    } catch (error) {
+      console.error('Error deleting beneficiary:', error);
+      const message = error instanceof Error ? error.message : 'Erro interno do servidor';
+      res.status(400).json({
+        success: false,
+        message
+      });
     }
   }
 }

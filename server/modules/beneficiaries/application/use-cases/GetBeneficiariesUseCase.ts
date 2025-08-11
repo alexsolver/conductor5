@@ -1,47 +1,80 @@
+
 /**
- * GetBeneficiariesUseCase - Clean Architecture Application Layer
- * Resolves violations: Missing Use Cases to handle business logic
+ * APPLICATION USE CASE - GET BENEFICIARIES
+ * Clean Architecture: Application layer use case
  */
 
-// Removed express dependencies - Clean Architecture compliance
 import { Beneficiary } from '../../domain/entities/Beneficiary';
-
-interface BeneficiaryRepositoryInterface {
-  findByTenant(tenantId: string, filters?: any): Promise<Beneficiary[]>;
-}
-
-export interface GetBeneficiariesRequest {
-  tenantId: string;
-  search?: string;
-  customerId?: string;
-  active?: boolean;
-}
+import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
+import { GetBeneficiariesDTO, BeneficiaryResponseDTO } from '../dto/CreateBeneficiaryDTO';
 
 export interface GetBeneficiariesResponse {
-  beneficiaries: Array<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    email?: string;
-    phone?: string;
-    customerId: string;
-    relationshipType: string;
-    isActive: boolean;
-  }>;
-  total: number;
+  beneficiaries: BeneficiaryResponseDTO[];
+  pagination: {
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    itemsPerPage: number;
+  };
 }
 
 export class GetBeneficiariesUseCase {
   constructor(
-    private readonly beneficiaryRepository: BeneficiaryRepositoryInterface
+    private readonly beneficiaryRepository: IBeneficiaryRepository
   ) {}
 
-  async execute(tenantId: string, filters?: any): Promise<Beneficiary[]> {
-    const beneficiaries = await this.beneficiaryRepository.findByTenant(
-      tenantId,
+  async execute(request: GetBeneficiariesDTO): Promise<GetBeneficiariesResponse> {
+    if (!request.tenantId?.trim()) {
+      throw new Error('Tenant ID é obrigatório');
+    }
+
+    const page = request.page || 1;
+    const limit = Math.min(request.limit || 10, 100); // Max 100 items per page
+
+    const filters = {
+      search: request.search,
+      customerId: request.customerId,
+      isActive: request.isActive,
+      page,
+      limit
+    };
+
+    const result = await this.beneficiaryRepository.findByTenant(
+      request.tenantId,
       filters
     );
 
-    return beneficiaries;
+    return {
+      beneficiaries: result.beneficiaries.map(this.mapToResponseDTO),
+      pagination: {
+        total: result.total,
+        totalPages: result.totalPages,
+        currentPage: page,
+        itemsPerPage: limit
+      }
+    };
+  }
+
+  private mapToResponseDTO(beneficiary: Beneficiary): BeneficiaryResponseDTO {
+    return {
+      id: beneficiary.id,
+      tenantId: beneficiary.tenantId,
+      firstName: beneficiary.firstName,
+      lastName: beneficiary.lastName,
+      fullName: beneficiary.fullName,
+      email: beneficiary.email,
+      birthDate: beneficiary.birthDate,
+      rg: beneficiary.rg,
+      cpfCnpj: beneficiary.cpfCnpj,
+      isActive: beneficiary.isActive,
+      customerCode: beneficiary.customerCode,
+      customerId: beneficiary.customerId,
+      phone: beneficiary.phone,
+      cellPhone: beneficiary.cellPhone,
+      contactPerson: beneficiary.contactPerson,
+      contactPhone: beneficiary.contactPhone,
+      createdAt: beneficiary.createdAt.toISOString(),
+      updatedAt: beneficiary.updatedAt.toISOString()
+    };
   }
 }
