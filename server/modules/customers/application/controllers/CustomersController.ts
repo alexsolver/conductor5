@@ -1,7 +1,7 @@
 /**
- * CustomersController
- * Clean Architecture - Presentation Layer
+ * CustomersController - Clean Architecture Presentation Layer
  * Handles HTTP requests and delegates to Use Cases
+ * Fixes: Routes containing business logic violation
  */
 
 import { Request, Response } from 'express';
@@ -9,49 +9,24 @@ import { Request, Response } from 'express';
 export class CustomersController {
   constructor() {}
 
-  async handleRequest(req: Request, res: Response): Promise<void> {
+  async createCustomer(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
+      const { name, email, phone, address } = req.body;
       
-      // Clean Architecture: Delegate to Use Case
-      const result = { 
-        success: true, 
-        message: 'customers processed successfully',
-        data: { tenantId }
-      };
-      
-      res.json(result);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to process customers';
-      res.status(500).json({ success: false, message });
-    }
-  }
-
-  async create(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { firstName, lastName, email, phone, customerType } = req.body;
-      
-      // Validate required fields
-      if (!firstName || !lastName || !email) {
+      if (!name || !email) {
         res.status(400).json({ 
           success: false, 
-          message: 'Missing required fields: firstName, lastName, email' 
+          message: 'Name and email are required' 
         });
         return;
       }
       
+      // Delegate to Use Case (to be implemented)
       res.status(201).json({
         success: true,
         message: 'Customer created successfully',
-        data: { 
-          firstName, 
-          lastName, 
-          email, 
-          phone, 
-          customerType: customerType || 'PF',
-          tenantId 
-        }
+        data: { name, email, phone, address, tenantId }
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create customer';
@@ -59,16 +34,18 @@ export class CustomersController {
     }
   }
 
-  async getAll(req: Request, res: Response): Promise<void> {
+  async getCustomers(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-      const { customerType, search } = req.query;
+      const { search, limit, offset } = req.query;
       
+      // Delegate to Use Case (to be implemented)
       res.json({
         success: true,
         message: 'Customers retrieved successfully',
         data: [],
-        filters: { customerType, search, tenantId }
+        pagination: { limit, offset },
+        filters: { search, tenantId }
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to retrieve customers';
@@ -76,32 +53,33 @@ export class CustomersController {
     }
   }
 
-  async getById(req: Request, res: Response): Promise<void> {
+  async getCustomerById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
       
+      // Delegate to Use Case (to be implemented)
       res.json({
         success: true,
         message: 'Customer retrieved successfully',
         data: { id, tenantId }
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to retrieve customer';
+      const message = error instanceof Error ? error.message : 'Customer not found';
       res.status(404).json({ success: false, message });
     }
   }
 
-  async update(req: Request, res: Response): Promise<void> {
+  async updateCustomer(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
-      const updateData = req.body;
       
+      // Delegate to Use Case (to be implemented)
       res.json({
         success: true,
         message: 'Customer updated successfully',
-        data: { id, ...updateData, tenantId }
+        data: { id, ...req.body, tenantId }
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update customer';
@@ -109,33 +87,20 @@ export class CustomersController {
     }
   }
 
-  async delete(req: Request, res: Response): Promise<void> {
+  async deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
       
+      // Delegate to Use Case (to be implemented)
       res.json({
         success: true,
-        message: 'Customer deleted successfully'
+        message: 'Customer deleted successfully',
+        data: { id, tenantId }
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete customer';
       res.status(400).json({ success: false, message });
-    }
-  }
-
-  async getCompanies(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
-      res.json({
-        success: true,
-        message: 'Companies retrieved successfully',
-        data: [],
-        tenantId
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to retrieve companies';
-      res.status(500).json({ success: false, message });
     }
   }
 }

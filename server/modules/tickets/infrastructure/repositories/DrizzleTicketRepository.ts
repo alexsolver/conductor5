@@ -104,21 +104,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     let query = this.dbConnection
-      .select({
-        id: tickets.id,
-        tenantId: tickets.tenantId,
-        number: tickets.number,
-        subject: tickets.subject,
-        description: tickets.description,
-        priority: tickets.priority,
-        status: tickets.status,
-        customerId: tickets.customerId,
-        assignedToId: tickets.assigned_to_id,
-        category: tickets.category,
-        subcategory: tickets.subcategory,
-        createdAt: tickets.createdAt,
-        updatedAt: tickets.updatedAt
-      })
+      .select()
       .from(tickets)
       .where(and(...conditions));
 
@@ -267,7 +253,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .from(tickets)
         .where(and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.assignedToId, null),
+          eq(tickets.assigned_to_id, null),
           or(
             eq(tickets.status, 'open'),
             eq(tickets.status, 'in_progress')
