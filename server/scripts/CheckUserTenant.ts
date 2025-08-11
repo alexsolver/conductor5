@@ -138,7 +138,7 @@ async function checkUserTenant() {
 }
 
 // Executar se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   checkUserTenant()
     .then(() => {
       console.log('\n✅ Verificação de tenant concluída');
