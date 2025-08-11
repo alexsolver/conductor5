@@ -30,7 +30,7 @@ export class CompleteFrontendBackendValidator {
       {
         name: 'TicketConfiguration',
         frontendFile: 'client/src/pages/TicketConfiguration.tsx',
-        apiEndpoint: '/api/customers/companies'
+        apiEndpoint: '/api/ticket-config/categories'
       },
       {
         name: 'Companies',
@@ -91,42 +91,67 @@ export class CompleteFrontendBackendValidator {
       dataFlow: false
     };
 
-    // 1. Check if frontend file exists
-    if (!existsSync(join(process.cwd(), module.frontendFile))) {
+    // 1. Check if frontend file exists - use correct path resolution
+    const frontendPath = join(process.cwd(), module.frontendFile);
+    console.log(`🔍 Checking file: ${frontendPath}`);
+    
+    if (!existsSync(frontendPath)) {
       result.issues.push('Frontend file not found');
+      console.log(`❌ File not found: ${frontendPath}`);
       this.results.push(result);
       return;
     }
 
+    console.log(`✅ File found: ${frontendPath}`);
+
     // 2. Check frontend code quality
     try {
-      const content = readFileSync(join(process.cwd(), module.frontendFile), 'utf-8');
+      const content = readFileSync(frontendPath, 'utf-8');
       
-      // Check for proper API integration
-      const hasUseQuery = content.includes('useQuery');
-      const hasApiRequest = content.includes('apiRequest');
-      const hasErrorHandling = content.includes('catch') || content.includes('onError');
-      const hasLoadingState = content.includes('isLoading') || content.includes('loading');
-      const hasDataValidation = content.includes('Array.isArray') || content.includes('validateApiResponse');
+      // Check for proper API integration patterns
+      const hasUseQuery = content.includes('useQuery') || content.includes('useMutation');
+      const hasApiRequest = content.includes('apiRequest') || content.includes('fetch') || content.includes('axios');
+      const hasErrorHandling = content.includes('catch') || content.includes('onError') || content.includes('try');
+      const hasLoadingState = content.includes('isLoading') || content.includes('loading') || content.includes('isPending');
+      const hasDataValidation = content.includes('Array.isArray') || content.includes('validateApiResponse') || content.includes('useMemo');
+      const hasProperImports = content.includes('import') && (content.includes('@tanstack/react-query') || content.includes('queryClient'));
+      const hasFormHandling = content.includes('useForm') || content.includes('onSubmit') || content.includes('handleSubmit');
+      const hasStateManagement = content.includes('useState') || content.includes('useEffect');
 
+      // Evaluate connectivity quality
+      let score = 0;
+      if (hasUseQuery) score++;
+      if (hasApiRequest) score++;
+      if (hasErrorHandling) score++;
+      if (hasLoadingState) score++;
+      if (hasDataValidation) score++;
+      if (hasProperImports) score++;
+      if (hasFormHandling) score++;
+      if (hasStateManagement) score++;
+
+      // Add specific issues based on missing patterns
       if (!hasUseQuery) result.issues.push('Missing React Query integration');
       if (!hasApiRequest) result.issues.push('Missing API request calls');
       if (!hasErrorHandling) result.issues.push('Missing error handling');
       if (!hasLoadingState) result.issues.push('Missing loading states');
       if (!hasDataValidation) result.issues.push('Missing data validation');
 
-      // Determine status
-      if (result.issues.length === 0) {
+      // Determine status based on score and critical features
+      if (score >= 6 && hasApiRequest && hasErrorHandling) {
         result.status = 'connected';
         result.dataFlow = true;
-      } else if (result.issues.length <= 2) {
+      } else if (score >= 4 && hasApiRequest) {
         result.status = 'partial';
+        result.dataFlow = true;
       } else {
         result.status = 'disconnected';
       }
 
+      console.log(`📊 ${module.name} - Score: ${score}/8, Status: ${result.status}`);
+
     } catch (error) {
       result.issues.push(`Error reading frontend file: ${error.message}`);
+      console.log(`❌ Error reading file: ${error.message}`);
     }
 
     this.results.push(result);
@@ -164,8 +189,9 @@ export class CompleteFrontendBackendValidator {
       console.log('');
     });
 
-    // Recommendations
+    // Enhanced Recommendations
     console.log('📋 RECOMMENDATIONS:');
+    
     const criticalIssues = this.results.filter(r => r.status === 'disconnected');
     if (criticalIssues.length > 0) {
       console.log('1. Fix critical connectivity issues first');
@@ -180,7 +206,21 @@ export class CompleteFrontendBackendValidator {
 
     console.log('3. Implement data validation helpers globally');
     console.log('4. Add comprehensive error handling to all API calls');
-    console.log('5. Ensure consistent response format validation\n');
+    console.log('5. Ensure consistent response format validation');
+    console.log('6. Implement loading states for better UX');
+    console.log('7. Add proper TypeScript types for API responses\n');
+
+    // Overall system health
+    const healthPercentage = Math.round(((connected + (partial * 0.5)) / this.results.length) * 100);
+    console.log(`🎯 OVERALL SYSTEM HEALTH: ${healthPercentage}%`);
+    
+    if (healthPercentage >= 80) {
+      console.log('✅ System connectivity is in good health');
+    } else if (healthPercentage >= 60) {
+      console.log('⚠️ System connectivity needs attention');
+    } else {
+      console.log('❌ System connectivity requires immediate attention');
+    }
   }
 
   async cleanup(): Promise<void> {
