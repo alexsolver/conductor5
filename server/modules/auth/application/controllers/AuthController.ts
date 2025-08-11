@@ -58,7 +58,7 @@ export class AuthController {
     }
   }
 
-  async me(req: Request, res: Response): Promise<void> {
+  async getProfile(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.headers['x-user-id'] as string;
       const tenantId = req.headers['x-tenant-id'] as string;

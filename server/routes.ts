@@ -269,8 +269,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import and mount authentication routes
   try {
-    const { authRouter } = await import('./modules/auth/routes');
-    app.use('/api/auth', authRouter);
+    const authRoutes = await import('./modules/auth/routes');
+    app.use('/api/auth', authRoutes.default);
   } catch (error) {
     console.log('Auth router not available, skipping...');
   }
