@@ -127,10 +127,14 @@ export class DrizzleTicketRepository implements ITicketRepository {
       
       const result = await this.db.execute(sql.raw(finalQuery));
 
-      console.log('🎫 [DrizzleTicketRepository] Raw result:', result.length, 'tickets found');
+      console.log('🎫 [DrizzleTicketRepository] Raw result:', result, 'type:', typeof result);
+      
+      // Handle result structure properly
+      const rows = Array.isArray(result) ? result : (result.rows || []);
+      console.log('🎫 [DrizzleTicketRepository] Rows found:', rows.length);
 
       // Map results to expected format
-      const tickets = result.map((row: any) => ({
+      const tickets = rows.map((row: any) => ({
         id: row.id,
         number: row.number,
         subject: row.subject,
