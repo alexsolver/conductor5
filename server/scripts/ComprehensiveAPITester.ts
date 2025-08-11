@@ -588,8 +588,8 @@ class ComprehensiveAPITester {
   }
 }
 
-// Execute if run directly
-if (require.main === module) {
+// Execute if run directly (ES Module compatible)
+if (import.meta.url === `file://${process.argv[1]}`) {
   const tester = new ComprehensiveAPITester();
   tester.runAllTests().catch(console.error);
 }
