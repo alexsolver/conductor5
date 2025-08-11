@@ -111,7 +111,14 @@ export async function createTicketInfrastructureTables(tenantId: string) {
 }
 
 // Execute for mock tenant if called directly
-if (require.main === module) {
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Check if this is the main module being executed
+if (import.meta.url === `file://${process.argv[1]}`) {
   createTicketInfrastructureTables('mock-tenant-id')
     .then(() => {
       console.log('✅ Script completed successfully');
