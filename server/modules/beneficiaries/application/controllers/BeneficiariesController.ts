@@ -10,7 +10,8 @@ export class BeneficiariesController {
 
   async getBeneficiaries(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      // Get tenantId from authenticated user context following AGENT_CODING_STANDARDS
+      const tenantId = (req as any).user?.tenantId;
       const { search, customerId, active } = req.query;
       
       console.log('👥 [BeneficiariesController] Getting beneficiaries for tenant:', tenantId);
