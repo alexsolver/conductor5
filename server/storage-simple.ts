@@ -393,7 +393,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const { page = 1, limit = 50, search, status, priority, assignedToId, companyId } = options;
       const offset = (page - 1) * limit;
-      
+
       console.log('🎫 [STORAGE-SIMPLE] Getting tickets for tenant:', tenantId);
       console.log('🎫 [STORAGE-SIMPLE] Options:', options);
 
@@ -505,7 +505,7 @@ export class DatabaseStorage implements IStorage {
   async getTicketById(tenantId: string, ticketId: string): Promise<any | undefined> {
     try {
       console.log(`🎫 [STORAGE-SIMPLE] Getting ticket by ID: ${ticketId} for tenant: ${tenantId}`);
-      
+
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
@@ -1724,7 +1724,7 @@ export class DatabaseStorage implements IStorage {
       return (result.rowCount || 0) > 0;
     } catch (error) {
       logError('Error removing beneficiary customer relationship', error, { tenantId, beneficiaryId, customerId });
-      throw error;
+      return false;
     }
   }
 

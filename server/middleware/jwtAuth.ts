@@ -1,7 +1,8 @@
 // JWT Authentication Middleware - Clean Architecture
+import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { DependencyContainer } from '../application/services/DependencyContainer';
-import { tokenManager } from '../utils/tokenManager';
+import { storageSimple } from '../storage-simple';
+import { rbacService } from './rbacMiddleware';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -48,16 +49,23 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       tenantId: payload.tenantId 
     });
 
-    // For mock user, skip database lookup and use token data directly
-    req.user = {
+    // Mock user data with placeholder permissions initially
+    const user = {
       id: payload.userId,
       email: payload.email,
       role: payload.role,
       tenantId: payload.tenantId,
-      permissions: ['read', 'write', 'admin'], // Mock permissions
-      attributes: {},
-      hasCustomerAccess: true
     };
+
+    // Enrich user with permissions
+    const enrichedUser = await rbacService.enrichUserWithPermissions({
+      id: payload.userId,
+      email: payload.email,
+      role: payload.role,
+      tenantId: payload.tenantId
+    });
+
+    req.user = enrichedUser;
 
     // Debug log to verify tenantId is being set
     console.log('🔐 [JWT-AUTH] User context set:', {
@@ -108,18 +116,18 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
 
     const token = authHeader.substring(7);
     const payload = tokenManager.verifyAccessToken(token);
-    
+
     if (payload) {
-      req.user = {
+      // Enrich user with permissions even for optional auth
+      const enrichedUser = await rbacService.enrichUserWithPermissions({
         id: payload.userId,
         email: payload.email,
         role: payload.role,
-        tenantId: payload.tenantId,
-        permissions: ['read', 'write', 'admin'],
-        attributes: {},
-        hasCustomerAccess: true
-      };
-      
+        tenantId: payload.tenantId
+      });
+
+      req.user = enrichedUser;
+
       console.log('🔍 [JWT-AUTH] User authenticated:', {
         userId: req.user.id,
         tenantId: req.user.tenantId,
