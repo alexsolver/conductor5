@@ -1,12 +1,13 @@
 import { Pool } from '@neondatabase/serverless';
-import {
-  TicketListView,
-  InsertTicketListView,
-  TicketViewShare,
-  InsertTicketViewShare,
-  UserViewPreference,
-  InsertUserViewPreference
-} from '@shared/schema';
+import { ticketListViews, ticketViewShares, userViewPreferences } from '@shared/schema';
+
+// Type definitions for the repository
+type TicketListView = typeof ticketListViews.$inferSelect;
+type InsertTicketListView = typeof ticketListViews.$inferInsert;
+type TicketViewShare = typeof ticketViewShares.$inferSelect;
+type InsertTicketViewShare = typeof ticketViewShares.$inferInsert;
+type UserViewPreference = typeof userViewPreferences.$inferSelect;
+type InsertUserViewPreference = typeof userViewPreferences.$inferInsert;
 
 export class TicketViewsRepository {
   constructor(private pool: Pool) {}

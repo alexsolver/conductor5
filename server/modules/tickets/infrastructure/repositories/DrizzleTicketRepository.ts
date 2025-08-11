@@ -239,7 +239,6 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .from(tickets)
         .where(and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.assignedToId, null),
           or(
             eq(tickets.status, 'open'),
             eq(tickets.status, 'in_progress')
