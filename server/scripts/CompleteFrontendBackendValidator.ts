@@ -1,4 +1,3 @@
-
 import pkg from 'pg';
 const { Pool } = pkg;
 import { existsSync, readFileSync } from 'fs';
@@ -94,7 +93,7 @@ export class CompleteFrontendBackendValidator {
     // 1. Check if frontend file exists - use correct path resolution
     const frontendPath = join(process.cwd(), module.frontendFile);
     console.log(`🔍 Checking file: ${frontendPath}`);
-    
+
     if (!existsSync(frontendPath)) {
       result.issues.push('Frontend file not found');
       console.log(`❌ File not found: ${frontendPath}`);
@@ -107,7 +106,7 @@ export class CompleteFrontendBackendValidator {
     // 2. Check frontend code quality
     try {
       const content = readFileSync(frontendPath, 'utf-8');
-      
+
       // Check for proper API integration patterns
       const hasUseQuery = content.includes('useQuery') || content.includes('useMutation');
       const hasApiRequest = content.includes('apiRequest') || content.includes('fetch') || content.includes('axios');
@@ -176,12 +175,12 @@ export class CompleteFrontendBackendValidator {
     this.results.forEach(result => {
       const statusIcon = result.status === 'connected' ? '✅' : 
                         result.status === 'partial' ? '⚠️' : '❌';
-      
+
       console.log(`${statusIcon} ${result.module.toUpperCase()}`);
       console.log(`   API: ${result.apiEndpoint}`);
       console.log(`   Frontend: ${result.frontendFile}`);
       console.log(`   Data Flow: ${result.dataFlow ? '✅ Working' : '❌ Broken'}`);
-      
+
       if (result.issues.length > 0) {
         console.log(`   Issues:`);
         result.issues.forEach(issue => console.log(`     - ${issue}`));
@@ -191,13 +190,13 @@ export class CompleteFrontendBackendValidator {
 
     // Enhanced Recommendations
     console.log('📋 RECOMMENDATIONS:');
-    
+
     const criticalIssues = this.results.filter(r => r.status === 'disconnected');
     if (criticalIssues.length > 0) {
       console.log('1. Fix critical connectivity issues first');
       criticalIssues.forEach(r => console.log(`   - ${r.module}: ${r.issues.join(', ')}`));
     }
-    
+
     const partialIssues = this.results.filter(r => r.status === 'partial');
     if (partialIssues.length > 0) {
       console.log('2. Improve partial connections');
@@ -213,7 +212,7 @@ export class CompleteFrontendBackendValidator {
     // Overall system health
     const healthPercentage = Math.round(((connected + (partial * 0.5)) / this.results.length) * 100);
     console.log(`🎯 OVERALL SYSTEM HEALTH: ${healthPercentage}%`);
-    
+
     if (healthPercentage >= 80) {
       console.log('✅ System connectivity is in good health');
     } else if (healthPercentage >= 60) {
