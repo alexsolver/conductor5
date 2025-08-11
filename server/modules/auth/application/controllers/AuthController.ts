@@ -21,8 +21,9 @@ export class AuthController {
         return;
       }
       
-      // Generate real JWT tokens
-      const jwtSecret = process.env.JWT_SECRET || 'default-secret-key';
+      // Generate real JWT tokens using TokenManager
+      const { tokenManager } = await import('../../../../utils/tokenManager');
+      
       const user = { 
         id: 'mock-user-id',
         email, 
@@ -36,22 +37,16 @@ export class AuthController {
         createdAt: new Date().toISOString()
       };
 
-      const accessToken = jwt.sign(
-        { 
-          userId: user.id, 
-          email: user.email, 
-          role: user.role, 
-          tenantId: user.tenantId 
-        },
-        jwtSecret,
-        { expiresIn: '15m' }
-      );
+      const accessToken = tokenManager.generateAccessToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tenantId: user.tenantId
+      });
 
-      const refreshToken = jwt.sign(
-        { userId: user.id, type: 'refresh' },
-        jwtSecret,
-        { expiresIn: '7d' }
-      );
+      const refreshToken = tokenManager.generateRefreshToken({
+        id: user.id
+      });
 
       res.json({
         user,
@@ -127,43 +122,31 @@ export class AuthController {
         return;
       }
 
-      // Verify refresh token
-      const jwtSecret = process.env.JWT_SECRET || 'default-secret-key';
+      // Verify refresh token using TokenManager
+      const { tokenManager } = await import('../../../../utils/tokenManager');
       
-      try {
-        const decoded = jwt.verify(refreshToken, jwtSecret) as any;
-        
-        if (decoded.type !== 'refresh') {
-          res.status(401).json({ 
-            success: false, 
-            message: 'Invalid refresh token' 
-          });
-          return;
-        }
-
-        // Generate new access token
-        const newAccessToken = jwt.sign(
-          { 
-            userId: decoded.userId, 
-            email: 'test@example.com', 
-            role: 'tenant_admin', 
-            tenantId: 'mock-tenant-id' 
-          },
-          jwtSecret,
-          { expiresIn: '15m' }
-        );
-
-        res.json({
-          accessToken: newAccessToken,
-          refreshToken // Keep the same refresh token
-        });
-      } catch (jwtError) {
+      const decoded = tokenManager.verifyRefreshToken(refreshToken);
+      if (!decoded) {
         res.status(401).json({ 
           success: false, 
           message: 'Invalid or expired refresh token' 
         });
         return;
       }
+
+      // Generate new access token
+      const newAccessToken = tokenManager.generateAccessToken({
+        id: decoded.userId,
+        email: 'test@example.com',
+        role: 'tenant_admin',
+        tenantId: 'mock-tenant-id'
+      });
+
+      res.json({
+        accessToken: newAccessToken,
+        refreshToken // Keep the same refresh token
+      });
+
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Token refresh failed';
       res.status(401).json({ success: false, message });

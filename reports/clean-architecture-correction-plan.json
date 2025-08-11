@@ -1,32 +1,3390 @@
 [
   {
-    "type": "critical",
+    "priority": "immediate",
     "module": "beneficiaries",
-    "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-    "action": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/controllers/BeneficiariesController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/use-cases/DeleteBeneficiaryUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/use-cases/GetBeneficiariesUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/use-cases/UpdateBeneficiaryUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/controllers/BeneficiaryControllerClean.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case 'index' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'BeneficiaryDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'BeneficiaryValidationService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryValidationService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "8h"
   },
   {
-    "type": "critical",
+    "priority": "immediate",
     "module": "custom-fields",
-    "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-    "action": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.",
+        "target": "/home/runner/workspace/server/modules/custom-fields/routes.ts",
+        "steps": [
+          "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/custom-fields/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/controllers/CustomFieldController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/controllers/CustomFieldsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/controllers/CustomfieldsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/custom-fields/domain/entities/CustomField.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/CreateCustomFieldUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/GetCustomFieldsUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/UpdateCustomFieldUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case 'index' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'CustomFieldDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/custom-fields/domain/services/CustomFieldDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/custom-fields/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/custom-fields/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/custom-fields/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "9h"
   },
   {
-    "type": "critical",
+    "priority": "immediate",
+    "module": "materials-services",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/AuditController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/ComplianceController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController-fixed.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController-v2.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/ImportController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/LPUController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/MaterialsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/MaterialsServicesController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/PersonalizationController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/StockController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierLinksController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/TicketMaterialsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain/entities/Material.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain/entities/Service.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/use-cases/CreateMaterialUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/use-cases/CreateServiceUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/use-cases/GetMaterialsUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/use-cases/GetServicesUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/use-cases/IndexUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/StockRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/AssetManagementController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/AuditController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/ComplianceController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/ImportController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/ItemController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/LPUController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/PersonalizationController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/StockController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierLinksController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/TicketMaterialsController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPUCacheWarmerRepository.ts",
+        "steps": [
+          "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui."
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts",
+        "steps": [
+          "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui."
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/indexRepository.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/indexRepository.ts",
+        "steps": [
+          "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui."
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'MaterialValidationService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain/services/MaterialValidationService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Application Service 'MaterialApplicationService.ts' contém lógica de negócio que deveria estar no Domain Layer.",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/services/MaterialApplicationService.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Application Service 'PricingRulesEngine.ts' contém lógica de negócio que deveria estar no Domain Layer.",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/services/PricingRulesEngine.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "38h"
+  },
+  {
+    "priority": "immediate",
     "module": "customers",
-    "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-    "action": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    "actions": [
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/customers/application/controllers/CompanyController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/customers/application/controllers/CustomerController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/customers/application/controllers/CustomersController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/customers/domain/entities/CompanyMembership.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/customers/domain/entities/Customer.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/customers/application/use-cases/CreateCompanyUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/customers/application/use-cases/CreateCustomerUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/customers/application/use-cases/GetCompaniesUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/customers/application/use-cases/GetCustomersUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/customers/application/use-cases/ManageCompanyMembershipUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/customers/application/use-cases/UpdateCompanyUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/customers/infrastructure/repositories/CustomerRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'CustomerDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/customers/domain/services/CustomerDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/customers/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/customers/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      }
+    ],
+    "estimatedTime": "12h"
   },
   {
-    "type": "critical",
-    "module": "materials-services",
-    "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-    "action": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    "priority": "high",
+    "module": "dashboard",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.",
+        "target": "/home/runner/workspace/server/modules/dashboard/routes.ts",
+        "steps": [
+          "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/dashboard/application/controllers/DashboardController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/dashboard/domain/entities/DashboardMetrics.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/dashboard/application/use-cases/GetDashboardMetricsUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/dashboard/infrastructure/repositories/DrizzleDashboardRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'DashboardDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/dashboard/domain/services/DashboardDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/dashboard/infrastructure/repositories",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/dashboard/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      }
+    ],
+    "estimatedTime": "5h"
   },
   {
-    "type": "critical",
-    "module": "materials-services",
-    "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-    "action": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    "priority": "high",
+    "module": "field-layout",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.",
+        "target": "/home/runner/workspace/server/modules/field-layout/routes.ts",
+        "steps": [
+          "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/field-layout/application/controllers/FieldLayoutController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'FieldLayoutDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/field-layout/domain/services/FieldLayoutDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/field-layout/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
+  },
+  {
+    "priority": "high",
+    "module": "field-layouts",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/field-layouts/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/field-layouts/application/controllers/FieldLayoutsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+        "target": "/home/runner/workspace/server/modules/field-layouts/application/use-cases/indexUseCase.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'FieldLayoutDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/field-layouts/domain/services/FieldLayoutDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/field-layouts/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/field-layouts/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/field-layouts/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/field-layouts/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/field-layouts/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "4h"
+  },
+  {
+    "priority": "high",
+    "module": "inventory",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura da camada domain",
+        "target": "/home/runner/workspace/server/modules/inventory/domain",
+        "steps": [
+          "Criar diretório: /home/runner/workspace/server/modules/inventory/domain",
+          "Adicionar arquivo README.md explicando responsabilidades da camada",
+          "Criar subdiretórios conforme padrão Clean Architecture"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/inventory/application/use-cases",
+        "steps": [
+          "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'dto' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/inventory/application/dto",
+        "steps": [
+          "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'services' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/inventory/application/services",
+        "steps": [
+          "Criar diretório/arquivo 'services' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/inventory/application/repositories",
+        "steps": [
+          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura da camada infrastructure",
+        "target": "/home/runner/workspace/server/modules/inventory/infrastructure",
+        "steps": [
+          "Criar diretório: /home/runner/workspace/server/modules/inventory/infrastructure",
+          "Adicionar arquivo README.md explicando responsabilidades da camada",
+          "Criar subdiretórios conforme padrão Clean Architecture"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
+        "target": "/home/runner/workspace/server/modules/inventory",
+        "steps": [
+          "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/inventory/application/controllers/InventoryController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      }
+    ],
+    "estimatedTime": "3h"
+  },
+  {
+    "priority": "high",
+    "module": "knowledge-base",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/KnowledgeBaseController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/MediaController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
+        "steps": [
+          "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui."
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
+        "steps": [
+          "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui."
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'KnowledgeBaseSearchService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/domain/services/KnowledgeBaseSearchService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Application Service 'MediaService.ts' contém lógica de negócio que deveria estar no Domain Layer.",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/application/services/MediaService.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "5h"
+  },
+  {
+    "priority": "high",
+    "module": "locations",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/locations/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/locations/application/controllers/LocationsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/locations/application/use-cases/CreateLocationUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'LocationDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/locations/domain/services/LocationDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/locations/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/locations/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      }
+    ],
+    "estimatedTime": "4h"
+  },
+  {
+    "priority": "high",
+    "module": "notifications",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.",
+        "target": "/home/runner/workspace/server/modules/notifications/routes.ts",
+        "steps": [
+          "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/notifications/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/notifications/application/controllers/NotificationsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/notifications/application/use-cases/GetNotificationsUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'NotificationDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/notifications/domain/services/NotificationDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/notifications/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      }
+    ],
+    "estimatedTime": "4h"
+  },
+  {
+    "priority": "high",
+    "module": "people",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.",
+        "target": "/home/runner/workspace/server/modules/people/routes.ts",
+        "steps": [
+          "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/people/application/controllers/PeopleController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/people/application/use-cases/SearchPeopleUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/people/application/use-cases/UpdatePersonUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+        "target": "/home/runner/workspace/server/modules/people/application/use-cases/indexUseCase.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'PersonDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/people/domain/services/PersonDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/people/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/people/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/people/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/people/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "5h"
+  },
+  {
+    "priority": "high",
+    "module": "projects",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura da camada domain",
+        "target": "/home/runner/workspace/server/modules/projects/domain",
+        "steps": [
+          "Criar diretório: /home/runner/workspace/server/modules/projects/domain",
+          "Adicionar arquivo README.md explicando responsabilidades da camada",
+          "Criar subdiretórios conforme padrão Clean Architecture"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/projects/application/use-cases",
+        "steps": [
+          "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'dto' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/projects/application/dto",
+        "steps": [
+          "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'services' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/projects/application/services",
+        "steps": [
+          "Criar diretório/arquivo 'services' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/projects/application/repositories",
+        "steps": [
+          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura da camada infrastructure",
+        "target": "/home/runner/workspace/server/modules/projects/infrastructure",
+        "steps": [
+          "Criar diretório: /home/runner/workspace/server/modules/projects/infrastructure",
+          "Adicionar arquivo README.md explicando responsabilidades da camada",
+          "Criar subdiretórios conforme padrão Clean Architecture"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
+        "target": "/home/runner/workspace/server/modules/projects",
+        "steps": [
+          "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/projects/application/controllers/ProjectsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      }
+    ],
+    "estimatedTime": "3h"
+  },
+  {
+    "priority": "high",
+    "module": "saas-admin",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/saas-admin/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/saas-admin/application/controllers/SaasAdminController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+        "target": "/home/runner/workspace/server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'SaasAdminDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/saas-admin/domain/services/SaasAdminDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/saas-admin/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/saas-admin/infrastructure/repositories",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/saas-admin/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      }
+    ],
+    "estimatedTime": "4h"
+  },
+  {
+    "priority": "high",
+    "module": "schedule-management",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/schedule-management/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/schedule-management/application/controllers/ScheduleController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/schedule-management/application/controllers/ScheduleManagementController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/schedule-management/application/controllers/SchedulemanagementController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/schedule-management/application/use-cases/CreateScheduleUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/schedule-management/application/use-cases/GetSchedulesUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'ScheduleDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/schedule-management/domain/services/ScheduleDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/schedule-management/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/schedule-management/infrastructure/repositories",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/schedule-management/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/schedule-management/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/schedule-management/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "9h"
+  },
+  {
+    "priority": "high",
+    "module": "teams",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura da camada domain",
+        "target": "/home/runner/workspace/server/modules/teams/domain",
+        "steps": [
+          "Criar diretório: /home/runner/workspace/server/modules/teams/domain",
+          "Adicionar arquivo README.md explicando responsabilidades da camada",
+          "Criar subdiretórios conforme padrão Clean Architecture"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/teams/application/use-cases",
+        "steps": [
+          "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'dto' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/teams/application/dto",
+        "steps": [
+          "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'services' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/teams/application/services",
+        "steps": [
+          "Criar diretório/arquivo 'services' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/teams/application/repositories",
+        "steps": [
+          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura da camada infrastructure",
+        "target": "/home/runner/workspace/server/modules/teams/infrastructure",
+        "steps": [
+          "Criar diretório: /home/runner/workspace/server/modules/teams/infrastructure",
+          "Adicionar arquivo README.md explicando responsabilidades da camada",
+          "Criar subdiretórios conforme padrão Clean Architecture"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
+        "target": "/home/runner/workspace/server/modules/teams",
+        "steps": [
+          "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/teams/application/controllers/TeamsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      }
+    ],
+    "estimatedTime": "3h"
+  },
+  {
+    "priority": "high",
+    "module": "tenant-admin",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/tenant-admin/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/tenant-admin/application/controllers/TenantAdminController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+        "target": "/home/runner/workspace/server/modules/tenant-admin/application/use-cases/indexUseCase.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'TenantConfigDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/tenant-admin/domain/services/TenantConfigDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/tenant-admin/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/tenant-admin/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/tenant-admin/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "4h"
+  },
+  {
+    "priority": "high",
+    "module": "ticket-history",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.",
+        "target": "/home/runner/workspace/server/modules/ticket-history/routes.ts",
+        "steps": [
+          "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/ticket-history/application/controllers/TicketHistoryController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/ticket-history/application/controllers/TickethistoryController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/ticket-history/application/use-cases/CreateTicketHistoryUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'TicketHistoryDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/ticket-history/domain/services/TicketHistoryDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "4h"
+  },
+  {
+    "priority": "high",
+    "module": "tickets",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.",
+        "target": "/home/runner/workspace/server/modules/tickets/routes.ts",
+        "steps": [
+          "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/tickets/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/tickets/application/controllers/TicketController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/tickets/application/controllers/TicketsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/tickets/domain/entities/Ticket.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/tickets/application/use-cases/CreateTicketUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/tickets/application/use-cases/GetTicketsUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/tickets/application/usecases/CreateTicketUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/tickets/application/usecases/GetTicketsUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/tickets/application/usecases/ResolveTicketUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository_backup.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository_fixed.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case 'index' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+        "target": "/home/runner/workspace/server/modules/tickets/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository 'DrizzleTicketRepository_backup' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+        "target": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository_backup.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository 'DrizzleTicketRepository_fixed' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+        "target": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository_fixed.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'TicketDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/tickets/domain/services/TicketDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "11h"
+  },
+  {
+    "priority": "high",
+    "module": "timecard",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Rotas contêm lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/timecard/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardApprovalController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.",
+        "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
+        "steps": [
+          "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui."
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+        "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/indexRepository.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.",
+        "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/indexRepository.ts",
+        "steps": [
+          "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui."
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'TimecardValidationService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/timecard/domain/services/TimecardValidationService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/timecard/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/timecard/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/timecard/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "6h"
+  },
+  {
+    "priority": "high",
+    "module": "user-management",
+    "actions": [
+      {
+        "type": "create_file",
+        "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
+        "target": "/home/runner/workspace/server/modules/user-management",
+        "steps": [
+          "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/user-management/application/controllers/UserManagementController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/user-management/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/user-management/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/user-management/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "3h"
+  },
+  {
+    "priority": "high",
+    "module": "users",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura da camada domain",
+        "target": "/home/runner/workspace/server/modules/users/domain",
+        "steps": [
+          "Criar diretório: /home/runner/workspace/server/modules/users/domain",
+          "Adicionar arquivo README.md explicando responsabilidades da camada",
+          "Criar subdiretórios conforme padrão Clean Architecture"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/users/application/use-cases",
+        "steps": [
+          "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'dto' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/users/application/dto",
+        "steps": [
+          "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'services' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/users/application/services",
+        "steps": [
+          "Criar diretório/arquivo 'services' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/users/application/repositories",
+        "steps": [
+          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura da camada infrastructure",
+        "target": "/home/runner/workspace/server/modules/users/infrastructure",
+        "steps": [
+          "Criar diretório: /home/runner/workspace/server/modules/users/infrastructure",
+          "Adicionar arquivo README.md explicando responsabilidades da camada",
+          "Criar subdiretórios conforme padrão Clean Architecture"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
+        "target": "/home/runner/workspace/server/modules/users",
+        "steps": [
+          "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/users/application/controllers/UsersController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      }
+    ],
+    "estimatedTime": "3h"
+  },
+  {
+    "priority": "high",
+    "module": "auth",
+    "actions": [
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/auth/domain/entities/User.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/auth/application/use-cases/LoginUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'AuthDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/auth/domain/services/AuthDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/auth/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/auth/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/auth/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      }
+    ],
+    "estimatedTime": "5h"
+  },
+  {
+    "priority": "high",
+    "module": "technical-skills",
+    "actions": [
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/TechnicalSkillsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/TechnicalskillsController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController_backup.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/technical-skills/domain/entities/UserSkill.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/CreateSkillUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/CreateUserSkillUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/GetUserSkillsUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/UpdateUserSkillUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/technical-skills/infrastructure/repositories/DrizzleSkillRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/technical-skills/infrastructure/repositories/DrizzleUserSkillRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/SkillController.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Controller contém lógica de negócio ou acesso direto a dados",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController_backup.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'SkillValidationService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/technical-skills/domain/services/SkillValidationService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/technical-skills/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/technical-skills/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "12h"
+  },
+  {
+    "priority": "high",
+    "module": "shared",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/shared/application/use-cases/BaseUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio ou validação complexa",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/BaseRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+        "target": "/home/runner/workspace/server/modules/shared/application/use-cases/indexUseCase.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository 'index' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
+        "steps": [
+          "Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui."
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/indexRepository.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'BaseDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/shared/domain/services/BaseDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'ValidationDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/shared/domain/services/ValidationDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/shared/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Garantir que as rotas do módulo utilizem os controllers definidos",
+        "target": "/home/runner/workspace/server/modules/shared/routes.ts",
+        "steps": [
+          "Garantir que as rotas do módulo utilizem os controllers definidos"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/shared/domain",
+        "code": "import { Entity } from '../../domain/entities/Entity';\nimport { IEntityRepository } from '../../domain/ports/IEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleEntityRepository implements IEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Entity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Entity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Entity): Promise<Entity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Entity>, tenantId: string): Promise<Entity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/shared/domain/services/BaseDomainService.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "5h"
+  },
+  {
+    "priority": "low",
+    "module": "ticket-templates",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
+        "target": "/home/runner/workspace/server/modules/ticket-templates/application/repositories",
+        "steps": [
+          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'TemplateValidationService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/ticket-templates/domain/services/TemplateValidationService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "25min"
+  },
+  {
+    "priority": "low",
+    "module": "template-audit",
+    "actions": [
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'AuditValidationService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/template-audit/domain/services/AuditValidationService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/template-audit/domain/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Service 'index' não segue o padrão PascalCase",
+        "target": "/home/runner/workspace/server/modules/template-audit/application/services/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.",
+        "target": "/home/runner/workspace/server/modules/template-audit/domain/services/index.ts",
+        "steps": [
+          "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
+  },
+  {
+    "priority": "low",
+    "module": "template-hierarchy",
+    "actions": [
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'TemplateHierarchyDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/template-hierarchy/domain/services/TemplateHierarchyDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "15min"
+  },
+  {
+    "priority": "low",
+    "module": "template-versions",
+    "actions": [
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Domain Service 'TemplateVersionDomainService' não precisa necessariamente terminar com 'Service'",
+        "target": "/home/runner/workspace/server/modules/template-versions/domain/services/TemplateVersionDomainService.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "15min"
   }
 ]
