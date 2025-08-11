@@ -1181,7 +1181,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Status</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter(opt => opt.fieldName === 'status').length}
+                        {(fieldOptions || []).filter(opt => opt.fieldName === 'status').length}
                       </p>
                     </div>
                   </div>
@@ -1194,7 +1194,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Prioridades</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter(opt => opt.fieldName === 'priority').length}
+                        {(fieldOptions || []).filter(opt => opt.fieldName === 'priority').length}
                       </p>
                     </div>
                   </div>
@@ -1207,7 +1207,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Impactos</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter(opt => opt.fieldName === 'impact').length}
+                        {(fieldOptions || []).filter(opt => opt.fieldName === 'impact').length}
                       </p>
                     </div>
                   </div>
@@ -1220,7 +1220,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Urgências</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter(opt => opt.fieldName === 'urgency').length}
+                        {(fieldOptions || []).filter(opt => opt.fieldName === 'urgency').length}
                       </p>
                     </div>
                   </div>
