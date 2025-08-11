@@ -1,50 +1,53 @@
 import { eq, and, sql, desc } from 'drizzle-orm';
 import { PgDatabase } from 'drizzle-orm/pg-core';
 import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
+import { Ticket } from '../../domain/entities/Ticket';
+import { tickets } from '../schemas/tickets';
 
 export class DrizzleTicketRepository implements ITicketRepository {
   constructor(private db: PgDatabase<any>) {}
 
   // Implementation of ITicketRepository methods following AGENT_CODING_STANDARDS.md
-  async save(ticket: any): Promise<any> {
+  async save(ticket: Ticket): Promise<Ticket> {
     console.log('🎫 [DrizzleTicketRepository] Saving ticket - checking structure:', Object.keys(ticket));
-    
-    // Extract data from ticket entity (compatible with both getter and property access)
+
     const ticketData = {
-      id: ticket.id || ticket.getId?.(),
-      tenant_id: ticket.tenantId || ticket.getTenantId?.(),
-      number: ticket.number || ticket.getNumber?.(),
-      subject: ticket.subject || ticket.getSubject?.(),
-      description: ticket.description || ticket.getDescription?.(),
-      priority: ticket.priority?.value || ticket.priority || ticket.getPriority?.()?.getValue?.() || 'medium',
-      status: ticket.status?.value || ticket.status || ticket.getStatus?.()?.getValue?.() || 'open',
-      state: ticket.state?.value || ticket.state || ticket.getState?.()?.getValue?.() || 'open',
-      caller_id: ticket.callerId || ticket.getCallerId?.(),
-      caller_type: ticket.callerType || ticket.getCallerType?.(),
-      beneficiary_id: ticket.beneficiaryId || ticket.getBeneficiaryId?.(),
-      beneficiary_type: ticket.beneficiaryType || ticket.getBeneficiaryType?.(),
-      assigned_to_id: ticket.assignedToId || ticket.getAssignedToId?.(),
-      created_by: ticket.createdBy || ticket.getCreatedBy?.(),
-      category: ticket.category || ticket.getCategory?.(),
-      subcategory: ticket.subcategory || ticket.getSubcategory?.(),
-      impact: ticket.impact || ticket.getImpact?.(),
-      urgency: ticket.urgency || ticket.getUrgency?.(),
-      assignment_group: ticket.assignmentGroup || ticket.getAssignmentGroup?.(),
-      location: ticket.location || ticket.getLocation?.(),
-      contact_type: ticket.contactType || ticket.getContactType?.(),
-      business_impact: ticket.businessImpact || ticket.getBusinessImpact?.(),
-      symptoms: ticket.symptoms || ticket.getSymptoms?.(),
-      workaround: ticket.workaround || ticket.getWorkaround?.(),
-      configuration_item: ticket.configurationItem || ticket.getConfigurationItem?.(),
-      business_service: ticket.businessService || ticket.getBusinessService?.(),
-      notify: ticket.notify || ticket.getNotify?.()
+      id: ticket.id,
+      tenant_id: ticket.tenantId,
+      number: ticket.number,
+      subject: ticket.subject,
+      description: ticket.description,
+      priority: ticket.priority?.value || ticket.priority,
+      status: ticket.status?.value || ticket.status,
+      state: ticket.state?.value || ticket.state,
+      caller_id: ticket.callerId,
+      caller_type: ticket.callerType,
+      beneficiary_id: ticket.beneficiaryId,
+      beneficiary_type: ticket.beneficiaryType,
+      assigned_to_id: ticket.assignedToId,
+      created_by: ticket.createdBy,
+      category: ticket.category,
+      subcategory: ticket.subcategory,
+      impact: ticket.impact,
+      urgency: ticket.urgency,
+      assignment_group: ticket.assignmentGroup,
+      location: ticket.location,
+      contact_type: ticket.contactType,
+      business_impact: ticket.businessImpact,
+      symptoms: ticket.symptoms,
+      workaround: ticket.workaround,
+      configuration_item: ticket.configurationItem,
+      business_service: ticket.businessService,
+      notify: ticket.notify
     };
-    
+
     console.log('🎫 [DrizzleTicketRepository] Processed ticket data:', ticketData);
-    return this.create(ticketData.tenant_id, ticketData);
+    
+    const createdTicket = await this.create(ticketData.tenant_id, ticketData);
+    return this.mapToEntity(createdTicket);
   }
 
-  async findById(id: string, tenantId: string): Promise<any | null> {
+  async findById(id: string, tenantId: string): Promise<Ticket | null> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
@@ -57,61 +60,86 @@ export class DrizzleTicketRepository implements ITicketRepository {
         WHERE t.id = $1
       `;
       const result = await this.db.execute(sql.raw(query, id));
-      return result[0] || null;
+      if (!result || result.length === 0) return null;
+      return this.mapToEntity(result[0]);
     } catch (error) {
       console.error('🎫 [DrizzleTicketRepository] Error finding ticket by ID:', error);
       return null;
     }
   }
 
-  async findAll(tenantId: string, options?: any): Promise<any[]> {
+  async findAll(tenantId: string, options?: any): Promise<Ticket[]> {
     return this.findByTenant(tenantId, options || {});
   }
 
-  async update(id: string, tenantId: string, ticket: any): Promise<any> {
-    const updates = { ...ticket };
-    delete updates.id;
-    delete updates.tenantId;
-    return this.updateTicket(tenantId, id, updates);
+  async update(id: string, data: Partial<Ticket>, tenantId: string): Promise<Ticket> {
+    const tableName = `${tenantId}.tickets`;
+
+    const [updatedTicket] = await this.db
+      .update(tickets)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(tickets.id, id),
+        eq(tickets.tenantId, tenantId)
+      ))
+      .returning();
+
+    if (!updatedTicket) {
+      throw new Error(`Ticket with id ${id} not found or not updated in tenant ${tenantId}`);
+    }
+
+    return this.mapToEntity(updatedTicket);
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
-    return this.deleteTicket(tenantId, id);
+    const tableName = `${tenantId}.tickets`;
+
+    const result = await this.db
+      .delete(tickets)
+      .where(and(
+        eq(tickets.id, id),
+        eq(tickets.tenantId, tenantId)
+      ));
+
+    return result.rowCount > 0;
   }
 
-  async findByCallerAndType(callerId: string, callerType: 'user' | 'customer', tenantId: string): Promise<any[]> {
+  async findByCallerAndType(callerId: string, callerType: 'user' | 'customer', tenantId: string): Promise<Ticket[]> {
     return this.findByTenant(tenantId, { callerId, callerType });
   }
 
-  async findByBeneficiaryAndType(beneficiaryId: string, beneficiaryType: 'user' | 'customer', tenantId: string): Promise<any[]> {
+  async findByBeneficiaryAndType(beneficiaryId: string, beneficiaryType: 'user' | 'customer', tenantId: string): Promise<Ticket[]> {
     return this.findByTenant(tenantId, { beneficiaryId, beneficiaryType });
   }
 
-  async findByAssignedAgent(agentId: string, tenantId: string): Promise<any[]> {
+  async findByAssignedAgent(agentId: string, tenantId: string): Promise<Ticket[]> {
     return this.findByTenant(tenantId, { assignedToId: agentId });
   }
 
-  async findAutoServiceTickets(tenantId: string): Promise<any[]> {
+  async findAutoServiceTickets(tenantId: string): Promise<Ticket[]> {
     return this.findByTenant(tenantId, { serviceType: 'auto' });
   }
 
-  async findProxyServiceTickets(tenantId: string): Promise<any[]> {
+  async findProxyServiceTickets(tenantId: string): Promise<Ticket[]> {
     return this.findByTenant(tenantId, { serviceType: 'proxy' });
   }
 
-  async findInternalServiceTickets(tenantId: string): Promise<any[]> {
+  async findInternalServiceTickets(tenantId: string): Promise<Ticket[]> {
     return this.findByTenant(tenantId, { serviceType: 'internal' });
   }
 
-  async findHybridServiceTickets(tenantId: string): Promise<any[]> {
+  async findHybridServiceTickets(tenantId: string): Promise<Ticket[]> {
     return this.findByTenant(tenantId, { serviceType: 'hybrid' });
   }
 
   async countTotal(tenantId: string): Promise<number> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      const query = `SELECT COUNT(*) as total FROM "${schemaName}".tickets`;
-      const result = await this.db.execute(sql.raw(query));
+      const query = `SELECT COUNT(*) as total FROM "${schemaName}".tickets WHERE tenant_id = $1`;
+      const result = await this.db.execute(sql.raw(query, tenantId));
       return parseInt(result[0]?.total || '0');
     } catch (error) {
       console.error('🎫 [DrizzleTicketRepository] Error counting tickets:', error);
@@ -120,183 +148,65 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   async countByServiceType(tenantId: string): Promise<{autoService: number; proxyService: number; internalService: number; hybridService: number}> {
-    return {
-      autoService: 0,
-      proxyService: 0,
-      internalService: 0,
-      hybridService: 0
-    };
+    const counts = await this.db.execute(sql`
+      SELECT
+        COUNT(*) FILTER (WHERE service_type = 'auto') as autoService,
+        COUNT(*) FILTER (WHERE service_type = 'proxy') as proxyService,
+        COUNT(*) FILTER (WHERE service_type = 'internal') as internalService,
+        COUNT(*) FILTER (WHERE service_type = 'hybrid') as hybridService
+      FROM ${sql.identifier(`tenant_${tenantId.replace(/-/g, '_')}`)}.tickets
+      WHERE tenant_id = ${tenantId}
+    `);
+
+    const result = counts[0] || { autoService: 0, proxyService: 0, internalService: 0, hybridService: 0 };
+    return result;
   }
 
   async migrateExistingTickets(tenantId: string): Promise<{updated: number; errors: string[]}> {
     return { updated: 0, errors: [] };
   }
 
-
-  async findByTenant(tenantId: string, filters: any = {}): Promise<any[]> {
+  async findByTenant(tenantId: string, filters: any = {}): Promise<Ticket[]> {
     try {
       console.log('🎫 [DrizzleTicketRepository] Finding tickets for tenant:', tenantId);
 
-      // Get schema name
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      let queryBuilder = this.db
+        .select()
+        .from(tickets)
+        .where(and(
+          eq(tickets.tenantId, tenantId)
+        ));
 
-      // Build raw SQL query to avoid schema/column issues
-      let query = `
-        SELECT 
-          t.id,
-          t.number,
-          t.subject,
-          t.description,
-          t.status,
-          t.priority,
-          t.urgency,
-          t.category,
-          t.subcategory,
-          t.action,
-          t.caller_id,
-          t.beneficiary_id,
-          t.assigned_to_id,
-          t.company_id,
-          t.location,
-          t.symptoms,
-          t.business_impact,
-          t.workaround,
-          t.created_at,
-          t.updated_at,
-          t.resolved_at,
-          t.closed_at,
-          c.first_name as customer_first_name,
-          c.last_name as customer_last_name,
-          c.email as customer_email,
-          u.first_name as assigned_first_name,
-          u.last_name as assigned_last_name
-        FROM "${schemaName}".tickets t
-        LEFT JOIN "${schemaName}".customers c ON c.id = t.caller_id
-        LEFT JOIN public.users u ON u.id = t.assigned_to_id
-        WHERE 1=1
-      `;
-
-      const params: any[] = [];
-      let paramIndex = 1;
-
-      // Add filters
       if (filters.status) {
-        query += ` AND t.status = $${paramIndex}`;
-        params.push(filters.status);
-        paramIndex++;
+        queryBuilder = queryBuilder.where(eq(tickets.status, filters.status));
       }
-
       if (filters.priority) {
-        query += ` AND t.priority = $${paramIndex}`;
-        params.push(filters.priority);
-        paramIndex++;
+        queryBuilder = queryBuilder.where(eq(tickets.priority, filters.priority));
       }
-
       if (filters.assignedTo) {
-        query += ` AND t.assigned_to_id = $${paramIndex}`;
-        params.push(filters.assignedTo);
-        paramIndex++;
+        queryBuilder = queryBuilder.where(eq(tickets.assignedToId, filters.assignedTo));
       }
-
       if (filters.customerId) {
-        query += ` AND t.caller_id = $${paramIndex}`;
-        params.push(filters.customerId);
-        paramIndex++;
+        queryBuilder = queryBuilder.where(eq(tickets.callerId, filters.customerId));
       }
-
       if (filters.ticketId) {
-        query += ` AND t.id = $${paramIndex}`;
-        params.push(filters.ticketId);
-        paramIndex++;
+        queryBuilder = queryBuilder.where(eq(tickets.id, filters.ticketId));
+      }
+      if (filters.serviceType) {
+        queryBuilder = queryBuilder.where(eq(tickets.serviceType, filters.serviceType));
       }
 
-      // Add ordering
-      query += ` ORDER BY t.created_at DESC`;
-
-      // Add pagination
       if (filters.limit) {
-        query += ` LIMIT $${paramIndex}`;
-        params.push(filters.limit);
-        paramIndex++;
+        queryBuilder = queryBuilder.limit(filters.limit);
       }
-
       if (filters.offset) {
-        query += ` OFFSET $${paramIndex}`;
-        params.push(filters.offset);
-        paramIndex++;
+        queryBuilder = queryBuilder.offset(filters.offset);
       }
 
-      console.log('🎫 [DrizzleTicketRepository] Executing query:', query);
-      console.log('🎫 [DrizzleTicketRepository] With params:', params);
+      queryBuilder = queryBuilder.orderBy(desc(tickets.createdAt));
 
-      // Simplified approach - build query directly without parameters
-      let finalQuery = `
-        SELECT 
-          t.id,
-          COALESCE(t.number, CONCAT('T-', SUBSTRING(t.id::text, 1, 8))) as number,
-          t.subject,
-          t.description,
-          t.status,
-          t.priority,
-          t.category,
-          t.subcategory,
-          t.caller_id,
-          t.assigned_to_id,
-          t.created_at,
-          t.updated_at,
-          c.first_name as customer_first_name,
-          c.last_name as customer_last_name,
-          c.email as customer_email
-        FROM "${schemaName}".tickets t
-        LEFT JOIN "${schemaName}".customers c ON c.id = t.caller_id
-        ORDER BY t.created_at DESC
-        LIMIT 50
-      `;
-      
-      const result = await this.db.execute(sql.raw(finalQuery));
-
-      console.log('🎫 [DrizzleTicketRepository] Raw result:', result, 'type:', typeof result);
-      
-      // Handle result structure properly
-      const rows = Array.isArray(result) ? result : (result.rows || []);
-      console.log('🎫 [DrizzleTicketRepository] Rows found:', rows.length);
-
-      // Map results to expected format
-      const tickets = rows.map((row: any) => ({
-        id: row.id,
-        number: row.number,
-        subject: row.subject,
-        description: row.description,
-        status: row.status,
-        priority: row.priority,
-        urgency: row.urgency,
-        category: row.category,
-        subcategory: row.subcategory,
-        action: row.action,
-        caller_id: row.caller_id,
-        beneficiary_id: row.beneficiary_id,
-        assigned_to_id: row.assigned_to_id,
-        customer_company_id: row.customer_company_id,
-        location: row.location,
-        symptoms: row.symptoms,
-        business_impact: row.business_impact,
-        workaround: row.workaround,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        resolved_at: row.resolved_at,
-        closed_at: row.closed_at,
-        // Joined data
-        customer_name: row.customer_first_name && row.customer_last_name 
-          ? `${row.customer_first_name} ${row.customer_last_name}`.trim()
-          : null,
-        customer_email: row.customer_email,
-        assigned_to_name: row.assigned_first_name && row.assigned_last_name
-          ? `${row.assigned_first_name} ${row.assigned_last_name}`.trim()
-          : null
-      }));
-
-      console.log('🎫 [DrizzleTicketRepository] Mapped tickets:', tickets.length);
-      return tickets;
+      const dbResult = await queryBuilder;
+      return dbResult.map(this.mapToEntity);
 
     } catch (error) {
       console.error('🎫 [DrizzleTicketRepository] Error finding tickets:', error);
@@ -304,12 +214,12 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
-  async findById(tenantId: string, ticketId: string): Promise<any | null> {
+  async findById(tenantId: string, ticketId: string): Promise<Ticket | null> {
     const tickets = await this.findByTenant(tenantId, { ticketId, limit: 1 });
-    return tickets[0] || null;
+    return tickets.length > 0 ? tickets[0] : null;
   }
 
-  async findMany(tenantId: string, filters: any = {}): Promise<any[]> {
+  async findMany(tenantId: string, filters: any = {}): Promise<Ticket[]> {
     return this.findByTenant(tenantId, filters);
   }
 
@@ -319,64 +229,49 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Generate ticket number
-      const ticketNumber = `TK-${Date.now().toString().slice(-6)}`;
+      const ticketNumber = await this.getNextTicketNumber(tenantId);
 
-      // Fixed: Use simple string interpolation with proper schema name
-      const insertQuery = `
-        INSERT INTO "${schemaName}".tickets (
-          number, subject, description, status, priority, urgency,
-          category, subcategory, action, caller_id, beneficiary_id,
-          assigned_to_id, company_id, location, symptoms,
-          business_impact, workaround, created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW()
-        ) RETURNING *
-      `;
-
-      const params = [
-        ticketNumber,
-        ticketData.subject || '',
-        ticketData.description || '',
-        ticketData.status || 'new',
-        ticketData.priority || 'medium',
-        ticketData.urgency || 'medium',
-        ticketData.category || null,
-        ticketData.subcategory || null,
-        ticketData.action || null,
-        ticketData.caller_id || null,
-        ticketData.beneficiary_id || null,
-        ticketData.assigned_to_id || null,
-        ticketData.company_id || null,
-        ticketData.location || null,
-        ticketData.symptoms || null,
-        ticketData.business_impact || null,
-        ticketData.workaround || null
-      ];
-
-      // Final fix: Use direct pool query following existing working patterns
       const result = await this.db.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets (
-          number, subject, description, status, priority, urgency,
-          category, subcategory, action, caller_id, beneficiary_id,
+          id, tenant_id, number, subject, description, priority, urgency,
+          status, state, category, subcategory, caller_id, beneficiary_id,
           assigned_to_id, company_id, location, symptoms,
-          business_impact, workaround, created_at, updated_at
+          business_impact, workaround, created_at, updated_at, notify, service_type
         ) VALUES (
-          ${params[0]}, ${params[1]}, ${params[2]}, ${params[3]}, ${params[4]}, ${params[5]}, 
-          ${params[6]}, ${params[7]}, ${params[8]}, ${params[9]}, ${params[10]}, ${params[11]}, 
-          ${params[12]}, ${params[13]}, ${params[14]}, ${params[15]}, ${params[16]}, NOW(), NOW()
+          ${ticketData.id || sql.raw('gen_random_uuid()')}, 
+          ${tenantId},
+          ${ticketNumber}, 
+          ${ticketData.subject || ''}, 
+          ${ticketData.description || ''}, 
+          ${ticketData.priority || 'medium'}, 
+          ${ticketData.urgency || 'medium'},
+          ${ticketData.status || 'new'}, 
+          ${ticketData.state || 'open'},
+          ${ticketData.category || null}, 
+          ${ticketData.subcategory || null}, 
+          ${ticketData.caller_id || null}, 
+          ${ticketData.beneficiary_id || null},
+          ${ticketData.assigned_to_id || null}, 
+          ${ticketData.company_id || null}, 
+          ${ticketData.location || null}, 
+          ${ticketData.symptoms || null},
+          ${ticketData.business_impact || null}, 
+          ${ticketData.workaround || null}, 
+          NOW(), 
+          NOW(),
+          ${ticketData.notify || false},
+          ${ticketData.serviceType || 'internal'}
         ) RETURNING *
       `);
 
       console.log('🎫 [DrizzleTicketRepository] Raw result:', result);
-      
-      // Extract the first row from the result
+
       const ticketRow = Array.isArray(result) ? result[0] : result.rows?.[0];
-      
+
       if (!ticketRow) {
         throw new Error('Failed to create ticket - no result returned');
       }
-      
+
       console.log('🎫 [DrizzleTicketRepository] Ticket created:', ticketRow);
       return ticketRow;
 
@@ -389,30 +284,26 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async getNextTicketNumber(tenantId: string, prefix: string = 'TK'): Promise<string> {
     try {
       console.log('🎫 [DrizzleTicketRepository] Generating ticket number for tenant:', tenantId);
-      
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      // Get the latest ticket number for this tenant
-      const query = `
-        SELECT number 
-        FROM "${schemaName}".tickets 
-        WHERE tenant_id = $1 AND number LIKE $2
-        ORDER BY created_at DESC 
+
+      const result = await this.db.execute(sql`
+        SELECT number FROM ${sql.identifier(schemaName)}.tickets
+        WHERE tenant_id = ${tenantId} AND number LIKE ${`${prefix}-%`}
+        ORDER BY number DESC
         LIMIT 1
-      `;
-      
-      const result = await this.db.execute(sql.raw(query, [tenantId, `${prefix}-%`]));
-      
+      `);
+
       let nextNumber = 1;
-      if (result.length > 0) {
+      if (result.length > 0 && result[0].number) {
         const lastNumber = result[0].number;
-        const numericPart = parseInt(lastNumber.split('-')[1]) || 0;
+        const numericPart = parseInt(lastNumber.split('-').pop() || '0') || 0;
         nextNumber = numericPart + 1;
       }
-      
+
       const ticketNumber = `${prefix}-${nextNumber.toString().padStart(6, '0')}`;
       console.log('🎫 [DrizzleTicketRepository] Generated ticket number:', ticketNumber);
-      
+
       return ticketNumber;
     } catch (error) {
       console.error('🎫 [DrizzleTicketRepository] Error generating ticket number:', error);
@@ -421,43 +312,73 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
-  async update(tenantId: string, ticketId: string, updates: any): Promise<any> {
-    try {
-      console.log('🎫 [DrizzleTicketRepository] Updating ticket:', ticketId);
+  async findByStatus(status: string, tenantId: string): Promise<Ticket[]> {
+    const results = await this.db
+      .select()
+      .from(tickets)
+      .where(and(
+        eq(tickets.status, status),
+        eq(tickets.tenantId, tenantId)
+      ))
+      .orderBy(desc(tickets.createdAt));
 
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      // Build dynamic update query
-      const updateFields = Object.keys(updates).map((key, index) => `${key} = $${index + 2}`).join(', ');
-      const query = `
-        UPDATE "${schemaName}".tickets 
-        SET ${updateFields}, updated_at = NOW()
-        WHERE id = $1
-        RETURNING *
-      `;
-
-      const params = [ticketId, ...Object.values(updates)];
-
-      const result = await this.db.execute(sql.raw(query, ...params));
-      return result[0];
-
-    } catch (error) {
-      console.error('🎫 [DrizzleTicketRepository] Error updating ticket:', error);
-      throw error;
-    }
+    return results.map(this.mapToEntity);
   }
 
-  async delete(tenantId: string, ticketId: string): Promise<boolean> {
-    try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+  async findByAssignee(assigneeId: string, tenantId: string): Promise<Ticket[]> {
+    const results = await this.db
+      .select()
+      .from(tickets)
+      .where(and(
+        eq(tickets.assignedToId, assigneeId),
+        eq(tickets.tenantId, tenantId)
+      ))
+      .orderBy(desc(tickets.createdAt));
 
-      const query = `DELETE FROM "${schemaName}".tickets WHERE id = $1`;
-      await this.db.execute(sql.raw(query, ticketId));
+    return results.map(this.mapToEntity);
+  }
 
-      return true;
-    } catch (error) {
-      console.error('🎫 [DrizzleTicketRepository] Error deleting ticket:', error);
-      return false;
-    }
+  private mapToEntity(row: any): Ticket {
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      number: row.number,
+      subject: row.subject,
+      description: row.description,
+      priority: { value: row.priority, label: row.priority },
+      status: { value: row.status, label: row.status },
+      state: { value: row.state, label: row.state },
+      callerId: row.caller_id,
+      callerType: row.caller_type,
+      beneficiaryId: row.beneficiary_id,
+      beneficiaryType: row.beneficiary_type,
+      assignedToId: row.assigned_to_id,
+      createdBy: row.created_by,
+      category: row.category,
+      subcategory: row.subcategory,
+      impact: row.impact,
+      urgency: row.urgency,
+      assignmentGroup: row.assignment_group,
+      location: row.location,
+      contactType: row.contact_type,
+      businessImpact: row.business_impact,
+      symptoms: row.symptoms,
+      workaround: row.workaround,
+      configurationItem: row.configuration_item,
+      businessService: row.business_service,
+      notify: row.notify,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      resolvedAt: row.resolved_at ? new Date(row.resolved_at) : null,
+      closedAt: row.closed_at ? new Date(row.closed_at) : null,
+      // Joined data
+      customerName: row.customer_first_name && row.customer_last_name
+        ? `${row.customer_first_name} ${row.customer_last_name}`.trim()
+        : null,
+      customerEmail: row.customer_email,
+      assignedToName: row.assigned_first_name && row.assigned_last_name
+        ? `${row.assigned_first_name} ${row.assigned_last_name}`.trim()
+        : null
+    };
   }
 }
