@@ -15,12 +15,13 @@ export class BeneficiariesController {
       
       console.log('👥 [BeneficiariesController] Getting beneficiaries for tenant:', tenantId);
       
-      // Use direct SQL query following same pattern as tickets
+      // Use correct database connection following AGENT_CODING_STANDARDS.md
       const { db } = await import('../../../db');
       const { sql } = await import('drizzle-orm');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const query = `
+      // Execute direct query using sql template literals
+      const result = await db.execute(sql`
         SELECT 
           id,
           tenant_id,
@@ -37,15 +38,12 @@ export class BeneficiariesController {
           cell_phone,
           created_at,
           updated_at
-        FROM "${schemaName}".beneficiaries
-        WHERE tenant_id = '${tenantId}' AND is_active = true
+        FROM ${sql.identifier(schemaName)}.beneficiaries
+        WHERE tenant_id = ${tenantId} AND is_active = true
         ORDER BY created_at DESC
         LIMIT 50
-      `;
+      `);
       
-      console.log('👥 [BeneficiariesController] Executing query:', query);
-      
-      const result = await db.execute(sql.raw(query));
       const beneficiaries = Array.isArray(result) ? result : (result.rows || []);
       
       console.log('👥 [BeneficiariesController] Beneficiaries found:', beneficiaries.length);

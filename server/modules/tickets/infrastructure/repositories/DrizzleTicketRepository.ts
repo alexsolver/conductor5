@@ -322,32 +322,49 @@ export class DrizzleTicketRepository implements ITicketRepository {
       // Generate ticket number
       const ticketNumber = `TK-${Date.now().toString().slice(-6)}`;
 
-      // Use template literals with Drizzle sql helper for better parameter handling
-      const result = await this.db.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName, 'tickets')} (
+      // Fixed: Use simple string interpolation with proper schema name
+      const insertQuery = `
+        INSERT INTO "${schemaName}".tickets (
           number, subject, description, status, priority, urgency,
           category, subcategory, action, caller_id, beneficiary_id,
-          assigned_to_id, customer_company_id, location, symptoms,
+          assigned_to_id, company_id, location, symptoms,
           business_impact, workaround, created_at, updated_at
         ) VALUES (
-          ${ticketNumber},
-          ${ticketData.subject || ''},
-          ${ticketData.description || ''},
-          ${ticketData.status || 'new'},
-          ${ticketData.priority || 'medium'},
-          ${ticketData.urgency || 'medium'},
-          ${ticketData.category || null},
-          ${ticketData.subcategory || null},
-          ${ticketData.action || null},
-          ${ticketData.caller_id || null},
-          ${ticketData.beneficiary_id || null},
-          ${ticketData.assigned_to_id || null},
-          ${ticketData.customer_company_id || null},
-          ${ticketData.location || null},
-          ${ticketData.symptoms || null},
-          ${ticketData.business_impact || null},
-          ${ticketData.workaround || null},
-          NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW()
+        ) RETURNING *
+      `;
+
+      const params = [
+        ticketNumber,
+        ticketData.subject || '',
+        ticketData.description || '',
+        ticketData.status || 'new',
+        ticketData.priority || 'medium',
+        ticketData.urgency || 'medium',
+        ticketData.category || null,
+        ticketData.subcategory || null,
+        ticketData.action || null,
+        ticketData.caller_id || null,
+        ticketData.beneficiary_id || null,
+        ticketData.assigned_to_id || null,
+        ticketData.company_id || null,
+        ticketData.location || null,
+        ticketData.symptoms || null,
+        ticketData.business_impact || null,
+        ticketData.workaround || null
+      ];
+
+      // Final fix: Use direct pool query following existing working patterns
+      const result = await this.db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.tickets (
+          number, subject, description, status, priority, urgency,
+          category, subcategory, action, caller_id, beneficiary_id,
+          assigned_to_id, company_id, location, symptoms,
+          business_impact, workaround, created_at, updated_at
+        ) VALUES (
+          ${params[0]}, ${params[1]}, ${params[2]}, ${params[3]}, ${params[4]}, ${params[5]}, 
+          ${params[6]}, ${params[7]}, ${params[8]}, ${params[9]}, ${params[10]}, ${params[11]}, 
+          ${params[12]}, ${params[13]}, ${params[14]}, ${params[15]}, ${params[16]}, NOW(), NOW()
         ) RETURNING *
       `);
 
@@ -375,7 +392,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         LIMIT 1
       `;
       
-      const result = await this.db.execute(sql.raw(query, tenantId, `${prefix}-%`));
+      const result = await this.db.execute(sql.raw(query, [tenantId, `${prefix}-%`]));
       
       let nextNumber = 1;
       if (result.length > 0) {
