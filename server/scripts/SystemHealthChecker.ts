@@ -278,7 +278,7 @@ export class SystemHealthChecker {
 }
 
 // Execute health check if run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const checker = new SystemHealthChecker();
   checker.runFullHealthCheck()
     .then(() => checker.cleanup())
