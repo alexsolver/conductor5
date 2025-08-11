@@ -1398,58 +1398,6 @@
     "module": "inventory",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "/home/runner/workspace/server/modules/inventory/domain",
-        "steps": [
-          "Criar diretório: /home/runner/workspace/server/modules/inventory/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/inventory/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'dto' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/inventory/application/dto",
-        "steps": [
-          "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'services' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/inventory/application/services",
-        "steps": [
-          "Criar diretório/arquivo 'services' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/inventory/application/repositories",
-        "steps": [
-          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "/home/runner/workspace/server/modules/inventory/infrastructure",
-        "steps": [
-          "Criar diretório: /home/runner/workspace/server/modules/inventory/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
         "type": "create_file",
         "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
         "target": "/home/runner/workspace/server/modules/inventory",
@@ -1470,7 +1418,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "2h"
   },
   {
     "priority": "high",
@@ -1845,58 +1793,6 @@
     "module": "projects",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "/home/runner/workspace/server/modules/projects/domain",
-        "steps": [
-          "Criar diretório: /home/runner/workspace/server/modules/projects/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/projects/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'dto' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/projects/application/dto",
-        "steps": [
-          "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'services' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/projects/application/services",
-        "steps": [
-          "Criar diretório/arquivo 'services' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/projects/application/repositories",
-        "steps": [
-          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "/home/runner/workspace/server/modules/projects/infrastructure",
-        "steps": [
-          "Criar diretório: /home/runner/workspace/server/modules/projects/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
         "type": "create_file",
         "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
         "target": "/home/runner/workspace/server/modules/projects",
@@ -1917,7 +1813,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "2h"
   },
   {
     "priority": "high",
@@ -2165,58 +2061,6 @@
     "module": "teams",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "/home/runner/workspace/server/modules/teams/domain",
-        "steps": [
-          "Criar diretório: /home/runner/workspace/server/modules/teams/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/teams/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'dto' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/teams/application/dto",
-        "steps": [
-          "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'services' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/teams/application/services",
-        "steps": [
-          "Criar diretório/arquivo 'services' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/teams/application/repositories",
-        "steps": [
-          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "/home/runner/workspace/server/modules/teams/infrastructure",
-        "steps": [
-          "Criar diretório: /home/runner/workspace/server/modules/teams/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
         "type": "create_file",
         "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
         "target": "/home/runner/workspace/server/modules/teams",
@@ -2237,7 +2081,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "2h"
   },
   {
     "priority": "high",
@@ -2772,58 +2616,6 @@
     "module": "users",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "/home/runner/workspace/server/modules/users/domain",
-        "steps": [
-          "Criar diretório: /home/runner/workspace/server/modules/users/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/users/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'dto' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/users/application/dto",
-        "steps": [
-          "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'services' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/users/application/services",
-        "steps": [
-          "Criar diretório/arquivo 'services' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário",
-        "target": "/home/runner/workspace/server/modules/users/application/repositories",
-        "steps": [
-          "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "/home/runner/workspace/server/modules/users/infrastructure",
-        "steps": [
-          "Criar diretório: /home/runner/workspace/server/modules/users/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
         "type": "create_file",
         "description": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API",
         "target": "/home/runner/workspace/server/modules/users",
@@ -2844,7 +2636,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "2h"
   },
   {
     "priority": "high",

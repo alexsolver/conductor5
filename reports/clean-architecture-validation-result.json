@@ -63,66 +63,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-INVENTORY-LDOMAIN-MISSING",
-      "layer": "domain",
-      "module": "inventory",
-      "severity": "high",
-      "type": "structure_violation",
-      "description": "Camada 'domain' ausente no módulo inventory",
-      "file": "/home/runner/workspace/server/modules/inventory/domain",
-      "suggestedFix": "Criar diretório 'domain' com estrutura apropriada"
-    },
-    {
-      "id": "ARCH-INVENTORY-APPLICATION-USE-CASES-MISSING",
-      "layer": "application",
-      "module": "inventory",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'use-cases' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/inventory/application/use-cases",
-      "suggestedFix": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-INVENTORY-APPLICATION-DTO-MISSING",
-      "layer": "application",
-      "module": "inventory",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'dto' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/inventory/application/dto",
-      "suggestedFix": "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-INVENTORY-APPLICATION-SERVICES-MISSING",
-      "layer": "application",
-      "module": "inventory",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'services' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/inventory/application/services",
-      "suggestedFix": "Criar diretório/arquivo 'services' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-INVENTORY-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "inventory",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/inventory/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-INVENTORY-LINFRASTRUCTURE-MISSING",
-      "layer": "infrastructure",
-      "module": "inventory",
-      "severity": "high",
-      "type": "structure_violation",
-      "description": "Camada 'infrastructure' ausente no módulo inventory",
-      "file": "/home/runner/workspace/server/modules/inventory/infrastructure",
-      "suggestedFix": "Criar diretório 'infrastructure' com estrutura apropriada"
-    },
-    {
       "id": "ARCH-INVENTORY-ROUTES-MISSING",
       "layer": "presentation",
       "module": "inventory",
@@ -193,66 +133,6 @@
       "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
     },
     {
-      "id": "ARCH-PROJECTS-LDOMAIN-MISSING",
-      "layer": "domain",
-      "module": "projects",
-      "severity": "high",
-      "type": "structure_violation",
-      "description": "Camada 'domain' ausente no módulo projects",
-      "file": "/home/runner/workspace/server/modules/projects/domain",
-      "suggestedFix": "Criar diretório 'domain' com estrutura apropriada"
-    },
-    {
-      "id": "ARCH-PROJECTS-APPLICATION-USE-CASES-MISSING",
-      "layer": "application",
-      "module": "projects",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'use-cases' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/projects/application/use-cases",
-      "suggestedFix": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-PROJECTS-APPLICATION-DTO-MISSING",
-      "layer": "application",
-      "module": "projects",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'dto' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/projects/application/dto",
-      "suggestedFix": "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-PROJECTS-APPLICATION-SERVICES-MISSING",
-      "layer": "application",
-      "module": "projects",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'services' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/projects/application/services",
-      "suggestedFix": "Criar diretório/arquivo 'services' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-PROJECTS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "projects",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/projects/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-PROJECTS-LINFRASTRUCTURE-MISSING",
-      "layer": "infrastructure",
-      "module": "projects",
-      "severity": "high",
-      "type": "structure_violation",
-      "description": "Camada 'infrastructure' ausente no módulo projects",
-      "file": "/home/runner/workspace/server/modules/projects/infrastructure",
-      "suggestedFix": "Criar diretório 'infrastructure' com estrutura apropriada"
-    },
-    {
       "id": "ARCH-PROJECTS-ROUTES-MISSING",
       "layer": "presentation",
       "module": "projects",
@@ -281,66 +161,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/schedule-management/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-TEAMS-LDOMAIN-MISSING",
-      "layer": "domain",
-      "module": "teams",
-      "severity": "high",
-      "type": "structure_violation",
-      "description": "Camada 'domain' ausente no módulo teams",
-      "file": "/home/runner/workspace/server/modules/teams/domain",
-      "suggestedFix": "Criar diretório 'domain' com estrutura apropriada"
-    },
-    {
-      "id": "ARCH-TEAMS-APPLICATION-USE-CASES-MISSING",
-      "layer": "application",
-      "module": "teams",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'use-cases' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/teams/application/use-cases",
-      "suggestedFix": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TEAMS-APPLICATION-DTO-MISSING",
-      "layer": "application",
-      "module": "teams",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'dto' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/teams/application/dto",
-      "suggestedFix": "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TEAMS-APPLICATION-SERVICES-MISSING",
-      "layer": "application",
-      "module": "teams",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'services' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/teams/application/services",
-      "suggestedFix": "Criar diretório/arquivo 'services' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TEAMS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "teams",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/teams/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TEAMS-LINFRASTRUCTURE-MISSING",
-      "layer": "infrastructure",
-      "module": "teams",
-      "severity": "high",
-      "type": "structure_violation",
-      "description": "Camada 'infrastructure' ausente no módulo teams",
-      "file": "/home/runner/workspace/server/modules/teams/infrastructure",
-      "suggestedFix": "Criar diretório 'infrastructure' com estrutura apropriada"
     },
     {
       "id": "ARCH-TEAMS-ROUTES-MISSING",
@@ -423,66 +243,6 @@
       "suggestedFix": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
     },
     {
-      "id": "ARCH-USERS-LDOMAIN-MISSING",
-      "layer": "domain",
-      "module": "users",
-      "severity": "high",
-      "type": "structure_violation",
-      "description": "Camada 'domain' ausente no módulo users",
-      "file": "/home/runner/workspace/server/modules/users/domain",
-      "suggestedFix": "Criar diretório 'domain' com estrutura apropriada"
-    },
-    {
-      "id": "ARCH-USERS-APPLICATION-USE-CASES-MISSING",
-      "layer": "application",
-      "module": "users",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'use-cases' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/users/application/use-cases",
-      "suggestedFix": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-USERS-APPLICATION-DTO-MISSING",
-      "layer": "application",
-      "module": "users",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'dto' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/users/application/dto",
-      "suggestedFix": "Criar diretório/arquivo 'dto' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-USERS-APPLICATION-SERVICES-MISSING",
-      "layer": "application",
-      "module": "users",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'services' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/users/application/services",
-      "suggestedFix": "Criar diretório/arquivo 'services' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-USERS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "users",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/users/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-USERS-LINFRASTRUCTURE-MISSING",
-      "layer": "infrastructure",
-      "module": "users",
-      "severity": "high",
-      "type": "structure_violation",
-      "description": "Camada 'infrastructure' ausente no módulo users",
-      "file": "/home/runner/workspace/server/modules/users/infrastructure",
-      "suggestedFix": "Criar diretório 'infrastructure' com estrutura apropriada"
-    },
-    {
       "id": "ARCH-USERS-ROUTES-MISSING",
       "layer": "presentation",
       "module": "users",
@@ -493,7 +253,7 @@
       "suggestedFix": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
     },
     {
-      "id": "DEP-AUTH-APP-1754884612435-express",
+      "id": "DEP-AUTH-APP-1754884893726-express",
       "layer": "application",
       "module": "auth",
       "severity": "high",
@@ -504,7 +264,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-AUTH-APP-1754884612435-jsonwebtoken",
+      "id": "DEP-AUTH-APP-1754884893726-jsonwebtoken",
       "layer": "application",
       "module": "auth",
       "severity": "high",
@@ -515,7 +275,7 @@
       "suggestedFix": "Application layer deve orquestrar o fluxo de negócio, dependendo apenas do Domain layer."
     },
     {
-      "id": "DEP-BENEFICIARIES-APP-1754884612437-express",
+      "id": "DEP-BENEFICIARIES-APP-1754884893739-express",
       "layer": "application",
       "module": "beneficiaries",
       "severity": "high",
@@ -526,7 +286,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754884612439-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754884893749-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -537,7 +297,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754884612439-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754884893749-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -548,7 +308,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754884612439-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754884893750-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -559,7 +319,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOMERS-APP-1754884612442-express",
+      "id": "DEP-CUSTOMERS-APP-1754884893762-express",
       "layer": "application",
       "module": "customers",
       "severity": "high",
@@ -570,7 +330,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOMERS-APP-1754884612442-express",
+      "id": "DEP-CUSTOMERS-APP-1754884893762-express",
       "layer": "application",
       "module": "customers",
       "severity": "high",
@@ -581,7 +341,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOMERS-APP-1754884612442-express",
+      "id": "DEP-CUSTOMERS-APP-1754884893763-express",
       "layer": "application",
       "module": "customers",
       "severity": "high",
@@ -592,7 +352,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-DASHBOARD-APP-1754884612449-express",
+      "id": "DEP-DASHBOARD-APP-1754884893791-express",
       "layer": "application",
       "module": "dashboard",
       "severity": "high",
@@ -603,7 +363,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-FIELD-LAYOUT-APP-1754884612450-express",
+      "id": "DEP-FIELD-LAYOUT-APP-1754884893801-express",
       "layer": "application",
       "module": "field-layout",
       "severity": "high",
@@ -614,7 +374,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-FIELD-LAYOUTS-APP-1754884612451-express",
+      "id": "DEP-FIELD-LAYOUTS-APP-1754884893808-express",
       "layer": "application",
       "module": "field-layouts",
       "severity": "high",
@@ -625,7 +385,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-INVENTORY-APP-1754884612451-express",
+      "id": "DEP-INVENTORY-APP-1754884893816-express",
       "layer": "application",
       "module": "inventory",
       "severity": "high",
@@ -636,7 +396,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754884612452-express",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754884893836-express",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -647,7 +407,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-LOCATIONS-APP-1754884612454-express",
+      "id": "DEP-LOCATIONS-APP-1754884893852-express",
       "layer": "application",
       "module": "locations",
       "severity": "high",
@@ -658,7 +418,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612456-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893867-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -669,7 +429,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612456-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893867-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -680,7 +440,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612457-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893868-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -691,7 +451,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612457-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893868-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -702,7 +462,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612457-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893868-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -713,7 +473,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612457-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893869-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -724,7 +484,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612457-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893869-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -735,7 +495,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612457-drizzleormnodepostgres",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893869-drizzleormnodepostgres",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -746,7 +506,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612457-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893869-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -757,7 +517,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612458-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893870-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -768,7 +528,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612458-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893871-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -779,7 +539,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612458-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893872-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -790,7 +550,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612458-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893872-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -801,7 +561,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612458-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893872-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -812,7 +572,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612458-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893872-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -823,7 +583,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612459-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893873-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -834,7 +594,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612459-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893873-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -845,7 +605,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612459-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893873-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -856,7 +616,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754884612459-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754884893873-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -867,7 +627,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-NOTIFICATIONS-APP-1754884612461-express",
+      "id": "DEP-NOTIFICATIONS-APP-1754884893885-express",
       "layer": "application",
       "module": "notifications",
       "severity": "high",
@@ -878,7 +638,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-PEOPLE-APP-1754884612463-express",
+      "id": "DEP-PEOPLE-APP-1754884893904-express",
       "layer": "application",
       "module": "people",
       "severity": "high",
@@ -889,7 +649,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-PROJECTS-APP-1754884612464-express",
+      "id": "DEP-PROJECTS-APP-1754884893913-express",
       "layer": "application",
       "module": "projects",
       "severity": "high",
@@ -900,7 +660,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SAAS-ADMIN-APP-1754884612465-express",
+      "id": "DEP-SAAS-ADMIN-APP-1754884893919-express",
       "layer": "application",
       "module": "saas-admin",
       "severity": "high",
@@ -911,7 +671,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754884612466-express",
+      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754884893931-express",
       "layer": "application",
       "module": "schedule-management",
       "severity": "high",
@@ -922,7 +682,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754884612466-express",
+      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754884893932-express",
       "layer": "application",
       "module": "schedule-management",
       "severity": "high",
@@ -933,7 +693,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754884612466-express",
+      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754884893932-express",
       "layer": "application",
       "module": "schedule-management",
       "severity": "high",
@@ -944,7 +704,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TEAMS-APP-1754884612470-express",
+      "id": "DEP-TEAMS-APP-1754884893963-express",
       "layer": "application",
       "module": "teams",
       "severity": "high",
@@ -955,7 +715,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754884612471-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754884893973-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -966,7 +726,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754884612471-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754884893973-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -977,7 +737,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754884612471-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754884893973-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -988,7 +748,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754884612471-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754884893982-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -999,7 +759,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TENANT-ADMIN-APP-1754884612476-express",
+      "id": "DEP-TENANT-ADMIN-APP-1754884894022-express",
       "layer": "application",
       "module": "tenant-admin",
       "severity": "high",
@@ -1010,7 +770,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKET-HISTORY-APP-1754884612478-express",
+      "id": "DEP-TICKET-HISTORY-APP-1754884894030-express",
       "layer": "application",
       "module": "ticket-history",
       "severity": "high",
@@ -1021,7 +781,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKET-HISTORY-APP-1754884612478-express",
+      "id": "DEP-TICKET-HISTORY-APP-1754884894031-express",
       "layer": "application",
       "module": "ticket-history",
       "severity": "high",
@@ -1032,7 +792,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKETS-APP-1754884612480-express",
+      "id": "DEP-TICKETS-APP-1754884894046-express",
       "layer": "application",
       "module": "tickets",
       "severity": "high",
@@ -1043,7 +803,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKETS-APP-1754884612480-express",
+      "id": "DEP-TICKETS-APP-1754884894046-express",
       "layer": "application",
       "module": "tickets",
       "severity": "high",
@@ -1054,7 +814,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754884612482-express",
+      "id": "DEP-TIMECARD-APP-1754884894058-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1065,7 +825,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754884612482-express",
+      "id": "DEP-TIMECARD-APP-1754884894058-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1076,7 +836,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754884612482-express",
+      "id": "DEP-TIMECARD-APP-1754884894058-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1087,7 +847,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-USER-MANAGEMENT-APP-1754884612485-express",
+      "id": "DEP-USER-MANAGEMENT-APP-1754884894069-express",
       "layer": "application",
       "module": "user-management",
       "severity": "high",
@@ -1098,7 +858,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-USERS-APP-1754884612486-express",
+      "id": "DEP-USERS-APP-1754884894074-express",
       "layer": "application",
       "module": "users",
       "severity": "high",
@@ -3410,10 +3170,10 @@
     }
   ],
   "summary": {
-    "total": 335,
+    "total": 311,
     "critical": 5,
-    "high": 138,
+    "high": 130,
     "medium": 61,
-    "low": 131
+    "low": 115
   }
 }

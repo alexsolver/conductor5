@@ -74,7 +74,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filter.assignedToId) {
-      conditions.push(eq(tickets.assigned_to_id, filter.assignedToId));
+      conditions.push(eq(tickets.assignedToId, filter.assignedToId));
     }
 
     if (filter.customerId) {
@@ -156,7 +156,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .delete(tickets)
         .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)));
 
-      return result.rowCount > 0;
+      return result?.rowCount > 0;
     } catch (error) {
       console.error('❌ Error deleting ticket:', error);
       throw error;
@@ -186,7 +186,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filter.assignedToId) {
-      conditions.push(eq(tickets.assigned_to_id, filter.assignedToId));
+      conditions.push(eq(tickets.assignedToId, filter.assignedToId));
     }
 
     if (filter.customerId) {
@@ -239,7 +239,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .from(tickets)
         .where(and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.assigned_to_id, null),
+          eq(tickets.assignedToId, null),
           or(
             eq(tickets.status, 'open'),
             eq(tickets.status, 'in_progress')
@@ -253,18 +253,81 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
+  async findOverdue(tenantId: string): Promise<Ticket[]> {
+    try {
+      const today = new Date();
+      const results = await this.dbConnection
+        .select()
+        .from(tickets)
+        .where(and(
+          eq(tickets.tenantId, tenantId),
+          or(
+            eq(tickets.status, 'open'),
+            eq(tickets.status, 'in_progress')
+          )!
+        ));
+
+      return results.map(result => this.toDomainEntity(result));
+    } catch (error) {
+      console.error('❌ Error finding overdue tickets:', error);
+      return [];
+    }
+  }
+
+  async getNextTicketNumber(tenantId: string, prefix: string = 'TK'): Promise<string> {
+    try {
+      const today = new Date();
+      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+      const result = await this.dbConnection
+        .select({ count: count() })
+        .from(tickets)
+        .where(eq(tickets.tenantId, tenantId));
+
+      const nextNumber = (result[0]?.count || 0) + 1;
+      return `${prefix}-${dateStr}-${nextNumber.toString().padStart(4, '0')}`;
+    } catch (error) {
+      console.error('❌ Error generating ticket number:', error);
+      return `${prefix}-${Date.now()}`;
+    }
+  }
+
   private toDomainEntity(data: any): Ticket {
     return new Ticket(
       data.id,
-      data.tenantId || data.tenant_id,
-      data.number || 'TK-' + Date.now(),
+      data.tenantId,
+      data.customerId || null,
+      data.callerId || 'system',
+      'customer',
       data.subject || data.title || 'Untitled',
       data.description || '',
-      { getValue: () => data.priority || 'medium' },
-      { getValue: () => data.status || 'open' },
-      data.customerId || data.customer_id || null,
-      data.assignedToId || data.assigned_to_id || null, // This line uses the correct field name when mapping data to Ticket entity
+      data.number || 'TK-' + Date.now(),
+      data.shortDescription || data.description || '',
       data.category || 'General',
+      data.subcategory || 'General',
+      data.priority || 'medium',
+      data.impact || 'low',
+      data.urgency || 'low',
+      data.state || 'open',
+      data.status || 'open',
+      data.assignedToId || null,
+      data.beneficiaryId || null,
+      null,
+      null,
+      data.location || null,
+      'phone',
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      false,
+      null,
+      data.openedAt || data.createdAt || new Date(),
+      data.resolvedAt || null,
+      data.closedAt || null,
       data.createdAt || new Date(),
       data.updatedAt || new Date()
     );
@@ -273,23 +336,18 @@ export class DrizzleTicketRepository implements ITicketRepository {
   private toPersistenceData(ticket: Ticket): any {
     return {
       id: ticket.getId(),
-      tenant_id: ticket.getTenantId(),
+      tenantId: ticket.getTenantId(),
       subject: ticket.getSubject(),
       description: ticket.getDescription(),
       priority: ticket.getPriority(),
       status: ticket.getStatus(),
-      caller_id: ticket.getCallerId(),
-      customer_id: ticket.getCustomerId(),
-      beneficiary_id: ticket.getBeneficiaryId(),
-      responsible_id: ticket.getResponsibleId(),
+      callerId: ticket.getCallerId(),
+      customerId: ticket.getCustomerId(),
+      beneficiaryId: ticket.getBeneficiaryId(),
+      assignedToId: ticket.getAssignedToId(),
       category: ticket.getCategory(),
       subcategory: ticket.getSubcategory(),
-      location: ticket.getLocation(),
-      tags: ticket.getTags(),
-      environment: ticket.getEnvironment(),
-      template_name: ticket.getTemplateName(),
-      assigned_to_id: ticket.getAssignedToId(), // Corrected field name for persistence
-      updated_at: new Date()
+      updatedAt: new Date()
     };
   }
 }
