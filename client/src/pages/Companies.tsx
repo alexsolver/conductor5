@@ -95,20 +95,20 @@ export default function Companies() {
     queryKey: ['/api/customers/companies'],
     queryFn: async () => {
       console.log('[COMPANIES-FRONTEND] Starting API request...');
-      
+
       try {
         const response = await apiRequest('GET', '/api/customers/companies');
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         console.log('[COMPANIES-FRONTEND] API Response data:', data);
-        
+
         // Use validation helper
         const validated = validateApiResponse(data, ['companies', 'data']);
-        
+
         if (validated.success) {
           // Try different data paths
           if (Array.isArray(validated.data)) {
@@ -119,7 +119,7 @@ export default function Companies() {
             return validated.data.data;
           }
         }
-        
+
         // Fallback: try original structure
         if (data.success && Array.isArray(data.data)) {
           return data.data;
@@ -128,7 +128,7 @@ export default function Companies() {
         } else if (Array.isArray(data)) {
           return data;
         }
-        
+
         console.warn('[COMPANIES-FRONTEND] No valid data found in response:', data);
         return [];
       } catch (error) {
@@ -273,7 +273,7 @@ export default function Companies() {
             Gerencie suas empresas e clientes associados
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3">
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -521,7 +521,7 @@ export default function Companies() {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="sm"
@@ -544,7 +544,7 @@ export default function Companies() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="pt-0">
                 {company.description && (
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
@@ -803,129 +803,6 @@ export default function Companies() {
         onClose={() => setIsAssociateModalOpen(false)}
         companyId={selectedCompany?.id}
       />
-    </div>
-  );
-}
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Building2 } from "lucide-react";
-
-export default function Companies() {
-  const { t } = useTranslation();
-
-  const { data: companiesData, isLoading, error } = useQuery({
-    queryKey: ["/api/customers/companies"],
-    retry: 3,
-  });
-
-  const companies = Array.isArray(companiesData) ? companiesData : 
-                   Array.isArray(companiesData?.data) ? companiesData.data :
-                   Array.isArray(companiesData?.companies) ? companiesData.companies : [];
-
-  console.log('🏢 Companies data:', { companiesData, companies: companies.length });
-
-  if (isLoading) {
-    return (
-      <div className="p-4 space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="text-red-500 mb-4">
-              <Building2 className="h-12 w-12 mx-auto mb-2" />
-              <h3 className="text-lg font-semibold">Erro ao carregar empresas</h3>
-              <p className="text-sm text-gray-600 mt-2">
-                {error?.message || 'Falha na comunicação com o servidor'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Empresas ({companies.length})
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Gerencie empresas cadastradas no sistema
-          </p>
-        </div>
-        <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Empresa
-        </Button>
-      </div>
-
-      <div className="space-y-4">
-        {companies.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="text-gray-500 mb-4">
-                <Building2 className="h-12 w-12 mx-auto mb-2" />
-                <h3 className="text-lg font-semibold">Nenhuma empresa encontrada</h3>
-                <p className="text-sm text-gray-600 mt-2">
-                  Não há empresas cadastradas ainda
-                </p>
-              </div>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Cadastrar Primeira Empresa
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          companies.map((company: any) => (
-            <Card key={company.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                      {company.name || company.company_name || company.displayName || 'Sem nome'}
-                    </h3>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>ID: {company.id}</p>
-                      {company.status && (
-                        <p>Status: <span className={company.status === 'active' ? 'text-green-600' : 'text-red-600'}>
-                          {company.status}
-                        </span></p>
-                      )}
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Ver Detalhes
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
     </div>
   );
 }
