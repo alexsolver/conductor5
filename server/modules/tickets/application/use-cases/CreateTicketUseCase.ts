@@ -1,32 +1,57 @@
 
-import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
-import { Ticket } from '../../domain/entities/Ticket';
-
-export interface CreateTicketRequest {
-  tenantId: string;
+interface CreateTicketRequest {
   title: string;
   description: string;
   priority: string;
-  status: string;
-  assignedTo?: string;
+  status?: string;
+  customerId?: string;
+  categoryId?: string;
+  tenantId: string;
+  userId: string;
+}
+
+interface CreateTicketResponse {
+  success: boolean;
+  data?: any;
+  message?: string;
 }
 
 export class CreateTicketUseCase {
-  constructor(private ticketRepository: ITicketRepository) {}
+  constructor(
+    private ticketRepository: any // Should be injected ITicketRepository
+  ) {}
 
-  async execute(request: CreateTicketRequest): Promise<Ticket> {
-    const ticket = new Ticket(
-      crypto.randomUUID(),
-      request.tenantId,
-      request.title,
-      request.description,
-      request.status,
-      request.priority,
-      request.assignedTo,
-      new Date(),
-      new Date()
-    );
+  async execute(request: CreateTicketRequest): Promise<CreateTicketResponse> {
+    try {
+      const { title, description, priority, status = 'open', tenantId, userId, customerId, categoryId } = request;
 
-    return await this.ticketRepository.create(ticket);
+      // Create ticket through repository without presentation logic
+      const ticketData = {
+        title,
+        description,
+        priority,
+        status,
+        customerId,
+        categoryId,
+        tenantId,
+        createdBy: userId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const ticket = await this.ticketRepository.create(ticketData);
+      
+      return {
+        success: true,
+        data: ticket,
+        message: 'Ticket created successfully'
+      };
+    } catch (error) {
+      console.error('Error in CreateTicketUseCase:', error);
+      return {
+        success: false,
+        message: 'Failed to create ticket'
+      };
+    }
   }
 }

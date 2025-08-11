@@ -1,102 +1,87 @@
 import { Request, Response } from 'express';
-import { GetTicketsUseCase } from '../usecases/GetTicketsUseCase';
-import { CreateTicketUseCase } from '../usecases/CreateTicketUseCase';
-import { standardResponse } from '../../../../utils/standardResponse';
-import { AssignTicketUseCase } from '../usecases/AssignTicketUseCase';
-import { ResolveTicketUseCase } from '../usecases/ResolveTicketUseCase';
+import { GetTicketsUseCase } from '../use-cases/GetTicketsUseCase';
+import { CreateTicketUseCase } from '../use-cases/CreateTicketUseCase';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+    email: string;
+    role: string;
+  };
+}
 
 export class TicketController {
   constructor(
-    private getAllTicketsUseCase: GetTicketsUseCase,
-    private createTicketUseCase: CreateTicketUseCase,
-    private assignTicketUseCase: AssignTicketUseCase,
-    private resolveTicketUseCase: ResolveTicketUseCase
+    private getTicketsUseCase: GetTicketsUseCase,
+    private createTicketUseCase: CreateTicketUseCase
   ) {}
 
-  async getAllTickets(req: Request, res: Response): Promise<void> {
+  async getAllTickets(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      console.log('🎫 [TICKETS-ROUTES] Request context:', {
-        path: req.path,
-        method: req.method,
-        hasUser: !!req.user,
-        tenantId: req.user?.tenantId,
-        userId: req.user?.userId
-      });
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
 
-      const { tenantId } = req.user!;
-      const tickets = await this.getTicketsUseCase.execute({ 
-        tenantId,
-        filters: req.query as any
-      });
-
-      res.json({
-        success: true,
-        message: 'Tickets retrieved successfully',
-        data: tickets,
-        count: tickets.length
-      });
-    } catch (error) {
-      console.error('❌ Error finding all tickets:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error retrieving tickets',
-        data: [],
-        count: 0,
-        error: error.message
-      });
-    }
-  }
-
-  async create(req: Request, res: Response): Promise<void> {
-    try {
-      const { tenantId } = req.user || {};
-
-      if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID is required'));
+      if (!tenantId || !userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
         return;
       }
 
-      // Clean Architecture: Delegate to Use Case, controller only handles HTTP protocol
-      const ticketData = { ...req.body, tenantId };
-      const result = await this.createTicketUseCase.execute(ticketData);
+      const filters = {
+        status: req.query.status as string,
+        priority: req.query.priority as string,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
+        offset: req.query.offset ? parseInt(req.query.offset as string) : 0
+      };
 
-      res.status(201).json(standardResponse(true, 'Ticket created successfully', result));
+      const result = await this.getTicketsUseCase.execute({
+        tenantId,
+        userId,
+        filters
+      });
+
+      res.status(200).json(result);
     } catch (error) {
-      console.error('❌ Error creating ticket:', error);
-      res.status(400).json(standardResponse(false, 'Failed to create ticket'));
+      console.error('Controller error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Internal server error',
+        data: [],
+        total: 0
+      });
     }
   }
 
-  async getTicket(req: Request, res: Response): Promise<void> {
+  async createTicket(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      // Implementation
-      standardResponse(res, 200, 'Ticket retrieved successfully', { id });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      standardResponse(res, 404, 'Ticket not found', null, errorMessage);
-    }
-  }
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
 
-  async updateTicket(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      // Implementation
-      standardResponse(res, 200, 'Ticket updated successfully', { id, ...req.body });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      standardResponse(res, 400, 'Failed to update ticket', null, errorMessage);
-    }
-  }
+      if (!tenantId || !userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
 
-  async deleteTicket(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      // Implementation
-      standardResponse(res, 200, 'Ticket deleted successfully', null);
+      const { title, description, priority, customerId, categoryId } = req.body;
+
+      const result = await this.createTicketUseCase.execute({
+        title,
+        description,
+        priority,
+        customerId,
+        categoryId,
+        tenantId,
+        userId
+      });
+
+      const statusCode = result.success ? 201 : 400;
+      res.status(statusCode).json(result);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      standardResponse(res, 400, 'Failed to delete ticket', null, errorMessage);
+      console.error('Controller error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Internal server error'
+      });
     }
   }
 }

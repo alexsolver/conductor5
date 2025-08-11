@@ -25,6 +25,23 @@ interface CreateMaterialDTO {
   maxStock?: number;
   specifications?: Record<string, any>;
 }
+
+interface CreateMaterialRequest {
+  name: string;
+  description?: string;
+  category?: string;
+  price?: number;
+  unit?: string;
+  tenantId: string;
+  userId: string;
+}
+
+interface CreateMaterialResponse {
+  success: boolean;
+  data?: any;
+  message?: string;
+}
+
 import { randomUUID } from 'crypto';
 
 export class CreateMaterialUseCase {

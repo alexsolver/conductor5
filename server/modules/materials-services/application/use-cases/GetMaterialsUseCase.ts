@@ -7,15 +7,33 @@
 import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository';
 import { Material } from '../../domain/entities/Material';
 
-export interface GetMaterialsany {
+interface GetMaterialsRequest {
   tenantId: string;
-  filters?: any;
+  filters?: {
+    category?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  };
+}
+
+interface GetMaterialsResponse {
+  success: boolean;
+  data?: any[];
+  total?: number;
+  message?: string;
 }
 
 export class GetMaterialsUseCase {
   constructor(private materialRepository: IMaterialRepository) {}
 
-  async execute(request: GetMaterialsany): Promise<Material[]> {
-    return await this.materialRepository.findByTenant(request.tenantId);
+  async execute(request: GetMaterialsRequest): Promise<GetMaterialsResponse> {
+    const materials = await this.materialRepository.findByTenant(request.tenantId);
+    return {
+      success: true,
+      data: materials,
+      total: materials.length,
+      message: 'Materials retrieved successfully',
+    };
   }
 }
