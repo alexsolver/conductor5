@@ -15,7 +15,7 @@ import path from 'path';
 // Remove ESM imports that don't work with CommonJS
 // const __filename = fileURLToPath(import.meta.url);
 // const __dirname = dirname(__filename);
-const __dirname = __dirname || process.cwd();
+const __dirname = process.cwd();
 
 interface ArchitectureIssue {
   id: string;
