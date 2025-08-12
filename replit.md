@@ -75,3 +75,4 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 - **CRITICAL UPDATE/DELETE FIXES**: Fixed SQL syntax errors in ticket update operations and foreign key constraint violations in delete operations by implementing proper field mapping and cascading deletes following 1qa.md specifications
 - **SOFT DELETE IMPLEMENTATION**: Implemented proper soft delete functionality (is_active = false) instead of hard deletes, with all repository queries filtering by is_active = true to ensure deleted tickets don't appear in lists
 - **FINAL CRUD RESOLUTION**: All ticket CRUD operations (Create, Read, Update, Delete) now working correctly with proper field mapping (assignedToId ↔ assigned_to_id) and Clean Architecture compliance
+- **DRIZZLE SQL TEMPLATE FIXES**: Implemented individual field updates using Drizzle SQL templates to resolve parameter counting issues, ensuring all UPDATE and DELETE operations work correctly following 1qa.md specifications

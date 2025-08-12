@@ -198,71 +198,68 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Use SQL directly to avoid Drizzle field mapping issues - FINAL FIX
-      const updatePairs = [];
+      // FINAL FIX: Use raw SQL properly - following 1qa.md standards
+      const updateParts = [];
       const values = [];
-      let paramIndex = 1;
+      let paramCounter = 1;
 
       if (updates.subject !== undefined) {
-        updatePairs.push(`subject = $${paramIndex++}`);
+        updateParts.push(`subject = $${paramCounter++}`);
         values.push(updates.subject);
       }
       if (updates.description !== undefined) {
-        updatePairs.push(`description = $${paramIndex++}`);
+        updateParts.push(`description = $${paramCounter++}`);
         values.push(updates.description);
       }
       if (updates.status !== undefined) {
-        updatePairs.push(`status = $${paramIndex++}`);
+        updateParts.push(`status = $${paramCounter++}`);
         values.push(updates.status);
       }
       if (updates.priority !== undefined) {
-        updatePairs.push(`priority = $${paramIndex++}`);
+        updateParts.push(`priority = $${paramCounter++}`);
         values.push(updates.priority);
       }
       if (updates.urgency !== undefined) {
-        updatePairs.push(`urgency = $${paramIndex++}`);
+        updateParts.push(`urgency = $${paramCounter++}`);
         values.push(updates.urgency);
       }
       if (updates.impact !== undefined) {
-        updatePairs.push(`impact = $${paramIndex++}`);
+        updateParts.push(`impact = $${paramCounter++}`);
         values.push(updates.impact);
       }
       if (updates.category !== undefined) {
-        updatePairs.push(`category = $${paramIndex++}`);
+        updateParts.push(`category = $${paramCounter++}`);
         values.push(updates.category);
       }
       if (updates.subcategory !== undefined) {
-        updatePairs.push(`subcategory = $${paramIndex++}`);
+        updateParts.push(`subcategory = $${paramCounter++}`);
         values.push(updates.subcategory);
       }
       if (updates.assignedToId !== undefined) {
-        updatePairs.push(`assigned_to_id = $${paramIndex++}`);
+        updateParts.push(`assigned_to_id = $${paramCounter++}`);
         values.push(updates.assignedToId);
       }
       if (updates.companyId !== undefined) {
-        updatePairs.push(`company_id = $${paramIndex++}`);
+        updateParts.push(`company_id = $${paramCounter++}`);
         values.push(updates.companyId);
       }
       if (updates.beneficiaryId !== undefined) {
-        updatePairs.push(`beneficiary_id = $${paramIndex++}`);
+        updateParts.push(`beneficiary_id = $${paramCounter++}`);
         values.push(updates.beneficiaryId);
       }
       if (updates.callerId !== undefined) {
-        updatePairs.push(`caller_id = $${paramIndex++}`);
+        updateParts.push(`caller_id = $${paramCounter++}`);
         values.push(updates.callerId);
       }
 
-      // Always update timestamp
-      updatePairs.push(`updated_at = NOW()`);
-      
-      // Add id parameter for WHERE clause
+      // Add updated_at and id for WHERE clause
+      updateParts.push(`updated_at = NOW()`);
       values.push(id);
-      const whereParamIndex = paramIndex;
 
-      const query = `
+      const updateQuery = `
         UPDATE ${schemaName}.tickets 
-        SET ${updatePairs.join(', ')}
-        WHERE id = $${whereParamIndex} AND is_active = true
+        SET ${updateParts.join(', ')}
+        WHERE id = $${paramCounter} AND is_active = true
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
@@ -270,10 +267,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           company_id as "companyId", beneficiary_id as "beneficiaryId"
       `;
 
-      console.log(`🔧 Final SQL query:`, query);
-      console.log(`📊 Parameters:`, values);
+      console.log(`🔧 SQL:`, updateQuery);
+      console.log(`📊 Values:`, values);
 
-      const result = await db.execute(sql.raw(query, values));
+      const result = await db.execute(sql.raw(updateQuery, values));
       const updatedTicket = result.rows?.[0];
       
       if (!updatedTicket) {
@@ -296,14 +293,14 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
       // Use SOFT DELETE instead of hard delete - FIXED following 1qa.md
-      const query = `
-        UPDATE ${schemaName}.tickets 
+      const query = sql`
+        UPDATE ${sql.identifier(schemaName)}.tickets 
         SET is_active = false, updated_at = NOW()
-        WHERE id = $1 AND is_active = true
+        WHERE id = ${id} AND is_active = true
         RETURNING id
       `;
 
-      const result = await db.execute(sql.raw(query, [id]));
+      const result = await db.execute(query);
       const deletedTicket = result.rows?.[0];
       
       if (!deletedTicket) {
