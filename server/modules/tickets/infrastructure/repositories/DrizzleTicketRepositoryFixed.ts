@@ -91,13 +91,12 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
         );
       }
 
-      // Get total count
-      const totalResult = await db
-        .select({ count: sql`count(*)` })
-        .from(tickets)
-        .where(and(...whereConditions));
+      // Get total count using raw SQL
+      const totalResult = await db.execute(sql`
+        SELECT COUNT(*) as count FROM tickets WHERE tenant_id = ${tenantId}
+      `);
 
-      const total = Number(totalResult[0]?.count || 0);
+      const total = Number(totalResult.rows[0]?.count || 0);
 
       // Calculate pagination
       const offset = (pagination.page - 1) * pagination.limit;
@@ -108,37 +107,24 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
         ? asc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt)
         : desc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt);
 
-      const results = await db
-        .select()
-        .from(tickets)
-        .where(and(...whereConditions))
-        .orderBy(orderBy)
-        .limit(pagination.limit)
-        .offset(offset);
+      // TEMPORARY FIX: Use raw SQL to avoid schema mapping issues
+      const results = await db.execute(sql`
+        SELECT 
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId"
+        FROM tickets 
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC
+        LIMIT ${pagination.limit} 
+        OFFSET ${offset}
+      `);
 
-      console.log(`✅ [DrizzleTicketRepositoryFixed] Found ${results.length} tickets out of ${total} total`);
+      console.log(`✅ [DrizzleTicketRepositoryFixed] Found ${results.rows.length} tickets out of ${total} total`);
 
-      // Map results to ensure proper format
-      const mappedTickets = results.map(row => ({
-        id: row.id,
-        number: row.number,
-        subject: row.subject,
-        description: row.description,
-        status: row.status,
-        priority: row.priority,
-        urgency: row.urgency,
-        impact: row.impact,
-        category: row.category,
-        subcategory: row.subcategory,
-        callerId: row.callerId,
-        assignedToId: row.responsibleId, // Map correctly
-        tenantId: row.tenantId,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-        createdById: row.createdById,
-        companyId: row.companyId,
-        beneficiaryId: row.beneficiaryId
-      }));
+      // Results are already properly mapped from SQL
+      const mappedTickets = results.rows;
 
       return {
         tickets: mappedTickets,
