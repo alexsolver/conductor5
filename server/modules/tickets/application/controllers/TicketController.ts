@@ -124,7 +124,11 @@ export class TicketController {
       }
 
       // Ensure createdById is set from authenticated user
-      dto.createdById = userId;
+      if (userId) {
+        dto.createdById = userId;
+      } else {
+        throw new Error('User ID is required');
+      }
 
       const ticket = await this.createTicketUseCase.execute(dto, tenantId);
 
@@ -158,7 +162,11 @@ export class TicketController {
       }
 
       // Ensure updatedById is set from authenticated user
-      dto.updatedById = userId;
+      if (userId) {
+        dto.updatedById = userId;
+      } else {
+        throw new Error('User ID is required');
+      }
 
       const ticket = await this.updateTicketUseCase.execute(id, dto, tenantId);
 
@@ -384,6 +392,10 @@ export class TicketController {
         return;
       }
 
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+      
       await this.deleteTicketUseCase.execute(id, tenantId, userId);
 
       res.json({

@@ -515,7 +515,7 @@ export class TicketMaterialsController {
         ORDER BY tpi.created_at DESC
       `;
 
-      const result = await pool.query(query, [ticketId, tenantId, tenantId]);
+      const result = await pool.query(query, [ticketId, tenantId]);
 
       const plannedItems = result.rows.map((row: any) => ({
         id: row.id,
