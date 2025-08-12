@@ -90,6 +90,14 @@ export default function Tickets() {
   const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
     retry: false,
+    onError: (error: any) => {
+      console.error('❌ [Tickets] API Error:', error);
+      toast({
+        title: "Erro ao carregar tickets",
+        description: "Falha na conexão com a API de tickets",
+        variant: "destructive",
+      });
+    },
   });
 
   // Fetch customers for the dropdown
@@ -392,9 +400,67 @@ export default function Tickets() {
     );
   }
 
-  // Parse consistente dos dados de tickets
-  const ticketsList = (tickets as any)?.data?.tickets || [];
-  const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
+  if (error) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              Erro ao Carregar Tickets
+            </h1>
+            <p className="text-red-600 dark:text-red-400">
+              Falha na comunicação com a API: {(error as any)?.message || 'Erro desconhecido'}
+            </p>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <div className="text-red-500">
+              <div className="text-lg font-medium mb-2">🚨 Erro na API</div>
+              <p className="text-sm mb-4">Não foi possível carregar os tickets.</p>
+              <Button 
+                onClick={() => window.location.reload()}
+                variant="outline"
+              >
+                Tentar Novamente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Parse consistente dos dados de tickets com debugging
+  console.log('🎫 [Tickets] Raw API response:', tickets);
+  
+  const ticketsList = (() => {
+    if (!tickets) return [];
+    
+    // Try different response structures
+    if (tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
+      return tickets.data.tickets;
+    }
+    
+    if (tickets.tickets && Array.isArray(tickets.tickets)) {
+      return tickets.tickets;
+    }
+    
+    if (Array.isArray(tickets)) {
+      return tickets;
+    }
+    
+    console.warn('⚠️ [Tickets] Unexpected response structure:', tickets);
+    return [];
+  })();
+  
+  const ticketsCount = ticketsList.length;
+  
+  console.log('🎫 [Tickets] Parsed tickets:', {
+    raw: tickets,
+    parsed: ticketsList,
+    count: ticketsCount
+  });
 
   return (
     <div className="p-4 space-y-6">

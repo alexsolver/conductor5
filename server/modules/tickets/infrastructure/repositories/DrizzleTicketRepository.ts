@@ -154,19 +154,14 @@ export class DrizzleTicketRepository implements ITicketRepository {
     // Count total results with error handling
     let total = 0;
     try {
-      console.log('🔍 [DrizzleTicketRepository] Filters applied:', JSON.stringify(filters, null, 2));
-      console.log('🔍 [DrizzleTicketRepository] Conditions count:', conditions.length);
-
       const totalResult = await db
         .select({ count: count() })
         .from(tickets)
         .where(and(...conditions));
 
       total = totalResult[0]?.count || 0;
-      console.log('📊 [DrizzleTicketRepository] Total tickets found:', total);
     } catch (error) {
       console.error('❌ [DrizzleTicketRepository] Error counting tickets:', error);
-      console.error('❌ [DrizzleTicketRepository] Error details:', error.stack);
       throw new Error(`Database error counting tickets: ${error.message}`);
     }
 
@@ -443,24 +438,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
       )
     ];
 
-    // Count total results with error handling
-    let total = 0;
-    try {
-      console.log('🔍 [DrizzleTicketRepository] Filters applied:', JSON.stringify(filters, null, 2));
-      console.log('🔍 [DrizzleTicketRepository] Conditions count:', conditions.length);
+    // Count total results  
+    const totalResult = await db
+      .select({ count: count() })
+      .from(tickets)
+      .where(and(...conditions));
 
-      const totalResult = await db
-        .select({ count: count() })
-        .from(tickets)
-        .where(and(...conditions));
-
-      total = totalResult[0]?.count || 0;
-      console.log('📊 [DrizzleTicketRepository] Total tickets found:', total);
-    } catch (error) {
-      console.error('❌ [DrizzleTicketRepository] Error counting tickets:', error);
-      console.error('❌ [DrizzleTicketRepository] Error details:', error.stack);
-      throw new Error(`Database error counting tickets: ${error.message}`);
-    }
+    const total = totalResult[0]?.count || 0;
 
     if (!pagination) {
       const ticketResults = await db
