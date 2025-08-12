@@ -47,7 +47,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. As 
     - **Validation System Enhancement**: Standardized tenant validation thresholds, implemented soft delete (is_active) across critical audit tables, and redesigned core table definitions.
     - **Hierarchical Ticket Classification System**: Fully functional category→subcategory→action hierarchy with proper backend integration, frontend validation, dynamic loading, company-specific isolation, and automatic color synchronization.
     - **File Upload System**: Complete implementation of file upload system with description field support.
-    - **Clean Architecture Implementation**: Complete standardization of Tickets, Users, Auth, and Customers modules following Clean Architecture patterns with domain/application/infrastructure layers, proper use cases, and repository patterns as per 1qa.md specifications. Customers module includes Brazilian business compliance (CPF/CNPJ validation), tenant isolation, and gradual integration system.
+    - **Clean Architecture Implementation**: Complete standardization of Tickets, Users, Auth, Customers, and Companies modules following Clean Architecture patterns with domain/application/infrastructure layers, proper use cases, and repository patterns as per 1qa.md specifications. All modules include Brazilian business compliance (CPF/CNPJ validation), tenant isolation, and gradual integration system with dual-system approach for backward compatibility.
 
 ## External Dependencies
 - **Database**: Neon PostgreSQL.

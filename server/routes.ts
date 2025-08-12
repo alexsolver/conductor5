@@ -2330,6 +2330,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Customer companies compatibility route for contract creation
+  // =============================
+  // Companies Routes - CLEAN ARCHITECTURE IMPLEMENTATION (Phase 5)
+  // =============================
+  const companiesIntegrationRoutes = (await import('./modules/companies/routes-integration')).default;
+  app.use('/api/companies-integration', companiesIntegrationRoutes); // Temporary mount to avoid conflict
+  console.log('✅ Companies Clean Architecture routes registered at /api/companies-integration & /api/companies-integration/v2');
+
+  // Legacy Companies Routes
   app.get('/api/companies',jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
