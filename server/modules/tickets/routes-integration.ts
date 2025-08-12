@@ -7,7 +7,9 @@
  */
 
 import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
+import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
+import { db } from '../../db';
+import { sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -75,10 +77,36 @@ router.get('/:id', jwtAuth, async (req, res) => {
  * GET TICKET ATTACHMENTS - Secondary data endpoint
  * GET /api/tickets/:id/attachments
  */
-router.get('/:id/attachments', jwtAuth, async (req, res) => {
+router.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    res.json([]);
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const result = await db.execute(sql`
+      SELECT 
+        ta.id,
+        ta.file_name as "fileName",
+        ta.file_size as "fileSize", 
+        ta.content_type as "contentType",
+        ta.file_path as "filePath",
+        ta.description,
+        ta.uploaded_at as "uploadedAt",
+        ta.uploaded_by as "uploadedBy",
+        u.name as "uploaderName"
+      FROM ${sql.identifier(schemaName)}.ticket_attachments ta
+      LEFT JOIN ${sql.identifier(schemaName)}.users u ON ta.uploaded_by = u.id
+      WHERE ta.ticket_id = ${id} AND ta.tenant_id = ${tenantId}
+      ORDER BY ta.uploaded_at DESC
+    `);
+
+    res.json(result.rows);
   } catch (error) {
+    console.error('Error fetching attachments:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch attachments' });
   }
 });
@@ -87,10 +115,36 @@ router.get('/:id/attachments', jwtAuth, async (req, res) => {
  * GET TICKET COMMUNICATIONS - Secondary data endpoint
  * GET /api/tickets/:id/communications
  */
-router.get('/:id/communications', jwtAuth, async (req, res) => {
+router.get('/:id/communications', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    res.json([]);
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const result = await db.execute(sql`
+      SELECT 
+        tc.id,
+        tc.direction,
+        tc.channel,
+        tc.sender,
+        tc.recipient,
+        tc.subject,
+        tc.content,
+        tc.created_at as "createdAt",
+        tc.message_id as "messageId",
+        tc.thread_id as "threadId"
+      FROM ${sql.identifier(schemaName)}.ticket_communications tc
+      WHERE tc.ticket_id = ${id} AND tc.tenant_id = ${tenantId}
+      ORDER BY tc.created_at DESC
+    `);
+
+    res.json(result.rows);
   } catch (error) {
+    console.error('Error fetching communications:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch communications' });
   }
 });
@@ -99,10 +153,33 @@ router.get('/:id/communications', jwtAuth, async (req, res) => {
  * GET TICKET NOTES - Secondary data endpoint
  * GET /api/tickets/:id/notes
  */
-router.get('/:id/notes', jwtAuth, async (req, res) => {
+router.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    res.json([]);
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const result = await db.execute(sql`
+      SELECT 
+        tn.id,
+        tn.content,
+        tn.created_at as "createdAt",
+        tn.created_by as "createdBy",
+        tn.is_private as "isPrivate",
+        u.name as "authorName"
+      FROM ${sql.identifier(schemaName)}.ticket_notes tn
+      LEFT JOIN ${sql.identifier(schemaName)}.users u ON tn.created_by = u.id
+      WHERE tn.ticket_id = ${id} AND tn.tenant_id = ${tenantId}
+      ORDER BY tn.created_at DESC
+    `);
+
+    res.json(result.rows);
   } catch (error) {
+    console.error('Error fetching notes:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch notes' });
   }
 });
@@ -111,10 +188,37 @@ router.get('/:id/notes', jwtAuth, async (req, res) => {
  * GET TICKET ACTIONS - Secondary data endpoint
  * GET /api/tickets/:id/actions
  */
-router.get('/:id/actions', jwtAuth, async (req, res) => {
+router.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    res.json([]);
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const result = await db.execute(sql`
+      SELECT 
+        tia.id,
+        tia.action_number as "actionNumber",
+        tia.action_type as "actionType", 
+        tia.description,
+        tia.start_time as "startTime",
+        tia.end_time as "endTime",
+        tia.is_public as "isPublic",
+        tia.created_at as "createdAt",
+        tia.created_by as "createdBy",
+        u.name as "createdByName"
+      FROM ${sql.identifier(schemaName)}.ticket_internal_actions tia
+      LEFT JOIN ${sql.identifier(schemaName)}.users u ON tia.created_by = u.id
+      WHERE tia.ticket_id = ${id} AND tia.tenant_id = ${tenantId}
+      ORDER BY tia.created_at DESC
+    `);
+
+    res.json(result.rows);
   } catch (error) {
+    console.error('Error fetching actions:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch actions' });
   }
 });
@@ -123,11 +227,95 @@ router.get('/:id/actions', jwtAuth, async (req, res) => {
  * GET TICKET HISTORY - Secondary data endpoint
  * GET /api/tickets/:id/history
  */
-router.get('/:id/history', jwtAuth, async (req, res) => {
+router.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    res.json({ data: [], count: 0 });
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const result = await db.execute(sql`
+      SELECT 
+        th.id,
+        th.action_type as "actionType",
+        th.description,
+        th.field_name as "fieldName",
+        th.old_value as "oldValue", 
+        th.new_value as "newValue",
+        th.performed_by as "performedBy",
+        th.performed_by_name as "performedByName",
+        th.created_at as "createdAt",
+        th.ip_address as "ipAddress",
+        th.user_agent as "userAgent"
+      FROM ${sql.identifier(schemaName)}.ticket_history th
+      WHERE th.ticket_id = ${id} AND th.tenant_id = ${tenantId}
+      ORDER BY th.created_at DESC
+    `);
+
+    res.json({ data: result.rows, count: result.rows.length });
   } catch (error) {
+    console.error('Error fetching history:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch history' });
+  }
+});
+
+/**
+ * GET TICKET RELATIONSHIPS - Secondary data endpoint  
+ * GET /api/tickets/:id/relationships
+ */
+router.get('/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const result = await db.execute(sql`
+      SELECT 
+        tr.id,
+        tr.relationship_type as "relationshipType",
+        tr.description,
+        tr.created_at as "createdAt",
+        t.id as "targetTicket.id",
+        t.subject as "targetTicket.subject",
+        t.status as "targetTicket.status", 
+        t.priority as "targetTicket.priority",
+        t.number as "targetTicket.number",
+        t.created_at as "targetTicket.createdAt",
+        t.description as "targetTicket.description"
+      FROM ${sql.identifier(schemaName)}.ticket_relationships tr
+      LEFT JOIN ${sql.identifier(schemaName)}.tickets t ON tr.target_ticket_id = t.id
+      WHERE tr.source_ticket_id = ${id} AND tr.tenant_id = ${tenantId}
+      ORDER BY tr.created_at DESC
+    `);
+
+    // Transform flat result to nested structure
+    const transformed = result.rows.map(row => ({
+      id: row.id,
+      relationshipType: row.relationshipType,
+      description: row.description,
+      createdAt: row.createdAt,
+      targetTicket: {
+        id: row['targetTicket.id'],
+        subject: row['targetTicket.subject'],
+        status: row['targetTicket.status'],
+        priority: row['targetTicket.priority'],
+        number: row['targetTicket.number'],
+        createdAt: row['targetTicket.createdAt'],
+        description: row['targetTicket.description']
+      }
+    }));
+
+    res.json(transformed);
+  } catch (error) {
+    console.error('Error fetching relationships:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch relationships' });
   }
 });
 
