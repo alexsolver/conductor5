@@ -240,6 +240,7 @@ const TicketDetails = React.memo(() => {
 
   // Extract ticket from response data
   const ticket = ticketResponse?.success ? ticketResponse.data : null;
+  console.log('🎯 [FRONTEND] Ticket extraction:', { ticketResponse, ticket, isLoading, ticketError });
 
   // Fetch customers for dropdowns
   const { data: customersData } = useQuery({
@@ -1084,8 +1085,11 @@ const TicketDetails = React.memo(() => {
 
 
 
+  console.log('🎯 [FRONTEND] Render conditions:', { isLoading, ticket: !!ticket, ticketError });
+
   // First check if ticket exists
   if (isLoading) {
+    console.log('🎯 [FRONTEND] Showing loading state');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -1093,7 +1097,27 @@ const TicketDetails = React.memo(() => {
     );
   }
 
+  if (ticketError) {
+    console.log('🎯 [FRONTEND] Showing error state:', ticketError);
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-500">Erro ao carregar ticket: {ticketError.message}</p>
+          <Button
+            variant="outline"
+            onClick={() => refetchTicket()}
+            className="mt-4"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Tentar Novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!ticket) {
+    console.log('🎯 [FRONTEND] Showing not found state');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">

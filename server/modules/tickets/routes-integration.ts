@@ -72,6 +72,66 @@ router.get('/:id', jwtAuth, async (req, res) => {
 });
 
 /**
+ * GET TICKET ATTACHMENTS - Secondary data endpoint
+ * GET /api/tickets/:id/attachments
+ */
+router.get('/:id/attachments', jwtAuth, async (req, res) => {
+  try {
+    res.json([]);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch attachments' });
+  }
+});
+
+/**
+ * GET TICKET COMMUNICATIONS - Secondary data endpoint
+ * GET /api/tickets/:id/communications
+ */
+router.get('/:id/communications', jwtAuth, async (req, res) => {
+  try {
+    res.json([]);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch communications' });
+  }
+});
+
+/**
+ * GET TICKET NOTES - Secondary data endpoint
+ * GET /api/tickets/:id/notes
+ */
+router.get('/:id/notes', jwtAuth, async (req, res) => {
+  try {
+    res.json([]);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch notes' });
+  }
+});
+
+/**
+ * GET TICKET ACTIONS - Secondary data endpoint
+ * GET /api/tickets/:id/actions
+ */
+router.get('/:id/actions', jwtAuth, async (req, res) => {
+  try {
+    res.json([]);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch actions' });
+  }
+});
+
+/**
+ * GET TICKET HISTORY - Secondary data endpoint
+ * GET /api/tickets/:id/history
+ */
+router.get('/:id/history', jwtAuth, async (req, res) => {
+  try {
+    res.json({ data: [], count: 0 });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch history' });
+  }
+});
+
+/**
  * Status endpoint - Check module status
  * GET /api/tickets-integration/status
  */
