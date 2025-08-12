@@ -1,0 +1,84 @@
+{
+  "level": "ERROR",
+  "message": "Tenant schema validation failed",
+  "error": {
+    "message": "connect ETIMEDOUT 172.31.47.13:443",
+    "stack": "Error: connect ETIMEDOUT 172.31.47.13:443\n    at file:///var/www/html/conductor3/node_modules/@neondatabase/serverless/index.mjs:1345:74\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async _ProductionInitializer.validateTenantSchemas (file:///var/www/html/conductor3/dist/index.js:86880:22)\n    at async _ProductionInitializer.initialize (file:///var/www/html/conductor3/dist/index.js:86839:7)\n    at async file:///var/www/html/conductor3/dist/index.js:87698:3"
+  },
+  "metadata": {
+    "timestamp": "2025-08-12T20:51:03.196Z",
+    "severity": "high"
+  }
+}
+{
+  "level": "ERROR",
+  "message": "Production initialization failed",
+  "error": {
+    "message": "connect ETIMEDOUT 172.31.47.13:443",
+    "stack": "Error: connect ETIMEDOUT 172.31.47.13:443\n    at file:///var/www/html/conductor3/node_modules/@neondatabase/serverless/index.mjs:1345:74\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async _ProductionInitializer.validateTenantSchemas (file:///var/www/html/conductor3/dist/index.js:86880:22)\n    at async _ProductionInitializer.initialize (file:///var/www/html/conductor3/dist/index.js:86839:7)\n    at async file:///var/www/html/conductor3/dist/index.js:87698:3"
+  },
+  "metadata": {
+    "timestamp": "2025-08-12T20:51:03.197Z",
+    "severity": "high"
+  }
+}
+
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+ErrorEvent {
+  [Symbol(kTarget)]: WebSocket {
+    _events: [Object: null prototype] {
+      error: [Function: onError] {
+        [Symbol(kIsForOnEventAttribute)]: false,
+        [Symbol(kListener)]: [Function (anonymous)]
+      },
+      message: [Function: onMessage] {
+        [Symbol(kIsForOnEventAttribute)]: false,
+        [Symbol(kListener)]: [Function (anonymous)]
+      },
+      close: [Function: onClose] {
+        [Symbol(kIsForOnEventAttribute)]: false,
+        [Symbol(kListener)]: [Function (anonymous)]
+      },
+      open: [Function: onOpen] {
+        [Symbol(kIsForOnEventAttribute)]: false,
+        [Symbol(kListener)]: [Function: handleWebSocketOpen]
+      }
+    },
+    _eventsCount: 4,
+    _maxListeners: undefined,
+    _binaryType: 'arraybuffer',
+    _closeCode: 1006,
+    _closeFrameReceived: false,
+    _closeFrameSent: false,
+    _closeMessage: Buffer(0) [Uint8Array] [],
+    _closeTimer: null,
+    _errorEmitted: true,
+    _extensions: {},
+    _paused: false,
+    _protocol: '',
+    _readyState: 3,
+    _receiver: null,
+    _sender: null,
+    _socket: null,
+    _bufferedAmount: 0,
+    _isServer: false,
+    _redirects: 0,
+    _autoPong: true,
+    _url: 'wss://awsdbls.cluster-cmjpdhrukx5b.us-east-2.rds.amazonaws.com/v2',
+    _req: null,
+    [Symbol(shapeMode)]: false,
+    [Symbol(kCapture)]: false
+  },
+  [Symbol(kType)]: 'error',
+  [Symbol(kError)]: Error: connect ETIMEDOUT 172.31.47.13:443
+      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+    errno: -110,
+    code: 'ETIMEDOUT',
+    syscall: 'connect',
+    address: '172.31.47.13',
+    port: 443
+  },
+  [Symbol(kMessage)]: 'connect ETIMEDOUT 172.31.47.13:443'
+}
