@@ -169,7 +169,7 @@ export class UpdateTicketUseCase {
         tenantId, 
         dto: JSON.stringify(dto) 
       });
-      throw new Error(`Failed to update ticket: ${error.message}`);
+      throw error; // Re-throw original error with full context
     }
   }
 }

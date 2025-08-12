@@ -210,74 +210,75 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       // Build dynamic SET clause based on provided fields
       const setClauses: string[] = [];
       const values: any[] = [];
+      let paramIndex = 1;
 
-      // Process each field and build parameters sequentially
+      // Process each field and build parameters sequentially with correct indexing
       if (updates.subject !== undefined) {
-        setClauses.push(`subject = $${values.length + 1}`);
+        setClauses.push(`subject = $${paramIndex++}`);
         values.push(updates.subject);
       }
       if (updates.description !== undefined) {
-        setClauses.push(`description = $${values.length + 1}`);
+        setClauses.push(`description = $${paramIndex++}`);
         values.push(updates.description);
       }
       if (updates.status !== undefined) {
-        setClauses.push(`status = $${values.length + 1}`);
+        setClauses.push(`status = $${paramIndex++}`);
         values.push(updates.status);
       }
       if (updates.priority !== undefined) {
-        setClauses.push(`priority = $${values.length + 1}`);
+        setClauses.push(`priority = $${paramIndex++}`);
         values.push(updates.priority);
       }
       if (updates.urgency !== undefined) {
-        setClauses.push(`urgency = $${values.length + 1}`);
+        setClauses.push(`urgency = $${paramIndex++}`);
         values.push(updates.urgency);
       }
       if (updates.impact !== undefined) {
-        setClauses.push(`impact = $${values.length + 1}`);
+        setClauses.push(`impact = $${paramIndex++}`);
         values.push(updates.impact);
       }
       if (updates.category !== undefined) {
-        setClauses.push(`category = $${values.length + 1}`);
+        setClauses.push(`category = $${paramIndex++}`);
         values.push(updates.category);
       }
       if (updates.subcategory !== undefined) {
-        setClauses.push(`subcategory = $${values.length + 1}`);
+        setClauses.push(`subcategory = $${paramIndex++}`);
         values.push(updates.subcategory);
       }
       if (updates.assignedToId !== undefined) {
-        setClauses.push(`assigned_to_id = $${values.length + 1}`);
+        setClauses.push(`assigned_to_id = $${paramIndex++}`);
         values.push(updates.assignedToId);
       }
       if (updates.companyId !== undefined) {
-        setClauses.push(`company_id = $${values.length + 1}`);
+        setClauses.push(`company_id = $${paramIndex++}`);
         values.push(updates.companyId);
       }
       if (updates.beneficiaryId !== undefined) {
-        setClauses.push(`beneficiary_id = $${values.length + 1}`);
+        setClauses.push(`beneficiary_id = $${paramIndex++}`);
         values.push(updates.beneficiaryId);
       }
       if (updates.callerId !== undefined) {
-        setClauses.push(`caller_id = $${values.length + 1}`);
+        setClauses.push(`caller_id = $${paramIndex++}`);
         values.push(updates.callerId);
       }
       if (updates.action !== undefined) {
-        setClauses.push(`action = $${values.length + 1}`);
+        setClauses.push(`action = $${paramIndex++}`);
         values.push(updates.action);
       }
       if (updates.customerId !== undefined) {
-        setClauses.push(`customer_id = $${values.length + 1}`);
+        setClauses.push(`customer_id = $${paramIndex++}`);
         values.push(updates.customerId);
       }
       if (updates.tags !== undefined) {
-        setClauses.push(`tags = $${values.length + 1}`);
+        setClauses.push(`tags = $${paramIndex++}`);
         values.push(Array.isArray(updates.tags) ? JSON.stringify(updates.tags) : '[]');
       }
       if (updates.customFields !== undefined) {
-        setClauses.push(`custom_fields = $${values.length + 1}`);
+        setClauses.push(`custom_fields = $${paramIndex++}`);
         values.push(typeof updates.customFields === 'object' ? JSON.stringify(updates.customFields) : '{}');
       }
       if (updates.updatedById !== undefined) {
-        setClauses.push(`updated_by = $${values.length + 1}`);
+        setClauses.push(`updated_by = $${paramIndex++}`);
         values.push(updates.updatedById);
       }
 
@@ -289,9 +290,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       // Always update the updated_at timestamp
       setClauses.push('updated_at = NOW()');
 
-      // Add WHERE clause parameters
-      const idParamIndex = values.length + 1;
-      const tenantParamIndex = values.length + 2;
+      // Add WHERE clause parameters with correct indexing
+      const idParamIndex = paramIndex++;
+      const tenantParamIndex = paramIndex++;
       values.push(id, tenantId);
 
       const sqlQuery = `
@@ -311,7 +312,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         setClausesCount: setClauses.length,
         valuesCount: values.length,
         idParamIndex,
-        tenantParamIndex
+        tenantParamIndex,
+        paramIndex: paramIndex - 1
       });
 
       const result = await db.execute(sql.raw(sqlQuery, values));
