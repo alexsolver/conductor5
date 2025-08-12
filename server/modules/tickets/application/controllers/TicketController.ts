@@ -188,12 +188,14 @@ export class TicketController {
       res.json({
         success: true,
         message: 'Tickets retrieved successfully',
-        data: result.tickets,
-        pagination: {
-          page: result.page,
-          totalPages: result.totalPages,
-          total: result.total,
-          limit: pagination.limit
+        data: {
+          tickets: result.tickets,
+          pagination: {
+            page: result.page,
+            totalPages: result.totalPages,
+            total: result.total,
+            limit: pagination.limit
+          }
         }
       });
     } catch (error: any) {
