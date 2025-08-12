@@ -1,4 +1,4 @@
-// Simplified personalization routes that work with existing project patterns
+// Simplified personalization routes for customer item mappings
 import { Router } from 'express';
 import { pool } from '../../../db.js';
 import { jwtAuth } from '../../../middleware/jwtAuth';

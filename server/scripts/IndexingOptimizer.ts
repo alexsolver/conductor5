@@ -105,7 +105,7 @@ class IndexingOptimizer {
     if (name.includes('time') || name.includes('created')) return 'Temporal queries and audit trails';
     if (name.includes('priority')) return 'Priority-based sorting and filtering';
     if (name.includes('category')) return 'Category-based grouping and searches';
-    if (name.includes('project')) return 'Project-related queries and associations';
+
     if (name.includes('skill')) return 'Skill matching and user capabilities';
     if (name.includes('ticket')) return 'Ticket tracking and message threading';
     
@@ -231,12 +231,6 @@ class IndexingOptimizer {
         suggestions.push(`(tenant_id, user_id) for user skill profiles`);
         suggestions.push(`(tenant_id, skill_id) for skill usage tracking`);
         suggestions.push(`(skill_id, level) for skill level matching`);
-        break;
-      
-      case 'project_actions':
-        suggestions.push(`(tenant_id, project_id) for project action tracking`);
-        suggestions.push(`(tenant_id, status) for action status filtering`);
-        suggestions.push(`(project_id, status) for project progress tracking`);
         break;
       
       default:

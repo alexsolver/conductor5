@@ -22,7 +22,7 @@ import Beneficiaries from "./pages/Beneficiaries";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/SettingsSimple";
 import SecuritySettings from "./pages/SecuritySettings";
-import Roadmap from "./pages/Roadmap";
+
 import WorkSchedules from "./pages/WorkSchedules";
 import TimecardReports from './pages/TimecardReports';
 import CertificateManager from './pages/CertificateManager';
@@ -137,7 +137,7 @@ function AppRouter() {
         <Route path="/locations" component={LocationsNew} />
 
         <Route path="/analytics" component={Analytics} />
-        <Route path="/roadmap" component={Roadmap} />
+
         <Route path="/compliance" component={Compliance} />
         <Route path="/clt-compliance" component={CLTCompliance} />
         <Route path="/saas-admin" component={SaasAdmin} />

@@ -17,7 +17,7 @@ export interface ValidationResult {
   filePath: string;
 }
 
-export interface ProjectValidationResult {
+export interface SystemValidationResult {
   isValid: boolean;
   totalFiles: number;
   validFiles: number;
@@ -26,12 +26,12 @@ export interface ProjectValidationResult {
 }
 
 export class TypeScriptValidator {
-  private projectRoot: string;
+  private systemRoot: string;
   private tsConfigPath: string;
 
-  constructor(projectRoot: string = process.cwd()) {
-    this.projectRoot = projectRoot;
-    this.tsConfigPath = path.join(projectRoot, 'tsconfig.json');
+  constructor(systemRoot: string = process.cwd()) {
+    this.systemRoot = systemRoot;
+    this.tsConfigPath = path.join(systemRoot, 'tsconfig.json');
   }
 
   /**
@@ -44,7 +44,7 @@ export class TypeScriptValidator {
       
       // Run TypeScript compiler on specific file
       const command = `npx tsc --noEmit --skipLibCheck ${filePath}`;
-      const { stdout, stderr } = await execAsync(command, { cwd: this.projectRoot });
+      const { stdout, stderr } = await execAsync(command, { cwd: this.systemRoot });
       
       const errors = this.parseTypescriptOutput(stderr);
       const warnings = this.parseTypescriptWarnings(stdout);
@@ -66,9 +66,9 @@ export class TypeScriptValidator {
   }
 
   /**
-   * Validate all TypeScript files in project
+   * Validate all TypeScript files in system
    */
-  async validateProject(): Promise<ProjectValidationResult> {
+  async validateSystem(): Promise<SystemValidationResult> {
     try {
       const files = await this.findTypeScriptFiles();
       const results: ValidationResult[] = [];
@@ -105,7 +105,7 @@ export class TypeScriptValidator {
   async validateImports(): Promise<ValidationResult[]> {
     try {
       const command = `npx tsc --noEmit --skipLibCheck`;
-      const { stderr } = await execAsync(command, { cwd: this.projectRoot });
+      const { stderr } = await execAsync(command, { cwd: this.systemRoot });
       
       const importErrors = this.parseImportErrors(stderr);
       
@@ -142,7 +142,7 @@ export class TypeScriptValidator {
     const results: ValidationResult[] = [];
     
     for (const file of criticalFiles) {
-      const fullPath = path.join(this.projectRoot, file);
+      const fullPath = path.join(this.systemRoot, file);
       try {
         await fs.access(fullPath);
         const result = await this.validateFile(fullPath);
@@ -161,15 +161,15 @@ export class TypeScriptValidator {
   }
 
   /**
-   * Find all TypeScript files in project
+   * Find all TypeScript files in system
    */
   private async findTypeScriptFiles(): Promise<string[]> {
     const files: string[] = [];
     
     const searchDirs = [
-      path.join(this.projectRoot, 'server'),
-      path.join(this.projectRoot, 'client/src'),
-      path.join(this.projectRoot, 'shared')
+      path.join(this.systemRoot, 'server'),
+      path.join(this.systemRoot, 'client/src'),
+      path.join(this.systemRoot, 'shared')
     ];
     
     for (const dir of searchDirs) {

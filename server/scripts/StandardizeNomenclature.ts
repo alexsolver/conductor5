@@ -23,8 +23,7 @@ export class NomenclatureStandardizer {
     camelCaseToUnderscore: {
       'customerCompanies': 'customer_companies',
       'userSkills': 'user_skills',
-      'projectActions': 'project_actions',
-      'timecardAlerts': 'timecard_alerts',
+      'timecardAlerts': 'timecard_alerts'
     }
   };
 
