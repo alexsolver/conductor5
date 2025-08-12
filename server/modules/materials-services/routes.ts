@@ -29,21 +29,8 @@ import { pool } from '../../db';
 // Create router
 const router = Router();
 
-// Temporarily disable auth for testing
-// router.use(jwtAuth);
-
-// Add temporary middleware to mock authenticated user
-router.use((req: any, res: any, next: any) => {
-  req.user = {
-    id: '550e8400-e29b-41d4-a716-446655440001',
-    email: 'alex@lansolver.com',
-    role: 'saas_admin',
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-    permissions: [],
-    attributes: {}
-  };
-  next();
-});
+// Use proper JWT authentication
+router.use(jwtAuth);
 
 // Helper function to initialize controllers for each request
 async function getControllers(tenantId: string) {
@@ -1152,12 +1139,14 @@ router.post('/maintenance', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // For demonstration, let's assume they are available.
     // const { db } = await schemaManager.getTenantDb(tenantId); // Uncomment if needed
 
-    // Mock data for items if db is not available
-    const mockItems = [{ tenantId: tenantId, name: 'Item1', measurementUnit: 'kg', active: true }, { tenantId: tenantId, name: 'ItemB', measurementUnit: 'm', active: false }];
+    // Get real data from database
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
+    const realItems = await itemRepository.findAll(tenantId);
 
     switch (operation) {
       case 'detectar_duplicados':
-        const duplicates = mockItems; // Use mockItems if db is not available
+        const duplicates = realItems;
 
         const duplicateNames = duplicates.reduce((acc: any, item) => {
           acc[item.name] = (acc[item.name] || 0) + 1;
@@ -1246,14 +1235,30 @@ router.get('/compliance/stats', async (req, res) => {
       return res.status(400).json({ error: 'Tenant ID required' });
     }
 
-    // Mock stats for now - replace with real data
+    // Get real compliance stats from database
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    
+    // Query real audit data
+    const auditsResult = await db.query(`
+      SELECT 
+        COUNT(*) as total,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+        COUNT(CASE WHEN status = 'planning' THEN 1 END) as planning,
+        COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as inProgress
+      FROM "${db.schema}".compliance_audits 
+      WHERE tenant_id = $1
+    `, [tenantId]);
+    
+    const auditStats = auditsResult.rows[0] || { total: 0, completed: 0, planning: 0, inProgress: 0 };
+    const completionRate = auditStats.total > 0 ? Math.round((auditStats.completed / auditStats.total) * 100) : 0;
+    
     const stats = {
       audits: {
-        total: 0,
-        completed: 0,
-        planning: 0,
-        inProgress: 0,
-        completionRate: 0
+        total: parseInt(auditStats.total),
+        completed: parseInt(auditStats.completed),
+        planning: parseInt(auditStats.planning),
+        inProgress: parseInt(auditStats.inProgress),
+        completionRate
       },
       certifications: {
         total: 0,
@@ -1267,8 +1272,8 @@ router.get('/compliance/stats', async (req, res) => {
         active: 0,
         critical: 0
       },
-      overallScore: 85,
-      complianceLevel: 'Good'
+      overallScore: completionRate,
+      complianceLevel: completionRate >= 80 ? 'Good' : completionRate >= 60 ? 'Fair' : 'Poor'
     };
 
     res.json(stats);
