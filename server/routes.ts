@@ -163,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import microservice routers
   const { dashboardRouter } = await import('./modules/dashboard/routes');
-  const { customersRouter } = await import('./modules/customers/routes');
+  const customersRouter = await import('./modules/customers/routes-integration');
   const { ticketsRouter } = await import('./modules/tickets/routes');
   const { peopleRouter } = await import('./modules/people/routes');
   // Beneficiaries routes imported at top of file
@@ -198,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
-  app.use('/api/customers', customersRouter);
+  app.use('/api/customers', customersRouter.default || customersRouter);
   app.use('/api/beneficiaries', beneficiariesRoutes);
   app.use('/api/tickets', ticketsRouter);
 

@@ -1,323 +1,319 @@
-// Domain Entity - Pure business logic, no dependencies
-export class Customer {
-  constructor(
-    public readonly id: string,
-    public readonly tenantId: string,
-    
-    // Tipo e status
-    public readonly customerType: 'PF' | 'PJ' = 'PF',
-    public readonly status: 'Ativo' | 'Inativo' | 'active' | 'inactive' = 'Ativo',
-    
-    // Informações básicas
-    public readonly email: string,
-    public readonly description: string | null = null,
-    public readonly internalCode: string | null = null,
-    
-    // Dados pessoa física
-    public readonly firstName: string | null = null,
-    public readonly lastName: string | null = null,
-    public readonly cpf: string | null = null,
-    
-    // Dados pessoa jurídica
-    public readonly companyName: string | null = null,
-    public readonly cnpj: string | null = null,
-    
-    // Contatos
-    public readonly contactPerson: string | null = null,
-    public readonly responsible: string | null = null,
-    public readonly phone: string | null = null,
-    public readonly mobilePhone: string | null = null,
-    
-    // Hierarquia
-    public readonly position: string | null = null,
-    public readonly supervisor: string | null = null,
-    public readonly coordinator: string | null = null,
-    public readonly manager: string | null = null,
-    
-    // Campos técnicos (mantidos para compatibilidade)
-    public readonly tags: string[] = [],
-    public readonly metadata: Record<string, unknown> = {},
-    public readonly verified: boolean = false,
-    public readonly active: boolean = true,
-    public readonly suspended: boolean = false,
-    public readonly lastLogin: Date | null = null,
-    public readonly timezone: string = 'UTC',
-    public readonly locale: string = 'en-US',
-    public readonly language: string = 'en',
-    public readonly externalId: string | null = null,
-    public readonly role: string = 'customer',
-    public readonly notes: string | null = null,
-    public readonly avatar: string | null = null,
-    public readonly signature: string | null = null,
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
-  ) {}
+/**
+ * DOMAIN LAYER - CUSTOMER ENTITY
+ * Seguindo Clean Architecture - 1qa.md compliance
+ */
 
-  // Business rules
-  get fullName(): string {
-    if (this.customerType === 'PJ') {
-      return this.companyName || this.email;
+export interface Customer {
+  id: string;
+  tenantId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  mobilePhone?: string;
+  customerType: 'PF' | 'PJ'; // Pessoa Física ou Jurídica
+  cpf?: string;
+  cnpj?: string;
+  companyName?: string;
+  contactPerson?: string;
+  
+  // Address information
+  state?: string;
+  address?: string;
+  addressNumber?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  zipCode?: string;
+  
+  // Audit fields
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class CustomerDomainService {
+  /**
+   * Validates customer basic information
+   */
+  validateCustomerData(customer: Partial<Customer>): boolean {
+    if (!customer.firstName || customer.firstName.trim().length === 0) {
+      throw new Error('First name is required');
     }
-    if (!this.firstName && !this.lastName) return this.email;
-    return [this.firstName, this.lastName].filter(Boolean).join(' ');
-  }
 
-  get displayName(): string {
-    if (this.customerType === 'PJ') {
-      return this.companyName || 'Empresa sem nome';
+    if (!customer.lastName || customer.lastName.trim().length === 0) {
+      throw new Error('Last name is required');
     }
-    return this.fullName;
-  }
 
-  get isValidEmail(): boolean {
+    if (!customer.email || customer.email.trim().length === 0) {
+      throw new Error('Email is required');
+    }
+
+    if (!customer.tenantId || customer.tenantId.trim().length === 0) {
+      throw new Error('Tenant ID is required');
+    }
+
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(this.email);
-  }
-
-  get isValidDocument(): boolean {
-    if (this.customerType === 'PF') {
-      return this.isValidCPF();
-    } else {
-      return this.isValidCNPJ();
-    }
-  }
-
-  private isValidCPF(): boolean {
-    if (!this.cpf) return false;
-    const cleanCPF = this.cpf.replace(/\D/g, '');
-    return cleanCPF.length === 11;
-  }
-
-  private isValidCNPJ(): boolean {
-    if (!this.cnpj) return false;
-    const cleanCNPJ = this.cnpj.replace(/\D/g, '');
-    return cleanCNPJ.length === 14;
-  }
-
-  get isActive(): boolean {
-    return this.active && !this.suspended && this.status === 'Ativo';
-  }
-
-  get canReceiveSupport(): boolean {
-    return this.isActive && this.verified;
-  }
-
-  hasTag(tag: string): boolean {
-    return this.tags.includes(tag);
-  }
-
-  get isPessoaFisica(): boolean {
-    return this.customerType === 'PF';
-  }
-
-  get isPessoaJuridica(): boolean {
-    return this.customerType === 'PJ';
-  }
-
-  // Status management
-  canBeSuspended(): boolean {
-    return this.active && !this.suspended;
-  }
-
-  canBeActivated(): boolean {
-    return !this.active || this.suspended;
-  }
-
-  // Factory methods
-  static create(props: {
-    tenantId: string;
-    customerType: 'PF' | 'PJ';
-    email: string;
-    firstName?: string | null;
-    lastName?: string | null;
-    cpf?: string | null;
-    companyName?: string | null;
-    cnpj?: string | null;
-    description?: string | null;
-    internalCode?: string | null;
-    contactPerson?: string | null;
-    responsible?: string | null;
-    phone?: string | null;
-    mobilePhone?: string | null;
-    position?: string | null;
-    supervisor?: string | null;
-    coordinator?: string | null;
-    manager?: string | null;
-    status?: 'Ativo' | 'Inativo';
-    tags?: string[];
-    metadata?: Record<string, any>;
-    verified?: boolean;
-    timezone?: string;
-    locale?: string;
-    language?: string;
-    role?: string;
-  }): Customer {
-    // Business validation
-    if (!props.email) {
-      throw new Error('Customer email is required');
-    }
-    
-    if (!props.tenantId) {
-      throw new Error('Customer must belong to a tenant');
-    }
-
-    if (!props.customerType) {
-      throw new Error('Customer type (PF/PJ) is required');
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(props.email)) {
+    if (!emailRegex.test(customer.email)) {
       throw new Error('Invalid email format');
     }
 
-    // Validação específica por tipo
-    if (props.customerType === 'PF') {
-      if (!props.firstName || !props.lastName || !props.cpf) {
-        throw new Error('Para pessoa física: Nome, Sobrenome e CPF são obrigatórios');
+    // Validate customer type
+    if (customer.customerType && !['PF', 'PJ'].includes(customer.customerType)) {
+      throw new Error('Customer type must be PF or PJ');
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates CPF format (Brazilian individual tax ID)
+   */
+  validateCPF(cpf?: string): boolean {
+    if (!cpf) return true; // CPF is optional
+
+    // Remove formatting
+    const cleanCpf = cpf.replace(/\D/g, '');
+
+    // Check basic format
+    if (cleanCpf.length !== 11) {
+      throw new Error('CPF must have 11 digits');
+    }
+
+    // Check for repeated digits
+    if (/^(\d)\1{10}$/.test(cleanCpf)) {
+      throw new Error('Invalid CPF format');
+    }
+
+    // Validate CPF checksum
+    let sum = 0;
+    let remainder;
+
+    // First digit validation
+    for (let i = 1; i <= 9; i++) {
+      sum = sum + parseInt(cleanCpf.substring(i - 1, i)) * (11 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if ((remainder === 10) || (remainder === 11)) remainder = 0;
+    if (remainder !== parseInt(cleanCpf.substring(9, 10))) {
+      throw new Error('Invalid CPF checksum');
+    }
+
+    // Second digit validation
+    sum = 0;
+    for (let i = 1; i <= 10; i++) {
+      sum = sum + parseInt(cleanCpf.substring(i - 1, i)) * (12 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if ((remainder === 10) || (remainder === 11)) remainder = 0;
+    if (remainder !== parseInt(cleanCpf.substring(10, 11))) {
+      throw new Error('Invalid CPF checksum');
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates CNPJ format (Brazilian company tax ID)
+   */
+  validateCNPJ(cnpj?: string): boolean {
+    if (!cnpj) return true; // CNPJ is optional
+
+    // Remove formatting
+    const cleanCnpj = cnpj.replace(/\D/g, '');
+
+    // Check basic format
+    if (cleanCnpj.length !== 14) {
+      throw new Error('CNPJ must have 14 digits');
+    }
+
+    // Check for repeated digits
+    if (/^(\d)\1{13}$/.test(cleanCnpj)) {
+      throw new Error('Invalid CNPJ format');
+    }
+
+    // Validate CNPJ checksum
+    let size = cleanCnpj.length - 2;
+    let numbers = cleanCnpj.substring(0, size);
+    const digits = cleanCnpj.substring(size);
+    let sum = 0;
+    let pos = size - 7;
+
+    for (let i = size; i >= 1; i--) {
+      sum += parseInt(numbers.charAt(size - i)) * pos--;
+      if (pos < 2) pos = 9;
+    }
+
+    let result = sum % 11 < 2 ? 0 : 11 - sum % 11;
+    if (result !== parseInt(digits.charAt(0))) {
+      throw new Error('Invalid CNPJ checksum');
+    }
+
+    size = size + 1;
+    numbers = cleanCnpj.substring(0, size);
+    sum = 0;
+    pos = size - 7;
+    for (let i = size; i >= 1; i--) {
+      sum += parseInt(numbers.charAt(size - i)) * pos--;
+      if (pos < 2) pos = 9;
+    }
+
+    result = sum % 11 < 2 ? 0 : 11 - sum % 11;
+    if (result !== parseInt(digits.charAt(1))) {
+      throw new Error('Invalid CNPJ checksum');
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates phone number format
+   */
+  validatePhone(phone?: string): boolean {
+    if (!phone) return true; // Phone is optional
+
+    // Brazilian phone format: (XX) XXXXX-XXXX or (XX) XXXX-XXXX
+    const phoneRegex = /^\(\d{2}\) \d{4,5}-\d{4}$/;
+    if (!phoneRegex.test(phone)) {
+      throw new Error('Invalid phone format. Use: (XX) XXXXX-XXXX');
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates ZIP code format (Brazilian CEP)
+   */
+  validateZipCode(zipCode?: string): boolean {
+    if (!zipCode) return true; // ZIP code is optional
+
+    // Brazilian ZIP code format: XXXXX-XXX
+    const zipRegex = /^\d{5}-\d{3}$/;
+    if (!zipRegex.test(zipCode)) {
+      throw new Error('Invalid ZIP code format. Use: XXXXX-XXX');
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates customer based on type (PF/PJ)
+   */
+  validateCustomerByType(customer: Partial<Customer>): boolean {
+    if (customer.customerType === 'PF') {
+      // Pessoa Física - CPF required, company fields should be empty
+      if (!customer.cpf) {
+        throw new Error('CPF is required for individual customers (PF)');
       }
-    } else if (props.customerType === 'PJ') {
-      if (!props.companyName || !props.cnpj) {
-        throw new Error('Para pessoa jurídica: Razão Social e CNPJ são obrigatórios');
+      
+      this.validateCPF(customer.cpf);
+      
+      if (customer.cnpj) {
+        throw new Error('CNPJ should not be provided for individual customers (PF)');
+      }
+    } else if (customer.customerType === 'PJ') {
+      // Pessoa Jurídica - CNPJ and company name required
+      if (!customer.cnpj) {
+        throw new Error('CNPJ is required for company customers (PJ)');
+      }
+      
+      if (!customer.companyName || customer.companyName.trim().length === 0) {
+        throw new Error('Company name is required for company customers (PJ)');
+      }
+      
+      this.validateCNPJ(customer.cnpj);
+      
+      if (customer.cpf) {
+        throw new Error('CPF should not be provided for company customers (PJ)');
       }
     }
 
-    // Note: This should use dependency injection for ID generation in production
-    return new Customer(
-      crypto.randomUUID(),
-      props.tenantId,
-      props.customerType,
-      props.status || 'Ativo',
-      props.email,
-      props.description,
-      props.internalCode,
-      props.firstName,
-      props.lastName,
-      props.cpf,
-      props.companyName,
-      props.cnpj,
-      props.contactPerson,
-      props.responsible,
-      props.phone,
-      props.mobilePhone,
-      props.position,  
-      props.supervisor,
-      props.coordinator,
-      props.manager,
-      props.tags || [],
-      props.metadata || {},
-      props.verified || false,
-      true, // active by default
-      false, // not suspended by default
-      null, // lastLogin
-      props.timezone || 'UTC',
-      props.locale || 'pt-BR',
-      props.language || 'pt',
-      null, // externalId
-      props.role || 'customer',
-      null, // notes
-      null, // avatar
-      null, // signature
-      new Date(),
-      new Date()
-    );
+    return true;
   }
 
-  // Update methods (immutable)
-  updateProfile(changes: {
-    firstName?: string | null;
-    lastName?: string | null;
-    phone?: string | null;
-    timezone?: string;
-    locale?: string;
-    language?: string;
-  }): Customer {
-    return new Customer(
-      this.id,
-      this.tenantId,
-      this.email,
-      changes.firstName !== undefined ? changes.firstName : this.firstName,
-      changes.lastName !== undefined ? changes.lastName : this.lastName,
-      changes.phone !== undefined ? changes.phone : this.phone,
-      this.tags,
-      this.metadata,
-      this.verified,
-      this.active,
-      this.suspended,
-      this.lastLogin,
-      changes.timezone || this.timezone,
-      changes.locale || this.locale,
-      changes.language || this.language,
-      this.externalId,
-      this.role,
-      this.notes,
-      this.avatar,
-      this.signature,
-      this.createdAt,
-      new Date()
-    );
+  /**
+   * Creates full name from first and last name
+   */
+  createFullName(firstName: string, lastName: string): string {
+    return `${firstName.trim()} ${lastName.trim()}`;
   }
 
-  suspend(reason?: string): Customer {
-    if (!this.canBeSuspended()) {
-      throw new Error('Customer cannot be suspended');
+  /**
+   * Formats phone number for storage
+   */
+  formatPhone(phone?: string): string | undefined {
+    if (!phone) return undefined;
+    
+    // Remove all non-digits
+    const digits = phone.replace(/\D/g, '');
+    
+    // Format based on length
+    if (digits.length === 10) {
+      return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    } else if (digits.length === 11) {
+      return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
     }
-
-    const metadata = reason ? { ...this.metadata, suspensionReason: reason } : this.metadata;
-
-    return new Customer(
-      this.id,
-      this.tenantId,
-      this.email,
-      this.firstName,
-      this.lastName,
-      this.phone,
-      this.tags,
-      metadata,
-      this.verified,
-      false, // inactive
-      true, // suspended
-      this.lastLogin,
-      this.timezone,
-      this.locale,
-      this.language,
-      this.externalId,
-      this.role,
-      this.notes,
-      this.avatar,
-      this.signature,
-      this.createdAt,
-      new Date()
-    );
+    
+    return phone; // Return as-is if format is unexpected
   }
 
-  activate(): Customer {
-    if (!this.canBeActivated()) {
-      throw new Error('Customer cannot be activated');
+  /**
+   * Formats CPF for display
+   */
+  formatCPF(cpf?: string): string | undefined {
+    if (!cpf) return undefined;
+    
+    const digits = cpf.replace(/\D/g, '');
+    if (digits.length === 11) {
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
     }
+    
+    return cpf;
+  }
 
-    return new Customer(
-      this.id,
-      this.tenantId,
-      this.email,
-      this.firstName,
-      this.lastName,
-      this.phone,
-      this.tags,
-      this.metadata,
-      this.verified,
-      true, // active
-      false, // not suspended
-      this.lastLogin,
-      this.timezone,
-      this.locale,
-      this.language,
-      this.externalId,
-      this.role,
-      this.notes,
-      this.avatar,
-      this.signature,
-      this.createdAt,
-      new Date()
-    );
+  /**
+   * Formats CNPJ for display
+   */
+  formatCNPJ(cnpj?: string): string | undefined {
+    if (!cnpj) return undefined;
+    
+    const digits = cnpj.replace(/\D/g, '');
+    if (digits.length === 14) {
+      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+    }
+    
+    return cnpj;
+  }
+
+  /**
+   * Gets customer display name based on type
+   */
+  getDisplayName(customer: Customer): string {
+    if (customer.customerType === 'PJ' && customer.companyName) {
+      return customer.companyName;
+    }
+    
+    return this.createFullName(customer.firstName, customer.lastName);
+  }
+
+  /**
+   * Validates complete customer data for creation/update
+   */
+  validateCompleteCustomer(customer: Partial<Customer>): boolean {
+    // Basic validation
+    this.validateCustomerData(customer);
+    
+    // Phone validation
+    this.validatePhone(customer.phone);
+    this.validatePhone(customer.mobilePhone);
+    
+    // ZIP code validation
+    this.validateZipCode(customer.zipCode);
+    
+    // Type-specific validation
+    this.validateCustomerByType(customer);
+    
+    return true;
   }
 }

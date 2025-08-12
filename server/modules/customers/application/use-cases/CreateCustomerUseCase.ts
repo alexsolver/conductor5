@@ -1,106 +1,109 @@
+/**
+ * APPLICATION LAYER - CREATE CUSTOMER USE CASE
+ * Seguindo Clean Architecture - 1qa.md compliance
+ */
 
-// Application Layer - Use Case
-import { Customer } from "../../../domain/entities/Customer";
-import { ICustomerRepository } from "../../../domain/repositories/ICustomerRepository";
-import { CustomerCreated } from "../../../domain/events/CustomerEvents";
-import { IDomainEventPublisher } from "../../../../shared/events/IDomainEventPublisher";
-
-export interface CreateCustomerRequest {
-  tenantId: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone?: string | null;
-  mobilePhone?: string | null;
-  customerType?: string;
-  cpf?: string | null;
-  cnpj?: string | null;
-  companyName?: string | null;
-  contactPerson?: string | null;
-  state?: string | null;
-  address?: string | null;
-  addressNumber?: string | null;
-  complement?: string | null;
-  neighborhood?: string | null;
-  city?: string | null;
-  zipCode?: string | null;
-}
+import { Customer, CustomerDomainService } from '../../domain/entities/Customer';
+import { ICustomerRepository } from '../../domain/repositories/ICustomerRepository';
+import { CreateCustomerDTO } from '../dto/CustomerDTO';
 
 export class CreateCustomerUseCase {
   constructor(
     private customerRepository: ICustomerRepository,
-    private eventPublisher: IDomainEventPublisher
+    private customerDomainService: CustomerDomainService
   ) {}
 
-  async execute(request: CreateCustomerRequest): Promise<Customer> {
-    // Check if customer already exists
-    const existingCustomer = await this.customerRepository.findByEmail(
-      request.email,
-      request.tenantId
-    );
-
-    if (existingCustomer) {
-      throw new Error('Customer with this email already exists');
+  async execute(dto: CreateCustomerDTO): Promise<Customer> {
+    // Validate input data
+    if (!dto.tenantId) {
+      throw new Error('Tenant ID is required');
     }
 
-    // Additional business validations
-    if (request.customerType === "PJ" && !request.companyName) {
-      throw new Error('Company name is required for PJ customers');
-    }
+    // Normalize data
+    const normalizedData = this.normalizeCustomerData(dto);
 
-    if (request.customerType === "PF" && request.cpf) {
-      const cpfDigits = request.cpf.replace(/\D/g, '');
-      if (cpfDigits.length !== 11) {
-        throw new Error('CPF must have exactly 11 digits');
-      }
-    }
+    // Domain validation
+    this.customerDomainService.validateCompleteCustomer(normalizedData);
 
-    if (request.customerType === "PJ" && request.cnpj) {
-      const cnpjDigits = request.cnpj.replace(/\D/g, '');
-      if (cnpjDigits.length !== 14) {
-        throw new Error('CNPJ must have exactly 14 digits');
-      }
-    }
+    // Check for duplicates
+    await this.validateUniqueness(normalizedData);
 
     // Create customer entity
-    const customer = Customer.create({
-      tenantId: request.tenantId,
-      email: request.email,
-      firstName: request.firstName,
-      lastName: request.lastName,
-      phone: request.phone,
-      mobilePhone: request.mobilePhone,
-      customerType: request.customerType || "PF",
-      cpf: request.cpf,
-      cnpj: request.cnpj,
-      companyName: request.companyName,
-      contactPerson: request.contactPerson,
-      state: request.state,
-      address: request.address,
-      addressNumber: request.addressNumber,
-      complement: request.complement,
-      neighborhood: request.neighborhood,
-      city: request.city,
-      zipCode: request.zipCode,
-    });
+    const customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'> = {
+      tenantId: normalizedData.tenantId!,
+      firstName: normalizedData.firstName,
+      lastName: normalizedData.lastName,
+      email: normalizedData.email.toLowerCase(),
+      phone: this.customerDomainService.formatPhone(normalizedData.phone),
+      mobilePhone: this.customerDomainService.formatPhone(normalizedData.mobilePhone),
+      customerType: normalizedData.customerType,
+      cpf: normalizedData.cpf ? normalizedData.cpf.replace(/\D/g, '') : undefined,
+      cnpj: normalizedData.cnpj ? normalizedData.cnpj.replace(/\D/g, '') : undefined,
+      companyName: normalizedData.companyName,
+      contactPerson: normalizedData.contactPerson,
+      state: normalizedData.state,
+      address: normalizedData.address,
+      addressNumber: normalizedData.addressNumber,
+      complement: normalizedData.complement,
+      neighborhood: normalizedData.neighborhood,
+      city: normalizedData.city,
+      zipCode: normalizedData.zipCode,
+      isActive: true
+    };
 
-    // Save to repository
-    const savedCustomer = await this.customerRepository.save(customer);
+    // Create in repository
+    const createdCustomer = await this.customerRepository.create(customerData);
 
-    // Publish domain event
-    const event = new CustomerCreated(
-      savedCustomer.id,
-      savedCustomer.tenantId,
-      {
-        email: savedCustomer.email,
-        fullName: savedCustomer.fullName,
-        customerType: savedCustomer.customerType,
-        companyName: savedCustomer.companyName || undefined,
+    return createdCustomer;
+  }
+
+  private normalizeCustomerData(dto: CreateCustomerDTO): CreateCustomerDTO {
+    return {
+      ...dto,
+      firstName: dto.firstName.trim(),
+      lastName: dto.lastName.trim(),
+      email: dto.email.trim().toLowerCase(),
+      phone: dto.phone?.trim(),
+      mobilePhone: dto.mobilePhone?.trim(),
+      cpf: dto.cpf?.replace(/\D/g, ''), // Remove formatting
+      cnpj: dto.cnpj?.replace(/\D/g, ''), // Remove formatting
+      companyName: dto.companyName?.trim(),
+      contactPerson: dto.contactPerson?.trim(),
+      state: dto.state?.trim().toUpperCase(), // State codes in uppercase
+      address: dto.address?.trim(),
+      addressNumber: dto.addressNumber?.trim(),
+      complement: dto.complement?.trim(),
+      neighborhood: dto.neighborhood?.trim(),
+      city: dto.city?.trim(),
+      zipCode: dto.zipCode?.replace(/\D/g, '') // Remove formatting
+    };
+  }
+
+  private async validateUniqueness(dto: CreateCustomerDTO): Promise<void> {
+    if (!dto.tenantId) {
+      throw new Error('Tenant ID is required for uniqueness validation');
+    }
+
+    // Check email uniqueness within tenant
+    const emailExists = await this.customerRepository.emailExists(dto.email, dto.tenantId);
+    if (emailExists) {
+      throw new Error('Email already exists for this tenant');
+    }
+
+    // Check CPF uniqueness within tenant (for PF customers)
+    if (dto.customerType === 'PF' && dto.cpf) {
+      const cpfExists = await this.customerRepository.cpfExists(dto.cpf, dto.tenantId);
+      if (cpfExists) {
+        throw new Error('CPF already exists for this tenant');
       }
-    );
+    }
 
-    await this.eventPublisher.publish(event);
-
-    return savedCustomer;
+    // Check CNPJ uniqueness within tenant (for PJ customers)
+    if (dto.customerType === 'PJ' && dto.cnpj) {
+      const cnpjExists = await this.customerRepository.cnpjExists(dto.cnpj, dto.tenantId);
+      if (cnpjExists) {
+        throw new Error('CNPJ already exists for this tenant');
+      }
+    }
   }
 }
