@@ -102,7 +102,7 @@ router.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest, res) =
       ORDER BY ta.created_at DESC
     `);
 
-    res.json(result.rows);
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error('Error fetching attachments:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch attachments' });
@@ -175,7 +175,7 @@ router.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
       ORDER BY tn.created_at DESC
     `);
 
-    res.json(result.rows);
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error('Error fetching notes:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch notes' });

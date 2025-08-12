@@ -507,12 +507,8 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          CASE 
-            WHEN EXISTS (SELECT 1 FROM "${schemaName}".items WHERE parent_id = tpi.item_id AND tenant_id = $3) 
-            THEN true 
-            ELSE false 
-          END as has_children,
-          (SELECT COUNT(*) FROM "${schemaName}".items WHERE parent_id = tpi.item_id AND tenant_id = $3) as children_count
+          false as has_children,
+          0 as children_count
         FROM "${schemaName}".ticket_planned_items tpi
         LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
         WHERE tpi.ticket_id = $1 AND tpi.tenant_id = $2
