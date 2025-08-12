@@ -61,12 +61,6 @@ export class UpdateTicketUseCase {
       updateData.description = dto.description.trim();
     }
 
-    if (dto.status !== undefined) {
-      updateData.status = dto.status;
-      // Aplicar regras de transição de status antes de salvar
-      await this.applyStatusTransitionRules(existingTicket, dto.status, updateData);
-    }
-
     if (dto.priority !== undefined) {
       updateData.priority = dto.priority;
     }
@@ -88,10 +82,17 @@ export class UpdateTicketUseCase {
       updateData.beneficiaryId = dto.beneficiaryId;
     }
 
+    // Aplicar assignedToId ANTES de status para garantir que as regras sejam avaliadas corretamente
     if (dto.assignedToId !== undefined) {
       updateData.assignedToId = dto.assignedToId;
-      // Aplicar regras de atribuição antes de salvar
+      // Aplicar regras de atribuição antes de validar status
       await this.applyAssignmentRules(existingTicket, updateData);
+    }
+
+    if (dto.status !== undefined) {
+      updateData.status = dto.status;
+      // Aplicar regras de transição de status APÓS definir assignee
+      await this.applyStatusTransitionRules(existingTicket, dto.status, updateData);
     }
 
     if (dto.companyId !== undefined) {
@@ -148,8 +149,9 @@ export class UpdateTicketUseCase {
     // Regras de transição de status
     switch (newStatus) {
       case 'in_progress':
-        // Para 'in_progress', deve ter assignee
-        if (!updateData.assignedToId && !existingTicket.assignedToId) {
+        // Para 'in_progress', deve ter assignee (verificar se existe no ticket atual OU se está sendo atribuído agora)
+        const currentAssignee = updateData.assignedToId !== undefined ? updateData.assignedToId : existingTicket.assignedToId;
+        if (!currentAssignee) {
           throw new Error('Ticket must be assigned before moving to in_progress');
         }
         break;
@@ -195,7 +197,7 @@ export class UpdateTicketUseCase {
     }
 
     // Se ticket estava assignado e agora não tem assignee, voltar para 'new' ou 'open'
-    if (existingTicket.assignedToId && !updateData.assignedToId) {
+    if (existingTicket.assignedToId && updateData.assignedToId === null) {
       if (existingTicket.status === 'in_progress') {
         updateData.status = 'open';
       }
