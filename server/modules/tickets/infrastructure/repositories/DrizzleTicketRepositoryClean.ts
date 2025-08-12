@@ -312,7 +312,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         valuesCount: values.length,
         idParamIndex,
         tenantParamIndex,
-        paramIndex: paramIndex - 1
+        values: values
       });
 
       const result = await db.execute(sql.raw(sqlQuery, values));
