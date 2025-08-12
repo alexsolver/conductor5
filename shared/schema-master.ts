@@ -264,7 +264,7 @@ export const tickets = pgTable("tickets", {
   companyId: uuid("company_id").references(() => companies.id), // CRITICAL: Company the ticket belongs to
   beneficiaryId: uuid("beneficiary_id").references(() => beneficiaries.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
-  responsibleId: uuid("responsible_id").references(() => users.id),
+  responsibleId: uuid("assigned_to_id").references(() => users.id),
   assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id),
   locationId: uuid("location_id").references(() => locations.id),
   followerId: uuid("follower_id").references(() => users.id),
