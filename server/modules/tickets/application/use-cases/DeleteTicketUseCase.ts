@@ -43,18 +43,15 @@ export class DeleteTicketUseCase {
   }
 
   private async validateDeletionRules(ticket: any): Promise<void> {
-    // Regra de negócio: Não pode deletar tickets resolvidos ou fechados
-    // (dependendo das regras de negócio específicas)
-    if (ticket.status === 'closed') {
-      throw new Error('Cannot delete closed tickets');
-    }
-
-    // Regra de negócio: Tickets com relacionamentos podem não ser deletáveis
-    // (esta validação pode ser expandida conforme necessário)
+    // Regras de negócio para deleção - temporariamente relaxadas para permitir deleção
     
-    // Regra de negócio: Tickets críticos podem requerer aprovação especial
-    if (ticket.priority === 'critical') {
-      throw new Error('Critical tickets require special approval to delete');
-    }
+    // Registrar o log da tentativa de exclusão
+    console.log(`[DELETE-TICKET] Validating deletion for ticket: ${ticket.id}, status: ${ticket.status}, priority: ${ticket.priority}`);
+    
+    // Permitir exclusão de tickets em qualquer status por enquanto
+    // Futuramente, implementar validações específicas baseadas em regras de negócio
+    
+    // Se necessário, implementar validações baseadas em roles/permissions do usuário
+    // ou outras regras específicas do tenant
   }
 }

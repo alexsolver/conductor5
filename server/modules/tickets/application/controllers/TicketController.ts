@@ -3,7 +3,8 @@
  * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 import { CreateTicketUseCase } from '../use-cases/CreateTicketUseCase';
 import { UpdateTicketUseCase } from '../use-cases/UpdateTicketUseCase';
 import { FindTicketUseCase } from '../use-cases/FindTicketUseCase';
@@ -18,7 +19,7 @@ export class TicketController {
     private deleteTicketUseCase: DeleteTicketUseCase
   ) {}
 
-  async create(req: Request, res: Response): Promise<void> {
+  async create(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const dto: CreateTicketDTO = req.body;
       const tenantId = req.user?.tenantId;
@@ -51,7 +52,7 @@ export class TicketController {
     }
   }
 
-  async update(req: Request, res: Response): Promise<void> {
+  async update(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const dto: UpdateTicketDTO = req.body;
@@ -86,7 +87,7 @@ export class TicketController {
     }
   }
 
-  async findById(req: Request, res: Response): Promise<void> {
+  async findById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -122,7 +123,7 @@ export class TicketController {
     }
   }
 
-  async findAll(req: Request, res: Response): Promise<void> {
+  async findAll(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
       
@@ -187,7 +188,7 @@ export class TicketController {
     }
   }
 
-  async search(req: Request, res: Response): Promise<void> {
+  async search(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { q: searchTerm, page = 1, limit = 50 } = req.query;
       const tenantId = req.user?.tenantId;
@@ -241,7 +242,7 @@ export class TicketController {
     }
   }
 
-  async getStatistics(req: Request, res: Response): Promise<void> {
+  async getStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
 
@@ -268,7 +269,7 @@ export class TicketController {
     }
   }
 
-  async delete(req: Request, res: Response): Promise<void> {
+  async delete(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -298,7 +299,7 @@ export class TicketController {
     }
   }
 
-  async findByAssignedUser(req: Request, res: Response): Promise<void> {
+  async findByAssignedUser(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -326,7 +327,7 @@ export class TicketController {
     }
   }
 
-  async findByCustomer(req: Request, res: Response): Promise<void> {
+  async findByCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { customerId } = req.params;
       const tenantId = req.user?.tenantId;

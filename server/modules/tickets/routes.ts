@@ -2875,4 +2875,99 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
   }
 });
 
+// DELETE ticket (soft delete) - CRITICAL FIX for ticket deletion functionality
+ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Tenant ID required" 
+      });
+    }
+
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const userId = req.user.id;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    console.log(`[DELETE-TICKET] Attempting to delete ticket: ${id} for tenant: ${tenantId}`);
+
+    // First, verify the ticket exists and is active
+    const checkQuery = `
+      SELECT id, subject, status, priority, is_active 
+      FROM "${schemaName}".tickets 
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
+    `;
+    const checkResult = await pool.query(checkQuery, [id, tenantId]);
+
+    if (checkResult.rows.length === 0) {
+      console.log(`[DELETE-TICKET] Ticket not found or already deleted: ${id}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found or already deleted'
+      });
+    }
+
+    const ticket = checkResult.rows[0];
+    console.log(`[DELETE-TICKET] Found ticket to delete:`, ticket);
+
+    // Perform soft delete - set is_active to false
+    const deleteQuery = `
+      UPDATE "${schemaName}".tickets 
+      SET is_active = false, updated_at = NOW(), updated_by = $3
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      RETURNING id, subject
+    `;
+    
+    const deleteResult = await pool.query(deleteQuery, [id, tenantId, userId]);
+
+    if (deleteResult.rowCount === 0) {
+      console.log(`[DELETE-TICKET] Failed to delete ticket: ${id}`);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete ticket'
+      });
+    }
+
+    console.log(`[DELETE-TICKET] Successfully deleted ticket: ${id}`);
+
+    // Create comprehensive audit trail for ticket deletion
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'ticket_deleted',
+        `Ticket excluído: ${ticket.subject}`,
+        {
+          deleted_ticket_id: id,
+          deleted_ticket_subject: ticket.subject,
+          deleted_ticket_status: ticket.status,
+          deleted_ticket_priority: ticket.priority,
+          deletion_time: new Date().toISOString(),
+          deleted_by: userId
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Warning: Could not create audit trail for ticket deletion:', historyError.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Ticket deleted successfully',
+      data: {
+        deletedTicketId: id,
+        deletedTicketSubject: ticket.subject
+      }
+    });
+
+  } catch (error) {
+    console.error("Error deleting ticket:", error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete ticket',
+      error: error.message
+    });
+  }
+});
+
 export { ticketsRouter };
