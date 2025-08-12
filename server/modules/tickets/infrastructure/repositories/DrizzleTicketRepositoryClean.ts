@@ -196,6 +196,15 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       console.log('🔧 [DrizzleTicketRepositoryClean] update called with id:', id, 'tenantId:', tenantId);
       console.log('📝 Update data:', updates);
 
+      // Validação de entrada
+      if (!id || !tenantId) {
+        throw new Error('ID and tenantId are required');
+      }
+
+      if (!updates || Object.keys(updates).length === 0) {
+        throw new Error('No update data provided');
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Build dynamic SET clause based on provided fields
@@ -204,95 +213,91 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       // Process each field and build parameters sequentially
       if (updates.subject !== undefined) {
-        setClauses.push(`subject = $${setClauses.length + 1}`);
+        setClauses.push(`subject = $${values.length + 1}`);
         values.push(updates.subject);
       }
       if (updates.description !== undefined) {
-        setClauses.push(`description = $${setClauses.length + 1}`);
+        setClauses.push(`description = $${values.length + 1}`);
         values.push(updates.description);
       }
       if (updates.status !== undefined) {
-        setClauses.push(`status = $${setClauses.length + 1}`);
+        setClauses.push(`status = $${values.length + 1}`);
         values.push(updates.status);
       }
       if (updates.priority !== undefined) {
-        setClauses.push(`priority = $${setClauses.length + 1}`);
+        setClauses.push(`priority = $${values.length + 1}`);
         values.push(updates.priority);
       }
       if (updates.urgency !== undefined) {
-        setClauses.push(`urgency = $${setClauses.length + 1}`);
+        setClauses.push(`urgency = $${values.length + 1}`);
         values.push(updates.urgency);
       }
       if (updates.impact !== undefined) {
-        setClauses.push(`impact = $${setClauses.length + 1}`);
+        setClauses.push(`impact = $${values.length + 1}`);
         values.push(updates.impact);
       }
       if (updates.category !== undefined) {
-        setClauses.push(`category = $${setClauses.length + 1}`);
+        setClauses.push(`category = $${values.length + 1}`);
         values.push(updates.category);
       }
       if (updates.subcategory !== undefined) {
-        setClauses.push(`subcategory = $${setClauses.length + 1}`);
+        setClauses.push(`subcategory = $${values.length + 1}`);
         values.push(updates.subcategory);
       }
       if (updates.assignedToId !== undefined) {
-        setClauses.push(`assigned_to_id = $${setClauses.length + 1}`);
+        setClauses.push(`assigned_to_id = $${values.length + 1}`);
         values.push(updates.assignedToId);
       }
       if (updates.companyId !== undefined) {
-        setClauses.push(`company_id = $${setClauses.length + 1}`);
+        setClauses.push(`company_id = $${values.length + 1}`);
         values.push(updates.companyId);
       }
       if (updates.beneficiaryId !== undefined) {
-        setClauses.push(`beneficiary_id = $${setClauses.length + 1}`);
+        setClauses.push(`beneficiary_id = $${values.length + 1}`);
         values.push(updates.beneficiaryId);
       }
       if (updates.callerId !== undefined) {
-        setClauses.push(`caller_id = $${setClauses.length + 1}`);
+        setClauses.push(`caller_id = $${values.length + 1}`);
         values.push(updates.callerId);
       }
       if (updates.action !== undefined) {
-        setClauses.push(`action = $${setClauses.length + 1}`);
+        setClauses.push(`action = $${values.length + 1}`);
         values.push(updates.action);
       }
       if (updates.customerId !== undefined) {
-        setClauses.push(`customer_id = $${setClauses.length + 1}`);
+        setClauses.push(`customer_id = $${values.length + 1}`);
         values.push(updates.customerId);
       }
       if (updates.tags !== undefined) {
-        setClauses.push(`tags = $${setClauses.length + 1}`);
-        values.push(JSON.stringify(updates.tags));
+        setClauses.push(`tags = $${values.length + 1}`);
+        values.push(Array.isArray(updates.tags) ? JSON.stringify(updates.tags) : '[]');
       }
       if (updates.customFields !== undefined) {
-        setClauses.push(`custom_fields = $${setClauses.length + 1}`);
-        values.push(JSON.stringify(updates.customFields));
+        setClauses.push(`custom_fields = $${values.length + 1}`);
+        values.push(typeof updates.customFields === 'object' ? JSON.stringify(updates.customFields) : '{}');
       }
       if (updates.updatedById !== undefined) {
-        setClauses.push(`updated_by = $${setClauses.length + 1}`);
+        setClauses.push(`updated_by = $${values.length + 1}`);
         values.push(updates.updatedById);
       }
 
-
       // Validation: ensure we have fields to update
       if (setClauses.length === 0) {
-        throw new Error('No fields to update');
+        throw new Error('No valid fields to update');
       }
 
       // Always update the updated_at timestamp
       setClauses.push('updated_at = NOW()');
 
-      // Add the ticket ID for WHERE clause - this is the next parameter
-      values.push(id);
-      const whereParamIndex = values.length;
-
-      // Add tenantId for WHERE clause
-      values.push(tenantId);
-      const tenantParamIndex = values.length;
+      // Add WHERE clause parameters
+      const idParamIndex = values.length + 1;
+      const tenantParamIndex = values.length + 2;
+      values.push(id, tenantId);
 
       const sqlQuery = `
         UPDATE ${schemaName}.tickets 
         SET ${setClauses.join(', ')}
-        WHERE id = $${whereParamIndex} AND tenant_id = $${tenantParamIndex} AND is_active = true
+        WHERE id = $${idParamIndex} AND tenant_id = $${tenantParamIndex} AND is_active = true
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, action, caller_id as "callerId", assigned_to_id as "assignedToId",
@@ -301,29 +306,49 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           tags, custom_fields as "customFields", updated_by as "updatedById"
       `;
 
-      console.log('🔧 SQL:', sqlQuery);
-      console.log('📊 Values:', values);
-      console.log('📊 Parameter validation:', { 
-        setClausesCount: setClauses.length, 
-        valuesCount: values.length, 
-        whereParamIndex,
-        tenantParamIndex,
-        parameterAlignment: 'OK'
+      console.log('🔧 SQL Query:', sqlQuery);
+      console.log('📊 Parameters:', {
+        setClausesCount: setClauses.length,
+        valuesCount: values.length,
+        idParamIndex,
+        tenantParamIndex
       });
 
       const result = await db.execute(sql.raw(sqlQuery, values));
 
       if (!result.rows || result.rows.length === 0) {
-        throw new Error('Ticket not found or update failed');
+        console.log('❌ No rows returned from update query');
+        throw new Error('Ticket not found, inactive, or update failed');
       }
 
-      console.log('✅ [DrizzleTicketRepositoryClean] update successful');
-      return result.rows[0] as Ticket;
+      const updatedTicket = result.rows[0] as Ticket;
+      console.log('✅ [DrizzleTicketRepositoryClean] update successful for ticket:', updatedTicket.id);
+      
+      return updatedTicket;
 
     } catch (error: any) {
-      console.error('❌ [DrizzleTicketRepositoryClean] update error:', error);
-      this.logger.error('Failed to update ticket', { error: error.message, id, tenantId });
-      throw new Error(`Failed to update ticket: ${error.message}`);
+      console.error('❌ [DrizzleTicketRepositoryClean] update error:', {
+        message: error.message,
+        id,
+        tenantId,
+        error: error.stack
+      });
+      
+      this.logger.error('Failed to update ticket', { 
+        error: error.message, 
+        id, 
+        tenantId,
+        stack: error.stack 
+      });
+      
+      // Re-throw with more context
+      if (error.message.includes('syntax error')) {
+        throw new Error(`Database syntax error during ticket update: ${error.message}`);
+      } else if (error.message.includes('constraint')) {
+        throw new Error(`Database constraint violation during ticket update: ${error.message}`);
+      } else {
+        throw new Error(`Failed to update ticket: ${error.message}`);
+      }
     }
   }
 
