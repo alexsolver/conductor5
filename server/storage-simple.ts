@@ -391,15 +391,15 @@ export class DatabaseStorage implements IStorage {
       let baseQuery = sql`
         SELECT 
           tickets.*,
-          customers.first_name as customer_first_name,
-          customers.last_name as customer_last_name,
-          customers.email as customer_email,
+          beneficiary.first_name as customer_first_name,
+          beneficiary.last_name as customer_last_name,
+          beneficiary.email as customer_email,
           caller.first_name as caller_first_name,
           caller.last_name as caller_last_name,
           caller.email as caller_email,
           companies.name as customer_company_name
         FROM ${sql.identifier(schemaName)}.tickets
-        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers beneficiary ON tickets.beneficiary_id = beneficiary.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
         LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.company_id = companies.id
         WHERE tickets.tenant_id = ${validatedTenantId}
@@ -432,15 +432,15 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         SELECT 
           tickets.*,
-          customers.first_name as customer_first_name,
-          customers.last_name as customer_last_name,
-          customers.email as customer_email,
+          beneficiary.first_name as customer_first_name,
+          beneficiary.last_name as customer_last_name,
+          beneficiary.email as customer_email,
           caller.first_name as caller_first_name,
           caller.last_name as caller_last_name,
           caller.email as caller_email,
           companies.name as customer_company_name
         FROM ${sql.identifier(schemaName)}.tickets
-        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers beneficiary ON tickets.beneficiary_id = beneficiary.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
         LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.company_id = companies.id
         WHERE tickets.id = ${ticketId} AND tickets.tenant_id = ${validatedTenantId}
