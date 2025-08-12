@@ -281,7 +281,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       // Always update the updated_at timestamp
       setClauses.push('updated_at = NOW()');
 
-      // Add the ticket ID for WHERE clause - this is the last parameter
+      // Add the ticket ID for WHERE clause - this is the next parameter
       values.push(id);
       const whereParamIndex = values.length;
 

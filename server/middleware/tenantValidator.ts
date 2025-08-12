@@ -12,6 +12,16 @@ export interface TenantValidatedRequest extends Request {
   tenantValidated?: boolean;
 }
 
+// Assuming AuthenticatedRequest is defined elsewhere and includes a 'user' property
+// For demonstration purposes, let's define a minimal interface:
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId?: string;
+    role?: string;
+  };
+}
+
 /**
  * CRITICAL: Enhanced tenant validation middleware with cross-tenant protection
  * Prevents data leaks between tenants and validates tenant boundaries
@@ -20,7 +30,7 @@ export function enhancedTenantValidator() {
   return async (req: TenantValidatedRequest, res: Response, next: NextFunction) => {
     try {
       const user = (req as any).user;
-      
+
       if (!user || !user.tenantId) {
         logger.warn('Request without valid tenant context', {
           path: req.path,
@@ -109,7 +119,7 @@ export function enhancedTenantValidator() {
         method: req.method,
         userAgent: req.get('User-Agent')
       });
-      
+
       return res.status(500).json({
         success: false,
         message: 'Tenant validation failed'
@@ -126,7 +136,7 @@ export function crossTenantValidator() {
   return async (req: TenantValidatedRequest, res: Response, next: NextFunction) => {
     try {
       const user = (req as any).user;
-      
+
       // Only SaaS admins can perform cross-tenant operations
       if (!user || user.role !== 'saas_admin') {
         logger.warn('Non-admin attempted cross-tenant operation', {
@@ -135,7 +145,7 @@ export function crossTenantValidator() {
           path: req.path,
           method: req.method
         });
-        
+
         return res.status(403).json({
           success: false,
           message: 'Cross-tenant operations require SaaS admin privileges'
@@ -149,7 +159,7 @@ export function crossTenantValidator() {
         error: error instanceof Error ? error.message : 'Unknown error',
         path: req.path
       });
-      
+
       return res.status(500).json({
         success: false,
         message: 'Cross-tenant validation failed'
