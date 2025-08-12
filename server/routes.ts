@@ -231,6 +231,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const customFieldsIntegrationRoutes = await import('./modules/custom-fields/routes-integration');
   console.log('✅ Custom Fields Clean Architecture routes registered at /api/custom-fields-integration');
   app.use('/api/custom-fields-integration', customFieldsIntegrationRoutes.default);
+  
+  // === People Clean Architecture Integration ===
+  const peopleIntegrationRoutes = await import('./modules/people/routes-integration');
+  console.log('✅ People Clean Architecture routes registered at /api/people-integration');
+  app.use('/api/people-integration', peopleIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
