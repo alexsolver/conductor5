@@ -120,15 +120,15 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filters.assignedToId) {
-      conditions.push(eq(tickets.assigned_to_id, filters.assignedToId));
+      conditions.push(eq(tickets.assignedToId, filters.assignedToId));
     }
 
     if (filters.customerId) {
-      conditions.push(eq(tickets.caller_id, filters.customerId));
+      conditions.push(eq(tickets.callerId, filters.customerId));
     }
 
     if (filters.companyId) {
-      conditions.push(eq(tickets.company_id, filters.companyId));
+      conditions.push(eq(tickets.companyId, filters.companyId));
     }
 
     if (filters.category) {
@@ -233,15 +233,15 @@ export class DrizzleTicketRepository implements ITicketRepository {
       }
 
       if (filters.assignedToId) {
-        whereConditions.push(eq(tickets.assigned_to_id, filters.assignedToId));
+        whereConditions.push(eq(tickets.assignedToId, filters.assignedToId));
       }
 
       if (filters.customerId) {
-        whereConditions.push(eq(tickets.caller_id, filters.customerId));
+        whereConditions.push(eq(tickets.callerId, filters.customerId));
       }
 
       if (filters.companyId) {
-        whereConditions.push(eq(tickets.company_id, filters.companyId));
+        whereConditions.push(eq(tickets.companyId, filters.companyId));
       }
 
       if (filters.search) {
@@ -316,13 +316,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
       impact: row.impact,
       category: row.category,
       subcategory: row.subcategory,
-      callerId: row.caller_id,
-      assignedToId: row.assigned_to_id,
-      tenantId: row.tenant_id,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      createdById: row.created_by_id,
-      customerCompanyId: row.company_id
+      callerId: row.callerId,
+      assignedToId: row.assignedToId,
+      tenantId: row.tenantId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      createdById: row.createdById,
+      customerCompanyId: row.companyId
     };
   }
 
@@ -332,7 +332,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       .from(tickets)
       .where(
         and(
-          eq(tickets.assigned_to_id, userId),
+          eq(tickets.assignedToId, userId),
           eq(tickets.tenantId, tenantId)
         )
       )
@@ -345,7 +345,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       .from(tickets)
       .where(
         and(
-          eq(tickets.caller_id, customerId),
+          eq(tickets.callerId, customerId),
           eq(tickets.tenantId, tenantId)
         )
       )
@@ -392,11 +392,11 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filters.assignedToId) {
-      conditions.push(eq(tickets.assigned_to_id, filters.assignedToId));
+      conditions.push(eq(tickets.assignedToId, filters.assignedToId));
     }
 
     if (filters.customerId) {
-      conditions.push(eq(tickets.caller_id, filters.customerId));
+      conditions.push(eq(tickets.callerId, filters.customerId));
     }
 
     if (filters.search) {
