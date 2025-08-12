@@ -48,6 +48,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
     - **Dashboard Module**: Real-time statistics aggregation, activity tracking, performance monitoring, customizable widget system, and multi-module analytics integration.
     - **SaaS Admin Module**: Global system administration, complete tenant lifecycle management, billing oversight, audit compliance, advanced analytics, and system maintenance tools.
     - **Template Hierarchy Module**: Hierarchical template management with parent-child relationships, advanced inheritance system, dynamic field system, and role-based permissions.
+    - **Ticket Templates Module**: Complete template management system with dynamic fields supporting 13 field types, automation engine with auto-assignment and escalation rules, workflow engine with stages and approvals, role-based permission system, comprehensive analytics and performance metrics, user feedback system with ratings, and advanced search capabilities.
 
 ## External Dependencies
 - **Database**: Neon PostgreSQL.
