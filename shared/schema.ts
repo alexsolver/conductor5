@@ -1,7 +1,8 @@
 // UNIFIED SCHEMA - SINGLE SOURCE OF TRUTH
 // Re-exports from schema-master.ts as the authoritative source
 
-export * from "./schema-master";
+// Re-export everything from schema-master as the single source of truth
+module.exports = require('./schema-master');
 
 // Garantir que tickets está sendo exportado corretamente
 import { tickets as ticketsTable } from "./schema-master";
@@ -58,7 +59,7 @@ export {
 } from "./schema-materials-services";
 
 // Validation: Ensure all critical exports are available
-import type { 
+import type {
   User, Customer, Ticket, Tenant, Company, Beneficiary,
   TicketPlannedItem, TicketConsumedItem,
   Item, PriceList, PricingRule,
