@@ -182,7 +182,10 @@ export class TicketController {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
 
+      console.log('🎯 [TicketController] findById called with:', { id, tenantId });
+
       if (!tenantId) {
+        console.log('❌ [TicketController] No tenant ID provided');
         res.status(401).json({
           success: false,
           message: 'Tenant ID required'
@@ -190,9 +193,11 @@ export class TicketController {
         return;
       }
 
+      console.log('🔍 [TicketController] Calling findTicketUseCase.findById');
       const ticket = await this.findTicketUseCase.findById(id, tenantId);
 
       if (!ticket) {
+        console.log('❌ [TicketController] Ticket not found');
         res.status(404).json({
           success: false,
           message: 'Ticket not found'
@@ -200,11 +205,13 @@ export class TicketController {
         return;
       }
 
+      console.log('✅ [TicketController] Ticket found, returning data');
       res.json({
         success: true,
         data: ticket
       });
     } catch (error: any) {
+      console.error('❌ [TicketController] Error in findById:', error);
       res.status(500).json({
         success: false,
         message: error.message || 'Failed to find ticket',
