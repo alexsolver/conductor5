@@ -1417,479 +1417,58 @@ export interface TemporalTraffic {
   pattern: string;
 }
 
-export interface StorageMonitoring {
-  capacity: CapacityMonitoring;
-  performance: StoragePerformance;
-  health: StorageHealth;
-  backup: BackupMonitoring;
+export interface TransactionTypeVolume {
+  type: string;
+  count: number;
+  percentage: number;
+  trend: string;
 }
 
-export interface CapacityMonitoring {
-  total: number;
-  used: number;
-  available: number;
-  utilization: number;
-  growth: CapacityGrowth;
+export interface UserMonitoring {
+  active_users: number;
+  concurrent_users: number;
+  session_duration: number;
+  user_satisfaction: number;
+  geographic_distribution: GeographicUserDistribution[];
 }
 
-export interface CapacityGrowth {
-  rate: number;
-  projection: CapacityProjection;
-  alerts: CapacityAlert[];
+export interface GeographicUserDistribution {
+  region: string;
+  users: number;
+  percentage: number;
+  performance: number;
 }
 
-export interface CapacityProjection {
-  timeToFull: number;
-  recommendedExpansion: number;
-  cost: number;
-  timeline: string;
+export interface UserExperienceMonitoring {
+  page_load_time: number;
+  interaction_responsiveness: number;
+  visual_stability: number;
+  user_satisfaction_score: number;
+  bounce_rate: number;
 }
 
-export interface CapacityAlert {
-  threshold: number;
-  current: number;
-  severity: string;
-  action: string;
+export interface BusinessMetricsMonitoring {
+  conversion_rate: number;
+  revenue_per_user: number;
+  user_retention: number;
+  feature_adoption: FeatureAdoption[];
+  business_goals: BusinessGoal[];
 }
 
-export interface StoragePerformance {
-  iops: IOPSMonitoring;
-  throughput: ThroughputMonitoring;
-  latency: StorageLatency;
-  queue: QueueMonitoring;
+export interface FeatureAdoption {
+  feature: string;
+  adoption_rate: number;
+  usage_frequency: number;
+  user_satisfaction: number;
 }
 
-export interface IOPSMonitoring {
-  read: number;
-  write: number;
-  total: number;
-  peak: number;
+export interface BusinessGoal {
+  goal: string;
   target: number;
-}
-
-export interface ThroughputMonitoring {
-  read: number;
-  write: number;
-  total: number;
-  peak: number;
-  utilization: number;
-}
-
-export interface StorageLatency {
-  read: number;
-  write: number;
-  average: number;
-  percentiles: Percentiles;
-}
-
-export interface QueueMonitoring {
-  depth: number;
-  average: number;
-  peak: number;
-  wait: number;
-}
-
-export interface StorageHealth {
-  status: 'healthy' | 'degraded' | 'failed';
-  errors: StorageError[];
-  predictive: PredictiveHealth;
-  maintenance: StorageMaintenance;
-}
-
-export interface StorageError {
-  type: string;
-  count: number;
-  severity: string;
-  trend: string;
-  location: string;
-}
-
-export interface PredictiveHealth {
-  failure_probability: number;
-  time_to_failure: number;
-  recommendations: string[];
-  confidence: number;
-}
-
-export interface StorageMaintenance {
-  scheduled: MaintenanceEvent[];
-  overdue: MaintenanceEvent[];
-  recommended: MaintenanceEvent[];
-}
-
-export interface MaintenanceEvent {
-  type: string;
-  component: string;
-  due: Date;
-  priority: string;
-  duration: number;
-}
-
-export interface BackupMonitoring {
-  status: BackupStatus;
-  performance: BackupPerformance;
-  integrity: BackupIntegrity;
-  recovery: RecoveryMonitoring;
-}
-
-export interface BackupStatus {
-  last_backup: Date;
-  next_backup: Date;
-  success_rate: number;
-  failures: BackupFailure[];
-}
-
-export interface BackupFailure {
-  timestamp: Date;
-  error: string;
-  type: string;
-  resolved: boolean;
-}
-
-export interface BackupPerformance {
-  duration: number;
-  throughput: number;
-  compression: number;
-  deduplication: number;
-}
-
-export interface BackupIntegrity {
-  verified: boolean;
-  last_verification: Date;
-  corruption_detected: boolean;
-  recovery_tested: boolean;
-}
-
-export interface RecoveryMonitoring {
-  rto: number; // Recovery Time Objective
-  rpo: number; // Recovery Point Objective
-  tests: RecoveryTest[];
-  procedures: RecoveryProcedure[];
-}
-
-export interface RecoveryTest {
-  date: Date;
-  type: string;
-  success: boolean;
-  duration: number;
-  issues: string[];
-}
-
-export interface RecoveryProcedure {
-  name: string;
-  type: string;
-  automated: boolean;
-  tested: boolean;
-  last_update: Date;
-}
-
-export interface DatabaseMonitoring {
-  performance: DatabasePerformance;
-  connections: ConnectionMonitoring;
-  queries: QueryMonitoring;
-  replication: ReplicationMonitoring;
-  maintenance: DatabaseMaintenance;
-}
-
-export interface DatabasePerformance {
-  transactions_per_second: number;
-  response_time: number;
-  throughput: number;
-  cache_hit_ratio: number;
-  lock_waits: number;
-}
-
-export interface ConnectionMonitoring {
-  active: number;
-  max: number;
-  utilization: number;
-  pool_size: number;
-  wait_time: number;
-}
-
-export interface QueryMonitoring {
-  slow_queries: SlowQuery[];
-  most_frequent: FrequentQuery[];
-  errors: QueryError[];
-  optimization: QueryOptimization;
-}
-
-export interface SlowQuery {
-  query: string;
-  duration: number;
-  frequency: number;
-  table: string;
-  optimization_suggestion: string;
-}
-
-export interface FrequentQuery {
-  query: string;
-  count: number;
-  average_duration: number;
-  cache_eligible: boolean;
-}
-
-export interface QueryError {
-  query: string;
-  error: string;
-  count: number;
-  last_occurrence: Date;
-}
-
-export interface QueryOptimization {
-  suggestions: OptimizationSuggestion[];
-  indexes_recommended: IndexRecommendation[];
-  statistics_outdated: boolean;
-}
-
-export interface OptimizationSuggestion {
-  query: string;
-  suggestion: string;
-  impact: string;
-  effort: string;
-}
-
-export interface IndexRecommendation {
-  table: string;
-  columns: string[];
-  type: string;
-  impact: string;
-  size_estimate: number;
-}
-
-export interface ReplicationMonitoring {
-  lag: number;
-  status: 'healthy' | 'lagging' | 'broken';
-  replicas: ReplicaStatus[];
-  failover: FailoverStatus;
-}
-
-export interface ReplicaStatus {
-  name: string;
-  lag: number;
-  status: 'healthy' | 'lagging' | 'disconnected';
-  last_update: Date;
-}
-
-export interface FailoverStatus {
-  automatic: boolean;
-  last_failover: Date;
-  duration: number;
-  success: boolean;
-}
-
-export interface DatabaseMaintenance {
-  vacuum: VacuumStatus;
-  analyze: AnalyzeStatus;
-  backups: DatabaseBackupStatus;
-  updates: DatabaseUpdateStatus;
-}
-
-export interface VacuumStatus {
-  last_run: Date;
-  duration: number;
-  space_freed: number;
-  next_scheduled: Date;
-}
-
-export interface AnalyzeStatus {
-  last_run: Date;
-  tables_analyzed: number;
-  statistics_updated: boolean;
-  next_scheduled: Date;
-}
-
-export interface DatabaseBackupStatus {
-  full_backup: Date;
-  incremental_backup: Date;
-  log_backup: Date;
-  retention_days: number;
-}
-
-export interface DatabaseUpdateStatus {
-  current_version: string;
-  latest_version: string;
-  updates_available: boolean;
-  security_patches: number;
-}
-
-export interface ServiceMonitoring {
-  availability: ServiceAvailability;
-  performance: ServicePerformance;
-  dependencies: ServiceDependencies;
-  resources: ServiceResources;
-}
-
-export interface ServiceAvailability {
-  uptime: number;
-  downtime: number;
-  incidents: ServiceIncident[];
-  sla_compliance: number;
-}
-
-export interface ServiceIncident {
-  start: Date;
-  end?: Date;
-  severity: string;
-  cause: string;
-  resolution: string;
-}
-
-export interface ServicePerformance {
-  response_time: number;
-  throughput: number;
-  error_rate: number;
-  saturation: number;
-}
-
-export interface ServiceDependencies {
-  external: ExternalDependency[];
-  internal: InternalDependency[];
-  health: DependencyHealth;
-}
-
-export interface ExternalDependency {
-  name: string;
-  status: 'healthy' | 'degraded' | 'down';
-  response_time: number;
-  error_rate: number;
-  last_check: Date;
-}
-
-export interface InternalDependency {
-  service: string;
-  status: 'healthy' | 'degraded' | 'down';
-  version: string;
-  health_endpoint: string;
-  last_check: Date;
-}
-
-export interface DependencyHealth {
-  overall: number;
-  critical: number;
-  degraded: number;
-  healthy: number;
-}
-
-export interface ServiceResources {
-  cpu: ResourceUsageMetric;
-  memory: ResourceUsageMetric;
-  storage: ResourceUsageMetric;
-  network: ResourceUsageMetric;
-}
-
-export interface ResourceUsageMetric {
   current: number;
-  average: number;
-  peak: number;
-  limit: number;
-  utilization: number;
+  progress: number;
+  deadline: Date;
 }
-
-export interface ApplicationMonitoring {
-  errors: ErrorMonitoring;
-  performance: ApplicationPerformanceMonitoring;
-  user: UserMonitoring;
-  business: BusinessMetricsMonitoring;
-}
-
-export interface ErrorMonitoring {
-  rate: number;
-  count: number;
-  types: ErrorType[];
-  trends: ErrorTrend[];
-  alerts: ErrorAlert[];
-}
-
-export interface ErrorType {
-  type: string;
-  count: number;
-  percentage: number;
-  severity: string;
-  resolution: string;
-}
-
-export interface ErrorTrend {
-  period: string;
-  count: number;
-  change: number;
-  trend: 'increasing' | 'decreasing' | 'stable';
-}
-
-export interface ErrorAlert {
-  threshold: number;
-  current: number;
-  severity: string;
-  notification: boolean;
-}
-
-export interface ApplicationPerformanceMonitoring {
-  response_times: ResponseTimeMonitoring;
-  throughput: ApplicationThroughput;
-  transactions: TransactionMonitoring;
-  user_experience: UserExperienceMonitoring;
-}
-
-export interface ResponseTimeMonitoring {
-  average: number;
-  median: number;
-  percentiles: Percentiles;
-  by_endpoint: EndpointResponseTime[];
-}
-
-export interface EndpointResponseTime {
-  endpoint: string;
-  method: string;
-  average: number;
-  percentiles: Percentiles;
-  calls: number;
-}
-
-export interface ApplicationThroughput {
-  requests_per_second: number;
-  peak: number;
-  by_endpoint: EndpointThroughput[];
-  trends: ThroughputTrend[];
-}
-
-export interface EndpointThroughput {
-  endpoint: string;
-  rps: number;
-  percentage: number;
-  trend: string;
-}
-
-export interface ThroughputTrend {
-  period: string;
-  rps: number;
-  change: number;
-  trend: string;
-}
-
-export interface TransactionMonitoring {
-  success_rate: number;
-  failure_rate: number;
-  duration: TransactionDuration;
-  volume: TransactionVolume;
-}
-
-export interface TransactionDuration {
-  average: number;
-  percentiles: Percentiles;
-  by_type: TransactionTypeDuration[];
-}
-
-export interface TransactionTypeDuration {
-  type: string;
-  average: number;
-  count: number;
-  success_rate: number;
-}
-
-export interface TransactionVolume {
-  total: number;
-  by_type: TransactionTypeVolume[];
-  trends: VolumeT
 
 /**
  * System Integration Business Rules and Domain Service
