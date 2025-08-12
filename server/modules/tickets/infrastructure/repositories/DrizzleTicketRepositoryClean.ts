@@ -199,69 +199,70 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Build dynamic SET clause based on provided fields
-      const setClauses = [];
-      const values = [];
-      let paramCount = 0;
+      const setClauses: string[] = [];
+      const values: any[] = [];
 
+      // Process each field and build parameters sequentially
       if (updates.subject !== undefined) {
-        setClauses.push(`subject = $${++paramCount}`);
+        setClauses.push(`subject = $${setClauses.length + 1}`);
         values.push(updates.subject);
       }
       if (updates.description !== undefined) {
-        setClauses.push(`description = $${++paramCount}`);
+        setClauses.push(`description = $${setClauses.length + 1}`);
         values.push(updates.description);
       }
       if (updates.status !== undefined) {
-        setClauses.push(`status = $${++paramCount}`);
+        setClauses.push(`status = $${setClauses.length + 1}`);
         values.push(updates.status);
       }
       if (updates.priority !== undefined) {
-        setClauses.push(`priority = $${++paramCount}`);
+        setClauses.push(`priority = $${setClauses.length + 1}`);
         values.push(updates.priority);
       }
       if (updates.urgency !== undefined) {
-        setClauses.push(`urgency = $${++paramCount}`);
+        setClauses.push(`urgency = $${setClauses.length + 1}`);
         values.push(updates.urgency);
       }
       if (updates.impact !== undefined) {
-        setClauses.push(`impact = $${++paramCount}`);
+        setClauses.push(`impact = $${setClauses.length + 1}`);
         values.push(updates.impact);
       }
       if (updates.category !== undefined) {
-        setClauses.push(`category = $${++paramCount}`);
+        setClauses.push(`category = $${setClauses.length + 1}`);
         values.push(updates.category);
       }
       if (updates.subcategory !== undefined) {
-        setClauses.push(`subcategory = $${++paramCount}`);
+        setClauses.push(`subcategory = $${setClauses.length + 1}`);
         values.push(updates.subcategory);
       }
       if (updates.assignedToId !== undefined) {
-        setClauses.push(`assigned_to_id = $${++paramCount}`);
+        setClauses.push(`assigned_to_id = $${setClauses.length + 1}`);
         values.push(updates.assignedToId);
       }
       if (updates.companyId !== undefined) {
-        setClauses.push(`company_id = $${++paramCount}`);
+        setClauses.push(`company_id = $${setClauses.length + 1}`);
         values.push(updates.companyId);
       }
       if (updates.beneficiaryId !== undefined) {
-        setClauses.push(`beneficiary_id = $${++paramCount}`);
+        setClauses.push(`beneficiary_id = $${setClauses.length + 1}`);
         values.push(updates.beneficiaryId);
       }
       if (updates.callerId !== undefined) {
-        setClauses.push(`caller_id = $${++paramCount}`);
+        setClauses.push(`caller_id = $${setClauses.length + 1}`);
         values.push(updates.callerId);
+      }
+
+      // Validation: ensure we have fields to update
+      if (setClauses.length === 0) {
+        throw new Error('No fields to update');
       }
 
       // Always update the updated_at timestamp
       setClauses.push('updated_at = NOW()');
 
-      // Add the ticket ID for WHERE clause
+      // Add the ticket ID for WHERE clause - this is the last parameter
       values.push(id);
-      const whereParamIndex = values.length; // Use the actual array length for parameter index
-
-      if (setClauses.length === 1) { // Only updated_at
-        throw new Error('No fields to update');
-      }
+      const whereParamIndex = values.length;
 
       const sqlQuery = `
         UPDATE ${schemaName}.tickets 
@@ -276,7 +277,12 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       console.log('🔧 SQL:', sqlQuery);
       console.log('📊 Values:', values);
-      console.log('📊 Parameter count check:', { setClauses: setClauses.length, values: values.length, whereParamIndex });
+      console.log('📊 Parameter validation:', { 
+        setClausesCount: setClauses.length, 
+        valuesCount: values.length, 
+        whereParamIndex,
+        parameterAlignment: 'OK'
+      });
 
       const result = await db.execute(sql.raw(sqlQuery, values));
 
