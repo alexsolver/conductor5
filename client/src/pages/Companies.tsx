@@ -91,11 +91,23 @@ export default function Companies() {
   });
 
   // Query para buscar empresas
-  const { data: companies = [], isLoading } = useQuery({
+  const { data: companies = [], isLoading, error } = useQuery({
     queryKey: ['/api/customers/companies'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/customers/companies');
-      return response;
+      // Garantir que sempre retorna um array
+      if (Array.isArray(response)) {
+        return response;
+      }
+      if (response && typeof response === 'object') {
+        if (Array.isArray((response as any).data)) {
+          return (response as any).data;
+        }
+        if (Array.isArray((response as any).companies)) {
+          return (response as any).companies;
+        }
+      }
+      return [];
     }
   });
 
@@ -192,7 +204,7 @@ export default function Companies() {
   };
 
   // Filtrar empresas com base no termo de busca
-  const filteredCompanies = companies.filter((company: Company) =>
+  const filteredCompanies = (Array.isArray(companies) ? companies : []).filter((company: Company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (company.displayName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
     (company.industry?.toLowerCase() || "").includes(searchTerm.toLowerCase())
@@ -541,7 +553,13 @@ export default function Companies() {
                 </div>
 
                 {/* Company Customers Section */}
-                <CompanyCustomersSection companyId={company.id} />
+                <CompanyCustomersSection 
+                  companyId={company.id} 
+                  onAssociateCustomers={() => {
+                    setSelectedCompany(company);
+                    setIsAssociateModalOpen(true);
+                  }} 
+                />
               </CardContent>
             </Card>
           ))}
@@ -755,7 +773,11 @@ export default function Companies() {
       <AssociateMultipleCustomersModal
         isOpen={isAssociateModalOpen}
         onClose={() => setIsAssociateModalOpen(false)}
-        companyId={selectedCompany?.id}
+        company={selectedCompany}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+          setIsAssociateModalOpen(false);
+        }}
       />
     </div>
   );
