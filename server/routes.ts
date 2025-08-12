@@ -256,6 +256,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const dashboardIntegrationRoutes = await import('./modules/dashboard/routes-integration');
   console.log('✅ Dashboard Clean Architecture routes registered at /api/dashboard-integration');
   app.use('/api/dashboard-integration', dashboardIntegrationRoutes.default);
+  
+  // === SaaS Admin Clean Architecture Integration ===
+  const saasAdminIntegrationRoutes = await import('./modules/saas-admin/routes-integration');
+  console.log('✅ SaaS Admin Clean Architecture routes registered at /api/saas-admin-integration');
+  app.use('/api/saas-admin-integration', saasAdminIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
