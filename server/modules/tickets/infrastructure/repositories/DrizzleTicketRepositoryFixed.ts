@@ -91,9 +91,10 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
         );
       }
 
-      // Get total count using raw SQL
+      // Get total count using correct tenant schema
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const totalResult = await db.execute(sql`
-        SELECT COUNT(*) as count FROM tickets WHERE tenant_id = ${tenantId}
+        SELECT COUNT(*) as count FROM ${sql.identifier(schemaName)}.tickets
       `);
 
       const total = Number(totalResult.rows[0]?.count || 0);
@@ -107,15 +108,14 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
         ? asc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt)
         : desc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt);
 
-      // TEMPORARY FIX: Use raw SQL to avoid schema mapping issues
+      // SOLUTION: Use correct tenant schema with assigned_to_id column
       const results = await db.execute(sql`
         SELECT 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", beneficiary_id as "beneficiaryId"
-        FROM tickets 
-        WHERE tenant_id = ${tenantId}
+        FROM ${sql.identifier(schemaName)}.tickets
         ORDER BY created_at DESC
         LIMIT ${pagination.limit} 
         OFFSET ${offset}
