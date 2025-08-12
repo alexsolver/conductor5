@@ -206,17 +206,20 @@ const TicketDetails = React.memo(() => {
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
       try {
+        console.log('🎯 [FRONTEND] Fetching ticket:', id);
         const response = await apiRequest("GET", `/api/tickets/${id}`);
+        console.log('🎯 [FRONTEND] Response status:', response.status);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
+        console.log('🎯 [FRONTEND] Response data:', data);
         if (!data.success && !data.data) {
           throw new Error(data.message || 'Ticket não encontrado');
         }
         return data;
       } catch (error) {
-        console.error('❌ Error fetching ticket:', error);
+        console.error('❌ [FRONTEND] Error fetching ticket:', error);
         throw error;
       }
     },

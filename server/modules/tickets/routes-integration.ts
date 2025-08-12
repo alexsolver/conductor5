@@ -58,7 +58,7 @@ router.get('/', jwtAuth, async (req, res) => {
  * GET /api/tickets/:id
  */
 router.get('/:id', jwtAuth, async (req, res) => {
-  console.log('🎯 [TICKETS-INTEGRATION] GET /api/tickets/:id endpoint called');
+  console.log('🎯 [TICKETS-INTEGRATION] GET /api/tickets/:id endpoint called with ID:', req.params.id);
   try {
     await ticketController.findById(req, res);
   } catch (error) {
