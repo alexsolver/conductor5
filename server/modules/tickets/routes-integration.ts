@@ -95,13 +95,11 @@ router.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest, res) =
         ta.content_type as "contentType",
         ta.file_path as "filePath",
         ta.description,
-        ta.uploaded_at as "uploadedAt",
-        ta.uploaded_by as "uploadedBy",
-        u.name as "uploaderName"
+        ta.created_at as "createdAt",
+        ta.created_by as "createdBy"
       FROM ${sql.identifier(schemaName)}.ticket_attachments ta
-      LEFT JOIN ${sql.identifier(schemaName)}.users u ON ta.uploaded_by = u.id
-      WHERE ta.ticket_id = ${id} AND ta.tenant_id = ${tenantId}
-      ORDER BY ta.uploaded_at DESC
+      WHERE ta.ticket_id = ${id} AND ta.tenant_id = ${tenantId} AND ta.is_active = true
+      ORDER BY ta.created_at DESC
     `);
 
     res.json(result.rows);
@@ -129,9 +127,9 @@ router.get('/:id/communications', jwtAuth, async (req: AuthenticatedRequest, res
       SELECT 
         tc.id,
         tc.direction,
-        tc.channel,
-        tc.sender,
-        tc.recipient,
+        tc.communication_type as "communicationType",
+        tc.from_address as "fromAddress",
+        tc.to_address as "toAddress",
         tc.subject,
         tc.content,
         tc.created_at as "createdAt",
@@ -167,13 +165,13 @@ router.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
       SELECT 
         tn.id,
         tn.content,
+        tn.note_type as "noteType",
+        tn.is_internal as "isInternal",
+        tn.is_public as "isPublic",
         tn.created_at as "createdAt",
-        tn.created_by as "createdBy",
-        tn.is_private as "isPrivate",
-        u.name as "authorName"
+        tn.created_by as "createdBy"
       FROM ${sql.identifier(schemaName)}.ticket_notes tn
-      LEFT JOIN ${sql.identifier(schemaName)}.users u ON tn.created_by = u.id
-      WHERE tn.ticket_id = ${id} AND tn.tenant_id = ${tenantId}
+      WHERE tn.ticket_id = ${id} AND tn.tenant_id = ${tenantId} AND tn.is_active = true
       ORDER BY tn.created_at DESC
     `);
 
@@ -208,10 +206,8 @@ router.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
         tia.end_time as "endTime",
         tia.is_public as "isPublic",
         tia.created_at as "createdAt",
-        tia.created_by as "createdBy",
-        u.name as "createdByName"
+        tia.created_by as "createdBy"
       FROM ${sql.identifier(schemaName)}.ticket_internal_actions tia
-      LEFT JOIN ${sql.identifier(schemaName)}.users u ON tia.created_by = u.id
       WHERE tia.ticket_id = ${id} AND tia.tenant_id = ${tenantId}
       ORDER BY tia.created_at DESC
     `);
