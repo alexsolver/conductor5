@@ -233,15 +233,15 @@ export class DrizzleTicketRepository implements ITicketRepository {
       }
 
       if (filters.assignedToId) {
-        whereConditions.push(eq(tickets.assignedToId, filters.assignedToId));
+        whereConditions.push(eq(tickets.assigned_to_id, filters.assignedToId));
       }
 
       if (filters.customerId) {
-        whereConditions.push(eq(tickets.callerId, filters.customerId));
+        whereConditions.push(eq(tickets.caller_id, filters.customerId));
       }
 
       if (filters.companyId) {
-        whereConditions.push(eq(tickets.customerCompanyId, filters.companyId));
+        whereConditions.push(eq(tickets.company_id, filters.companyId));
       }
 
       if (filters.search) {
@@ -322,7 +322,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       createdById: row.created_by_id,
-      customerCompanyId: row.customer_company_id
+      customerCompanyId: row.company_id
     };
   }
 
