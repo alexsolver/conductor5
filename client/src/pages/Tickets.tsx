@@ -498,33 +498,34 @@ export default function Tickets() {
                 Novo Ticket
               </Button>
             </DialogTrigger>
-              <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
+              <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
+                <DialogHeader className="flex-shrink-0 pb-4 border-b">
                   <DialogTitle>Criar Novo Ticket</DialogTitle>
                 </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   {/* Company Selection - Must be first */}
-                  <FormField
-                    control={form.control}
-                    name="companyId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg font-semibold">Empresa *</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            setSelectedCompanyId(value);
-                            // Reset customer selection when company changes
-                            form.setValue("customerId", "");
-                          }} 
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-12">
-                              <SelectValue placeholder="Selecione uma empresa" />
-                            </SelectTrigger>
-                          </FormControl>
+                    <FormField
+                      control={form.control}
+                      name="companyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Empresa *</FormLabel>
+                          <Select 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setSelectedCompanyId(value);
+                              // Reset customer selection when company changes
+                              form.setValue("customerId", "");
+                            }} 
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-10">
+                                <SelectValue placeholder="Selecione uma empresa" />
+                              </SelectTrigger>
+                            </FormControl>
                           <SelectContent>
                             {companies.length === 0 ? (
                               <SelectItem value="no-companies" disabled>
@@ -545,28 +546,28 @@ export default function Tickets() {
                   />
 
                   {/* Customer/Cliente Selection - Filtered by Company */}
-                  <FormField
-                    control={form.control}
-                    name="customerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg font-semibold">Cliente *</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          value={field.value}
-                          disabled={!selectedCompanyId}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-12">
-                              <SelectValue 
-                                placeholder={
-                                  !selectedCompanyId 
-                                    ? "Primeiro selecione uma empresa" 
-                                    : "Selecione o cliente"
-                                } 
-                              />
-                            </SelectTrigger>
-                          </FormControl>
+                    <FormField
+                      control={form.control}
+                      name="customerId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Cliente *</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value}
+                            disabled={!selectedCompanyId}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-10">
+                                <SelectValue 
+                                  placeholder={
+                                    !selectedCompanyId 
+                                      ? "Primeiro selecione uma empresa" 
+                                      : "Selecione o cliente"
+                                  } 
+                                />
+                              </SelectTrigger>
+                            </FormControl>
                           <SelectContent>
                             {customersLoading ? (
                               <SelectItem value="loading" disabled>Carregando clientes...</SelectItem>
@@ -633,19 +634,23 @@ export default function Tickets() {
                   />
 
                   {/* 4. ASSUNTO/TÍTULO */}
-                  <FormField
-                    control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg font-semibold">Assunto *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Digite o assunto do ticket" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Assunto *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Digite o assunto do ticket" 
+                              className="h-10"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                   {/* 5. CATEGORIA */}
                   <FormField
@@ -797,80 +802,80 @@ export default function Tickets() {
                   </div>
 
                   {/* 10. DESCRIÇÃO DETALHADA */}
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg font-semibold">Descrição Detalhada *</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Descreva detalhadamente o problema ou solicitação"
-                            className="min-h-[100px]"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Descrição Detalhada *</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Descreva detalhadamente o problema ou solicitação"
+                              className="min-h-[80px] max-h-[120px] resize-none"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                   {/* 11. SINTOMAS */}
-                  <FormField
-                    control={form.control}
-                    name="symptoms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sintomas</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Descreva os sintomas observados (opcional)"
-                            className="min-h-[80px]"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="symptoms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Sintomas</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Descreva os sintomas observados (opcional)"
+                              className="min-h-[60px] max-h-[100px] resize-none"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  {/* 12. IMPACTO NO NEGÓCIO */}
-                  <FormField
-                    control={form.control}
-                    name="businessImpact"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Impacto no Negócio</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Descreva o impacto no negócio (opcional)"
-                            className="min-h-[80px]"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    {/* 12. IMPACTO NO NEGÓCIO */}
+                    <FormField
+                      control={form.control}
+                      name="businessImpact"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Impacto no Negócio</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Descreva o impacto no negócio (opcional)"
+                              className="min-h-[60px] max-h-[100px] resize-none"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  {/* 13. SOLUÇÃO TEMPORÁRIA */}
-                  <FormField
-                    control={form.control}
-                    name="workaround"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Solução Temporária</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Descreva alguma solução temporária aplicada (opcional)"
-                            className="min-h-[80px]"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    {/* 13. SOLUÇÃO TEMPORÁRIA */}
+                    <FormField
+                      control={form.control}
+                      name="workaround"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Solução Temporária</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Descreva alguma solução temporária aplicada (opcional)"
+                              className="min-h-[60px] max-h-[100px] resize-none"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                   {/* 14. LOCAL */}
                   <FormField
@@ -899,24 +904,26 @@ export default function Tickets() {
                     )}
                   />
 
-                  <div className="flex justify-end space-x-2 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                      disabled={createTicketMutation.isPending}
-                    >
-                      {createTicketMutation.isPending ? "Criando..." : "Criar Ticket"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+                  </form>
+                  </Form>
+                </div>
+                <div className="flex-shrink-0 flex justify-end space-x-2 pt-4 border-t bg-white dark:bg-gray-800">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCreateDialogOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={form.handleSubmit(onSubmit)}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    disabled={createTicketMutation.isPending}
+                  >
+                    {createTicketMutation.isPending ? "Criando..." : "Criar Ticket"}
+                  </Button>
+                </div>
             </DialogContent>
           </Dialog>
         </div>
