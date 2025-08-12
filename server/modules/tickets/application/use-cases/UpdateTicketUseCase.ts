@@ -150,15 +150,22 @@ export class UpdateTicketUseCase {
     switch (newStatus) {
       case 'in_progress':
         // Para 'in_progress', deve ter assignee (verificar se existe no ticket atual OU se está sendo atribuído agora)
-        const currentAssignee = updateData.assignedToId !== undefined ? updateData.assignedToId : existingTicket.assignedToId;
-        if (!currentAssignee) {
+        const finalAssignee = updateData.assignedToId !== undefined ? updateData.assignedToId : existingTicket.assignedToId;
+        
+        // Se não tem assignee atual e não está sendo atribuído agora, erro
+        if (!finalAssignee && updateData.assignedToId !== undefined) {
+          throw new Error('Ticket must be assigned before moving to in_progress');
+        }
+        // Se não tem assignee e não está sendo atribuído na mesma operação, erro
+        if (!existingTicket.assignedToId && updateData.assignedToId === undefined) {
           throw new Error('Ticket must be assigned before moving to in_progress');
         }
         break;
 
       case 'resolved':
         // Para 'resolved', deve ter assignee e estar em 'in_progress' ou 'open'
-        if (!existingTicket.assignedToId && !updateData.assignedToId) {
+        const resolvedAssignee = updateData.assignedToId !== undefined ? updateData.assignedToId : existingTicket.assignedToId;
+        if (!resolvedAssignee) {
           throw new Error('Ticket must be assigned before being resolved');
         }
         if (!['open', 'in_progress'].includes(oldStatus)) {

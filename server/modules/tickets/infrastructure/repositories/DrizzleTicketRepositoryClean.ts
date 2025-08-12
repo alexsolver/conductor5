@@ -61,7 +61,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       return result.rows[0] as Ticket | null;
     } catch (error: any) {
-      this.logger.error('Failed to find ticket by number', { error: error.message, number, tenantId });
+      this.logger.logger.error('Failed to find ticket by number', { error: error.message, number, tenantId });
       throw error;
     }
   }
@@ -251,6 +251,27 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         setClauses.push(`caller_id = $${setClauses.length + 1}`);
         values.push(updates.callerId);
       }
+      if (updates.action !== undefined) {
+        setClauses.push(`action = $${setClauses.length + 1}`);
+        values.push(updates.action);
+      }
+      if (updates.customerId !== undefined) {
+        setClauses.push(`customer_id = $${setClauses.length + 1}`);
+        values.push(updates.customerId);
+      }
+      if (updates.tags !== undefined) {
+        setClauses.push(`tags = $${setClauses.length + 1}`);
+        values.push(JSON.stringify(updates.tags));
+      }
+      if (updates.customFields !== undefined) {
+        setClauses.push(`custom_fields = $${setClauses.length + 1}`);
+        values.push(JSON.stringify(updates.customFields));
+      }
+      if (updates.updatedById !== undefined) {
+        setClauses.push(`updated_by = $${setClauses.length + 1}`);
+        values.push(updates.updatedById);
+      }
+
 
       // Validation: ensure we have fields to update
       if (setClauses.length === 0) {
@@ -264,15 +285,20 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       values.push(id);
       const whereParamIndex = values.length;
 
+      // Add tenantId for WHERE clause
+      values.push(tenantId);
+      const tenantParamIndex = values.length;
+
       const sqlQuery = `
         UPDATE ${schemaName}.tickets 
         SET ${setClauses.join(', ')}
-        WHERE id = $${whereParamIndex} AND is_active = true
+        WHERE id = $${whereParamIndex} AND tenant_id = $${tenantParamIndex} AND is_active = true
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          category, subcategory, action, caller_id as "callerId", assigned_to_id as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId"
+          company_id as "companyId", beneficiary_id as "beneficiaryId", customer_id as "customerId",
+          tags, custom_fields as "customFields", updated_by as "updatedById"
       `;
 
       console.log('🔧 SQL:', sqlQuery);
@@ -281,6 +307,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         setClausesCount: setClauses.length, 
         valuesCount: values.length, 
         whereParamIndex,
+        tenantParamIndex,
         parameterAlignment: 'OK'
       });
 
