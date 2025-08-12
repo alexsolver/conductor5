@@ -11,6 +11,23 @@ import { FindTicketUseCase } from '../use-cases/FindTicketUseCase';
 import { DeleteTicketUseCase } from '../use-cases/DeleteTicketUseCase';
 import { CreateTicketDTO, UpdateTicketDTO, TicketFiltersDTO } from '../dto/CreateTicketDTO';
 
+// Assuming these types are defined elsewhere, as they are used in the 'list' method
+type TicketFilters = {
+  status?: string[];
+  priority?: string[];
+  assignedToId?: string;
+  customerId?: string;
+  companyId?: string;
+  search?: string;
+};
+
+type PaginationOptions = {
+  page: number;
+  limit: number;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+};
+
 export class TicketController {
   constructor(
     private createTicketUseCase: CreateTicketUseCase,
@@ -126,7 +143,7 @@ export class TicketController {
   async findAll(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(401).json({
           success: false,
