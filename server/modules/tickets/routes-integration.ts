@@ -8,9 +8,6 @@
 
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { db } from '../../db';
-import { tickets } from '@shared/schema';
-import { eq, count } from 'drizzle-orm';
 
 const router = Router();
 
@@ -39,94 +36,7 @@ const ticketController = new TicketController(
  * GET ALL TICKETS - Main endpoint for frontend
  * GET /api/tickets
  */
-router.get('/', jwtAuth, async (req, res) => {
-  try {
-    await ticketController.findAll(req, res);
-  } catch (error) {
-    console.error('[TICKETS-INTEGRATION] Error in GET /:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve tickets',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-/**
- * DIAGNOSTIC ENDPOINT - Check ticket system health
- * GET /api/tickets/diagnostic
- */
-router.get('/diagnostic', jwtAuth, async (req, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID required for diagnostic'
-      });
-    }
-
-    console.log('[TICKETS-DIAGNOSTIC] Running diagnostic for tenant:', tenantId);
-
-    // Test direct repository access
-    const ticketRepository = new DrizzleTicketRepository();
-    
-    // Test 1: Basic tenant query
-    const basicTickets = await ticketRepository.findByTenant(tenantId);
-    console.log('[TICKETS-DIAGNOSTIC] Basic query found:', basicTickets.length, 'tickets');
-
-    // Test 2: Count query
-    let totalCount = 0;
-    try {
-      const countResult = await db
-        .select({ count: count() })
-        .from(tickets)
-        .where(eq(tickets.tenant_id, tenantId));
-      totalCount = countResult[0]?.count || 0;
-    } catch (countError) {
-      console.error('[TICKETS-DIAGNOSTIC] Count query failed:', countError);
-    }
-
-    // Test 3: Schema structure
-    const schemaInfo = {
-      hasTicketsTable: !!tickets,
-      tenantIdField: 'tenant_id' in tickets,
-      createdAtField: 'created_at' in tickets,
-      statusField: 'status' in tickets,
-      subjectField: 'subject' in tickets
-    };
-
-    const diagnostic = {
-      success: true,
-      tenantId,
-      timestamp: new Date().toISOString(),
-      tests: {
-        basicQuery: {
-          success: true,
-          ticketsFound: basicTickets.length,
-          sampleTicket: basicTickets[0] || null
-        },
-        countQuery: {
-          success: totalCount >= 0,
-          totalCount
-        },
-        schemaStructure: schemaInfo
-      },
-      systemStatus: 'operational'
-    };
-
-    res.json(diagnostic);
-  } catch (error) {
-    console.error('[TICKETS-DIAGNOSTIC] Diagnostic failed:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Diagnostic failed',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
+router.get('/', jwtAuth, ticketController.findAll.bind(ticketController));
 
 /**
  * Status endpoint - Check module status
@@ -359,49 +269,6 @@ router.post('/validate-ticket-data', jwtAuth, async (req, res) => {
 /**
  * Clean Architecture endpoints - Following 1qa.md compliance
  */
-
-// GET /api/tickets/simple - Endpoint de fallback simples para debugging
-router.get('/simple', jwtAuth, async (req, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID required'
-      });
-    }
-
-    console.log('[TICKETS-SIMPLE] Getting simple tickets for tenant:', tenantId);
-
-    // Query direta usando repository simples
-    const ticketRepository = new DrizzleTicketRepository();
-    const tickets = await ticketRepository.findByTenant(tenantId);
-
-    console.log('[TICKETS-SIMPLE] Found tickets:', tickets?.length || 0);
-
-    res.json({
-      success: true,
-      message: 'Simple tickets retrieved successfully',
-      data: {
-        tickets: tickets || [],
-        pagination: {
-          page: 1,
-          totalPages: 1,
-          total: tickets?.length || 0,
-          limit: 50
-        }
-      }
-    });
-  } catch (error) {
-    console.error('[TICKETS-SIMPLE] Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve simple tickets',
-      error: error.message
-    });
-  }
-});
 
 // GET /api/tickets - List tickets with filtering and pagination
 router.get('/', jwtAuth, ticketController.findAll.bind(ticketController));

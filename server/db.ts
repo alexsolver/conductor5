@@ -5,7 +5,7 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { sql } from 'drizzle-orm';
 import ws from "ws";
-import * as schema from "../shared/schema";
+import * as schema from "@shared/schema";
 
 // Validate schema import
 if (!schema.scheduleTemplates || !schema.workSchedules || !schema.users) {
@@ -13,6 +13,8 @@ if (!schema.scheduleTemplates || !schema.workSchedules || !schema.users) {
 }
 
 // Re-export sql for other modules
+export { sql };
+
 neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
@@ -21,11 +23,11 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle({ client: pool, schema });
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle({ client: pool, schema });
 
 // Simplified schema manager with all required methods
-const schemaManager = {
+export const schemaManager = {
   getPool() {
     return pool;
   },
@@ -202,4 +204,4 @@ const schemaManager = {
   }
 };
 
-export { pool, db, sql, schema, schemaManager };
+export default { pool, db, sql, schema, schemaManager };

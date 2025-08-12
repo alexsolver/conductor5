@@ -3441,4 +3441,4 @@ export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks
 export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
 export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
 export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
-export type InsertItemSupplierLink = z.zod.infer<typeof insertItemSupplierLinkSchema>;
+export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
