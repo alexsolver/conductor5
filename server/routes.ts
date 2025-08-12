@@ -165,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import microservice routers
   const { dashboardRouter } = await import('./modules/dashboard/routes');
   const customersRouter = await import('./modules/customers/routes-integration');
-  const { ticketsRouter } = await import('./modules/tickets/routes');
+  const ticketsCleanRouter = await import('./modules/tickets/routes-clean');
   const { peopleRouter } = await import('./modules/people/routes');
   // Beneficiaries routes imported at top of file
 
@@ -271,7 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const ticketTemplatesIntegrationRoutes = await import('./modules/ticket-templates/routes-integration');
   console.log('✅ Ticket Templates Clean Architecture routes registered at /api/ticket-templates-integration');
   app.use('/api/ticket-templates-integration', ticketTemplatesIntegrationRoutes.default);
-  app.use('/api/tickets', ticketsRouter);
+  app.use('/api/tickets', ticketsCleanRouter.default || ticketsCleanRouter);
 
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
