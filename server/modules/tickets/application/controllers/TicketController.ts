@@ -43,7 +43,9 @@ export class TicketController {
     private updateTicketUseCase: UpdateTicketUseCase,
     private deleteTicketUseCase: DeleteTicketUseCase,
     private findTicketUseCase: FindTicketUseCase
-  ) {}
+  ) {
+    console.log('✅ [TicketController] Controller initialized with all use cases');
+  }
 
   async list(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -212,10 +214,15 @@ export class TicketController {
   }
 
   async findAll(req: AuthenticatedRequest, res: Response): Promise<void> {
+    console.log('🎯 [TicketController] findAll method called');
+    console.log('🔍 [TicketController] findTicketUseCase exists:', !!this.findTicketUseCase);
+    
     try {
       const tenantId = req.user?.tenantId;
+      console.log('🔍 [TicketController] TenantId:', tenantId);
 
       if (!tenantId) {
+        console.log('❌ [TicketController] No tenant ID provided');
         res.status(401).json({
           success: false,
           message: 'Tenant ID required'
@@ -248,7 +255,9 @@ export class TicketController {
         sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'desc'
       };
 
+      console.log('🔍 [TicketController] Calling findWithFilters with:', { filters, pagination, tenantId });
       const result = await this.findTicketUseCase.findWithFilters(filters, pagination, tenantId);
+      console.log('✅ [TicketController] findWithFilters result:', { ticketsCount: result.tickets?.length, total: result.total });
 
       // Consistent response structure for frontend
       res.json({

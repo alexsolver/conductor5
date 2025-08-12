@@ -28,15 +28,27 @@ const deleteTicketUseCase = new DeleteTicketUseCase(ticketRepository);
 const ticketController = new TicketController(
   createTicketUseCase,
   updateTicketUseCase,
-  findTicketUseCase,
-  deleteTicketUseCase
+  deleteTicketUseCase,
+  findTicketUseCase
 );
 
 /**
  * GET ALL TICKETS - Main endpoint for frontend
  * GET /api/tickets
  */
-router.get('/', jwtAuth, ticketController.findAll.bind(ticketController));
+router.get('/', jwtAuth, async (req, res) => {
+  console.log('🎯 [TICKETS-INTEGRATION] GET /api/tickets endpoint called');
+  try {
+    await ticketController.findAll(req, res);
+  } catch (error) {
+    console.error('❌ [TICKETS-INTEGRATION] Error in findAll:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
 
 /**
  * Status endpoint - Check module status
@@ -269,9 +281,6 @@ router.post('/validate-ticket-data', jwtAuth, async (req, res) => {
 /**
  * Clean Architecture endpoints - Following 1qa.md compliance
  */
-
-// GET /api/tickets - List tickets with filtering and pagination
-router.get('/', jwtAuth, ticketController.findAll.bind(ticketController));
 
 // GET /api/tickets/search - Search tickets
 router.get('/search', jwtAuth, ticketController.search.bind(ticketController));

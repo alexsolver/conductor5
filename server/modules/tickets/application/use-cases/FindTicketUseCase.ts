@@ -1,4 +1,3 @@
-
 /**
  * APPLICATION LAYER - FIND TICKET USE CASE
  * Seguindo Clean Architecture - 1qa.md compliance
@@ -41,8 +40,25 @@ export class FindTicketUseCase {
     filters: TicketFilters,
     pagination: PaginationOptions,
     tenantId: string
-  ): Promise<TicketListResult> {
-    return this.execute(filters, pagination, tenantId);
+  ): Promise<{
+    tickets: any[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    console.log('🎯 [FindTicketUseCase] findWithFilters called with:', { filters, pagination, tenantId });
+    this.logger.info('🔍 [FindTicketUseCase] Executing findWithFilters with filters', { filters, pagination, tenantId });
+
+    console.log('🔍 [FindTicketUseCase] Calling repository findWithFilters');
+    const result = await this.ticketRepository.findWithFilters(filters, pagination, tenantId);
+    console.log('✅ [FindTicketUseCase] Repository returned:', { ticketsCount: result.tickets?.length, total: result.total });
+
+    this.logger.info('✅ [FindTicketUseCase] Successfully found tickets via findWithFilters', {
+      count: result.tickets.length,
+      total: result.total
+    });
+
+    return result;
   }
 
   async getAllTickets(tenantId: string): Promise<any[]> {
