@@ -1,4 +1,3 @@
-
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -31,7 +30,7 @@ async function validateAndCleanLocationsModule() {
 
     for (const schema of tenantSchemas) {
       console.log(`🏢 Processando schema: ${schema}`);
-      
+
       // 1. Check and create missing tables
       for (const table of requiredTables) {
         try {
@@ -45,7 +44,7 @@ async function validateAndCleanLocationsModule() {
           if (!tableCheck.rows[0].exists) {
             console.log(`  ❌ Tabela ausente: ${table} - Criando...`);
             missingTables.push(`${schema}.${table}`);
-            
+
             // Create table using migration function
             await pool.query(`SELECT create_locations_new_tables_for_tenant($1)`, [schema]);
             console.log(`  ✅ Tabela ${table} criada com sucesso`);
@@ -59,33 +58,37 @@ async function validateAndCleanLocationsModule() {
 
       // 2. Identify and remove mock data
       console.log(`  🧹 Removendo dados mock de ${schema}...`);
-      
+
       for (const table of requiredTables) {
         try {
           // Check for mock data patterns
           const mockCheckQuery = `
-            SELECT COUNT(*) as mock_count FROM "${schema}"."${table}"
-            WHERE id::text LIKE 'mock-%' 
-               OR (nome IS NOT NULL AND (nome LIKE '%Mock%' OR nome LIKE '%Test%' OR nome LIKE '%Exemplo%'))
-               OR (codigo_integracao IS NOT NULL AND (codigo_integracao LIKE 'MOCK%' OR codigo_integracao LIKE 'TEST%'))
-               OR (nome_rota IS NOT NULL AND (nome_rota LIKE '%Mock%' OR nome_rota LIKE '%Test%'))
-               OR (id_rota IS NOT NULL AND (id_rota LIKE 'MOCK%' OR id_rota LIKE 'TEST%'))
-          `;
-          
+              SELECT COUNT(*) as mock_count FROM "${schema}"."${table}"
+              WHERE id::text LIKE 'mock-%' 
+                 OR id::text LIKE 'test-%'
+                 OR id::text LIKE 'temp-%'
+                 OR (nome IS NOT NULL AND (nome LIKE '%Mock%' OR nome LIKE '%Test%' OR nome LIKE '%Exemplo%' OR nome LIKE '%Fake%' OR nome LIKE '%Demo%'))
+                 OR (codigo_integracao IS NOT NULL AND (codigo_integracao LIKE 'MOCK%' OR codigo_integracao LIKE 'TEST%' OR codigo_integracao LIKE 'DEMO%' OR codigo_integracao LIKE 'TEMP%'))
+                 OR (nome_rota IS NOT NULL AND (nome_rota LIKE '%Mock%' OR nome_rota LIKE '%Test%' OR nome_rota LIKE '%Demo%'))
+                 OR (id_rota IS NOT NULL AND (id_rota LIKE 'MOCK%' OR id_rota LIKE 'TEST%' OR id_rota LIKE 'DEMO%' OR id_rota LIKE 'TEMP%'))
+            `;
+
           const mockResult = await pool.query(mockCheckQuery);
           const mockCount = parseInt(mockResult.rows[0].mock_count) || 0;
-          
+
           if (mockCount > 0) {
             // Remove mock data
             const deleteQuery = `
               DELETE FROM "${schema}"."${table}"
               WHERE id::text LIKE 'mock-%' 
-                 OR (nome IS NOT NULL AND (nome LIKE '%Mock%' OR nome LIKE '%Test%' OR nome LIKE '%Exemplo%'))
-                 OR (codigo_integracao IS NOT NULL AND (codigo_integracao LIKE 'MOCK%' OR codigo_integracao LIKE 'TEST%'))
-                 OR (nome_rota IS NOT NULL AND (nome_rota LIKE '%Mock%' OR nome_rota LIKE '%Test%'))
-                 OR (id_rota IS NOT NULL AND (id_rota LIKE 'MOCK%' OR id_rota LIKE 'TEST%'))
+                 OR id::text LIKE 'test-%'
+                 OR id::text LIKE 'temp-%'
+                 OR (nome IS NOT NULL AND (nome LIKE '%Mock%' OR nome LIKE '%Test%' OR nome LIKE '%Exemplo%' OR nome LIKE '%Fake%' OR nome LIKE '%Demo%'))
+                 OR (codigo_integracao IS NOT NULL AND (codigo_integracao LIKE 'MOCK%' OR codigo_integracao LIKE 'TEST%' OR codigo_integracao LIKE 'DEMO%' OR codigo_integracao LIKE 'TEMP%'))
+                 OR (nome_rota IS NOT NULL AND (nome_rota LIKE '%Mock%' OR nome_rota LIKE '%Test%' OR nome_rota LIKE '%Demo%'))
+                 OR (id_rota IS NOT NULL AND (id_rota LIKE 'MOCK%' OR id_rota LIKE 'TEST%' OR id_rota LIKE 'DEMO%' OR id_rota LIKE 'TEMP%'))
             `;
-            
+
             const deleteResult = await pool.query(deleteQuery);
             totalMockRecords += deleteResult.rowCount || 0;
             console.log(`    🗑️  Removidos ${deleteResult.rowCount || 0} registros mock de ${table}`);
@@ -96,7 +99,7 @@ async function validateAndCleanLocationsModule() {
           const realResult = await pool.query(realCountQuery);
           const realCount = parseInt(realResult.rows[0].real_count) || 0;
           totalRealRecords += realCount;
-          
+
           if (realCount > 0) {
             console.log(`    📊 ${table}: ${realCount} registros reais`);
           }
@@ -108,7 +111,7 @@ async function validateAndCleanLocationsModule() {
 
       // 3. Validate required columns exist
       console.log(`  🔍 Validando colunas obrigatórias...`);
-      
+
       const columnValidations = {
         'locais': ['nome', 'tenant_id', 'ativo'],
         'regioes': ['nome', 'tenant_id', 'ativo'],
@@ -144,7 +147,7 @@ async function validateAndCleanLocationsModule() {
     console.log(`🗑️  Total de registros mock removidos: ${totalMockRecords}`);
     console.log(`📊 Total de registros reais: ${totalRealRecords}`);
     console.log(`🏗️  Tabelas criadas: ${missingTables.length}`);
-    
+
     if (missingTables.length > 0) {
       console.log('📝 Tabelas que foram criadas:');
       missingTables.forEach(table => console.log(`   • ${table}`));
@@ -153,7 +156,7 @@ async function validateAndCleanLocationsModule() {
     // 5. Test database connectivity and queries
     console.log('\n🧪 TESTE DE CONECTIVIDADE:');
     const testTenant = 'tenant_3f99462f_3621_4b1b_bea8_782acc50d62e';
-    
+
     for (const table of requiredTables) {
       try {
         const testResult = await pool.query(`

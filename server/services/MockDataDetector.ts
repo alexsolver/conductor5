@@ -9,13 +9,16 @@ export class MockDataDetector {
     const issues = [];
     const lines = content.split('\n');
 
-    // Detect mock data patterns
+    // Detect mock data patterns - Enhanced detection
     const mockPatterns = [
       /mock|fake|dummy|test_data|placeholder/gi,
       /lorem ipsum/gi,
-      /\[\{.*"id":\s*["']?(1|2|3)["']?.*\}\]/gi, // Array with simple IDs
+      /\[\{.*"id":\s*["']?(1|2|3|mock-)["']?.*\}\]/gi, // Array with simple IDs or mock prefix
       /Math\.random\(\)/g, // Random data generation
       /\.map\(\(\w+,\s*\w+\)\s*=>\s*\({.*\}\)\)/g, // Map with object generation
+      /mockItems|mockData|fakeData|testData/gi, // Variable names
+      /hardcoded.*array|static.*data/gi, // Hardcoded arrays
+      /temporary.*data|temp.*data/gi, // Temporary data
     ];
 
     // Detect incomplete functions - improved to avoid false positives

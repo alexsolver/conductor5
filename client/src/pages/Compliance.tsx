@@ -127,8 +127,9 @@ const clearArchitectureItems: ComplianceItem[] = [
   // Testabilidade
   { name: "Unit Test Framework", status: "implemented", category: "Testes" },
   { name: "Integration Tests", status: "implemented", category: "Testes" },
-  { name: "Mock/Stub Framework", status: "implemented", category: "Testes" },
+  { name: "Testing Framework", status: "implemented", category: "Testes" },
   { name: "Contract Tests", status: "implemented", category: "Testes" },
+  { name: "Integration Tests", status: "implemented", category: "Testes" },
 ];
 
 const multitenancyItems: ComplianceItem[] = [
