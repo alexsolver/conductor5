@@ -85,10 +85,24 @@ export default function Companies() {
 
   // Handle different response formats from the API
   const companies = (() => {
-    if (!companiesData) return [];
-    if (Array.isArray(companiesData)) return companiesData;
-    if ((companiesData as any).success && Array.isArray((companiesData as any).data)) return (companiesData as any).data;
-    if ((companiesData as any).data && Array.isArray((companiesData as any).data)) return (companiesData as any).data;
+    console.log('🔍 [COMPANIES-DEBUG] Raw API response:', companiesData);
+    if (!companiesData) {
+      console.log('❌ [COMPANIES-DEBUG] No data received');
+      return [];
+    }
+    if (Array.isArray(companiesData)) {
+      console.log('✅ [COMPANIES-DEBUG] Array format:', companiesData.length, 'companies');
+      return companiesData;
+    }
+    if ((companiesData as any).success && Array.isArray((companiesData as any).data)) {
+      console.log('✅ [COMPANIES-DEBUG] Success wrapper format:', (companiesData as any).data.length, 'companies');
+      return (companiesData as any).data;
+    }
+    if ((companiesData as any).data && Array.isArray((companiesData as any).data)) {
+      console.log('✅ [COMPANIES-DEBUG] Data wrapper format:', (companiesData as any).data.length, 'companies');
+      return (companiesData as any).data;
+    }
+    console.log('❌ [COMPANIES-DEBUG] Unknown format, returning empty array');
     return [];
   })();
 

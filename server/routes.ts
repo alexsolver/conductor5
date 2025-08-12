@@ -2337,8 +2337,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/companies-integration', companiesIntegrationRoutes); // Temporary mount to avoid conflict
   console.log('✅ Companies Clean Architecture routes registered at /api/companies-integration & /api/companies-integration/v2');
 
-  // Legacy Companies Routes
-  app.get('/api/companies',jwtAuth, async (req: AuthenticatedRequest, res) => {
+  // Legacy Companies Routes - Fixed to work with Clean Architecture integration
+  app.get('/api/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -2348,35 +2348,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Get all customer companies using direct SQL
+      // Get all customer companies using direct SQL with proper field mapping
       const result = await tenantDb.execute(sql`
         SELECT 
           id,
           name,
-          display_name,
-          cnpj,
+          display_name as "displayName",
+          description,
           industry,
           website,
           phone,
           email,
           address,
-          city,
-          state,
-          country,
           size,
-          subscription_tier,
+          subscription_tier as "subscriptionTier",
           status,
-          is_active,
-          created_at,
-          updated_at
+          is_active as "isActive",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
         FROM ${sql.identifier(schemaName)}.companies
         WHERE is_active = true
-        ORDER BY name
+        ORDER BY 
+          CASE WHEN name ILIKE '%default%' THEN 0 ELSE 1 END,
+          status = 'active' DESC,
+          name ASC
       `);
 
       const companies = result.rows;
+      console.log('✅ [/api/companies] Found companies:', companies.length, 'for tenant:', tenantId);
+      console.log('📊 [/api/companies] Company names:', companies.map(c => ({ name: c.name, displayName: c.displayName })));
 
-      // Return the format expected by the frontend
+      // Return the companies array directly (CustomerCompanies.tsx expects this format)
       res.json(companies);
     } catch (error) {
       console.error('Error fetching customer companies via compatibility route:', error);
