@@ -18,31 +18,75 @@ export class FindTicketUseCase {
 
   async findWithFilters(filters: any, pagination: any, tenantId: string): Promise<any> {
     try {
-      console.log('[FindTicketUseCase] findWithFilters called with:', { filters, pagination, tenantId });
+      console.log('[FindTicketUseCase] findWithFilters called with:', { 
+        filters, 
+        pagination, 
+        tenantId,
+        hasRepository: !!this.ticketRepository,
+        hasFilterMethod: typeof this.ticketRepository.findByFilters === 'function'
+      });
 
-      // Se o método findByFilters existir no repository, usar ele
-      if (typeof this.ticketRepository.findByFilters === 'function') {
-        return await this.ticketRepository.findByFilters(filters, pagination, tenantId);
+      if (!tenantId) {
+        throw new Error('Tenant ID is required for ticket search');
       }
 
-      // Fallback: usar findByTenant se findByFilters não existir
+      // Tentar usar findByFilters primeiro
+      if (typeof this.ticketRepository.findByFilters === 'function') {
+        console.log('[FindTicketUseCase] Using findByFilters method');
+        const result = await this.ticketRepository.findByFilters(filters, pagination, tenantId);
+        console.log('[FindTicketUseCase] findByFilters result:', {
+          ticketCount: result.tickets?.length || 0,
+          total: result.total,
+          page: result.page
+        });
+        return result;
+      }
+
+      // Fallback: usar findByTenant
       console.log('[FindTicketUseCase] Using fallback findByTenant method');
       const tickets = await this.ticketRepository.findByTenant(tenantId);
+      console.log('[FindTicketUseCase] findByTenant fallback result:', tickets?.length || 0);
+
+      // Aplicar paginação no fallback
+      const startIndex = (pagination.page - 1) * pagination.limit;
+      const endIndex = startIndex + pagination.limit;
+      const paginatedTickets = tickets.slice(startIndex, endIndex);
 
       return {
-        tickets: tickets || [],
+        tickets: paginatedTickets || [],
         total: tickets?.length || 0,
         page: pagination.page || 1,
         totalPages: Math.ceil((tickets?.length || 0) / pagination.limit) || 1
       };
     } catch (error) {
       console.error('[FindTicketUseCase] Error in findWithFilters:', error);
-      return {
-        tickets: [],
-        total: 0,
-        page: 1,
-        totalPages: 0
-      };
+      console.error('[FindTicketUseCase] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        tenantId,
+        filtersProvided: !!filters,
+        paginationProvided: !!pagination
+      });
+
+      // Tentar recuperação básica
+      try {
+        console.log('[FindTicketUseCase] Attempting recovery with basic findByTenant');
+        const recoveryTickets = await this.ticketRepository.findByTenant(tenantId);
+        return {
+          tickets: recoveryTickets.slice(0, pagination.limit) || [],
+          total: recoveryTickets?.length || 0,
+          page: 1,
+          totalPages: Math.ceil((recoveryTickets?.length || 0) / pagination.limit) || 1
+        };
+      } catch (recoveryError) {
+        console.error('[FindTicketUseCase] Recovery also failed:', recoveryError);
+        return {
+          tickets: [],
+          total: 0,
+          page: pagination.page || 1,
+          totalPages: 0
+        };
+      }
     }
   }
 

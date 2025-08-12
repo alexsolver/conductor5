@@ -8,6 +8,9 @@
 
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
+import { db } from '../../db';
+import { tickets } from '@shared/schema';
+import { eq, count } from 'drizzle-orm';
 
 const router = Router();
 
@@ -45,6 +48,82 @@ router.get('/', jwtAuth, async (req, res) => {
       success: false,
       message: 'Failed to retrieve tickets',
       error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * DIAGNOSTIC ENDPOINT - Check ticket system health
+ * GET /api/tickets/diagnostic
+ */
+router.get('/diagnostic', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required for diagnostic'
+      });
+    }
+
+    console.log('[TICKETS-DIAGNOSTIC] Running diagnostic for tenant:', tenantId);
+
+    // Test direct repository access
+    const ticketRepository = new DrizzleTicketRepository();
+    
+    // Test 1: Basic tenant query
+    const basicTickets = await ticketRepository.findByTenant(tenantId);
+    console.log('[TICKETS-DIAGNOSTIC] Basic query found:', basicTickets.length, 'tickets');
+
+    // Test 2: Count query
+    let totalCount = 0;
+    try {
+      const countResult = await db
+        .select({ count: count() })
+        .from(tickets)
+        .where(eq(tickets.tenant_id, tenantId));
+      totalCount = countResult[0]?.count || 0;
+    } catch (countError) {
+      console.error('[TICKETS-DIAGNOSTIC] Count query failed:', countError);
+    }
+
+    // Test 3: Schema structure
+    const schemaInfo = {
+      hasTicketsTable: !!tickets,
+      tenantIdField: 'tenant_id' in tickets,
+      createdAtField: 'created_at' in tickets,
+      statusField: 'status' in tickets,
+      subjectField: 'subject' in tickets
+    };
+
+    const diagnostic = {
+      success: true,
+      tenantId,
+      timestamp: new Date().toISOString(),
+      tests: {
+        basicQuery: {
+          success: true,
+          ticketsFound: basicTickets.length,
+          sampleTicket: basicTickets[0] || null
+        },
+        countQuery: {
+          success: totalCount >= 0,
+          totalCount
+        },
+        schemaStructure: schemaInfo
+      },
+      systemStatus: 'operational'
+    };
+
+    res.json(diagnostic);
+  } catch (error) {
+    console.error('[TICKETS-DIAGNOSTIC] Diagnostic failed:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Diagnostic failed',
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });

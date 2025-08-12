@@ -145,64 +145,57 @@ export class DrizzleTicketRepository implements ITicketRepository {
     tenantId: string
   ): Promise<TicketListResult> {
     try {
-      // Build where conditions - usando apenas campos que existem no schema
+      console.log('[DrizzleTicketRepository] findByFilters called with:', { filters, pagination, tenantId });
+
+      // Build where conditions - usando campos corretos do schema
       const conditions = [
         eq(tickets.tenant_id, tenantId)
       ];
 
-      // Verificar se is_active existe no schema antes de usar
-      if ('is_active' in tickets) {
-        conditions.push(eq(tickets.is_active, true));
-      }
-
-      // Apply filters com validação de campos
-      if (filters.status?.length && 'status' in tickets) {
+      // Apply filters com validação de campos existentes
+      if (filters.status?.length) {
         conditions.push(inArray(tickets.status, filters.status));
       }
 
-      if (filters.priority?.length && 'priority' in tickets) {
+      if (filters.priority?.length) {
         conditions.push(inArray(tickets.priority, filters.priority));
       }
 
-      if (filters.assignedToId && 'assigned_to_id' in tickets) {
+      if (filters.assignedToId) {
         conditions.push(eq(tickets.assigned_to_id, filters.assignedToId));
       }
 
-      if (filters.customerId && 'caller_id' in tickets) {
+      if (filters.customerId) {
         conditions.push(eq(tickets.caller_id, filters.customerId));
       }
 
-      if (filters.companyId && 'customer_company_id' in tickets) {
+      if (filters.companyId) {
         conditions.push(eq(tickets.customer_company_id, filters.companyId));
       }
 
-      if (filters.category && 'category' in tickets) {
+      if (filters.category) {
         conditions.push(eq(tickets.category, filters.category));
       }
 
-      if (filters.dateFrom && 'created_at' in tickets) {
+      if (filters.dateFrom) {
         conditions.push(gte(tickets.created_at, filters.dateFrom));
       }
 
-      if (filters.dateTo && 'created_at' in tickets) {
+      if (filters.dateTo) {
         conditions.push(lte(tickets.created_at, filters.dateTo));
       }
 
-      if (filters.search) {
-        const searchConditions = [];
-        if ('subject' in tickets) {
-          searchConditions.push(like(tickets.subject, `%${filters.search}%`));
-        }
-        if ('description' in tickets) {
-          searchConditions.push(like(tickets.description, `%${filters.search}%`));
-        }
-        if ('number' in tickets) {
-          searchConditions.push(like(tickets.number, `%${filters.search}%`));
-        }
-        if (searchConditions.length > 0) {
-          conditions.push(or(...searchConditions));
-        }
+      if (filters.search && filters.search.trim().length > 0) {
+        const searchTerm = `%${filters.search.trim()}%`;
+        conditions.push(
+          or(
+            like(tickets.subject, searchTerm),
+            like(tickets.description, searchTerm)
+          )
+        );
       }
+
+      console.log('[DrizzleTicketRepository] Built conditions:', conditions.length);
 
       // Count total results
       const totalResult = await db
@@ -211,25 +204,21 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .where(and(...conditions));
 
       const total = totalResult[0]?.count || 0;
+      console.log('[DrizzleTicketRepository] Total tickets found:', total);
 
       // Calculate offset
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Build order by - garantindo que a coluna existe
-      let orderColumn = tickets.created_at; // fallback seguro
-      if (pagination.sortBy && pagination.sortBy in tickets) {
-        orderColumn = tickets[pagination.sortBy as keyof typeof tickets];
-      }
-      const orderDirection = pagination.sortOrder === 'asc' ? asc : desc;
-
-      // Fetch paginated results
+      // Fetch paginated results with proper ordering
       const ticketResults = await db
         .select()
         .from(tickets)
         .where(and(...conditions))
-        .orderBy(orderDirection(orderColumn))
+        .orderBy(desc(tickets.created_at))
         .limit(pagination.limit)
         .offset(offset);
+
+      console.log('[DrizzleTicketRepository] Query executed successfully, results:', ticketResults.length);
 
       const totalPages = Math.ceil(total / pagination.limit);
 
@@ -241,34 +230,58 @@ export class DrizzleTicketRepository implements ITicketRepository {
       };
     } catch (error) {
       console.error('[DrizzleTicketRepository] Error in findByFilters:', error);
-      // Retornar estrutura vazia em caso de erro para não quebrar o frontend
-      return {
-        tickets: [],
-        total: 0,
-        page: pagination.page,
-        totalPages: 0
-      };
+      console.error('[DrizzleTicketRepository] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        filters,
+        tenantId
+      });
+      
+      // Em caso de erro, tentar busca simples por tenant
+      try {
+        console.log('[DrizzleTicketRepository] Attempting fallback query...');
+        const fallbackResults = await db
+          .select()
+          .from(tickets)
+          .where(eq(tickets.tenant_id, tenantId))
+          .orderBy(desc(tickets.created_at))
+          .limit(pagination.limit);
+
+        console.log('[DrizzleTicketRepository] Fallback query successful:', fallbackResults.length);
+
+        return {
+          tickets: fallbackResults,
+          total: fallbackResults.length,
+          page: pagination.page,
+          totalPages: Math.ceil(fallbackResults.length / pagination.limit)
+        };
+      } catch (fallbackError) {
+        console.error('[DrizzleTicketRepository] Fallback query also failed:', fallbackError);
+        return {
+          tickets: [],
+          total: 0,
+          page: pagination.page,
+          totalPages: 0
+        };
+      }
     }
   }
 
   async findByTenant(tenantId: string): Promise<any[]> {
     try {
-      const conditions = [eq(tickets.tenant_id, tenantId)];
-      
-      // Adicionar is_active apenas se existir no schema
-      if ('is_active' in tickets) {
-        conditions.push(eq(tickets.is_active, true));
-      }
+      console.log('[DrizzleTicketRepository] findByTenant called for tenant:', tenantId);
 
       const result = await db
         .select()
         .from(tickets)
-        .where(and(...conditions))
+        .where(eq(tickets.tenant_id, tenantId))
         .orderBy(desc(tickets.created_at));
 
+      console.log('[DrizzleTicketRepository] findByTenant found:', result.length, 'tickets');
       return result;
     } catch (error) {
       console.error('[DrizzleTicketRepository] Error in findByTenant:', error);
+      console.error('[DrizzleTicketRepository] Tenant ID:', tenantId);
       return [];
     }
   }
