@@ -183,7 +183,15 @@ export class TicketController {
         sortOrder: sortOrder as 'asc' | 'desc'
       };
 
-      const result = await this.findTicketUseCase.findWithFilters(filters, pagination, tenantId);
+      // Ensure filters are properly mapped to database field names
+      const mappedFilters = {
+        ...filters,
+        // Map frontend field names to database field names if needed
+        customerId: filters.customerId,
+        companyId: filters.companyId
+      };
+      
+      const result = await this.findTicketUseCase.findWithFilters(mappedFilters, pagination, tenantId);
 
       res.json({
         success: true,

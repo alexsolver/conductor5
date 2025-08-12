@@ -144,20 +144,27 @@ export class DrizzleTicketRepository implements ITicketRepository {
     if (filters.search) {
       conditions.push(
         or(
-          like(tickets.subject, `%${filters.search}%`),
-          like(tickets.description, `%${filters.search}%`),
-          like(tickets.number, `%${filters.search}%`)
+          ilike(tickets.subject, `%${filters.search}%`),
+          ilike(tickets.description, `%${filters.search}%`),
+          ilike(tickets.number, `%${filters.search}%`)
         )
       );
     }
 
-    // Count total results
-    const totalResult = await db
-      .select({ count: count() })
-      .from(tickets)
-      .where(and(...conditions));
+    // Count total results with error handling
+    let total = 0;
+    try {
+      const totalResult = await db
+        .select({ count: count() })
+        .from(tickets)
+        .where(and(...conditions));
 
-    const total = totalResult[0]?.count || 0;
+      total = totalResult[0]?.count || 0;
+      console.log('📊 [DrizzleTicketRepository] Total tickets found:', total);
+    } catch (error) {
+      console.error('❌ [DrizzleTicketRepository] Error counting tickets:', error);
+      throw new Error(`Database error counting tickets: ${error.message}`);
+    }
 
     // Calculate offset
     const offset = (pagination.page - 1) * pagination.limit;
@@ -271,9 +278,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
     if (filters.search) {
       conditions.push(
         or(
-          like(tickets.subject, `%${filters.search}%`),
-          like(tickets.description, `%${filters.search}%`),
-          like(tickets.number, `%${filters.search}%`)
+          ilike(tickets.subject, `%${filters.search}%`),
+          ilike(tickets.description, `%${filters.search}%`),
+          ilike(tickets.number, `%${filters.search}%`)
         )
       );
     }
@@ -432,13 +439,20 @@ export class DrizzleTicketRepository implements ITicketRepository {
       )
     ];
 
-    // Count total results
-    const totalResult = await db
-      .select({ count: count() })
-      .from(tickets)
-      .where(and(...conditions));
+    // Count total results with error handling
+    let total = 0;
+    try {
+      const totalResult = await db
+        .select({ count: count() })
+        .from(tickets)
+        .where(and(...conditions));
 
-    const total = totalResult[0]?.count || 0;
+      total = totalResult[0]?.count || 0;
+      console.log('📊 [DrizzleTicketRepository] Total tickets found:', total);
+    } catch (error) {
+      console.error('❌ [DrizzleTicketRepository] Error counting tickets:', error);
+      throw new Error(`Database error counting tickets: ${error.message}`);
+    }
 
     if (!pagination) {
       const ticketResults = await db
