@@ -201,6 +201,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api/customers', customersRouter.default || customersRouter);
   app.use('/api/beneficiaries', beneficiariesRoutes);
+  
+  // === Beneficiaries Clean Architecture Integration ===
+  const beneficiariesIntegrationRoutes = await import('./modules/beneficiaries/routes-integration');
+  console.log('✅ Beneficiaries Clean Architecture routes registered at /api/beneficiaries-integration');
+  app.use('/api/beneficiaries-integration', beneficiariesIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
