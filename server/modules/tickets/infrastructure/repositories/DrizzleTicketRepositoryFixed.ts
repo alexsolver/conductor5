@@ -141,13 +141,45 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
   }
 
   async findAll(tenantId: string): Promise<any[]> {
-    const result = await db
-      .select()
-      .from(tickets)
-      .where(eq(tickets.tenantId, tenantId))
-      .orderBy(desc(tickets.createdAt));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const result = await db.execute(sql`
+      SELECT 
+        id, number, subject, description, status, priority, urgency, impact,
+        category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+        tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+        company_id as "companyId", beneficiary_id as "beneficiaryId"
+      FROM ${sql.identifier(schemaName)}.tickets
+      ORDER BY created_at DESC
+    `);
 
-    return result;
+    return result.rows;
+  }
+
+  async findById(id: string, tenantId: string): Promise<any | null> {
+    try {
+      console.log(`🔍 [DrizzleTicketRepositoryFixed] findById called with id: ${id}, tenantId: ${tenantId}`);
+      
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await db.execute(sql`
+        SELECT 
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId"
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE id = ${id}
+        LIMIT 1
+      `);
+
+      const ticket = result.rows[0] || null;
+      console.log(`✅ [DrizzleTicketRepositoryFixed] findById result: ${ticket ? 'found' : 'not found'}`);
+      
+      return ticket;
+    } catch (error) {
+      console.error('❌ [DrizzleTicketRepositoryFixed] findById error:', error);
+      this.logger.error('Failed to find ticket by ID', { error: error.message, id, tenantId });
+      throw error;
+    }
   }
 
   // Additional required methods...
