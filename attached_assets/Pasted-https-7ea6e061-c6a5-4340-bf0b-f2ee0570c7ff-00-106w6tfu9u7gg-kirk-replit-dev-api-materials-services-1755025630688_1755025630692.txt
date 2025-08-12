@@ -1,0 +1,38 @@
+https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/api/materials-services/tickets/e58325c6-f124-4dcc-be5c-02e6cd70fcfe/planned-items 500 (Internal Server Error)
+apiRequest @ queryClient.ts:94
+queryFn @ MaterialsServicesMiniSystem.tsx:85
+fetchFn @ @tanstack_react-query.js?v=cc7d4722:840
+run @ @tanstack_react-query.js?v=cc7d4722:494
+start @ @tanstack_react-query.js?v=cc7d4722:536
+fetch @ @tanstack_react-query.js?v=cc7d4722:926
+executeFetch_fn @ @tanstack_react-query.js?v=cc7d4722:2211
+onSubscribe @ @tanstack_react-query.js?v=cc7d4722:1898
+subscribe @ @tanstack_react-query.js?v=cc7d4722:24
+(anonymous) @ @tanstack_react-query.js?v=cc7d4722:3022
+subscribeToStore @ chunk-SXRIVT2P.js?v=87ba7122:12032
+commitHookEffectListMount @ chunk-SXRIVT2P.js?v=87ba7122:16963
+commitPassiveMountOnFiber @ chunk-SXRIVT2P.js?v=87ba7122:18206
+commitPassiveMountEffects_complete @ chunk-SXRIVT2P.js?v=87ba7122:18179
+commitPassiveMountEffects_begin @ chunk-SXRIVT2P.js?v=87ba7122:18169
+commitPassiveMountEffects @ chunk-SXRIVT2P.js?v=87ba7122:18159
+flushPassiveEffectsImpl @ chunk-SXRIVT2P.js?v=87ba7122:19543
+flushPassiveEffects @ chunk-SXRIVT2P.js?v=87ba7122:19500
+commitRootImpl @ chunk-SXRIVT2P.js?v=87ba7122:19469
+commitRoot @ chunk-SXRIVT2P.js?v=87ba7122:19330
+performSyncWorkOnRoot @ chunk-SXRIVT2P.js?v=87ba7122:18948
+flushSyncCallbacks @ chunk-SXRIVT2P.js?v=87ba7122:9166
+(anonymous) @ chunk-SXRIVT2P.js?v=87ba7122:18677Understand this error
+MaterialsServicesMiniSystem.tsx:263 🔍 [CONSUMPTION-DEBUG] Available items data: {rawData: undefined, processedItems: Array(0), itemCount: 0, sampleItem: 'No items'}
+MaterialsServicesMiniSystem.tsx:263 🔍 [CONSUMPTION-DEBUG] Available items data: {rawData: {…}, processedItems: Array(3), itemCount: 3, sampleItem: {…}}
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: 'bfb4cf07-d10f-4aab-9aa1-0851ac409b0c', detectedName: 'Material bfb4cf07', allKeys: Array(18), …}
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: '8f5770a5-a91b-4806-a226-f835e48fce87', detectedName: 'Material 8f5770a5', allKeys: Array(18), …}
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: 'd752f3a8-5c5e-4495-a782-756858940639', detectedName: 'Material d752f3a8', allKeys: Array(18), …}
+MaterialsServicesMiniSystem.tsx:263 🔍 [CONSUMPTION-DEBUG] Available items data: {rawData: {…}, processedItems: Array(3), itemCount: 3, sampleItem: {…}}
+MaterialsServicesMiniSystem.tsx:274 🔍 [CONSUMED-PROCESSING] Raw consumed data: []
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: 'bfb4cf07-d10f-4aab-9aa1-0851ac409b0c', detectedName: 'Material bfb4cf07', allKeys: Array(18), …}
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: '8f5770a5-a91b-4806-a226-f835e48fce87', detectedName: 'Material 8f5770a5', allKeys: Array(18), …}
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: 'd752f3a8-5c5e-4495-a782-756858940639', detectedName: 'Material d752f3a8', allKeys: Array(18), …}
+MaterialsServicesMiniSystem.tsx:263 🔍 [CONSUMPTION-DEBUG] Available items data: {rawData: {…}, processedItems: Array(3), itemCount: 3, sampleItem: {…}}
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: 'bfb4cf07-d10f-4aab-9aa1-0851ac409b0c', detectedName: 'Material bfb4cf07', allKeys: Array(18), …}
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: '8f5770a5-a91b-4806-a226-f835e48fce87', detectedName: 'Material 8f5770a5', allKeys: Array(18), …}
+MaterialsServicesMiniSystem.tsx:624 🔍 [CONSUMPTION-SELECT] Available item structure: {rawItem: {…}, itemData: {…}, itemId: 'd752f3a8-5c5e-4495-a782-756858940639', detectedName: 'Material d752f3a8', allKeys: Array(18), …}

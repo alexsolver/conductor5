@@ -496,6 +496,16 @@ const TicketDetails = React.memo(() => {
   const actionsData = useMemo(() => ticketActions?.data, [ticketActions?.data]);
 
   useEffect(() => {
+    console.log('🔄 [USE-EFFECT] Triggered with data:', {
+      communicationsData: !!communicationsData,
+      attachmentsData: !!attachmentsData,
+      notesData: !!notesData,
+      actionsData: !!actionsData,
+      actionsDataLength: actionsData?.length,
+      ticketActions: !!ticketActions,
+      ticketActionsData: !!ticketActions?.data,
+      ticketActionsDataLength: ticketActions?.data?.length
+    });
 
     // Set communications from API with fallback
     if (ticketCommunications?.success && Array.isArray(communicationsData)) {

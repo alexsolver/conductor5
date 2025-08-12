@@ -215,7 +215,7 @@ router.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
       ORDER BY tia.created_at DESC
     `);
 
-    res.json(result.rows);
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error('Error fetching actions:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch actions' });
