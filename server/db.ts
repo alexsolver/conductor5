@@ -1,11 +1,11 @@
 // EMERGENCY SIMPLIFIED DB MANAGER
 // Temporary replacement due to syntax errors from sed commands
 
-const { Pool, neonConfig } = require('@neondatabase/serverless');
-const { drizzle } = require('drizzle-orm/neon-serverless');
-const { sql } = require('drizzle-orm');
-const ws = require("ws");
-const schema = require("../shared/schema");
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { sql } from 'drizzle-orm';
+import ws from "ws";
+import * as schema from "../shared/schema";
 
 // Validate schema import
 if (!schema.scheduleTemplates || !schema.workSchedules || !schema.users) {
@@ -25,7 +25,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle({ client: pool, schema });
 
 // Simplified schema manager with all required methods
-export const schemaManager = {
+const schemaManager = {
   getPool() {
     return pool;
   },
@@ -202,4 +202,4 @@ export const schemaManager = {
   }
 };
 
-module.exports = { pool, db, sql, schema, schemaManager };
+export { pool, db, sql, schema, schemaManager };
