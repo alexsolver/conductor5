@@ -197,30 +197,79 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Build SET clause dynamically
-      const setFields = Object.keys(updates)
-        .filter(key => updates[key as keyof Ticket] !== undefined)
-        .map(key => `${key} = ?`)
-        .join(', ');
+      // Use SQL directly to avoid Drizzle field mapping issues - FINAL FIX
+      const updatePairs = [];
+      const values = [];
+      let paramIndex = 1;
 
-      const setValues = Object.keys(updates)
-        .filter(key => updates[key as keyof Ticket] !== undefined)
-        .map(key => updates[key as keyof Ticket]);
+      if (updates.subject !== undefined) {
+        updatePairs.push(`subject = $${paramIndex++}`);
+        values.push(updates.subject);
+      }
+      if (updates.description !== undefined) {
+        updatePairs.push(`description = $${paramIndex++}`);
+        values.push(updates.description);
+      }
+      if (updates.status !== undefined) {
+        updatePairs.push(`status = $${paramIndex++}`);
+        values.push(updates.status);
+      }
+      if (updates.priority !== undefined) {
+        updatePairs.push(`priority = $${paramIndex++}`);
+        values.push(updates.priority);
+      }
+      if (updates.urgency !== undefined) {
+        updatePairs.push(`urgency = $${paramIndex++}`);
+        values.push(updates.urgency);
+      }
+      if (updates.impact !== undefined) {
+        updatePairs.push(`impact = $${paramIndex++}`);
+        values.push(updates.impact);
+      }
+      if (updates.category !== undefined) {
+        updatePairs.push(`category = $${paramIndex++}`);
+        values.push(updates.category);
+      }
+      if (updates.subcategory !== undefined) {
+        updatePairs.push(`subcategory = $${paramIndex++}`);
+        values.push(updates.subcategory);
+      }
+      if (updates.assignedToId !== undefined) {
+        updatePairs.push(`assigned_to_id = $${paramIndex++}`);
+        values.push(updates.assignedToId);
+      }
+      if (updates.companyId !== undefined) {
+        updatePairs.push(`company_id = $${paramIndex++}`);
+        values.push(updates.companyId);
+      }
+      if (updates.beneficiaryId !== undefined) {
+        updatePairs.push(`beneficiary_id = $${paramIndex++}`);
+        values.push(updates.beneficiaryId);
+      }
+      if (updates.callerId !== undefined) {
+        updatePairs.push(`caller_id = $${paramIndex++}`);
+        values.push(updates.callerId);
+      }
 
-      // Add updated_at
-      const finalSetClause = setFields + ', updated_at = NOW()';
+      // Always update timestamp
+      updatePairs.push(`updated_at = NOW()`);
+      values.push(id);
 
-      const result = await db.execute(sql.raw(`
+      const query = `
         UPDATE ${schemaName}.tickets 
-        SET ${finalSetClause}
-        WHERE id = ?
+        SET ${updatePairs.join(', ')}
+        WHERE id = $${paramIndex}
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", beneficiary_id as "beneficiaryId"
-      `, [...setValues, id]));
+      `;
 
+      console.log(`🔧 Final SQL query:`, query);
+      console.log(`📊 Parameters:`, values);
+
+      const result = await db.execute(sql.raw(query, values));
       const updatedTicket = result.rows[0];
       
       if (!updatedTicket) {
@@ -241,6 +290,29 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       console.log(`🗑️ [DrizzleTicketRepositoryClean] delete called with id: ${id}, tenantId: ${tenantId}`);
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // First delete all related records to avoid foreign key violations
+      await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.ticket_history WHERE ticket_id = ${id}
+      `);
+      
+      await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.ticket_notes WHERE ticket_id = ${id}
+      `);
+      
+      await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.ticket_communications WHERE ticket_id = ${id}
+      `);
+      
+      await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.ticket_attachments WHERE ticket_id = ${id}
+      `);
+      
+      await db.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.ticket_relationships WHERE source_ticket_id = ${id} OR target_ticket_id = ${id}
+      `);
+
+      // Finally delete the ticket
       const result = await db.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.tickets
         WHERE id = ${id}
@@ -250,7 +322,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         throw new Error('Ticket not found or delete failed');
       }
 
-      console.log(`✅ [DrizzleTicketRepositoryClean] delete successful`);
+      console.log(`✅ [DrizzleTicketRepositoryClean] delete successful - removed ticket and all related data`);
     } catch (error: any) {
       console.error('❌ [DrizzleTicketRepositoryClean] delete error:', error);
       this.logger.error('Failed to delete ticket', { error: error.message, id, tenantId });

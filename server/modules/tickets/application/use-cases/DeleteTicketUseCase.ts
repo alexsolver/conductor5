@@ -40,17 +40,21 @@ export class DeleteTicketUseCase {
       console.log(`✅ [DeleteTicketUseCase] Ticket soft deleted successfully: ${id}`);
 
       // Log da operação
-      this.logger.info('Ticket deleted successfully', {
-        ticketId: id,
-        tenantId,
-        userId,
-        ticketSubject: ticket.subject,
-        deletionType: 'soft_delete'
-      });
+      if (this.logger && this.logger.info) {
+        this.logger.info('Ticket deleted successfully', {
+          ticketId: id,
+          tenantId,
+          userId,
+          ticketSubject: ticket.subject,
+          deletionType: 'soft_delete'
+        });
+      }
 
     } catch (error: any) {
       console.error(`❌ [DeleteTicketUseCase] Delete failed:`, error);
-      this.logger.error('Failed to delete ticket', { error: error.message, id, tenantId, userId });
+      if (this.logger && this.logger.error) {
+        this.logger.error('Failed to delete ticket', { error: error.message, id, tenantId, userId });
+      }
       throw new Error(`Failed to delete ticket: ${error.message}`);
     }
   }
