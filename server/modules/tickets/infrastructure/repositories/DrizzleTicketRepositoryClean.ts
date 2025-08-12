@@ -286,13 +286,13 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         throw new Error('No valid fields to update');
       }
 
-      // Always update the updated_at timestamp
-      setClauses.push('updated_at = NOW()');
-
-      // Add WHERE clause parameters with correct indexing
+      // Add WHERE clause parameters with correct indexing BEFORE adding timestamp
       const idParamIndex = values.length + 1;
       const tenantParamIndex = values.length + 2;
       values.push(id, tenantId);
+
+      // Always update the updated_at timestamp (não adiciona parâmetros)
+      setClauses.push('updated_at = NOW()');
 
       const sqlQuery = `
         UPDATE ${schemaName}.tickets 
