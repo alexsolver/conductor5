@@ -126,7 +126,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filters.companyId) {
-      conditions.push(eq(tickets.caller_company_id, filters.companyId));
+      conditions.push(eq(tickets.company_id, filters.companyId));
     }
 
     if (filters.category) {

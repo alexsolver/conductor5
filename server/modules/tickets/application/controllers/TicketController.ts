@@ -19,6 +19,14 @@ type TicketFilters = {
   customerId?: string;
   companyId?: string;
   search?: string;
+  urgency?: string[];
+  impact?: string[];
+  category?: string;
+  subcategory?: string;
+  action?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  tags?: string[];
 };
 
 type PaginationOptions = {
@@ -32,8 +40,8 @@ export class TicketController {
   constructor(
     private createTicketUseCase: CreateTicketUseCase,
     private updateTicketUseCase: UpdateTicketUseCase,
-    private findTicketUseCase: FindTicketUseCase,
-    private deleteTicketUseCase: DeleteTicketUseCase
+    private deleteTicketUseCase: DeleteTicketUseCase,
+    private findTicketUseCase: FindTicketUseCase
   ) {}
 
   async create(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -153,46 +161,33 @@ export class TicketController {
       }
 
       // Extract filters from query parameters
-      const filters: any = {};
-      const { 
-        status, priority, urgency, impact, assignedToId, customerId, companyId,
-        category, subcategory, action, dateFrom, dateTo, search, tags,
-        page = 1, limit = 50, sortBy = 'createdAt', sortOrder = 'desc'
-      } = req.query;
-
-      // Build filters object
-      if (status) filters.status = Array.isArray(status) ? status : [status];
-      if (priority) filters.priority = Array.isArray(priority) ? priority : [priority];
-      if (urgency) filters.urgency = Array.isArray(urgency) ? urgency : [urgency];
-      if (impact) filters.impact = Array.isArray(impact) ? impact : [impact];
-      if (assignedToId) filters.assignedToId = assignedToId;
-      if (customerId) filters.customerId = customerId;
-      if (companyId) filters.companyId = companyId;
-      if (category) filters.category = category;
-      if (subcategory) filters.subcategory = subcategory;
-      if (action) filters.action = action;
-      if (dateFrom) filters.dateFrom = new Date(dateFrom as string);
-      if (dateTo) filters.dateTo = new Date(dateTo as string);
-      if (search) filters.search = search;
-      if (tags) filters.tags = Array.isArray(tags) ? tags : [tags];
-
-      const pagination = {
-        page: parseInt(page as string, 10),
-        limit: parseInt(limit as string, 10),
-        sortBy: sortBy as string,
-        sortOrder: sortOrder as 'asc' | 'desc'
+      const filters: TicketFilters = {
+        status: req.query.status ? (Array.isArray(req.query.status) ? req.query.status as string[] : [req.query.status as string]) : undefined,
+        priority: req.query.priority ? (Array.isArray(req.query.priority) ? req.query.priority as string[] : [req.query.priority as string]) : undefined,
+        assignedToId: req.query.assignedToId as string,
+        customerId: req.query.customerId as string,
+        companyId: req.query.companyId as string,
+        category: req.query.category as string,
+        subcategory: req.query.subcategory as string,
+        action: req.query.action as string,
+        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
+        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
+        search: req.query.search as string,
+        tags: req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags as string[] : [req.query.tags as string]) : undefined,
+        urgency: req.query.urgency ? (Array.isArray(req.query.urgency) ? req.query.urgency as string[] : [req.query.urgency as string]) : undefined,
+        impact: req.query.impact ? (Array.isArray(req.query.impact) ? req.query.impact as string[] : [req.query.impact as string]) : undefined,
       };
 
-      // Ensure filters are properly mapped to database field names
-      const mappedFilters = {
-        ...filters,
-        // Map frontend field names to database field names if needed
-        customerId: filters.customerId,
-        companyId: filters.companyId
+      const pagination: PaginationOptions = {
+        page: parseInt(req.query.page as string, 10) || 1,
+        limit: Math.min(parseInt(req.query.limit as string, 10) || 50, 1000),
+        sortBy: (req.query.sortBy as string) || 'createdAt',
+        sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'desc'
       };
-      
-      const result = await this.findTicketUseCase.findWithFilters(mappedFilters, pagination, tenantId);
 
+      const result = await this.findTicketUseCase.findWithFilters(filters, pagination, tenantId);
+
+      // Consistent response structure for frontend
       res.json({
         success: true,
         message: 'Tickets retrieved successfully',

@@ -431,35 +431,52 @@ export default function Tickets() {
     );
   }
 
-  // Parse consistente dos dados de tickets com debugging
+  // Parse consistente dos dados de tickets seguindo Clean Architecture
   console.log('🎫 [Tickets] Raw API response:', tickets);
   
   const ticketsList = (() => {
-    if (!tickets) return [];
+    if (!tickets) {
+      console.log('🎫 [Tickets] No tickets data received');
+      return [];
+    }
     
-    // Try different response structures
-    if (tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
+    // Standard Clean Architecture response structure
+    if (tickets.success && tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
+      console.log('🎫 [Tickets] Using standard Clean Architecture structure');
       return tickets.data.tickets;
     }
     
+    // Legacy support for direct data property
+    if (tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
+      console.log('🎫 [Tickets] Using legacy data.tickets structure');
+      return tickets.data.tickets;
+    }
+    
+    // Direct tickets array (fallback)
     if (tickets.tickets && Array.isArray(tickets.tickets)) {
+      console.log('🎫 [Tickets] Using direct tickets array');
       return tickets.tickets;
     }
     
+    // Raw array (ultimate fallback)
     if (Array.isArray(tickets)) {
+      console.log('🎫 [Tickets] Using raw array');
       return tickets;
     }
     
     console.warn('⚠️ [Tickets] Unexpected response structure:', tickets);
+    console.warn('⚠️ [Tickets] Available keys:', Object.keys(tickets || {}));
     return [];
   })();
   
   const ticketsCount = ticketsList.length;
   
-  console.log('🎫 [Tickets] Parsed tickets:', {
-    raw: tickets,
-    parsed: ticketsList,
-    count: ticketsCount
+  console.log('🎫 [Tickets] Final parsed result:', {
+    hasData: !!tickets,
+    isSuccess: tickets?.success,
+    dataKeys: tickets ? Object.keys(tickets) : [],
+    ticketsCount,
+    sampleTicket: ticketsList[0] || null
   });
 
   return (

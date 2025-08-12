@@ -6,11 +6,53 @@
 import { Ticket } from '../../domain/entities/Ticket';
 import { TicketDomainService } from '../../domain/entities/Ticket';
 import { ITicketRepository, TicketFilters, PaginationOptions, TicketListResult } from '../../domain/repositories/ITicketRepository';
+import { Logger } from '../../domain/services/Logger';
 
 export class FindTicketUseCase {
   constructor(
-    private ticketRepository: ITicketRepository
+    private ticketRepository: ITicketRepository,
+    private logger: Logger
   ) {}
+
+  async execute(
+    filters: TicketFilters,
+    pagination: PaginationOptions,
+    tenantId: string
+  ): Promise<TicketListResult> {
+    try {
+      this.logger.info('🔍 [FindTicketUseCase] Executing with filters', { filters, pagination, tenantId });
+
+      const result = await this.ticketRepository.findByFilters(filters, pagination, tenantId);
+
+      this.logger.info('✅ [FindTicketUseCase] Successfully found tickets', {
+        count: result.tickets.length,
+        total: result.total
+      });
+
+      return result;
+    } catch (error) {
+      this.logger.error('❌ [FindTicketUseCase] Error finding tickets', { error: error.message, tenantId });
+      throw new Error(`Failed to find tickets: ${error.message}`);
+    }
+  }
+
+  async getAllTickets(tenantId: string): Promise<any[]> {
+    try {
+      this.logger.info('🔍 [FindTicketUseCase] Getting all tickets for tenant', { tenantId });
+
+      const tickets = await this.ticketRepository.findByTenant(tenantId);
+
+      this.logger.info('✅ [FindTicketUseCase] Successfully found all tickets', {
+        count: tickets.length,
+        tenantId
+      });
+
+      return tickets;
+    } catch (error) {
+      this.logger.error('❌ [FindTicketUseCase] Error getting all tickets', { error: error.message, tenantId });
+      throw new Error(`Failed to get all tickets: ${error.message}`);
+    }
+  }
 
   async findById(ticketId: string, tenantId: string): Promise<Ticket | null> {
     if (!tenantId) {
@@ -34,49 +76,6 @@ export class FindTicketUseCase {
     }
 
     return await this.ticketRepository.findByNumber(ticketNumber, tenantId);
-  }
-
-  async findWithFilters(
-    filters: TicketFilters,
-    pagination: PaginationOptions,
-    tenantId: string
-  ): Promise<TicketListResult> {
-    if (!tenantId) {
-      throw new Error('Tenant ID is required');
-    }
-
-    // Validar paginação
-    if (pagination.page < 1) {
-      throw new Error('Page must be greater than 0');
-    }
-
-    if (pagination.limit < 1 || pagination.limit > 1000) {
-      throw new Error('Limit must be between 1 and 1000');
-    }
-
-    // Aplicar filtros padrão se necessário
-    const normalizedFilters: TicketFilters = {
-      ...filters
-    };
-
-    // Se não especificado, incluir apenas tickets ativos por padrão
-    if (!normalizedFilters.search) {
-      // Por padrão, buscar apenas tickets ativos (será aplicado no repository)
-    }
-
-    const result = await this.ticketRepository.findByFilters(
-      normalizedFilters,
-      pagination,
-      tenantId
-    );
-
-    // Enriquecer dados com informações calculadas
-    result.tickets = result.tickets.map(ticket => ({
-      ...ticket,
-      // Adicionar informações computadas se necessário
-    }));
-
-    return result;
   }
 
   async findByAssignedUser(userId: string, tenantId: string): Promise<Ticket[]> {
@@ -143,18 +142,18 @@ export class FindTicketUseCase {
     }
 
     const stats = await this.ticketRepository.getStatistics(tenantId);
-    
+
     // Enriquecer estatísticas com dados calculados
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfWeek = new Date(startOfDay);
     startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
-    
+
     return {
       ...stats,
       // Adicionar métricas calculadas se necessário
-      slaCompliance: stats.total > 0 ? 
-        Math.round(((stats.total - stats.overdueCount) / stats.total) * 100) : 
+      slaCompliance: stats.total > 0 ?
+        Math.round(((stats.total - stats.overdueCount) / stats.total) * 100) :
         100,
       urgentTickets: stats.byPriority?.high || 0 + stats.byPriority?.critical || 0
     };
@@ -166,7 +165,7 @@ export class FindTicketUseCase {
     }
 
     const tickets = await this.ticketRepository.findTicketsForEscalation(tenantId);
-    
+
     // Calcular nível de escalação para cada ticket
     return tickets.map(ticket => ({
       ...ticket,
