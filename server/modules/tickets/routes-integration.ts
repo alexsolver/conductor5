@@ -201,12 +201,15 @@ router.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
         tia.id,
         tia.action_number as "actionNumber",
         tia.action_type as "actionType", 
+        tia.title,
         tia.description,
         tia.start_time as "startTime",
         tia.end_time as "endTime",
-        tia.is_public as "isPublic",
+        tia.estimated_hours as "estimatedHours",
+        tia.status,
+        tia.priority,
         tia.created_at as "createdAt",
-        tia.created_by as "createdBy"
+        tia.agent_id as "agentId"
       FROM ${sql.identifier(schemaName)}.ticket_internal_actions tia
       WHERE tia.ticket_id = ${id} AND tia.tenant_id = ${tenantId}
       ORDER BY tia.created_at DESC
