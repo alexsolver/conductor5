@@ -1908,6 +1908,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('⚠️ Final Integration routes not available:', error);
   }
+
+  // === Auth Clean Architecture Integration ===
+  try {
+    const authIntegrationRoutes = await import('./modules/auth/routes-integration');
+    app.use('/api/auth-integration', authIntegrationRoutes.default);
+    console.log('✅ Auth Clean Architecture routes registered at /api/auth-integration');
+  } catch (error) {
+    console.warn('⚠️ Auth integration routes not available:', error);
+  }
+
+  // === Tickets Clean Architecture Integration ===
+  try {
+    const ticketsIntegrationRoutes = await import('./modules/tickets/routes-integration');
+    app.use('/api/tickets-integration', ticketsIntegrationRoutes.default);
+    console.log('✅ Tickets Clean Architecture routes registered at /api/tickets-integration');
+  } catch (error) {
+    console.warn('⚠️ Tickets integration routes not available:', error);
+  }
+
+  // === Users Clean Architecture Integration ===
+  try {
+    const usersIntegrationRoutes = await import('./modules/users/routes-integration');
+    app.use('/api/users-integration', usersIntegrationRoutes.default);
+    console.log('✅ Users Clean Architecture routes registered at /api/users-integration');
+  } catch (error) {
+    console.warn('⚠️ Users integration routes not available:', error);
+  }
   app.use('/api/holidays', holidayRoutes);
 
   // Ticket Templates routes are now integrated directly above
