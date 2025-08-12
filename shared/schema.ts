@@ -3,6 +3,10 @@
 
 export * from "./schema-master";
 
+// Garantir que tickets está sendo exportado corretamente
+import { tickets as ticketsTable } from "./schema-master";
+export { ticketsTable as tickets };
+
 // Selective exports from materials-services to avoid conflicts
 export {
   itemTypeEnum,

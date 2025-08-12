@@ -281,6 +281,49 @@ router.post('/validate-ticket-data', jwtAuth, async (req, res) => {
  * Clean Architecture endpoints - Following 1qa.md compliance
  */
 
+// GET /api/tickets/simple - Endpoint de fallback simples para debugging
+router.get('/simple', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    console.log('[TICKETS-SIMPLE] Getting simple tickets for tenant:', tenantId);
+
+    // Query direta usando repository simples
+    const ticketRepository = new DrizzleTicketRepository();
+    const tickets = await ticketRepository.findByTenant(tenantId);
+
+    console.log('[TICKETS-SIMPLE] Found tickets:', tickets?.length || 0);
+
+    res.json({
+      success: true,
+      message: 'Simple tickets retrieved successfully',
+      data: {
+        tickets: tickets || [],
+        pagination: {
+          page: 1,
+          totalPages: 1,
+          total: tickets?.length || 0,
+          limit: 50
+        }
+      }
+    });
+  } catch (error) {
+    console.error('[TICKETS-SIMPLE] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve simple tickets',
+      error: error.message
+    });
+  }
+});
+
 // GET /api/tickets - List tickets with filtering and pagination
 router.get('/', jwtAuth, ticketController.findAll.bind(ticketController));
 

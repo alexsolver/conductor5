@@ -127,7 +127,10 @@ export class TicketController {
     try {
       const tenantId = req.user?.tenantId;
       
+      console.log('[TicketController] findAll called with tenantId:', tenantId);
+      
       if (!tenantId) {
+        console.log('[TicketController] Missing tenantId in request');
         res.status(401).json({
           success: false,
           message: 'Tenant ID required'
@@ -140,8 +143,10 @@ export class TicketController {
       const { 
         status, priority, urgency, impact, assignedToId, customerId, companyId,
         category, subcategory, action, dateFrom, dateTo, search, tags,
-        page = 1, limit = 50, sortBy = 'createdAt', sortOrder = 'desc'
+        page = 1, limit = 50, sortBy = 'created_at', sortOrder = 'desc'
       } = req.query;
+
+      console.log('[TicketController] Query parameters:', req.query);
 
       // Build filters object
       if (status) filters.status = Array.isArray(status) ? status : [status];
@@ -166,26 +171,39 @@ export class TicketController {
         sortOrder: sortOrder as 'asc' | 'desc'
       };
 
+      console.log('[TicketController] Calling findWithFilters with:', { filters, pagination, tenantId });
+
       const result = await this.findTicketUseCase.findWithFilters(filters, pagination, tenantId);
+
+      console.log('[TicketController] findWithFilters result:', { 
+        ticketCount: result.tickets?.length || 0, 
+        total: result.total,
+        page: result.page,
+        totalPages: result.totalPages 
+      });
 
       res.json({
         success: true,
         message: 'Tickets retrieved successfully',
         data: {
-          tickets: result.tickets,
+          tickets: result.tickets || [],
           pagination: {
-            page: result.page,
-            totalPages: result.totalPages,
-            total: result.total,
+            page: result.page || 1,
+            totalPages: result.totalPages || 0,
+            total: result.total || 0,
             limit: pagination.limit
           }
         }
       });
     } catch (error: any) {
+      console.error('[TicketController] Error in findAll:', error);
+      console.error('[TicketController] Error stack:', error.stack);
+      
       res.status(500).json({
         success: false,
         message: error.message || 'Failed to retrieve tickets',
-        error: error.message
+        error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }

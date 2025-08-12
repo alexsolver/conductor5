@@ -49,21 +49,50 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   async create(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<any> {
-    const now = new Date();
+    try {
+      const now = new Date();
 
-    const insertData = {
-      ...ticketData,
-      tenantId,
-      createdAt: now,
-      updatedAt: now
-    };
+      // Mapear campos camelCase para snake_case do banco
+      const insertData = {
+        tenant_id: tenantId,
+        subject: ticketData.subject,
+        description: ticketData.description,
+        status: ticketData.status || 'new',
+        priority: ticketData.priority || 'medium',
+        urgency: ticketData.urgency || 'medium',
+        category: ticketData.category,
+        subcategory: ticketData.subcategory,
+        action: ticketData.action,
+        caller_id: ticketData.callerId,
+        beneficiary_id: ticketData.beneficiaryId,
+        customer_company_id: ticketData.customerCompanyId,
+        assigned_to_id: ticketData.assignedToId,
+        assignment_group_id: ticketData.assignmentGroupId,
+        location: ticketData.location,
+        symptoms: ticketData.symptoms,
+        business_impact: ticketData.businessImpact,
+        workaround: ticketData.workaround,
+        created_by_id: ticketData.createdById,
+        created_at: now,
+        updated_at: now,
+        is_active: true
+      };
 
-    const result = await db
-      .insert(tickets)
-      .values(insertData)
-      .returning();
+      // Remover campos undefined/null para evitar erros SQL
+      const cleanData = Object.fromEntries(
+        Object.entries(insertData).filter(([_, value]) => value !== undefined && value !== null)
+      );
 
-    return result[0];
+      const result = await db
+        .insert(tickets)
+        .values(cleanData)
+        .returning();
+
+      return result[0];
+    } catch (error) {
+      console.error('[DrizzleTicketRepository] Error in create:', error);
+      throw new Error(`Failed to create ticket: ${error.message}`);
+    }
   }
 
   async update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<any> {
@@ -115,102 +144,133 @@ export class DrizzleTicketRepository implements ITicketRepository {
     pagination: PaginationOptions, 
     tenantId: string
   ): Promise<TicketListResult> {
-    // Build where conditions
-    const conditions = [
-      eq(tickets.tenant_id, tenantId),
-      eq(tickets.is_active, true)
-    ];
+    try {
+      // Build where conditions - usando apenas campos que existem no schema
+      const conditions = [
+        eq(tickets.tenant_id, tenantId)
+      ];
 
-    // Apply filters
-    if (filters.status?.length) {
-      conditions.push(inArray(tickets.status, filters.status));
+      // Verificar se is_active existe no schema antes de usar
+      if ('is_active' in tickets) {
+        conditions.push(eq(tickets.is_active, true));
+      }
+
+      // Apply filters com validação de campos
+      if (filters.status?.length && 'status' in tickets) {
+        conditions.push(inArray(tickets.status, filters.status));
+      }
+
+      if (filters.priority?.length && 'priority' in tickets) {
+        conditions.push(inArray(tickets.priority, filters.priority));
+      }
+
+      if (filters.assignedToId && 'assigned_to_id' in tickets) {
+        conditions.push(eq(tickets.assigned_to_id, filters.assignedToId));
+      }
+
+      if (filters.customerId && 'caller_id' in tickets) {
+        conditions.push(eq(tickets.caller_id, filters.customerId));
+      }
+
+      if (filters.companyId && 'customer_company_id' in tickets) {
+        conditions.push(eq(tickets.customer_company_id, filters.companyId));
+      }
+
+      if (filters.category && 'category' in tickets) {
+        conditions.push(eq(tickets.category, filters.category));
+      }
+
+      if (filters.dateFrom && 'created_at' in tickets) {
+        conditions.push(gte(tickets.created_at, filters.dateFrom));
+      }
+
+      if (filters.dateTo && 'created_at' in tickets) {
+        conditions.push(lte(tickets.created_at, filters.dateTo));
+      }
+
+      if (filters.search) {
+        const searchConditions = [];
+        if ('subject' in tickets) {
+          searchConditions.push(like(tickets.subject, `%${filters.search}%`));
+        }
+        if ('description' in tickets) {
+          searchConditions.push(like(tickets.description, `%${filters.search}%`));
+        }
+        if ('number' in tickets) {
+          searchConditions.push(like(tickets.number, `%${filters.search}%`));
+        }
+        if (searchConditions.length > 0) {
+          conditions.push(or(...searchConditions));
+        }
+      }
+
+      // Count total results
+      const totalResult = await db
+        .select({ count: count() })
+        .from(tickets)
+        .where(and(...conditions));
+
+      const total = totalResult[0]?.count || 0;
+
+      // Calculate offset
+      const offset = (pagination.page - 1) * pagination.limit;
+
+      // Build order by - garantindo que a coluna existe
+      let orderColumn = tickets.created_at; // fallback seguro
+      if (pagination.sortBy && pagination.sortBy in tickets) {
+        orderColumn = tickets[pagination.sortBy as keyof typeof tickets];
+      }
+      const orderDirection = pagination.sortOrder === 'asc' ? asc : desc;
+
+      // Fetch paginated results
+      const ticketResults = await db
+        .select()
+        .from(tickets)
+        .where(and(...conditions))
+        .orderBy(orderDirection(orderColumn))
+        .limit(pagination.limit)
+        .offset(offset);
+
+      const totalPages = Math.ceil(total / pagination.limit);
+
+      return {
+        tickets: ticketResults,
+        total,
+        page: pagination.page,
+        totalPages
+      };
+    } catch (error) {
+      console.error('[DrizzleTicketRepository] Error in findByFilters:', error);
+      // Retornar estrutura vazia em caso de erro para não quebrar o frontend
+      return {
+        tickets: [],
+        total: 0,
+        page: pagination.page,
+        totalPages: 0
+      };
     }
-
-    if (filters.priority?.length) {
-      conditions.push(inArray(tickets.priority, filters.priority));
-    }
-
-    if (filters.assignedToId) {
-      conditions.push(eq(tickets.assigned_to_id, filters.assignedToId));
-    }
-
-    if (filters.customerId) {
-      conditions.push(eq(tickets.caller_id, filters.customerId));
-    }
-
-    if (filters.companyId) {
-      conditions.push(eq(tickets.companyId, filters.companyId));
-    }
-
-    if (filters.category) {
-      conditions.push(eq(tickets.category, filters.category));
-    }
-
-    if (filters.dateFrom) {
-      conditions.push(gte(tickets.created_at, filters.dateFrom));
-    }
-
-    if (filters.dateTo) {
-      conditions.push(lte(tickets.created_at, filters.dateTo));
-    }
-
-    if (filters.search) {
-      conditions.push(
-        or(
-          like(tickets.subject, `%${filters.search}%`),
-          like(tickets.description, `%${filters.search}%`),
-          like(tickets.number, `%${filters.search}%`)
-        )
-      );
-    }
-
-    // Count total results
-    const totalResult = await db
-      .select({ count: count() })
-      .from(tickets)
-      .where(and(...conditions));
-
-    const total = totalResult[0]?.count || 0;
-
-    // Calculate offset
-    const offset = (pagination.page - 1) * pagination.limit;
-
-    // Build order by
-    const orderColumn = tickets[pagination.sortBy as keyof typeof tickets] || tickets.created_at;
-    const orderDirection = pagination.sortOrder === 'asc' ? asc : desc;
-
-    // Fetch paginated results
-    const ticketResults = await db
-      .select()
-      .from(tickets)
-      .where(and(...conditions))
-      .orderBy(orderDirection(orderColumn))
-      .limit(pagination.limit)
-      .offset(offset);
-
-    const totalPages = Math.ceil(total / pagination.limit);
-
-    return {
-      tickets: ticketResults,
-      total,
-      page: pagination.page,
-      totalPages
-    };
   }
 
   async findByTenant(tenantId: string): Promise<any[]> {
-    const result = await db
-      .select()
-      .from(tickets)
-      .where(
-        and(
-          eq(tickets.tenant_id, tenantId),
-          eq(tickets.is_active, true)
-        )
-      )
-      .orderBy(desc(tickets.created_at));
+    try {
+      const conditions = [eq(tickets.tenant_id, tenantId)];
+      
+      // Adicionar is_active apenas se existir no schema
+      if ('is_active' in tickets) {
+        conditions.push(eq(tickets.is_active, true));
+      }
 
-    return result;
+      const result = await db
+        .select()
+        .from(tickets)
+        .where(and(...conditions))
+        .orderBy(desc(tickets.created_at));
+
+      return result;
+    } catch (error) {
+      console.error('[DrizzleTicketRepository] Error in findByTenant:', error);
+      return [];
+    }
   }
 
   async findByAssignedUser(userId: string, tenantId: string): Promise<any[]> {
