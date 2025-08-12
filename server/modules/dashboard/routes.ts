@@ -71,3 +71,4 @@ dashboardRouter.get('/metrics', jwtAuth, async (req: AuthenticatedRequest, res) 
 });
 
 export { dashboardRouter };
+export default dashboardRouter;

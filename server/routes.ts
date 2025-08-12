@@ -251,6 +251,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const timecardIntegrationRoutes = await import('./modules/timecard/routes-integration');
   console.log('✅ Timecard Clean Architecture routes registered at /api/timecard-integration');
   app.use('/api/timecard-integration', timecardIntegrationRoutes.default);
+  
+  // === Dashboard Clean Architecture Integration ===
+  const dashboardIntegrationRoutes = await import('./modules/dashboard/routes-integration');
+  console.log('✅ Dashboard Clean Architecture routes registered at /api/dashboard-integration');
+  app.use('/api/dashboard-integration', dashboardIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
