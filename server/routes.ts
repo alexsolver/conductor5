@@ -236,6 +236,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const peopleIntegrationRoutes = await import('./modules/people/routes-integration');
   console.log('✅ People Clean Architecture routes registered at /api/people-integration');
   app.use('/api/people-integration', peopleIntegrationRoutes.default);
+  
+  // === Materials Services Clean Architecture Integration ===
+  const materialsServicesIntegrationRoutes = await import('./modules/materials-services/routes-integration');
+  console.log('✅ Materials Services Clean Architecture routes registered at /api/materials-services-integration');
+  app.use('/api/materials-services-integration', materialsServicesIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
