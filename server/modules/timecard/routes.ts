@@ -50,7 +50,7 @@ timecardRouter.get('/hour-bank/movements/:userId/:month', jwtAuth, timecardContr
 timecardRouter.get('/absence-requests/pending', jwtAuth, timecardController.getPendingAbsenceRequests.bind(timecardController));
 
 // Reports routes with error handling wrapper
-timecardRouter.get('/reports/attendance/:period', jwtAuth, timecardController.getAttendanceReport.bind(timecardController)););
+timecardRouter.get('/reports/attendance/:period', jwtAuth, timecardController.getAttendanceReport.bind(timecardController));
 
 timecardRouter.get('/reports/overtime/:period', jwtAuth, timecardController.getOvertimeReport.bind(timecardController));
 
@@ -60,3 +60,4 @@ timecardRouter.get('/reports/compliance/:period', jwtAuth, timecardController.ge
 timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
 
 export { timecardRouter };
+export default timecardRouter;

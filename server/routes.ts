@@ -246,6 +246,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const notificationsIntegrationRoutes = await import('./modules/notifications/routes-integration');
   console.log('✅ Notifications Clean Architecture routes registered at /api/notifications-integration');
   app.use('/api/notifications-integration', notificationsIntegrationRoutes.default);
+  
+  // === Timecard Clean Architecture Integration ===
+  const timecardIntegrationRoutes = await import('./modules/timecard/routes-integration');
+  console.log('✅ Timecard Clean Architecture routes registered at /api/timecard-integration');
+  app.use('/api/timecard-integration', timecardIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
