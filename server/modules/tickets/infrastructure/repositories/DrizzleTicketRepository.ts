@@ -15,6 +15,20 @@ import {
 } from '../../domain/repositories/ITicketRepository';
 import { Logger } from '../../domain/services/Logger';
 
+// Assume getTenantSchema is imported or defined elsewhere and returns the correct schema for the tenant
+// import { getTenantSchema } from '../../../../utils/tenantUtils'; 
+// Placeholder for getTenantSchema if not provided in the original context
+const getTenantSchema = (tenantId: string) => {
+  // This is a placeholder. In a real scenario, this would dynamically select or reference the correct schema.
+  // For Drizzle, this might involve returning a schema object or modifying the connection.
+  // For simplicity here, we'll assume 'tickets' is globally accessible or correctly referenced.
+  // If your Drizzle setup uses schema names, you might do:
+  // const schemaName = getSchemaNameForTenant(tenantId);
+  // return { tickets: db.getSchema(schemaName).tickets };
+  return { tickets: tickets }; // Returning the default schema for demonstration
+};
+
+
 export class DrizzleTicketRepository implements ITicketRepository {
   constructor(private logger: Logger) {}
 
@@ -65,28 +79,85 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result[0];
   }
 
-  async update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<any> {
-    const updateData = {
-      ...updates,
-      updatedAt: new Date()
-    };
+  async update(id: string, updateData: Partial<Ticket>, tenantId: string): Promise<Ticket> {
+    try {
+      console.log(`🔄 [DrizzleTicketRepository] Updating ticket ${id} for tenant ${tenantId}`);
+      console.log(`📝 [DrizzleTicketRepository] Update data:`, JSON.stringify(updateData, null, 2));
 
-    const result = await db
-      .update(tickets)
-      .set(updateData)
-      .where(
-        and(
-          eq(tickets.id, id),
-          eq(tickets.tenantId, tenantId)
+      // Validação de entrada
+      if (!id || !tenantId) {
+        throw new Error('Ticket ID and tenant ID are required');
+      }
+
+      const tenantSchema = getTenantSchema(tenantId);
+
+      // Preparar dados para update, removendo campos undefined e null desnecessários
+      const cleanUpdateData: any = {};
+
+      Object.keys(updateData).forEach(key => {
+        const value = (updateData as any)[key];
+        if (value !== undefined) {
+          cleanUpdateData[key] = value;
+        }
+      });
+
+      // Always set updatedAt
+      cleanUpdateData.updatedAt = new Date();
+
+      // Verificar se há dados para atualizar
+      if (Object.keys(cleanUpdateData).length <= 1) { // apenas updatedAt
+        console.log(`⚠️ [DrizzleTicketRepository] No data to update beyond updatedAt`);
+        // Buscar o ticket atual para retornar
+        const currentTicket = await this.findById(id, tenantId);
+        if (!currentTicket) {
+          throw new Error('Ticket not found');
+        }
+        return currentTicket;
+      }
+
+      console.log(`🧹 [DrizzleTicketRepository] Clean update data:`, JSON.stringify(cleanUpdateData, null, 2));
+
+      // Executar update com tratamento de erro específico
+      const result = await db.update(tenantSchema.tickets)
+        .set(cleanUpdateData)
+        .where(
+          and(
+            eq(tenantSchema.tickets.id, id),
+            eq(tenantSchema.tickets.tenantId, tenantId),
+            eq(tenantSchema.tickets.isActive, true) // Só atualizar tickets ativos
+          )
         )
-      )
-      .returning();
+        .returning();
 
-    if (result.length === 0) {
-      throw new Error('Ticket not found or already deleted');
+      if (result.length === 0) {
+        // Verificar se o ticket existe
+        const existingTicket = await this.findById(id, tenantId);
+        if (!existingTicket) {
+          throw new Error('Ticket not found');
+        } else if (!existingTicket.isActive) {
+          throw new Error('Cannot update inactive ticket');
+        } else {
+          throw new Error('No changes were made to the ticket');
+        }
+      }
+
+      const updatedTicket = result[0] as Ticket;
+      console.log(`✅ [DrizzleTicketRepository] Ticket updated successfully:`, updatedTicket);
+      return updatedTicket;
+    } catch (error: any) {
+      console.error(`❌ [DrizzleTicketRepository] Update failed:`, error);
+
+      // Tratamento de erro mais específico
+      if (error.message.includes('not found')) {
+        throw new Error('Ticket not found');
+      } else if (error.message.includes('inactive')) {
+        throw new Error('Cannot update inactive ticket');
+      } else if (error.message.includes('constraint')) {
+        throw new Error('Invalid data provided for update');
+      } else {
+        throw new Error(`Failed to update ticket: ${error.message}`);
+      }
     }
-
-    return result[0];
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
@@ -267,7 +338,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       const totalPages = Math.ceil(total / pagination.limit);
 
       // Get tickets with pagination
-      const orderBy = pagination.sortOrder === 'asc' 
+      const orderBy = pagination.sortOrder === 'asc'
         ? asc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt)
         : desc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt);
 
@@ -279,11 +350,11 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .limit(pagination.limit)
         .offset(offset);
 
-      console.log('✅ [DrizzleTicketRepository] Query results:', { 
-        total, 
-        page: pagination.page, 
-        totalPages, 
-        resultsCount: results.length 
+      console.log('✅ [DrizzleTicketRepository] Query results:', {
+        total,
+        page: pagination.page,
+        totalPages,
+        resultsCount: results.length
       });
 
       return {
@@ -294,11 +365,11 @@ export class DrizzleTicketRepository implements ITicketRepository {
       };
 
     } catch (error) {
-      this.logger.error('Failed to find tickets with filters', { 
-        error: error.message, 
-        filters, 
-        pagination, 
-        tenantId 
+      this.logger.error('Failed to find tickets with filters', {
+        error: error.message,
+        filters,
+        pagination,
+        tenantId
       });
       console.error('❌ [DrizzleTicketRepository] findWithFilters error:', error);
       throw new Error(`Failed to find tickets with filters: ${error.message}`);

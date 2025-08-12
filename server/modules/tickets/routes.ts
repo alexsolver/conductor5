@@ -330,20 +330,38 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
 // ✅ CORREÇÃO: Update ticket com validação completa e auditoria robusta
 ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedRequest, res) => {
   try {
+    console.log('🎯 [TICKETS-ROUTE] PUT /:id called');
+    
     if (!req.user?.tenantId) {
+      console.log('❌ [TICKETS-ROUTE] No tenant ID in user');
       return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
     }
 
     const ticketId = req.params.id;
     const frontendUpdates = req.body;
 
+    console.log('📝 [TICKETS-ROUTE] Update request:', {
+      ticketId,
+      tenantId: req.user.tenantId,
+      userId: req.user.id,
+      updateData: JSON.stringify(frontendUpdates, null, 2)
+    });
+
     // ✅ VALIDAÇÃO PRÉVIA OBRIGATÓRIA
     if (!ticketId || typeof ticketId !== 'string') {
+      console.log('❌ [TICKETS-ROUTE] Invalid ticket ID');
       return sendError(res, "Invalid ticket ID", "Ticket ID is required and must be a string", 400);
+    }
+
+    // Validação de dados de entrada
+    if (!frontendUpdates || Object.keys(frontendUpdates).length === 0) {
+      console.log('❌ [TICKETS-ROUTE] No update data provided');
+      return sendError(res, "No update data provided", "Update data is required", 400);
     }
 
     // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS - Apenas subject é obrigatório em updates
     if (frontendUpdates.subject !== undefined && (!frontendUpdates.subject || !frontendUpdates.subject.trim())) {
+      console.log('❌ [TICKETS-ROUTE] Empty subject provided');
       return sendError(res, "Subject is required", "Subject cannot be empty", 400);
     }
 

@@ -23,16 +23,23 @@ export class UpdateTicketUseCase {
   }
 
   async execute(ticketId: string, dto: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
+    console.log(`🚀 [UpdateTicketUseCase] Starting execution for ticket ${ticketId}`);
+    console.log(`📋 [UpdateTicketUseCase] DTO received:`, JSON.stringify(dto, null, 2));
+    console.log(`🏢 [UpdateTicketUseCase] Tenant ID: ${tenantId}`);
+
     // Validação de entrada
     if (!tenantId) {
+      console.log('❌ [UpdateTicketUseCase] Tenant ID is missing');
       throw new Error('Tenant ID is required');
     }
 
     if (!ticketId) {
+      console.log('❌ [UpdateTicketUseCase] Ticket ID is missing');
       throw new Error('Ticket ID is required');
     }
 
     if (!dto.updatedById) {
+      console.log('❌ [UpdateTicketUseCase] Updated by user ID is missing');
       throw new Error('Updated by user ID is required');
     }
 

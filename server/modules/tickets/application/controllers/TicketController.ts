@@ -1,4 +1,3 @@
-
 /**
  * APPLICATION LAYER - TICKET CONTROLLER
  * Seguindo Clean Architecture - 1qa.md compliance
@@ -149,38 +148,99 @@ export class TicketController {
   async update(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const dto: UpdateTicketDTO = req.body;
+      const updateData = req.body;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
+      console.log('🎯 [TicketController] update called with:', { 
+        id, 
+        tenantId, 
+        userId,
+        updateData: JSON.stringify(updateData, null, 2)
+      });
+
+      // Validações de entrada mais robustas
       if (!tenantId) {
+        console.log('❌ [TicketController] No tenant ID provided');
         res.status(401).json({
           success: false,
-          message: 'Tenant ID required'
+          message: 'Tenant ID required',
+          error: 'MISSING_TENANT_ID'
         });
         return;
       }
 
-      // Ensure updatedById is set from authenticated user
-      if (userId) {
-        dto.updatedById = userId;
-      } else {
-        throw new Error('User ID is required');
+      if (!userId) {
+        console.log('❌ [TicketController] No user ID provided');
+        res.status(401).json({
+          success: false,
+          message: 'User ID required',
+          error: 'MISSING_USER_ID'
+        });
+        return;
       }
 
+      if (!id || typeof id !== 'string' || id.trim() === '') {
+        console.log('❌ [TicketController] Invalid ticket ID');
+        res.status(400).json({
+          success: false,
+          message: 'Valid ticket ID is required',
+          error: 'INVALID_TICKET_ID'
+        });
+        return;
+      }
+
+      if (!updateData || Object.keys(updateData).length === 0) {
+        console.log('❌ [TicketController] No update data provided');
+        res.status(400).json({
+          success: false,
+          message: 'Update data is required',
+          error: 'NO_UPDATE_DATA'
+        });
+        return;
+      }
+
+      // Preparar DTO para o use case
+      const dto: UpdateTicketDTO = {
+        ...updateData,
+        updatedById: userId
+      };
+
+      console.log('🚀 [TicketController] Calling updateTicketUseCase.execute');
       const ticket = await this.updateTicketUseCase.execute(id, dto, tenantId);
 
+      console.log('✅ [TicketController] Update successful, returning data');
       res.json({
         success: true,
         message: 'Ticket updated successfully',
         data: ticket
       });
     } catch (error: any) {
-      const statusCode = error.message.includes('not found') ? 404 : 400;
+      console.error('❌ [TicketController] Update failed:', error);
+
+      // Tratamento de erro mais específico
+      let statusCode = 500;
+      let errorCode = 'INTERNAL_SERVER_ERROR';
+
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+        errorCode = 'TICKET_NOT_FOUND';
+      } else if (error.message.includes('required')) {
+        statusCode = 400;
+        errorCode = 'VALIDATION_ERROR';
+      } else if (error.message.includes('inactive')) {
+        statusCode = 403;
+        errorCode = 'TICKET_INACTIVE';
+      } else if (error.message.includes('Invalid')) {
+        statusCode = 400;
+        errorCode = 'INVALID_DATA';
+      }
+
       res.status(statusCode).json({
         success: false,
         message: error.message || 'Failed to update ticket',
-        error: error.message
+        error: errorCode,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
@@ -231,7 +291,7 @@ export class TicketController {
   async findAll(req: AuthenticatedRequest, res: Response): Promise<void> {
     console.log('🎯 [TicketController] findAll method called');
     console.log('🔍 [TicketController] findTicketUseCase exists:', !!this.findTicketUseCase);
-    
+
     try {
       const tenantId = req.user?.tenantId;
       console.log('🔍 [TicketController] TenantId:', tenantId);
@@ -395,7 +455,7 @@ export class TicketController {
       if (!userId) {
         throw new Error('User ID is required');
       }
-      
+
       await this.deleteTicketUseCase.execute(id, tenantId, userId);
 
       res.json({
