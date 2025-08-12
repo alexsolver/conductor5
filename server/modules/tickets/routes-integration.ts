@@ -14,7 +14,7 @@ import { sql } from 'drizzle-orm';
 const router = Router();
 
 // Import Clean Architecture components
-import { DrizzleTicketRepositoryFixed } from './infrastructure/repositories/DrizzleTicketRepositoryFixed';
+import { DrizzleTicketRepositoryClean } from './infrastructure/repositories/DrizzleTicketRepositoryClean';
 import { CreateTicketUseCase } from './application/use-cases/CreateTicketUseCase';
 import { UpdateTicketUseCase } from './application/use-cases/UpdateTicketUseCase';
 import { FindTicketUseCase } from './application/use-cases/FindTicketUseCase';
@@ -25,7 +25,7 @@ import { TicketController } from './application/controllers/TicketController';
 import { ConsoleLogger } from './domain/services/Logger';
 
 const logger = new ConsoleLogger();
-const ticketRepository = new DrizzleTicketRepositoryFixed(logger);
+const ticketRepository = new DrizzleTicketRepositoryClean(logger);
 const createTicketUseCase = new CreateTicketUseCase(ticketRepository);
 const updateTicketUseCase = new UpdateTicketUseCase(ticketRepository);
 const findTicketUseCase = new FindTicketUseCase(ticketRepository, logger);
