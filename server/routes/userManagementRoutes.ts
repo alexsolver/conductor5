@@ -683,12 +683,7 @@ router.get('/permissions',
         { id: 'customers.create', name: 'Criar Clientes', category: 'customer_management', description: 'Adicionar novos clientes', level: 'workspace' },
         { id: 'customers.edit', name: 'Editar Clientes', category: 'customer_management', description: 'Modificar dados dos clientes', level: 'workspace' },
         { id: 'customers.delete', name: 'Excluir Clientes', category: 'customer_management', description: 'Remover clientes', level: 'workspace' },
-        
-        // Base de Conhecimento
-        { id: 'kb.view', name: 'Visualizar KB', category: 'knowledge_base', description: 'Acessar base de conhecimento', level: 'workspace' },
-        { id: 'kb.create', name: 'Criar Artigos KB', category: 'knowledge_base', description: 'Adicionar artigos', level: 'workspace' },
-        { id: 'kb.edit', name: 'Editar KB', category: 'knowledge_base', description: 'Modificar artigos', level: 'workspace' },
-        { id: 'kb.manage', name: 'Gerenciar KB', category: 'knowledge_base', description: 'Controle total da KB', level: 'workspace' },
+
         
         // Recursos Humanos e Equipe
         { id: 'hr.view', name: 'Visualizar RH', category: 'hr_team', description: 'Ver dados de RH', level: 'workspace' },

@@ -44,12 +44,7 @@ export enum Permission {
   CUSTOMER_UPDATE = 'customer:update',
   CUSTOMER_DELETE = 'customer:delete',
   
-  // Knowledge Base
-  KB_VIEW = 'kb:view',
-  KB_CREATE = 'kb:create',
-  KB_UPDATE = 'kb:update',
-  KB_DELETE = 'kb:delete',
-  KB_PUBLISH = 'kb:publish',
+
   
   // Reports and Analytics
   ANALYTICS_VIEW_TENANT = 'analytics:view_tenant',
@@ -87,12 +82,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.CUSTOMER_UPDATE,
     Permission.CUSTOMER_DELETE,
     
-    // All KB permissions
-    Permission.KB_VIEW,
-    Permission.KB_CREATE,
-    Permission.KB_UPDATE,
-    Permission.KB_DELETE,
-    Permission.KB_PUBLISH,
+
     
     // All analytics
     Permission.ANALYTICS_VIEW_TENANT,
@@ -122,12 +112,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.CUSTOMER_UPDATE,
     Permission.CUSTOMER_DELETE,
     
-    // KB management within tenant
-    Permission.KB_VIEW,
-    Permission.KB_CREATE,
-    Permission.KB_UPDATE,
-    Permission.KB_DELETE,
-    Permission.KB_PUBLISH,
+
     
     // Tenant analytics
     Permission.ANALYTICS_VIEW_TENANT,
@@ -148,10 +133,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.CUSTOMER_VIEW_ALL,
     Permission.CUSTOMER_UPDATE,
     
-    // KB access
-    Permission.KB_VIEW,
-    Permission.KB_CREATE,
-    Permission.KB_UPDATE,
+
     
     // Own analytics
     Permission.ANALYTICS_VIEW_OWN,
@@ -161,7 +143,6 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     // Limited customer access
     Permission.CUSTOMER_VIEW_OWN,
     Permission.TICKET_VIEW_ASSIGNED, // Only their own tickets
-    Permission.KB_VIEW,
     Permission.ANALYTICS_VIEW_OWN,
   ],
 };

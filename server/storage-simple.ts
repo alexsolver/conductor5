@@ -47,8 +47,7 @@ export interface IStorage {
   getDashboardStats(tenantId: string): Promise<any>;
   getRecentActivity(tenantId: string, options?: { limit?: number }): Promise<any[]>;
 
-  // Knowledge Base
-  createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any>;
+
 
   // External Contacts
   getClientes(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
@@ -697,44 +696,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // ===========================
-  // KNOWLEDGE BASE
-  // ===========================
 
-  async createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
-
-      if (!article.title || !article.content) {
-        throw new Error('Article title and content are required');
-      }
-
-      const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.knowledge_base_articles 
-        (title, excerpt, content, category, tags, author, status, tenant_id, created_at, updated_at)
-        VALUES (
-          ${article.title},
-          ${article.excerpt || null},
-          ${article.content},
-          ${article.category || 'general'},
-          ${JSON.stringify(article.tags || [])}::jsonb,
-          ${article.author || 'system'},
-          ${article.status || 'published'},
-          ${validatedTenantId},
-          NOW(),
-          NOW()
-        )
-        RETURNING *
-      `);
-
-      return result.rows?.[0];
-    } catch (error) {
-      logError('Error creating knowledge base article', error, { tenantId, article });
-      throw error;
-    }
-  }
 
   // ===========================
   // EXTERNAL CONTACTS (SOLICITANTES/FAVORECIDOS)

@@ -19,7 +19,7 @@ interface LayerIssue {
 class SystemLayerAnalyzerFixed {
   private issues: LayerIssue[] = [];
   private modules = [
-    'tickets', 'customers', 'knowledge-base', 'materials-services', 
+    'tickets', 'customers', 'materials-services', 
     'timecard', 'locations', 'notifications', 'schedule-management',
     'user-management', 'dashboard', 'auth'
   ];
@@ -352,7 +352,7 @@ class SystemLayerAnalyzerFixed {
     const tableMap: Record<string, string[]> = {
       tickets: ['tickets', 'ticket_attachments', 'ticket_messages'],
       customers: ['customers', 'customer_companies'],
-      'knowledge-base': ['knowledge_base_articles', 'kb_categories'],
+
       'materials-services': ['items', 'suppliers', 'stock'],
       timecard: ['timecard_entries', 'work_schedules'],
       locations: ['locations', 'addresses'],
