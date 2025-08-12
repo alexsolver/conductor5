@@ -1881,6 +1881,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('⚠️ Tenant Admin integration routes not available:', error);
   }
+
+  // === Template Audit Clean Architecture Integration ===
+  try {
+    const templateAuditIntegrationRoutes = await import('./modules/template-audit/routes-integration');
+    app.use('/api/template-audit-integration', templateAuditIntegrationRoutes.default);
+    console.log('✅ Template Audit Clean Architecture routes registered at /api/template-audit-integration');
+  } catch (error) {
+    console.warn('⚠️ Template Audit integration routes not available:', error);
+  }
   app.use('/api/holidays', holidayRoutes);
 
   // Ticket Templates routes are now integrated directly above
