@@ -146,42 +146,35 @@ export class UpdateTicketUseCase {
   ): Promise<void> {
     const oldStatus = existingTicket.status;
 
-    // Regras de transição de status
+    // ✅ REGRAS DE TRANSIÇÃO MAIS FLEXÍVEIS - Seguindo padrões reais de help desk
     switch (newStatus) {
       case 'in_progress':
-        // Para 'in_progress', deve ter assignee (verificar se existe no ticket atual OU se está sendo atribuído agora)
-        const finalAssignee = updateData.assignedToId !== undefined ? updateData.assignedToId : existingTicket.assignedToId;
-        
-        // Se não tem assignee atual e não está sendo atribuído agora, erro
-        if (!finalAssignee && updateData.assignedToId !== undefined) {
-          throw new Error('Ticket must be assigned before moving to in_progress');
-        }
-        // Se não tem assignee e não está sendo atribuído na mesma operação, erro
-        if (!existingTicket.assignedToId && updateData.assignedToId === undefined) {
-          throw new Error('Ticket must be assigned before moving to in_progress');
+        // Para 'in_progress', AUTO-ASSIGN se não estiver assignado
+        const assignedToId = updateData.assignedToId || existingTicket.assignedToId;
+        if (!assignedToId && updateData.updatedById) {
+          // Auto-assign to the user making the update
+          updateData.assignedToId = updateData.updatedById;
+          console.log(`🔄 [UpdateTicketUseCase] Auto-assigning ticket to updater: ${updateData.updatedById}`);
         }
         break;
 
       case 'resolved':
-        // Para 'resolved', deve ter assignee e estar em 'in_progress' ou 'open'
-        const resolvedAssignee = updateData.assignedToId !== undefined ? updateData.assignedToId : existingTicket.assignedToId;
-        if (!resolvedAssignee) {
-          throw new Error('Ticket must be assigned before being resolved');
-        }
-        if (!['open', 'in_progress'].includes(oldStatus)) {
-          throw new Error('Ticket can only be resolved from open or in_progress status');
+        // Para 'resolved', permitir de qualquer status ativo (exceto closed)
+        if (oldStatus === 'closed') {
+          throw new Error('Cannot resolve a closed ticket. Reopen it first.');
         }
         break;
 
       case 'closed':
-        // Para 'closed', deve estar resolvido primeiro
-        if (oldStatus !== 'resolved') {
-          throw new Error('Ticket must be resolved before being closed');
+        // Para 'closed', permitir de qualquer status (mais flexível)
+        // Não forçar resolved primeiro - alguns tickets podem ser fechados diretamente
+        if (oldStatus === 'new') {
+          console.log(`⚠️ [UpdateTicketUseCase] Closing ticket directly from 'new' status - unusual but allowed`);
         }
         break;
 
       case 'open':
-        // Reabrir ticket
+        // Reabrir ticket - permitir de qualquer status
         if (oldStatus === 'closed') {
           // Reset resolution data when reopening
           updateData.customFields = {
@@ -189,6 +182,14 @@ export class UpdateTicketUseCase {
             resolutionDate: null,
             resolutionNotes: null
           };
+          console.log(`🔄 [UpdateTicketUseCase] Reopening closed ticket - reset resolution data`);
+        }
+        break;
+
+      case 'new':
+        // Reset para 'new' - limpar assignment se necessário
+        if (oldStatus !== 'new') {
+          console.log(`🔄 [UpdateTicketUseCase] Resetting ticket to 'new' status`);
         }
         break;
     }
@@ -198,16 +199,26 @@ export class UpdateTicketUseCase {
     existingTicket: Ticket,
     updateData: Partial<Ticket>
   ): Promise<void> {
+    // ✅ REGRAS DE ASSIGNMENT MAIS INTELIGENTES
+
     // Se ticket estava 'new' e agora tem assignee, mover para 'open'
     if (existingTicket.status === 'new' && updateData.assignedToId) {
       updateData.status = 'open';
+      console.log(`🎯 [UpdateTicketUseCase] Auto-moving ticket from 'new' to 'open' due to assignment`);
     }
 
-    // Se ticket estava assignado e agora não tem assignee, voltar para 'new' ou 'open'
+    // Se ticket estava assignado e agora está sendo desassignado
     if (existingTicket.assignedToId && updateData.assignedToId === null) {
       if (existingTicket.status === 'in_progress') {
-        updateData.status = 'open';
+        updateData.status = 'open'; // Voltar para open se estava em progresso
+        console.log(`🔄 [UpdateTicketUseCase] Moving ticket from 'in_progress' to 'open' due to unassignment`);
+      } else if (existingTicket.status === 'open') {
+        updateData.status = 'new'; // Voltar para new se estava apenas open
+        console.log(`🔄 [UpdateTicketUseCase] Moving ticket from 'open' to 'new' due to unassignment`);
       }
     }
+
+    // Se ticket está sendo assignado e o status atual permite, não forçar mudança de status
+    // Deixar o usuário decidir o status explicitamente
   }
 }
