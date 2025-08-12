@@ -796,8 +796,6 @@ export class ItemController {
 
       // Usar customer_item_mappings como tabela de vínculos internos para relacionamentos de itens
       // Como não temos uma tabela item_links específica, criaremos registros na tabela de metadados
-      const { schemaManager } = await import('../../../../db');
-      const schemaManager = db.schemaManager; // Assuming schemaManager is exported from schemaManager
 
       // Simulação de criação de vínculos usando uma estrutura JSON nos metadados dos itens
       const linkPromises = [];
