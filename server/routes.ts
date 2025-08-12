@@ -271,7 +271,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const ticketTemplatesIntegrationRoutes = await import('./modules/ticket-templates/routes-integration');
   console.log('✅ Ticket Templates Clean Architecture routes registered at /api/ticket-templates-integration');
   app.use('/api/ticket-templates-integration', ticketTemplatesIntegrationRoutes.default);
-  app.use('/api/tickets', ticketsIntegrationRouter.default || ticketsIntegrationRouter);
+  
+  // === Tickets Clean Architecture Integration ===
+  const ticketsIntegrationRoutes = await import('./modules/tickets/routes-integration');
+  console.log('✅ Tickets Clean Architecture routes registered at /api/tickets');
+  app.use('/api/tickets', ticketsIntegrationRoutes.default);
 
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
