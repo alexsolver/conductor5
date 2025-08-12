@@ -122,8 +122,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filters.customerId) {
-      // Use customer_id instead of caller_id for consistency
-      conditions.push(eq(tickets.customer_id, filters.customerId));
+      conditions.push(eq(tickets.caller_id, filters.customerId));
     }
 
     if (filters.companyId) {
@@ -222,7 +221,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       .from(tickets)
       .where(
         and(
-          eq(tickets.customer_id, customerId),
+          eq(tickets.caller_id, customerId),
           eq(tickets.tenantId, tenantId)
         )
       )
@@ -273,8 +272,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filters.customerId) {
-      // Use customer_id instead of caller_id for consistency
-      conditions.push(eq(tickets.customer_id, filters.customerId));
+      conditions.push(eq(tickets.caller_id, filters.customerId));
     }
 
     if (filters.search) {
