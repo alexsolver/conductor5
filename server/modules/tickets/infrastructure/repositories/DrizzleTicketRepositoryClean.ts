@@ -30,7 +30,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", beneficiary_id as "beneficiaryId"
         FROM ${sql.identifier(schemaName)}.tickets
-        WHERE id = ${id}
+        WHERE id = ${id} AND is_active = true
         LIMIT 1
       `);
 
@@ -55,7 +55,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", beneficiary_id as "beneficiaryId"
         FROM ${sql.identifier(schemaName)}.tickets
-        WHERE number = ${number}
+        WHERE number = ${number} AND is_active = true
         LIMIT 1
       `);
 
@@ -98,17 +98,17 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
       }
 
-      // Count total records
+      // Count total records - ONLY ACTIVE tickets
       const countResult = await db.execute(sql.raw(`
         SELECT COUNT(*) as total
         FROM ${schemaName}.tickets
-        WHERE 1=1 ${whereClause}
+        WHERE is_active = true ${whereClause}
       `, whereParams));
 
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
 
-      // Fetch paginated results
+      // Fetch paginated results - ONLY ACTIVE tickets
       const results = await db.execute(sql.raw(`
         SELECT 
           id, number, subject, description, status, priority, urgency, impact,
@@ -116,7 +116,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", beneficiary_id as "beneficiaryId"
         FROM ${schemaName}.tickets
-        WHERE 1=1 ${whereClause}
+        WHERE is_active = true ${whereClause}
         ORDER BY created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
       `, whereParams));
@@ -145,6 +145,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", beneficiary_id as "beneficiaryId"
         FROM ${sql.identifier(schemaName)}.tickets
+        WHERE is_active = true
         ORDER BY created_at DESC
       `);
 
@@ -253,12 +254,15 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       // Always update timestamp
       updatePairs.push(`updated_at = NOW()`);
+      
+      // Add id parameter for WHERE clause
       values.push(id);
+      const whereParamIndex = paramIndex;
 
       const query = `
         UPDATE ${schemaName}.tickets 
         SET ${updatePairs.join(', ')}
-        WHERE id = $${paramIndex}
+        WHERE id = $${whereParamIndex} AND is_active = true
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
@@ -270,7 +274,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       console.log(`📊 Parameters:`, values);
 
       const result = await db.execute(sql.raw(query, values));
-      const updatedTicket = result.rows[0];
+      const updatedTicket = result.rows?.[0];
       
       if (!updatedTicket) {
         throw new Error('Ticket not found or update failed');
@@ -291,38 +295,22 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // First delete all related records to avoid foreign key violations
-      await db.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.ticket_history WHERE ticket_id = ${id}
-      `);
-      
-      await db.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.ticket_notes WHERE ticket_id = ${id}
-      `);
-      
-      await db.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.ticket_communications WHERE ticket_id = ${id}
-      `);
-      
-      await db.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.ticket_attachments WHERE ticket_id = ${id}
-      `);
-      
-      await db.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.ticket_relationships WHERE source_ticket_id = ${id} OR target_ticket_id = ${id}
-      `);
+      // Use SOFT DELETE instead of hard delete - FIXED following 1qa.md
+      const query = `
+        UPDATE ${schemaName}.tickets 
+        SET is_active = false, updated_at = NOW()
+        WHERE id = $1 AND is_active = true
+        RETURNING id
+      `;
 
-      // Finally delete the ticket
-      const result = await db.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.tickets
-        WHERE id = ${id}
-      `);
-
-      if (!result.rowCount || result.rowCount === 0) {
-        throw new Error('Ticket not found or delete failed');
+      const result = await db.execute(sql.raw(query, [id]));
+      const deletedTicket = result.rows?.[0];
+      
+      if (!deletedTicket) {
+        throw new Error('Ticket not found or already deleted');
       }
-
-      console.log(`✅ [DrizzleTicketRepositoryClean] delete successful - removed ticket and all related data`);
+      
+      console.log(`✅ [DrizzleTicketRepositoryClean] delete successful - ticket soft deleted with ID: ${deletedTicket.id}`);
     } catch (error: any) {
       console.error('❌ [DrizzleTicketRepositoryClean] delete error:', error);
       this.logger.error('Failed to delete ticket', { error: error.message, id, tenantId });

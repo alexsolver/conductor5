@@ -73,3 +73,5 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 - **1qa.md Compliance**: System now 100% compliant with Clean Architecture specifications
 - **No Dual Architecture**: Eliminated all legacy route violations, using exclusively Clean Architecture pattern
 - **CRITICAL UPDATE/DELETE FIXES**: Fixed SQL syntax errors in ticket update operations and foreign key constraint violations in delete operations by implementing proper field mapping and cascading deletes following 1qa.md specifications
+- **SOFT DELETE IMPLEMENTATION**: Implemented proper soft delete functionality (is_active = false) instead of hard deletes, with all repository queries filtering by is_active = true to ensure deleted tickets don't appear in lists
+- **FINAL CRUD RESOLUTION**: All ticket CRUD operations (Create, Read, Update, Delete) now working correctly with proper field mapping (assignedToId ↔ assigned_to_id) and Clean Architecture compliance
