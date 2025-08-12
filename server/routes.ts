@@ -1899,6 +1899,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('⚠️ Template Versions integration routes not available:', error);
   }
+
+  // === Final Integration Clean Architecture Integration ===
+  try {
+    const finalIntegrationRoutes = await import('./modules/final-integration/routes-integration');
+    app.use('/api/final-integration-integration', finalIntegrationRoutes.default);
+    console.log('✅ Final Integration Clean Architecture routes registered at /api/final-integration-integration');
+  } catch (error) {
+    console.warn('⚠️ Final Integration routes not available:', error);
+  }
   app.use('/api/holidays', holidayRoutes);
 
   // Ticket Templates routes are now integrated directly above
