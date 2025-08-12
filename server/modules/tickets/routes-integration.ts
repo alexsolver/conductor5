@@ -33,6 +33,12 @@ const ticketController = new TicketController(
 );
 
 /**
+ * GET ALL TICKETS - Main endpoint for frontend
+ * GET /api/tickets
+ */
+router.get('/', jwtAuth, ticketController.findAll.bind(ticketController));
+
+/**
  * Status endpoint - Check module status
  * GET /api/tickets-integration/status
  */

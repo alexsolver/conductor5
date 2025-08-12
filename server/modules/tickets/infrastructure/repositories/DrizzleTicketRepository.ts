@@ -261,6 +261,21 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result;
   }
 
+  async findAll(tenantId: string): Promise<any[]> {
+    const result = await db
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
+      .orderBy(desc(tickets.createdAt));
+
+    return result;
+  }
+
   async countByFilters(filters: TicketFilters, tenantId: string): Promise<number> {
     const conditions = [
       eq(tickets.tenantId, tenantId),
