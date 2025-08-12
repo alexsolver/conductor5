@@ -20,10 +20,13 @@ import { DeleteTicketUseCase } from './application/use-cases/DeleteTicketUseCase
 import { TicketController } from './application/controllers/TicketController';
 
 // Initialize Clean Architecture following 1qa.md
-const ticketRepository = new DrizzleTicketRepository();
+import { ConsoleLogger } from './domain/services/Logger';
+
+const logger = new ConsoleLogger();
+const ticketRepository = new DrizzleTicketRepository(logger);
 const createTicketUseCase = new CreateTicketUseCase(ticketRepository);
 const updateTicketUseCase = new UpdateTicketUseCase(ticketRepository);
-const findTicketUseCase = new FindTicketUseCase(ticketRepository);
+const findTicketUseCase = new FindTicketUseCase(ticketRepository, logger);
 const deleteTicketUseCase = new DeleteTicketUseCase(ticketRepository);
 const ticketController = new TicketController(
   createTicketUseCase,

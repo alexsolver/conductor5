@@ -3,7 +3,7 @@
  * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, ne, ilike } from 'drizzle-orm';
+import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, ne, ilike, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { tickets } from '@shared/schema';
 import { Ticket } from '../../domain/entities/Ticket';
@@ -13,8 +13,10 @@ import {
   PaginationOptions,
   TicketListResult
 } from '../../domain/repositories/ITicketRepository';
+import { Logger } from '../../domain/services/Logger';
 
 export class DrizzleTicketRepository implements ITicketRepository {
+  constructor(private logger: Logger) {}
 
   async findById(id: string, tenantId: string): Promise<Ticket | null> {
     const [ticket] = await db
@@ -191,14 +193,137 @@ export class DrizzleTicketRepository implements ITicketRepository {
     };
   }
 
-  async findByTenant(tenantId: string): Promise<any[]> {
-    const result = await db
-      .select()
-      .from(tickets)
-      .where(eq(tickets.tenantId, tenantId))
-      .orderBy(desc(tickets.createdAt));
+  async findByTenant(tenantId: string): Promise<Ticket[]> {
+    try {
+      const results = await db
+        .select()
+        .from(tickets)
+        .where(eq(tickets.tenantId, tenantId))
+        .orderBy(desc(tickets.createdAt));
 
-    return result;
+      return results.map(this.mapToTicket);
+    } catch (error) {
+      this.logger.error('Failed to find tickets by tenant', { error: error.message, tenantId });
+      throw new Error(`Failed to find tickets by tenant: ${error.message}`);
+    }
+  }
+
+  async findWithFilters(
+    filters: TicketFilters,
+    pagination: PaginationOptions,
+    tenantId: string
+  ): Promise<{
+    tickets: any[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    console.log('🔍 [DrizzleTicketRepository] findWithFilters called with:', { filters, pagination, tenantId });
+
+    try {
+      // Build WHERE conditions
+      const whereConditions = [eq(tickets.tenantId, tenantId)];
+
+      if (filters.status && filters.status.length > 0) {
+        whereConditions.push(or(...filters.status.map(status => eq(tickets.status, status))));
+      }
+
+      if (filters.priority && filters.priority.length > 0) {
+        whereConditions.push(or(...filters.priority.map(priority => eq(tickets.priority, priority))));
+      }
+
+      if (filters.assignedToId) {
+        whereConditions.push(eq(tickets.assignedToId, filters.assignedToId));
+      }
+
+      if (filters.customerId) {
+        whereConditions.push(eq(tickets.callerId, filters.customerId));
+      }
+
+      if (filters.companyId) {
+        whereConditions.push(eq(tickets.customerCompanyId, filters.companyId));
+      }
+
+      if (filters.search) {
+        whereConditions.push(
+          or(
+            ilike(tickets.subject, `%${filters.search}%`),
+            ilike(tickets.description, `%${filters.search}%`)
+          )
+        );
+      }
+
+      // Get total count
+      const totalResult = await db
+        .select({ count: sql`count(*)` })
+        .from(tickets)
+        .where(and(...whereConditions));
+
+      const total = Number(totalResult[0]?.count || 0);
+
+      // Calculate pagination
+      const offset = (pagination.page - 1) * pagination.limit;
+      const totalPages = Math.ceil(total / pagination.limit);
+
+      // Get tickets with pagination
+      const orderBy = pagination.sortOrder === 'asc' 
+        ? asc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt)
+        : desc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt);
+
+      const results = await db
+        .select()
+        .from(tickets)
+        .where(and(...whereConditions))
+        .orderBy(orderBy)
+        .limit(pagination.limit)
+        .offset(offset);
+
+      console.log('✅ [DrizzleTicketRepository] Query results:', { 
+        total, 
+        page: pagination.page, 
+        totalPages, 
+        resultsCount: results.length 
+      });
+
+      return {
+        tickets: results.map(this.mapToTicket),
+        total,
+        page: pagination.page,
+        totalPages
+      };
+
+    } catch (error) {
+      this.logger.error('Failed to find tickets with filters', { 
+        error: error.message, 
+        filters, 
+        pagination, 
+        tenantId 
+      });
+      console.error('❌ [DrizzleTicketRepository] findWithFilters error:', error);
+      throw new Error(`Failed to find tickets with filters: ${error.message}`);
+    }
+  }
+
+  private mapToTicket(row: any): Ticket {
+    return {
+      id: row.id,
+      number: row.number,
+      subject: row.subject,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      urgency: row.urgency,
+      impact: row.impact,
+      category: row.category,
+      subcategory: row.subcategory,
+      callerId: row.caller_id,
+      assignedToId: row.assigned_to_id,
+      tenantId: row.tenant_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      createdById: row.created_by_id,
+      customerCompanyId: row.customer_company_id
+    };
   }
 
   async findByAssignedUser(userId: string, tenantId: string): Promise<Ticket[]> {
@@ -424,62 +549,92 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result;
   }
 
-  async searchTickets(
-    searchTerm: string,
-    tenantId: string,
-    pagination?: PaginationOptions
-  ): Promise<TicketListResult> {
-    const conditions = [
-      eq(tickets.tenantId, tenantId),
-      or(
-        ilike(tickets.subject, `%${searchTerm}%`),
-        ilike(tickets.description, `%${searchTerm}%`),
-        ilike(tickets.number, `%${searchTerm}%`)
-      )
-    ];
+  async searchTickets(searchTerm: string, tenantId: string, pagination: PaginationOptions): Promise<TicketListResult> {
+    try {
+      const whereConditions = [
+        eq(tickets.tenantId, tenantId),
+        or(
+          ilike(tickets.subject, `%${searchTerm}%`),
+          ilike(tickets.description, `%${searchTerm}%`)
+        )
+      ];
 
-    // Count total results  
-    const totalResult = await db
-      .select({ count: count() })
-      .from(tickets)
-      .where(and(...conditions));
+      const totalResult = await db
+        .select({ count: sql`count(*)` })
+        .from(tickets)
+        .where(and(...whereConditions));
 
-    const total = totalResult[0]?.count || 0;
+      const total = Number(totalResult[0]?.count || 0);
+      const offset = (pagination.page - 1) * pagination.limit;
+      const totalPages = Math.ceil(total / pagination.limit);
 
-    if (!pagination) {
-      const ticketResults = await db
+      const results = await db
         .select()
         .from(tickets)
-        .where(and(...conditions))
-        .orderBy(desc(tickets.createdAt));
+        .where(and(...whereConditions))
+        .orderBy(desc(tickets.createdAt))
+        .limit(pagination.limit)
+        .offset(offset);
 
       return {
-        tickets: ticketResults,
+        tickets: results.map(this.mapToTicket),
         total,
-        page: 1,
-        totalPages: 1
+        page: pagination.page,
+        totalPages
       };
+    } catch (error) {
+      this.logger.error('Failed to search tickets', { error: error.message, searchTerm, tenantId });
+      throw new Error(`Failed to search tickets: ${error.message}`);
     }
+  }
 
-    // Calculate offset
-    const offset = (pagination.page - 1) * pagination.limit;
+  async getStatistics(tenantId: string): Promise<any> {
+    try {
+      const stats = await db
+        .select({
+          total: sql`count(*)`,
+          open: sql`count(*) filter (where status = 'open')`,
+          inProgress: sql`count(*) filter (where status = 'in_progress')`,
+          resolved: sql`count(*) filter (where status = 'resolved')`,
+          closed: sql`count(*) filter (where status = 'closed')`
+        })
+        .from(tickets)
+        .where(eq(tickets.tenantId, tenantId));
 
-    // Fetch paginated results
-    const ticketResults = await db
-      .select()
-      .from(tickets)
-      .where(and(...conditions))
-      .orderBy(desc(tickets.createdAt))
-      .limit(pagination.limit)
-      .offset(offset);
+      return stats[0] || {
+        total: 0,
+        open: 0,
+        inProgress: 0,
+        resolved: 0,
+        closed: 0
+      };
+    } catch (error) {
+      this.logger.error('Failed to get ticket statistics', { error: error.message, tenantId });
+      throw new Error(`Failed to get ticket statistics: ${error.message}`);
+    }
+  }
 
-    const totalPages = Math.ceil(total / pagination.limit);
+  async findTicketsForEscalation(tenantId: string): Promise<Ticket[]> {
+    try {
+      const results = await db
+        .select()
+        .from(tickets)
+        .where(
+          and(
+            eq(tickets.tenantId, tenantId),
+            or(
+              eq(tickets.priority, 'high'),
+              eq(tickets.priority, 'critical')
+            ),
+            eq(tickets.status, 'open')
+          )
+        )
+        .orderBy(desc(tickets.createdAt));
 
-    return {
-      tickets: ticketResults,
-      total,
-      page: pagination.page,
-      totalPages
-    };
+      return results.map(this.mapToTicket);
+    } catch (error) {
+      this.logger.error('Failed to find tickets for escalation', { error: error.message, tenantId });
+      throw new Error(`Failed to find tickets for escalation: ${error.message}`);
+    }
   }
 }
