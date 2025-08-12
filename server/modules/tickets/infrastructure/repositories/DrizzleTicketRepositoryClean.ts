@@ -255,9 +255,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       // Always update the updated_at timestamp
       setClauses.push('updated_at = NOW()');
 
-      // Add WHERE clause parameters
-      const whereId = `$${++paramCount}`;
+      // Add the ticket ID for WHERE clause
       values.push(id);
+      const whereParamIndex = values.length; // Use the actual array length for parameter index
 
       if (setClauses.length === 1) { // Only updated_at
         throw new Error('No fields to update');
@@ -266,7 +266,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const sqlQuery = `
         UPDATE ${schemaName}.tickets 
         SET ${setClauses.join(', ')}
-        WHERE id = ${whereId} AND is_active = true
+        WHERE id = $${whereParamIndex} AND is_active = true
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
@@ -276,6 +276,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       console.log('🔧 SQL:', sqlQuery);
       console.log('📊 Values:', values);
+      console.log('📊 Parameter count check:', { setClauses: setClauses.length, values: values.length, whereParamIndex });
 
       const result = await db.execute(sql.raw(sqlQuery, values));
 
