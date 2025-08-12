@@ -567,6 +567,13 @@ const TicketDetails = React.memo(() => {
     }
 
     // Set actions from API with comprehensive mapping for internal actions
+    console.log('🔍 [ACTIONS-DEBUG] Raw ticketActions data:', ticketActions);
+    console.log('🔍 [ACTIONS-DEBUG] Has success flag:', !!ticketActions?.success);
+    console.log('🔍 [ACTIONS-DEBUG] Data type:', typeof ticketActions?.data);
+    console.log('🔍 [ACTIONS-DEBUG] Is data array:', Array.isArray(ticketActions?.data));
+    console.log('🔍 [ACTIONS-DEBUG] Data length:', ticketActions?.data?.length);
+    console.log('🔍 [ACTIONS-DEBUG] Data content first 3 items:', ticketActions?.data?.slice(0, 3));
+    
     if (ticketActions?.success && Array.isArray(ticketActions.data)) {
       console.log('⚙️ Setting actions from API success:', ticketActions.data.length, 'items');
       const mappedActions = ticketActions.data.map((action: any) => ({
@@ -579,6 +586,7 @@ const TicketDetails = React.memo(() => {
         created_at: action.created_at || action.createdAt || new Date().toISOString(),
         time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
       }));
+      console.log('⚙️ Mapped actions:', mappedActions.slice(0, 3));
       setInternalActions(mappedActions);
       setExternalActions([]); // External actions would come from different endpoint
     } else if (ticketActions?.data && Array.isArray(ticketActions.data)) {
@@ -593,10 +601,12 @@ const TicketDetails = React.memo(() => {
         created_at: action.created_at || action.createdAt || new Date().toISOString(),
         time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
       }));
+      console.log('⚙️ Mapped actions (no success):', mappedActions.slice(0, 3));
       setInternalActions(mappedActions);
       setExternalActions([]);
     } else {
       console.log('⚙️ No actions found, setting empty arrays');
+      console.log('⚙️ [DEBUG] ticketActions structure:', JSON.stringify(ticketActions, null, 2));
       setInternalActions([]);
       setExternalActions([]);
     }
