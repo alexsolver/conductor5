@@ -24,7 +24,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         and(
           eq(tickets.id, id),
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       )
       .limit(1);
@@ -40,7 +40,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         and(
           eq(tickets.number, number),
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       )
       .limit(1);
@@ -79,7 +79,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         and(
           eq(tickets.id, id),
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       )
       .returning();
@@ -118,7 +118,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     // Build where conditions
     const conditions = [
       eq(tickets.tenantId, tenantId),
-      eq(tickets.isActive, true)
+      eq(tickets.is_active, true)
     ];
 
     // Apply filters
@@ -205,7 +205,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       .where(
         and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       )
       .orderBy(desc(tickets.createdAt));
@@ -221,7 +221,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         and(
           eq(tickets.assignedToId, userId),
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       )
       .orderBy(desc(tickets.createdAt));
@@ -237,7 +237,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         and(
           eq(tickets.customerId, customerId),
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       )
       .orderBy(desc(tickets.createdAt));
@@ -253,7 +253,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         and(
           eq(tickets.status, status),
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       )
       .orderBy(desc(tickets.createdAt));
@@ -264,7 +264,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async countByFilters(filters: TicketFilters, tenantId: string): Promise<number> {
     const conditions = [
       eq(tickets.tenantId, tenantId),
-      eq(tickets.isActive, true)
+      eq(tickets.is_active, true)
     ];
 
     // Apply same filters as findByFilters
@@ -316,7 +316,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       .where(
         and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       );
 
@@ -338,7 +338,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       .where(
         and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true),
+          eq(tickets.is_active, true),
           gte(tickets.createdAt, today)
         )
       );
@@ -353,7 +353,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       .where(
         and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true),
+          eq(tickets.is_active, true),
           inArray(tickets.status, ['new', 'open', 'in_progress']),
           lte(tickets.createdAt, oneDayAgo)
         )
@@ -381,7 +381,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       .where(
         and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true),
+          eq(tickets.is_active, true),
           inArray(tickets.status, ['new', 'open', 'in_progress']),
           or(
             and(
@@ -435,7 +435,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         and(
           inArray(tickets.id, ids),
           eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
+          eq(tickets.is_active, true)
         )
       )
       .returning();
@@ -450,7 +450,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
   ): Promise<TicketListResult> {
     const conditions = [
       eq(tickets.tenantId, tenantId),
-      eq(tickets.isActive, true),
+      eq(tickets.is_active, true),
       or(
         like(tickets.subject, `%${searchTerm}%`),
         like(tickets.description, `%${searchTerm}%`),

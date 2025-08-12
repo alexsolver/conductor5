@@ -290,7 +290,7 @@ export const tickets = pgTable("tickets", {
   resolutionCode: varchar("resolution_code", { length: 100 }),
   resolutionNotes: text("resolution_notes"),
 
-  isActive: boolean("is_active").default(true),
+  is_active: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [

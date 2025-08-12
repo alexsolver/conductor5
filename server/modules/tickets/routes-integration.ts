@@ -19,7 +19,7 @@ import { FindTicketUseCase } from './application/use-cases/FindTicketUseCase';
 import { DeleteTicketUseCase } from './application/use-cases/DeleteTicketUseCase';
 import { TicketController } from './application/controllers/TicketController';
 
-// Initialize Clean Architecture
+// Initialize Clean Architecture following 1qa.md
 const ticketRepository = new DrizzleTicketRepository();
 const createTicketUseCase = new CreateTicketUseCase(ticketRepository);
 const updateTicketUseCase = new UpdateTicketUseCase(ticketRepository);

@@ -9,8 +9,7 @@ import { ITicketRepository, TicketFilters, PaginationOptions, TicketListResult }
 
 export class FindTicketUseCase {
   constructor(
-    private ticketRepository: ITicketRepository,
-    private ticketDomainService: TicketDomainService
+    private ticketRepository: ITicketRepository
   ) {}
 
   async findById(ticketId: string, tenantId: string): Promise<Ticket | null> {
