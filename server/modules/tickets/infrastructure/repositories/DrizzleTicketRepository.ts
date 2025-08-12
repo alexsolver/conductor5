@@ -3,21 +3,21 @@
  * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull } from 'drizzle-orm';
+import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, ne, ilike } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { tickets } from '@shared/schema';
 import { Ticket } from '../../domain/entities/Ticket';
-import { 
-  ITicketRepository, 
-  TicketFilters, 
-  PaginationOptions, 
-  TicketListResult 
+import {
+  ITicketRepository,
+  TicketFilters,
+  PaginationOptions,
+  TicketListResult
 } from '../../domain/repositories/ITicketRepository';
 
 export class DrizzleTicketRepository implements ITicketRepository {
-  
+
   async findById(id: string, tenantId: string): Promise<Ticket | null> {
-    const result = await db
+    const [ticket] = await db
       .select()
       .from(tickets)
       .where(
@@ -26,10 +26,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
           eq(tickets.tenantId, tenantId),
           eq(tickets.isActive, true)
         )
-      )
-      .limit(1);
+      );
 
-    return result[0] as any || null;
+    return ticket || null;
   }
 
   async findByNumber(number: string, tenantId: string): Promise<Ticket | null> {
@@ -50,7 +49,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
   async create(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<any> {
     const now = new Date();
-    
+
     const insertData = {
       ...ticketData,
       tenantId,
@@ -92,11 +91,11 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
-    const result = await db
+    await db
       .update(tickets)
-      .set({ 
-        isActive: false, 
-        updatedAt: new Date() 
+      .set({
+        isActive: false,
+        updatedAt: new Date()
       })
       .where(
         and(
@@ -104,15 +103,11 @@ export class DrizzleTicketRepository implements ITicketRepository {
           eq(tickets.tenantId, tenantId)
         )
       );
-
-    if (result.rowCount === 0) {
-      throw new Error('Ticket not found');
-    }
   }
 
   async findByFilters(
-    filters: TicketFilters, 
-    pagination: PaginationOptions, 
+    filters: TicketFilters,
+    pagination: PaginationOptions,
     tenantId: string
   ): Promise<TicketListResult> {
     // Build where conditions
@@ -213,36 +208,32 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result;
   }
 
-  async findByAssignedUser(userId: string, tenantId: string): Promise<any[]> {
-    const result = await db
+  async findByAssignedUser(userId: string, tenantId: string): Promise<Ticket[]> {
+    return await db
       .select()
       .from(tickets)
       .where(
         and(
-          eq(tickets.caller_id, userId),
+          eq(tickets.assignedToId, userId),
           eq(tickets.tenantId, tenantId),
           eq(tickets.isActive, true)
         )
       )
       .orderBy(desc(tickets.createdAt));
-
-    return result;
   }
 
-  async findByCustomer(customerId: string, tenantId: string): Promise<any[]> {
-    const result = await db
+  async findByCustomer(customerId: string, tenantId: string): Promise<Ticket[]> {
+    return await db
       .select()
       .from(tickets)
       .where(
         and(
-          eq(tickets.caller_id, customerId),
+          eq(tickets.customerId, customerId),
           eq(tickets.tenantId, tenantId),
           eq(tickets.isActive, true)
         )
       )
       .orderBy(desc(tickets.createdAt));
-
-    return result;
   }
 
   async findByStatus(status: string, tenantId: string): Promise<any[]> {
@@ -325,7 +316,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     todayCount: number;
   }> {
     // Get basic statistics
-    const totalResult = await db
+    const totalTickets = await db
       .select({ count: count() })
       .from(tickets)
       .where(
@@ -335,10 +326,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
         )
       );
 
-    const total = totalResult[0]?.count || 0;
+    const total = totalTickets[0]?.count || 0;
 
     // Get status distribution
-    // Note: This is a simplified version. In a real implementation, 
+    // Note: This is a simplified version. In a real implementation,
     // you might want to use more sophisticated grouping queries
     const statusStats: Record<string, number> = {};
     const priorityStats: Record<string, number> = {};
@@ -346,7 +337,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     // Get today's count
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const todayResult = await db
       .select({ count: count() })
       .from(tickets)
@@ -422,7 +413,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async updateLastActivity(id: string, tenantId: string): Promise<void> {
     await db
       .update(tickets)
-      .set({ 
+      .set({
         updatedAt: new Date()
       })
       .where(
@@ -434,8 +425,8 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   async bulkUpdate(
-    ids: string[], 
-    updates: Partial<Ticket>, 
+    ids: string[],
+    updates: Partial<Ticket>,
     tenantId: string
   ): Promise<any[]> {
     const updateData = {
@@ -459,17 +450,17 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   async searchTickets(
-    searchTerm: string, 
-    tenantId: string, 
+    searchTerm: string,
+    tenantId: string,
     pagination?: PaginationOptions
   ): Promise<TicketListResult> {
     const conditions = [
       eq(tickets.tenantId, tenantId),
       eq(tickets.isActive, true),
       or(
-        like(tickets.subject, `%${searchTerm}%`),
-        like(tickets.description, `%${searchTerm}%`),
-        like(tickets.number, `%${searchTerm}%`)
+        ilike(tickets.subject, `%${searchTerm}%`),
+        ilike(tickets.description, `%${searchTerm}%`),
+        ilike(tickets.number, `%${searchTerm}%`)
       )
     ];
 
