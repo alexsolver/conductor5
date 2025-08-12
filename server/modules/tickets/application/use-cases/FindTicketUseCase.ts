@@ -1,3 +1,4 @@
+
 /**
  * APPLICATION LAYER - FIND TICKET USE CASE
  * Seguindo Clean Architecture - 1qa.md compliance
@@ -34,6 +35,14 @@ export class FindTicketUseCase {
       this.logger.error('❌ [FindTicketUseCase] Error finding tickets', { error: error.message, tenantId });
       throw new Error(`Failed to find tickets: ${error.message}`);
     }
+  }
+
+  async findWithFilters(
+    filters: TicketFilters,
+    pagination: PaginationOptions,
+    tenantId: string
+  ): Promise<TicketListResult> {
+    return this.execute(filters, pagination, tenantId);
   }
 
   async getAllTickets(tenantId: string): Promise<any[]> {

@@ -1,3 +1,4 @@
+
 /**
  * APPLICATION LAYER - TICKET CONTROLLER
  * Seguindo Clean Architecture - 1qa.md compliance
@@ -43,6 +44,68 @@ export class TicketController {
     private deleteTicketUseCase: DeleteTicketUseCase,
     private findTicketUseCase: FindTicketUseCase
   ) {}
+
+  async list(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        res.status(401).json({
+          success: false,
+          message: 'Tenant ID required'
+        });
+        return;
+      }
+
+      // Extract filters from query parameters
+      const filters: TicketFilters = {
+        status: req.query.status ? (Array.isArray(req.query.status) ? req.query.status as string[] : [req.query.status as string]) : undefined,
+        priority: req.query.priority ? (Array.isArray(req.query.priority) ? req.query.priority as string[] : [req.query.priority as string]) : undefined,
+        assignedToId: req.query.assignedToId as string,
+        customerId: req.query.customerId as string,
+        companyId: req.query.companyId as string,
+        category: req.query.category as string,
+        subcategory: req.query.subcategory as string,
+        action: req.query.action as string,
+        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
+        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
+        search: req.query.search as string,
+        tags: req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags as string[] : [req.query.tags as string]) : undefined,
+        urgency: req.query.urgency ? (Array.isArray(req.query.urgency) ? req.query.urgency as string[] : [req.query.urgency as string]) : undefined,
+        impact: req.query.impact ? (Array.isArray(req.query.impact) ? req.query.impact as string[] : [req.query.impact as string]) : undefined,
+      };
+
+      const pagination: PaginationOptions = {
+        page: parseInt(req.query.page as string, 10) || 1,
+        limit: Math.min(parseInt(req.query.limit as string, 10) || 50, 1000),
+        sortBy: (req.query.sortBy as string) || 'createdAt',
+        sortOrder: (req.query.sortOrder as 'asc' | 'desc') || 'desc'
+      };
+
+      const result = await this.findTicketUseCase.execute(filters, pagination, tenantId);
+
+      // Consistent response structure for frontend
+      res.json({
+        success: true,
+        message: 'Tickets retrieved successfully',
+        data: {
+          tickets: result.tickets,
+          pagination: {
+            page: result.page,
+            totalPages: result.totalPages,
+            total: result.total,
+            limit: pagination.limit
+          }
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to retrieve tickets',
+        error: error.message
+      });
+    }
+  }
 
   async create(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {

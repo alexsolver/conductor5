@@ -8,6 +8,33 @@ import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
 import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, trackNoteCreate } from '../../middleware/activityTrackingMiddleware';
 
+// Clean Architecture imports
+import { TicketController } from './application/controllers/TicketController';
+import { CreateTicketUseCase } from './application/use-cases/CreateTicketUseCase';
+import { UpdateTicketUseCase } from './application/use-cases/UpdateTicketUseCase';
+import { FindTicketUseCase } from './application/use-cases/FindTicketUseCase';
+import { DeleteTicketUseCase } from './application/use-cases/DeleteTicketUseCase';
+import { DrizzleTicketRepository } from './infrastructure/repositories/DrizzleTicketRepository';
+
+// Simple logger implementation for Clean Architecture
+class SimpleLogger {
+  info(message: string, context?: any) {
+    console.log(`[INFO] ${message}`, context ? JSON.stringify(context) : '');
+  }
+
+  error(message: string, context?: any) {
+    console.error(`[ERROR] ${message}`, context ? JSON.stringify(context) : '');
+  }
+
+  warn(message: string, context?: any) {
+    console.warn(`[WARN] ${message}`, context ? JSON.stringify(context) : '');
+  }
+
+  debug(message: string, context?: any) {
+    console.debug(`[DEBUG] ${message}`, context ? JSON.stringify(context) : '');
+  }
+}
+
 // Generate unique action number for internal actions
 async function generateActionNumber(pool: any, tenantId: string, ticketId: string): Promise<string> {
   try {
@@ -100,111 +127,25 @@ async function createCompleteAuditEntry(
 
 const ticketsRouter = Router();
 
-// Get all tickets with pagination and filters
+// Initialize Clean Architecture dependencies
+const logger = new SimpleLogger();
+const ticketRepository = new DrizzleTicketRepository();
+const createTicketUseCase = new CreateTicketUseCase(ticketRepository, logger);
+const updateTicketUseCase = new UpdateTicketUseCase(ticketRepository, logger);
+const findTicketUseCase = new FindTicketUseCase(ticketRepository, logger);
+const deleteTicketUseCase = new DeleteTicketUseCase(ticketRepository, logger);
+
+const ticketController = new TicketController(
+  createTicketUseCase,
+  updateTicketUseCase, 
+  deleteTicketUseCase,
+  findTicketUseCase
+);
+
+// Clean Architecture route - GET all tickets with pagination and filters
 ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
-    }
-
-    const tenantId = req.user.tenantId;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 50;
-    const status = req.query.status as string;
-    const priority = req.query.priority as string;
-    const assignedTo = req.query.assignedTo as string;
-
-    const offset = (page - 1) * limit;
-
-    // CORREÇÃO: Query otimizada com nomenclatura padronizada companies
-    let query = `
-      SELECT 
-        t.*,
-        -- Beneficiário (quem será atendido) 
-        COALESCE(
-          beneficiary.first_name || ' ' || beneficiary.last_name,
-          beneficiary.first_name,
-          beneficiary.email,
-          'Beneficiário não identificado'
-        ) as beneficiary_name,
-        -- Cliente (quem abriu o ticket)
-        COALESCE(
-          caller.first_name || ' ' || caller.last_name,
-          caller.first_name, 
-          caller.email,
-          'Cliente não identificado'
-        ) as caller_name,
-        -- Empresa (nomenclatura padronizada)
-        COALESCE(
-          comp.name,
-          comp.display_name,
-          'Empresa não informada'
-        ) as company_name,
-        comp.id as company_id,
-        -- Responsável
-        COALESCE(u.first_name || ' ' || u.last_name, 'Não atribuído') as assigned_name,
-        u.email as assigned_email
-      FROM ${schemaName}.tickets t
-      LEFT JOIN ${schemaName}.customers beneficiary ON t.beneficiary_id = beneficiary.id
-      LEFT JOIN ${schemaName}.customers caller ON t.caller_id = caller.id  
-      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
-      LEFT JOIN public.users u ON t.assigned_to_id = u.id
-      WHERE t.tenant_id = $1
-    `;
-
-    const queryParams: any[] = [tenantId];
-    let paramIndex = 2;
-
-    if (status) {
-      query += ` AND t.status = $${paramIndex++}`;
-      queryParams.push(status);
-    }
-    if (priority) {
-      query += ` AND t.priority = $${paramIndex++}`;
-      queryParams.push(priority);
-    }
-    if (assignedTo) {
-      query += ` AND t.assigned_to_id = $${paramIndex++}`;
-      queryParams.push(assignedTo);
-    }
-
-    query += ` ORDER BY t.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    queryParams.push(limit, offset);
-
-    const { pool } = await import('../../db');
-
-    // Debug: Log the complete query and parameters
-    console.log('🔍 [TICKETS-DEBUG] Full Query:', query);
-    console.log('🔍 [TICKETS-DEBUG] Query Params:', queryParams);
-
-    const { rows: tickets } = await pool.query(query, queryParams);
-
-    // Get total count for pagination
-    const totalTicketsQuery = `SELECT COUNT(*) as total FROM ${schemaName}.tickets WHERE tenant_id = $1`;
-    const totalTicketsResult = await pool.query(totalTicketsQuery, [tenantId]);
-    const totalTickets = parseInt(totalTicketsResult.rows[0].total, 10);
-
-    return sendSuccess(res, {
-      tickets,
-      pagination: {
-        page,
-        limit,
-        total: totalTickets,
-        hasNextPage: (page * limit) < totalTickets,
-        hasPreviousPage: page > 1
-      },
-      filters: { status, priority, assignedTo }
-    }, "Tickets retrieved successfully");
-  } catch (error) {
-    const { logError } = await import('../../utils/logger');
-    console.error('🚨 [TICKETS-ERROR] Detailed error:', error);
-    console.error('🚨 [TICKETS-ERROR] Error message:', error.message);
-    console.error('🚨 [TICKETS-ERROR] Error stack:', error.stack);
-    logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
-    return sendError(res, error, "Failed to fetch tickets", 500);
-  }
+  console.log('🎯 [CLEAN-ARCH] Handling GET /api/tickets through Clean Architecture');
+  return ticketController.findAll(req, res);
 });
 
 // Get ticket by ID with messages
@@ -662,123 +603,6 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
     return sendError(res, error, "Failed to add message", 500);
   }
 });
-
-// Assign ticket to agent - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth
-ticketsRouter.post('/:id/assign', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user?.tenantId) {
-      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
-    }
-
-    const ticketId = req.params.id;
-    const { assignedToId } = req.body;
-
-    const updatedTicket = await storageSimple.updateTicket(req.user.tenantId, ticketId, { 
-      assignedToId,
-      status: 'in_progress'
-    });
-
-    if (!updatedTicket) {
-      return sendError(res, "Ticket not found", "Ticket not found", 404);
-    }
-
-    // Create history entry for ticket assignment
-    try {
-      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-      const ipAddress = getClientIP(req);
-      const userAgent = getUserAgent(req);
-      const sessionId = getSessionId(req);
-      const { pool } = await import('../../db');
-      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-
-      // Get user name
-      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-      const userResult = await pool.query(userQuery, [req.user.id]);
-      const userName = userResult.rows[0]?.full_name || 'Unknown User';
-
-      await pool.query(`
-        INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-      `, [
-        req.user.tenantId,
-        ticketId,
-        'ticket_assigned',
-        `Ticket atribuído ao agente`,
-        req.user.id,
-        userName,
-        ipAddress,
-        userAgent,
-        sessionId,
-        JSON.stringify({
-          assigned_to_id: assignedToId,
-          status_changed_to: 'in_progress'
-        })
-      ]);
-    } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
-    }
-
-    return sendSuccess(res, updatedTicket, "Ticket assigned successfully");
-  } catch (error) {
-    console.error("Error assigning ticket:", error);
-    return sendError(res, error, "Failed to assign ticket", 500);
-  }
-});
-
-// Delete ticket
-ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
-    }
-
-    const ticketId = req.params.id;
-
-    // First check if ticket exists
-    const existingTicket = await storageSimple.getTicketById(req.user.tenantId, ticketId);
-    if (!existingTicket) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-
-    // Mark as deleted by updating status
-    const success = await storageSimple.updateTicket(req.user.tenantId, ticketId, { status: 'deleted' });
-
-    if (!success) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-
-    // ✅ AUDITORIA FALTANTE: Exclusão de tickets
-    try {
-      const { pool } = await import('../../db');
-      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-
-      await createCompleteAuditEntry(
-        pool, schemaName, req.user.tenantId, ticketId, req,
-        'ticket_deleted',
-        `Ticket excluído: ${existingTicket.subject || 'Sem título'}`,
-        {
-          deleted_ticket_id: ticketId,
-          deleted_ticket_number: existingTicket.number,
-          deleted_ticket_subject: existingTicket.subject,
-          deleted_ticket_status: existingTicket.status,
-          deleted_ticket_priority: existingTicket.priority,
-          deleted_ticket_created_at: existingTicket.createdAt,
-          deletion_time: new Date().toISOString()
-        }
-      );
-    } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
-    }
-
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting ticket:", error);
-    res.status(500).json({ message: "Failed to delete ticket" });
-  }
-});
-
-// === TICKET MODALS ENDPOINTS ===
 
 // Get ticket attachments
 ticketsRouter.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -1670,7 +1494,7 @@ ticketsRouter.get('/:id/notes', jwtAuth, trackNoteView, async (req: Authenticate
       SELECT 
         tn.id,
         tn.content,
-tn.note_type,
+        tn.note_type,
         tn.is_internal,
         tn.is_public,
         tn.created_by,
@@ -2182,7 +2006,7 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
     // Check for duplicate relationships
     const duplicateCheck = await pool.query(
       `SELECT id FROM "${schemaName}".ticket_relationships 
-       WHERE source_ticket_id = $1 AND target_ticket_id = $2 AND relationship_type = $3`,
+      WHERE source_ticket_id = $1 AND target_ticket_id = $2 AND relationship_type = $3`,
       [id, targetTicketId, relationshipType]
     );
 
@@ -2279,7 +2103,7 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
     // Delete the relationship (hard delete since no is_active column)
     const result = await pool.query(
       `DELETE FROM "${schemaName}".ticket_relationships 
-       WHERE id = $1 AND tenant_id = $2`,
+      WHERE id = $1 AND tenant_id = $2`,
       [relationshipId, tenantId]
     );
 
