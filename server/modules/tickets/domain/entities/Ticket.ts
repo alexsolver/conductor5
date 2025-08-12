@@ -34,7 +34,7 @@ export interface Ticket {
   updatedAt: Date;
   createdById: string;
   updatedById: string;
-  is_active: boolean;
+  isActive: boolean;
 }
 
 export interface TicketMetadata {
