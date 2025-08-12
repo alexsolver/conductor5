@@ -286,12 +286,14 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         throw new Error('No valid fields to update');
       }
 
-      // Add WHERE clause parameters with correct indexing BEFORE adding timestamp
+      // CRITICAL FIX: Calculate WHERE clause parameters BEFORE adding any non-parameterized clauses
       const idParamIndex = values.length + 1;
       const tenantParamIndex = values.length + 2;
+      
+      // Add WHERE clause parameters
       values.push(id, tenantId);
 
-      // Always update the updated_at timestamp (não adiciona parâmetros)
+      // Add timestamp update AFTER parameters are calculated (não usa parâmetros SQL)
       setClauses.push('updated_at = NOW()');
 
       const sqlQuery = `
