@@ -261,6 +261,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const saasAdminIntegrationRoutes = await import('./modules/saas-admin/routes-integration');
   console.log('✅ SaaS Admin Clean Architecture routes registered at /api/saas-admin-integration');
   app.use('/api/saas-admin-integration', saasAdminIntegrationRoutes.default);
+  
+  // === Template Hierarchy Clean Architecture Integration ===
+  const templateHierarchyIntegrationRoutes = await import('./modules/template-hierarchy/routes-integration');
+  console.log('✅ Template Hierarchy Clean Architecture routes registered at /api/template-hierarchy-integration');
+  app.use('/api/template-hierarchy-integration', templateHierarchyIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
