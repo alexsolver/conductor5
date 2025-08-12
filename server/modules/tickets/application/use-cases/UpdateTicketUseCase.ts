@@ -6,14 +6,12 @@
 import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 import { UpdateTicketDTO } from '../dto/CreateTicketDTO';
-import { Logger } from 'aws-lambda-logger';
-import { TicketDomainService } from '../../domain/services/TicketDomainService'; // Assuming TicketDomainService is used here
+import winston from 'winston';
 
 export class UpdateTicketUseCase {
   constructor(
     private ticketRepository: ITicketRepository,
-    private ticketDomainService: TicketDomainService,
-    private logger: Logger
+    private logger: winston.Logger
   ) {}
 
   async execute(id: string, dto: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
@@ -77,21 +75,29 @@ export class UpdateTicketUseCase {
       }
 
       // Validação de priority
-      if (dto.priority !== undefined && dto.priority !== null && dto.priority !== '') {
-        const validPriorities = ['low', 'medium', 'high', 'critical'];
-        if (!validPriorities.includes(dto.priority)) {
+      if (dto.priority !== undefined && dto.priority !== null) {
+        const validPriorities = ['low', 'medium', 'high', 'critical'] as const;
+        if (!validPriorities.includes(dto.priority as any)) {
           throw new Error(`Invalid priority value: ${dto.priority}. Valid values: ${validPriorities.join(', ')}`);
         }
         updateData.priority = dto.priority;
       }
 
       // Campos opcionais com validação
-      if (dto.urgency !== undefined && dto.urgency !== null && dto.urgency !== '') {
-        updateData.urgency = String(dto.urgency);
+      if (dto.urgency !== undefined && dto.urgency !== null) {
+        const validUrgencies = ['low', 'medium', 'high', 'critical'] as const;
+        if (!validUrgencies.includes(dto.urgency as any)) {
+          throw new Error(`Invalid urgency value: ${dto.urgency}. Valid values: ${validUrgencies.join(', ')}`);
+        }
+        updateData.urgency = dto.urgency;
       }
 
-      if (dto.impact !== undefined && dto.impact !== null && dto.impact !== '') {
-        updateData.impact = String(dto.impact);
+      if (dto.impact !== undefined && dto.impact !== null) {
+        const validImpacts = ['low', 'medium', 'high', 'critical'] as const;
+        if (!validImpacts.includes(dto.impact as any)) {
+          throw new Error(`Invalid impact value: ${dto.impact}. Valid values: ${validImpacts.join(', ')}`);
+        }
+        updateData.impact = dto.impact;
       }
 
       if (dto.category !== undefined && dto.category !== null && dto.category !== '') {
@@ -102,21 +108,17 @@ export class UpdateTicketUseCase {
         updateData.subcategory = String(dto.subcategory);
       }
 
-      // Campos de relacionamento (podem ser null)
+      // Campos de relacionamento (podem ser null ou undefined)
       if (dto.assignedToId !== undefined) {
-        updateData.assignedToId = dto.assignedToId || null;
+        updateData.assignedToId = dto.assignedToId || undefined;
       }
 
       if (dto.companyId !== undefined) {
-        updateData.companyId = dto.companyId || null;
+        updateData.companyId = dto.companyId || undefined;
       }
 
       if (dto.beneficiaryId !== undefined) {
-        updateData.beneficiaryId = dto.beneficiaryId || null;
-      }
-
-      if (dto.callerId !== undefined) {
-        updateData.callerId = dto.callerId || null;
+        updateData.beneficiaryId = dto.beneficiaryId || undefined;
       }
 
       if (dto.action !== undefined && dto.action !== null && dto.action !== '') {
@@ -124,7 +126,7 @@ export class UpdateTicketUseCase {
       }
 
       if (dto.customerId !== undefined) {
-        updateData.customerId = dto.customerId || null;
+        updateData.customerId = dto.customerId || undefined;
       }
 
       // Campos JSON
@@ -163,12 +165,17 @@ export class UpdateTicketUseCase {
 
     } catch (error: any) {
       console.error('❌ [UpdateTicketUseCase] Update failed:', error);
-      this.logger.error('Failed to update ticket', { 
-        error: error?.message || 'Unknown error', 
-        id, 
-        tenantId, 
-        dto: JSON.stringify(dto) 
-      });
+      
+      // Log do erro se o logger existir
+      if (this.logger && typeof this.logger.error === 'function') {
+        this.logger.error('Failed to update ticket', { 
+          error: error?.message || 'Unknown error', 
+          id, 
+          tenantId, 
+          dto: JSON.stringify(dto) 
+        });
+      }
+      
       throw new Error(error?.message || 'Failed to update ticket');
     }
   }
