@@ -226,6 +226,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const inventoryIntegrationRoutes = await import('./modules/inventory/routes-integration');
   console.log('✅ Inventory Clean Architecture routes registered at /api/inventory-integration');
   app.use('/api/inventory-integration', inventoryIntegrationRoutes.default);
+  
+  // === Custom Fields Clean Architecture Integration ===
+  const customFieldsIntegrationRoutes = await import('./modules/custom-fields/routes-integration');
+  console.log('✅ Custom Fields Clean Architecture routes registered at /api/custom-fields-integration');
+  app.use('/api/custom-fields-integration', customFieldsIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
