@@ -221,6 +221,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const teamsIntegrationRoutes = await import('./modules/teams/routes-integration');
   console.log('✅ Teams Clean Architecture routes registered at /api/teams-integration');
   app.use('/api/teams-integration', teamsIntegrationRoutes.default);
+  
+  // === Inventory Clean Architecture Integration ===
+  const inventoryIntegrationRoutes = await import('./modules/inventory/routes-integration');
+  console.log('✅ Inventory Clean Architecture routes registered at /api/inventory-integration');
+  app.use('/api/inventory-integration', inventoryIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
