@@ -1,158 +1,94 @@
-// Application Layer - Enhanced Create Ticket Use Case
-import { Ticket } from "../../domain/entities/Ticket";
-import { ITicketRepository } from "../../domain/repositories/ITicketRepository";
-import { IPersonRepository } from "../../../shared/repositories/IPersonRepository";
-import { IDomainEventPublisher } from "../../../shared/events/IDomainEventPublisher";
-import { TicketCreated } from "../../domain/events/TicketEvents";
+/**
+ * APPLICATION LAYER - CREATE TICKET USE CASE
+ * Seguindo Clean Architecture - 1qa.md compliance
+ */
 
-export interface CreateTicketRequest {
-  tenantId: string;
-  customerId: string; // Legacy compatibility
-  subject: string;
-  description?: string;
-  shortDescription?: string;
-  category?: string;
-  subcategory?: string;
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-  impact?: 'low' | 'medium' | 'high' | 'critical';
-  urgency?: 'low' | 'medium' | 'high';
-  
-  // Enhanced person referencing
-  callerId: string;
-  callerType: 'user' | 'customer';
-  beneficiaryId?: string; // Optional - defaults to callerId
-  beneficiaryType?: 'user' | 'customer'; // Optional - defaults to callerType
-  
-  assignedToId?: string; // Must be a user
-  assignmentGroup?: string;
-  location?: string;
-  contactType?: string;
-  businessImpact?: string;
-  symptoms?: string;
-  workaround?: string;
-  tags?: string[];
-  metadata?: Record<string, any>;
-}
+import { Ticket } from '../../domain/entities/Ticket';
+import { TicketDomainService } from '../../domain/entities/Ticket';
+import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
+import { CreateTicketDTO } from '../dto/CreateTicketDTO';
 
 export class CreateTicketUseCase {
   constructor(
     private ticketRepository: ITicketRepository,
-    private personRepository: IPersonRepository,
-    private eventPublisher: IDomainEventPublisher
+    private ticketDomainService: TicketDomainService
   ) {}
 
-  async execute(request: CreateTicketRequest): Promise<Ticket> {
-    // Validate caller exists
-    const callerExists = await this.personRepository.validatePersonExists(
-      request.callerId,
-      request.callerType,
-      request.tenantId
-    );
-
-    if (!callerExists) {
-      throw new Error(`Caller not found: ${request.callerType} with ID ${request.callerId}`);
+  async execute(dto: CreateTicketDTO, tenantId: string): Promise<Ticket> {
+    // Validação de entrada
+    if (!tenantId) {
+      throw new Error('Tenant ID is required');
     }
 
-    // Set default beneficiary if not provided
-    const beneficiaryId = request.beneficiaryId || request.callerId;
-    const beneficiaryType = request.beneficiaryType || request.callerType;
+    if (!dto.createdById) {
+      throw new Error('Created by user ID is required');
+    }
 
-    // Validate beneficiary exists (if different from caller)
-    if (beneficiaryId !== request.callerId || beneficiaryType !== request.callerType) {
-      const beneficiaryExists = await this.personRepository.validatePersonExists(
-        beneficiaryId,
-        beneficiaryType,
-        request.tenantId
+    // Preparar dados do ticket
+    const ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'> = {
+      tenantId,
+      number: this.ticketDomainService.generateTicketNumber(),
+      subject: dto.subject?.trim() || '',
+      description: dto.description?.trim() || '',
+      status: dto.status || 'new',
+      priority: dto.priority,
+      urgency: dto.urgency || dto.priority, // Default urgency to priority
+      impact: dto.impact || dto.priority,   // Default impact to priority
+      
+      // Relacionamentos
+      customerId: dto.customerId,
+      beneficiaryId: dto.beneficiaryId,
+      assignedToId: dto.assignedToId,
+      companyId: dto.companyId,
+      
+      // Classificação hierárquica
+      category: dto.category,
+      subcategory: dto.subcategory,
+      action: dto.action,
+      
+      // Metadata
+      tags: dto.tags || [],
+      customFields: dto.customFields || {},
+      
+      // Audit
+      createdById: dto.createdById,
+      updatedById: dto.createdById, // Initially same as created
+      isActive: true
+    };
+
+    // Validação de regras de negócio
+    this.ticketDomainService.validate(ticketData);
+
+    // Verificar se o número do ticket é único (fallback de segurança)
+    let attempts = 0;
+    while (attempts < 5) {
+      const existingTicket = await this.ticketRepository.findByNumber(
+        ticketData.number, 
+        tenantId
       );
-
-      if (!beneficiaryExists) {
-        throw new Error(`Beneficiary not found: ${beneficiaryType} with ID ${beneficiaryId}`);
+      
+      if (!existingTicket) {
+        break;
       }
+      
+      // Regenerar número se já existir
+      ticketData.number = this.ticketDomainService.generateTicketNumber();
+      attempts++;
     }
 
-    // Validate assigned agent if provided
-    if (request.assignedToId) {
-      const agentExists = await this.personRepository.validatePersonExists(
-        request.assignedToId,
-        'user',
-        request.tenantId
-      );
-
-      if (!agentExists) {
-        throw new Error(`Assigned agent not found: user with ID ${request.assignedToId}`);
-      }
+    if (attempts >= 5) {
+      throw new Error('Unable to generate unique ticket number');
     }
 
-    // Validate all persons belong to same tenant
-    const personsToValidate = [
-      { id: request.callerId, type: request.callerType },
-      { id: beneficiaryId, type: beneficiaryType },
-    ];
-
-    if (request.assignedToId) {
-      personsToValidate.push({ id: request.assignedToId, type: 'user' as const });
+    // Aplicar regras de negócio específicas
+    if (ticketData.status === 'new' && ticketData.assignedToId) {
+      // Se tem assignee, automaticamente muda para 'open'
+      ticketData.status = 'open';
     }
 
-    const allInSameTenant = await this.personRepository.validatePersonsInSameTenant(
-      personsToValidate,
-      request.tenantId
-    );
+    // Persistir o ticket
+    const createdTicket = await this.ticketRepository.create(ticketData, tenantId);
 
-    if (!allInSameTenant) {
-      throw new Error('All persons must belong to the same tenant');
-    }
-
-    // Create ticket entity
-    const ticket = Ticket.create({
-      tenantId: request.tenantId,
-      customerId: request.customerId,
-      subject: request.subject,
-      description: request.description,
-      shortDescription: request.shortDescription,
-      category: request.category,
-      subcategory: request.subcategory,
-      priority: request.priority,
-      impact: request.impact,
-      urgency: request.urgency,
-      callerId: request.callerId,
-      callerType: request.callerType,
-      beneficiaryId,
-      beneficiaryType,
-      assignedToId: request.assignedToId,
-      assignmentGroup: request.assignmentGroup,
-      location: request.location,
-      contactType: request.contactType,
-      businessImpact: request.businessImpact,
-      symptoms: request.symptoms,
-      workaround: request.workaround,
-      tags: request.tags,
-      metadata: request.metadata,
-    });
-
-    // Save to repository
-    const savedTicket = await this.ticketRepository.save(ticket);
-
-    // Publish domain event
-    const caller = await this.personRepository.findPersonById(request.callerId, request.callerType, request.tenantId);
-    const beneficiary = await this.personRepository.findPersonById(beneficiaryId, beneficiaryType, request.tenantId);
-
-    const event = new TicketCreated(
-      savedTicket.id,
-      savedTicket.tenantId,
-      {
-        number: savedTicket.number || '',
-        subject: savedTicket.subject,
-        priority: savedTicket.priority,
-        caller: caller ? { id: caller.id, type: caller.type, name: caller.fullName } : undefined,
-        beneficiary: beneficiary ? { id: beneficiary.id, type: beneficiary.type, name: beneficiary.fullName } : undefined,
-        serviceType: savedTicket.isAutoService ? 'auto' : 
-                    savedTicket.isProxyService ? 'proxy' : 
-                    savedTicket.isInternalService ? 'internal' : 'hybrid',
-      }
-    );
-
-    await this.eventPublisher.publish(event);
-
-    return savedTicket;
+    return createdTicket;
   }
 }

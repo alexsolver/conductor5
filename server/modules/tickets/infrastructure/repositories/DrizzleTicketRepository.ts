@@ -1,15 +1,18 @@
 /**
- * Drizzle Ticket Repository Implementation
- * Clean Architecture - Infrastructure Layer
- * Implements ITicketRepository using Drizzle ORM
+ * INFRASTRUCTURE LAYER - DRIZZLE TICKET REPOSITORY
+ * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-import { eq, and, ilike, count, or, sql } from 'drizzle-orm';
-import { Ticket } from '../../domain/entities/Ticket';
-import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
-import { tickets } from '@shared/schema';
+import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { ticketNumberGenerator } from '../../../../utils/ticketNumberGenerator';
+import { tickets } from '../../../../shared/schema-master';
+import { Ticket } from '../../domain/entities/Ticket';
+import { 
+  ITicketRepository, 
+  TicketFilters, 
+  PaginationOptions, 
+  TicketListResult 
+} from '../../domain/repositories/ITicketRepository';
 
 export class DrizzleTicketRepository implements ITicketRepository {
   
@@ -17,174 +20,278 @@ export class DrizzleTicketRepository implements ITicketRepository {
     const result = await db
       .select()
       .from(tickets)
-      .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)))
+      .where(
+        and(
+          eq(tickets.id, id),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
       .limit(1);
 
-    if (result.length === 0) {
-      return null;
-    }
-
-    return this.toDomainEntity(result[0]);
+    return result[0] || null;
   }
 
   async findByNumber(number: string, tenantId: string): Promise<Ticket | null> {
     const result = await db
       .select()
       .from(tickets)
-      .where(and(eq(tickets.number, number), eq(tickets.tenantId, tenantId)))
+      .where(
+        and(
+          eq(tickets.number, number),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
       .limit(1);
 
-    if (result.length === 0) {
-      return null;
-    }
-
-    return this.toDomainEntity(result[0]);
+    return result[0] || null;
   }
 
-  async findMany(filter: TicketFilter): Promise<Ticket[]> {
-    const conditions = [eq(tickets.tenantId, filter.tenantId)];
+  async create(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<Ticket> {
+    const now = new Date();
+    
+    const insertData = {
+      ...ticketData,
+      tenantId,
+      createdAt: now,
+      updatedAt: now
+    };
 
-    // Apply filters with parameterized search
-    if (filter.search) {
-      // Use parameterized search to prevent SQL injection
-      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
+    const result = await db
+      .insert(tickets)
+      .values(insertData)
+      .returning();
+
+    return result[0];
+  }
+
+  async update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<Ticket> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+
+    const result = await db
+      .update(tickets)
+      .set(updateData)
+      .where(
+        and(
+          eq(tickets.id, id),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
+      .returning();
+
+    if (result.length === 0) {
+      throw new Error('Ticket not found or already deleted');
+    }
+
+    return result[0];
+  }
+
+  async delete(id: string, tenantId: string): Promise<void> {
+    const result = await db
+      .update(tickets)
+      .set({ 
+        isActive: false, 
+        updatedAt: new Date() 
+      })
+      .where(
+        and(
+          eq(tickets.id, id),
+          eq(tickets.tenantId, tenantId)
+        )
+      );
+
+    if (result.rowCount === 0) {
+      throw new Error('Ticket not found');
+    }
+  }
+
+  async findByFilters(
+    filters: TicketFilters, 
+    pagination: PaginationOptions, 
+    tenantId: string
+  ): Promise<TicketListResult> {
+    // Build where conditions
+    const conditions = [
+      eq(tickets.tenantId, tenantId),
+      eq(tickets.isActive, true)
+    ];
+
+    // Apply filters
+    if (filters.status?.length) {
+      conditions.push(inArray(tickets.status, filters.status));
+    }
+
+    if (filters.priority?.length) {
+      conditions.push(inArray(tickets.priority, filters.priority));
+    }
+
+    if (filters.assignedToId) {
+      conditions.push(eq(tickets.assignedToId, filters.assignedToId));
+    }
+
+    if (filters.customerId) {
+      conditions.push(eq(tickets.customerId, filters.customerId));
+    }
+
+    if (filters.companyId) {
+      conditions.push(eq(tickets.companyId, filters.companyId));
+    }
+
+    if (filters.category) {
+      conditions.push(eq(tickets.category, filters.category));
+    }
+
+    if (filters.dateFrom) {
+      conditions.push(gte(tickets.createdAt, filters.dateFrom));
+    }
+
+    if (filters.dateTo) {
+      conditions.push(lte(tickets.createdAt, filters.dateTo));
+    }
+
+    if (filters.search) {
       conditions.push(
         or(
-          ilike(tickets.subject, searchPattern),
-          ilike(tickets.description, searchPattern),
-          ilike(tickets.number, searchPattern),
-          ilike(tickets.shortDescription, searchPattern)
-        )!
+          like(tickets.subject, `%${filters.search}%`),
+          like(tickets.description, `%${filters.search}%`),
+          like(tickets.number, `%${filters.search}%`)
+        )
       );
     }
 
-    if (filter.status) {
-      conditions.push(eq(tickets.status, filter.status));
-    }
-
-    if (filter.state) {
-      conditions.push(eq(tickets.state, filter.state));
-    }
-
-    if (filter.priority) {
-      conditions.push(eq(tickets.priority, filter.priority));
-    }
-
-    if (filter.assignedToId) {
-      conditions.push(eq(tickets.assignedToId, filter.assignedToId));
-    }
-
-    if (filter.customerId) {
-      conditions.push(eq(tickets.customerId, filter.customerId));
-    }
-
-    if (filter.category) {
-      conditions.push(eq(tickets.category, filter.category));
-    }
-
-    if (filter.urgent) {
-      conditions.push(eq(tickets.priority, 'urgent'));
-    }
-
-    let query = db
-      .select()
+    // Count total results
+    const totalResult = await db
+      .select({ count: count() })
       .from(tickets)
       .where(and(...conditions));
 
-    if (filter.limit) {
-      query = query.limit(filter.limit);
-    }
+    const total = totalResult[0]?.count || 0;
 
-    if (filter.offset) {
-      query = query.offset(filter.offset);
-    }
+    // Calculate offset
+    const offset = (pagination.page - 1) * pagination.limit;
 
-    const results = await query;
-    return results.map(result => this.toDomainEntity(result));
+    // Build order by
+    const orderColumn = tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt;
+    const orderDirection = pagination.sortOrder === 'asc' ? asc : desc;
+
+    // Fetch paginated results
+    const ticketResults = await db
+      .select()
+      .from(tickets)
+      .where(and(...conditions))
+      .orderBy(orderDirection(orderColumn))
+      .limit(pagination.limit)
+      .offset(offset);
+
+    const totalPages = Math.ceil(total / pagination.limit);
+
+    return {
+      tickets: ticketResults,
+      total,
+      page: pagination.page,
+      totalPages
+    };
   }
 
-  async save(ticket: Ticket): Promise<Ticket> {
-    const ticketData = this.toPersistenceData(ticket);
-
-    // Check if ticket exists
-    const existingTicket = await this.findById(ticket.getId(), ticket.getTenantId());
-
-    if (existingTicket) {
-      // Update existing ticket
-      const [updated] = await db
-        .update(tickets)
-        .set({
-          ...ticketData,
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(tickets.id, ticket.getId()),
-          eq(tickets.tenantId, ticket.getTenantId())
-        ))
-        .returning();
-
-      return this.toDomainEntity(updated);
-    } else {
-      // Insert new ticket
-      const [inserted] = await db
-        .insert(tickets)
-        .values(ticketData)
-        .returning();
-
-      return this.toDomainEntity(inserted);
-    }
-  }
-
-  async delete(id: string, tenantId: string): Promise<boolean> {
+  async findByTenant(tenantId: string): Promise<Ticket[]> {
     const result = await db
-      .delete(tickets)
-      .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)));
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
+      .orderBy(desc(tickets.createdAt));
 
-    return result.rowCount > 0;
+    return result;
   }
 
-  async count(filter: Omit<TicketFilter, 'limit' | 'offset'>): Promise<number> {
-    const conditions = [eq(tickets.tenantId, filter.tenantId)];
+  async findByAssignedUser(userId: string, tenantId: string): Promise<Ticket[]> {
+    const result = await db
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.assignedToId, userId),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
+      .orderBy(desc(tickets.createdAt));
 
-    if (filter.search) {
-      // Use parameterized search to prevent SQL injection
-      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
+    return result;
+  }
+
+  async findByCustomer(customerId: string, tenantId: string): Promise<Ticket[]> {
+    const result = await db
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.customerId, customerId),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
+      .orderBy(desc(tickets.createdAt));
+
+    return result;
+  }
+
+  async findByStatus(status: string, tenantId: string): Promise<Ticket[]> {
+    const result = await db
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.status, status),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
+      .orderBy(desc(tickets.createdAt));
+
+    return result;
+  }
+
+  async countByFilters(filters: TicketFilters, tenantId: string): Promise<number> {
+    const conditions = [
+      eq(tickets.tenantId, tenantId),
+      eq(tickets.isActive, true)
+    ];
+
+    // Apply same filters as findByFilters
+    if (filters.status?.length) {
+      conditions.push(inArray(tickets.status, filters.status));
+    }
+
+    if (filters.priority?.length) {
+      conditions.push(inArray(tickets.priority, filters.priority));
+    }
+
+    if (filters.assignedToId) {
+      conditions.push(eq(tickets.assignedToId, filters.assignedToId));
+    }
+
+    if (filters.customerId) {
+      conditions.push(eq(tickets.customerId, filters.customerId));
+    }
+
+    if (filters.search) {
       conditions.push(
         or(
-          ilike(tickets.subject, searchPattern),
-          ilike(tickets.description, searchPattern),
-          ilike(tickets.number, searchPattern),
-          ilike(tickets.shortDescription, searchPattern)
-        )!
+          like(tickets.subject, `%${filters.search}%`),
+          like(tickets.description, `%${filters.search}%`),
+          like(tickets.number, `%${filters.search}%`)
+        )
       );
-    }
-
-    if (filter.status) {
-      conditions.push(eq(tickets.status, filter.status));
-    }
-
-    if (filter.state) {
-      conditions.push(eq(tickets.state, filter.state));
-    }
-
-    if (filter.priority) {
-      conditions.push(eq(tickets.priority, filter.priority));
-    }
-
-    if (filter.assignedToId) {
-      conditions.push(eq(tickets.assignedToId, filter.assignedToId));
-    }
-
-    if (filter.customerId) {
-      conditions.push(eq(tickets.customerId, filter.customerId));
-    }
-
-    if (filter.category) {
-      conditions.push(eq(tickets.category, filter.category));
-    }
-
-    if (filter.urgent) {
-      conditions.push(eq(tickets.priority, 'urgent'));
     }
 
     const result = await db
@@ -195,117 +302,204 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result[0]?.count || 0;
   }
 
-  async findUrgent(tenantId: string): Promise<Ticket[]> {
-    const results = await db
-      .select()
+  async getStatistics(tenantId: string): Promise<{
+    total: number;
+    byStatus: Record<string, number>;
+    byPriority: Record<string, number>;
+    overdueCount: number;
+    todayCount: number;
+  }> {
+    // Get basic statistics
+    const totalResult = await db
+      .select({ count: count() })
       .from(tickets)
-      .where(and(
-        eq(tickets.tenantId, tenantId),
-        eq(tickets.priority, 'urgent'),
-        or(
-          eq(tickets.state, 'open'),
-          eq(tickets.state, 'in_progress')
-        )!
-      ));
+      .where(
+        and(
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      );
 
-    return results.map(result => this.toDomainEntity(result));
-  }
+    const total = totalResult[0]?.count || 0;
 
-  async findOverdue(tenantId: string): Promise<Ticket[]> {
-    // This would need more complex SQL logic based on priority and creation time
-    // For now, return empty array as placeholder
-    return [];
-  }
+    // Get status distribution
+    // Note: This is a simplified version. In a real implementation, 
+    // you might want to use more sophisticated grouping queries
+    const statusStats: Record<string, number> = {};
+    const priorityStats: Record<string, number> = {};
 
-  async findUnassigned(tenantId: string): Promise<Ticket[]> {
-    const results = await db
-      .select()
+    // Get today's count
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayResult = await db
+      .select({ count: count() })
       .from(tickets)
-      .where(and(
-        eq(tickets.tenantId, tenantId),
-        eq(tickets.assignedToId, null),
-        or(
-          eq(tickets.state, 'open'),
-          eq(tickets.state, 'in_progress')
-        )!
-      ));
+      .where(
+        and(
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true),
+          gte(tickets.createdAt, today)
+        )
+      );
 
-    return results.map(result => this.toDomainEntity(result));
-  }
+    const todayCount = todayResult[0]?.count || 0;
 
-  async getNextTicketNumber(tenantId: string, prefix = 'INC'): Promise<string> {
-    return await ticketNumberGenerator.generateTicketNumber(tenantId, prefix);
-  }
+    // Calculate overdue (simplified - tickets older than SLA limits)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const overdueResult = await db
+      .select({ count: count() })
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true),
+          inArray(tickets.status, ['new', 'open', 'in_progress']),
+          lte(tickets.createdAt, oneDayAgo)
+        )
+      );
 
-  private toDomainEntity(data: any): Ticket {
-    return Ticket.fromPersistence({
-      id: data.id,
-      tenantId: data.tenantId,
-      customerId: data.customerId,
-      callerId: data.callerId,
-      callerType: data.callerType,
-      subject: data.subject,
-      description: data.description,
-      number: data.number,
-      shortDescription: data.shortDescription,
-      category: data.category,
-      subcategory: data.subcategory,
-      priority: data.priority,
-      impact: data.impact,
-      urgency: data.urgency,
-      state: data.state,
-      status: data.status,
-      assignedToId: data.assignedToId,
-      beneficiaryId: data.beneficiaryId,
-      beneficiaryType: data.beneficiaryType,
-      assignmentGroup: data.assignmentGroup,
-      location: data.location,
-      contactType: data.contactType,
-      businessImpact: data.businessImpact,
-      symptoms: data.symptoms,
-      workaround: data.workaround,
-      configurationItem: data.configurationItem,
-      businessService: data.businessService,
-      resolutionCode: data.resolutionCode,
-      resolutionNotes: data.resolutionNotes,
-      workNotes: data.workNotes,
-      closeNotes: data.closeNotes,
-      notify: data.notify,
-      rootCause: data.rootCause,
-      openedAt: data.openedAt,
-      resolvedAt: data.resolvedAt,
-      closedAt: data.closedAt,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt
-    });
-  }
+    const overdueCount = overdueResult[0]?.count || 0;
 
-  private toPersistenceData(ticket: Ticket): any {
     return {
-      id: ticket.getId(),
-      tenantId: ticket.getTenantId(),
-      customerId: ticket.getCustomerId(),
-      callerId: ticket.getCallerId(),
-      callerType: ticket.getCallerType(),
-      subject: ticket.getSubject(),
-      description: ticket.getDescription(),
-      number: ticket.getNumber(),
-      shortDescription: ticket.getShortDescription(),
-      category: ticket.getCategory(),
-      subcategory: ticket.getSubcategory(),
-      priority: ticket.getPriority(),
-      impact: ticket.getImpact(),
-      urgency: ticket.getUrgency(),
-      state: ticket.getState(),
-      status: ticket.getStatus(),
-      assignedToId: ticket.getAssignedToId(),
-      beneficiaryId: ticket.getBeneficiaryId(),
-      beneficiaryType: ticket.getBeneficiaryType(),
-      openedAt: ticket.getOpenedAt(),
-      resolvedAt: ticket.getResolvedAt(),
-      closedAt: ticket.getClosedAt(),
-      createdAt: ticket.getCreatedAt(),
-      updatedAt: ticket.getUpdatedAt()
+      total,
+      byStatus: statusStats,
+      byPriority: priorityStats,
+      overdueCount,
+      todayCount
+    };
+  }
+
+  async findTicketsForEscalation(tenantId: string): Promise<Ticket[]> {
+    // Find tickets that might need escalation based on age and priority
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const result = await db
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true),
+          inArray(tickets.status, ['new', 'open', 'in_progress']),
+          or(
+            and(
+              eq(tickets.priority, 'critical'),
+              lte(tickets.createdAt, new Date(Date.now() - 60 * 60 * 1000)) // 1 hour
+            ),
+            and(
+              eq(tickets.priority, 'high'),
+              lte(tickets.createdAt, fourHoursAgo)
+            ),
+            and(
+              eq(tickets.priority, 'medium'),
+              lte(tickets.createdAt, oneDayAgo)
+            )
+          )
+        )
+      )
+      .orderBy(asc(tickets.createdAt));
+
+    return result;
+  }
+
+  async updateLastActivity(id: string, tenantId: string): Promise<void> {
+    await db
+      .update(tickets)
+      .set({ 
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(tickets.id, id),
+          eq(tickets.tenantId, tenantId)
+        )
+      );
+  }
+
+  async bulkUpdate(
+    ids: string[], 
+    updates: Partial<Ticket>, 
+    tenantId: string
+  ): Promise<Ticket[]> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+
+    const result = await db
+      .update(tickets)
+      .set(updateData)
+      .where(
+        and(
+          inArray(tickets.id, ids),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        )
+      )
+      .returning();
+
+    return result;
+  }
+
+  async searchTickets(
+    searchTerm: string, 
+    tenantId: string, 
+    pagination?: PaginationOptions
+  ): Promise<TicketListResult> {
+    const conditions = [
+      eq(tickets.tenantId, tenantId),
+      eq(tickets.isActive, true),
+      or(
+        like(tickets.subject, `%${searchTerm}%`),
+        like(tickets.description, `%${searchTerm}%`),
+        like(tickets.number, `%${searchTerm}%`)
+      )
+    ];
+
+    // Count total results
+    const totalResult = await db
+      .select({ count: count() })
+      .from(tickets)
+      .where(and(...conditions));
+
+    const total = totalResult[0]?.count || 0;
+
+    if (!pagination) {
+      const ticketResults = await db
+        .select()
+        .from(tickets)
+        .where(and(...conditions))
+        .orderBy(desc(tickets.createdAt));
+
+      return {
+        tickets: ticketResults,
+        total,
+        page: 1,
+        totalPages: 1
+      };
+    }
+
+    // Calculate offset
+    const offset = (pagination.page - 1) * pagination.limit;
+
+    // Fetch paginated results
+    const ticketResults = await db
+      .select()
+      .from(tickets)
+      .where(and(...conditions))
+      .orderBy(desc(tickets.createdAt))
+      .limit(pagination.limit)
+      .offset(offset);
+
+    const totalPages = Math.ceil(total / pagination.limit);
+
+    return {
+      tickets: ticketResults,
+      total,
+      page: pagination.page,
+      totalPages
     };
   }
 }

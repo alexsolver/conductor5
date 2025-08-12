@@ -1,400 +1,122 @@
 /**
- * Ticket Domain Entity
- * Clean Architecture - Domain Layer
- * Contains business rules and invariants for tickets
+ * DOMAIN LAYER - TICKET ENTITY
+ * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-export interface TicketCreateProps {
+export interface Ticket {
+  id: string;
   tenantId: string;
-  customerId: string;
-  callerId: string;
-  callerType: 'user' | 'customer';
+  number: string;
   subject: string;
   description: string;
-  shortDescription?: string;
+  status: 'new' | 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  urgency: 'low' | 'medium' | 'high' | 'critical';
+  impact: 'low' | 'medium' | 'high' | 'critical';
+  
+  // Relacionamentos
+  customerId?: string;
+  beneficiaryId?: string;
+  assignedToId?: string;
+  companyId?: string;
+  
+  // Classificação hierárquica
   category?: string;
   subcategory?: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  impact?: 'low' | 'medium' | 'high' | 'critical';
-  urgency?: 'low' | 'medium' | 'high';
-  state?: string;
-  status?: string;
-  assignedToId?: string;
-  beneficiaryId?: string;
-  beneficiaryType?: 'user' | 'customer';
-  assignmentGroup?: string;
-  location?: string;
-  contactType?: string;
-  businessImpact?: string;
-  symptoms?: string;
-  workaround?: string;
-  configurationItem?: string;
-  businessService?: string;
-  resolutionCode?: string;
-  resolutionNotes?: string;
-  workNotes?: string;
-  closeNotes?: string;
-  notify?: boolean;
-  rootCause?: string;
+  action?: string;
+  
+  // Metadata
+  tags?: string[];
+  customFields?: Record<string, any>;
+  
+  // Audit fields
+  createdAt: Date;
+  updatedAt: Date;
+  createdById: string;
+  updatedById: string;
+  isActive: boolean;
 }
 
-export class Ticket {
-  constructor(
-    private readonly id: string,
-    private readonly tenantId: string,
-    private readonly customerId: string,
-    private readonly callerId: string,
-    private readonly callerType: 'user' | 'customer',
-    private subject: string,
-    private description: string,
-    private readonly number: string,
-    private shortDescription: string,
-    private category: string,
-    private subcategory: string,
-    private priority: 'low' | 'medium' | 'high' | 'urgent',
-    private impact: 'low' | 'medium' | 'high' | 'critical',
-    private urgency: 'low' | 'medium' | 'high',
-    private state: string,
-    private status: string,
-    private assignedToId: string | null,
-    private beneficiaryId: string | null,
-    private beneficiaryType: 'user' | 'customer' | null,
-    private assignmentGroup: string | null,
-    private location: string | null,
-    private contactType: string,
-    private businessImpact: string | null,
-    private symptoms: string | null,
-    private workaround: string | null,
-    private configurationItem: string | null,
-    private businessService: string | null,
-    private resolutionCode: string | null,
-    private resolutionNotes: string | null,
-    private workNotes: string | null,
-    private closeNotes: string | null,
-    private notify: boolean,
-    private rootCause: string | null,
-    private readonly openedAt: Date,
-    private resolvedAt: Date | null,
-    private closedAt: Date | null,
-    private readonly createdAt: Date,
-    private updatedAt: Date
-  ) {}
+export interface TicketMetadata {
+  estimatedResolution?: Date;
+  actualResolution?: Date;
+  slaViolated: boolean;
+  escalationLevel: number;
+  lastActivity?: Date;
+}
 
-  // Getters
-  getId(): string { return this.id; }
-  getTenantId(): string { return this.tenantId; }
-  getCustomerId(): string { return this.customerId; }
-  getCallerId(): string { return this.callerId; }
-  getCallerType(): 'user' | 'customer' { return this.callerType; }
-  getSubject(): string { return this.subject; }
-  getDescription(): string { return this.description; }
-  getNumber(): string { return this.number; }
-  getShortDescription(): string { return this.shortDescription; }
-  getCategory(): string { return this.category; }
-  getSubcategory(): string { return this.subcategory; }
-  getPriority(): 'low' | 'medium' | 'high' | 'urgent' { return this.priority; }
-  getImpact(): 'low' | 'medium' | 'high' | 'critical' { return this.impact; }
-  getUrgency(): 'low' | 'medium' | 'high' { return this.urgency; }
-  getState(): string { return this.state; }
-  getStatus(): string { return this.status; }
-  getAssignedToId(): string | null { return this.assignedToId; }
-  getBeneficiaryId(): string | null { return this.beneficiaryId; }
-  getBeneficiaryType(): 'user' | 'customer' | null { return this.beneficiaryType; }
-  getOpenedAt(): Date { return this.openedAt; }
-  getResolvedAt(): Date | null { return this.resolvedAt; }
-  getClosedAt(): Date | null { return this.closedAt; }
-  getCreatedAt(): Date { return this.createdAt; }
-  getUpdatedAt(): Date { return this.updatedAt; }
-
-  // Business rules
-  canBeAssigned(): boolean {
-    return this.state !== 'closed' && this.state !== 'resolved';
-  }
-
-  canBeResolved(): boolean {
-    return this.state === 'in_progress' || this.state === 'open';
-  }
-
-  canBeClosed(): boolean {
-    return this.state === 'resolved' || this.state === 'in_progress';
-  }
-
-  isOverdue(): boolean {
-    if (this.state === 'closed' || this.state === 'resolved') {
-      return false;
-    }
-    
-    // Business rule: High priority tickets are overdue after 4 hours
-    // Medium priority after 24 hours, Low priority after 72 hours
-    const hoursLimit = {
-      urgent: 2,
-      high: 4,
-      medium: 24,
-      low: 72
-    }[this.priority];
-
-    const hoursSinceCreated = (Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60);
-    return hoursSinceCreated > hoursLimit;
-  }
-
-  requiresEscalation(): boolean {
-    return this.priority === 'urgent' && !this.assignedToId;
-  }
-
-  // Factory method
-  static create(props: TicketCreateProps, ticketNumber: string, idGenerator: { generate(): string }): Ticket {
-    // Business validation
-    if (!props.subject?.trim()) {
+export class TicketDomainService {
+  /**
+   * Validates ticket business rules
+   */
+  validate(ticket: Partial<Ticket>): boolean {
+    // Regra de negócio: Subject obrigatório
+    if (!ticket.subject || ticket.subject.trim().length === 0) {
       throw new Error('Ticket subject is required');
     }
     
-    if (!props.description?.trim()) {
-      throw new Error('Ticket description is required');
+    // Regra de negócio: Subject deve ter pelo menos 5 caracteres
+    if (ticket.subject.trim().length < 5) {
+      throw new Error('Ticket subject must have at least 5 characters');
     }
     
-    if (!props.tenantId) {
-      throw new Error('Ticket must belong to a tenant');
+    // Regra de negócio: Status válido
+    const validStatuses = ['new', 'open', 'in_progress', 'resolved', 'closed'];
+    if (ticket.status && !validStatuses.includes(ticket.status)) {
+      throw new Error('Invalid ticket status');
     }
-
-    if (!props.customerId) {
-      throw new Error('Ticket must have a customer');
-    }
-
-    if (!props.callerId) {
-      throw new Error('Ticket must have a caller');
-    }
-
-    const now = new Date();
     
-    return new Ticket(
-      idGenerator.generate(),
-      props.tenantId,
-      props.customerId,
-      props.callerId,
-      props.callerType,
-      props.subject.trim(),
-      props.description.trim(),
-      ticketNumber,
-      props.shortDescription?.trim() || props.subject.trim(),
-      props.category || 'general',
-      props.subcategory || '',
-      props.priority,
-      props.impact || 'medium',
-      props.urgency || 'medium',
-      props.state || 'open',
-      props.status || 'open',
-      props.assignedToId || null,
-      props.beneficiaryId || null,
-      props.beneficiaryType || null,
-      props.assignmentGroup || null,
-      props.location || null,
-      props.contactType || 'email',
-      props.businessImpact || null,
-      props.symptoms || null,
-      props.workaround || null,
-      props.configurationItem || null,
-      props.businessService || null,
-      props.resolutionCode || null,
-      props.resolutionNotes || null,
-      props.workNotes || null,
-      props.closeNotes || null,
-      props.notify || true,
-      props.rootCause || null,
-      now, // openedAt
-      null, // resolvedAt
-      null, // closedAt
-      now, // createdAt
-      now  // updatedAt
-    );
-  }
-
-  // Update methods (immutable)
-  assign(assignedToId: string, assignmentGroup?: string): Ticket {
-    if (!this.canBeAssigned()) {
-      throw new Error('Ticket cannot be assigned in current state');
+    // Regra de negócio: Priority válida
+    const validPriorities = ['low', 'medium', 'high', 'critical'];
+    if (ticket.priority && !validPriorities.includes(ticket.priority)) {
+      throw new Error('Invalid ticket priority');
     }
-
-    return new Ticket(
-      this.id,
-      this.tenantId,
-      this.customerId,
-      this.callerId,
-      this.callerType,
-      this.subject,
-      this.description,
-      this.number,
-      this.shortDescription,
-      this.category,
-      this.subcategory,
-      this.priority,
-      this.impact,
-      this.urgency,
-      'in_progress', // Change state to in_progress when assigned
-      this.status,
-      assignedToId,
-      this.beneficiaryId,
-      this.beneficiaryType,
-      assignmentGroup || this.assignmentGroup,
-      this.location,
-      this.contactType,
-      this.businessImpact,
-      this.symptoms,
-      this.workaround,
-      this.configurationItem,
-      this.businessService,
-      this.resolutionCode,
-      this.resolutionNotes,
-      this.workNotes,
-      this.closeNotes,
-      this.notify,
-      this.rootCause,
-      this.openedAt,
-      this.resolvedAt,
-      this.closedAt,
-      this.createdAt,
-      new Date() // updatedAt
-    );
-  }
-
-  resolve(resolutionCode: string, resolutionNotes: string): Ticket {
-    if (!this.canBeResolved()) {
-      throw new Error('Ticket cannot be resolved in current state');
-    }
-
-    const now = new Date();
     
-    return new Ticket(
-      this.id,
-      this.tenantId,
-      this.customerId,
-      this.callerId,
-      this.callerType,
-      this.subject,
-      this.description,
-      this.number,
-      this.shortDescription,
-      this.category,
-      this.subcategory,
-      this.priority,
-      this.impact,
-      this.urgency,
-      'resolved',
-      'resolved',
-      this.assignedToId,
-      this.beneficiaryId,
-      this.beneficiaryType,
-      this.assignmentGroup,
-      this.location,
-      this.contactType,
-      this.businessImpact,
-      this.symptoms,
-      this.workaround,
-      this.configurationItem,
-      this.businessService,
-      resolutionCode,
-      resolutionNotes,
-      this.workNotes,
-      this.closeNotes,
-      this.notify,
-      this.rootCause,
-      this.openedAt,
-      now, // resolvedAt
-      this.closedAt,
-      this.createdAt,
-      now // updatedAt
-    );
+    return true;
   }
-
-  close(closeNotes?: string): Ticket {
-    if (!this.canBeClosed()) {
-      throw new Error('Ticket cannot be closed in current state');
-    }
-
-    const now = new Date();
+  
+  /**
+   * Calculates ticket escalation level based on priority and age
+   */
+  calculateEscalationLevel(ticket: Ticket): number {
+    const hoursOld = (Date.now() - ticket.createdAt.getTime()) / (1000 * 60 * 60);
     
-    return new Ticket(
-      this.id,
-      this.tenantId,
-      this.customerId,
-      this.callerId,
-      this.callerType,
-      this.subject,
-      this.description,
-      this.number,
-      this.shortDescription,
-      this.category,
-      this.subcategory,
-      this.priority,
-      this.impact,
-      this.urgency,
-      'closed',
-      'closed',
-      this.assignedToId,
-      this.beneficiaryId,
-      this.beneficiaryType,
-      this.assignmentGroup,
-      this.location,
-      this.contactType,
-      this.businessImpact,
-      this.symptoms,
-      this.workaround,
-      this.configurationItem,
-      this.businessService,
-      this.resolutionCode,
-      this.resolutionNotes,
-      this.workNotes,
-      closeNotes || this.closeNotes,
-      this.notify,
-      this.rootCause,
-      this.openedAt,
-      this.resolvedAt,
-      now, // closedAt
-      this.createdAt,
-      now // updatedAt
-    );
+    switch (ticket.priority) {
+      case 'critical':
+        return hoursOld > 1 ? 3 : hoursOld > 0.5 ? 2 : 1;
+      case 'high':
+        return hoursOld > 4 ? 3 : hoursOld > 2 ? 2 : 1;
+      case 'medium':
+        return hoursOld > 24 ? 3 : hoursOld > 12 ? 2 : 1;
+      case 'low':
+        return hoursOld > 72 ? 3 : hoursOld > 48 ? 2 : 1;
+      default:
+        return 1;
+    }
   }
-
-  // Factory method for reconstruction from persistence
-  static fromPersistence(data: any): Ticket {
-    return new Ticket(
-      data.id,
-      data.tenantId,
-      data.customerId,
-      data.callerId,
-      data.callerType,
-      data.subject,
-      data.description,
-      data.number,
-      data.shortDescription,
-      data.category,
-      data.subcategory,
-      data.priority,
-      data.impact,
-      data.urgency,
-      data.state,
-      data.status,
-      data.assignedToId,
-      data.beneficiaryId,
-      data.beneficiaryType,
-      data.assignmentGroup,
-      data.location,
-      data.contactType,
-      data.businessImpact,
-      data.symptoms,
-      data.workaround,
-      data.configurationItem,
-      data.businessService,
-      data.resolutionCode,
-      data.resolutionNotes,
-      data.workNotes,
-      data.closeNotes,
-      data.notify,
-      data.rootCause,
-      data.openedAt,
-      data.resolvedAt,
-      data.closedAt,
-      data.createdAt,
-      data.updatedAt
-    );
+  
+  /**
+   * Determines if SLA is violated based on priority and creation time
+   */
+  isSLAViolated(ticket: Ticket): boolean {
+    const hoursOld = (Date.now() - ticket.createdAt.getTime()) / (1000 * 60 * 60);
+    
+    const slaLimits = {
+      critical: 1, // 1 hour
+      high: 4,     // 4 hours
+      medium: 24,  // 24 hours
+      low: 72      // 72 hours
+    };
+    
+    return hoursOld > (slaLimits[ticket.priority] || 24);
+  }
+  
+  /**
+   * Generates automatic ticket number
+   */
+  generateTicketNumber(): string {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `T${timestamp}-${random}`;
   }
 }

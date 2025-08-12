@@ -1,70 +1,132 @@
-// Repository Interface for Tickets - Domain Layer
-import { Ticket } from "../entities/Ticket";
+/**
+ * DOMAIN LAYER - TICKET REPOSITORY INTERFACE
+ * Seguindo Clean Architecture - 1qa.md compliance
+ */
 
-export interface TicketWithRelations extends Ticket {
-  caller?: {
-    id: string;
-    type: 'user' | 'customer';
-    email: string;
-    fullName: string;
-  };
-  beneficiary?: {
-    id: string;
-    type: 'user' | 'customer';
-    email: string;
-    fullName: string;
-  };
-  assignedTo?: {
-    id: string;
-    email: string;
-    fullName: string;
-  };
-  customer?: {
-    id: string;
-    email: string;
-    fullName: string;
-  };
+import { Ticket } from '../entities/Ticket';
+
+export interface TicketFilters {
+  status?: string[];
+  priority?: string[];
+  assignedToId?: string;
+  customerId?: string;
+  companyId?: string;
+  category?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  search?: string;
+}
+
+export interface PaginationOptions {
+  page: number;
+  limit: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface TicketListResult {
+  tickets: Ticket[];
+  total: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface ITicketRepository {
-  // Core CRUD operations
-  findById(id: string, tenantId: string): Promise<TicketWithRelations | null>;
-  findAll(tenantId: string, options?: {
-    limit?: number;
-    offset?: number;
-    status?: string;
-    priority?: string;
-    assignedToId?: string;
-    callerId?: string;
-    callerType?: 'user' | 'customer';
-    beneficiaryId?: string;
-    beneficiaryType?: 'user' | 'customer';
-  }): Promise<TicketWithRelations[]>;
+  /**
+   * Find ticket by ID within tenant scope
+   */
+  findById(id: string, tenantId: string): Promise<Ticket | null>;
   
-  save(ticket: Ticket): Promise<Ticket>;
-  update(id: string, tenantId: string, ticket: Ticket): Promise<Ticket>;
-  delete(id: string, tenantId: string): Promise<boolean>;
+  /**
+   * Find ticket by number within tenant scope
+   */
+  findByNumber(number: string, tenantId: string): Promise<Ticket | null>;
   
-  // Business queries
-  findByCallerAndType(callerId: string, callerType: 'user' | 'customer', tenantId: string): Promise<TicketWithRelations[]>;
-  findByBeneficiaryAndType(beneficiaryId: string, beneficiaryType: 'user' | 'customer', tenantId: string): Promise<TicketWithRelations[]>;
-  findByAssignedAgent(agentId: string, tenantId: string): Promise<TicketWithRelations[]>;
+  /**
+   * Create new ticket
+   */
+  create(ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<Ticket>;
   
-  // Service type queries
-  findAutoServiceTickets(tenantId: string): Promise<TicketWithRelations[]>; // caller = beneficiary
-  findProxyServiceTickets(tenantId: string): Promise<TicketWithRelations[]>; // caller ≠ beneficiary
-  findInternalServiceTickets(tenantId: string): Promise<TicketWithRelations[]>; // user → user
-  findHybridServiceTickets(tenantId: string): Promise<TicketWithRelations[]>; // cross-type
+  /**
+   * Update existing ticket
+   */
+  update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<Ticket>;
   
-  // Statistics
-  countTotal(tenantId: string): Promise<number>;
-  countByServiceType(tenantId: string): Promise<{
-    autoService: number;
-    proxyService: number;
-    internalService: number;
-    hybridService: number;
+  /**
+   * Soft delete ticket (set isActive = false)
+   */
+  delete(id: string, tenantId: string): Promise<void>;
+  
+  /**
+   * Find tickets with filters and pagination
+   */
+  findByFilters(
+    filters: TicketFilters, 
+    pagination: PaginationOptions, 
+    tenantId: string
+  ): Promise<TicketListResult>;
+  
+  /**
+   * Find all tickets for a tenant
+   */
+  findByTenant(tenantId: string): Promise<Ticket[]>;
+  
+  /**
+   * Find tickets assigned to specific user
+   */
+  findByAssignedUser(userId: string, tenantId: string): Promise<Ticket[]>;
+  
+  /**
+   * Find tickets by customer
+   */
+  findByCustomer(customerId: string, tenantId: string): Promise<Ticket[]>;
+  
+  /**
+   * Find tickets by status
+   */
+  findByStatus(status: string, tenantId: string): Promise<Ticket[]>;
+  
+  /**
+   * Count tickets by filters
+   */
+  countByFilters(filters: TicketFilters, tenantId: string): Promise<number>;
+  
+  /**
+   * Get tickets statistics for dashboard
+   */
+  getStatistics(tenantId: string): Promise<{
+    total: number;
+    byStatus: Record<string, number>;
+    byPriority: Record<string, number>;
+    overdueCount: number;
+    todayCount: number;
   }>;
   
-  // Migration support
-  migrateExistingTickets(tenantId: string): Promise<{ updated: number; errors: string[] }>;
+  /**
+   * Find tickets that need escalation
+   */
+  findTicketsForEscalation(tenantId: string): Promise<Ticket[]>;
+  
+  /**
+   * Update last activity timestamp
+   */
+  updateLastActivity(id: string, tenantId: string): Promise<void>;
+  
+  /**
+   * Bulk update tickets (for batch operations)
+   */
+  bulkUpdate(
+    ids: string[], 
+    updates: Partial<Ticket>, 
+    tenantId: string
+  ): Promise<Ticket[]>;
+  
+  /**
+   * Search tickets by text (subject, description, number)
+   */
+  searchTickets(
+    searchTerm: string, 
+    tenantId: string, 
+    pagination?: PaginationOptions
+  ): Promise<TicketListResult>;
 }
