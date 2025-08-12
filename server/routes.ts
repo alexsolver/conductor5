@@ -1890,6 +1890,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('⚠️ Template Audit integration routes not available:', error);
   }
+
+  // === Template Versions Clean Architecture Integration ===
+  try {
+    const templateVersionsIntegrationRoutes = await import('./modules/template-versions/routes-integration');
+    app.use('/api/template-versions-integration', templateVersionsIntegrationRoutes.default);
+    console.log('✅ Template Versions Clean Architecture routes registered at /api/template-versions-integration');
+  } catch (error) {
+    console.warn('⚠️ Template Versions integration routes not available:', error);
+  }
   app.use('/api/holidays', holidayRoutes);
 
   // Ticket Templates routes are now integrated directly above
