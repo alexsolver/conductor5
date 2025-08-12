@@ -90,26 +90,35 @@ export default function Companies() {
     },
   });
 
-  // Query para buscar empresas
-  const { data: companies = [], isLoading, error } = useQuery({
-    queryKey: ['/api/customers/companies'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/customers/companies');
-      // Garantir que sempre retorna um array
-      if (Array.isArray(response)) {
-        return response;
-      }
-      if (response && typeof response === 'object') {
-        if (Array.isArray((response as any).data)) {
-          return (response as any).data;
-        }
-        if (Array.isArray((response as any).companies)) {
-          return (response as any).companies;
-        }
-      }
+  // Query para buscar empresas - usando endpoint correto
+  const { data: companiesData, isLoading, error } = useQuery({
+    queryKey: ['/api/companies'],
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // Handle different response formats from the API
+  const companies = (() => {
+    console.log('🔍 [COMPANIES-DEBUG] Raw API response:', companiesData);
+    if (!companiesData) {
+      console.log('❌ [COMPANIES-DEBUG] No data received');
       return [];
     }
-  });
+    if (Array.isArray(companiesData)) {
+      console.log('✅ [COMPANIES-DEBUG] Array format:', companiesData.length, 'companies');
+      return companiesData;
+    }
+    if ((companiesData as any).success && Array.isArray((companiesData as any).data)) {
+      console.log('✅ [COMPANIES-DEBUG] Success wrapper format:', (companiesData as any).data.length, 'companies');
+      return (companiesData as any).data;
+    }
+    if ((companiesData as any).data && Array.isArray((companiesData as any).data)) {
+      console.log('✅ [COMPANIES-DEBUG] Data wrapper format:', (companiesData as any).data.length, 'companies');
+      return (companiesData as any).data;
+    }
+    console.log('❌ [COMPANIES-DEBUG] Unknown format, returning empty array');
+    return [];
+  })();
 
   // Mutation para criar empresa
   const createCompanyMutation = useMutation({
