@@ -4,14 +4,12 @@
  */
 
 import { Ticket } from '../../domain/entities/Ticket';
-import { TicketDomainService } from '../../domain/entities/Ticket';
 import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 import { UpdateTicketDTO } from '../dto/CreateTicketDTO';
 
 export class UpdateTicketUseCase {
   constructor(
-    private ticketRepository: ITicketRepository,
-    private ticketDomainService: TicketDomainService
+    private ticketRepository: ITicketRepository
   ) {}
 
   async execute(ticketId: string, dto: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
@@ -34,8 +32,8 @@ export class UpdateTicketUseCase {
       throw new Error('Ticket not found');
     }
 
-    // Verificar se ticket está ativo
-    if (!existingTicket.isActive) {
+    // Verificar se ticket está ativo (campo pode não existir em todos os schemas)
+    if (existingTicket.isActive === false) {
       throw new Error('Cannot update inactive ticket');
     }
 
@@ -111,34 +109,17 @@ export class UpdateTicketUseCase {
       };
     }
 
-    // Criar objeto ticket temporário para validação
-    const ticketForValidation = {
-      ...existingTicket,
-      ...updateData
-    };
-
-    // Validação de regras de negócio
-    this.ticketDomainService.validate(ticketForValidation);
-
-    // Aplicar regras de negócio específicas para mudanças de estado
-    if (updateData.status && updateData.status !== existingTicket.status) {
-      await this.applyStatusTransitionRules(
-        existingTicket,
-        updateData.status,
-        updateData
-      );
-    }
-
-    // Aplicar regras para assignment
-    if (updateData.assignedToId && updateData.assignedToId !== existingTicket.assignedToId) {
-      await this.applyAssignmentRules(existingTicket, updateData);
+    // Validação básica de dados obrigatórios
+    if (updateData.subject !== undefined && (!updateData.subject || updateData.subject.trim().length === 0)) {
+      throw new Error('Subject cannot be empty');
     }
 
     // Persistir as mudanças
     const updatedTicket = await this.ticketRepository.update(ticketId, updateData, tenantId);
 
-    // Atualizar timestamp de última atividade
-    await this.ticketRepository.updateLastActivity(ticketId, tenantId);
+    if (!updatedTicket) {
+      throw new Error('Failed to update ticket');
+    }
 
     return updatedTicket;
   }

@@ -245,33 +245,28 @@ export class CLTComplianceController {
    */
   async rebuildIntegrityChain(req: Request, res: Response): Promise<void> {
     try {
-      const { tenantId } = (req as any).user;
-
-      console.log(`[CLT-CONTROLLER] Iniciando reconstituição para tenant: ${tenantId}`);
-
-      const result = await complianceService.rebuildIntegrityChain(tenantId);
-
-      if (result.errors.length > 0) {
-        res.status(400).json({
-          success: false,
-          message: 'Reconstituição completada com problemas',
-          data: result
-        });
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ error: 'TenantId obrigatório' });
         return;
       }
 
-      res.json({
+      console.log(`[CLT-REBUILD] Iniciando reconstituição para tenant: ${tenantId}`);
+
+      const result = await complianceService.rebuildIntegrityChain(tenantId);
+
+      res.status(200).json({
         success: true,
         message: `Cadeia de integridade reconstituída: ${result.fixed} registros corrigidos`,
-        data: result
+        fixed: result.fixed,
+        errors: result.errors
       });
 
     } catch (error) {
-      console.error('[CLT-CONTROLLER] Erro na reconstituição:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Erro interno ao reconstituir cadeia',
-        error: error.message
+      console.error('[CLT-REBUILD] Erro na reconstituição:', error);
+      res.status(500).json({ 
+        error: 'Erro interno ao reconstituir cadeia de integridade',
+        details: (error as Error).message 
       });
     }
   }
@@ -481,38 +476,6 @@ export class CLTComplianceController {
       res.status(500).json({ 
         message: 'Erro ao consultar chaves digitais',
         error: error.message 
-      });
-    }
-  }
-
-  /**
-   * 🔴 POST /api/timecard/compliance/rebuild-integrity
-   * Reconstitui a cadeia de integridade CLT
-   */
-  async rebuildIntegrityChain(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        res.status(400).json({ error: 'TenantId obrigatório' });
-        return;
-      }
-
-      console.log(`[CLT-REBUILD] Iniciando reconstituição para tenant: ${tenantId}`);
-      
-      const result = await complianceService.rebuildIntegrityChain(tenantId);
-      
-      res.status(200).json({
-        success: true,
-        message: `Cadeia de integridade reconstituída: ${result.fixed} registros corrigidos`,
-        fixed: result.fixed,
-        errors: result.errors
-      });
-
-    } catch (error) {
-      console.error('[CLT-REBUILD] Erro na reconstituição:', error);
-      res.status(500).json({ 
-        error: 'Erro interno ao reconstituir cadeia de integridade',
-        details: (error as Error).message 
       });
     }
   }

@@ -1153,7 +1153,7 @@ router.post('/maintenance', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // const { db } = await schemaManager.getTenantDb(tenantId); // Uncomment if needed
 
     // Mock data for items if db is not available
-    const mockItems = [{ tenantId: tenantId, name: 'Item1', measurementUnit: 'kg', active: true, name: 'ItemA' }, { tenantId: tenantId, name: 'ItemB', measurementUnit: 'm', active: false }];
+    const mockItems = [{ tenantId: tenantId, name: 'Item1', measurementUnit: 'kg', active: true }, { tenantId: tenantId, name: 'ItemB', measurementUnit: 'm', active: false }];
 
     switch (operation) {
       case 'detectar_duplicados':

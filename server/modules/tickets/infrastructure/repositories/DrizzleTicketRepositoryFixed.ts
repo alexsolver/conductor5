@@ -207,32 +207,48 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
     return newTicket;
   }
 
-  async update(id: string, updates: any, tenantId: string): Promise<Ticket | null> {
-    const [updatedTicket] = await db
-      .update(tickets)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(
-        and(
-          eq(tickets.id, id),
-          eq(tickets.tenantId, tenantId)
+  async update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<Ticket> {
+    try {
+      const [updatedTicket] = await db
+        .update(tickets)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(
+          and(
+            eq(tickets.id, id),
+            eq(tickets.tenantId, tenantId)
+          )
         )
-      )
-      .returning();
+        .returning();
 
-    return updatedTicket || null;
+      if (!updatedTicket) {
+        throw new Error('Ticket not found or update failed');
+      }
+
+      return updatedTicket as Ticket;
+    } catch (error: any) {
+      this.logger.error('Failed to update ticket', { error: error.message, id, tenantId });
+      throw new Error(`Failed to update ticket: ${error.message}`);
+    }
   }
 
-  async delete(id: string, tenantId: string): Promise<boolean> {
-    const result = await db
-      .delete(tickets)
-      .where(
-        and(
-          eq(tickets.id, id),
-          eq(tickets.tenantId, tenantId)
-        )
-      );
+  async delete(id: string, tenantId: string): Promise<void> {
+    try {
+      const result = await db
+        .delete(tickets)
+        .where(
+          and(
+            eq(tickets.id, id),
+            eq(tickets.tenantId, tenantId)
+          )
+        );
 
-    return result.rowCount > 0;
+      if (!result.rowCount || result.rowCount === 0) {
+        throw new Error('Ticket not found or delete failed');
+      }
+    } catch (error: any) {
+      this.logger.error('Failed to delete ticket', { error: error.message, id, tenantId });
+      throw new Error(`Failed to delete ticket: ${error.message}`);
+    }
   }
 
   async getStatistics(tenantId: string): Promise<{

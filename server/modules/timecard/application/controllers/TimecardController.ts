@@ -1345,7 +1345,7 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating overtime report:', error);
-      
+
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       return res.status(500).json({
         success: false,
@@ -1516,7 +1516,7 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating compliance report:', error);
-      
+
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       return res.status(500).json({
         success: false,
