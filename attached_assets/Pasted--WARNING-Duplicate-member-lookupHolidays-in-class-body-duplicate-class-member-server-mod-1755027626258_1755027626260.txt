@@ -1,0 +1,67 @@
+▲ [WARNING] Duplicate member "lookupHolidays" in class body [duplicate-class-member]
+
+    server/modules/locations/LocationsNewController.ts:780:8:
+      780 │   async lookupHolidays(req: AuthenticatedRequest, res: ExpressResponse) {
+          ╵         ~~~~~~
+
+  The original member "lookupHolidays" is here:
+
+    server/modules/locations/LocationsNewController.ts:135:8:
+      135 │   async lookupHolidays(req: AuthenticatedRequest, res: Response) {
+          ╵         ~~~~~~
+
+▲ [WARNING] Duplicate member "rebuildIntegrityChain" in class body [duplicate-class-member]
+
+    server/controllers/CLTComplianceController.ts:492:8:
+      492 │   async rebuildIntegrityChain(req: Request, res: Response): Promise<void> {
+          ╵         ~~~~~~~
+
+  The original member "rebuildIntegrityChain" is here:
+
+    server/controllers/CLTComplianceController.ts:246:8:
+      246 │   async rebuildIntegrityChain(req: Request, res: Response): Promise<void> {
+          ╵         ~~~~~~~
+
+▲ [WARNING] Duplicate member "getHourBankSummary" in class body [duplicate-class-member]
+
+    server/modules/timecard/application/controllers/TimecardController.ts:1132:8:
+      1132 │   async getHourBankSummary(req: AuthenticatedRequest, res: Response) {
+           ╵         ~~~~~~
+
+  The original member "getHourBankSummary" is here:
+
+    server/modules/timecard/application/controllers/TimecardController.ts:694:2:
+      694 │   getHourBankSummary = async (req: Request, res: Response) => {
+          ╵   ~~~~~~
+
+✘ [ERROR] Could not resolve "../../../../schemaManager"
+
+    server/modules/materials-services/application/controllers/ItemController.ts:799:34:
+      799 │       const { db } = await import('../../../../schemaManager').then(m => m.default);
+          ╵                                   ~~~~~~~~~
+
+▲ [WARNING] Duplicate key "name" in object literal [duplicate-object-key]
+
+    server/modules/materials-services/routes.ts:1156:97:
+      1156 │ ...e: 'Item1', measurementUnit: 'kg', active: true, name: 'ItemA' }, { tenantId: tenantId, name: 'ItemB'...
+           ╵                                                     ~~
+
+  The original key "name" is here:
+
+    server/modules/materials-services/routes.ts:1156:45:
+      1156 │     const mockItems = [{ tenantId: tenantId, name: 'Item1', measurementUnit: 'kg', active: true, name: '...
+           ╵                                              ~~
+
+▲ [WARNING] Duplicate member "toggleFavorite" in class body [duplicate-class-member]
+
+    server/modules/locations/LocationsController.ts:251:8:
+      251 │   async toggleFavorite(req: AuthenticatedRequest, res: Response) {
+          ╵         ~~~~~~
+
+  The original member "toggleFavorite" is here:
+
+    server/modules/locations/LocationsController.ts:117:8:
+      117 │   async toggleFavorite(req: AuthenticatedRequest, res: Response) {
+          ╵         ~~~~~~
+
+5 of 7 warnings and 1 error shown (disable the message limit with --log-limit=0)
