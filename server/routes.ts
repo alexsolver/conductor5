@@ -1585,8 +1585,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log('✅ Tenant deployment template routes registered');
 
-  // Ticket relationships routes
-  app.use('/api/tickets', ticketRelationshipsRoutes);
+  // Ticket relationships routes - moved to avoid conflict with Clean Architecture
+  app.use('/api/ticket-relationships-legacy', ticketRelationshipsRoutes);
   app.use('/api/tickets-optimized', ticketsWithRelationshipsRoutes);
 
   // Customer-Location relationship routes
@@ -1922,14 +1922,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('⚠️ Auth integration routes not available:', error);
   }
 
-  // === Tickets Clean Architecture Integration ===
-  try {
-    const ticketsIntegrationRoutes = await import('./modules/tickets/routes-integration');
-    app.use('/api/tickets-integration', ticketsIntegrationRoutes.default);
-    console.log('✅ Tickets Clean Architecture routes registered at /api/tickets-integration');
-  } catch (error) {
-    console.warn('⚠️ Tickets integration routes not available:', error);
-  }
+  // === Tickets Clean Architecture Integration - REMOVED ===
+  // Already registered above at /api/tickets for main endpoint
 
   // === Users Clean Architecture Integration ===
   try {
