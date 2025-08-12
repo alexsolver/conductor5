@@ -54,6 +54,24 @@ router.get('/', jwtAuth, async (req, res) => {
 });
 
 /**
+ * GET SINGLE TICKET - Endpoint for ticket details
+ * GET /api/tickets/:id
+ */
+router.get('/:id', jwtAuth, async (req, res) => {
+  console.log('🎯 [TICKETS-INTEGRATION] GET /api/tickets/:id endpoint called');
+  try {
+    await ticketController.findById(req, res);
+  } catch (error) {
+    console.error('❌ [TICKETS-INTEGRATION] Error in findById:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+/**
  * Status endpoint - Check module status
  * GET /api/tickets-integration/status
  */
