@@ -255,11 +255,14 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       // Add updated_at and id for WHERE clause
       updateParts.push(`updated_at = NOW()`);
       values.push(id);
+      
+      // Fix: Use correct parameter number for WHERE clause
+      const whereParamNumber = paramCounter;
 
       const updateQuery = `
         UPDATE ${schemaName}.tickets 
         SET ${updateParts.join(', ')}
-        WHERE id = $${paramCounter} AND is_active = true
+        WHERE id = $${whereParamNumber} AND is_active = true
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
