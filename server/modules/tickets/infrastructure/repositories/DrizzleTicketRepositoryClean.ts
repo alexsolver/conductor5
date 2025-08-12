@@ -256,8 +256,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       updateParts.push(`updated_at = NOW()`);
       values.push(id);
       
-      // Fix: Use correct parameter number for WHERE clause
-      const whereParamNumber = paramCounter;
+      // CRITICAL FIX: The WHERE parameter should be the NEXT parameter number
+      const whereParamNumber = values.length; // This gives us the correct parameter position
 
       const updateQuery = `
         UPDATE ${schemaName}.tickets 
