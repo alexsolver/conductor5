@@ -5,7 +5,7 @@
 
 import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { users } from '../../../../shared/schema-master';
+import { users } from '@shared/schema';
 import { User } from '../../domain/entities/User';
 import { 
   IUserRepository, 
