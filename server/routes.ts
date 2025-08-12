@@ -24,6 +24,7 @@ import beneficiariesRoutes from './modules/beneficiaries/routes';
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
 import locationsNewRoutes from './modules/locations/routes-new';
+import locationsIntegrationRoutes from './modules/locations/routes-integration';
 import ticketRelationshipsRoutes from './routes/ticketRelationships';
 import ticketsWithRelationshipsRoutes from './routes/ticketsWithRelationships';
 // import { omniBridgeRoutes } from './modules/omni-bridge/routes'; // Temporarily removed
@@ -1788,6 +1789,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // New locations module with 7 record types  
   app.use('/api/locations-new', locationsNewRoutes);
+  
+  // === Locations Clean Architecture Integration ===
+  console.log('✅ Locations Clean Architecture routes registered at /api/locations-integration');
+  app.use('/api/locations-integration', locationsIntegrationRoutes);
   app.use('/api/holidays', holidayRoutes);
 
   // Ticket Templates routes are now integrated directly above
