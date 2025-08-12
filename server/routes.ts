@@ -216,6 +216,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const technicalSkillsIntegrationRoutes = await import('./modules/technical-skills/routes-integration');
   console.log('✅ Technical Skills Clean Architecture routes registered at /api/technical-skills-integration');
   app.use('/api/technical-skills-integration', technicalSkillsIntegrationRoutes.default);
+  
+  // === Teams Clean Architecture Integration ===
+  const teamsIntegrationRoutes = await import('./modules/teams/routes-integration');
+  console.log('✅ Teams Clean Architecture routes registered at /api/teams-integration');
+  app.use('/api/teams-integration', teamsIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
