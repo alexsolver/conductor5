@@ -12,7 +12,7 @@ import { jwtAuth } from '../../middleware/jwtAuth';
 const router = Router();
 
 // Import Clean Architecture components
-import { DrizzleTicketRepository } from './infrastructure/repositories/DrizzleTicketRepository';
+import { DrizzleTicketRepositoryFixed } from './infrastructure/repositories/DrizzleTicketRepositoryFixed';
 import { CreateTicketUseCase } from './application/use-cases/CreateTicketUseCase';
 import { UpdateTicketUseCase } from './application/use-cases/UpdateTicketUseCase';
 import { FindTicketUseCase } from './application/use-cases/FindTicketUseCase';
@@ -23,7 +23,7 @@ import { TicketController } from './application/controllers/TicketController';
 import { ConsoleLogger } from './domain/services/Logger';
 
 const logger = new ConsoleLogger();
-const ticketRepository = new DrizzleTicketRepository(logger);
+const ticketRepository = new DrizzleTicketRepositoryFixed(logger);
 const createTicketUseCase = new CreateTicketUseCase(ticketRepository);
 const updateTicketUseCase = new UpdateTicketUseCase(ticketRepository);
 const findTicketUseCase = new FindTicketUseCase(ticketRepository, logger);

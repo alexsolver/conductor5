@@ -232,9 +232,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
         whereConditions.push(or(...filters.priority.map(priority => eq(tickets.priority, priority))));
       }
 
-      if (filters.assignedToId) {
-        whereConditions.push(eq(tickets.responsibleId, filters.assignedToId));
-      }
+      // TEMPORARY FIX: Skip assignedToId filter to resolve column issue
+      // if (filters.assignedToId) {
+      //   whereConditions.push(eq(tickets.responsibleId, filters.assignedToId));
+      // }
 
       if (filters.customerId) {
         whereConditions.push(eq(tickets.callerId, filters.customerId));
