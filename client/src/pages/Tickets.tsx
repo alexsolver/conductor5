@@ -87,7 +87,7 @@ export default function Tickets() {
   // Token management handled by auth hook
   // Remove debug code for production
 
-  const { data: tickets, isLoading, error } = useQuery({
+  const { data: ticketsData, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
     retry: false,
   });
@@ -151,7 +151,7 @@ export default function Tickets() {
 
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-  
+
   // Handle customer loading errors
   if (customersData?.error || customersError) {
     console.error('Customer loading error:', customersData?.error || customersError);
@@ -316,20 +316,20 @@ export default function Tickets() {
       description: data.description,
       priority: data.priority,
       urgency: data.urgency,
-      
+
       // Hierarchical classification
       category: data.category,
       subcategory: data.subcategory,
       action: data.action,
-      
+
       // Person relationships (standardized)
       caller_id: data.customerId,
       beneficiary_id: data.beneficiaryId || null,
       customer_company_id: data.companyId,
-      
+
       // Assignment
       assignment_group_id: data.assignmentGroup,
-      
+
       // Location and context
       location: data.location,
       symptoms: data.symptoms || null,
@@ -392,8 +392,12 @@ export default function Tickets() {
     );
   }
 
-  // Parse consistente dos dados de tickets
-  const ticketsList = (tickets as any)?.data?.tickets || [];
+  // Parse API response correctly
+  const ticketsResponse = ticketsData?.data;
+  const ticketsList = Array.isArray(ticketsResponse?.tickets) ? ticketsResponse.tickets : 
+                 Array.isArray(ticketsResponse) ? ticketsResponse : [];
+  const pagination = ticketsResponse?.pagination || { total: 0, totalPages: 0 };
+
   const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
 
   return (
@@ -503,7 +507,7 @@ export default function Tickets() {
                                     const lastName = customer.last_name || customer.lastName || '';
                                     const fullName = customer.fullName || customer.full_name || '';
                                     const name = customer.name || '';
-                                    
+
                                     if (fullName) return fullName;
                                     if (firstName && lastName) return `${firstName} ${lastName}`;
                                     if (firstName) return firstName;
@@ -879,7 +883,7 @@ export default function Tickets() {
                       </DynamicBadge>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 mb-3">
                     <DynamicBadge 
                       fieldName="category" 

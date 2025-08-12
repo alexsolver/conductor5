@@ -36,7 +36,18 @@ const ticketController = new TicketController(
  * GET ALL TICKETS - Main endpoint for frontend
  * GET /api/tickets
  */
-router.get('/', jwtAuth, ticketController.findAll.bind(ticketController));
+router.get('/', jwtAuth, async (req, res) => {
+  try {
+    await ticketController.findAll(req, res);
+  } catch (error) {
+    console.error('[TICKETS-INTEGRATION] Error in GET /:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve tickets',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
 /**
  * Status endpoint - Check module status
