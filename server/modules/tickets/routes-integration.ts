@@ -11,22 +11,26 @@ import { jwtAuth } from '../../middleware/jwtAuth';
 
 const router = Router();
 
-// Import working routes
-let workingRoutes: Router;
+// Import Clean Architecture components
+import { DrizzleTicketRepository } from './infrastructure/repositories/DrizzleTicketRepository';
+import { CreateTicketUseCase } from './application/use-cases/CreateTicketUseCase';
+import { UpdateTicketUseCase } from './application/use-cases/UpdateTicketUseCase';
+import { FindTicketUseCase } from './application/use-cases/FindTicketUseCase';
+import { DeleteTicketUseCase } from './application/use-cases/DeleteTicketUseCase';
+import { TicketController } from './application/controllers/TicketController';
 
-async function loadWorkingRoutes() {
-  try {
-    const module = await import('./routes-clean');
-    workingRoutes = module.default;
-    console.log('[TICKETS-INTEGRATION] Working routes loaded successfully');
-  } catch (error) {
-    console.error('[TICKETS-INTEGRATION] Failed to load working routes:', error);
-    workingRoutes = Router();
-  }
-}
-
-// Initialize working routes
-loadWorkingRoutes();
+// Initialize Clean Architecture
+const ticketRepository = new DrizzleTicketRepository();
+const createTicketUseCase = new CreateTicketUseCase(ticketRepository);
+const updateTicketUseCase = new UpdateTicketUseCase(ticketRepository);
+const findTicketUseCase = new FindTicketUseCase(ticketRepository);
+const deleteTicketUseCase = new DeleteTicketUseCase(ticketRepository);
+const ticketController = new TicketController(
+  createTicketUseCase,
+  updateTicketUseCase,
+  findTicketUseCase,
+  deleteTicketUseCase
+);
 
 /**
  * Status endpoint - Check module status
@@ -257,20 +261,31 @@ router.post('/validate-ticket-data', jwtAuth, async (req, res) => {
 });
 
 /**
- * Mount working routes under /working
+ * Clean Architecture endpoints - Following 1qa.md compliance
  */
-router.use('/working', (req, res, next) => {
-  if (!workingRoutes) {
-    return res.status(503).json({
-      success: false,
-      message: 'Working routes not available',
-      error: 'Service temporarily unavailable'
-    });
-  }
-  next();
-}, () => workingRoutes);
 
-// Log successful mounting
-console.log('[TICKETS-INTEGRATION] Mounting Phase 1 working routes at /working');
+// GET /api/tickets - List tickets with filtering and pagination
+router.get('/', jwtAuth, ticketController.findAll.bind(ticketController));
+
+// GET /api/tickets/search - Search tickets
+router.get('/search', jwtAuth, ticketController.search.bind(ticketController));
+
+// GET /api/tickets/stats - Get ticket statistics
+router.get('/stats', jwtAuth, ticketController.getStatistics.bind(ticketController));
+
+// GET /api/tickets/:id - Get specific ticket
+router.get('/:id', jwtAuth, ticketController.findById.bind(ticketController));
+
+// POST /api/tickets - Create new ticket
+router.post('/', jwtAuth, ticketController.create.bind(ticketController));
+
+// PUT /api/tickets/:id - Update ticket
+router.put('/:id', jwtAuth, ticketController.update.bind(ticketController));
+
+// DELETE /api/tickets/:id - Delete ticket
+router.delete('/:id', jwtAuth, ticketController.delete.bind(ticketController));
+
+console.log('[TICKETS-INTEGRATION] Clean Architecture endpoints mounted');
+console.log('✅ Tickets Clean Architecture routes registered at /api/tickets');
 
 export default router;
