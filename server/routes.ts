@@ -1872,6 +1872,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('⚠️ Field Layout integration routes not available:', error);
   }
+
+  // === Tenant Admin Clean Architecture Integration ===
+  try {
+    const tenantAdminIntegrationRoutes = await import('./modules/tenant-admin/routes-integration');
+    app.use('/api/tenant-admin-integration', tenantAdminIntegrationRoutes.default);
+    console.log('✅ Tenant Admin Clean Architecture routes registered at /api/tenant-admin-integration');
+  } catch (error) {
+    console.warn('⚠️ Tenant Admin integration routes not available:', error);
+  }
   app.use('/api/holidays', holidayRoutes);
 
   // Ticket Templates routes are now integrated directly above
