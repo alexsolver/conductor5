@@ -3,9 +3,9 @@
  * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, ne, ilike, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { tickets } from '@shared/schema';
+import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, ne, ilike, sql } from 'drizzle-orm';
 import { Ticket } from '../../domain/entities/Ticket';
 import {
   ITicketRepository,
@@ -158,7 +158,7 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
   async findById(id: string, tenantId: string): Promise<any | null> {
     try {
       console.log(`🔍 [DrizzleTicketRepositoryFixed] findById called with id: ${id}, tenantId: ${tenantId}`);
-      
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const result = await db.execute(sql`
         SELECT 
@@ -173,7 +173,7 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
 
       const ticket = result.rows[0] || null;
       console.log(`✅ [DrizzleTicketRepositoryFixed] findById result: ${ticket ? 'found' : 'not found'}`);
-      
+
       return ticket;
     } catch (error) {
       console.error('❌ [DrizzleTicketRepositoryFixed] findById error:', error);

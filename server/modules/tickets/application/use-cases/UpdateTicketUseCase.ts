@@ -6,11 +6,21 @@
 import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 import { UpdateTicketDTO } from '../dto/CreateTicketDTO';
+import { Logger } from 'aws-lambda-logger';
 
 export class UpdateTicketUseCase {
+  // Em um cenário real, o repository e o logger seriam injetados via dependência
+  // Assumindo que 'this.repository' e 'this.logger' estão disponíveis e são instâncias corretas
+  private repository: ITicketRepository;
+  private logger: Logger;
+
   constructor(
-    private ticketRepository: ITicketRepository
-  ) {}
+    ticketRepository: ITicketRepository,
+    logger: Logger
+  ) {
+    this.repository = ticketRepository;
+    this.logger = logger;
+  }
 
   async execute(ticketId: string, dto: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
     // Validação de entrada
@@ -27,7 +37,7 @@ export class UpdateTicketUseCase {
     }
 
     // Buscar ticket existente
-    const existingTicket = await this.ticketRepository.findById(ticketId, tenantId);
+    const existingTicket = await this.repository.findById(ticketId, tenantId);
     if (!existingTicket) {
       throw new Error('Ticket not found');
     }
@@ -53,6 +63,8 @@ export class UpdateTicketUseCase {
 
     if (dto.status !== undefined) {
       updateData.status = dto.status;
+      // Aplicar regras de transição de status antes de salvar
+      await this.applyStatusTransitionRules(existingTicket, dto.status, updateData);
     }
 
     if (dto.priority !== undefined) {
@@ -78,6 +90,8 @@ export class UpdateTicketUseCase {
 
     if (dto.assignedToId !== undefined) {
       updateData.assignedToId = dto.assignedToId;
+      // Aplicar regras de atribuição antes de salvar
+      await this.applyAssignmentRules(existingTicket, updateData);
     }
 
     if (dto.companyId !== undefined) {
@@ -115,7 +129,7 @@ export class UpdateTicketUseCase {
     }
 
     // Persistir as mudanças
-    const updatedTicket = await this.ticketRepository.update(ticketId, updateData, tenantId);
+    const updatedTicket = await this.repository.update(ticketId, updateData, tenantId);
 
     if (!updatedTicket) {
       throw new Error('Failed to update ticket');
