@@ -174,6 +174,11 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     queryParams.push(limit, offset);
 
     const { pool } = await import('../../db');
+    
+    // Debug: Log the complete query and parameters
+    console.log('🔍 [TICKETS-DEBUG] Full Query:', query);
+    console.log('🔍 [TICKETS-DEBUG] Query Params:', queryParams);
+    
     const { rows: tickets } = await pool.query(query, queryParams);
 
     // Get total count for pagination
@@ -194,6 +199,9 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }, "Tickets retrieved successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');
+    console.error('🚨 [TICKETS-ERROR] Detailed error:', error);
+    console.error('🚨 [TICKETS-ERROR] Error message:', error.message);
+    console.error('🚨 [TICKETS-ERROR] Error stack:', error.stack);
     logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
     return sendError(res, error, "Failed to fetch tickets", 500);
   }
