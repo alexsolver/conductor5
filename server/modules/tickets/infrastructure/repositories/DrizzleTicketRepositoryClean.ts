@@ -36,7 +36,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       const ticket = result.rows[0] || null;
       console.log(`✅ [DrizzleTicketRepositoryClean] findById result: ${ticket ? 'found' : 'not found'}`);
-      
+
       return ticket as Ticket | null;
     } catch (error: any) {
       console.error('❌ [DrizzleTicketRepositoryClean] findById error:', error);
@@ -193,76 +193,80 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   async update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<Ticket> {
     try {
-      console.log(`🔧 [DrizzleTicketRepositoryClean] update called with id: ${id}, tenantId: ${tenantId}`);
-      console.log(`📝 Update data:`, updates);
+      console.log('🔧 [DrizzleTicketRepositoryClean] update called with id:', id, 'tenantId:', tenantId);
+      console.log('📝 Update data:', updates);
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      // FINAL FIX: Use raw SQL properly - following 1qa.md standards
-      const updateParts = [];
+
+      // Build dynamic SET clause based on provided fields
+      const setClauses = [];
       const values = [];
-      let paramCounter = 1;
+      let paramCount = 0;
 
       if (updates.subject !== undefined) {
-        updateParts.push(`subject = $${paramCounter++}`);
+        setClauses.push(`subject = $${++paramCount}`);
         values.push(updates.subject);
       }
       if (updates.description !== undefined) {
-        updateParts.push(`description = $${paramCounter++}`);
+        setClauses.push(`description = $${++paramCount}`);
         values.push(updates.description);
       }
       if (updates.status !== undefined) {
-        updateParts.push(`status = $${paramCounter++}`);
+        setClauses.push(`status = $${++paramCount}`);
         values.push(updates.status);
       }
       if (updates.priority !== undefined) {
-        updateParts.push(`priority = $${paramCounter++}`);
+        setClauses.push(`priority = $${++paramCount}`);
         values.push(updates.priority);
       }
       if (updates.urgency !== undefined) {
-        updateParts.push(`urgency = $${paramCounter++}`);
+        setClauses.push(`urgency = $${++paramCount}`);
         values.push(updates.urgency);
       }
       if (updates.impact !== undefined) {
-        updateParts.push(`impact = $${paramCounter++}`);
+        setClauses.push(`impact = $${++paramCount}`);
         values.push(updates.impact);
       }
       if (updates.category !== undefined) {
-        updateParts.push(`category = $${paramCounter++}`);
+        setClauses.push(`category = $${++paramCount}`);
         values.push(updates.category);
       }
       if (updates.subcategory !== undefined) {
-        updateParts.push(`subcategory = $${paramCounter++}`);
+        setClauses.push(`subcategory = $${++paramCount}`);
         values.push(updates.subcategory);
       }
       if (updates.assignedToId !== undefined) {
-        updateParts.push(`assigned_to_id = $${paramCounter++}`);
+        setClauses.push(`assigned_to_id = $${++paramCount}`);
         values.push(updates.assignedToId);
       }
       if (updates.companyId !== undefined) {
-        updateParts.push(`company_id = $${paramCounter++}`);
+        setClauses.push(`company_id = $${++paramCount}`);
         values.push(updates.companyId);
       }
       if (updates.beneficiaryId !== undefined) {
-        updateParts.push(`beneficiary_id = $${paramCounter++}`);
+        setClauses.push(`beneficiary_id = $${++paramCount}`);
         values.push(updates.beneficiaryId);
       }
       if (updates.callerId !== undefined) {
-        updateParts.push(`caller_id = $${paramCounter++}`);
+        setClauses.push(`caller_id = $${++paramCount}`);
         values.push(updates.callerId);
       }
 
-      // Add updated_at and id for WHERE clause
-      updateParts.push(`updated_at = NOW()`);
-      values.push(id);
-      
-      // CRITICAL FIX: The WHERE parameter should be the NEXT parameter number
-      const whereParamNumber = values.length; // This gives us the correct parameter position
+      // Always update the updated_at timestamp
+      setClauses.push('updated_at = NOW()');
 
-      const updateQuery = `
+      // Add WHERE clause parameters
+      const whereId = `$${++paramCount}`;
+      values.push(id);
+
+      if (setClauses.length === 1) { // Only updated_at
+        throw new Error('No fields to update');
+      }
+
+      const sqlQuery = `
         UPDATE ${schemaName}.tickets 
-        SET ${updateParts.join(', ')}
-        WHERE id = $${whereParamNumber} AND is_active = true
+        SET ${setClauses.join(', ')}
+        WHERE id = ${whereId} AND is_active = true
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
@@ -270,18 +274,18 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           company_id as "companyId", beneficiary_id as "beneficiaryId"
       `;
 
-      console.log(`🔧 SQL:`, updateQuery);
-      console.log(`📊 Values:`, values);
+      console.log('🔧 SQL:', sqlQuery);
+      console.log('📊 Values:', values);
 
-      const result = await db.execute(sql.raw(updateQuery, values));
-      const updatedTicket = result.rows?.[0];
-      
-      if (!updatedTicket) {
+      const result = await db.execute(sql.raw(sqlQuery, values));
+
+      if (!result.rows || result.rows.length === 0) {
         throw new Error('Ticket not found or update failed');
       }
 
-      console.log(`✅ [DrizzleTicketRepositoryClean] update successful`);
-      return updatedTicket as Ticket;
+      console.log('✅ [DrizzleTicketRepositoryClean] update successful');
+      return result.rows[0] as Ticket;
+
     } catch (error: any) {
       console.error('❌ [DrizzleTicketRepositoryClean] update error:', error);
       this.logger.error('Failed to update ticket', { error: error.message, id, tenantId });
@@ -294,7 +298,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       console.log(`🗑️ [DrizzleTicketRepositoryClean] delete called with id: ${id}, tenantId: ${tenantId}`);
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       // Use SOFT DELETE instead of hard delete - FIXED following 1qa.md
       const query = sql`
         UPDATE ${sql.identifier(schemaName)}.tickets 
@@ -305,11 +309,11 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       const result = await db.execute(query);
       const deletedTicket = result.rows?.[0];
-      
+
       if (!deletedTicket) {
         throw new Error('Ticket not found or already deleted');
       }
-      
+
       console.log(`✅ [DrizzleTicketRepositoryClean] delete successful - ticket soft deleted with ID: ${deletedTicket.id}`);
     } catch (error: any) {
       console.error('❌ [DrizzleTicketRepositoryClean] delete error:', error);
@@ -341,12 +345,12 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
   }> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       // Get total count
       const totalResult = await db.execute(sql`
         SELECT COUNT(*) as total FROM ${sql.identifier(schemaName)}.tickets
       `);
-      
+
       const total = Number(totalResult.rows[0]?.total || 0);
 
       return {
