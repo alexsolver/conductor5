@@ -29,7 +29,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       )
       .limit(1);
 
-    return result[0] || null;
+    return result[0] as any || null;
   }
 
   async findByNumber(number: string, tenantId: string): Promise<Ticket | null> {
@@ -48,7 +48,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result[0] || null;
   }
 
-  async create(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<Ticket> {
+  async create(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<any> {
     const now = new Date();
     
     const insertData = {
@@ -66,7 +66,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result[0];
   }
 
-  async update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<Ticket> {
+  async update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<any> {
     const updateData = {
       ...updates,
       updatedAt: new Date()
@@ -95,7 +95,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     const result = await db
       .update(tickets)
       .set({ 
-        isActive: false, 
+        is_active: false, 
         updatedAt: new Date() 
       })
       .where(
@@ -131,11 +131,11 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filters.assignedToId) {
-      conditions.push(eq(tickets.assignedToId, filters.assignedToId));
+      conditions.push(eq(tickets.caller_id, filters.assignedToId));
     }
 
     if (filters.customerId) {
-      conditions.push(eq(tickets.customerId, filters.customerId));
+      conditions.push(eq(tickets.caller_id, filters.customerId));
     }
 
     if (filters.companyId) {
@@ -198,7 +198,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     };
   }
 
-  async findByTenant(tenantId: string): Promise<Ticket[]> {
+  async findByTenant(tenantId: string): Promise<any[]> {
     const result = await db
       .select()
       .from(tickets)
@@ -213,13 +213,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result;
   }
 
-  async findByAssignedUser(userId: string, tenantId: string): Promise<Ticket[]> {
+  async findByAssignedUser(userId: string, tenantId: string): Promise<any[]> {
     const result = await db
       .select()
       .from(tickets)
       .where(
         and(
-          eq(tickets.assignedToId, userId),
+          eq(tickets.caller_id, userId),
           eq(tickets.tenantId, tenantId),
           eq(tickets.is_active, true)
         )
@@ -229,13 +229,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result;
   }
 
-  async findByCustomer(customerId: string, tenantId: string): Promise<Ticket[]> {
+  async findByCustomer(customerId: string, tenantId: string): Promise<any[]> {
     const result = await db
       .select()
       .from(tickets)
       .where(
         and(
-          eq(tickets.customerId, customerId),
+          eq(tickets.caller_id, customerId),
           eq(tickets.tenantId, tenantId),
           eq(tickets.is_active, true)
         )
@@ -245,7 +245,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return result;
   }
 
-  async findByStatus(status: string, tenantId: string): Promise<Ticket[]> {
+  async findByStatus(status: string, tenantId: string): Promise<any[]> {
     const result = await db
       .select()
       .from(tickets)
@@ -277,11 +277,11 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filters.assignedToId) {
-      conditions.push(eq(tickets.assignedToId, filters.assignedToId));
+      conditions.push(eq(tickets.caller_id, filters.assignedToId));
     }
 
     if (filters.customerId) {
-      conditions.push(eq(tickets.customerId, filters.customerId));
+      conditions.push(eq(tickets.caller_id, filters.customerId));
     }
 
     if (filters.search) {
@@ -370,7 +370,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     };
   }
 
-  async findTicketsForEscalation(tenantId: string): Promise<Ticket[]> {
+  async findTicketsForEscalation(tenantId: string): Promise<any[]> {
     // Find tickets that might need escalation based on age and priority
     const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -422,7 +422,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     ids: string[], 
     updates: Partial<Ticket>, 
     tenantId: string
-  ): Promise<Ticket[]> {
+  ): Promise<any[]> {
     const updateData = {
       ...updates,
       updatedAt: new Date()
