@@ -1863,6 +1863,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // === Locations Clean Architecture Integration ===
   console.log('✅ Locations Clean Architecture routes registered at /api/locations-integration');
   app.use('/api/locations-integration', locationsIntegrationRoutes);
+
+  // === Field Layout Clean Architecture Integration ===
+  try {
+    const fieldLayoutIntegrationRoutes = await import('./modules/field-layout/routes-integration');
+    app.use('/api/field-layout-integration', fieldLayoutIntegrationRoutes.default);
+    console.log('✅ Field Layout Clean Architecture routes registered at /api/field-layout-integration');
+  } catch (error) {
+    console.warn('⚠️ Field Layout integration routes not available:', error);
+  }
   app.use('/api/holidays', holidayRoutes);
 
   // Ticket Templates routes are now integrated directly above
