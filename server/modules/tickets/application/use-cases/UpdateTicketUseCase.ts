@@ -164,12 +164,12 @@ export class UpdateTicketUseCase {
     } catch (error: any) {
       console.error('❌ [UpdateTicketUseCase] Update failed:', error);
       this.logger.error('Failed to update ticket', { 
-        error: error.message, 
+        error: error?.message || 'Unknown error', 
         id, 
         tenantId, 
         dto: JSON.stringify(dto) 
       });
-      throw error; // Re-throw original error with full context
+      throw new Error(error?.message || 'Failed to update ticket');
     }
   }
 }
