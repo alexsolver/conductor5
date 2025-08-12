@@ -241,6 +241,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const materialsServicesIntegrationRoutes = await import('./modules/materials-services/routes-integration');
   console.log('✅ Materials Services Clean Architecture routes registered at /api/materials-services-integration');
   app.use('/api/materials-services-integration', materialsServicesIntegrationRoutes.default);
+  
+  // === Notifications Clean Architecture Integration ===
+  const notificationsIntegrationRoutes = await import('./modules/notifications/routes-integration');
+  console.log('✅ Notifications Clean Architecture routes registered at /api/notifications-integration');
+  app.use('/api/notifications-integration', notificationsIntegrationRoutes.default);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
