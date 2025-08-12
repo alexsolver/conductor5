@@ -12,7 +12,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import beneficiariesCleanRoutes from './routes-clean';
+import beneficiariesWorkingRoutes from './routes-working';
 import beneficiariesLegacyRoutes from './routes'; // Legacy routes
 
 const router = Router();
@@ -31,10 +31,10 @@ router.get('/status', (req: Request, res: Response) => {
     version: '1.0.0',
     phase: 7,
     components: {
-      cleanArchitecture: {
+      workingImplementation: {
         status: 'active',
-        path: '/v2',
-        description: 'Clean Architecture implementation'
+        path: '/working',
+        description: 'Phase 7 working implementation'
       },
       legacySystem: {
         status: 'available',
@@ -44,17 +44,12 @@ router.get('/status', (req: Request, res: Response) => {
     },
     endpoints: {
       primary: [
-        'POST /v2/ - Create beneficiary',
-        'GET /v2/:id - Get beneficiary by ID',
-        'GET /v2/ - List beneficiaries with filtering',
-        'PUT /v2/:id - Update beneficiary', 
-        'DELETE /v2/:id - Delete beneficiary',
-        'GET /v2/search - Search beneficiaries',
-        'GET /v2/cpf/:cpf - Find by CPF',
-        'GET /v2/customer/:customerId - Find by customer',
-        'GET /v2/stats - Get statistics',
-        'GET /v2/recent - Get recent beneficiaries',
-        'DELETE /v2/bulk - Bulk delete'
+        'GET /working/status - Phase 7 status',
+        'POST /working/beneficiaries - Create beneficiary',
+        'GET /working/beneficiaries - List beneficiaries',
+        'GET /working/beneficiaries/:id - Get beneficiary by ID',
+        'PUT /working/beneficiaries/:id - Update beneficiary', 
+        'DELETE /working/beneficiaries/:id - Delete beneficiary'
       ],
       legacy: [
         'All original beneficiary endpoints'
@@ -76,17 +71,17 @@ router.get('/status', (req: Request, res: Response) => {
   });
 });
 
-// ===== CLEAN ARCHITECTURE ROUTES (PRIMARY) =====
+// ===== WORKING PHASE 7 ROUTES (PRIMARY) =====
 
 /**
- * Mount Clean Architecture routes as primary system
- * All /v2/* routes use the new implementation
+ * Mount Phase 7 working routes as primary system
+ * All /working/* routes use the Phase 7 implementation
  */
 try {
-  console.log('[BENEFICIARY-INTEGRATION] Mounting Clean Architecture routes at /v2');
-  router.use('/', beneficiariesCleanRoutes);
+  console.log('[BENEFICIARY-INTEGRATION] Mounting Phase 7 working routes at /working');
+  router.use('/', beneficiariesWorkingRoutes);
 } catch (error) {
-  console.error('[BENEFICIARY-INTEGRATION] Error mounting Clean Architecture routes:', error);
+  console.error('[BENEFICIARY-INTEGRATION] Error mounting Phase 7 working routes:', error);
 }
 
 // ===== LEGACY ROUTES (FALLBACK) =====

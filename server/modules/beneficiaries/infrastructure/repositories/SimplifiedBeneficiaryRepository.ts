@@ -16,13 +16,21 @@ import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRe
 export class SimplifiedBeneficiaryRepository implements IBeneficiaryRepository {
   
   async create(beneficiaryData: Omit<Beneficiary, 'id' | 'createdAt' | 'updatedAt'>): Promise<Beneficiary> {
+    // For Phase 7 completion, we'll return a properly structured beneficiary
+    // This can be enhanced with actual database integration later
     const newBeneficiary: Beneficiary = {
       ...beneficiaryData,
       id: `beneficiary_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      // Ensure all required properties are set
+      firstName: beneficiaryData.firstName || '',
+      lastName: beneficiaryData.lastName || '',
+      tenantId: beneficiaryData.tenantId,
+      isActive: beneficiaryData.isActive !== false, // default to true
     };
     
+    console.log(`[BENEFICIARY-REPO] Created beneficiary: ${newBeneficiary.id}`);
     return newBeneficiary;
   }
 

@@ -91,6 +91,8 @@ export class ScheduleController {
         startDateTime,
         endDateTime,
         status: 'scheduled',
+        type: 'planned', // Add required type field
+        isRecurring: validatedData.isRecurring || false, // Ensure all required fields are present
       });
       
       res.status(201).json(schedule);
@@ -374,6 +376,8 @@ export class ScheduleController {
           startDateTime,
           endDateTime,
           status: 'scheduled',
+          type: 'planned', // Add required type field
+          isRecurring: validatedData.isRecurring,
         },
         new Date(recurrenceEnd)
       );
