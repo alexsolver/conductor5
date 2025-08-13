@@ -884,11 +884,11 @@ const TicketDetails = React.memo(() => {
         });
         
         // Check if it's an HTML error page (server error)
-        if (responseText.includes('<!DOCTYPE html>')) {
-          throw new Error(`Server error: Received HTML error page instead of JSON. Status: ${response.status}`);
+        if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html>')) {
+          throw new Error(`Server returned HTML instead of JSON. This indicates a backend routing or configuration issue. Status: ${response.status}`);
         }
         
-        throw new Error(`Expected JSON response, got ${contentType}. This indicates a server configuration issue.`);
+        throw new Error(`Expected JSON response, got ${contentType}. Server may be misconfigured.`);
       }
 
       const result = await response.json();

@@ -1256,7 +1256,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
         content: newAction.description,
         description: newAction.description,
         workLog: newAction.work_log,
-        timeSpent: newAction.time_spent,
+        timeSpent: newAction.estimated_hours,
         status: 'active',
         time_spent: newAction.estimated_hours,
         start_time: newAction.start_time,
@@ -1830,7 +1830,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
   try {
     // Set proper JSON response headers upfront
     res.setHeader('Content-Type', 'application/json');
-    
+
     if (!req.user?.tenantId) {
       console.log('❌ [NOTES-API] No tenant ID found');
       return res.status(400).json({ 
@@ -1892,7 +1892,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
     try {
       const ticketCheckQuery = `SELECT id FROM "${schemaName}".tickets WHERE id = $1 AND tenant_id = $2`;
       const ticketCheck = await pool.query(ticketCheckQuery, [id, tenantId]);
-      
+
       if (ticketCheck.rows.length === 0) {
         console.log('❌ [NOTES-API] Ticket not found:', { ticketId: id, tenantId });
         return res.status(404).json({
@@ -1991,10 +1991,10 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
 
   } catch (error) {
     console.error("❌ [NOTES-API] Unexpected error creating note:", error);
-    
+
     // Ensure JSON response even in error cases
     res.setHeader('Content-Type', 'application/json');
-    
+
     // Resposta de erro padronizada seguindo 1qa.md
     const errorResponse = {
       success: false,
