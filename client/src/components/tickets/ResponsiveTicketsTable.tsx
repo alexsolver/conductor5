@@ -1,257 +1,102 @@
-import React, { useState, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import React, { useState } from "react";
 import { Link } from "wouter";
-import { MoreHorizontal, Eye, Edit, Trash2, ChevronDown, ChevronRight, GitBranch } from "lucide-react";
-import { DynamicBadge } from "@/components/DynamicBadge";
-import { useComponentLoading } from "@/components/LoadingStateManager";
-import { AccessibilityIndicator } from "@/components/AccessibilityIndicator";
-import { useFieldColors } from "@/hooks/useFieldColors";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  GitBranch,
+} from "lucide-react";
+import { DynamicBadge } from "@/components/ui/dynamic-badge";
+
+// Types
+interface Ticket {
+  id: string;
+  number?: string;
+  subject: string;
+  status: string;
+  priority: string;
+  category?: string;
+  company_name?: string;
+  caller_name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface TicketRelationship {
+  relationshipId: string;
+  relationshipType: string;
+  targetTicket?: {
+    id: string;
+    number?: string;
+    subject: string;
+    status: string;
+    priority: string;
+  };
+  id?: string;
+  number?: string;
+  subject?: string;
+  status?: string;
+}
 
 interface ResponsiveTicketsTableProps {
-  tickets: any[];
-  isLoading: boolean;
-  onEdit: (ticket: any) => void;
+  tickets: Ticket[];
+  isLoading?: boolean;
+  onEdit: (ticket: Ticket) => void;
   onDelete: (ticketId: string) => void;
   onToggleExpand?: (ticketId: string) => void;
   expandedTickets?: Set<string>;
-  ticketRelationships?: Record<string, any[]>;
   ticketsWithRelationships?: Set<string>;
-  columnOrder?: string[];
-  columnWidths?: Record<string, number>;
+  ticketRelationships?: Record<string, TicketRelationship[]>;
 }
 
-// Enhanced skeleton with proper loading states
-const TicketRowSkeleton: React.FC = () => (
-  <TableRow className="animate-pulse" role="row" aria-label="Carregando ticket">
-    <TableCell className="w-20">
-      <div className="h-4 bg-gray-200 rounded w-16"></div>
-    </TableCell>
-    <TableCell>
-      <div className="space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-        <div className="h-3 bg-gray-100 rounded w-1/2"></div>
-      </div>
-    </TableCell>
-    <TableCell className="hidden md:table-cell">
-      <div className="h-4 bg-gray-200 rounded w-24"></div>
-    </TableCell>
-    <TableCell className="hidden lg:table-cell">
-      <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-    </TableCell>
-    <TableCell className="hidden lg:table-cell">
-      <div className="h-6 bg-gray-200 rounded-full w-20"></div>
-    </TableCell>
-    <TableCell className="hidden sm:table-cell">
-      <div className="h-6 bg-gray-200 rounded-full w-18"></div>
-    </TableCell>
-    <TableCell>
-      <div className="h-8 bg-gray-200 rounded w-8"></div>
-    </TableCell>
+// Loading Skeleton Component
+const TicketRowSkeleton = () => (
+  <TableRow>
+    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+    <TableCell className="hidden lg:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
+    <TableCell className="hidden lg:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
+    <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-16" /></TableCell>
+    <TableCell><Skeleton className="h-8 w-8" /></TableCell>
   </TableRow>
 );
 
-// Mobile card view for better responsiveness
-const MobileTicketCard: React.FC<{
-  ticket: any;
-  onEdit: (ticket: any) => void;
-  onDelete: (ticketId: string) => void;
-  hasRelationships?: boolean;
-  onToggleExpand?: (ticketId: string) => void;
-  isExpanded?: boolean;
-}> = ({ ticket, onEdit, onDelete, hasRelationships, onToggleExpand, isExpanded }) => {
-  const { getFieldColor, isLoading: isFieldColorsLoading } = useFieldColors();
-
-  return (
-    <Card className="mb-4 border-l-4" style={{ borderLeftColor: getFieldColor('priority', ticket.priority) || '#6b7280' }}>
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          {/* Header with ticket number and actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Link
-                href={`/tickets/${ticket.id}`}
-                className="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
-              >
-                #{ticket.number || ticket.id?.slice(0, 8)}
-              </Link>
-              {/* 🔧 [1QA-COMPLIANCE] Ícone de relacionamentos sempre visível quando há vínculos */}
-              {hasRelationships && (
-                <div className="flex items-center gap-1">
-                  <GitBranch className="h-3 w-3 text-blue-600" />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onToggleExpand?.(ticket.id)}
-                    className="p-1 h-6 w-6 hover:bg-blue-100"
-                    aria-label={isExpanded ? "Recolher relacionamentos" : "Expandir relacionamentos"}
-                  >
-                    {isExpanded ? <ChevronDown className="h-3 w-3 text-blue-600" /> : <ChevronRight className="h-3 w-3 text-blue-600" />}
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0" aria-label={`Ações para ticket ${ticket.number || ticket.id?.slice(0, 8)}`}>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href={`/tickets/${ticket.id}`} className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    Ver Detalhes
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(ticket)} className="flex items-center gap-2">
-                  <Edit className="h-4 w-4" />
-                  Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="flex items-center gap-2 text-red-600">
-                  <Trash2 className="h-4 w-4" />
-                  Excluir
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Title and description */}
-          <div>
-            <h3 className="font-medium text-sm mb-1 line-clamp-2">
-              {ticket.subject || ticket.short_description || "Sem título"}
-            </h3>
-            {ticket.description && (
-              <p className="text-xs text-gray-600 line-clamp-2">
-                {ticket.description.replace(/<[^>]*>/g, '').substring(0, 100)}...
-              </p>
-            )}
-          </div>
-
-          {/* Badges row */}
-          <div className="flex flex-wrap gap-2">
-            <DynamicBadge
-              fieldName="priority"
-              value={ticket.priority}
-              className="text-xs"
-              aria-label={`Prioridade: ${ticket.priority}`}
-            >
-              {ticket.priority}
-            </DynamicBadge>
-            <DynamicBadge
-              fieldName="status"
-              value={ticket.status}
-              className="text-xs"
-              aria-label={`Status: ${ticket.status}`}
-            >
-              {ticket.status}
-            </DynamicBadge>
-            {ticket.category && (
-              <DynamicBadge
-                fieldName="category"
-                value={ticket.category}
-                className="text-xs"
-                aria-label={`Categoria: ${ticket.category}`}
-              >
-                {ticket.category}
-              </DynamicBadge>
-            )}
-          </div>
-
-          {/* Company, Customer and dates */}
-          <div className="text-xs text-gray-500 space-y-1">
-            {ticket.company_name && (
-              <div><span className="font-medium">Empresa:</span> {ticket.company_name}</div>
-            )}
-            {ticket.beneficiary_name && (
-              <div><span className="font-medium">Beneficiário:</span> {ticket.beneficiary_name}</div>
-            )}
-            {ticket.caller_name && ticket.caller_name !== ticket.beneficiary_name && (
-              <div><span className="font-medium">Cliente:</span> {ticket.caller_name}</div>
-            )}
-            <div><span className="font-medium">Criado:</span> {new Date(ticket.created_at).toLocaleDateString('pt-BR')}</div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
-  tickets,
-  isLoading,
+// Main Component
+export const ResponsiveTicketsTable = ({
+  tickets = [],
+  isLoading = false,
   onEdit,
   onDelete,
   onToggleExpand,
   expandedTickets = new Set(),
-  ticketRelationships = {},
   ticketsWithRelationships = new Set(),
-  columnOrder = [],
-  columnWidths = {}
-}) => {
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
-  const { isLoading: isComponentLoading, setComponentLoading } = useComponentLoading('tickets-table');
-  const { isReady: isFieldColorsReady } = useFieldColors();
+  ticketRelationships = {},
+}: ResponsiveTicketsTableProps) => {
+  // Component loading state
+  const isComponentLoading = isLoading || !tickets;
 
-  // Listen for window resize
-  React.useEffect(() => {
-    const handleResize = () => setIsMobileView(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Sync loading states
-  React.useEffect(() => {
-    setComponentLoading(isLoading || !isFieldColorsReady);
-  }, [isLoading, isFieldColorsReady, setComponentLoading]);
-
-  // Mobile view rendering
-  if (isMobileView) {
-    return (
-      <div className="space-y-4" role="region" aria-label="Lista de tickets (visualização móvel)">
-        {isComponentLoading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                      <div className="h-6 bg-gray-200 rounded w-6"></div>
-                    </div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="flex gap-2">
-                      <div className="h-5 bg-gray-200 rounded-full w-16"></div>
-                      <div className="h-5 bg-gray-200 rounded-full w-20"></div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          tickets.map((ticket) => (
-            <MobileTicketCard
-              key={ticket.id}
-              ticket={ticket}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              hasRelationships={ticketsWithRelationships.has(ticket.id)}
-              onToggleExpand={onToggleExpand}
-              isExpanded={expandedTickets.has(ticket.id)}
-            />
-          ))
-        )}
-      </div>
-    );
-  }
-
-  // Desktop table view
   return (
     <div className="rounded-md border overflow-hidden" role="region" aria-label="Tabela de tickets">
       <Table>
@@ -319,50 +164,30 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                     <div className="truncate">
                       <Link
                         href={`/tickets/${ticket.id}`}
-                        className="font-medium hover:text-blue-600 transition-colors"
-                        aria-label={`Ver detalhes do ticket: ${ticket.subject}`}
+                        className="font-medium text-gray-900 hover:text-blue-600 transition-colors block"
+                        title={ticket.subject}
                       >
-                        {ticket.subject || ticket.short_description || "Sem título"}
+                        {ticket.subject}
                       </Link>
-                      {ticket.description && (
-                        <p className="text-sm text-gray-500 truncate mt-1">
-                          {ticket.description.replace(/<[^>]*>/g, '').substring(0, 100)}
-                        </p>
-                      )}
                     </div>
                   </TableCell>
 
-                  <TableCell className="hidden lg:table-cell">
-                    <span className="text-sm">
-                      {ticket.company_name || "Empresa não informada"}
-                    </span>
+                  <TableCell className="hidden lg:table-cell text-sm text-gray-600">
+                    {ticket.company_name || 'N/A'}
                   </TableCell>
 
-                  <TableCell className="hidden md:table-cell">
-                    <div className="text-sm">
-                      <div className="font-medium">
-                        {ticket.beneficiary_name || "Beneficiário não identificado"}
-                      </div>
-                      {ticket.caller_name && ticket.caller_name !== ticket.beneficiary_name && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          Cliente: {ticket.caller_name}
-                        </div>
-                      )}
-                    </div>
+                  <TableCell className="hidden md:table-cell text-sm text-gray-600">
+                    {ticket.caller_name || 'N/A'}
                   </TableCell>
 
                   <TableCell className="hidden lg:table-cell">
-                    {ticket.category ? (
-                      <DynamicBadge
-                        fieldName="category"
-                        value={ticket.category}
-                        aria-label={`Categoria: ${ticket.category}`}
-                      >
-                        {ticket.category}
-                      </DynamicBadge>
-                    ) : (
-                      <span className="text-gray-400">Não categorizado</span>
-                    )}
+                    <DynamicBadge
+                      fieldName="category"
+                      value={ticket.category}
+                      aria-label={`Categoria: ${ticket.category}`}
+                    >
+                      {ticket.category}
+                    </DynamicBadge>
                   </TableCell>
 
                   <TableCell className="hidden lg:table-cell">
@@ -458,3 +283,5 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
     </div>
   );
 };
+
+export default ResponsiveTicketsTable;
