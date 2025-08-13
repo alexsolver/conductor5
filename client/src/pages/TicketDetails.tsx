@@ -318,7 +318,7 @@ const TicketDetails = React.memo(() => {
     // Otimização: Update UI primeiro, depois fetch data
     setSelectedCompany(newCompanyId);
     form.setValue('customerCompanyId', newCompanyId);
-    
+
     // 🚨 CORREÇÃO CRÍTICA: Marcar campo como dirty para garantir que seja enviado
     form.trigger('customerCompanyId');
 
@@ -326,7 +326,7 @@ const TicketDetails = React.memo(() => {
       newSelectedCompany: newCompanyId,
       formValueAfter: form.getValues('customerCompanyId'),
       isFieldDirty: form.formState.dirtyFields.customerCompanyId
-    });</old_str>
+    });
 
     // Reset customer selections only when changing company
     form.setValue('callerId', '');
@@ -1637,7 +1637,7 @@ const TicketDetails = React.memo(() => {
                         <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                           <DynamicBadge
                             fieldName="environment"
-                            value={field.value}
+                            value={field.value || ''}
                             colorHex={getFieldColor('environment', field.value || '')}
                             isLoading={isFieldColorsLoading}
                           >
@@ -2491,7 +2491,7 @@ const TicketDetails = React.memo(() => {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">🕒 Últimas Interações</h2>
+              <h2 className="text-xl font-semibold">Últimas Interações</h2>
               <Badge variant="outline" className="text-xs">
                 Histórico do Solicitante
               </Badge>
@@ -3583,7 +3583,7 @@ const TicketDetails = React.memo(() => {
 
           <button
             onClick={() => setActiveTab("links")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "links"
                 ? 'bg-cyan-100 text-cyan-900 border-2 border-cyan-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
@@ -3592,13 +3592,8 @@ const TicketDetails = React.memo(() => {
             aria-selected={activeTab === "links"}
             aria-controls="tab-content"
           >
-            <div className="flex items-center gap-3">
-              <Link className="h-4 w-4" />
-              <span className="text-sm font-medium">Vínculos</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
-              {relatedTickets.length}
-            </Badge>
+            <Link className="h-4 w-4" />
+            <span className="text-sm font-medium">Vínculos</span>
           </button>
 
           <button

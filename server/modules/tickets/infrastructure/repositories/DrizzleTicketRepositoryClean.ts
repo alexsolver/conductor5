@@ -299,7 +299,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         original: Object.keys(updateData).length,
         sanitized: Object.keys(sanitizedData).length,
         sanitizedFields: Object.keys(sanitizedData),
-        sanitizedData: sanitizedData
+        sanitizedData: sanitizedData,
+        companyIdReceived: updateData.company_id,
+        companyIdSanitized: sanitizedData.company_id
       });
 
       if (Object.keys(sanitizedData).length === 0) {
