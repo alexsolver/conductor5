@@ -12,7 +12,8 @@ export default function CompanyCustomersSection({
   companyId, 
   onAssociateCustomers 
 }: CompanyCustomersSectionProps) {
-  const { allCustomers, isLoading } = useCompanyCustomers(companyId);
+  // 🎯 [1QA-COMPLIANCE] Properly destructure from useQuery result
+  const { data: allCustomers, isLoading } = useCompanyCustomers(companyId);
 
   if (isLoading) {
     return (
@@ -26,8 +27,10 @@ export default function CompanyCustomersSection({
     );
   }
 
-  const associatedCount = allCustomers.filter(c => c.isAssociated).length;
-  const availableCount = allCustomers.filter(c => !c.isAssociated).length;
+  // 🎯 [1QA-COMPLIANCE] Defensive programming - proteger contra undefined
+  const safeCustomers = allCustomers || [];
+  const associatedCount = safeCustomers.filter((c: any) => c.isAssociated).length;
+  const availableCount = safeCustomers.filter((c: any) => !c.isAssociated).length;
 
   return (
     <div className="space-y-3 pt-3 border-t">
@@ -36,7 +39,7 @@ export default function CompanyCustomersSection({
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-blue-600" />
           <span className="text-sm font-medium text-gray-700">
-            Clientes ({allCustomers.length})
+            Clientes ({safeCustomers.length})
           </span>
         </div>
         <div className="flex gap-1">
