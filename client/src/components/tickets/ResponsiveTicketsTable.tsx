@@ -416,7 +416,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                 {expandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
                   <TableRow className="bg-blue-50">
                     <TableCell colSpan={8}>
-                      <div className="py-2 pl-6">
+                      <div>
                         <div className="flex items-center gap-2 mb-2">
                           <GitBranch className="h-4 w-4 text-blue-600" />
                           <span className="text-sm font-medium">Relacionamentos</span>

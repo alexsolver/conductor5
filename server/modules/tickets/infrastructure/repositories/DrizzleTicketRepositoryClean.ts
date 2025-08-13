@@ -15,6 +15,7 @@ import {
 } from '../../domain/repositories/ITicketRepository';
 import { Logger } from '../../domain/services/Logger';
 import { CreateTicketDTO, UpdateTicketDTO } from '../../application/dto/CreateTicketDTO';
+import { SqlParameterValidator } from '../../../../utils/sqlParameterValidator';
 
 
 export class DrizzleTicketRepositoryClean implements ITicketRepository {
@@ -322,7 +323,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const whereIdParam = paramIndex++;
 
       values.push(tenantId);
-      const whereTenantParam = paramIndex;
+      const whereTenantParam = paramIndex++;
 
       const updateQuery = `
         UPDATE ${schemaName}.tickets 
@@ -338,13 +339,23 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       console.log('[UPDATE-DEBUG] Values length:', values.length);
       console.log('[UPDATE-DEBUG] Set fields count:', setFields.length);
 
-      // Validate parameter count - subtract 1 because updated_at uses NOW() not a parameter
-      const actualSetFieldsWithParams = setFields.length - 1; // -1 for updated_at = NOW()
-      const expectedParamCount = actualSetFieldsWithParams + 2; // +2 for id and tenant_id
-      if (values.length !== expectedParamCount) {
-        throw new Error(`Parameter count mismatch: expected ${expectedParamCount}, got ${values.length}. Set fields with params: ${actualSetFieldsWithParams}, WHERE params: 2`);
+      // Validate parameter count using SQL parameter validator
+      const parameterMatches = updateQuery.match(/\$\d+/g) || [];
+      const maxParameterIndex = parameterMatches.length > 0 
+        ? Math.max(...parameterMatches.map(p => parseInt(p.substring(1)))) 
+        : 0;
+      
+      if (maxParameterIndex > values.length) {
+        throw new Error(`SQL parameter index error: highest parameter is $${maxParameterIndex} but only ${values.length} values provided`);
       }
 
+      if (parameterMatches.length !== values.length) {
+        throw new Error(`SQL parameter count mismatch: query expects ${parameterMatches.length} parameters, got ${values.length}`);
+      }
+
+      // Validate SQL parameters before execution
+      SqlParameterValidator.validateParameters(updateQuery, values);
+      
       const result = await db.execute(sql.raw(updateQuery, values));
 
       if (result.rows.length === 0) {
