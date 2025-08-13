@@ -31,6 +31,14 @@ interface Ticket {
   companyId?: string;
   locationId?: string;
   beneficiaryId?: string;
+  // 🎯 [1QA-COMPLIANCE] Dados da empresa vindos do JOIN no backend
+  company_name?: string;
+  company_display_name?: string;
+  // Dados do caller vindos do JOIN no backend
+  caller_name?: string;
+  caller_first_name?: string;
+  caller_last_name?: string;
+  caller_email?: string;
 }
 
 interface Attachment {
@@ -131,7 +139,13 @@ export default function TicketDetail() {
 
   // 🎯 [1QA-COMPLIANCE] Debug company loading
   useEffect(() => {
-    console.log('🎫 [TICKET-DEBUG] Current ticket:', ticket);
+    console.log('🎫 [TICKET-DEBUG] Current ticket data:', {
+      id: ticket?.id,
+      companyId: ticket?.companyId,
+      company_name: (ticket as any)?.company_name,
+      company_display_name: (ticket as any)?.company_display_name,
+      fullTicketData: ticket
+    });
     if (ticket?.companyId) {
       console.log('🏢 [COMPANY-DEBUG] Attempting to load company:', ticket.companyId);
     }
@@ -506,7 +520,7 @@ export default function TicketDetail() {
                   <Building className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-gray-500">Empresa:</span>
                   <span className="ml-2 font-medium">
-                    {company?.name || ticket.companyId}
+                    {(ticket as any)?.company_name || (ticket as any)?.company_display_name || company?.name || ticket.companyId}
                   </span>
                 </div>
               )}
