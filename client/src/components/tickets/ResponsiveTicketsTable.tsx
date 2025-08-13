@@ -36,9 +36,6 @@ const TicketRowSkeleton: React.FC = () => (
         <div className="h-3 bg-gray-100 rounded w-1/2"></div>
       </div>
     </TableCell>
-    <TableCell className="hidden lg:table-cell">
-      <div className="h-4 bg-gray-200 rounded w-24"></div>
-    </TableCell>
     <TableCell className="hidden md:table-cell">
       <div className="h-4 bg-gray-200 rounded w-24"></div>
     </TableCell>
@@ -50,9 +47,6 @@ const TicketRowSkeleton: React.FC = () => (
     </TableCell>
     <TableCell className="hidden sm:table-cell">
       <div className="h-6 bg-gray-200 rounded-full w-18"></div>
-    </TableCell>
-    <TableCell className="hidden xl:table-cell">
-      <div className="h-6 bg-gray-200 rounded w-8"></div>
     </TableCell>
     <TableCell>
       <div className="h-8 bg-gray-200 rounded w-8"></div>
@@ -266,7 +260,6 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
             <TableHead className="hidden lg:table-cell" scope="col">Categoria</TableHead>
             <TableHead className="hidden lg:table-cell" scope="col">Status</TableHead>
             <TableHead className="hidden sm:table-cell" scope="col">Prioridade</TableHead>
-            <TableHead className="hidden xl:table-cell w-20" scope="col">Vínculos</TableHead>
             <TableHead className="w-12" scope="col">
               <span className="sr-only">Ações</span>
             </TableHead>
@@ -277,7 +270,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
             Array.from({ length: 5 }).map((_, i) => <TicketRowSkeleton key={i} />)
           ) : tickets.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="text-center py-8">
+              <TableCell colSpan={8} className="text-center py-8">
                 <div className="text-gray-500">
                   <p>Nenhum ticket encontrado</p>
                   <p className="text-sm mt-1">Tente ajustar os filtros de busca</p>
@@ -388,30 +381,6 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                     </DynamicBadge>
                   </TableCell>
 
-                  {/* Coluna de Vínculos conforme 1qa.md */}
-                  <TableCell className="hidden xl:table-cell">
-                    <div className="flex items-center gap-1">
-                      {ticketsWithRelationships && ticketsWithRelationships.has(ticket.id) && ticketRelationships[ticket.id] ? (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onToggleExpand?.(ticket.id)}
-                            className="p-1 h-6 w-6"
-                            aria-label={expandedTickets?.has(ticket.id) ? "Recolher vínculos" : "Expandir vínculos"}
-                          >
-                            {expandedTickets?.has(ticket.id) ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                          </Button>
-                          <Badge variant="outline" className="text-xs">
-                            {ticketRelationships[ticket.id]?.length || 0}
-                          </Badge>
-                        </>
-                      ) : (
-                        <span className="text-xs text-gray-400">-</span>
-                      )}
-                    </div>
-                  </TableCell>
-
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -444,9 +413,9 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                 </TableRow>
 
                 {/* Expanded relationships */}
-                {expandedTickets && expandedTickets.has(ticket.id) && ticketRelationships && ticketRelationships[ticket.id] && (
+                {expandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
                   <TableRow className="bg-blue-50">
-                    <TableCell colSpan={9}>
+                    <TableCell colSpan={8}>
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <GitBranch className="h-4 w-4 text-blue-600" />
