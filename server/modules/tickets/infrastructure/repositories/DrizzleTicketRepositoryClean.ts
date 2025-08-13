@@ -14,34 +14,74 @@ import {
   TicketListResult
 } from '../../domain/repositories/ITicketRepository';
 import { Logger } from '../../domain/services/Logger';
+import { CreateTicketDTO, UpdateTicketDTO } from '../../application/dto/CreateTicketDTO';
+
 
 export class DrizzleTicketRepositoryClean implements ITicketRepository {
   constructor(private logger: Logger) {}
 
   async findById(id: string, tenantId: string): Promise<Ticket | null> {
-    try {
-      console.log(`🔍 [DrizzleTicketRepositoryClean] findById called with id: ${id}, tenantId: ${tenantId}`);
+    console.log('🔍 [DrizzleTicketRepositoryClean] findById called:', { id, tenantId });
 
+    try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
       const result = await db.execute(sql`
         SELECT 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
-          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId"
-        FROM ${sql.identifier(schemaName)}.tickets
-        WHERE id = ${id} AND is_active = true
-        LIMIT 1
+          t.id,
+          t.number,
+          t.subject,
+          t.description,
+          t.status,
+          t.priority,
+          t.urgency,
+          t.impact,
+          t.category,
+          t.subcategory,
+          t.action,
+          t.caller_id as "callerId",
+          t.caller_type as "callerType", 
+          t.beneficiary_id as "beneficiaryId",
+          t.beneficiary_type as "beneficiaryType",
+          t.assigned_to_id as "assignedToId",
+          t.assignment_group_id as "assignmentGroupId",
+          t.company_id as "companyId",
+          t.location,
+          t.contact_type as "contactType",
+          t.business_impact as "businessImpact",
+          t.symptoms,
+          t.workaround,
+          t.resolution,
+          t.environment,
+          t.estimated_hours as "estimatedHours",
+          t.actual_hours as "actualHours",
+          t.followers,
+          t.tags,
+          t.link_ticket_number as "linkTicketNumber",
+          t.link_type as "linkType",
+          t.link_comment as "linkComment",
+          t.tenant_id as "tenantId",
+          t.created_at as "createdAt",
+          t.updated_at as "updatedAt",
+          t.created_by as "createdBy",
+          t.updated_by as "updatedBy",
+          t.is_active as "isActive"
+        FROM ${sql.identifier(schemaName)}.tickets t
+        WHERE t.id = ${id} AND t.tenant_id = ${tenantId} AND t.is_active = true
       `);
 
-      const ticket = result.rows[0] || null;
-      console.log(`✅ [DrizzleTicketRepositoryClean] findById result: ${ticket ? 'found' : 'not found'}`);
+      if (result.rows.length === 0) {
+        console.log('❌ [DrizzleTicketRepositoryClean] Ticket not found');
+        return null;
+      }
 
-      return ticket as Ticket | null;
+      const ticket = result.rows[0] as any;
+      console.log('✅ [DrizzleTicketRepositoryClean] Ticket found:', ticket.id);
+
+      return ticket;
     } catch (error: any) {
-      console.error('❌ [DrizzleTicketRepositoryClean] findById error:', error);
-      this.logger.error('Failed to find ticket by ID', { error: error.message, id, tenantId });
-      throw error;
+      console.error('❌ [DrizzleTicketRepositoryClean] Error in findById:', error);
+      throw new Error(`Failed to find ticket: ${error.message}`);
     }
   }
 
@@ -177,194 +217,187 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
     }
   }
 
-  async create(ticket: Partial<Ticket>): Promise<Ticket> {
+  async create(data: CreateTicketDTO, tenantId: string): Promise<Ticket> {
     try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const [newTicket] = await db
         .insert(tickets)
-        .values(ticket as any)
+        .values({...data, tenantId: tenantId } as any) // Assuming tenantId is part of the schema or needs to be added
         .returning();
 
       return newTicket as Ticket;
     } catch (error: any) {
-      this.logger.error('Failed to create ticket', { error: error.message });
+      this.logger.error('Failed to create ticket', { error: error.message, tenantId, data });
       throw new Error(`Failed to create ticket: ${error.message}`);
     }
   }
 
-  async update(id: string, updates: Partial<Ticket>, tenantId: string): Promise<Ticket> {
+  async update(id: string, data: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
+    console.log('💾 [DrizzleTicketRepositoryClean] update called:', { 
+      id, 
+      tenantId,
+      dataKeys: Object.keys(data)
+    });
+
     try {
-      console.log('🔧 [DrizzleTicketRepositoryClean] update called with id:', id, 'tenantId:', tenantId);
-      console.log('📝 Update data:', updates);
-
-      // Validação de entrada
-      if (!id || !tenantId) {
-        throw new Error('ID and tenantId are required');
-      }
-
-      if (!updates || Object.keys(updates).length === 0) {
-        throw new Error('No update data provided');
-      }
-
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Build dynamic SET clause based on provided fields
-      const setClauses: string[] = [];
+      // Build dynamic SET clause based on provided data
+      const setFields: string[] = [];
       const values: any[] = [];
+      let paramIndex = 1;
 
-      // Process each field and build parameters sequentially
-      if (updates.subject !== undefined) {
-        setClauses.push(`subject = $${values.length + 1}`);
-        values.push(updates.subject);
-      }
-      if (updates.description !== undefined) {
-        setClauses.push(`description = $${values.length + 1}`);
-        values.push(updates.description);
-      }
-      if (updates.status !== undefined) {
-        setClauses.push(`status = $${values.length + 1}`);
-        values.push(updates.status);
-      }
-      if (updates.priority !== undefined) {
-        setClauses.push(`priority = $${values.length + 1}`);
-        values.push(updates.priority);
-      }
-      if (updates.urgency !== undefined) {
-        setClauses.push(`urgency = $${values.length + 1}`);
-        values.push(updates.urgency);
-      }
-      if (updates.impact !== undefined) {
-        setClauses.push(`impact = $${values.length + 1}`);
-        values.push(updates.impact);
-      }
-      if (updates.category !== undefined) {
-        setClauses.push(`category = $${values.length + 1}`);
-        values.push(updates.category);
-      }
-      if (updates.subcategory !== undefined) {
-        setClauses.push(`subcategory = $${values.length + 1}`);
-        values.push(updates.subcategory);
-      }
-      if (updates.assignedToId !== undefined) {
-        setClauses.push(`assigned_to_id = $${values.length + 1}`);
-        values.push(updates.assignedToId);
-      }
-      if (updates.companyId !== undefined) {
-        setClauses.push(`company_id = $${values.length + 1}`);
-        values.push(updates.companyId);
-      }
-      if (updates.beneficiaryId !== undefined) {
-        setClauses.push(`beneficiary_id = $${values.length + 1}`);
-        values.push(updates.beneficiaryId);
-      }
-      if (updates.callerId !== undefined) {
-        setClauses.push(`caller_id = $${values.length + 1}`);
-        values.push(updates.callerId);
-      }
-      if (updates.action !== undefined) {
-        setClauses.push(`action = $${values.length + 1}`);
-        values.push(updates.action);
-      }
-      if (updates.customerId !== undefined) {
-        setClauses.push(`customer_id = $${values.length + 1}`);
-        values.push(updates.customerId);
-      }
-      if (updates.tags !== undefined) {
-        setClauses.push(`tags = $${values.length + 1}`);
-        values.push(Array.isArray(updates.tags) ? JSON.stringify(updates.tags) : '[]');
-      }
-      if (updates.customFields !== undefined) {
-        setClauses.push(`custom_fields = $${values.length + 1}`);
-        values.push(typeof updates.customFields === 'object' ? JSON.stringify(updates.customFields) : '{}');
-      }
-      if (updates.updatedById !== undefined) {
-        setClauses.push(`updated_by = $${values.length + 1}`);
-        values.push(updates.updatedById);
+      // Map frontend fields to database columns
+      const fieldMapping: Record<string, string> = {
+        'subject': 'subject',
+        'description': 'description', 
+        'priority': 'priority',
+        'status': 'status',
+        'urgency': 'urgency',
+        'impact': 'impact',
+        'category': 'category',
+        'subcategory': 'subcategory',
+        'action': 'action',
+        'caller_id': 'caller_id',
+        'caller_type': 'caller_type',
+        'callerType': 'caller_type',
+        'beneficiary_id': 'beneficiary_id', 
+        'beneficiary_type': 'beneficiary_type',
+        'beneficiaryType': 'beneficiary_type',
+        'assigned_to_id': 'assigned_to_id',
+        'assignment_group': 'assignment_group_id',
+        'assignmentGroup': 'assignment_group_id',
+        'company_id': 'company_id',
+        'location': 'location',
+        'contact_type': 'contact_type',
+        'contactType': 'contact_type',
+        'business_impact': 'business_impact',
+        'businessImpact': 'business_impact',
+        'symptoms': 'symptoms',
+        'workaround': 'workaround', 
+        'resolution': 'resolution',
+        'environment': 'environment',
+        'estimated_hours': 'estimated_hours',
+        'estimatedHours': 'estimated_hours',
+        'actual_hours': 'actual_hours',
+        'actualHours': 'actual_hours',
+        'followers': 'followers',
+        'tags': 'tags',
+        'link_ticket_number': 'link_ticket_number',
+        'linkTicketNumber': 'link_ticket_number',
+        'link_type': 'link_type',
+        'linkType': 'link_type',
+        'link_comment': 'link_comment',
+        'linkComment': 'link_comment',
+        'updatedById': 'updated_by'
+      };
+
+      // Process each field in the update data
+      for (const [key, value] of Object.entries(data)) {
+        if (key === 'tenantId' || key === 'updatedAt' || key === 'createdAt' || key === 'isActive' || key === 'id') continue; // Skip meta fields
+
+        const dbColumn = fieldMapping[key] || key;
+
+        if (value !== undefined && value !== null) {
+          if (Array.isArray(value) || typeof value === 'object') {
+            setFields.push(`${dbColumn} = $${paramIndex}`);
+            values.push(JSON.stringify(value));
+          } else {
+            setFields.push(`${dbColumn} = $${paramIndex}`);
+            values.push(value);
+          }
+          paramIndex++;
+        }
       }
 
-      // Validation: ensure we have fields to update
-      if (setClauses.length === 0) {
-        throw new Error('No valid fields to update');
-      }
+      // Always update the updated_at timestamp
+      setFields.push(`updated_at = $${paramIndex}`);
+      values.push(new Date().toISOString());
+      paramIndex++;
 
-      // CRITICAL FIX: Calculate WHERE parameters but DON'T add non-parameterized timestamp yet
-      const idParamIndex = values.length + 1;
-      const tenantParamIndex = values.length + 2;
-      
       // Add WHERE clause parameters
       values.push(id, tenantId);
+      const whereIdParam = paramIndex;
+      const whereTenantParam = paramIndex + 1;
 
-      // Build SQL query with timestamp added OUTSIDE of parameterized SET clauses
-      const setClause = setClauses.join(', ') + ', updated_at = NOW()';
-      
-      const sqlQuery = `
+      if (setFields.length === 1) { // Only updated_at
+        console.log('⚠️ [DrizzleTicketRepositoryClean] No fields to update besides timestamp');
+        // Return the existing ticket if no actual fields are updated
+        const existingTicket = await this.findById(id, tenantId);
+        if (!existingTicket) {
+            throw new Error('Ticket not found');
+        }
+        return existingTicket;
+      }
+
+      console.log('📝 [DrizzleTicketRepositoryClean] Executing update with:', {
+        setFields: setFields.length,
+        values: values.length,
+        firstFewValues: values.slice(0, 3)
+      });
+
+      const updateQuery = `
         UPDATE ${schemaName}.tickets 
-        SET ${setClause}
-        WHERE id = $${idParamIndex} AND tenant_id = $${tenantParamIndex} AND is_active = true
-        RETURNING 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, action, caller_id as "callerId", assigned_to_id as "assignedToId",
-          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId", customer_id as "customerId",
-          tags, custom_fields as "customFields", updated_by as "updatedById"
+        SET ${setFields.join(', ')}
+        WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam} AND is_active = true
+        RETURNING *
       `;
 
-      console.log('🔧 SQL Query:', sqlQuery);
-      console.log('📊 Parameters:', {
-        setClausesCount: setClauses.length,
-        valuesCount: values.length,
-        idParamIndex,
-        tenantParamIndex,
-        values: values
-      });
+      console.log('🔍 [DrizzleTicketRepositoryClean] Update query prepared');
 
-      const result = await db.execute(sql.raw(sqlQuery, values));
+      const result = await db.execute(sql.raw(updateQuery, values));
 
-      if (!result.rows || result.rows.length === 0) {
-        console.log('❌ No rows returned from update query');
-        throw new Error('Ticket not found, inactive, or update failed');
+      if (result.rows.length === 0) {
+        throw new Error('Ticket not found or update failed');
       }
 
-      const updatedTicket = result.rows[0] as Ticket;
-      console.log('✅ [DrizzleTicketRepositoryClean] update successful for ticket:', updatedTicket.id);
-      
-      return updatedTicket;
+      const updatedTicket = result.rows[0] as any;
+      console.log('✅ [DrizzleTicketRepositoryClean] Update successful:', {
+        ticketId: updatedTicket.id,
+        updatedAt: updatedTicket.updated_at
+      });
+
+      // Transform back to frontend format if necessary (based on original Ticket structure)
+      return {
+        ...updatedTicket,
+        callerId: updatedTicket.caller_id,
+        callerType: updatedTicket.caller_type,
+        beneficiaryId: updatedTicket.beneficiary_id,
+        beneficiaryType: updatedTicket.beneficiary_type,
+        assignedToId: updatedTicket.assigned_to_id,
+        assignmentGroupId: updatedTicket.assignment_group_id,
+        companyId: updatedTicket.company_id,
+        contactType: updatedTicket.contact_type,
+        businessImpact: updatedTicket.business_impact,
+        estimatedHours: updatedTicket.estimated_hours,
+        actualHours: updatedTicket.actual_hours,
+        linkTicketNumber: updatedTicket.link_ticket_number,
+        linkType: updatedTicket.link_type,
+        linkComment: updatedTicket.link_comment,
+        tenantId: updatedTicket.tenant_id,
+        createdAt: updatedTicket.created_at,
+        updatedAt: updatedTicket.updated_at,
+        createdBy: updatedTicket.created_by,
+        updatedBy: updatedTicket.updated_by,
+        isActive: updatedTicket.is_active
+      };
 
     } catch (error: any) {
-      console.error('❌ [DrizzleTicketRepositoryClean] update error:', {
-        message: error.message,
-        id,
-        tenantId,
-        error: error.stack
-      });
-      
-      this.logger.error('Failed to update ticket', { 
-        error: error.message, 
-        id, 
-        tenantId,
-        stack: error.stack 
-      });
-      
-      // Re-throw with more context
-      if (error.message.includes('syntax error')) {
-        throw new Error(`Database syntax error during ticket update: ${error.message}`);
-      } else if (error.message.includes('constraint')) {
-        throw new Error(`Database constraint violation during ticket update: ${error.message}`);
-      } else {
-        throw new Error(`Failed to update ticket: ${error.message}`);
-      }
+      console.error('❌ [DrizzleTicketRepositoryClean] Error in update:', error);
+      throw new Error(`Failed to update ticket: ${error.message}`);
     }
   }
 
-  async delete(id: string, tenantId: string): Promise<void> {
+  async delete(id: string, tenantId: string, userId: string): Promise<void> {
     try {
-      console.log(`🗑️ [DrizzleTicketRepositoryClean] delete called with id: ${id}, tenantId: ${tenantId}`);
+      console.log(`🗑️ [DrizzleTicketRepositoryClean] delete called with id: ${id}, tenantId: ${tenantId}, userId: ${userId}`);
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Use SOFT DELETE instead of hard delete - FIXED following 1qa.md
       const query = sql`
         UPDATE ${sql.identifier(schemaName)}.tickets 
-        SET is_active = false, updated_at = NOW()
+        SET is_active = false, updated_at = NOW(), updated_by = ${userId}
         WHERE id = ${id} AND is_active = true
         RETURNING id
       `;
@@ -379,7 +412,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       console.log(`✅ [DrizzleTicketRepositoryClean] delete successful - ticket soft deleted with ID: ${deletedTicket.id}`);
     } catch (error: any) {
       console.error('❌ [DrizzleTicketRepositoryClean] delete error:', error);
-      this.logger.error('Failed to delete ticket', { error: error.message, id, tenantId });
+      this.logger.error('Failed to delete ticket', { error: error.message, id, tenantId, userId });
       throw new Error(`Failed to delete ticket: ${error.message}`);
     }
   }
@@ -390,7 +423,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       await db.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tickets
         SET updated_at = NOW()
-        WHERE id = ${ticketId}
+        WHERE id = ${ticketId} AND tenant_id = ${tenantId}
       `);
     } catch (error: any) {
       this.logger.error('Failed to update last activity', { error: error.message, ticketId, tenantId });
@@ -408,23 +441,68 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Get total count
+      // Get total count of active tickets
       const totalResult = await db.execute(sql`
-        SELECT COUNT(*) as total FROM ${sql.identifier(schemaName)}.tickets
+        SELECT COUNT(*) as total FROM ${sql.identifier(schemaName)}.tickets WHERE is_active = true AND tenant_id = ${tenantId}
       `);
-
       const total = Number(totalResult.rows[0]?.total || 0);
+
+      // Get count by status
+      const statusResult = await db.execute(sql`
+        SELECT status, COUNT(*) as count FROM ${sql.identifier(schemaName)}.tickets WHERE is_active = true AND tenant_id = ${tenantId} GROUP BY status
+      `);
+      const byStatus: Record<string, number> = statusResult.rows.reduce((acc, row: any) => {
+        acc[row.status] = Number(row.count);
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Get count by priority
+      const priorityResult = await db.execute(sql`
+        SELECT priority, COUNT(*) as count FROM ${sql.identifier(schemaName)}.tickets WHERE is_active = true AND tenant_id = ${tenantId} GROUP BY priority
+      `);
+      const byPriority: Record<string, number> = priorityResult.rows.reduce((acc, row: any) => {
+        acc[row.priority] = Number(row.count);
+        return acc;
+      }, {} as Record<string, number>);
+      
+      // Get overdue count (assuming a due_date or similar field exists)
+      // This is a placeholder and needs actual schema knowledge. For now, returning 0.
+      const overdueCount = 0; 
+
+      // Get today's count (tickets created today)
+      const todayResult = await db.execute(sql`
+        SELECT COUNT(*) as count FROM ${sql.identifier(schemaName)}.tickets WHERE is_active = true AND tenant_id = ${tenantId} AND DATE(created_at) = CURRENT_DATE
+      `);
+      const todayCount = Number(todayResult.rows[0]?.count || 0);
+
 
       return {
         total,
-        byStatus: {},
-        byPriority: {},
-        overdueCount: 0,
-        todayCount: 0
+        byStatus,
+        byPriority,
+        overdueCount,
+        todayCount
       };
     } catch (error: any) {
+      console.error('❌ [DrizzleTicketRepositoryClean] Error in getStatistics:', error);
       this.logger.error('Failed to get statistics', { error: error.message, tenantId });
       throw error;
     }
+  }
+
+  // --- Unimplemented methods from original code - keeping placeholders ---
+  async findByAssignedUser(userId: string, tenantId: string): Promise<Ticket[]> {
+    console.log('findByAssignedUser not implemented');
+    throw new Error('FindByAssignedUser method not implemented yet');
+  }
+
+  async findByCustomer(customerId: string, tenantId: string): Promise<Ticket[]> {
+    console.log('findByCustomer not implemented');
+    throw new Error('FindByCustomer method not implemented yet');
+  }
+
+  async searchTickets(searchTerm: string, tenantId: string, pagination: PaginationOptions): Promise<PaginatedResult<Ticket>> {
+    console.log('searchTickets not implemented');
+    throw new Error('SearchTickets method not implemented yet');
   }
 }

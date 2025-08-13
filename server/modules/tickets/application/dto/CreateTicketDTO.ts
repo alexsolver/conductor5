@@ -10,51 +10,53 @@ export interface CreateTicketDTO {
   priority: 'low' | 'medium' | 'high' | 'critical';
   urgency?: 'low' | 'medium' | 'high' | 'critical';
   impact?: 'low' | 'medium' | 'high' | 'critical';
-  
+
   // Relacionamentos
   customerId?: string;
   beneficiaryId?: string;
   assignedToId?: string;
   companyId?: string;
-  
+
   // Classificação hierárquica
   category?: string;
   subcategory?: string;
   action?: string;
-  
+
   // Metadata
   tags?: string[];
   customFields?: Record<string, any>;
-  
+
   // Criado por (será preenchido pelo sistema)
   createdById: string;
 }
 
-export interface UpdateTicketDTO {
-  subject?: string;
-  description?: string;
-  status?: 'new' | 'open' | 'in_progress' | 'resolved' | 'closed';
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-  urgency?: 'low' | 'medium' | 'high' | 'critical';
-  impact?: 'low' | 'medium' | 'high' | 'critical';
-  
-  // Relacionamentos
-  customerId?: string;
-  beneficiaryId?: string;
-  assignedToId?: string;
-  companyId?: string;
-  
-  // Classificação hierárquica
-  category?: string;
-  subcategory?: string;
-  action?: string;
-  
-  // Metadata
-  tags?: string[];
-  customFields?: Record<string, any>;
-  
-  // Atualizado por (será preenchido pelo sistema)
-  updatedById: string;
+export interface UpdateTicketDTO extends Partial<CreateTicketDTO> {
+  updatedById?: string;
+  // Allow all frontend field mappings
+  caller_id?: string;
+  caller_type?: string;
+  callerType?: string;
+  beneficiary_id?: string;
+  beneficiary_type?: string;
+  beneficiaryType?: string;
+  assigned_to_id?: string;
+  assignment_group?: string;
+  assignmentGroup?: string;
+  company_id?: string;
+  contact_type?: string;
+  contactType?: string;
+  business_impact?: string;
+  businessImpact?: string;
+  estimated_hours?: number;
+  estimatedHours?: number;
+  actual_hours?: number;
+  actualHours?: number;
+  link_ticket_number?: string;
+  linkTicketNumber?: string;
+  link_type?: string;
+  linkType?: string;
+  link_comment?: string;
+  linkComment?: string;
 }
 
 export interface TicketFiltersDTO {
@@ -87,7 +89,7 @@ export interface TicketResponseDTO {
   priority: string;
   urgency?: string;
   impact?: string;
-  
+
   // Relacionamentos
   customerId?: string;
   customerName?: string;
@@ -97,7 +99,7 @@ export interface TicketResponseDTO {
   assignedToName?: string;
   companyId?: string;
   companyName?: string;
-  
+
   // Classificação hierárquica
   category?: string;
   categoryLabel?: string;
@@ -105,17 +107,17 @@ export interface TicketResponseDTO {
   subcategoryLabel?: string;
   action?: string;
   actionLabel?: string;
-  
+
   // Metadata
   tags?: string[];
   customFields?: Record<string, any>;
-  
+
   // Audit
   createdAt: string;
   updatedAt: string;
   createdByName?: string;
   updatedByName?: string;
-  
+
   // Computed fields
   escalationLevel?: number;
   slaViolated?: boolean;

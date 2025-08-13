@@ -156,10 +156,10 @@ export class TicketController {
         id, 
         tenantId, 
         userId,
-        updateData: JSON.stringify(updateData, null, 2)
+        updateDataKeys: Object.keys(updateData || {})
       });
 
-      // Validações de entrada mais robustas
+      // Validações de entrada seguindo 1qa.md
       if (!tenantId) {
         console.log('❌ [TicketController] No tenant ID provided');
         res.status(401).json({
@@ -200,14 +200,14 @@ export class TicketController {
         return;
       }
 
-      // Preparar DTO para o use case
+      // Preparar DTO seguindo Clean Architecture
       const dto: UpdateTicketDTO = {
         ...updateData,
         updatedById: userId
       };
 
       console.log('🚀 [TicketController] Calling updateTicketUseCase.execute');
-      const ticket = await this.updateTicketUseCase.execute(id, dto, tenantId);
+      const ticket = await this.updateTicketUseCase.execute(id, dto, tenantId, userId);
 
       console.log('✅ [TicketController] Update successful, returning data');
       res.json({
@@ -218,22 +218,22 @@ export class TicketController {
     } catch (error: any) {
       console.error('❌ [TicketController] Update failed:', error);
 
-      // Tratamento de erro mais específico
+      // Tratamento de erro seguindo 1qa.md
       let statusCode = 500;
       let errorCode = 'INTERNAL_SERVER_ERROR';
 
       if (error.message.includes('not found')) {
         statusCode = 404;
         errorCode = 'TICKET_NOT_FOUND';
-      } else if (error.message.includes('required')) {
+      } else if (error.message.includes('Validation error')) {
         statusCode = 400;
         errorCode = 'VALIDATION_ERROR';
-      } else if (error.message.includes('inactive')) {
-        statusCode = 403;
-        errorCode = 'TICKET_INACTIVE';
-      } else if (error.message.includes('Invalid')) {
+      } else if (error.message.includes('constraint')) {
         statusCode = 400;
-        errorCode = 'INVALID_DATA';
+        errorCode = 'DATABASE_CONSTRAINT_ERROR';
+      } else if (error.message.includes('Update failed')) {
+        statusCode = 500;
+        errorCode = 'UPDATE_OPERATION_FAILED';
       }
 
       res.status(statusCode).json({

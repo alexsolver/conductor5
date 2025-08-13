@@ -1,7 +1,7 @@
 /**
  * Tickets Routes Integration
  * Clean Architecture - Integration Layer with main system
- * 
+ *
  * @module TicketsRoutesIntegration
  * @created 2025-08-12 - Phase 1 Clean Architecture Implementation
  */
@@ -81,17 +81,17 @@ router.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest, res) =
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID required' });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const result = await db.execute(sql`
-      SELECT 
+      SELECT
         ta.id,
         ta.file_name as "fileName",
-        ta.file_size as "fileSize", 
+        ta.file_size as "fileSize",
         ta.content_type as "contentType",
         ta.file_path as "filePath",
         ta.description,
@@ -117,14 +117,14 @@ router.get('/:id/communications', jwtAuth, async (req: AuthenticatedRequest, res
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID required' });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const result = await db.execute(sql`
-      SELECT 
+      SELECT
         tc.id,
         tc.direction,
         tc.communication_type as "communicationType",
@@ -155,14 +155,14 @@ router.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID required' });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const result = await db.execute(sql`
-      SELECT 
+      SELECT
         tn.id,
         tn.content,
         tn.note_type as "noteType",
@@ -190,17 +190,17 @@ router.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID required' });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const result = await db.execute(sql`
-      SELECT 
+      SELECT
         tia.id,
         tia.action_number as "actionNumber",
-        tia.action_type as "actionType", 
+        tia.action_type as "actionType",
         tia.title,
         tia.description,
         tia.start_time as "startTime",
@@ -230,19 +230,19 @@ router.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID required' });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const result = await db.execute(sql`
-      SELECT 
+      SELECT
         th.id,
         th.action_type as "actionType",
         th.description,
         th.field_name as "fieldName",
-        th.old_value as "oldValue", 
+        th.old_value as "oldValue",
         th.new_value as "newValue",
         th.performed_by as "performedBy",
         th.performed_by_name as "performedByName",
@@ -262,28 +262,28 @@ router.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 /**
- * GET TICKET RELATIONSHIPS - Secondary data endpoint  
+ * GET TICKET RELATIONSHIPS - Secondary data endpoint
  * GET /api/tickets/:id/relationships
  */
 router.get('/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID required' });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const result = await db.execute(sql`
-      SELECT 
+      SELECT
         tr.id,
         tr.relationship_type as "relationshipType",
         tr.description,
         tr.created_at as "createdAt",
         t.id as "targetTicket.id",
         t.subject as "targetTicket.subject",
-        t.status as "targetTicket.status", 
+        t.status as "targetTicket.status",
         t.priority as "targetTicket.priority",
         t.number as "targetTicket.number",
         t.created_at as "targetTicket.createdAt",
@@ -563,7 +563,19 @@ router.get('/:id', jwtAuth, ticketController.findById.bind(ticketController));
 router.post('/', jwtAuth, ticketController.create.bind(ticketController));
 
 // PUT /api/tickets/:id - Update ticket
-router.put('/:id', jwtAuth, ticketController.update.bind(ticketController));
+router.put('/:id', jwtAuth, async (req, res) => {
+  console.log('🎯 [TICKETS-INTEGRATION] PUT /api/tickets/:id endpoint called with ID:', req.params.id);
+  try {
+    await ticketController.update(req, res);
+  } catch (error) {
+    console.error('❌ [TICKETS-INTEGRATION] Error in update:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
 
 // DELETE /api/tickets/:id - Delete ticket
 router.delete('/:id', jwtAuth, ticketController.delete.bind(ticketController));

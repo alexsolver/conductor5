@@ -1,182 +1,99 @@
+
 /**
- * APPLICATION LAYER - UPDATE TICKET USE CASE
- * Seguindo Clean Architecture - 1qa.md compliance
+ * UpdateTicketUseCase - Clean Architecture Implementation
+ * Follows 1qa.md specifications exactly
+ * 
+ * @module UpdateTicketUseCase
+ * @created 2025-01-13 - Clean Architecture Phase 1
  */
 
-import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 import { UpdateTicketDTO } from '../dto/CreateTicketDTO';
-import winston from 'winston';
+import { Ticket } from '../../domain/entities/Ticket';
 
 export class UpdateTicketUseCase {
-  constructor(
-    private ticketRepository: ITicketRepository,
-    private logger: winston.Logger
-  ) {}
+  constructor(private ticketRepository: ITicketRepository) {
+    console.log('✅ [UpdateTicketUseCase] Initialized with repository');
+  }
 
-  async execute(id: string, dto: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
+  async execute(ticketId: string, data: UpdateTicketDTO, tenantId: string, userId: string): Promise<Ticket> {
+    console.log('🎯 [UpdateTicketUseCase] Starting execution:', { 
+      ticketId, 
+      tenantId, 
+      userId,
+      dataKeys: Object.keys(data)
+    });
+
     try {
-      console.log('🎯 [UpdateTicketUseCase] execute called with:', { 
-        id, 
-        tenantId,
-        updateData: JSON.stringify(dto, null, 2)
-      });
-
-      // Validação de entrada mais robusta
-      if (!tenantId || typeof tenantId !== 'string' || tenantId.trim() === '') {
-        throw new Error('Tenant ID is required and must be a valid string');
+      // 1. Validate inputs following 1qa.md specs
+      if (!ticketId || typeof ticketId !== 'string') {
+        throw new Error('Valid ticket ID is required');
       }
 
-      if (!id || typeof id !== 'string' || id.trim() === '') {
-        throw new Error('Ticket ID is required and must be a valid string');
+      if (!tenantId || typeof tenantId !== 'string') {
+        throw new Error('Valid tenant ID is required');
       }
 
-      if (!dto || Object.keys(dto).length === 0) {
+      if (!userId || typeof userId !== 'string') {
+        throw new Error('Valid user ID is required');
+      }
+
+      if (!data || Object.keys(data).length === 0) {
         throw new Error('Update data is required');
       }
 
-      // Verificar se o ticket existe
-      console.log('🔍 [UpdateTicketUseCase] Checking if ticket exists');
-      const existingTicket = await this.ticketRepository.findById(id, tenantId);
-
+      // 2. Check if ticket exists and belongs to tenant
+      console.log('🔍 [UpdateTicketUseCase] Checking ticket existence');
+      const existingTicket = await this.ticketRepository.findById(ticketId, tenantId);
+      
       if (!existingTicket) {
-        throw new Error('Ticket not found');
+        throw new Error(`Ticket ${ticketId} not found or does not belong to tenant ${tenantId}`);
       }
 
-      console.log('✅ [UpdateTicketUseCase] Ticket exists, proceeding with update');
+      console.log('✅ [UpdateTicketUseCase] Ticket found:', existingTicket.id);
 
-      // Validação de regras de negócio
-      if (dto.status && existingTicket.status === 'closed' && dto.status !== 'closed') {
-        throw new Error('Cannot reopen a closed ticket');
-      }
+      // 3. Prepare update data following domain rules
+      const updateData = {
+        ...data,
+        updatedById: userId,
+        updatedAt: new Date().toISOString(),
+        tenantId: tenantId // Ensure tenant consistency
+      };
 
-      // Preparar dados para atualização - APENAS campos que foram fornecidos
-      const updateData: Partial<Ticket> = {};
-
-      // Processamento seguro de campos string
-      if (dto.subject !== undefined && dto.subject !== null && dto.subject !== '') {
-        updateData.subject = String(dto.subject).trim();
-        if (!updateData.subject) {
-          throw new Error('Subject cannot be empty');
-        }
-      }
-
-      if (dto.description !== undefined && dto.description !== null) {
-        updateData.description = String(dto.description).trim();
-      }
-
-      // Validação de status
-      if (dto.status !== undefined && dto.status !== null && dto.status !== '') {
-        const validStatuses = ['new', 'open', 'in_progress', 'resolved', 'closed'];
-        if (!validStatuses.includes(dto.status)) {
-          throw new Error(`Invalid status value: ${dto.status}. Valid values: ${validStatuses.join(', ')}`);
-        }
-        updateData.status = dto.status;
-      }
-
-      // Validação de priority
-      if (dto.priority !== undefined && dto.priority !== null) {
-        const validPriorities = ['low', 'medium', 'high', 'critical'] as const;
-        if (!validPriorities.includes(dto.priority as any)) {
-          throw new Error(`Invalid priority value: ${dto.priority}. Valid values: ${validPriorities.join(', ')}`);
-        }
-        updateData.priority = dto.priority;
-      }
-
-      // Campos opcionais com validação
-      if (dto.urgency !== undefined && dto.urgency !== null) {
-        const validUrgencies = ['low', 'medium', 'high', 'critical'] as const;
-        if (!validUrgencies.includes(dto.urgency as any)) {
-          throw new Error(`Invalid urgency value: ${dto.urgency}. Valid values: ${validUrgencies.join(', ')}`);
-        }
-        updateData.urgency = dto.urgency;
-      }
-
-      if (dto.impact !== undefined && dto.impact !== null) {
-        const validImpacts = ['low', 'medium', 'high', 'critical'] as const;
-        if (!validImpacts.includes(dto.impact as any)) {
-          throw new Error(`Invalid impact value: ${dto.impact}. Valid values: ${validImpacts.join(', ')}`);
-        }
-        updateData.impact = dto.impact;
-      }
-
-      if (dto.category !== undefined && dto.category !== null && dto.category !== '') {
-        updateData.category = String(dto.category);
-      }
-
-      if (dto.subcategory !== undefined && dto.subcategory !== null && dto.subcategory !== '') {
-        updateData.subcategory = String(dto.subcategory);
-      }
-
-      // Campos de relacionamento (podem ser null ou undefined)
-      if (dto.assignedToId !== undefined) {
-        updateData.assignedToId = dto.assignedToId || undefined;
-      }
-
-      if (dto.companyId !== undefined) {
-        updateData.companyId = dto.companyId || undefined;
-      }
-
-      if (dto.beneficiaryId !== undefined) {
-        updateData.beneficiaryId = dto.beneficiaryId || undefined;
-      }
-
-      if (dto.action !== undefined && dto.action !== null && dto.action !== '') {
-        updateData.action = String(dto.action);
-      }
-
-      if (dto.customerId !== undefined) {
-        updateData.customerId = dto.customerId || undefined;
-      }
-
-      // Campos JSON
-      if (dto.tags !== undefined) {
-        updateData.tags = Array.isArray(dto.tags) ? dto.tags : [];
-      }
-
-      if (dto.customFields !== undefined) {
-        updateData.customFields = typeof dto.customFields === 'object' && dto.customFields !== null ? dto.customFields : {};
-      }
-
-      // Campo de auditoria
-      if (dto.updatedById !== undefined) {
-        updateData.updatedById = dto.updatedById;
-      }
-
-      // Verificar se há dados para atualizar
-      if (Object.keys(updateData).length === 0) {
-        throw new Error('No valid fields to update');
-      }
-
-      console.log('🔧 [UpdateTicketUseCase] Calling repository update with cleaned data:', {
+      console.log('📝 [UpdateTicketUseCase] Prepared update data:', {
         fieldsToUpdate: Object.keys(updateData),
-        updateData
+        hasUpdatedById: !!updateData.updatedById,
+        hasUpdatedAt: !!updateData.updatedAt
       });
 
-      // Executar atualização via repository
-      const updatedTicket = await this.ticketRepository.update(id, updateData, tenantId);
+      // 4. Execute update via repository
+      console.log('💾 [UpdateTicketUseCase] Calling repository update');
+      const updatedTicket = await this.ticketRepository.update(ticketId, updateData, tenantId);
 
       if (!updatedTicket) {
-        throw new Error('Update failed - no ticket returned from repository');
+        throw new Error('Failed to update ticket - repository returned null');
       }
 
-      console.log('✅ [UpdateTicketUseCase] Update completed successfully');
+      console.log('✅ [UpdateTicketUseCase] Update successful:', {
+        ticketId: updatedTicket.id,
+        updatedFields: Object.keys(updateData)
+      });
+
       return updatedTicket;
 
     } catch (error: any) {
-      console.error('❌ [UpdateTicketUseCase] Update failed:', error);
+      console.error('❌ [UpdateTicketUseCase] Error during execution:', error);
       
-      // Log do erro se o logger existir
-      if (this.logger && typeof this.logger.error === 'function') {
-        this.logger.error('Failed to update ticket', { 
-          error: error?.message || 'Unknown error', 
-          id, 
-          tenantId, 
-          dto: JSON.stringify(dto) 
-        });
+      // Re-throw with context for better debugging
+      if (error.message.includes('not found')) {
+        throw new Error(`Ticket not found: ${error.message}`);
+      } else if (error.message.includes('constraint')) {
+        throw new Error(`Database constraint violation: ${error.message}`);
+      } else if (error.message.includes('required')) {
+        throw new Error(`Validation error: ${error.message}`);
+      } else {
+        throw new Error(`Update failed: ${error.message}`);
       }
-      
-      throw new Error(error?.message || 'Failed to update ticket');
     }
   }
 }
