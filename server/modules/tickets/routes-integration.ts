@@ -56,6 +56,64 @@ router.get('/', jwtAuth, async (req, res) => {
 });
 
 /**
+ * BATCH RELATIONSHIPS CHECK - Endpoint for checking multiple tickets relationships
+ * POST /api/tickets/batch-relationships
+ */
+router.post('/batch-relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  console.log('🎯 [TICKETS-INTEGRATION] POST /api/tickets/batch-relationships endpoint called');
+  try {
+    const tenantId = req.user?.tenantId;
+    const { ticketIds } = req.body;
+
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant ID is required'
+      });
+    }
+
+    if (!ticketIds || !Array.isArray(ticketIds)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ticketIds array is required'
+      });
+    }
+
+    console.log(`📡 [BATCH-RELATIONSHIPS] Processing ${ticketIds.length} tickets for tenant ${tenantId}`);
+
+    // 🎯 Use repository to get relationships for each ticket
+    const batchResults: Record<string, any[]> = {};
+    
+    for (const ticketId of ticketIds) {
+      try {
+        const relationships = await ticketRepository.getRelationships(tenantId, ticketId);
+        batchResults[ticketId] = relationships || [];
+        console.log(`✅ [BATCH-RELATIONSHIPS] Ticket ${ticketId}: ${relationships?.length || 0} relationships`);
+      } catch (error) {
+        console.error(`❌ [BATCH-RELATIONSHIPS] Error for ticket ${ticketId}:`, error);
+        batchResults[ticketId] = [];
+      }
+    }
+
+    console.log(`✅ [BATCH-RELATIONSHIPS] Batch complete: ${Object.keys(batchResults).length} tickets processed`);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Batch relationships retrieved successfully',
+      data: batchResults
+    });
+
+  } catch (error) {
+    console.error('❌ [TICKETS-INTEGRATION] Error in batch-relationships:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+/**
  * GET SINGLE TICKET - Endpoint for ticket details
  * GET /api/tickets/:id
  */
