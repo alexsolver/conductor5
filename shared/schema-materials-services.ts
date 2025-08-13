@@ -361,7 +361,7 @@ export const priceLists = pgTable('price_lists', {
 
   // Aplicação
   customerId: uuid('customer_id'),
-  companyId: uuid('customer_company_id'),
+  companyId: uuid('company_id'),
   contractId: uuid('contract_id'),
   costCenterId: uuid('cost_center_id'),
 

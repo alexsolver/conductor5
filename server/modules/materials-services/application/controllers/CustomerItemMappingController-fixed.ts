@@ -66,12 +66,12 @@ export const getCustomerItemMappings = async (req: AuthenticatedRequest, res: Re
         i.integration_code as item_integration_code,
         i.type as item_type,
         i.description as item_description,
-        cc.name as customer_company_name,
-        cc.trade_name as customer_company_trade_name,
-        cc.email as customer_company_email
+        cc.name as company_name,
+        cc.trade_name as company_trade_name,
+        cc.email as company_email
       FROM customer_item_mappings m
       LEFT JOIN items i ON m.item_id = i.id AND i.tenant_id = m.tenant_id
-      LEFT JOIN customer_companies cc ON m.customer_id = cc.id AND cc.tenant_id = m.tenant_id
+      LEFT JOIN companies cc ON m.customer_id = cc.id AND cc.tenant_id = m.tenant_id
       WHERE ${whereConditions.join(' AND ')}
       ORDER BY m.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -188,12 +188,12 @@ export const getCustomerItemMappingById = async (req: AuthenticatedRequest, res:
         i.integration_code as item_integration_code,
         i.type as item_type,
         i.description as item_description,
-        cc.name as customer_company_name,
-        cc.trade_name as customer_company_trade_name,
-        cc.email as customer_company_email
+        cc.name as company_name,
+        cc.trade_name as company_trade_name,
+        cc.email as company_email
       FROM customer_item_mappings m
       LEFT JOIN items i ON m.item_id = i.id AND i.tenant_id = m.tenant_id
-      LEFT JOIN customer_companies cc ON m.customer_id = cc.id AND cc.tenant_id = m.tenant_id
+      LEFT JOIN companies cc ON m.customer_id = cc.id AND cc.tenant_id = m.tenant_id
       WHERE m.id = $1 AND m.tenant_id = $2
     `;
 
