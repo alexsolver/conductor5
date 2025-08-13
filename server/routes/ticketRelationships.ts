@@ -73,38 +73,89 @@ router.post('/:id/relationships', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Batch check ticket relationships - NOVA ROTA CRÍTICA
+// 🔧 [1QA-COMPLIANCE] Batch check ticket relationships - Clean Architecture
 router.post('/batch-relationships', async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const { ticketIds } = req.body;
 
+    logInfo('Batch relationships request', { 
+      tenantId, 
+      ticketIdsCount: Array.isArray(ticketIds) ? ticketIds.length : 0,
+      requestBody: req.body 
+    });
+
     if (!tenantId) {
+      logError('Batch relationships: Missing tenant ID', {}, { tenantId });
       return sendError(res as any, "Tenant ID is required", "Tenant ID is required", 400);
     }
 
     if (!ticketIds || !Array.isArray(ticketIds)) {
+      logError('Batch relationships: Invalid ticketIds', { ticketIds: typeof ticketIds }, { tenantId });
       return sendError(res as any, "ticketIds array is required", "ticketIds array is required", 400);
+    }
+
+    if (ticketIds.length === 0) {
+      logInfo('Batch relationships: Empty ticketIds array', { tenantId });
+      return sendSuccess(res as any, {}, "No tickets to check relationships for");
     }
 
     const storage = await getStorage();
     const batchResults: Record<string, any[]> = {};
+    let totalRelationships = 0;
+    let successCount = 0;
+    let errorCount = 0;
 
-    // Buscar relacionamentos para cada ticket
+    // 🚀 Processar relacionamentos em batch com error handling
     for (const ticketId of ticketIds) {
       try {
+        if (!ticketId || typeof ticketId !== 'string') {
+          logError('Invalid ticketId in batch', { ticketId }, { tenantId });
+          batchResults[String(ticketId)] = [];
+          errorCount++;
+          continue;
+        }
+
         const relationships = await storage.getTicketRelationships(tenantId, ticketId);
-        batchResults[ticketId] = relationships || [];
+        const relationshipsArray = Array.isArray(relationships) ? relationships : [];
+        
+        batchResults[ticketId] = relationshipsArray;
+        totalRelationships += relationshipsArray.length;
+        successCount++;
+        
+        if (relationshipsArray.length > 0) {
+          logInfo('Ticket relationships found', {
+            ticketId,
+            relationshipsCount: relationshipsArray.length
+          });
+        }
+        
       } catch (error) {
         logError('Error fetching relationships for ticket', error as any, { tenantId, ticketId });
         batchResults[ticketId] = [];
+        errorCount++;
       }
     }
 
-    logInfo('Batch relationships fetched', { tenantId, ticketCount: ticketIds.length, totalRelationships: Object.values(batchResults).flat().length });
-    return sendSuccess(res as any, batchResults, `Batch relationships retrieved for ${ticketIds.length} tickets`);
+    const summary = {
+      tenantId,
+      requestedTickets: ticketIds.length,
+      successfulChecks: successCount,
+      failedChecks: errorCount,
+      totalRelationships,
+      ticketsWithRelationships: Object.values(batchResults).filter(rels => rels.length > 0).length
+    };
+
+    logInfo('Batch relationships completed', summary);
+    
+    return sendSuccess(res as any, batchResults, `Batch relationships retrieved for ${ticketIds.length} tickets (${successCount} successful, ${errorCount} errors)`);
+    
   } catch (error) {
-    logError('Error in batch relationships check', error as any, { tenantId: req.user?.tenantId, ticketIds: req.body?.ticketIds });
+    logError('Error in batch relationships check', error as any, { 
+      tenantId: req.user?.tenantId, 
+      ticketIds: req.body?.ticketIds,
+      requestBody: req.body
+    });
     return sendError(res as any, error as any, "Failed to fetch batch relationships", 500);
   }
 });

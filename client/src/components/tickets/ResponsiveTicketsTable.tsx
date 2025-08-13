@@ -79,16 +79,20 @@ const MobileTicketCard: React.FC<{
               >
                 #{ticket.number || ticket.id?.slice(0, 8)}
               </Link>
+              {/* 🔧 [1QA-COMPLIANCE] Ícone de relacionamentos sempre visível quando há vínculos */}
               {hasRelationships && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onToggleExpand?.(ticket.id)}
-                  className="p-1 h-6 w-6"
-                  aria-label={isExpanded ? "Recolher relacionamentos" : "Expandir relacionamentos"}
-                >
-                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                </Button>
+                <div className="flex items-center gap-1">
+                  <GitBranch className="h-3 w-3 text-blue-600" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onToggleExpand?.(ticket.id)}
+                    className="p-1 h-6 w-6 hover:bg-blue-100"
+                    aria-label={isExpanded ? "Recolher relacionamentos" : "Expandir relacionamentos"}
+                  >
+                    {isExpanded ? <ChevronDown className="h-3 w-3 text-blue-600" /> : <ChevronRight className="h-3 w-3 text-blue-600" />}
+                  </Button>
+                </div>
               )}
             </div>
 

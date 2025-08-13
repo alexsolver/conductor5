@@ -483,51 +483,146 @@ const TicketsTable = React.memo(() => {
 
 
 
-  // Função para buscar relacionamentos de tickets
-  const fetchTicketRelationships = async (ticketId: string) => {
+  // 🔧 [1QA-COMPLIANCE] Verificar se um ticket tem relacionamentos - Clean Architecture
+  const hasTicketRelationships = async (ticketId: string): Promise<boolean> => {
     try {
-      const response = await apiRequest("GET", `/api/ticket-relationships/${ticketId}/relationships`);
+      console.log(`🔍 [RELATIONSHIP-CHECK] Verificando relacionamentos para ticket: ${ticketId}`);
+
+      const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
       const data = await response.json();
 
-      if (data.success) {
-        // Transform the data to match the expected format
-        const transformedRelationships = data.data.map((relationship: any) => ({
-          id: relationship.targetTicket.id,
-          relationshipId: relationship.id, // Add unique relationship ID
-          number: relationship.targetTicket.number || 'N/A',
-          subject: relationship.targetTicket.subject || 'Sem assunto',
-          status: relationship.targetTicket.status || 'unknown',
-          priority: relationship.targetTicket.priority || 'medium',
-          relationshipType: relationship.relationshipType,
-          description: relationship.description || '',
-          createdAt: relationship.createdAt
-        }));
+      console.log(`🔍 [RELATIONSHIP-CHECK] Response data:`, {
+        ticketId,
+        dataType: typeof data,
+        isArray: Array.isArray(data),
+        hasSuccess: 'success' in data,
+        hasData: 'data' in data,
+        hasRelationships: 'relationships' in data,
+        keys: data ? Object.keys(data) : null
+      });
 
-        // Remove duplicatas usando relationshipId único
-        const uniqueRelationships = transformedRelationships.filter((rel: any, index: number, self: any[]) => 
-          index === self.findIndex((r: any) => r.relationshipId === rel.relationshipId)
-        );
+      // 🎯 Clean Architecture - Parse standardized response structure
+      let relationships = [];
 
-        console.log(`🔍 Relationships for ticket ${ticketId}:`, {
-          total: transformedRelationships.length,
-          unique: uniqueRelationships.length,
-          duplicatesRemoved: transformedRelationships.length - uniqueRelationships.length
+      if (data.success && Array.isArray(data.data)) {
+        // Standard Clean Architecture response: { success: true, data: [...] }
+        relationships = data.data;
+        console.log(`✅ [RELATIONSHIP-CHECK] Using Clean Architecture response structure`);
+      } else if (Array.isArray(data.relationships)) {
+        // Legacy response: { relationships: [...] }  
+        relationships = data.relationships;
+        console.log(`⚠️ [RELATIONSHIP-CHECK] Using legacy relationships structure`);
+      } else if (Array.isArray(data)) {
+        // Direct array response
+        relationships = data;
+        console.log(`⚠️ [RELATIONSHIP-CHECK] Using direct array response`);
+      }
+
+      const hasRelationships = relationships && relationships.length > 0;
+
+      console.log(`🔗 [RELATIONSHIP-CHECK] Final result:`, {
+        ticketId,
+        hasRelationships,
+        relationshipsCount: relationships.length,
+        relationships: relationships.slice(0, 2) // Log only first 2 for brevity
+      });
+
+      return hasRelationships;
+
+    } catch (error: any) {
+      console.error(`❌ [RELATIONSHIP-CHECK] Error checking relationships for ${ticketId}:`, {
+        error: error.message,
+        stack: error.stack?.slice(0, 200)
+      });
+      return false;
+    }
+  };
+
+  // 🔧 [1QA-COMPLIANCE] Buscar relacionamentos seguindo Clean Architecture
+  const fetchTicketRelationships = async (ticketId: string) => {
+    try {
+      console.log(`🔄 [FETCH-RELATIONSHIPS] Buscando relacionamentos para ticket: ${ticketId}`);
+
+      const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
+      const data = await response.json();
+
+      console.log(`📋 [FETCH-RELATIONSHIPS] Response recebida:`, {
+        ticketId,
+        success: data.success,
+        hasData: !!data.data,
+        dataType: Array.isArray(data.data) ? 'array' : typeof data.data,
+        dataLength: Array.isArray(data.data) ? data.data.length : 0,
+        message: data.message
+      });
+
+      let relationships = [];
+
+      // 🎯 Clean Architecture - Standard response parsing
+      if (data.success === true && Array.isArray(data.data)) {
+        relationships = data.data;
+        console.log(`✅ [FETCH-RELATIONSHIPS] Usando estrutura Clean Architecture padrão`);
+      } else if (Array.isArray(data.relationships)) {
+        relationships = data.relationships;
+        console.log(`⚠️ [FETCH-RELATIONSHIPS] Usando estrutura legacy 'relationships'`);
+      } else if (Array.isArray(data)) {
+        relationships = data;
+        console.log(`⚠️ [FETCH-RELATIONSHIPS] Usando array direto`);
+      } else {
+        console.log(`❌ [FETCH-RELATIONSHIPS] Estrutura de resposta não reconhecida:`, {
+          dataType: typeof data,
+          keys: data ? Object.keys(data) : null
+        });
+        return [];
+      }
+
+      // 🧹 Deduplication seguindo 1qa.md - usar IDs únicos
+      if (relationships.length > 0) {
+        const uniqueRelationships = relationships.reduce((acc: any[], current: any) => {
+          const uniqueKey = current.id || current.relationshipId || current.targetTicket?.id || 
+                           `${current.sourceTicketId}-${current.targetTicketId}`;
+
+          const isDuplicate = acc.some(item => {
+            const itemKey = item.id || item.relationshipId || item.targetTicket?.id || 
+                           `${item.sourceTicketId}-${item.targetTicketId}`;
+            return itemKey === uniqueKey;
+          });
+
+          if (!isDuplicate) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+
+        console.log(`🧹 [FETCH-RELATIONSHIPS] Após deduplicação:`, {
+          ticketId,
+          originalCount: relationships.length,
+          uniqueCount: uniqueRelationships.length,
+          removedDuplicates: relationships.length - uniqueRelationships.length
         });
 
+        // ✅ Cache relationships seguindo padrões 1qa.md
         setTicketRelationships(prev => ({
           ...prev,
           [ticketId]: uniqueRelationships
         }));
 
-        // Marcar ticket como tendo relacionamentos se houver dados
+        // ✅ Marcar ticket como tendo relacionamentos
         if (uniqueRelationships.length > 0) {
           setTicketsWithRelationships(prev => new Set([...Array.from(prev), ticketId]));
+          console.log(`✅ [FETCH-RELATIONSHIPS] Ticket ${ticketId} marcado como tendo ${uniqueRelationships.length} relacionamentos`);
         }
 
         return uniqueRelationships;
       }
-    } catch (error) {
-      console.error('Error fetching ticket relationships:', error);
+
+      console.log(`ℹ️ [FETCH-RELATIONSHIPS] Nenhum relacionamento encontrado para ticket ${ticketId}`);
+      return [];
+
+    } catch (error: any) {
+      console.error(`❌ [FETCH-RELATIONSHIPS] Erro ao buscar relacionamentos para ${ticketId}:`, {
+        error: error.message,
+        stack: error.stack?.slice(0, 200)
+      });
       return [];
     }
   };
@@ -666,134 +761,274 @@ const TicketsTable = React.memo(() => {
                    Array.isArray(companiesData) ? companiesData : [];
   const ticketViews = (ticketViewsData as any)?.data || [];
 
-  // Função para verificar se um ticket tem relacionamentos via API
-  const checkTicketRelationships = async (ticketId: string) => {
+  // 🔧 [1QA-COMPLIANCE] Verificar se um ticket tem relacionamentos - Clean Architecture
+  const hasTicketRelationships = async (ticketId: string): Promise<boolean> => {
     try {
+      console.log(`🔍 [RELATIONSHIP-CHECK] Verificando relacionamentos para ticket: ${ticketId}`);
+
       const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
       const data = await response.json();
 
-      // A API pode retornar {success: true, data: [...]} ou {relationships: [...]}
-      let relationships = data.relationships || data.data || [];
+      console.log(`🔍 [RELATIONSHIP-CHECK] Response data:`, {
+        ticketId,
+        dataType: typeof data,
+        isArray: Array.isArray(data),
+        hasSuccess: 'success' in data,
+        hasData: 'data' in data,
+        hasRelationships: 'relationships' in data,
+        keys: data ? Object.keys(data) : null
+      });
 
-      // Se data é um array diretamente
-      if (Array.isArray(data)) {
+      // 🎯 Clean Architecture - Parse standardized response structure
+      let relationships = [];
+
+      if (data.success && Array.isArray(data.data)) {
+        // Standard Clean Architecture response: { success: true, data: [...] }
+        relationships = data.data;
+        console.log(`✅ [RELATIONSHIP-CHECK] Using Clean Architecture response structure`);
+      } else if (Array.isArray(data.relationships)) {
+        // Legacy response: { relationships: [...] }  
+        relationships = data.relationships;
+        console.log(`⚠️ [RELATIONSHIP-CHECK] Using legacy relationships structure`);
+      } else if (Array.isArray(data)) {
+        // Direct array response
         relationships = data;
+        console.log(`⚠️ [RELATIONSHIP-CHECK] Using direct array response`);
       }
 
       const hasRelationships = relationships && relationships.length > 0;
-      console.log(`🔗 Ticket ${ticketId} relationships:`, {
+
+      console.log(`🔗 [RELATIONSHIP-CHECK] Final result:`, {
+        ticketId,
         hasRelationships,
-        count: relationships?.length || 0,
-        rawResponse: data,
-        relationships: relationships
+        relationshipsCount: relationships.length,
+        relationships: relationships.slice(0, 2) // Log only first 2 for brevity
       });
 
-      // Log especial para tickets que sabemos que deveriam ter relacionamentos
-      if (ticketId === '6fdae7d3-67cd-49f3-99d1-8ddd3efcb653') {
-        console.log(`🚨 IMPORTANTE: Ticket T-1753756629339-G5WE deveria ter relacionamentos:`, {
-          ticketId,
-          hasRelationships,
-          dataType: typeof data,
-          isDataArray: Array.isArray(data),
-          dataKeys: data ? Object.keys(data) : 'null',
-          relationships,
-          relationshipsLength: relationships?.length
-        });
-      }
-
       return hasRelationships;
-    } catch (error) {
-      console.error('Error checking ticket relationships:', error);
+
+    } catch (error: any) {
+      console.error(`❌ [RELATIONSHIP-CHECK] Error checking relationships for ${ticketId}:`, {
+        error: error.message,
+        stack: error.stack?.slice(0, 200)
+      });
       return false;
     }
   };
 
-  // Inicializar indicadores de relacionamentos - ULTRA OTIMIZADO com Cache Inteligente
+  // 🔧 [1QA-COMPLIANCE] Buscar relacionamentos seguindo Clean Architecture
+  const fetchTicketRelationships = async (ticketId: string) => {
+    try {
+      console.log(`🔄 [FETCH-RELATIONSHIPS] Buscando relacionamentos para ticket: ${ticketId}`);
+
+      const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
+      const data = await response.json();
+
+      console.log(`📋 [FETCH-RELATIONSHIPS] Response recebida:`, {
+        ticketId,
+        success: data.success,
+        hasData: !!data.data,
+        dataType: Array.isArray(data.data) ? 'array' : typeof data.data,
+        dataLength: Array.isArray(data.data) ? data.data.length : 0,
+        message: data.message
+      });
+
+      let relationships = [];
+
+      // 🎯 Clean Architecture - Standard response parsing
+      if (data.success === true && Array.isArray(data.data)) {
+        relationships = data.data;
+        console.log(`✅ [FETCH-RELATIONSHIPS] Usando estrutura Clean Architecture padrão`);
+      } else if (Array.isArray(data.relationships)) {
+        relationships = data.relationships;
+        console.log(`⚠️ [FETCH-RELATIONSHIPS] Usando estrutura legacy 'relationships'`);
+      } else if (Array.isArray(data)) {
+        relationships = data;
+        console.log(`⚠️ [FETCH-RELATIONSHIPS] Usando array direto`);
+      } else {
+        console.log(`❌ [FETCH-RELATIONSHIPS] Estrutura de resposta não reconhecida:`, {
+          dataType: typeof data,
+          keys: data ? Object.keys(data) : null
+        });
+        return [];
+      }
+
+      // 🧹 Deduplication seguindo 1qa.md - usar IDs únicos
+      if (relationships.length > 0) {
+        const uniqueRelationships = relationships.reduce((acc: any[], current: any) => {
+          const uniqueKey = current.id || current.relationshipId || current.targetTicket?.id || 
+                           `${current.sourceTicketId}-${current.targetTicketId}`;
+
+          const isDuplicate = acc.some(item => {
+            const itemKey = item.id || item.relationshipId || item.targetTicket?.id || 
+                           `${item.sourceTicketId}-${item.targetTicketId}`;
+            return itemKey === uniqueKey;
+          });
+
+          if (!isDuplicate) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+
+        console.log(`🧹 [FETCH-RELATIONSHIPS] Após deduplicação:`, {
+          ticketId,
+          originalCount: relationships.length,
+          uniqueCount: uniqueRelationships.length,
+          removedDuplicates: relationships.length - uniqueRelationships.length
+        });
+
+        // ✅ Cache relationships seguindo padrões 1qa.md
+        setTicketRelationships(prev => ({
+          ...prev,
+          [ticketId]: uniqueRelationships
+        }));
+
+        // ✅ Marcar ticket como tendo relacionamentos
+        if (uniqueRelationships.length > 0) {
+          setTicketsWithRelationships(prev => new Set([...Array.from(prev), ticketId]));
+          console.log(`✅ [FETCH-RELATIONSHIPS] Ticket ${ticketId} marcado como tendo ${uniqueRelationships.length} relacionamentos`);
+        }
+
+        return uniqueRelationships;
+      }
+
+      console.log(`ℹ️ [FETCH-RELATIONSHIPS] Nenhum relacionamento encontrado para ticket ${ticketId}`);
+      return [];
+
+    } catch (error: any) {
+      console.error(`❌ [FETCH-RELATIONSHIPS] Erro ao buscar relacionamentos para ${ticketId}:`, {
+        error: error.message,
+        stack: error.stack?.slice(0, 200)
+      });
+      return [];
+    }
+  };
+
+  // 🔧 [1QA-COMPLIANCE] Inicialização de relacionamentos seguindo Clean Architecture
   useEffect(() => {
     if (tickets.length > 0) {
-      console.log('🔄 useEffect triggered - tickets.length:', tickets.length);
+      console.log(`🔄 [RELATIONSHIP-INIT] Inicializando relacionamentos para ${tickets.length} tickets`);
 
-      // Cache inteligente com timestamp para invalidação
-      const cacheKey = tickets.map(t => t.id).sort().join(',');
-      const cachedData = sessionStorage.getItem(`relationships_${cacheKey}`);
+      // 🎯 Cache inteligente conforme 1qa.md
+      const cacheKey = `ticketRelationships_${tickets.map(t => t.id).sort().join('_').slice(0, 50)}`;
+      const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
+      const cacheData = localStorage.getItem(cacheKey);
+      const cacheExpiry = 3 * 60 * 1000; // 3 minutos - otimizado conforme 1qa.md
 
-      if (cachedData) {
+      if (cacheTimestamp && cacheData && 
+          Date.now() - parseInt(cacheTimestamp) < cacheExpiry) {
+        console.log(`📦 [RELATIONSHIP-INIT] Usando dados cached válidos`);
         try {
-          const parsed = JSON.parse(cachedData);
-          const isExpired = Date.now() - parsed.timestamp > 300000; // 5 minutos
-
-          if (!isExpired) {
-            setTicketsWithRelationships(new Set(parsed.ticketsWithRels));
-            setTicketRelationships(parsed.relationships);
-            console.log('✅ Loaded relationships from cache');
-            return;
-          }
-        } catch (error) {
-          console.warn('Cache corrupted, clearing:', error);
-          sessionStorage.removeItem(`relationships_${cacheKey}`);
+          const cached = JSON.parse(cacheData);
+          setTicketsWithRelationships(new Set(cached.ticketsWithRelationships));
+          setTicketRelationships(cached.relationshipsData);
+          return;
+        } catch (cacheError) {
+          console.warn(`⚠️ [RELATIONSHIP-INIT] Cache corrompido, limpando:`, cacheError);
+          localStorage.removeItem(cacheKey);
+          localStorage.removeItem(`${cacheKey}_timestamp`);
         }
       }
 
-      // Debounce inteligente com cleanup e loading state
-      const timeoutId = setTimeout(() => {
-        const checkAllTicketRelationships = async () => {
-          try {
-            const ticketIds = tickets.map((ticket: any) => ticket.id);
-            console.log('🔍 Starting optimized batch relationship check for', ticketIds.length, 'tickets');
+      console.log(`🔄 [RELATIONSHIP-INIT] Cache expirado/inexistente, buscando dados atualizados...`);
 
-            const startTime = performance.now();
-            const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
+      // 🚀 Batch check otimizado seguindo Clean Architecture
+      const checkBatchRelationships = async () => {
+        try {
+          const ticketIds = tickets.map(ticket => ticket.id);
+          console.log(`📡 [BATCH-CHECK] Fazendo requisição batch para ${ticketIds.length} tickets`);
 
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+          const response = await apiRequest('POST', '/api/tickets/batch-relationships', {
+            ticketIds
+          });
 
-            const data = await response.json();
-            const endTime = performance.now();
+          const batchResult = await response.json();
+          console.log(`📋 [BATCH-CHECK] Resultado batch:`, {
+            success: batchResult.success,
+            hasData: !!batchResult.data,
+            dataType: typeof batchResult.data,
+            message: batchResult.message
+          });
 
-            const ticketsWithRels = new Set<string>();
-            let totalRelationships = 0;
+          if (batchResult.success && batchResult.data) {
+            const newTicketsWithRelationships = new Set<string>();
+            const newRelationshipsData: Record<string, any[]> = {};
 
-            if (data.success && data.data) {
-              Object.entries(data.data).forEach(([ticketId, relationships]: [string, any]) => {
-                if (relationships && Array.isArray(relationships) && relationships.length > 0) {
-                  ticketsWithRels.add(ticketId);
-                  totalRelationships += relationships.length;
-                }
-              });
-            }
-
-            // Cache otimizado com controle de validade
-            const cacheData = {
-              ticketsWithRels: Array.from(ticketsWithRels),
-              relationships: data.data || {},
-              timestamp: Date.now(),
-              ticketCount: ticketIds.length
-            };
-
-            sessionStorage.setItem(`relationships_${cacheKey}`, JSON.stringify(cacheData));
-
-            console.log(`🎯 Batch relationships loaded in ${Math.round(endTime - startTime)}ms:`, {
-              totalTickets: ticketIds.length,
-              withRelationships: ticketsWithRels.size,
-              totalRelationships,
-              cacheKey: cacheKey.substring(0, 20) + '...'
+            // 🎯 Process batch results seguindo padrões 1qa.md
+            Object.entries(batchResult.data).forEach(([ticketId, relationships]: [string, any]) => {
+              if (Array.isArray(relationships) && relationships.length > 0) {
+                newTicketsWithRelationships.add(ticketId);
+                newRelationshipsData[ticketId] = relationships;
+                console.log(`✅ [BATCH-CHECK] Ticket ${ticketId} tem ${relationships.length} relacionamentos`);
+              }
             });
 
-            setTicketsWithRelationships(ticketsWithRels);
-            setTicketRelationships(data.data || {});
+            setTicketsWithRelationships(newTicketsWithRelationships);
+            setTicketRelationships(newRelationshipsData);
 
-          } catch (error) {
-            console.error('❌ Error in batch relationship check:', error);
-            setTicketsWithRelationships(new Set());
-            setTicketRelationships({});
+            // 💾 Salvar no cache seguindo 1qa.md
+            const cachePayload = {
+              ticketsWithRelationships: Array.from(newTicketsWithRelationships),
+              relationshipsData: newRelationshipsData
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(cachePayload));
+            localStorage.setItem(`${cacheKey}_timestamp`, Date.now().toString());
+
+            console.log(`✅ [BATCH-CHECK] Batch relacionamentos concluído:`, {
+              totalTickets: ticketIds.length,
+              ticketsComRelacionamentos: newTicketsWithRelationships.size,
+              cacheAtualizado: true,
+              relacionamentosCarregados: Object.keys(newRelationshipsData).length
+            });
+
+          } else {
+            console.warn(`⚠️ [BATCH-CHECK] Resposta batch inválida, usando fallback individual`);
+            fallbackIndividualCheck();
           }
-        };
 
-        checkAllTicketRelationships();
-      }, 100); // Debounce otimizado para 100ms
+        } catch (error: any) {
+          console.error(`❌ [BATCH-CHECK] Erro na verificação batch:`, {
+            error: error.message,
+            stack: error.stack?.slice(0, 200)
+          });
+          fallbackIndividualCheck();
+        }
+      };
 
-      return () => clearTimeout(timeoutId);
+      // 🔄 Fallback individual seguindo 1qa.md
+      const fallbackIndividualCheck = async () => {
+        console.log(`🔄 [FALLBACK-CHECK] Verificação individual de relacionamentos...`);
+
+        const promises = tickets.map(async (ticket) => {
+          try {
+            const hasRel = await hasTicketRelationships(ticket.id);
+            return { ticketId: ticket.id, hasRelationships: hasRel };
+          } catch (error) {
+            console.error(`❌ [FALLBACK-CHECK] Erro ao verificar ticket ${ticket.id}:`, error);
+            return { ticketId: ticket.id, hasRelationships: false };
+          }
+        });
+
+        const results = await Promise.allSettled(promises);
+        const newSet = new Set<string>();
+
+        results.forEach((result) => {
+          if (result.status === 'fulfilled' && result.value.hasRelationships) {
+            newSet.add(result.value.ticketId);
+          }
+        });
+
+        setTicketsWithRelationships(newSet);
+        console.log(`✅ [FALLBACK-CHECK] Fallback individual concluído:`, {
+          ticketsVerificados: tickets.length,
+          ticketsComRelacionamentos: newSet.size,
+          successfulChecks: results.filter(r => r.status === 'fulfilled').length,
+          failedChecks: results.filter(r => r.status === 'rejected').length
+        });
+      };
+
+      checkBatchRelationships();
     }
   }, [tickets]);
 
@@ -898,7 +1133,7 @@ const TicketsTable = React.memo(() => {
             if ((ticket as any).company_name) {
               return (ticket as any).company_name;
             }
-            
+
             // Se temos um ID da empresa, resolver o nome
             const companyId = (ticket as any).company_id;
             if (companyId) {
@@ -910,7 +1145,7 @@ const TicketsTable = React.memo(() => {
                 }
               }
             }
-            
+
             return 'Empresa não informada';
           })();
 
@@ -1150,7 +1385,14 @@ const TicketsTable = React.memo(() => {
         case 'updated':
           return (
             <TableCell>
-              {new Date(ticket.updatedAt).toLocaleDateString()}
+              {(ticket.updatedAt || (ticket as any).updated_at)
+                ? new Date(ticket.updatedAt || (ticket as any).updated_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  })
+                : 'N/A'
+              }
             </TableCell>
           );
         case 'due_date':
@@ -2292,7 +2534,7 @@ const TicketsTable = React.memo(() => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-end space-x-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
               Cancelar
