@@ -324,22 +324,22 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       console.log('🔧 [PARAMS-DEBUG] Array length:', params.length, 'Values:', params);
 
-      // Use correct PostgreSQL syntax with matching parameter count
-      const result = await db.execute(sql.raw(`
-        UPDATE ${schemaName}.tickets 
+      // FINAL SOLUTION: Use Drizzle template literals properly
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.${sql.identifier('tickets')} 
         SET 
-          subject = $1,
-          description = $2,
-          status = $3,
-          priority = $4,
-          urgency = $5,
-          impact = $6,
-          category = $7,
-          subcategory = $8,
-          updated_at = $9
-        WHERE id = '${id}' AND tenant_id = '${tenantId}' AND is_active = true
+          subject = ${setFields.subject},
+          description = ${setFields.description},
+          status = ${setFields.status},
+          priority = ${setFields.priority},
+          urgency = ${setFields.urgency},
+          impact = ${setFields.impact},
+          category = ${setFields.category},
+          subcategory = ${setFields.subcategory},
+          updated_at = ${setFields.updatedAt}
+        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
         RETURNING *
-      `, params));
+      `);
 
       console.log('✅ [RAW-SQL] Update successful with raw SQL approach');
       
