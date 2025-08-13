@@ -97,6 +97,7 @@ const TicketDetails = React.memo(() => {
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [communications, setCommunications] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [internalActions, setInternalActions] = useState<any[]>([]);
@@ -808,6 +809,63 @@ const TicketDetails = React.memo(() => {
       });
     } finally {
       setIsAddingNote(false);
+    }
+  };
+
+  // 🔧 [1QA-COMPLIANCE] Função onNotesSubmit seguindo Clean Architecture
+  const onNotesSubmit = async (data: any) => {
+    if (!data.content?.trim() || isSubmittingNote) return;
+
+    setIsSubmittingNote(true);
+
+    try {
+      console.log('📝 [NOTES] Submitting note:', { content: data.content, ticketId: id });
+
+      const response = await apiRequest("POST", `/api/tickets/${id}/notes`, {
+        content: data.content.trim(),
+        ticketId: id,
+        noteType: data.noteType || 'general',
+        isPrivate: data.isPrivate || false
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('📝 [NOTES] Note creation result:', result);
+
+      if (result.success) {
+        // Refresh notes data
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "notes"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] });
+
+        // Reset form
+        form.reset({
+          content: '',
+          noteType: 'general',
+          isPrivate: false
+        });
+
+        toast({
+          title: "Nota adicionada",
+          description: "A nota foi salva com sucesso.",
+        });
+
+        console.log('✅ [NOTES] Note added successfully');
+      } else {
+        throw new Error(result.message || "Failed to add note");
+      }
+    } catch (error) {
+      console.error('❌ [NOTES] Failed to add note:', error);
+
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar nota. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingNote(false);
     }
   };
 
