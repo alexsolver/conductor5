@@ -257,7 +257,7 @@ router.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
-    const userId = req.user?.userId;
+    const userId = req.user?.id; // ✅ Fix: use req.user?.id instead of req.user?.userId
     const { content, noteType = 'general', isInternal = false, isPublic = true } = req.body;
 
     console.log('📝 [NOTES-BACKEND] POST notes endpoint called:', { ticketId: id, tenantId, userId });
@@ -265,6 +265,11 @@ router.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
     if (!tenantId) {
       console.log('❌ [NOTES-BACKEND] Missing tenant ID');
       return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    if (!userId) {
+      console.log('❌ [NOTES-BACKEND] Missing user ID');
+      return res.status(401).json({ success: false, message: 'User ID required' });
     }
 
     if (!content || content.trim() === '') {
