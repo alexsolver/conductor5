@@ -814,43 +814,82 @@ const TicketDetails = React.memo(() => {
 
   // 🔧 [1QA-COMPLIANCE] Função onNotesSubmit seguindo Clean Architecture
   const onNotesSubmit = async (data: any) => {
-    if (!data.content?.trim() || isSubmittingNote) return;
+    console.log('📝 [NOTES-FRONTEND] onNotesSubmit called with:', { 
+      data, 
+      hasContent: !!data?.content,
+      contentLength: data?.content?.length,
+      isSubmitting: isSubmittingNote 
+    });
+
+    if (!data?.content?.trim() || isSubmittingNote) {
+      console.log('📝 [NOTES-FRONTEND] Validation failed or already submitting');
+      return;
+    }
 
     setIsSubmittingNote(true);
 
     try {
-      console.log('📝 [NOTES] Submitting note:', { content: data.content, ticketId: id });
-
-      const response = await apiRequest("POST", `/api/tickets/${id}/notes`, {
-        content: data.content.trim(),
-        ticketId: id,
+      console.log('📝 [NOTES-FRONTEND] Submitting note to API:', { 
+        ticketId: id, 
+        contentPreview: data.content.substring(0, 50),
         noteType: data.noteType || 'general',
-        isPrivate: data.isPrivate || false
+        isInternal: data.isPrivate || false
       });
 
-      console.log('📝 [NOTES] Response status:', response.status);
-      console.log('📝 [NOTES] Response headers:', response.headers);
+      // Preparar payload seguindo especificação da API
+      const payload = {
+        content: data.content.trim(),
+        noteType: data.noteType || 'general',
+        isInternal: data.isPrivate || false,
+        isPublic: !(data.isPrivate || false)
+      };
+
+      console.log('📝 [NOTES-FRONTEND] Sending payload:', payload);
+
+      const response = await apiRequest("POST", `/api/tickets/${id}/notes`, payload);
+
+      console.log('📝 [NOTES-FRONTEND] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: {
+          contentType: response.headers.get("content-type"),
+          contentLength: response.headers.get("content-length")
+        }
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('📝 [NOTES] Error response:', errorText);
+        console.error('📝 [NOTES-FRONTEND] Error response body:', errorText.substring(0, 500));
+        
+        // Verificar se é erro HTML (indica erro de servidor)
+        if (errorText.includes('<!DOCTYPE')) {
+          throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}. This indicates a server-side error.`);
+        }
+        
         throw new Error(`HTTP error! status: ${response.status} - ${errorText.substring(0, 200)}`);
       }
 
-      // Verificar se a resposta é JSON válido
+      // Verificar content-type antes de tentar fazer parse JSON
       const contentType = response.headers.get("content-type");
+      console.log('📝 [NOTES-FRONTEND] Response content-type:', contentType);
+
       if (!contentType?.includes("application/json")) {
         const responseText = await response.text();
-        console.error('📝 [NOTES] Invalid content type:', contentType);
-        console.error('📝 [NOTES] Response body:', responseText.substring(0, 500));
-        throw new Error(`Expected JSON response, got ${contentType}. Response: ${responseText.substring(0, 100)}`);
+        console.error('📝 [NOTES-FRONTEND] Non-JSON response:', {
+          contentType,
+          bodyPreview: responseText.substring(0, 500)
+        });
+        throw new Error(`Expected JSON response, got ${contentType}. This indicates a server configuration issue.`);
       }
 
       const result = await response.json();
-      console.log('📝 [NOTES] Note creation result:', result);
+      console.log('📝 [NOTES-FRONTEND] Parsed JSON result:', result);
 
       if (result.success) {
-        // Invalidate queries in the correct order
+        console.log('✅ [NOTES-FRONTEND] Note created successfully, invalidating queries');
+
+        // Invalidate queries in the correct order seguindo 1qa.md
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "notes"] }),
           queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] }),
@@ -867,20 +906,32 @@ const TicketDetails = React.memo(() => {
           description: "A nota foi salva com sucesso.",
         });
 
-        console.log('✅ [NOTES] Note added successfully');
+        console.log('✅ [NOTES-FRONTEND] Note workflow completed successfully');
       } else {
-        throw new Error(result.message || "Failed to add note");
+        console.error('📝 [NOTES-FRONTEND] API returned success=false:', result);
+        throw new Error(result.message || "Failed to add note - API returned success=false");
       }
     } catch (error) {
-      console.error('❌ [NOTES] Failed to add note:', error);
+      console.error('❌ [NOTES-FRONTEND] Failed to add note:', error);
 
       let errorMessage = "Erro ao adicionar nota. Tente novamente.";
       
       if (error instanceof Error) {
-        if (error.message.includes('DOCTYPE')) {
-          errorMessage = "Erro de comunicação com servidor. Verifique se a API está funcionando corretamente.";
+        console.log('📝 [NOTES-FRONTEND] Error analysis:', {
+          message: error.message,
+          includesDOCTYPE: error.message.includes('DOCTYPE'),
+          includesJSON: error.message.includes('application/json'),
+          includesHTML: error.message.includes('HTML')
+        });
+
+        if (error.message.includes('DOCTYPE') || error.message.includes('HTML')) {
+          errorMessage = "Erro do servidor: resposta HTML recebida ao invés de JSON. Contate o administrador.";
         } else if (error.message.includes('application/json')) {
-          errorMessage = "Servidor retornou resposta inválida. Contate o administrador.";
+          errorMessage = "Erro de formato de resposta do servidor. Contate o administrador.";
+        } else if (error.message.includes('server configuration')) {
+          errorMessage = "Erro de configuração do servidor. Contate o administrador.";
+        } else if (error.message.includes('server-side error')) {
+          errorMessage = "Erro interno do servidor. Tente novamente ou contate o administrador.";
         }
       }
 

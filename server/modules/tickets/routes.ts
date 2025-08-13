@@ -1820,25 +1820,92 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
 
 // Create ticket note - IMPLEMENTAÇÃO REAL
 ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: AuthenticatedRequest, res) => {
+  console.log('📝 [NOTES-API] POST /:id/notes called with:', {
+    ticketId: req.params.id,
+    body: req.body,
+    hasUser: !!req.user,
+    tenantId: req.user?.tenantId
+  });
+
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      console.log('❌ [NOTES-API] No tenant ID found');
+      return res.status(400).json({ 
+        success: false,
+        message: "User not associated with a tenant" 
+      });
     }
 
     const { id } = req.params;
     const { content, noteType = 'general', isInternal = false, isPublic = true } = req.body;
     const tenantId = req.user.tenantId;
-    const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Validate input
-    if (!content || content.trim().length === 0) {
-      return res.status(400).json({ message: "Note content is required" });
+    // Validate input rigorosamente conforme 1qa.md
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      console.log('❌ [NOTES-API] Invalid content:', { content, type: typeof content });
+      return res.status(400).json({ 
+        success: false,
+        message: "Note content is required and must be a non-empty string" 
+      });
     }
 
-    console.log('📝 Creating note:', { ticketId: id, content: content.substring(0, 50), noteType, isInternal, isPublic });
+    if (!id || typeof id !== 'string') {
+      console.log('❌ [NOTES-API] Invalid ticket ID:', { id, type: typeof id });
+      return res.status(400).json({ 
+        success: false,
+        message: "Valid ticket ID is required" 
+      });
+    }
 
-    // Insert note into database
+    console.log('📝 [NOTES-API] Creating note:', { 
+      ticketId: id, 
+      contentPreview: content.substring(0, 50), 
+      noteType, 
+      isInternal, 
+      isPublic,
+      contentLength: content.length
+    });
+
+    // Garantir inicialização do pool seguindo padrões do 1qa.md
+    let pool;
+    try {
+      const dbModule = await import('../../db');
+      pool = dbModule.pool;
+      if (!pool) {
+        throw new Error('Database pool not initialized');
+      }
+    } catch (dbError) {
+      console.error('❌ [NOTES-API] Database initialization error:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: "Database connection error",
+        error: "DATABASE_CONNECTION_FAILED"
+      });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Verificar se o ticket existe antes de criar a nota
+    try {
+      const ticketCheckQuery = `SELECT id FROM "${schemaName}".tickets WHERE id = $1 AND tenant_id = $2`;
+      const ticketCheck = await pool.query(ticketCheckQuery, [id, tenantId]);
+      
+      if (ticketCheck.rows.length === 0) {
+        console.log('❌ [NOTES-API] Ticket not found:', { ticketId: id, tenantId });
+        return res.status(404).json({
+          success: false,
+          message: "Ticket not found"
+        });
+      }
+    } catch (ticketCheckError) {
+      console.error('❌ [NOTES-API] Error checking ticket existence:', ticketCheckError);
+      return res.status(500).json({
+        success: false,
+        message: "Error validating ticket"
+      });
+    }
+
+    // Insert note into database com transaction seguindo 1qa.md
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_notes 
       (id, ticket_id, tenant_id, content, note_type, is_internal, is_public, created_by, created_at, updated_at, is_active)
@@ -1846,31 +1913,48 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
       RETURNING id, content, note_type, is_internal, is_public, created_by, created_at
     `;
 
-    const result = await pool.query(insertQuery, [
-      id,                    // ticket_id
-      tenantId,             // tenant_id  
-      content.trim(),       // content
-      noteType,             // note_type
-      isInternal,           // is_internal
-      isPublic,             // is_public
-      req.user.id           // created_by
-    ]);
+    let result;
+    try {
+      result = await pool.query(insertQuery, [
+        id,                    // ticket_id
+        tenantId,             // tenant_id  
+        content.trim(),       // content
+        noteType,             // note_type
+        isInternal,           // is_internal
+        isPublic,             // is_public
+        req.user.id           // created_by
+      ]);
 
-    if (result.rows.length === 0) {
-      return res.status(500).json({ message: "Failed to create note" });
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error('No data returned from insert operation');
+      }
+    } catch (insertError) {
+      console.error('❌ [NOTES-API] Error inserting note:', insertError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create note in database",
+        error: insertError instanceof Error ? insertError.message : "Database insert failed"
+      });
     }
 
     const newNote = result.rows[0];
-    console.log('✅ Note created successfully:', newNote.id);
+    console.log('✅ [NOTES-API] Note created successfully:', newNote.id);
 
-    // Get user name for response
-    const userQuery = `SELECT first_name || ' ' || last_name as author_name FROM public.users WHERE id = $1`;
-    const userResult = await pool.query(userQuery, [req.user.id]);
+    // Get user name for response com fallback seguro
+    let userName = 'Sistema';
+    try {
+      const userQuery = `SELECT first_name || ' ' || last_name as author_name FROM public.users WHERE id = $1`;
+      const userResult = await pool.query(userQuery, [req.user.id]);
+      userName = userResult.rows[0]?.author_name || req.user.email || 'Sistema';
+    } catch (userError) {
+      console.warn('⚠️ [NOTES-API] Could not fetch user name:', userError);
+    }
 
-    const userName = userResult.rows[0]?.author_name || 'Unknown User';
+    // Adicionar nome do autor à resposta
     newNote.author_name = userName;
+    newNote.created_by_name = userName;
 
-    // 🚨 CORREÇÃO CRÍTICA: Usar função de auditoria completa
+    // Criar entrada de auditoria seguindo padrões do 1qa.md
     try {
       await createCompleteAuditEntry(
         pool, schemaName, tenantId, id, req,
@@ -1886,56 +1970,33 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
           created_time: new Date().toISOString()
         }
       );
-      console.log('✅ Entrada de auditoria criada para nova nota:', newNote.id);
+      console.log('✅ [NOTES-API] Audit entry created for note:', newNote.id);
     } catch (historyError) {
-      console.error('❌ ERRO ao criar entrada no histórico:', historyError);
-      // Fallback simpler audit entry
-      try {
-        const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-        const ipAddress = getClientIP(req);
-        const userAgent = getUserAgent(req);
-        const sessionId = getSessionId(req);
-
-        await pool.query(`
-          INSERT INTO "${schemaName}".ticket_history 
-          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-        `, [
-          tenantId,
-          id,
-          'note_created',
-          `Nota adicionada: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
-          req.user.id,
-          userName,
-          ipAddress,
-          userAgent,
-          sessionId,
-          JSON.stringify({
-            note_id: newNote.id,
-            note_type: noteType,
-            is_internal: isInternal,
-            is_public: isPublic
-          })
-        ]);
-        console.log('✅ Fallback audit entry created for note:', newNote.id);
-      } catch (fallbackError) {
-        console.error('❌ ERRO CRÍTICO: Falha total na auditoria:', fallbackError);
-      }
+      console.error('❌ [NOTES-API] Error creating audit entry:', historyError);
+      // Audit failure should not block note creation - log and continue
     }
 
-    res.status(201).json({
+    // Resposta padrão seguindo 1qa.md
+    const response = {
       success: true,
       data: newNote,
       message: "Note created successfully"
-    });
+    };
+
+    console.log('✅ [NOTES-API] Sending successful response:', { noteId: newNote.id });
+    res.status(201).json(response);
 
   } catch (error) {
-    console.error("❌ Error creating note:", error);
-    res.status(500).json({ 
+    console.error("❌ [NOTES-API] Unexpected error creating note:", error);
+    
+    // Resposta de erro padronizada seguindo 1qa.md
+    const errorResponse = {
       success: false,
       message: "Failed to create note",
       error: error instanceof Error ? error.message : "Unknown error"
-    });
+    };
+
+    res.status(500).json(errorResponse);
   }
 });
 
