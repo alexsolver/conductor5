@@ -60,7 +60,6 @@ export const DynamicBadge = React.forwardRef<
 
   return (
     <Badge
-      ref={ref}
       variant={getVariant()}
       className={cn(className)}
       {...props}

@@ -127,13 +127,13 @@ export const ResponsiveTicketsTable = ({
               </TableCell>
             </TableRow>
           ) : (
-            tickets.map((ticket) => (
-              <React.Fragment key={ticket.id}>
-                <TableRow
-                  className="hover:bg-gray-50 transition-colors"
-                  role="row"
-                  aria-label={`Ticket ${ticket.number || ticket.id?.slice(0, 8)}: ${ticket.subject}`}
-                >
+            tickets.map((ticket) => [
+              <TableRow
+                key={`ticket-${ticket.id}`}
+                className="hover:bg-gray-50 transition-colors"
+                role="row"
+                aria-label={`Ticket ${ticket.number || ticket.id?.slice(0, 8)}: ${ticket.subject}`}
+              >
                   <TableCell className="font-mono text-sm">
                     <div className="flex items-center gap-2">
                       {ticketsWithRelationships.has(ticket.id) && (
@@ -239,44 +239,44 @@ export const ResponsiveTicketsTable = ({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
-                </TableRow>
-
-                {/* Expanded relationships */}
-                {expandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
-                  <TableRow className="bg-blue-50">
-                    <TableCell colSpan={8}>
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <GitBranch className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium">Relacionamentos</span>
-                        </div>
-                        <div className="space-y-1">
-                          {ticketRelationships[ticket.id].map((rel: any) => (
-                            <div key={rel.relationshipId} className="flex items-center gap-3 text-sm">
-                              <span className="text-gray-500">{rel.relationshipType}:</span>
-                              <Link
-                                href={`/tickets/${rel.targetTicket?.id || rel.id}`}
-                                className="font-mono text-blue-600 hover:underline"
-                              >
-                                #{rel.targetTicket?.number || rel.number}
-                              </Link>
-                              <span className="truncate">{rel.targetTicket?.subject || rel.subject}</span>
-                              <DynamicBadge
-                                fieldName="status"
-                                value={rel.targetTicket?.status || rel.status}
-                                className="text-xs"
-                              >
-                                {rel.targetTicket?.status || rel.status}
-                              </DynamicBadge>
-                            </div>
-                          ))}
-                        </div>
+              </TableRow>,
+              
+              /* Expanded relationships */
+              expandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
+                <TableRow key={`relationships-${ticket.id}`} className="bg-blue-50">
+                  <TableCell colSpan={8}>
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <GitBranch className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium">Relacionamentos</span>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </React.Fragment>
-            ))
+                      <div className="space-y-1">
+                        {ticketRelationships[ticket.id].map((rel: any) => (
+                          <div key={rel.relationshipId} className="flex items-center gap-3 text-sm">
+                            <span className="text-gray-500">{rel.relationshipType}:</span>
+                            <Link
+                              href={`/tickets/${rel.targetTicket?.id || rel.id}`}
+                              className="font-mono text-blue-600 hover:underline"
+                            >
+                              #{rel.targetTicket?.number || rel.number}
+                            </Link>
+                            <span className="truncate">{rel.targetTicket?.subject || rel.subject}</span>
+                            <DynamicBadge
+                              fieldName="status"
+                              value={rel.targetTicket?.status || rel.status}
+                              className="text-xs"
+                            >
+                              {rel.targetTicket?.status || rel.status}
+                            </DynamicBadge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            ].filter(Boolean)
+            )
           )}
         </TableBody>
       </Table>
