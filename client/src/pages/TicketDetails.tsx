@@ -21,7 +21,7 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
-  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink
+  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -1503,7 +1503,7 @@ const TicketDetails = React.memo(() => {
             </div>
 
             <FormField
-              control={form.control as any}
+              control={form.control}
               name="subject"
               render={({ field }) => (
                 <FormItem>
@@ -1820,7 +1820,7 @@ const TicketDetails = React.memo(() => {
               <form onSubmit={(e) => {
                 e.preventDefault(); // Prevent default form submission
                 // Manual trigger for onSubmit to capture current form state and validation
-                form.handleSubmit(onNotesSubmit)();
+                form.handleSubmit(onNotesSubmit)(e);
               }} className="space-y-4">
                 <FormField
                   control={form.control}
@@ -1829,8 +1829,8 @@ const TicketDetails = React.memo(() => {
                     <FormItem>
                       <FormLabel>Nova Nota</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Digite sua nota aqui..." 
+                        <Textarea
+                          placeholder="Digite sua nota aqui..."
                           className="min-h-[100px]"
                           maxLength={5000}
                           {...field}
@@ -2228,7 +2228,7 @@ const TicketDetails = React.memo(() => {
                             {historyItem.metadata && Object.keys(historyItem.metadata).length > 0 && (
                               <div className="border-t pt-2 mt-2">
                                 <span className="text-gray-500">Metadados:</span>
-                                <details className="mt-1">
+                                <details className="cursor-pointer text-blue-600 hover:text-blue-800">
                                   <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
                                     Ver detalhes técnicos
                                   </summary>
