@@ -7,22 +7,28 @@ import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull } from '
 import { db } from '../../../../db';
 import { companies } from '@shared/schema';
 import { Company, CompanySize, CompanyStatus, SubscriptionTier } from '../../domain/entities/Company';
-import { 
-  ICompanyRepository, 
-  CompanyFilters, 
-  PaginationOptions, 
-  CompanyListResult 
+import {
+  ICompanyRepository,
+  CompanyFilters,
+  PaginationOptions,
+  CompanyListResult
 } from '../../domain/repositories/ICompanyRepository';
 
+// Assume these are defined elsewhere or imported appropriately
+// import { sql } from 'drizzle-orm';
+// import { schemaManager } from '../../../../shared/schemaManager'; // Assuming schemaManager is available
+// interface CompanyFilter { search?: string; industry?: string; size?: string; status?: string; subscriptionTier?: string; isActive?: boolean; limit?: number; offset?: number; tenantId: string; }
+// declare const sql: any; // Placeholder for actual sql import
+
 export class DrizzleCompanyRepository implements ICompanyRepository {
-  
+
   async findById(id: string): Promise<Company | null> {
     const result = await db
       .select()
       .from(companies)
       .where(eq(companies.id, id))
       .limit(1);
-    
+
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
   }
 
@@ -35,7 +41,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         eq(companies.tenantId, tenantId)
       ))
       .limit(1);
-    
+
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
   }
 
@@ -82,7 +88,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       .from(companies)
       .where(eq(companies.taxId, cnpj))
       .limit(1);
-    
+
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
   }
 
@@ -95,7 +101,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         eq(companies.tenantId, tenantId)
       ))
       .limit(1);
-    
+
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
   }
 
@@ -119,7 +125,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       .from(companies)
       .where(eq(companies.email, email))
       .limit(1);
-    
+
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
   }
 
@@ -132,7 +138,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         eq(companies.tenantId, tenantId)
       ))
       .limit(1);
-    
+
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
   }
 
@@ -154,7 +160,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
     // Get paginated results
     const orderBy = this.buildOrderBy(pagination.sortBy, pagination.sortOrder);
-    
+
     const result = await db
       .select()
       .from(companies)
@@ -164,7 +170,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       .offset(offset);
 
     const companiesData = result.map(row => this.mapToEntity(row));
-    
+
     return {
       companies: companiesData,
       total,
@@ -179,12 +185,12 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     pagination?: PaginationOptions
   ): Promise<CompanyListResult> {
     const conditions = [];
-    
+
     // Add tenant filter
     if (tenantId) {
       conditions.push(eq(companies.tenantId, tenantId));
     }
-    
+
     // Add search conditions
     conditions.push(
       or(
@@ -195,7 +201,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         like(companies.phone, `%${searchTerm}%`)
       )
     );
-    
+
     // Add active filter by default
     conditions.push(eq(companies.isActive, true));
 
@@ -219,7 +225,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
     // Get search results
     const orderBy = this.buildOrderBy(paginationOptions.sortBy, paginationOptions.sortOrder);
-    
+
     const result = await db
       .select()
       .from(companies)
@@ -229,7 +235,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       .offset(offset);
 
     const companiesData = result.map(row => this.mapToEntity(row));
-    
+
     return {
       companies: companiesData,
       total,
@@ -295,12 +301,12 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
   async findByLocationAndTenant(state?: string, city?: string, tenantId?: string): Promise<Company[]> {
     const conditions = [eq(companies.isActive, true)];
-    
+
     if (tenantId) {
       conditions.push(eq(companies.tenantId, tenantId));
     }
-    
-    // Since location fields don't exist in the current schema, 
+
+    // Since location fields don't exist in the current schema,
     // we'll search in address field as a workaround
     if (state || city) {
       const locationTerm = [state, city].filter(Boolean).join(' ');
@@ -327,13 +333,13 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     recentCompanies: number;
   }> {
     const baseConditions = tenantId ? [eq(companies.tenantId, tenantId)] : [];
-    
+
     // Total companies
     const totalResult = await db
       .select({ count: count() })
       .from(companies)
       .where(and(...baseConditions, eq(companies.isActive, true)));
-    
+
     // By status
     const statusResults = await db
       .select({
@@ -370,7 +376,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     // Recent companies (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const recentResult = await db
       .select({ count: count() })
       .from(companies)
@@ -433,12 +439,12 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
   async countByFilters(filters: CompanyFilters, tenantId?: string): Promise<number> {
     const conditions = this.buildFilterConditions(filters, tenantId);
-    
+
     const result = await db
       .select({ count: count() })
       .from(companies)
       .where(and(...conditions));
-    
+
     return result[0]?.count || 0;
   }
 
@@ -448,16 +454,16 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       eq(companies.tenantId, tenantId),
       eq(companies.isActive, true)
     ];
-    
+
     if (excludeId) {
       conditions.push(eq(companies.id, excludeId));
     }
-    
+
     const result = await db
       .select({ count: count() })
       .from(companies)
       .where(and(...conditions));
-    
+
     return (result[0]?.count || 0) > 0;
   }
 
@@ -467,16 +473,16 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       eq(companies.tenantId, tenantId),
       eq(companies.isActive, true)
     ];
-    
+
     if (excludeId) {
       conditions.push(eq(companies.id, excludeId));
     }
-    
+
     const result = await db
       .select({ count: count() })
       .from(companies)
       .where(and(...conditions));
-    
+
     return (result[0]?.count || 0) > 0;
   }
 
@@ -486,16 +492,16 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       eq(companies.tenantId, tenantId),
       eq(companies.isActive, true)
     ];
-    
+
     if (excludeId) {
       conditions.push(eq(companies.id, excludeId));
     }
-    
+
     const result = await db
       .select({ count: count() })
       .from(companies)
       .where(and(...conditions));
-    
+
     return (result[0]?.count || 0) > 0;
   }
 
@@ -508,7 +514,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       })
       .where(inArray(companies.id, ids))
       .returning();
-    
+
     return result.map(row => this.mapToEntity(row));
   }
 
@@ -552,7 +558,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
   async findRecentCompanies(tenantId: string, days: number): Promise<Company[]> {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - days);
-    
+
     const result = await db
       .select()
       .from(companies)
@@ -587,43 +593,43 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
   // Helper methods
   private buildFilterConditions(filters: CompanyFilters, tenantId?: string): any[] {
     const conditions = [];
-    
+
     // Tenant filter
     if (tenantId) {
       conditions.push(eq(companies.tenantId, tenantId));
     }
-    
+
     // Basic filters
     if (filters.name) {
       conditions.push(like(companies.name, `%${filters.name}%`));
     }
-    
+
     if (filters.cnpj) {
       conditions.push(eq(companies.taxId, filters.cnpj));
     }
-    
+
     if (filters.industry) {
       conditions.push(like(companies.description, `%${filters.industry}%`));
     }
-    
+
     if (filters.state || filters.city) {
       const locationTerm = [filters.state, filters.city].filter(Boolean).join(' ');
       conditions.push(like(companies.address, `%${locationTerm}%`));
     }
-    
+
     // Array filters
     if (filters.size && filters.size.length > 0) {
       conditions.push(inArray(companies.size, filters.size));
     }
-    
+
     if (filters.status && filters.status.length > 0) {
       conditions.push(inArray(companies.status, filters.status));
     }
-    
+
     if (filters.subscriptionTier && filters.subscriptionTier.length > 0) {
       conditions.push(inArray(companies.subscriptionTier, filters.subscriptionTier));
     }
-    
+
     // Boolean filters
     if (filters.isActive !== undefined) {
       conditions.push(eq(companies.isActive, filters.isActive));
@@ -631,16 +637,16 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       // Default to active companies only
       conditions.push(eq(companies.isActive, true));
     }
-    
+
     // Date filters
     if (filters.dateFrom) {
       conditions.push(gte(companies.createdAt, filters.dateFrom));
     }
-    
+
     if (filters.dateTo) {
       conditions.push(lte(companies.createdAt, filters.dateTo));
     }
-    
+
     // General search
     if (filters.search) {
       conditions.push(
@@ -653,13 +659,13 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         )
       );
     }
-    
+
     return conditions;
   }
 
   private buildOrderBy(sortBy: string, sortOrder: 'asc' | 'desc'): any {
     const orderFunction = sortOrder === 'desc' ? desc : asc;
-    
+
     switch (sortBy) {
       case 'name':
         return orderFunction(companies.name);
