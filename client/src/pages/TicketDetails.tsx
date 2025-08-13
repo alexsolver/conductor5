@@ -56,6 +56,7 @@ import { MaterialsServicesMiniSystem } from "@/components/MaterialsServicesMiniS
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const TicketDetails = React.memo(() => {
   const { id } = useParams<{ id: string }>();
@@ -1756,27 +1757,91 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* Add New Note */}
-            <Card className="p-4">
-              <h3 className="font-medium text-gray-700 mb-3">Adicionar Nova Nota</h3>
-              <div className="space-y-3">
-                <Textarea
-                  placeholder="Digite sua nota aqui..."
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  rows={4}
-                  className="resize-none"
+            {/* 🔧 [1QA-COMPLIANCE] Notes Form seguindo Clean Architecture */}
+            <Form {...form}>
+              <form onSubmit={(e) => {
+                e.preventDefault(); // Prevent default form submission
+                // Manual trigger for onSubmit to capture current form state and validation
+                form.handleSubmit(onNotesSubmit)();
+              }} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nova Nota</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Digite sua nota aqui..." 
+                          className="min-h-[100px]"
+                          maxLength={5000}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      {field.value && (
+                        <p className="text-xs text-muted-foreground">
+                          {field.value.length}/5000 caracteres
+                        </p>
+                      )}
+                    </FormItem>
+                  )}
                 />
-                <div className="flex justify-end">
-                  <Button
-                    onClick={addNote}
-                    disabled={!newNote.trim() || isAddingNote}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {isAddingNote ? "Salvando..." : "Adicionar Nota"}
-                  </Button>
+
+                <div className="flex items-center space-x-4">
+                  <FormField
+                    control={form.control}
+                    name="noteType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value || "general"}>
+                          <FormControl>
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="general">Geral</SelectItem>
+                            <SelectItem value="internal">Interna</SelectItem>
+                            <SelectItem value="resolution">Resolução</SelectItem>
+                            <SelectItem value="escalation">Escalação</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="isPrivate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value || false}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            Nota Privada
+                          </FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Visível apenas para equipe interna
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </div>
-            </Card>
+
+                <Button type="submit" disabled={isSubmittingNote || !form.watch('content')?.trim()}>
+                  {isSubmittingNote ? "Adicionando..." : "Adicionar Nota"}
+                </Button>
+              </form>
+            </Form>
 
             {/* Notes Timeline */}
             {notes.length > 0 && (
@@ -3304,7 +3369,7 @@ const TicketDetails = React.memo(() => {
         </div>
       </div>
 
-      {/* Main Content Area - Responsivo */}
+      {/* Main Content */}
       <div className="flex-1 order-1 lg:order-2 overflow-hidden">
         <div className="p-4 lg:p-6 h-full">
           {/* Header - Responsivo */}
@@ -3424,7 +3489,7 @@ const TicketDetails = React.memo(() => {
         </div>
       </div>
       {/* Right Sidebar - Navigation Tabs - Responsivo */}
-      <div className="w-full lg:w-80 bg-white border-l lg:border-l flex-shrink-0 h-auto lg:h-full overflow-y-auto order-3">
+      <div className="w-full lg:w-80 bg-white border-l lg:border-l flex-shrink-0 h-full overflow-y-auto order-3">
         <div className="p-4 lg:p-6 border-b">
           <h3 className="font-semibold text-lg">Explorar</h3>
         </div>
