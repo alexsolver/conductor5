@@ -895,12 +895,12 @@ const TicketsTable = React.memo(() => {
             if ((ticket as any).caller_company_name) {
               return (ticket as any).caller_company_name;
             }
-            if ((ticket as any).customer_company_name) {
-              return (ticket as any).customer_company_name;
+            if ((ticket as any).company_name) {
+              return (ticket as any).company_name;
             }
             
             // Se temos um ID da empresa, resolver o nome
-            const companyId = (ticket as any).company_id || (ticket as any).customer_company_id;
+            const companyId = (ticket as any).company_id;
             if (companyId) {
               const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(companyId);
               if (isUuid) {
@@ -1616,7 +1616,7 @@ const TicketsTable = React.memo(() => {
       assignment_group: data.assignmentGroup || "",
 
       // Company relationship
-      customer_company_id: data.companyId,
+      company_id: data.companyId,
 
       // Contact and location info
       contact_type: data.contactType || "email",

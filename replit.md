@@ -64,7 +64,8 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 ## Recent Changes
 
 ### System Architecture - August 13, 2025  
-**CLEAN ARCHITECTURE 100% COMPLIANCE ACHIEVED**
+**CLEAN ARCHITECTURE 100% COMPLIANCE ACHIEVED**  
+**CUSTOMER COMPANY FIELD MIGRATION COMPLETED**
 - **Architectural Violation Eliminated**: Completely removed `routes-clean.ts` that violated 1qa.md specifications
 - **Pure Clean Architecture**: Implemented standard Clean Architecture pattern in `routes-integration.ts` using proper Use Cases
 - **Schema Field Mapping Fixed**: Corrected `isActive` vs `is_active` mismatch between Drizzle schema and database
@@ -80,3 +81,4 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 - **DEFINITIVE SQL TEMPLATE SOLUTION**: Replaced sql.raw() with proper Drizzle template literals using sql`...` syntax with direct value interpolation, eliminating all parameter counting errors and ensuring 100% compatibility with Drizzle ORM requirements
 - **RATE LIMITING RESOLUTION**: Completely disabled rate limiting middleware for development environment, fixing 429 errors on ticket relationships and internal actions endpoints
 - **TICKET LINKS & ACTIONS FIXED**: All ticket relationship creation and internal action endpoints now return proper JSON responses instead of HTML, with full CRUD functionality working correctly
+- **CUSTOMER COMPANY FIELD ELIMINATION**: Systematically eliminated all references to "customer company" in ticket listing pages (Tickets.tsx, TicketsTable.tsx), replacing with standard "company" terminology. Updated field mappings from `customer_company_id` to `company_id` and `customer_company_name` to `company_name` across frontend components to maintain consistency with 1qa.md specifications

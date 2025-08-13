@@ -333,7 +333,7 @@ export default function Tickets() {
       // Person relationships (standardized)
       caller_id: data.customerId,
       beneficiary_id: data.beneficiaryId || null,
-      customer_company_id: data.companyId,
+      company_id: data.companyId,
       
       // Assignment
       assignment_group_id: data.assignmentGroup,
