@@ -52,8 +52,6 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           t.symptoms,
           t.workaround,
           t.environment,
-          t.followers,
-          t.tags,
           t.link_ticket_number as "linkTicketNumber",
           t.link_type as "linkType",
           t.link_comment as "linkComment",
@@ -273,8 +271,6 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         'symptoms': 'symptoms',
         'workaround': 'workaround', 
         'environment': 'environment',
-        'followers': 'followers',
-        'tags': 'tags',
         'link_ticket_number': 'link_ticket_number',
         'linkTicketNumber': 'link_ticket_number',
         'link_type': 'link_type',
@@ -369,7 +365,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         updatedAt: updatedTicket.updated_at,
         createdBy: updatedTicket.created_by,
         updatedBy: updatedTicket.updated_by,
-        isActive: updatedTicket.is_active
+        isActive: updatedTicket.is_active,
+        followers: [], // Default empty array for missing field
+        tags: [] // Default empty array for missing field
       };
 
     } catch (error: any) {
