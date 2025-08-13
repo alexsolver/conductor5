@@ -261,23 +261,20 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         return existingTicket!;
       }
 
-      // CRITICAL FIX: Separate SET values from WHERE values
-      const setValues = Object.values(updateFields);
-      const totalParams = setValues.length + 2; // +2 for id and tenantId in WHERE
+      // DEFINITIVE FIX: Build complete parameter array first, then generate SQL
+      const allValues = [...Object.values(updateFields), id, tenantId];
       
-      // SIMPLIFIED: Use field names directly since they already match database columns
+      // Generate SET clause with correct parameter indices
       const setClause = Object.keys(updateFields)
         .map((key, index) => {
-          // Only map updatedAt to updated_at, all others are already correct
           const dbField = key === 'updatedAt' ? 'updated_at' : key;
           return `${dbField} = $${index + 1}`;
         })
         .join(', ');
 
-      // Build complete values array: SET values + WHERE values
-      const allValues = [...setValues, id, tenantId];
-      const whereIdParam = setValues.length + 1;
-      const whereTenantParam = setValues.length + 2;
+      // WHERE clause uses the last two parameters
+      const whereIdParam = Object.keys(updateFields).length + 1;
+      const whereTenantParam = Object.keys(updateFields).length + 2;
 
       const query = `
         UPDATE ${schemaName}.tickets 
@@ -286,13 +283,13 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         RETURNING *
       `;
 
-      console.log('📝 [PARAMETER-FIX] Executing SQL:', {
+      console.log('📝 [DEFINITIVE-FIX] Executing SQL:', {
         setFieldsCount: Object.keys(updateFields).length,
-        setValuesCount: setValues.length,
-        totalParams: totalParams,
         whereIdParam: whereIdParam,
         whereTenantParam: whereTenantParam,
-        allValuesLength: allValues.length
+        allValuesLength: allValues.length,
+        generatedQuery: query,
+        actualValues: allValues
       });
 
       const result = await db.execute(sql.raw(query, allValues));
