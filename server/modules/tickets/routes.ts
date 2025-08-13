@@ -1830,6 +1830,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res)
   // Set JSON response headers FIRST to prevent HTML responses
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
 
   try {
     if (!req.user?.tenantId) {
@@ -2004,6 +2005,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res)
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
     }
 
     // Enhanced error logging for debugging

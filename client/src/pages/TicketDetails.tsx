@@ -897,7 +897,7 @@ const TicketDetails = React.memo(() => {
             url: response.url,
             headers: Object.fromEntries(response.headers.entries())
           });
-          throw new Error(`BACKEND ERROR: Server returned HTML page instead of JSON API response. This indicates the API endpoint failed and Express served an error page. Status: ${response.status}`);
+          throw new Error(`Server Error: API endpoint returned HTML instead of JSON. This indicates a backend routing or middleware issue. Status: ${response.status}`);
         }
         
         throw new Error(`Expected JSON response, got ${contentType}. Response preview: ${responseText.substring(0, 200)}`);
