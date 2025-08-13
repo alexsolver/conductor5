@@ -1068,9 +1068,7 @@ const TicketDetails = React.memo(() => {
       workaround: data.workaround || '',
       resolution: data.resolution || '', // Campo removido do schema
 
-      // ✅ Time tracking
-      estimated_hours: data.estimatedHours || 0,
-      actual_hours: data.actualHours || 0,
+      // Time tracking fields removed - not present in current schema
 
       // ✅ Environment and metadata
       environment: data.environment || '',

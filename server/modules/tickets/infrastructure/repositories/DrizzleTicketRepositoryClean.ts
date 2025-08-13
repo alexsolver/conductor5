@@ -274,8 +274,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         'beneficiary_id', 'beneficiary_type', 'assigned_to_id', 'assignment_group',
         'company_id', 'location', 'contact_type', 'business_impact', 'symptoms',
         'workaround', 'environment', 'template_alternative',
-        'link_ticket_number', 'link_type', 'link_comment', 'estimated_hours',
-        'actual_hours', 'followers', 'tags', 'updated_at', 'updated_by_id'
+        'link_ticket_number', 'link_type', 'link_comment', 
+        'followers', 'tags', 'updated_at', 'updated_by_id'
       ];
 
       // Sanitize input data - only keep allowed fields with non-undefined values
@@ -284,8 +284,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           // Handle special data types
           if (key === 'followers' || key === 'tags') {
             sanitizedData[key] = Array.isArray(value) ? value : [];
-          } else if (key === 'estimated_hours' || key === 'actual_hours') {
-            sanitizedData[key] = Number(value) || 0;
+          // Time tracking fields removed - not present in current schema
           } else if (key === 'updated_at') {
             sanitizedData[key] = value instanceof Date ? value.toISOString() : value;
           } else if (typeof value === 'string') {

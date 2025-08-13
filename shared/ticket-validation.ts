@@ -51,8 +51,7 @@ export const ticketFormValidationSchema = z.object({
   environment: z.string().optional(),
   templateAlternative: z.string().optional(),
   
-  estimatedHours: z.number().min(0).optional(),
-  actualHours: z.number().min(0).optional(),
+  // Time tracking fields removed - not present in current schema
   followers: z.array(z.string()).default([]),
   customerCompanyId: z.string().optional(),
 });
