@@ -1,0 +1,242 @@
+🔍 [SQLParameterValidator] Analysis complete
+📊 [SQLParameterValidator] Issues found: 63
+
+=== SQL PARAMETER VALIDATION REPORT ===
+
+🚨 Critical Issues: 63
+⚠️  Warning Issues: 0
+
+🚨 CRITICAL ISSUES:
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:86
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:92
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:98
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:104
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:110
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:116
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:262
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:268
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:274
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:280
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:286
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts:292
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/locations/LocationsRepository.ts:28
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/locations/LocationsRepository.ts:34
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/locations/LocationsRepository.ts:40
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/locations/LocationsRepository.ts:51
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/materials-services/application/controllers/PersonalizationController.ts:456
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/materials-services/application/controllers/PersonalizationController.ts:584
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/materials-services/application/controllers/PersonalizationController.ts:668
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/materials-services/routes/personalizationSimple.ts:132
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/ticket-templates/TicketTemplateRepository.ts:126
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/ticket-templates/TicketTemplateRepository.ts:130
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/ticket-templates/TicketTemplateRepository.ts:134
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/infrastructure/repositories/DrizzleTicketRepositoryClean.ts:230
+   DrizzleTicketRepositoryClean update method - known parameter indexing issues
+
+📁 /server/modules/tickets/infrastructure/repositories/DrizzleTicketRepositoryClean.ts:303
+   DrizzleTicketRepositoryClean update method - known parameter indexing issues
+
+📁 /server/modules/tickets/infrastructure/repositories/DrizzleTicketRepositoryClean.ts:327
+   DrizzleTicketRepositoryClean update method - known parameter indexing issues
+
+📁 /server/modules/tickets/infrastructure/repositories/DrizzleTicketRepositoryClean.ts:378
+   DrizzleTicketRepositoryClean update method - known parameter indexing issues
+
+📁 /server/modules/tickets/routes.ts:2512
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2516
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2520
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2524
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2528
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2532
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2536
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2540
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2544
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2548
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2552
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2570
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2589
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2590
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/modules/tickets/routes.ts:2591
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/ContractRepository-fixed.ts:105
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/ContractRepository-fixed.ts:111
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/ContractRepository.ts:105
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/ContractRepository.ts:111
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:82
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:86
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:90
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:94
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:98
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:102
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:106
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:110
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/repositories/TicketViewsRepository.ts:122
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/scripts/SQLParameterValidation.ts:98
+   Potential setFields/values count mismatch
+
+📁 /server/scripts/SQLParameterValidation.ts:138
+   SQL parameter error reference found
+
+📁 /server/scripts/SQLParameterValidation.ts:158
+   DrizzleTicketRepositoryClean update method - known parameter indexing issues
+
+📁 /server/scripts/SQLParameterValidation.ts:162
+   DrizzleTicketRepositoryClean update method - known parameter indexing issues
+
+📁 /server/services/TenantTemplateService.ts:276
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/services/TenantTemplateService.ts:280
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/services/TenantTemplateService.ts:284
+   Dynamic parameter indexing - potential off-by-one error
+
+📁 /server/services/TenantTemplateService.ts:293
+   Dynamic parameter indexing - potential off-by-one error
+
+
+=== AUTOMATED FIX SUGGESTIONS ===
+
+📋 Files requiring immediate attention:
+   • /server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts
+   • /server/modules/locations/LocationsRepository.ts
+   • /server/modules/materials-services/application/controllers/PersonalizationController.ts
+   • /server/modules/materials-services/routes/personalizationSimple.ts
+   • /server/modules/ticket-templates/TicketTemplateRepository.ts
+   • /server/modules/tickets/infrastructure/repositories/DrizzleTicketRepositoryClean.ts
+   • /server/modules/tickets/routes.ts
+   • /server/repositories/ContractRepository-fixed.ts
+   • /server/repositories/ContractRepository.ts
+   • /server/repositories/TicketViewsRepository.ts
+   • /server/scripts/SQLParameterValidation.ts
+   • /server/services/TenantTemplateService.ts
+
+🔧 RECOMMENDED ACTIONS:
+
+1. Fix DrizzleTicketRepositoryClean parameter indexing
+2. Standardize SQL parameter counting across all repositories
+3. Implement parameter validation in SQL query builders
+4. Add unit tests for all SQL parameter scenarios
+5. Use consistent parameter indexing patterns
+6. Implement automated SQL parameter validation in CI/CD
+
+💡 IMMEDIATE FIXES TO APPLY:
+
+• Review all UPDATE queries with dynamic parameters
+• Ensure setFields count matches parameter array length
+• Add parameter count validation before executing queries
+• Use prepared statement parameter placeholders consistently
+
+🎯 PRIMARY ISSUE TO FIX:
+
+The "there is no parameter $34/$35" error indicates that
+DrizzleTicketRepositoryClean.update() is building SQL with
+mismatched parameter counts. This needs immediate attention.
+
+✅ SQL Parameter validation complete
+
+❌ Found 63 critical issues that need immediate attention
+Focus on DrizzleTicketRepositoryClean.update() method first
