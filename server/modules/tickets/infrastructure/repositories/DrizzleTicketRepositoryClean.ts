@@ -259,8 +259,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         'beneficiary_type': 'beneficiary_type',
         'beneficiaryType': 'beneficiary_type',
         'assigned_to_id': 'assigned_to_id',
-        'assignment_group': 'assignment_group', // Corrected to 'assignment_group'
-        'assignmentGroup': 'assignment_group', // Corrected to 'assignment_group'
+        'assignment_group': 'assignment_group',
+        'assignmentGroup': 'assignment_group',
         'company_id': 'company_id',
         'location': 'location',
         'contact_type': 'contact_type',
@@ -297,16 +297,11 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         }
       }
 
-      // Add updated_at parameter
+      // Add updated_at field (using NOW() function, not a parameter)
       setFields.push(`updated_at = NOW()`);
 
-      // Add WHERE clause parameters
-      values.push(id, tenantId);
-      const whereIdParam = paramIndex;
-      const whereTenantParam = paramIndex + 1;
-
-      if (setFields.length === 0) { // No fields to update
-        console.log('⚠️ [DrizzleTicketRepositoryClean] No fields to update');
+      if (setFields.length === 1) { // Only updated_at field
+        console.log('⚠️ [DrizzleTicketRepositoryClean] No actual fields to update beyond timestamp');
         // Return the existing ticket if no actual fields are updated
         const existingTicket = await this.findById(id, tenantId);
         if (!existingTicket) {
@@ -315,9 +310,15 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         return existingTicket;
       }
 
+      // Add WHERE clause parameters AFTER all SET parameters
+      values.push(id, tenantId);
+      const whereIdParam = paramIndex;
+      const whereTenantParam = paramIndex + 1;
+
       console.log('📝 [DrizzleTicketRepositoryClean] Executing update with:', {
         setFields: setFields.length,
         values: values.length,
+        paramIndexes: { whereIdParam, whereTenantParam },
         firstFewValues: values.slice(0, 3)
       });
 
@@ -328,7 +329,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         RETURNING *
       `;
 
-      console.log('🔍 [DrizzleTicketRepositoryClean] Update query prepared');
+      console.log('🔍 [DrizzleTicketRepositoryClean] Update query:', updateQuery);
+      console.log('🔍 [DrizzleTicketRepositoryClean] Values count:', values.length);
 
       const result = await db.execute(sql.raw(updateQuery, values));
 
@@ -350,7 +352,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         beneficiaryId: updatedTicket.beneficiary_id,
         beneficiaryType: updatedTicket.beneficiary_type,
         assignedToId: updatedTicket.assigned_to_id,
-        assignmentGroupId: updatedTicket.assignment_group, // Corrected to use assignment_group
+        assignmentGroupId: updatedTicket.assignment_group,
         companyId: updatedTicket.company_id,
         contactType: updatedTicket.contact_type,
         businessImpact: updatedTicket.business_impact,
