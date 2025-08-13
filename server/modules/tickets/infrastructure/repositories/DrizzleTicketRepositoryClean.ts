@@ -236,11 +236,6 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Build dynamic SET clause based on provided data
-      const setFields: string[] = [];
-      const values: any[] = [];
-      let paramIndex = 1;
-
       // Map frontend fields to database columns
       const fieldMapping: Record<string, string> = {
         'subject': 'subject',
@@ -279,6 +274,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         'updatedById': 'updated_by'
       };
 
+      const setFields: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
       // Process each field in the update data
       for (const [key, value] of Object.entries(data)) {
         if (key === 'tenantId' || key === 'updatedAt' || key === 'createdAt' || key === 'isActive' || key === 'id') continue; // Skip meta fields
@@ -310,17 +309,13 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         return existingTicket;
       }
 
-      // Add WHERE clause parameters AFTER all SET parameters
-      values.push(id, tenantId);
+      // Add WHERE clause parameters AFTER counting setFields
+      values.push(id);
       const whereIdParam = paramIndex;
-      const whereTenantParam = paramIndex + 1;
+      paramIndex++;
 
-      console.log('📝 [DrizzleTicketRepositoryClean] Executing update with:', {
-        setFields: setFields.length,
-        values: values.length,
-        paramIndexes: { whereIdParam, whereTenantParam },
-        firstFewValues: values.slice(0, 3)
-      });
+      values.push(tenantId);
+      const whereTenantParam = paramIndex;
 
       const updateQuery = `
         UPDATE ${schemaName}.tickets 
@@ -331,6 +326,16 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       console.log('🔍 [DrizzleTicketRepositoryClean] Update query:', updateQuery);
       console.log('🔍 [DrizzleTicketRepositoryClean] Values count:', values.length);
+      console.log('[UPDATE-DEBUG] Final query:', updateQuery);
+      console.log('[UPDATE-DEBUG] Values:', values);
+      console.log('[UPDATE-DEBUG] Values length:', values.length);
+      console.log('[UPDATE-DEBUG] Set fields count:', setFields.length);
+
+      // Validate parameter count
+      const expectedParamCount = setFields.length + 2; // +2 for id and tenant_id
+      if (values.length !== expectedParamCount) {
+        throw new Error(`Parameter count mismatch: expected ${expectedParamCount}, got ${values.length}`);
+      }
 
       const result = await db.execute(sql.raw(updateQuery, values));
 

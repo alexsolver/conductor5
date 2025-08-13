@@ -34,7 +34,7 @@ export class TicketViewsRepository {
         AND (v.created_by_id = $2 OR v.is_public = true)
       ORDER BY v.is_default DESC, v.name ASC
     `;
-    
+
     const params = userRole === 'tenant_admin' ? [tenantId] : [tenantId, userId];
     return await this.query(sql, params);
   }
@@ -56,7 +56,7 @@ export class TicketViewsRepository {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `;
-    
+
     const rows = await this.query(sql, [
       tenantId,
       viewData.name,
@@ -69,7 +69,7 @@ export class TicketViewsRepository {
       JSON.stringify(viewData.sorting || []),
       viewData.pageSize || 25
     ]);
-    
+
     return rows[0];
   }
 
@@ -122,7 +122,7 @@ export class TicketViewsRepository {
       WHERE tenant_id = $${paramIndex++} AND id = $${paramIndex++}
       RETURNING *
     `;
-    
+
     const rows = await this.query(sql, params);
     return rows[0] || null;
   }
@@ -135,7 +135,7 @@ export class TicketViewsRepository {
       WHERE tenant_id = $1 AND id = $2 AND created_by_id = $3
       RETURNING id
     `;
-    
+
     const rows = await this.query(sql, [tenantId, viewId, userId]);
     return rows.length > 0;
   }
@@ -165,7 +165,7 @@ export class TicketViewsRepository {
         updated_at = NOW()
       RETURNING *
     `;
-    
+
     const rows = await this.query(sql, [tenantId, userId, viewId]);
     return rows[0];
   }
@@ -181,7 +181,7 @@ export class TicketViewsRepository {
         updated_at = NOW()
       RETURNING *
     `;
-    
+
     const rows = await this.query(sql, [tenantId, userId, JSON.stringify(settings)]);
     return rows[0];
   }
