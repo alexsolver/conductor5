@@ -309,22 +309,34 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       console.log('🔧 [DIRECT-UPDATE] Fields to update:', setFields);
 
-      // Use raw SQL with proper schema and parameter escaping
-      const result = await db.execute(sql`
-        UPDATE ${sql.identifier(schemaName, 'tickets')} 
+      // CRITICAL: Use correct PostgreSQL syntax with schema.table format
+      const result = await db.execute(sql.raw(`
+        UPDATE ${schemaName}.tickets 
         SET 
-          subject = ${setFields.subject || sql`subject`},
-          description = ${setFields.description || sql`description`},
-          status = ${setFields.status || sql`status`},
-          priority = ${setFields.priority || sql`priority`},
-          urgency = ${setFields.urgency || sql`urgency`},
-          impact = ${setFields.impact || sql`impact`},
-          category = ${setFields.category || sql`category`},
-          subcategory = ${setFields.subcategory || sql`subcategory`},
-          updated_at = ${setFields.updatedAt}
-        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
+          subject = $1,
+          description = $2,
+          status = $3,
+          priority = $4,
+          urgency = $5,
+          impact = $6,
+          category = $7,
+          subcategory = $8,
+          updated_at = $9
+        WHERE id = $10 AND tenant_id = $11 AND is_active = true
         RETURNING *
-      `);
+      `, [
+        setFields.subject,
+        setFields.description,
+        setFields.status,
+        setFields.priority,
+        setFields.urgency,
+        setFields.impact,
+        setFields.category,
+        setFields.subcategory,
+        setFields.updatedAt,
+        id,
+        tenantId
+      ]));
 
       console.log('✅ [RAW-SQL] Update successful with raw SQL approach');
       
