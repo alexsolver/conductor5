@@ -84,6 +84,10 @@ export default function TicketDetail() {
   const { data: ticket, isLoading: isTicketLoading } = useQuery<Ticket>({
     queryKey: [`/api/tickets/${id}`],
     enabled: !!id,
+    select: (data: any) => {
+      console.log('🎫 [TICKET-QUERY] Raw response:', data);
+      return data?.data || data;
+    },
   });
 
   // Fetch attachments
@@ -127,6 +131,7 @@ export default function TicketDetail() {
 
   // 🎯 [1QA-COMPLIANCE] Debug company loading
   useEffect(() => {
+    console.log('🎫 [TICKET-DEBUG] Current ticket:', ticket);
     if (ticket?.companyId) {
       console.log('🏢 [COMPANY-DEBUG] Attempting to load company:', ticket.companyId);
     }
@@ -136,7 +141,7 @@ export default function TicketDetail() {
     if (company) {
       console.log('✅ [COMPANY-DEBUG] Company loaded:', company);
     }
-  }, [ticket?.companyId, company, companyError]);
+  }, [ticket, ticket?.companyId, company, companyError]);
 
   // 🎯 [1QA-COMPLIANCE] Fetch user details for assigned user display  
   const { data: assignedUser } = useQuery({
