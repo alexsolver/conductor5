@@ -182,47 +182,51 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Build WHERE conditions
-      const whereConditions: string[] = [];
-      const whereParams: any[] = [];
+      // Build WHERE conditions - Fixed approach
+      const allConditions: string[] = ['tenant_id = ?', 'is_active = true'];
+      const allParams: any[] = [tenantId];
 
-      if (filters.search) {
-        whereConditions.push(`(name ILIKE ? OR display_name ILIKE ?)`);
-        whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
+      // Add dynamic filter conditions only if they have valid values
+      if (filters.search && filters.search.trim()) {
+        allConditions.push(`(name ILIKE ? OR display_name ILIKE ?)`);
+        allParams.push(`%${filters.search.trim()}%`, `%${filters.search.trim()}%`);
       }
 
-      if (filters.status && filters.status.length > 0) {
+      if (filters.status && Array.isArray(filters.status) && filters.status.length > 0) {
         const statusPlaceholders = filters.status.map(() => '?').join(',');
-        whereConditions.push(`status IN (${statusPlaceholders})`);
-        whereParams.push(...filters.status);
+        allConditions.push(`status IN (${statusPlaceholders})`);
+        allParams.push(...filters.status);
       }
 
-      // Additional filters can be added here following the same pattern
-      if (filters.size && filters.size.length > 0) {
+      if (filters.size && Array.isArray(filters.size) && filters.size.length > 0) {
         const sizePlaceholders = filters.size.map(() => '?').join(',');
-        whereConditions.push(`size IN (${sizePlaceholders})`);
-        whereParams.push(...filters.size);
+        allConditions.push(`size IN (${sizePlaceholders})`);
+        allParams.push(...filters.size);
       }
 
-      if (filters.name) {
-        whereConditions.push(`name ILIKE ?`);
-        whereParams.push(`%${filters.name}%`);
+      if (filters.name && filters.name.trim()) {
+        allConditions.push(`name ILIKE ?`);
+        allParams.push(`%${filters.name.trim()}%`);
       }
 
-      // Construct base WHERE conditions
-      const baseConditions = ['tenant_id = ?', 'is_active = true'];
-      const allParams = [tenantId];
-
-      // Add additional filter conditions if they exist
-      if (whereConditions.length > 0) {
-        baseConditions.push(...whereConditions);
-        allParams.push(...whereParams);
+      if (filters.subscriptionTier && Array.isArray(filters.subscriptionTier) && filters.subscriptionTier.length > 0) {
+        const tierPlaceholders = filters.subscriptionTier.map(() => '?').join(',');
+        allConditions.push(`subscription_tier IN (${tierPlaceholders})`);
+        allParams.push(...filters.subscriptionTier);
       }
 
-      // Construct the complete WHERE clause
-      const whereClause = baseConditions.join(' AND ');
+      // Construct the complete WHERE clause - guaranteed to have at least 2 conditions
+      const whereClause = allConditions.join(' AND ');
 
-      // Count total records - using tenant schema
+      console.log('🔍 [DrizzleCompanyRepository] Final query details:', {
+        whereClause,
+        paramsCount: allParams.length,
+        conditions: allConditions.length,
+        tenantId,
+        schemaName
+      });
+
+      // Count total records - using tenant schema with proper parameter validation
       const countResult = await db.execute(sql.raw(`
         SELECT COUNT(*) as total
         FROM "${schemaName}".companies
@@ -232,7 +236,9 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
 
-      // Fetch paginated results - using tenant schema
+      console.log('✅ [DrizzleCompanyRepository] Count query successful:', { total, totalPages });
+
+      // Fetch paginated results - using tenant schema with validated parameters
       const results = await db.execute(sql.raw(`
         SELECT 
           id, tenant_id as "tenantId", name, display_name as "displayName", 
@@ -248,6 +254,8 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         ORDER BY created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
       `, allParams));
+
+      console.log('✅ [DrizzleCompanyRepository] Data query successful:', { rowsFound: results.rows.length });
 
       return {
         companies: results.rows,
