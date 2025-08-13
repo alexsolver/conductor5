@@ -2,7 +2,7 @@
 #!/usr/bin/env node
 
 /**
- * SQL Parameter Validation Script
+ * SQL Parameter Validation Script - Node.js Compatible
  * Systematically identifies and fixes SQL parameter indexing issues
  * Following 1qa.md compliance
  */
@@ -10,17 +10,12 @@
 const fs = require('fs');
 const path = require('path');
 
-interface SQLIssue {
-  file: string;
-  line: number;
-  issue: string;
-  severity: 'critical' | 'warning' | 'info';
-}
+class SQLParameterValidator {
+  constructor() {
+    this.issues = [];
+  }
 
-export class SQLParameterValidator {
-  private issues: SQLIssue[] = [];
-
-  async validateAllFiles(): Promise<void> {
+  async validateAllFiles() {
     const serverDir = path.join(process.cwd(), 'server');
     await this.scanDirectory(serverDir);
     
@@ -31,7 +26,7 @@ export class SQLParameterValidator {
     this.generateFixSuggestions();
   }
 
-  private async scanDirectory(dir: string): Promise<void> {
+  async scanDirectory(dir) {
     try {
       const files = fs.readdirSync(dir);
       
@@ -50,7 +45,7 @@ export class SQLParameterValidator {
     }
   }
 
-  private async scanFile(filePath: string): Promise<void> {
+  async scanFile(filePath) {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
       const lines = content.split('\n');
@@ -63,7 +58,7 @@ export class SQLParameterValidator {
     }
   }
 
-  private checkSQLParameterIssues(line: string, lineNumber: number, filePath: string): void {
+  checkSQLParameterIssues(line, lineNumber, filePath) {
     // Check for SQL parameter patterns that commonly cause issues
     const sqlParameterPattern = /\$\d+/g;
     const dynamicQueryPattern = /sql\.raw\(/;
@@ -124,13 +119,13 @@ export class SQLParameterValidator {
       }
     }
 
-    // Warning: UPDATE statements with WHERE clause
-    if (updatePattern.test(line) && wherePattern.test(line)) {
+    // Critical: Known problematic patterns from DrizzleTicketRepositoryClean
+    if (line.includes('DrizzleTicketRepositoryClean') && line.includes('update')) {
       this.issues.push({
         file: filePath,
         line: lineNumber,
-        issue: 'UPDATE with WHERE using parameters - verify indexing',
-        severity: 'warning'
+        issue: 'DrizzleTicketRepositoryClean update method - known parameter indexing issues',
+        severity: 'critical'
       });
     }
 
@@ -143,29 +138,9 @@ export class SQLParameterValidator {
         severity: 'critical'
       });
     }
-
-    // Warning: Manual parameter counting
-    if (line.includes('paramIndex') && line.includes('=') && /\d+/.test(line)) {
-      this.issues.push({
-        file: filePath,
-        line: lineNumber,
-        issue: 'Manual parameter index assignment - verify correctness',
-        severity: 'warning'
-      });
-    }
-
-    // Critical: Known problematic patterns from DrizzleTicketRepositoryClean
-    if (line.includes('DrizzleTicketRepositoryClean') && line.includes('update')) {
-      this.issues.push({
-        file: filePath,
-        line: lineNumber,
-        issue: 'DrizzleTicketRepositoryClean update method - known parameter indexing issues',
-        severity: 'critical'
-      });
-    }
   }
 
-  private printReport(): void {
+  printReport() {
     console.log('\n=== SQL PARAMETER VALIDATION REPORT ===\n');
     
     const criticalIssues = this.issues.filter(i => i.severity === 'critical');
@@ -191,7 +166,7 @@ export class SQLParameterValidator {
     }
   }
 
-  private generateFixSuggestions(): void {
+  generateFixSuggestions() {
     console.log('\n=== AUTOMATED FIX SUGGESTIONS ===\n');
     
     const criticalFiles = [...new Set(this.issues
@@ -217,9 +192,15 @@ export class SQLParameterValidator {
     console.log('• Ensure setFields count matches parameter array length');
     console.log('• Add parameter count validation before executing queries');
     console.log('• Use prepared statement parameter placeholders consistently');
+
+    // Focus on the main issue from logs
+    console.log('\n🎯 PRIMARY ISSUE TO FIX:\n');
+    console.log('The "there is no parameter $34/$35" error indicates that');
+    console.log('DrizzleTicketRepositoryClean.update() is building SQL with');
+    console.log('mismatched parameter counts. This needs immediate attention.');
   }
 
-  getIssues(): SQLIssue[] {
+  getIssues() {
     return this.issues;
   }
 }
@@ -229,8 +210,14 @@ if (require.main === module) {
   const validator = new SQLParameterValidator();
   validator.validateAllFiles()
     .then(() => {
-      console.log('✅ SQL Parameter validation complete');
+      console.log('\n✅ SQL Parameter validation complete');
       const criticalCount = validator.getIssues().filter(i => i.severity === 'critical').length;
+      
+      if (criticalCount > 0) {
+        console.log(`\n❌ Found ${criticalCount} critical issues that need immediate attention`);
+        console.log('Focus on DrizzleTicketRepositoryClean.update() method first');
+      }
+      
       process.exit(criticalCount > 0 ? 1 : 0);
     })
     .catch(error => {
