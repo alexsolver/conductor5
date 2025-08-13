@@ -19,7 +19,23 @@ import { SqlParameterValidator } from '../../../../utils/sqlParameterValidator';
 
 
 export class DrizzleTicketRepositoryClean implements ITicketRepository {
-  constructor(private logger: Logger) {}
+  private pool: any;
+
+  constructor(private logger: Logger) {
+    // ✅ CORREÇÃO CRÍTICA: Inicializar pool connection seguindo 1qa.md
+    this.initializePool();
+  }
+
+  private async initializePool() {
+    try {
+      const { pool } = await import('../../../../db');
+      this.pool = pool;
+      console.log('✅ [DrizzleTicketRepositoryClean] Pool initialized successfully');
+    } catch (error) {
+      console.error('❌ [DrizzleTicketRepositoryClean] Failed to initialize pool:', error);
+      this.logger.error('Failed to initialize database pool', { error: error.message });
+    }
+  }
 
   async findById(id: string, tenantId: string): Promise<Ticket | null> {
     console.log('🔍 [DrizzleTicketRepositoryClean] findById called:', { id, tenantId });
@@ -236,6 +252,14 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
     });
 
     try {
+      // ✅ CORREÇÃO CRÍTICA: Garantir que pool está disponível
+      if (!this.pool) {
+        await this.initializePool();
+        if (!this.pool) {
+          throw new Error('Database pool not available');
+        }
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       console.log('🔧 [DrizzleTicketRepositoryClean] FINAL SCHEMA-COMPLIANT UPDATE');
@@ -300,7 +324,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const whereTenantParam = paramIndex++;
       values.push(ticketId, tenantId);
 
-      const sql = `
+      const sqlQuery = `
         UPDATE "${schemaName}".tickets 
         SET ${setFields.join(', ')}
         WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam}
@@ -308,14 +332,14 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       `;
 
       console.log('🔧 [SQL-EXECUTION] Executing update:', {
-        sql: sql.replace(/\$\d+/g, '?'),
+        sql: sqlQuery.replace(/\$\d+/g, '?'),
         fieldsCount: setFields.length,
         valuesCount: values.length,
         parameterMapping: setFields.map((field, idx) => `${field} = ${values[idx]}`)
       });
 
       // Execute the update
-      const { rows } = await this.pool.query(sql, values);
+      const { rows } = await this.pool.query(sqlQuery, values);
 
       if (!rows || rows.length === 0) {
         throw new Error(`No ticket found with ID ${ticketId} in tenant ${tenantId}`);
