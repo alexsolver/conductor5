@@ -114,12 +114,18 @@ export class TicketViewsRepository {
     if (updates.length === 0) return null;
 
     updates.push(`updated_at = NOW()`);
-    params.push(tenantId, viewId);
+    
+    // Add WHERE clause parameters
+    params.push(tenantId);
+    const tenantParam = paramIndex++;
+    
+    params.push(viewId);
+    const idParam = paramIndex;
 
     const sql = `
       UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views 
       SET ${updates.join(', ')}
-      WHERE tenant_id = $${paramIndex++} AND id = $${paramIndex++}
+      WHERE tenant_id = $${tenantParam} AND id = $${idParam}
       RETURNING *
     `;
 

@@ -4,11 +4,21 @@ export class SqlParameterValidator {
    * Validates SQL parameter count matches expected values
    */
   static validateParameters(query: string, values: any[]): void {
-    const parameterCount = (query.match(/\$\d+/g) || []).length;
+    const parameterMatches = query.match(/\$\d+/g) || [];
+    const parameterCount = parameterMatches.length;
+    const maxParameterIndex = parameterMatches.length > 0 
+      ? Math.max(...parameterMatches.map(p => parseInt(p.substring(1)))) 
+      : 0;
     
     if (parameterCount !== values.length) {
       throw new Error(
-        `SQL parameter mismatch: query expects ${parameterCount} parameters, got ${values.length}`
+        `SQL parameter mismatch: query expects ${parameterCount} parameters, got ${values.length}. Max parameter index: $${maxParameterIndex}`
+      );
+    }
+
+    if (maxParameterIndex > values.length) {
+      throw new Error(
+        `SQL parameter index error: highest parameter is $${maxParameterIndex} but only ${values.length} values provided`
       );
     }
   }
@@ -74,5 +84,39 @@ export class SqlParameterValidator {
       values,
       nextIndex: paramIndex
     };
+  }
+
+  /**
+   * Safely builds a complete UPDATE query with validation
+   */
+  static buildUpdateQuery(
+    tableName: string,
+    updateData: Record<string, any>,
+    whereClause: Record<string, any>,
+    options: { addTimestamp?: boolean } = {}
+  ): { query: string; values: any[] } {
+    const setResult = this.buildSetClause(updateData, 1);
+    let { clause: setClause, values, nextIndex } = setResult;
+
+    // Add timestamp if requested
+    if (options.addTimestamp) {
+      setClause += ', updated_at = NOW()';
+    }
+
+    const whereResult = this.buildWhereClause(whereClause, nextIndex);
+    
+    const query = `
+      UPDATE ${tableName} 
+      SET ${setClause}
+      ${whereResult.clause}
+      RETURNING *
+    `;
+
+    const allValues = [...values, ...whereResult.values];
+    
+    // Validate before returning
+    this.validateParameters(query, allValues);
+
+    return { query, values: allValues };
   }
 }

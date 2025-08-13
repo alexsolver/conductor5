@@ -309,10 +309,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         return existingTicket;
       }
 
-      // Add WHERE clause parameters AFTER counting setFields
+      // Add WHERE clause parameters - paramIndex continues from setFields
       values.push(id);
-      const whereIdParam = paramIndex;
-      paramIndex++;
+      const whereIdParam = paramIndex++;
 
       values.push(tenantId);
       const whereTenantParam = paramIndex;
@@ -331,10 +330,11 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       console.log('[UPDATE-DEBUG] Values length:', values.length);
       console.log('[UPDATE-DEBUG] Set fields count:', setFields.length);
 
-      // Validate parameter count
-      const expectedParamCount = setFields.length + 2; // +2 for id and tenant_id
+      // Validate parameter count - subtract 1 because updated_at uses NOW() not a parameter
+      const actualSetFieldsWithParams = setFields.length - 1; // -1 for updated_at = NOW()
+      const expectedParamCount = actualSetFieldsWithParams + 2; // +2 for id and tenant_id
       if (values.length !== expectedParamCount) {
-        throw new Error(`Parameter count mismatch: expected ${expectedParamCount}, got ${values.length}`);
+        throw new Error(`Parameter count mismatch: expected ${expectedParamCount}, got ${values.length}. Set fields with params: ${actualSetFieldsWithParams}, WHERE params: 2`);
       }
 
       const result = await db.execute(sql.raw(updateQuery, values));
