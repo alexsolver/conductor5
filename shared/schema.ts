@@ -94,6 +94,12 @@ export const tickets = pgTable('tickets', {
   assignedToId: uuid('assigned_to_id').references(() => users.id),
   customerCompanyId: uuid('customer_company_id').references(() => companies.id),
   createdById: uuid('created_by_id').references(() => users.id),
+  
+  // Campos de relacionamento/vínculo entre tickets
+  linkTicketNumber: varchar('link_ticket_number', { length: 50 }),
+  linkType: varchar('link_type', { length: 50 }),
+  linkComment: text('link_comment'),
+  
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
