@@ -90,7 +90,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           
         FROM ${sql.identifier(schemaName)}.tickets t
         LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
-        LEFT JOIN ${sql.identifier(schemaName)}.people caller ON t.caller_id = caller.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON t.caller_id = caller.id
         WHERE t.id = ${id} AND t.tenant_id = ${tenantId} AND t.is_active = true
       `);
 
@@ -184,7 +184,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           c.name as "company_name",
           c.display_name as "company_display_name",
           
-          -- Dados do cliente/caller (person que abriu o ticket)
+          -- Dados do cliente/caller (customer que abriu o ticket)
           caller.first_name as "caller_first_name",
           caller.last_name as "caller_last_name",
           caller.email as "caller_email",
@@ -198,8 +198,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           
         FROM ${schemaName}.tickets t
         LEFT JOIN ${schemaName}.companies c ON t.company_id = c.id
-        LEFT JOIN ${schemaName}.people caller ON t.caller_id = caller.id
-        LEFT JOIN ${schemaName}.people beneficiary ON t.beneficiary_id = beneficiary.id
+        LEFT JOIN ${schemaName}.customers caller ON t.caller_id = caller.id
+        LEFT JOIN ${schemaName}.customers beneficiary ON t.beneficiary_id = beneficiary.id
         WHERE t.is_active = true ${whereClause}
         ORDER BY t.created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
