@@ -1,6 +1,4 @@
 
-#!/usr/bin/env node
-
 /**
  * SQL Parameter Validation Script - Node.js Compatible
  * Systematically identifies and fixes SQL parameter indexing issues
