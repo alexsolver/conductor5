@@ -183,25 +183,40 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       const offset = (pagination.page - 1) * pagination.limit;
 
       // Build WHERE conditions
-      let whereClause = '';
+      const whereConditions: string[] = [];
       const whereParams: any[] = [];
 
       if (filters.search) {
-        whereClause += ` AND (name ILIKE ? OR display_name ILIKE ?)`;
+        whereConditions.push(`(name ILIKE ? OR display_name ILIKE ?)`);
         whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
       }
 
       if (filters.status && filters.status.length > 0) {
         const statusPlaceholders = filters.status.map(() => '?').join(',');
-        whereClause += ` AND status IN (${statusPlaceholders})`;
+        whereConditions.push(`status IN (${statusPlaceholders})`);
         whereParams.push(...filters.status);
       }
+
+      // Additional filters can be added here following the same pattern
+      if (filters.size && filters.size.length > 0) {
+        const sizePlaceholders = filters.size.map(() => '?').join(',');
+        whereConditions.push(`size IN (${sizePlaceholders})`);
+        whereParams.push(...filters.size);
+      }
+
+      if (filters.name) {
+        whereConditions.push(`name ILIKE ?`);
+        whereParams.push(`%${filters.name}%`);
+      }
+
+      // Construct the complete WHERE clause
+      const whereClause = whereConditions.length > 0 ? ` AND ${whereConditions.join(' AND ')}` : '';
 
       // Count total records - using tenant schema
       const countResult = await db.execute(sql.raw(`
         SELECT COUNT(*) as total
         FROM "${schemaName}".companies
-        WHERE tenant_id = ? AND is_active = true ${whereClause}
+        WHERE tenant_id = ? AND is_active = true${whereClause}
       `, [tenantId, ...whereParams]));
 
       const total = Number(countResult.rows[0]?.total || 0);
@@ -219,7 +234,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
           is_primary as "isPrimary", created_at as "createdAt", updated_at as "updatedAt",
           created_by as "createdBy", updated_by as "updatedBy"
         FROM "${schemaName}".companies
-        WHERE tenant_id = ? AND is_active = true ${whereClause}
+        WHERE tenant_id = ? AND is_active = true${whereClause}
         ORDER BY created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
       `, [tenantId, ...whereParams]));
