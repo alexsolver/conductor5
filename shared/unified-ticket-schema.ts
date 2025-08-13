@@ -31,7 +31,7 @@ export const ticketFormSchema = z.object({
   callerId: z.string().uuid().optional(),
   beneficiaryId: z.string().uuid().optional(), 
   responsibleId: z.string().uuid().optional(),
-  customerCompanyId: z.string().uuid().optional(), // Note: maps to customer_id in backend
+  companyId: z.string().uuid().optional(), // Note: maps to company_id in backend
 
   // LOCATION FIELD - Resolvendo inconsistência crítica 3
   location: z.string().optional(), // Definido como texto livre (não FK)
@@ -106,7 +106,7 @@ export const ticketFrontendSchema = ticketFormSchema.pick({
   callerId: true,
   beneficiaryId: true,
   responsibleId: true,
-  customerCompanyId: true,
+  companyId: true,
   location: true,
   impact: true,
   urgency: true,
@@ -130,7 +130,7 @@ export const ticketBackendSchema = z.object({
   caller_id: z.string().uuid().optional(),
   beneficiary_id: z.string().uuid().optional(),
   responsible_id: z.string().uuid().optional(),
-  customer_id: z.string().uuid().optional(), // customerCompanyId → customer_id
+  company_id: z.string().uuid().optional(), // companyId → company_id
 
   location: z.string().optional(), // Campo correto no banco
 

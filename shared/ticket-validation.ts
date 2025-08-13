@@ -53,7 +53,7 @@ export const ticketFormValidationSchema = z.object({
   
   // Time tracking fields removed - not present in current schema
   followers: z.array(z.string()).default([]),
-  customerCompanyId: z.string().optional(),
+  companyId: z.string().optional(),
 });
 
 // Schema base para ticket com todos os campos obrigatórios marcados
@@ -120,7 +120,7 @@ export const ticketFormSchema = z.object({
   // Arrays JSON - removed: followers, tags (not present in current schema)
 
   // Relacionamento com empresa cliente
-  customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success || val === 'unspecified', "ID da empresa deve ser um UUID válido").optional(),
+  companyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success || val === 'unspecified', "ID da empresa deve ser um UUID válido").optional(),
 
   // Ambiente
   environment: z.string().max(100).optional(),
@@ -189,7 +189,7 @@ const baseTicketSchema = z.object({
   dueDate: z.string().datetime().optional(),
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string().max(50)).default([]),
-  customerCompanyId: z.string().uuid().optional(),
+  companyId: z.string().uuid().optional(),
   environment: z.string().max(100).optional(),
   linkTicketNumber: z.string().max(50).optional(),
   linkType: LinkTypeEnum.optional(),
@@ -250,7 +250,7 @@ export const ticketFiltersSchema = z.object({
   priority: z.union([TicketPriorityEnum, z.literal("all")]).default("all"),
   category: z.union([TicketCategoryEnum, z.literal("all")]).default("all"),
   responsibleId: z.string().uuid().optional(),
-  customerCompanyId: z.string().uuid().optional(),
+  companyId: z.string().uuid().optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),
   search: z.string().max(255).optional()

@@ -269,8 +269,8 @@ const TicketDetails = React.memo(() => {
   // PROBLEMA 9 RESOLVIDO: Otimizar fetch de customers - sem logs redundantes
   useEffect(() => {
     const fetchCompanyCustomers = async () => {
-      // Use the correct field mapping - customerCompanyId is the standardized field
-      const companyId = ticket?.customerCompanyId;
+      // CORREÇÃO CONFORME 1qa.md - usar companyId padrão
+      const companyId = ticket?.companyId || ticket?.company_id;
 
       // Skip if no company
       if (!companyId || companyId === 'unspecified') {
@@ -302,7 +302,7 @@ const TicketDetails = React.memo(() => {
     if (ticket) {
       fetchCompanyCustomers();
     }
-  }, [ticket?.customerCompanyId]);
+  }, [ticket?.companyId, ticket?.company_id]);
 
   // PROBLEMA 9 RESOLVIDO: Handle company change otimizado com debounce
   const handleCompanyChange = useCallback(
@@ -317,15 +317,15 @@ const TicketDetails = React.memo(() => {
 
     // Otimização: Update UI primeiro, depois fetch data
     setSelectedCompany(newCompanyId);
-    form.setValue('customerCompanyId', newCompanyId);
+    form.setValue('companyId', newCompanyId);
 
     // 🚨 CORREÇÃO CRÍTICA: Marcar campo como dirty para garantir que seja enviado
-    form.trigger('customerCompanyId');
+    form.trigger('companyId');
 
     console.log('✅ Company state updated:', {
       newSelectedCompany: newCompanyId,
-      formValueAfter: form.getValues('customerCompanyId'),
-      isFieldDirty: form.formState.dirtyFields.customerCompanyId
+      formValueAfter: form.getValues('companyId'),
+      isFieldDirty: form.formState.dirtyFields.companyId
     });
 
     // Reset customer selections only when changing company
@@ -874,7 +874,7 @@ const TicketDetails = React.memo(() => {
       form.reset(formDataMemo);
 
       // Update local states only if changed
-      const newCompany = ticket.company_id || ticket.customerCompanyId;
+      const newCompany = ticket.companyId || ticket.company_id;
       if (newCompany && newCompany !== selectedCompany) {
         setSelectedCompany(newCompany);
       }
@@ -929,7 +929,7 @@ const TicketDetails = React.memo(() => {
           status: data.data.status || "new",
           callerId: data.data.caller_id || "",
           beneficiaryId: data.data.beneficiary_id || "",
-          customerCompanyId: data.data.company_id || "",
+          companyId: data.data.companyId || data.data.company_id || "",
           // ... outros campos conforme necessário
         };
 
@@ -1083,7 +1083,7 @@ const TicketDetails = React.memo(() => {
       link_comment: data.linkComment || '',
 
       // ✅ Company relationship - usar estado atualizado com fallback
-      company_id: selectedCompany || data.customerCompanyId || ticket?.company_id || ticket?.companyId || null,
+      company_id: selectedCompany || data.companyId || ticket?.companyId || ticket?.company_id || null,
 
       // Fields removed - not present in current schema: followers, tags
 
@@ -1101,12 +1101,12 @@ const TicketDetails = React.memo(() => {
     console.log("💾 [TicketDetails] Sending mapped data to API:", mappedData);
     console.log("🔍 [TicketDetails] DEBUG - Company field mapping:", {
       selectedCompanyState: selectedCompany,
-      dataCustomerCompanyId: data.customerCompanyId,
+      dataCompanyId: data.companyId,
       ticketCompanyId: ticket?.company_id,
       ticketCompanyIdAlt: ticket?.companyId,
       finalCompanyId: mappedData.company_id,
-      isCompanyFieldDirty: form.formState.dirtyFields.customerCompanyId,
-      formCompanyValue: form.getValues('customerCompanyId')
+      isCompanyFieldDirty: form.formState.dirtyFields.companyId,
+      formCompanyValue: form.getValues('companyId')
     });
     console.log("🔍 [TicketDetails] DEBUG - All mapped fields:", {
       totalFields: Object.keys(mappedData).length,
@@ -1201,7 +1201,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione a prioridade"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.company_id}
+                            customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1235,7 +1235,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione o status"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.company_id}
+                            customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1269,7 +1269,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione a urgência"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.company_id}
+                            customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1301,7 +1301,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione o impacto"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.company_id}
+                            customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1341,7 +1341,7 @@ const TicketDetails = React.memo(() => {
                             }}
                             placeholder="Selecione a categoria"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.company_id}
+                            customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1382,7 +1382,7 @@ const TicketDetails = React.memo(() => {
                             placeholder="Selecione a subcategoria"
                             disabled={!isEditMode || !form.watch('category')}
                             dependsOn={form.watch('category') || ticket?.category}
-                            customerId={ticket?.customerCompanyId || ticket?.company_id}
+                            customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1419,7 +1419,7 @@ const TicketDetails = React.memo(() => {
                             placeholder="Selecione a ação"
                             disabled={!isEditMode || !form.watch('subcategory')}
                             dependsOn={form.watch('subcategory') || ticket?.subcategory}
-                            customerId={ticket?.customerCompanyId || ticket?.company_id}
+                            customerId={ticket?.companyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -2825,7 +2825,7 @@ const TicketDetails = React.memo(() => {
                     form.setValue('beneficiaryId', '');
                     // Atualizar estado imediatamente
                     setSelectedCompany(value);
-                    console.log('✅ Company state updated:', { newSelectedCompany: value, formValueAfter: form.getValues('customerCompanyId') });
+                    console.log('✅ Company state updated:', { newSelectedCompany: value, formValueAfter: form.getValues('companyId') });
                   }}
                   value={selectedCompany || ''}
                 >
@@ -2848,7 +2848,7 @@ const TicketDetails = React.memo(() => {
                   </SelectContent>
                 </Select>
                 {(() => {
-                  const companyId = ticket.company_id || ticket.customerCompanyId || ticket.company;
+                  const companyId = ticket.company_id || ticket.companyId || ticket.company;
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
                   const industry = ticket.company?.industry || companyData?.industry;
                   const cnpj = ticket.company?.cnpj || companyData?.cnpj;
@@ -2877,7 +2877,7 @@ const TicketDetails = React.memo(() => {
               >
                 <Building2 className="h-4 w-4 mr-2" />
                 {(() => {
-                  const companyId = ticket.company_id || ticket.customerCompanyId || ticket.company;
+                  const companyId = ticket.company_id || ticket.companyId || ticket.company;
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
                   return companyData?.name || ticket.company?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
                 })()}
@@ -2905,7 +2905,7 @@ const TicketDetails = React.memo(() => {
                     handleCustomerChange(value, 'caller');
                     console.log('👤 Customer change:', { customerId: value, type: 'caller', formValue: form.getValues('callerId') });
                   }}
-                  selectedCompanyId={form.getValues('customerCompanyId') || '503389ff-7616-48e0-8759-c6b98faf5608'}
+                  selectedCompanyId={form.getValues('companyId') || '503389ff-7616-48e0-8759-c6b98faf5608'}
                   placeholder="Selecionar cliente"
                   disabled={false}
                   className="h-8 text-xs text-left"
