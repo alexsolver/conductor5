@@ -188,10 +188,10 @@ const TicketDetails = React.memo(() => {
   };
 
   const specialTabs = [
-    { 
-      id: "attachments", 
-      label: getTabLabel("Anexos", ticketAttachments?.success ? ticketAttachments?.data?.length : ticketAttachments?.data?.length || attachments?.length), 
-      icon: Paperclip 
+    {
+      id: "attachments",
+      label: getTabLabel("Anexos", ticketAttachments?.success ? ticketAttachments?.data?.length : ticketAttachments?.data?.length || attachments?.length),
+      icon: Paperclip
     },
     { id: "notes", label: "Notas", icon: FileText },
     { id: "communications", label: "Comunicação", icon: MessageSquare },
@@ -529,7 +529,7 @@ const TicketDetails = React.memo(() => {
     console.log('🔍 [ATTACHMENTS-DEBUG] Is data array:', Array.isArray(ticketAttachments?.data));
     console.log('🔍 [ATTACHMENTS-DEBUG] Data length:', ticketAttachments?.data?.length);
     console.log('🔍 [ATTACHMENTS-DEBUG] Data content:', ticketAttachments?.data);
-    
+
     if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
       console.log('📎 Setting attachments (success + array):', ticketAttachments.data.length, 'items');
       setAttachments(ticketAttachments.data);
@@ -583,7 +583,7 @@ const TicketDetails = React.memo(() => {
     console.log('🔍 [ACTIONS-DEBUG] Is data array:', Array.isArray(ticketActions?.data));
     console.log('🔍 [ACTIONS-DEBUG] Data length:', ticketActions?.data?.length);
     console.log('🔍 [ACTIONS-DEBUG] Data content first 3 items:', ticketActions?.data?.slice(0, 3));
-    
+
     if (ticketActions?.success && Array.isArray(ticketActions.data)) {
       console.log('⚙️ Setting actions from API success:', ticketActions.data.length, 'items');
       const mappedActions = ticketActions.data.map((action: any) => ({
@@ -835,7 +835,6 @@ const TicketDetails = React.memo(() => {
       businessImpact: ticket.business_impact || "",
       symptoms: ticket.symptoms || "",
       workaround: ticket.workaround || "",
-      resolution: ticket.resolution || "",
       environment: ticket.environment || "",
       templateAlternative: ticket.template_alternative || "",
       linkTicketNumber: ticket.link_ticket_number || "",
@@ -1067,7 +1066,7 @@ const TicketDetails = React.memo(() => {
       business_impact: data.businessImpact || '',
       symptoms: data.symptoms || '',
       workaround: data.workaround || '',
-      resolution: data.resolution || '',
+      resolution: data.resolution || '', // Campo removido do schema
 
       // ✅ Time tracking
       estimated_hours: data.estimatedHours || 0,
@@ -1683,7 +1682,7 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* Upload Component with Description Field */}
-            <TicketAttachmentUpload 
+            <TicketAttachmentUpload
               ticketId={id!}
               onUploadComplete={() => {
                 // Refresh attachments data
@@ -1703,8 +1702,8 @@ const TicketDetails = React.memo(() => {
                       <div>
                         <p className="font-medium">{attachment.filename || attachment.original_filename || attachment.name || 'Arquivo sem nome'}</p>
                         <p className="text-sm text-gray-500">
-                          {attachment.file_size && !isNaN(Number(attachment.file_size)) 
-                            ? formatFileSize(Number(attachment.file_size)) 
+                          {attachment.file_size && !isNaN(Number(attachment.file_size))
+                            ? formatFileSize(Number(attachment.file_size))
                             : attachment.size && !isNaN(Number(attachment.size))
                             ? formatFileSize(Number(attachment.size))
                             : 'Tamanho desconhecido'
@@ -2150,7 +2149,7 @@ const TicketDetails = React.memo(() => {
                            relTicket.status === 'in_progress' ? 'Em Progresso' :
                            relTicket.status === 'resolved' ? 'Resolvido' : 'Fechado'}
                         </Badge>
-                        <span className="font-medium">{relTicket.ticket_number}</span>
+                        <span className="font-medium">{relTicket.number}</span>
                       </div>
                       <Badge
                         variant={relTicket.priority === 'high' ? 'destructive' :
@@ -2803,7 +2802,7 @@ const TicketDetails = React.memo(() => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
       {/* Left Sidebar - Responsivo */}
-      <div className="w-full lg:w-72 bg-white border-r lg:border-r flex-shrink-0 h-auto lg:h-screen overflow-y-auto order-2 lg:order-1">
+      <div className="w-full lg:w-72 bg-white border-r flex-shrink-0 h-auto lg:h-screen overflow-y-auto order-2 lg:order-1">
         <div className="p-4 lg:p-6 h-full">
 
           {/* Empresa Cliente Section - Badge Destacado */}
@@ -3751,16 +3750,15 @@ const TicketDetails = React.memo(() => {
               <div className="space-y-1 text-xs">
                 {(() => {
                   const callerId = ticket.caller_id || ticket.callerId;
-                  const caller = availableCustomers.find((c: any) => c.id === callerId) ||
-                               (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
+                  const customer = availableCustomers.find((c: any) => c.id === callerId);
 
-                  const name = caller ? (caller.fullName || caller.name ||
-                             `${caller.firstName || ''} ${caller.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
-                  const email = caller?.email || 'Não informado';
-                  const address = typeof caller?.address === 'string' ? caller.address : 
-                                 caller?.address ? 
-                                 `${caller.address.street || ''} ${caller.address.number || ''}`.trim() || 'Não informado' : 'Não informado';
-                  const addressNumber = caller?.addressNumber || '';
+                  const name = customer ? (customer.fullName || customer.name ||
+                             `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
+                  const email = customer?.email || 'Não informado';
+                  const address = typeof customer?.address === 'string' ? customer.address :
+                                 customer?.address ?
+                                 `${customer.address.street || ''} ${customer.address.number || ''}`.trim() || 'Não informado' : 'Não informado';
+                  const addressNumber = customer?.addressNumber || '';
 
                   return (
                     <>

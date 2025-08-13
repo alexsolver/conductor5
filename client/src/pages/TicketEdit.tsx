@@ -760,7 +760,7 @@ export default function TicketEdit() {
                             <FormItem>
                               <FormLabel>Resumo:</FormLabel>
                               <FormControl>
-                                <Textarea 
+                                <Textarea
                                   placeholder="21822 - ajuste parâmetro do fim de trabalho"
                                   className="min-h-[100px]"
                                   {...field}

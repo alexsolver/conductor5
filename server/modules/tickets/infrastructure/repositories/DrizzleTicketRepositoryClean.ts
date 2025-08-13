@@ -273,7 +273,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         'category', 'subcategory', 'action', 'caller_id', 'caller_type', 
         'beneficiary_id', 'beneficiary_type', 'assigned_to_id', 'assignment_group',
         'company_id', 'location', 'contact_type', 'business_impact', 'symptoms',
-        'workaround', 'resolution', 'environment', 'template_alternative',
+        'workaround', 'environment', 'template_alternative',
         'link_ticket_number', 'link_type', 'link_comment', 'estimated_hours',
         'actual_hours', 'followers', 'tags', 'updated_at', 'updated_by_id'
       ];
@@ -393,7 +393,6 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       businessImpact: row.business_impact,
       symptoms: row.symptoms,
       workaround: row.workaround,
-      resolution: row.resolution,
       environment: row.environment,
       templateAlternative: row.template_alternative,
       linkTicketNumber: row.link_ticket_number,
