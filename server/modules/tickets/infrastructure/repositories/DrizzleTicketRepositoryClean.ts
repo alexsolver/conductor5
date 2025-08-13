@@ -5,7 +5,7 @@
 
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { tickets } from '@shared/schema';
+import { tickets } from '@shared/schema-master';
 import { Ticket } from '../../domain/entities/Ticket';
 import {
   ITicketRepository,
@@ -261,44 +261,24 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         return existingTicket!;
       }
 
-      // DEFINITIVE FIX: Build complete parameter array first, then generate SQL
-      const allValues = [...Object.values(updateFields), id, tenantId];
+      // FINAL FIX: Use Drizzle ORM eq() function instead of raw SQL to avoid parameter issues
+      const result = await db
+        .update(tickets)
+        .set(updateFields)
+        .where(and(
+          eq(tickets.id, id),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        ))
+        .returning();
+
+      console.log('✅ [DRIZZLE-ORM] Update successful with Drizzle ORM approach');
       
-      // Generate SET clause with correct parameter indices
-      const setClause = Object.keys(updateFields)
-        .map((key, index) => {
-          const dbField = key === 'updatedAt' ? 'updated_at' : key;
-          return `${dbField} = $${index + 1}`;
-        })
-        .join(', ');
-
-      // WHERE clause uses the last two parameters
-      const whereIdParam = Object.keys(updateFields).length + 1;
-      const whereTenantParam = Object.keys(updateFields).length + 2;
-
-      const query = `
-        UPDATE ${schemaName}.tickets 
-        SET ${setClause}
-        WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam} AND is_active = true
-        RETURNING *
-      `;
-
-      console.log('📝 [DEFINITIVE-FIX] Executing SQL:', {
-        setFieldsCount: Object.keys(updateFields).length,
-        whereIdParam: whereIdParam,
-        whereTenantParam: whereTenantParam,
-        allValuesLength: allValues.length,
-        generatedQuery: query,
-        actualValues: allValues
-      });
-
-      const result = await db.execute(sql.raw(query, allValues));
-      
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         throw new Error('Ticket not found or no changes made');
       }
 
-      const updatedRow = result.rows[0] as any;
+      const updatedRow = result[0] as any;
       console.log('✅ [FINAL] Update successful');
 
       // Transform database row back to Ticket format

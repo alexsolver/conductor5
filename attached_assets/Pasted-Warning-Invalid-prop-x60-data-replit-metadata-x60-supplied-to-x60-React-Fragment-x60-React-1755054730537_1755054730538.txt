@@ -1,0 +1,38 @@
+Warning: Invalid prop &#x60;data-replit-metadata&#x60; supplied to &#x60;React.Fragment&#x60;. React.Fragment can only have &#x60;key&#x60; and &#x60;children&#x60; props.
+    at ResponsiveTicketsTable (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/tickets/ResponsiveTicketsTable.tsx:403:3)
+    at div
+    at _c9 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at LoadingStateProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/LoadingStateManager.tsx:21:40)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketsTable.tsx:293:55
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=c90b0513:191:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=c90b0513:247:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/App.tsx?v=YR_rxMsGSM8eA3F3Db2j4:91:42)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=fe083449:38:15)
+    at TooltipProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=187c5eca:63:5)
+    at SimpleTimerProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at AuthProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ac773d5f:2805:3)
+    at App
+❌ Mutation error: 
+Error {}
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+❌ Mutation error: 
+Error {}
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+❌ Mutation error: 
+Error {}
