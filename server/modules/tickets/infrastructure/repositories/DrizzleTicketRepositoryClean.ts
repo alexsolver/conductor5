@@ -44,7 +44,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           t.beneficiary_id as "beneficiaryId",
           t.beneficiary_type as "beneficiaryType",
           t.assigned_to_id as "assignedToId",
-          t.assignment_group_id as "assignmentGroupId",
+          t.assignment_group as "assignmentGroupId",
           t.company_id as "companyId",
           t.location,
           t.contact_type as "contactType",
@@ -93,7 +93,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId"
+          company_id as "companyId", beneficiary_id as "beneficiaryId", assignment_group as "assignmentGroupId"
         FROM ${sql.identifier(schemaName)}.tickets
         WHERE number = ${number} AND is_active = true
         LIMIT 1
@@ -154,7 +154,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId"
+          company_id as "companyId", beneficiary_id as "beneficiaryId", assignment_group as "assignmentGroupId"
         FROM ${schemaName}.tickets
         WHERE is_active = true ${whereClause}
         ORDER BY created_at DESC
@@ -183,7 +183,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId"
+          company_id as "companyId", beneficiary_id as "beneficiaryId", assignment_group as "assignmentGroupId"
         FROM ${sql.identifier(schemaName)}.tickets
         WHERE is_active = true
         ORDER BY created_at DESC
@@ -204,7 +204,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId"
+          company_id as "companyId", beneficiary_id as "beneficiaryId", assignment_group as "assignmentGroupId"
         FROM ${sql.identifier(schemaName)}.tickets
         WHERE assigned_to_id = ${userId}
         ORDER BY created_at DESC
@@ -265,8 +265,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         'beneficiary_type': 'beneficiary_type',
         'beneficiaryType': 'beneficiary_type',
         'assigned_to_id': 'assigned_to_id',
-        'assignment_group': 'assignment_group_id',
-        'assignmentGroup': 'assignment_group_id',
+        'assignment_group': 'assignment_group', // Corrected to 'assignment_group'
+        'assignmentGroup': 'assignment_group', // Corrected to 'assignment_group'
         'company_id': 'company_id',
         'location': 'location',
         'contact_type': 'contact_type',
@@ -365,7 +365,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         beneficiaryId: updatedTicket.beneficiary_id,
         beneficiaryType: updatedTicket.beneficiary_type,
         assignedToId: updatedTicket.assigned_to_id,
-        assignmentGroupId: updatedTicket.assignment_group_id,
+        assignmentGroupId: updatedTicket.assignment_group, // Corrected to use assignment_group
         companyId: updatedTicket.company_id,
         contactType: updatedTicket.contact_type,
         businessImpact: updatedTicket.business_impact,
@@ -464,7 +464,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         acc[row.priority] = Number(row.count);
         return acc;
       }, {} as Record<string, number>);
-      
+
       // Get overdue count (assuming a due_date or similar field exists)
       // This is a placeholder and needs actual schema knowledge. For now, returning 0.
       const overdueCount = 0; 
