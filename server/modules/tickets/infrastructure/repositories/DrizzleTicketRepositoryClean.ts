@@ -58,8 +58,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           t.tenant_id as "tenantId",
           t.created_at as "createdAt",
           t.updated_at as "updatedAt",
-          t.created_by as "createdBy",
-          t.updated_by as "updatedBy",
+          t.opened_by_id as "createdBy",
           t.is_active as "isActive"
         FROM ${sql.identifier(schemaName)}.tickets t
         WHERE t.id = ${id} AND t.tenant_id = ${tenantId} AND t.is_active = true

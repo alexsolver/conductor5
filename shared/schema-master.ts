@@ -295,6 +295,10 @@ export const tickets = pgTable("tickets", {
   linkType: varchar("link_type", { length: 50 }),
   linkComment: text("link_comment"),
 
+  // Audit fields
+  createdBy: uuid("opened_by_id").references(() => users.id),
+  updatedBy: uuid("updated_by"),
+
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
