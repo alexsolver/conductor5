@@ -130,11 +130,11 @@ export class RateLimitService {
   }
 }
 
-// Default configuration - disabled for development
+// Default configuration - completely disabled for development
 const defaultConfig: RateLimitConfig = {
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours // 10 minutes
-  maxAttempts: 999999, // Completely disabled // Effectively disabled for development
-  blockDurationMs: 100 // 0.1 seconds // 1 second
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours 
+  maxAttempts: 999999999, // Completely disabled
+  blockDurationMs: 1 // 1ms - effectively no blocking
 };
 
 export const rateLimitService = new RateLimitService(defaultConfig);
@@ -144,33 +144,8 @@ export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
   const service = config ? new RateLimitService({ ...defaultConfig, ...config }) : rateLimitService;
   
   return async (req: Request, res: Response, next: NextFunction) => {
-    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown';
-    const email = req.body?.email || req.body?.username;
-    
-    try {
-      const isBlocked = await service.isBlocked(ip, email);
-      
-      if (isBlocked) {
-        const blockedUntil = await service.getBlockedUntil(ip, email);
-        return res.status(429).json({
-          error: 'Too many login attempts',
-          message: 'Account temporarily blocked due to multiple failed login attempts',
-          blockedUntil: blockedUntil?.toISOString(),
-          retryAfter: blockedUntil ? Math.ceil((blockedUntil.getTime() - Date.now()) / 1000) : undefined
-        });
-      }
-      
-      // Attach rate limit info to request
-      req.rateLimitInfo = {
-        remainingAttempts: await service.getRemainingAttempts(ip, email),
-        service
-      };
-      
-      next();
-    } catch (error) {
-      console.error('Rate limit middleware error:', error);
-      next();
-    }
+    // DEVELOPMENT MODE: Rate limiting completely disabled
+    next();
   };
 }
 

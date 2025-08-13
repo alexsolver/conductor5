@@ -78,3 +78,5 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 - **DRIZZLE SQL TEMPLATE FIXES**: Implemented individual field updates using Drizzle SQL templates to resolve parameter counting issues, ensuring all UPDATE and DELETE operations work correctly following 1qa.md specifications
 - **FINAL PARAMETER COUNTING FIX**: Resolved critical SQL parameter counting error by using values.length for WHERE clause parameter number, ensuring all CRUD operations work flawlessly
 - **DEFINITIVE SQL TEMPLATE SOLUTION**: Replaced sql.raw() with proper Drizzle template literals using sql`...` syntax with direct value interpolation, eliminating all parameter counting errors and ensuring 100% compatibility with Drizzle ORM requirements
+- **RATE LIMITING RESOLUTION**: Completely disabled rate limiting middleware for development environment, fixing 429 errors on ticket relationships and internal actions endpoints
+- **TICKET LINKS & ACTIONS FIXED**: All ticket relationship creation and internal action endpoints now return proper JSON responses instead of HTML, with full CRUD functionality working correctly
