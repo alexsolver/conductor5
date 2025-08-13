@@ -3,7 +3,7 @@
  * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, sql } from 'drizzle-orm';
+import { eq, and, or, like, ilike, gte, lte, inArray, desc, asc, count, isNull, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { companies } from '@shared/schema';
 import { Company, CompanySize, CompanyStatus, SubscriptionTier } from '../../domain/entities/Company';
@@ -179,90 +179,69 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     try {
       console.log('🔍 [DrizzleCompanyRepository] findWithFilters called with:', { filters, pagination, tenantId });
 
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Build WHERE conditions - Fixed approach with proper parameters  
-      const allConditions: string[] = ['tenant_id = ?', 'is_active = ?'];
-      const allParams: any[] = [tenantId, true];
+      // Build WHERE conditions using Drizzle ORM - Clean Architecture compliant
+      const whereConditions = [
+        eq(companies.tenantId, tenantId),
+        eq(companies.isActive, true)
+      ];
 
       // Add dynamic filter conditions only if they have valid values
       if (filters.search && filters.search.trim()) {
-        allConditions.push(`(name ILIKE ? OR display_name ILIKE ?)`);
-        allParams.push(`%${filters.search.trim()}%`, `%${filters.search.trim()}%`);
+        whereConditions.push(
+          or(
+            ilike(companies.name, `%${filters.search.trim()}%`),
+            ilike(companies.displayName, `%${filters.search.trim()}%`)
+          )
+        );
       }
 
       if (filters.status && Array.isArray(filters.status) && filters.status.length > 0) {
-        const statusPlaceholders = filters.status.map(() => '?').join(',');
-        allConditions.push(`status IN (${statusPlaceholders})`);
-        allParams.push(...filters.status);
+        whereConditions.push(inArray(companies.status, filters.status));
       }
 
       if (filters.size && Array.isArray(filters.size) && filters.size.length > 0) {
-        const sizePlaceholders = filters.size.map(() => '?').join(',');
-        allConditions.push(`size IN (${sizePlaceholders})`);
-        allParams.push(...filters.size);
+        whereConditions.push(inArray(companies.size, filters.size));
       }
 
       if (filters.name && filters.name.trim()) {
-        allConditions.push(`name ILIKE ?`);
-        allParams.push(`%${filters.name.trim()}%`);
+        whereConditions.push(ilike(companies.name, `%${filters.name.trim()}%`));
       }
 
       if (filters.subscriptionTier && Array.isArray(filters.subscriptionTier) && filters.subscriptionTier.length > 0) {
-        const tierPlaceholders = filters.subscriptionTier.map(() => '?').join(',');
-        allConditions.push(`subscription_tier IN (${tierPlaceholders})`);
-        allParams.push(...filters.subscriptionTier);
+        whereConditions.push(inArray(companies.subscriptionTier, filters.subscriptionTier));
       }
 
-      // Construct the complete WHERE clause - guaranteed to have at least 2 conditions
-      const whereClause = allConditions.join(' AND ');
-
-      console.log('🔍 [DrizzleCompanyRepository] Final query details:', {
-        whereClause,
-        paramsCount: allParams.length,
-        conditions: allConditions.length,
-        tenantId,
-        schemaName
+      console.log('🔍 [DrizzleCompanyRepository] Query conditions built:', {
+        conditionsCount: whereConditions.length,
+        tenantId
       });
 
-      // Count total records - using tenant schema with proper parameter validation
-      const countQuery = `
-        SELECT COUNT(*) as total
-        FROM "${schemaName}".companies
-        WHERE ${whereClause}
-      `;
-      
-      const countResult = await db.execute(sql.raw(countQuery, allParams));
+      // Count total records using Drizzle ORM
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(companies)
+        .where(and(...whereConditions));
 
-      const total = Number(countResult.rows[0]?.total || 0);
+      const total = Number(countResult[0]?.count || 0);
       const totalPages = Math.ceil(total / pagination.limit);
 
       console.log('✅ [DrizzleCompanyRepository] Count query successful:', { total, totalPages });
 
-      // Fetch paginated results - using tenant schema with validated parameters
-      const dataQuery = `
-        SELECT 
-          id, tenant_id as "tenantId", name, display_name as "displayName", 
-          description, industry, size, email, phone, website, address,
-          tax_id as "taxId", registration_number as "registrationNumber",
-          subscription_tier as "subscriptionTier", contract_type as "contractType",
-          max_users as "maxUsers", max_tickets as "maxTickets",
-          settings, tags, metadata, status, is_active as "isActive",
-          is_primary as "isPrimary", created_at as "createdAt", updated_at as "updatedAt",
-          created_by as "createdBy", updated_by as "updatedBy"
-        FROM "${schemaName}".companies
-        WHERE ${whereClause}
-        ORDER BY created_at DESC
-        LIMIT ${pagination.limit} OFFSET ${offset}
-      `;
-      
-      const results = await db.execute(sql.raw(dataQuery, allParams));
+      // Fetch paginated results using Drizzle ORM
+      const results = await db
+        .select()
+        .from(companies)
+        .where(and(...whereConditions))
+        .orderBy(desc(companies.createdAt))
+        .limit(pagination.limit)
+        .offset(offset);
 
-      console.log('✅ [DrizzleCompanyRepository] Data query successful:', { rowsFound: results.rows.length });
+      console.log('✅ [DrizzleCompanyRepository] Data query successful:', { rowsFound: results.length });
 
       return {
-        companies: results.rows.map(row => this.mapToEntity(row as any)),
+        companies: results.map(row => this.mapToEntity(row)),
         total,
         page: pagination.page,
         totalPages
