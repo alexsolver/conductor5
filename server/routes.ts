@@ -2495,6 +2495,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('✅ Companies Clean Architecture routes registered at /api/companies-integration & /api/companies-integration/v2');
 
   // Legacy Companies Routes - Fixed to work with Clean Architecture integration
+  // 🎯 [1QA-COMPLIANCE] GET single company by ID - Required for ticket details
+  app.get('/api/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Tenant ID is required'
+        });
+      }
+
+      console.log(`🏢 [COMPANY-GET] Fetching company ${id} for tenant ${tenantId}`);
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      const result = await pool.query(`
+        SELECT * FROM "${schemaName}".companies 
+        WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      `, [id, tenantId]);
+
+      if (result.rows.length === 0) {
+        console.log(`🏢 [COMPANY-GET] Company not found: ${id}`);
+        return res.status(404).json({
+          success: false,
+          message: 'Company not found'
+        });
+      }
+
+      const company = result.rows[0];
+      const formattedCompany = {
+        id: company.id,
+        name: company.name,
+        document: company.document,
+        email: company.email,
+        phone: company.phone,
+        address: company.address,
+        isActive: company.is_active,
+        createdAt: company.created_at,
+        updatedAt: company.updated_at
+      };
+
+      console.log(`✅ [COMPANY-GET] Company found:`, formattedCompany.name);
+      
+      res.json({
+        success: true,
+        data: formattedCompany
+      });
+
+    } catch (error) {
+      console.error('❌ [COMPANY-GET] Error fetching company:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch company'
+      });
+    }
+  });
+
   app.get('/api/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;

@@ -115,11 +115,28 @@ export default function TicketDetail() {
   });
 
   // 🎯 [1QA-COMPLIANCE] Fetch company details for proper display
-  const { data: company } = useQuery({
+  const { data: company, error: companyError } = useQuery({
     queryKey: [`/api/companies/${ticket?.companyId}`],
     enabled: !!ticket?.companyId,
-    select: (data: any) => data?.data || data,
+    select: (data: any) => {
+      console.log('🏢 [COMPANY-QUERY] Raw response:', data);
+      return data?.data || data;
+    },
+    retry: false,
   });
+
+  // 🎯 [1QA-COMPLIANCE] Debug company loading
+  useEffect(() => {
+    if (ticket?.companyId) {
+      console.log('🏢 [COMPANY-DEBUG] Attempting to load company:', ticket.companyId);
+    }
+    if (companyError) {
+      console.error('❌ [COMPANY-DEBUG] Error loading company:', companyError);
+    }
+    if (company) {
+      console.log('✅ [COMPANY-DEBUG] Company loaded:', company);
+    }
+  }, [ticket?.companyId, company, companyError]);
 
   // 🎯 [1QA-COMPLIANCE] Fetch user details for assigned user display  
   const { data: assignedUser } = useQuery({
