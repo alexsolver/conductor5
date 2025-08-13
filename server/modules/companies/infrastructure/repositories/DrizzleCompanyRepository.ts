@@ -3,7 +3,7 @@
  * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull } from 'drizzle-orm';
+import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { companies } from '@shared/schema';
 import { Company, CompanySize, CompanyStatus, SubscriptionTier } from '../../domain/entities/Company';
@@ -21,28 +21,57 @@ import {
 // declare const sql: any; // Placeholder for actual sql import
 
 export class DrizzleCompanyRepository implements ICompanyRepository {
+  private logger = {
+    error: (message: string, context?: any) => console.error(`[DrizzleCompanyRepository] ${message}`, context)
+  };
 
   async findById(id: string): Promise<Company | null> {
-    const result = await db
-      .select()
-      .from(companies)
-      .where(eq(companies.id, id))
-      .limit(1);
+    try {
+      const result = await db
+        .select()
+        .from(companies)
+        .where(eq(companies.id, id))
+        .limit(1);
 
-    return result.length > 0 ? this.mapToEntity(result[0]) : null;
+      return result.length > 0 ? this.mapToEntity(result[0]) : null;
+    } catch (error: any) {
+      console.error('❌ [DrizzleCompanyRepository] findById error:', error);
+      throw error;
+    }
   }
 
   async findByIdAndTenant(id: string, tenantId: string): Promise<Company | null> {
-    const result = await db
-      .select()
-      .from(companies)
-      .where(and(
-        eq(companies.id, id),
-        eq(companies.tenantId, tenantId)
-      ))
-      .limit(1);
+    try {
+      console.log('🔍 [DrizzleCompanyRepository] findByIdAndTenant called:', { id, tenantId });
 
-    return result.length > 0 ? this.mapToEntity(result[0]) : null;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await db.execute(sql.raw(`
+        SELECT 
+          id, tenant_id as "tenantId", name, display_name as "displayName", 
+          description, industry, size, email, phone, website, address,
+          tax_id as "taxId", registration_number as "registrationNumber",
+          subscription_tier as "subscriptionTier", contract_type as "contractType",
+          max_users as "maxUsers", max_tickets as "maxTickets",
+          settings, tags, metadata, status, is_active as "isActive",
+          is_primary as "isPrimary", created_at as "createdAt", updated_at as "updatedAt",
+          created_by as "createdBy", updated_by as "updatedBy"
+        FROM "${schemaName}".companies
+        WHERE id = ? AND tenant_id = ? AND is_active = true
+        LIMIT 1
+      `, [id, tenantId]));
+
+      if (result.rows.length > 0) {
+        console.log('✅ [DrizzleCompanyRepository] Company found:', result.rows[0]);
+        return this.mapToEntity(result.rows[0]);
+      }
+
+      console.log('❌ [DrizzleCompanyRepository] Company not found');
+      return null;
+    } catch (error: any) {
+      console.error('❌ [DrizzleCompanyRepository] findByIdAndTenant error:', error);
+      throw error;
+    }
   }
 
   async create(companyData: Omit<Company, 'id' | 'createdAt' | 'updatedAt'>): Promise<Company> {
@@ -275,16 +304,32 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
   }
 
   async findByTenant(tenantId: string): Promise<Company[]> {
-    const result = await db
-      .select()
-      .from(companies)
-      .where(and(
-        eq(companies.tenantId, tenantId),
-        eq(companies.isActive, true)
-      ))
-      .orderBy(asc(companies.name));
+    try {
+      console.log('🔍 [DrizzleCompanyRepository] findByTenant called:', { tenantId });
 
-    return result.map(row => this.mapToEntity(row));
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await db.execute(sql.raw(`
+        SELECT 
+          id, tenant_id as "tenantId", name, display_name as "displayName", 
+          description, industry, size, email, phone, website, address,
+          tax_id as "taxId", registration_number as "registrationNumber",
+          subscription_tier as "subscriptionTier", contract_type as "contractType",
+          max_users as "maxUsers", max_tickets as "maxTickets",
+          settings, tags, metadata, status, is_active as "isActive",
+          is_primary as "isPrimary", created_at as "createdAt", updated_at as "updatedAt",
+          created_by as "createdBy", updated_by as "updatedBy"
+        FROM "${schemaName}".companies
+        WHERE tenant_id = ? AND is_active = true
+        ORDER BY name ASC
+      `, [tenantId]));
+
+      console.log(`✅ [DrizzleCompanyRepository] Found ${result.rows.length} companies for tenant`);
+      return result.rows.map(row => this.mapToEntity(row));
+    } catch (error: any) {
+      console.error('❌ [DrizzleCompanyRepository] findByTenant error:', error);
+      throw error;
+    }
   }
 
   async findByStatusAndTenant(status: CompanyStatus, tenantId: string): Promise<Company[]> {
