@@ -214,11 +214,18 @@ router.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
 
+    console.log('📝 [NOTES-BACKEND] GET notes endpoint called:', { ticketId: id, tenantId });
+
     if (!tenantId) {
+      console.log('❌ [NOTES-BACKEND] Missing tenant ID');
       return res.status(401).json({ success: false, message: 'Tenant ID required' });
     }
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // Set proper JSON headers to prevent HTML response
+    res.setHeader('Content-Type', 'application/json');
+    
     const result = await db.execute(sql`
       SELECT
         tn.id,
@@ -233,10 +240,59 @@ router.get('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
       ORDER BY tn.created_at DESC
     `);
 
+    console.log('✅ [NOTES-BACKEND] Notes fetched successfully:', { count: result.rows.length });
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error('Error fetching notes:', error);
+    console.error('❌ [NOTES-BACKEND] Error fetching notes:', error);
+    res.setHeader('Content-Type', 'application/json');
     res.status(500).json({ success: false, message: 'Failed to fetch notes' });
+  }
+});
+
+/**
+ * POST TICKET NOTES - Create new note endpoint
+ * POST /api/tickets/:id/notes
+ */
+router.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+    const userId = req.user?.userId;
+    const { content, noteType = 'general', isInternal = false, isPublic = true } = req.body;
+
+    console.log('📝 [NOTES-BACKEND] POST notes endpoint called:', { ticketId: id, tenantId, userId });
+
+    if (!tenantId) {
+      console.log('❌ [NOTES-BACKEND] Missing tenant ID');
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    if (!content || content.trim() === '') {
+      console.log('❌ [NOTES-BACKEND] Missing content');
+      return res.status(400).json({ success: false, message: 'Note content is required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // Set proper JSON headers to prevent HTML response
+    res.setHeader('Content-Type', 'application/json');
+    
+    const noteId = `note_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    
+    const result = await db.execute(sql`
+      INSERT INTO ${sql.identifier(schemaName)}.ticket_notes 
+        (id, ticket_id, tenant_id, content, note_type, is_internal, is_public, created_by, created_at, is_active)
+      VALUES 
+        (${noteId}, ${id}, ${tenantId}, ${content}, ${noteType}, ${isInternal}, ${isPublic}, ${userId}, NOW(), true)
+      RETURNING *
+    `);
+
+    console.log('✅ [NOTES-BACKEND] Note created successfully:', { noteId });
+    res.status(201).json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('❌ [NOTES-BACKEND] Error creating note:', error);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json({ success: false, message: 'Failed to create note' });
   }
 });
 

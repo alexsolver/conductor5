@@ -60,6 +60,23 @@ import { TicketViewsController } from './controllers/TicketViewsController';
 // Import uuid for note ID generation
 import { v4 as uuidv4 } from 'uuid';
 
+// ✅ Import all modules
+import authRoutes from './modules/auth/routes-integration';
+import ticketsRoutes from './modules/tickets/routes-integration';
+import customersRoutes from './modules/customers/routes-integration';
+import beneficiariesRoutes from './modules/beneficiaries/routes-integration';
+import usersRoutes from './modules/users/routes-integration';
+import companiesRoutes from './modules/companies/routes-integration';
+import locationsRoutes from './modules/locations/routes-integration';
+
+// Middleware to ensure JSON responses for API routes
+const ensureJSONResponse = (req: any, res: any, next: any) => {
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Content-Type', 'application/json');
+  }
+  next();
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
@@ -215,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import microservice routers
   const { dashboardRouter } = await import('./modules/dashboard/routes');
-  const customersRouter = await import('./modules/customers/routes-integration');
+  const customersIntegrationRouter = await import('./modules/customers/routes-integration');
   const ticketsIntegrationRouter = await import('./modules/tickets/routes-integration');
   const { peopleRouter } = await import('./modules/people/routes');
   // Beneficiaries routes imported at top of file
@@ -248,10 +265,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mount microservice routes
-  app.use('/api/dashboard', dashboardRouter);
-  app.use('/api/customers', customersRouter.default || customersRouter);
+  // ✅ Apply JSON response middleware
+  app.use(ensureJSONResponse);
+
+  // ✅ Mount all routes at once
+  app.use('/api/auth', authRoutes);
+  app.use('/api/tickets', ticketsRoutes);
+  app.use('/api/customers', customersRoutes);
   app.use('/api/beneficiaries', beneficiariesRoutes);
+  app.use('/api/users', usersRoutes);
+  app.use('/api/companies', companiesRoutes);
+  app.use('/api/locations', locationsRoutes);
 
   // === Beneficiaries Clean Architecture Integration ===
   const beneficiariesIntegrationRoutes = await import('./modules/beneficiaries/routes-integration');
@@ -759,7 +783,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Check if company exists
         const companyCheck = await pool.query(
-          `SELECT id, name FROM "${schemaName}"."companies" WHERE id = $1 AND tenant_id = $2`,
+          `SELECT id FROM "${schemaName}"."companies" WHERE id = $1 AND tenant_id = $2`,
           [companyId, req.user.tenantId]
         );
 
