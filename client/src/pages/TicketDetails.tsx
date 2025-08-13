@@ -382,12 +382,28 @@ const TicketDetails = React.memo(() => {
   });
 
   // Fetch companies for client company selection
-  const { data: companiesData } = useQuery({
-    queryKey: ["/api/companies"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/companies");
-      return response.json();
+  // Buscar dados da empresa quando ticket tem company_id
+  const { 
+    data: companiesData, 
+    isLoading: companiesLoading, 
+    error: companiesError 
+  } = useQuery({
+    queryKey: ['/api/companies'],
+    enabled: true,
+    retry: 3,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    select: (data: any) => {
+      console.log('🏢 [COMPANY-DATA] Raw API response:', data);
+      if (Array.isArray(data)) return data;
+      if (data?.companies) return data.companies;
+      if (data?.data?.companies) return data.data.companies;
+      if (data?.data && Array.isArray(data.data)) return data.data;
+      console.log('⚠️ [COMPANY-DATA] Unexpected data format, returning empty array');
+      return [];
     },
+    onError: (error) => {
+      console.error('❌ [COMPANY-DATA] Error loading companies:', error);
+    }
   });
 
   // Fetch field options for impact, urgency, and locations
@@ -867,12 +883,12 @@ const TicketDetails = React.memo(() => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('📝 [NOTES-FRONTEND] Error response body:', errorText.substring(0, 500));
-        
+
         // Verificar se é erro HTML (indica erro de servidor)
         if (errorText.includes('<!DOCTYPE')) {
           throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}. This indicates a server-side error.`);
         }
-        
+
         throw new Error(`HTTP error! status: ${response.status} - ${errorText.substring(0, 200)}`);
       }
 
@@ -888,7 +904,7 @@ const TicketDetails = React.memo(() => {
           responseStatus: response.status,
           responseURL: response.url
         });
-        
+
         // Check if it's an HTML error page (server error)
         if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html>')) {
           console.error('🚨 [NOTES-FRONTEND] Server returned HTML page instead of JSON:', {
@@ -899,7 +915,7 @@ const TicketDetails = React.memo(() => {
           });
           throw new Error(`Server Error: API endpoint returned HTML instead of JSON. This indicates a backend routing or middleware issue. Status: ${response.status}`);
         }
-        
+
         throw new Error(`Expected JSON response, got ${contentType}. Response preview: ${responseText.substring(0, 200)}`);
       }
 
@@ -935,7 +951,7 @@ const TicketDetails = React.memo(() => {
       console.error('❌ [NOTES-FRONTEND] Failed to add note:', error);
 
       let errorMessage = "Erro ao adicionar nota. Tente novamente.";
-      
+
       if (error instanceof Error) {
         console.log('📝 [NOTES-FRONTEND] Error analysis:', {
           message: error.message,
@@ -1991,11 +2007,11 @@ const TicketDetails = React.memo(() => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  
+
                   const noteContent = form.getValues('content');
                   const noteType = form.getValues('noteType') || 'general';
                   const isPrivate = form.getValues('isPrivate') || false;
-                  
+
                   if (noteContent?.trim()) {
                     onNotesSubmit({
                       content: noteContent,
@@ -2381,7 +2397,7 @@ const TicketDetails = React.memo(() => {
               {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ?
                 ticketRelationships.related_tickets.map((relTicket: any) => (
                   <Card key={relTicket.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
                         <Badge
                           variant={relTicket.status === 'open' ? 'destructive' :

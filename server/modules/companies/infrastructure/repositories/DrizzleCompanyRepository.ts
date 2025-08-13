@@ -248,8 +248,8 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
     } catch (error: any) {
       console.error('❌ [DrizzleCompanyRepository] findWithFilters error:', error);
-      this.logger.error('Failed to find companies with filters', { error: error.message, filters, pagination, tenantId });
-      throw error;
+      this.logger.error('Failed to find companies with filters', { error: error.message || 'Unknown error', filters, pagination, tenantId });
+      throw new Error(`Failed to find companies with filters: ${error.message || 'Unknown error'}`);
     }
   }
 
