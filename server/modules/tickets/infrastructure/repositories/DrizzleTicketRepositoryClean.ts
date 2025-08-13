@@ -261,8 +261,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         return existingTicket!;
       }
 
-      // CRITICAL FIX: Use raw SQL since schema field names don't match database
+      // CRITICAL FIX: Build parameter array FIRST to ensure correct count
+      const allValues = [...Object.values(updateFields), id, tenantId];
       
+      // Use consistent parameter indices based on VALUES array length
       const setClause = Object.keys(updateFields)
         .map((key, index) => {
           const dbField = key === 'updatedAt' ? 'updated_at' : key;
@@ -270,9 +272,16 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         })
         .join(', ');
 
-      const allValues = [...Object.values(updateFields), id, tenantId];
       const whereIdParam = Object.keys(updateFields).length + 1;
       const whereTenantParam = Object.keys(updateFields).length + 2;
+
+      console.log('🔧 [CRITICAL-DEBUG] SQL Parameters:', {
+        setFieldsCount: Object.keys(updateFields).length,
+        whereIdParam,
+        whereTenantParam,
+        totalValues: allValues.length,
+        allValuesArray: allValues
+      });
 
       const query = `
         UPDATE ${schemaName}.tickets 
@@ -281,7 +290,16 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         RETURNING *
       `;
 
-      const result = await db.execute(sql.raw(query, allValues));
+      // FINAL APPROACH: Use Drizzle sql template with direct values insertion
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName, 'tickets')} 
+        SET ${sql.raw(setClause.replace(/\$\d+/g, (match, offset) => {
+          const paramIndex = parseInt(match.substring(1)) - 1;
+          return typeof allValues[paramIndex] === 'string' ? `'${allValues[paramIndex]}'` : allValues[paramIndex];
+        }))}
+        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
+        RETURNING *
+      `);
 
       console.log('✅ [RAW-SQL] Update successful with raw SQL approach');
       
