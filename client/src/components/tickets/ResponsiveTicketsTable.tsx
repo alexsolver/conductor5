@@ -282,8 +282,8 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
               </TableCell>
             </TableRow>
           ) : (
-            tickets.map((ticket, index) => (
-              <React.Fragment key={`ticket-${ticket.id}-${index}`}>
+            tickets.map((ticket) => (
+              <React.Fragment key={ticket.id}>
                 <TableRow
                   className="hover:bg-gray-50 transition-colors"
                   role="row"
