@@ -10,6 +10,7 @@ import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 import { db } from '../../db';
 import { sql } from 'drizzle-orm';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
@@ -282,8 +283,8 @@ router.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // Set proper JSON headers to prevent HTML response
     res.setHeader('Content-Type', 'application/json');
     
-    // ✅ Generate proper UUID for note ID
-    const noteId = `${Math.random().toString(36).substring(2, 10)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 14)}`;
+    // ✅ Generate proper UUID for note ID using uuid library
+    const noteId = uuidv4();
     
     const result = await db.execute(sql`
       INSERT INTO ${sql.identifier(schemaName)}.ticket_notes 
