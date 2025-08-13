@@ -74,13 +74,11 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const [description, setDescription] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
 
   // Reset filters when modal opens
   useEffect(() => {
     if (isOpen) {
-      setSelectedCompanyId("");
       setSelectedCustomerId("");
       setSearchTerm("");
       setStatusFilter("all");
@@ -91,14 +89,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch companies for filtering
-  const { data: companiesData } = useQuery({
-    queryKey: ["/api/companies"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/companies");
-      return response.json();
-    },
-  });
+  // Remove company fetch - não precisamos mais do filtro de empresa
 
   // Fetch all tickets and filter locally for better UX
   const { data: ticketsData, isLoading } = useQuery({
@@ -112,24 +103,25 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   // Ensure allTickets is always an array - correct data structure parsing
   const allTickets = Array.isArray(ticketsData?.data?.tickets) ? ticketsData.data.tickets : [];
 
-  // Get companies list
-  const companies = Array.isArray(companiesData) ? companiesData : [];
+  // Remove companies list - não usado mais
 
-  // Filter tickets based on search term, status, priority, company, customer and exclude current ticket
+  // Filter tickets - APENAS mesma empresa do ticket principal conforme 1qa.md
   const filteredTickets = allTickets.filter((ticket: Ticket) => {
     if (currentTicket && ticket.id === currentTicket.id) return false;
+
+    // FILTRO CRÍTICO: Apenas tickets da mesma empresa do ticket principal
+    const currentTicketCompanyId = (currentTicket as any).companyId || (currentTicket as any).company_id;
+    const ticketCompanyId = (ticket as any).company_id || (ticket as any).companyId;
+    
+    if (currentTicketCompanyId && ticketCompanyId !== currentTicketCompanyId) {
+      return false;
+    }
 
     // Status filter
     if (statusFilter !== "all" && ticket.status !== statusFilter) return false;
 
     // Priority filter  
     if (priorityFilter !== "all" && ticket.priority !== priorityFilter) return false;
-
-    // Company filter
-    if (selectedCompanyId && selectedCompanyId !== "") {
-      const ticketCompanyId = (ticket as any).company_id || (ticket as any).company;
-      if (!ticketCompanyId || ticketCompanyId !== selectedCompanyId) return false;
-    }
 
     // Customer filter
     if (selectedCustomerId && selectedCustomerId !== "") {
@@ -341,48 +333,34 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
           {/* Link New Ticket */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Vincular Novo Ticket</h3>
+            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-amber-600" />
+                <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Vinculando apenas com tickets da mesma empresa
+                </span>
+              </div>
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                Tickets só podem ser vinculados com outros da mesma empresa conforme regras de negócio
+              </p>
+            </div>
 
             {/* Search and Filters */}
             <div className="space-y-4">
-              {/* Company and Customer Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <div>
-                  <Label htmlFor="company-filter" className="flex items-center space-x-2">
-                    <Building2 className="h-4 w-4" />
-                    <span>Filtrar por Empresa</span>
-                  </Label>
-                  <Select 
-                    value={selectedCompanyId || "all"} 
-                    onValueChange={(value) => {
-                      console.log('Company selection changed:', value);
-                      setSelectedCompanyId(value === "all" ? "" : value);
-                      // Reset customer selection when company changes
-                      setSelectedCustomerId("");
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas as empresas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as empresas</SelectItem>
-                      {companies.map((company: any) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.company_name || company.name || `Empresa ${company.id.slice(-8)}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
+              {/* Customer Filter - Só filtro de cliente, empresa é automática */}
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <div>
                   <Label htmlFor="customer-filter">Filtrar por Cliente</Label>
                   <FilteredCustomerSelect
                     value={selectedCustomerId}
                     onChange={setSelectedCustomerId}
-                    selectedCompanyId={selectedCompanyId}
-                    placeholder="Todos os clientes"
+                    selectedCompanyId={((currentTicket as any)?.companyId || (currentTicket as any)?.company_id)}
+                    placeholder="Todos os clientes desta empresa"
                     className="w-full"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    ℹ️ Exibindo apenas tickets da mesma empresa do ticket atual
+                  </p>
                 </div>
               </div>
 
