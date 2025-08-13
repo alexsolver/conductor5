@@ -34,7 +34,7 @@ export default function CompanyCustomersSection({
   // 🎯 [1QA-COMPLIANCE] Defensive programming - proteger contra undefined
   const safeCustomers = Array.isArray(allCustomers) ? allCustomers : [];
   const associatedCount = safeCustomers.filter((c: any) => c.isAssociated).length;
-  const availableCount = safeCustomers.filter((c: any) => !c.isAssociated).length;ength;
+  const availableCount = safeCustomers.filter((c: any) => !c.isAssociated).length;
 
   return (
     <div className="space-y-3 pt-3 border-t">
