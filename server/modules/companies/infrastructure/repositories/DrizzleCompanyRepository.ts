@@ -245,16 +245,15 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
       console.log('✅ [DrizzleCompanyRepository] Count query successful:', { total, totalPages });
 
-      // Fetch paginated results using tenant schema
+      // Fetch paginated results using tenant schema - using actual column names
       const dataQuery = `
         SELECT 
           id, tenant_id as "tenantId", name, display_name as "displayName", 
           description, industry, size, email, phone, website, address,
-          tax_id as "taxId", registration_number as "registrationNumber",
-          subscription_tier as "subscriptionTier", contract_type as "contractType",
-          max_users as "maxUsers", max_tickets as "maxTickets",
-          settings, tags, metadata, status, is_active as "isActive",
-          is_primary as "isPrimary", created_at as "createdAt", updated_at as "updatedAt",
+          cnpj, city, state, zip_code as "zipCode", country,
+          annual_revenue as "annualRevenue", employee_count as "employeeCount",
+          subscription_tier as "subscriptionTier", status, is_active as "isActive",
+          created_at as "createdAt", updated_at as "updatedAt",
           created_by as "createdBy", updated_by as "updatedBy"
         FROM "${schemaName}".companies
         WHERE ${whereClause}
@@ -809,21 +808,24 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       name: row.name,
       displayName: row.displayName || row.name,
       description: row.description || '',
-      cnpj: row.taxId || '',
-      industry: row.description || '', // Using description as industry substitute
+      cnpj: row.cnpj || '', // Using actual cnpj column
+      industry: row.industry || '', // Using actual industry column
       size: row.size || 'medium',
       status: row.status || 'active',
       subscriptionTier: row.subscriptionTier || 'basic',
       email: row.email || '',
       phone: row.phone || '',
-      website: '',
+      website: row.website || '', // Using actual website column
       address: row.address || '',
       addressNumber: '',
       complement: '',
       neighborhood: '',
-      city: '', // These fields don't exist in current schema
-      state: '', // Will be extracted from address if needed
-      zipCode: '',
+      city: row.city || '', // Using actual city column from database
+      state: row.state || '', // Using actual state column from database
+      zipCode: row.zipCode || '', // Using actual zip_code column (mapped as zipCode)
+      country: row.country || '', // Adding country from database
+      annualRevenue: row.annualRevenue || 0, // Adding annualRevenue from database
+      employeeCount: row.employeeCount || 0, // Adding employeeCount from database
       isActive: row.isActive,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt)
