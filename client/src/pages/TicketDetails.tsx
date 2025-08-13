@@ -836,16 +836,17 @@ const TicketDetails = React.memo(() => {
       console.log('📝 [NOTES] Note creation result:', result);
 
       if (result.success) {
-        // Refresh notes data
-        queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "notes"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] });
+        // Invalidate queries in the correct order
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "notes"] }),
+          queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] }),
+          queryClient.invalidateQueries({ queryKey: ["/api/tickets", id] })
+        ]);
 
-        // Reset form
-        form.reset({
-          content: '',
-          noteType: 'general',
-          isPrivate: false
-        });
+        // Reset form fields without affecting other form data
+        form.setValue('content', '');
+        form.setValue('noteType', 'general');
+        form.setValue('isPrivate', false);
 
         toast({
           title: "Nota adicionada",
@@ -1816,90 +1817,111 @@ const TicketDetails = React.memo(() => {
 
             {/* Add New Note */}
             {/* 🔧 [1QA-COMPLIANCE] Notes Form seguindo Clean Architecture */}
-            <Form {...form}>
-              <form onSubmit={(e) => {
-                e.preventDefault(); // Prevent default form submission
-                // Manual trigger for onSubmit to capture current form state and validation
-                form.handleSubmit(onNotesSubmit)(e);
-              }} className="space-y-4">
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nova Nota</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Digite sua nota aqui..."
+                        className="min-h-[100px]"
+                        maxLength={5000}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    {field.value && (
+                      <p className="text-xs text-muted-foreground">
+                        {field.value.length}/5000 caracteres
+                      </p>
+                    )}
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex items-center space-x-4">
                 <FormField
                   control={form.control}
-                  name="content"
+                  name="noteType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nova Nota</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Digite sua nota aqui..."
-                          className="min-h-[100px]"
-                          maxLength={5000}
-                          {...field}
-                        />
-                      </FormControl>
+                      <FormLabel>Tipo</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value || "general"}>
+                        <FormControl>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="general">Geral</SelectItem>
+                          <SelectItem value="internal">Interna</SelectItem>
+                          <SelectItem value="resolution">Resolução</SelectItem>
+                          <SelectItem value="escalation">Escalação</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
-                      {field.value && (
-                        <p className="text-xs text-muted-foreground">
-                          {field.value.length}/5000 caracteres
-                        </p>
-                      )}
                     </FormItem>
                   )}
                 />
 
-                <div className="flex items-center space-x-4">
-                  <FormField
-                    control={form.control}
-                    name="noteType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value || "general"}>
-                          <FormControl>
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="general">Geral</SelectItem>
-                            <SelectItem value="internal">Interna</SelectItem>
-                            <SelectItem value="resolution">Resolução</SelectItem>
-                            <SelectItem value="escalation">Escalação</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name="isPrivate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value || false}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Nota Privada
+                        </FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          Visível apenas para equipe interna
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-                  <FormField
-                    control={form.control}
-                    name="isPrivate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value || false}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>
-                            Nota Privada
-                          </FormLabel>
-                          <p className="text-sm text-muted-foreground">
-                            Visível apenas para equipe interna
-                          </p>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Button type="submit" disabled={isSubmittingNote || !form.watch('content')?.trim()}>
-                  {isSubmittingNote ? "Adicionando..." : "Adicionar Nota"}
-                </Button>
-              </form>
-            </Form>
+              <Button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  const noteContent = form.getValues('content');
+                  const noteType = form.getValues('noteType') || 'general';
+                  const isPrivate = form.getValues('isPrivate') || false;
+                  
+                  if (noteContent?.trim()) {
+                    onNotesSubmit({
+                      content: noteContent,
+                      noteType: noteType,
+                      isPrivate: isPrivate
+                    });
+                  }
+                }}
+                disabled={isSubmittingNote || !form.watch('content')?.trim()}
+                className="flex items-center gap-2"
+              >
+                {isSubmittingNote ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Adicionando...
+                  </>
+                ) : (
+                  "Adicionar Nota"
+                )}
+              </Button>
+            </div>
 
             {/* Notes Timeline */}
             {notes.length > 0 && (
