@@ -182,9 +182,9 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Build WHERE conditions - Fixed approach
-      const allConditions: string[] = ['tenant_id = ?', 'is_active = true'];
-      const allParams: any[] = [tenantId];
+      // Build WHERE conditions - Fixed approach with proper parameters  
+      const allConditions: string[] = ['tenant_id = ?', 'is_active = ?'];
+      const allParams: any[] = [tenantId, true];
 
       // Add dynamic filter conditions only if they have valid values
       if (filters.search && filters.search.trim()) {
@@ -227,11 +227,13 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       });
 
       // Count total records - using tenant schema with proper parameter validation
-      const countResult = await db.execute(sql.raw(`
+      const countQuery = `
         SELECT COUNT(*) as total
         FROM "${schemaName}".companies
         WHERE ${whereClause}
-      `, allParams));
+      `;
+      
+      const countResult = await db.execute(sql.raw(countQuery, allParams));
 
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
@@ -239,7 +241,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       console.log('✅ [DrizzleCompanyRepository] Count query successful:', { total, totalPages });
 
       // Fetch paginated results - using tenant schema with validated parameters
-      const results = await db.execute(sql.raw(`
+      const dataQuery = `
         SELECT 
           id, tenant_id as "tenantId", name, display_name as "displayName", 
           description, industry, size, email, phone, website, address,
@@ -253,12 +255,14 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         WHERE ${whereClause}
         ORDER BY created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
-      `, allParams));
+      `;
+      
+      const results = await db.execute(sql.raw(dataQuery, allParams));
 
       console.log('✅ [DrizzleCompanyRepository] Data query successful:', { rowsFound: results.rows.length });
 
       return {
-        companies: results.rows,
+        companies: results.rows.map(row => this.mapToEntity(row as any)),
         total,
         page: pagination.page,
         totalPages
@@ -342,7 +346,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const result = await db.execute(sql.raw(`
+      const result = await db.execute(sql`
         SELECT 
           id, tenant_id as "tenantId", name, display_name as "displayName", 
           description, industry, size, email, phone, website, address,
@@ -352,13 +356,13 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
           settings, tags, metadata, status, is_active as "isActive",
           is_primary as "isPrimary", created_at as "createdAt", updated_at as "updatedAt",
           created_by as "createdBy", updated_by as "updatedBy"
-        FROM "${schemaName}".companies
-        WHERE tenant_id = ? AND is_active = true
+        FROM "${sql.raw(schemaName)}".companies
+        WHERE tenant_id = ${tenantId} AND is_active = true
         ORDER BY name ASC
-      `, [tenantId]));
+      `);
 
       console.log(`✅ [DrizzleCompanyRepository] Found ${result.rows.length} companies for tenant`);
-      return result.rows.map(row => this.mapToEntity(row));
+      return result.rows.map(row => this.mapToEntity(row as any));
     } catch (error: any) {
       console.error('❌ [DrizzleCompanyRepository] findByTenant error:', error);
       throw error;
