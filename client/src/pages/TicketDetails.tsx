@@ -878,8 +878,16 @@ const TicketDetails = React.memo(() => {
         const responseText = await response.text();
         console.error('📝 [NOTES-FRONTEND] Non-JSON response:', {
           contentType,
-          bodyPreview: responseText.substring(0, 500)
+          bodyPreview: responseText.substring(0, 500),
+          responseStatus: response.status,
+          responseURL: response.url
         });
+        
+        // Check if it's an HTML error page (server error)
+        if (responseText.includes('<!DOCTYPE html>')) {
+          throw new Error(`Server error: Received HTML error page instead of JSON. Status: ${response.status}`);
+        }
+        
         throw new Error(`Expected JSON response, got ${contentType}. This indicates a server configuration issue.`);
       }
 

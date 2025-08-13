@@ -307,7 +307,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       )}
                       <Link
                         href={`/tickets/${ticket.id}`}
-                        className="font-mono text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                        className="font-mono text-blue-600 hover:text-blue-800 transition-colors"
                         aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
                       >
                         #{ticket.number || ticket.id?.slice(0, 8)}

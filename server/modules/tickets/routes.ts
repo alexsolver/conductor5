@@ -1828,6 +1828,9 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
   });
 
   try {
+    // Set proper JSON response headers upfront
+    res.setHeader('Content-Type', 'application/json');
+    
     if (!req.user?.tenantId) {
       console.log('❌ [NOTES-API] No tenant ID found');
       return res.status(400).json({ 
@@ -1989,6 +1992,9 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
   } catch (error) {
     console.error("❌ [NOTES-API] Unexpected error creating note:", error);
     
+    // Ensure JSON response even in error cases
+    res.setHeader('Content-Type', 'application/json');
+    
     // Resposta de erro padronizada seguindo 1qa.md
     const errorResponse = {
       success: false,
@@ -1996,7 +2002,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
       error: error instanceof Error ? error.message : "Unknown error"
     };
 
-    res.status(500).json(errorResponse);
+    return res.status(500).json(errorResponse);
   }
 });
 
