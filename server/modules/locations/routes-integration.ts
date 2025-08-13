@@ -1,68 +1,29 @@
 /**
- * Location Integration Routes
+ * Location Clean Architecture Routes
  * 
- * Provides dual-system integration for Location management,
- * maintaining backward compatibility while introducing Clean Architecture.
+ * Consolidated to use only Clean Architecture pattern
+ * Following 1qa.md specifications strictly
  * 
- * @module LocationIntegrationRoutes
- * @version 1.0.0
- * @created 2025-01-12 - Phase 6 Clean Architecture Implementation
+ * @module LocationRoutes
+ * @version 2.0.0
+ * @created 2025-01-12 - Clean Architecture Consolidation
  */
 
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import locationRoutesClean from './routes-clean';
 
-// Import legacy routes if they exist
-let legacyRoutes: Router;
-try {
-  legacyRoutes = require('./routes').default;
-} catch {
-  console.log('[LOCATION-INTEGRATION] Legacy routes not found - using Clean Architecture only');
-  legacyRoutes = Router();
-}
-
 const router = Router();
 
 // Apply authentication middleware
 router.use(jwtAuth);
 
-// === Integration Strategy ===
+// ==========================================
+// CLEAN ARCHITECTURE ROUTES ONLY
+// ==========================================
 
-/**
- * Main locations endpoints
- * Primary: Clean Architecture (v2)
- * Fallback: Legacy system
- * 
- * GET  /api/locations-integration     -> Clean Architecture (with legacy fallback)
- * POST /api/locations-integration     -> Clean Architecture (with legacy fallback)  
- * GET  /api/locations-integration/:id -> Clean Architecture (with legacy fallback)
- * PUT  /api/locations-integration/:id -> Clean Architecture (with legacy fallback)
- * DELETE /api/locations-integration/:id -> Clean Architecture (with legacy fallback)
- */
-
-// Clean Architecture endpoints with integration wrapper
-router.use('/v2', locationRoutesClean);
-
-// Integrated endpoints (Clean Architecture with legacy fallback)
-router.get('/', async (req, res, next) => {
-  try {
-    // Try Clean Architecture first
-    await locationRoutesClean.stack[1].handle(req, res, (err: any) => {
-      if (err) {
-        console.log('[LOCATION-INTEGRATION] Clean Architecture failed, trying legacy');
-        // Fallback to legacy if available
-        if (legacyRoutes) {
-          return legacyRoutes.handle(req, res, next);
-        }
-        return next(err);
-      }
-    });
-  } catch (error) {
-    console.error('[LOCATION-INTEGRATION] Integration error:', error);
-    next(error);
-  }
-});
+// Use Clean Architecture routes directly
+router.use('/', locationRoutesClean);
 
 router.post('/', async (req, res, next) => {
   try {

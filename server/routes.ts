@@ -268,7 +268,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Apply JSON response middleware
   app.use(ensureJSONResponse);
 
-  // ✅ Mount all routes at once
+  // ✅ CLEAN ARCHITECTURE ONLY - All modules consolidated
+  console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
   app.use('/api/auth', authRoutes);
   app.use('/api/tickets', ticketsRoutes);
   app.use('/api/customers', customersRoutes);
@@ -276,81 +277,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/users', usersRoutes);
   app.use('/api/companies', companiesRoutes);
   app.use('/api/locations', locationsRoutes);
+  console.log('✅ [CLEAN-ARCHITECTURE] All modules using Clean Architecture pattern');
 
-  // === Beneficiaries Clean Architecture Integration ===
-  const beneficiariesIntegrationRoutes = await import('./modules/beneficiaries/routes-integration');
-  console.log('✅ Beneficiaries Clean Architecture routes registered at /api/beneficiaries-integration');
-  app.use('/api/beneficiaries-integration', beneficiariesIntegrationRoutes.default);
+  // ✅ LEGACY INTEGRATION ROUTES REMOVED - Using Clean Architecture directly
 
-  // === Schedule Management Clean Architecture Integration ===
-  const scheduleManagementIntegrationRoutes = await import('./modules/schedule-management/routes-integration');
-  console.log('✅ Schedule Management Clean Architecture routes registered at /api/schedule-management-integration');
-  app.use('/api/schedule-management-integration', scheduleManagementIntegrationRoutes.default);
-
-  // === Technical Skills Clean Architecture Integration ===
-  const technicalSkillsIntegrationRoutes = await import('./modules/technical-skills/routes-integration');
-  console.log('✅ Technical Skills Clean Architecture routes registered at /api/technical-skills-integration');
-  app.use('/api/technical-skills-integration', technicalSkillsIntegrationRoutes.default);
-
-  // === Teams Clean Architecture Integration ===
-  const teamsIntegrationRoutes = await import('./modules/teams/routes-integration');
-  console.log('✅ Teams Clean Architecture routes registered at /api/teams-integration');
-  app.use('/api/teams-integration', teamsIntegrationRoutes.default);
-
-  // === Inventory Clean Architecture Integration ===
-  const inventoryIntegrationRoutes = await import('./modules/inventory/routes-integration');
-  console.log('✅ Inventory Clean Architecture routes registered at /api/inventory-integration');
-  app.use('/api/inventory-integration', inventoryIntegrationRoutes.default);
-
-  // === Custom Fields Clean Architecture Integration ===
-  const customFieldsIntegrationRoutes = await import('./modules/custom-fields/routes-integration');
-  console.log('✅ Custom Fields Clean Architecture routes registered at /api/custom-fields-integration');
-  app.use('/api/custom-fields-integration', customFieldsIntegrationRoutes.default);
-
-  // === People Clean Architecture Integration ===
-  const peopleIntegrationRoutes = await import('./modules/people/routes-integration');
-  console.log('✅ People Clean Architecture routes registered at /api/people-integration');
-  app.use('/api/people-integration', peopleIntegrationRoutes.default);
-
-  // === Materials Services Clean Architecture Integration ===
-  const materialsServicesIntegrationRoutes = await import('./modules/materials-services/routes-integration');
-  console.log('✅ Materials Services Clean Architecture routes registered at /api/materials-services-integration');
-  app.use('/api/materials-services-integration', materialsServicesIntegrationRoutes.default);
-
-  // === Notifications Clean Architecture Integration ===
-  const notificationsIntegrationRoutes = await import('./modules/notifications/routes-integration');
-  console.log('✅ Notifications Clean Architecture routes registered at /api/notifications-integration');
-  app.use('/api/notifications-integration', notificationsIntegrationRoutes.default);
-
-  // === Timecard Clean Architecture Integration ===
-  const timecardIntegrationRoutes = await import('./modules/timecard/routes-integration');
-  console.log('✅ Timecard Clean Architecture routes registered at /api/timecard-integration');
-  app.use('/api/timecard-integration', timecardIntegrationRoutes.default);
-
-  // === Dashboard Clean Architecture Integration ===
-  const dashboardIntegrationRoutes = await import('./modules/dashboard/routes-integration');
-  console.log('✅ Dashboard Clean Architecture routes registered at /api/dashboard-integration');
-  app.use('/api/dashboard-integration', dashboardIntegrationRoutes.default);
-
-  // === SaaS Admin Clean Architecture Integration ===
-  const saasAdminIntegrationRoutes = await import('./modules/saas-admin/routes-integration');
-  console.log('✅ SaaS Admin Clean Architecture routes registered at /api/saas-admin-integration');
-  app.use('/api/saas-admin-integration', saasAdminIntegrationRoutes.default);
-
-  // === Template Hierarchy Clean Architecture Integration ===
-  const templateHierarchyIntegrationRoutes = await import('./modules/template-hierarchy/routes-integration');
-  console.log('✅ Template Hierarchy Clean Architecture routes registered at /api/template-hierarchy-integration');
-  app.use('/api/template-hierarchy-integration', templateHierarchyIntegrationRoutes.default);
-
-  // === Ticket Templates Clean Architecture Integration ===
-  const ticketTemplatesIntegrationRoutes = await import('./modules/ticket-templates/routes-integration');
-  console.log('✅ Ticket Templates Clean Architecture routes registered at /api/ticket-templates-integration');
-  app.use('/api/ticket-templates-integration', ticketTemplatesIntegrationRoutes.default);
-
-  // === Tickets Clean Architecture Integration ===
-  const ticketsIntegrationRoutes = await import('./modules/tickets/routes-integration');
-  console.log('✅ Tickets Clean Architecture routes registered at /api/tickets');
-  app.use('/api/tickets', ticketsIntegrationRoutes.default);
+  // ✅ ALL INTEGRATION ROUTES CONSOLIDATED INTO MAIN ROUTES
 
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
