@@ -28,9 +28,9 @@ export default function CompanyTemplateSelector({
 }: CompanyTemplateSelectorProps) {
   // Fetch companies
   const { data: companiesResponse, isLoading: companiesLoading } = useQuery({
-    queryKey: ['/api/companies'],
+    queryKey: ['/api/customers/companies'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/companies');
+      const response = await apiRequest('GET', '/api/customers/companies');
       return response.json();
     },
   });

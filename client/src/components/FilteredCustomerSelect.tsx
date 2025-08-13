@@ -31,10 +31,10 @@ export function FilteredCustomerSelect({
 
   // Buscar clientes da empresa se uma empresa foi selecionada
   const { data: companyCustomersData, isLoading: isLoadingCompanyCustomers } = useQuery({
-    queryKey: ['/api/companies', selectedCompanyId, 'customers'],
+    queryKey: ['/api/customers/companies', selectedCompanyId, 'customers'],
     queryFn: async () => {
       if (!selectedCompanyId || selectedCompanyId === 'unspecified') return { customers: [] };
-      const response = await apiRequest('GET', `/api/companies/${selectedCompanyId}/customers`);
+      const response = await apiRequest('GET', `/api/customers/companies/${selectedCompanyId}/customers`);
       return response.json();
     },
     enabled: !!selectedCompanyId && selectedCompanyId !== 'unspecified',

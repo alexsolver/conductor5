@@ -92,7 +92,7 @@ export default function Companies() {
 
   // Query para buscar empresas - usando endpoint correto
   const { data: companiesData, isLoading, error } = useQuery({
-    queryKey: ['/api/companies'],
+    queryKey: ['/api/customers/companies'],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -248,7 +248,7 @@ export default function Companies() {
             Gerencie suas empresas e clientes associados
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3">
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -496,7 +496,7 @@ export default function Companies() {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="sm"
@@ -519,7 +519,7 @@ export default function Companies() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="pt-0">
                 {company.description && (
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
