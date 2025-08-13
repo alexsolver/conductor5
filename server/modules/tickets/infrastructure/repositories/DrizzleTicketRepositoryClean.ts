@@ -236,7 +236,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Map frontend fields to database columns
+      // Map frontend fields to database columns - remove duplicates
       const fieldMapping: Record<string, string> = {
         'subject': 'subject',
         'description': 'description', 
@@ -276,6 +276,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       const setFields: string[] = [];
       const values: any[] = [];
+      const processedColumns = new Set<string>(); // Track processed columns to avoid duplicates
       let paramIndex = 1;
 
       // Process each field in the update data
@@ -284,7 +285,14 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
         const dbColumn = fieldMapping[key] || key;
 
+        // Skip if we've already processed this database column
+        if (processedColumns.has(dbColumn)) {
+          continue;
+        }
+
         if (value !== undefined && value !== null) {
+          processedColumns.add(dbColumn); // Mark this column as processed
+          
           if (Array.isArray(value) || typeof value === 'object') {
             setFields.push(`${dbColumn} = $${paramIndex}`);
             values.push(JSON.stringify(value));
