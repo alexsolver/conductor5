@@ -297,18 +297,13 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         }
       }
 
-      // Always update the updated_at timestamp
-      setFields.push(`updated_at = $${paramIndex}`);
-      values.push(new Date().toISOString());
-      paramIndex++;
-
       // Add WHERE clause parameters
       values.push(id, tenantId);
       const whereIdParam = paramIndex;
       const whereTenantParam = paramIndex + 1;
 
-      if (setFields.length === 1) { // Only updated_at
-        console.log('⚠️ [DrizzleTicketRepositoryClean] No fields to update besides timestamp');
+      if (setFields.length === 0) { // No fields to update
+        console.log('⚠️ [DrizzleTicketRepositoryClean] No fields to update');
         // Return the existing ticket if no actual fields are updated
         const existingTicket = await this.findById(id, tenantId);
         if (!existingTicket) {
@@ -325,7 +320,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       const updateQuery = `
         UPDATE ${schemaName}.tickets 
-        SET ${setFields.join(', ')}
+        SET ${setFields.join(', ')}, updated_at = NOW()
         WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam} AND is_active = true
         RETURNING *
       `;
