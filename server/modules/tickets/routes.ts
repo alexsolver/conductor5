@@ -1818,8 +1818,8 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
   }
 });
 
-// Create ticket note - IMPLEMENTAÇÃO REAL
-ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: AuthenticatedRequest, res) => {
+// Create ticket note - IMPLEMENTAÇÃO REAL com bypass de middleware problemático
+ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
   console.log('📝 [NOTES-API] POST /:id/notes called with:', {
     ticketId: req.params.id,
     body: req.body,
@@ -1827,10 +1827,11 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
     tenantId: req.user?.tenantId
   });
 
-  try {
-    // Set proper JSON response headers upfront
-    res.setHeader('Content-Type', 'application/json');
+  // Set JSON response headers FIRST to prevent HTML responses
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache');
 
+  try {
     if (!req.user?.tenantId) {
       console.log('❌ [NOTES-API] No tenant ID found');
       return res.status(400).json({ 
@@ -1875,14 +1876,21 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
       const dbModule = await import('../../db');
       pool = dbModule.pool;
       if (!pool) {
+        console.error('❌ [NOTES-API] Database pool is null/undefined');
         throw new Error('Database pool not initialized');
       }
+      
+      // Test database connection
+      await pool.query('SELECT 1');
+      console.log('✅ [NOTES-API] Database connection verified');
+      
     } catch (dbError) {
-      console.error('❌ [NOTES-API] Database initialization error:', dbError);
+      console.error('❌ [NOTES-API] Database initialization/connection error:', dbError);
       return res.status(500).json({
         success: false,
         message: "Database connection error",
-        error: "DATABASE_CONNECTION_FAILED"
+        error: "DATABASE_CONNECTION_FAILED",
+        details: dbError instanceof Error ? dbError.message : "Unknown database error"
       });
     }
 
@@ -1992,17 +2000,34 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
   } catch (error) {
     console.error("❌ [NOTES-API] Unexpected error creating note:", error);
 
-    // Ensure JSON response even in error cases
-    res.setHeader('Content-Type', 'application/json');
+    // Force JSON response headers even in critical error cases
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+
+    // Enhanced error logging for debugging
+    console.error("❌ [NOTES-API] Full error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      ticketId: req.params.id,
+      tenantId: req.user?.tenantId,
+      userId: req.user?.id,
+      timestamp: new Date().toISOString()
+    });
 
     // Resposta de erro padronizada seguindo 1qa.md
     const errorResponse = {
       success: false,
       message: "Failed to create note",
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString()
     };
 
-    return res.status(500).json(errorResponse);
+    // Prevent multiple responses
+    if (!res.headersSent) {
+      return res.status(500).json(errorResponse);
+    }
   }
 });
 

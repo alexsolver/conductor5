@@ -845,6 +845,12 @@ const TicketDetails = React.memo(() => {
       };
 
       console.log('📝 [NOTES-FRONTEND] Sending payload:', payload);
+      console.log('📝 [NOTES-FRONTEND] Request URL:', `/api/tickets/${id}/notes`);
+      console.log('📝 [NOTES-FRONTEND] Request headers will include:', {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer [token]',
+        'X-Tenant-ID': 'auto-detected'
+      });
 
       const response = await apiRequest("POST", `/api/tickets/${id}/notes`, payload);
 
@@ -885,10 +891,16 @@ const TicketDetails = React.memo(() => {
         
         // Check if it's an HTML error page (server error)
         if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html>')) {
-          throw new Error(`Server returned HTML instead of JSON. This indicates a backend routing or configuration issue. Status: ${response.status}`);
+          console.error('🚨 [NOTES-FRONTEND] Server returned HTML page instead of JSON:', {
+            responseText: responseText.substring(0, 500),
+            status: response.status,
+            url: response.url,
+            headers: Object.fromEntries(response.headers.entries())
+          });
+          throw new Error(`BACKEND ERROR: Server returned HTML page instead of JSON API response. This indicates the API endpoint failed and Express served an error page. Status: ${response.status}`);
         }
         
-        throw new Error(`Expected JSON response, got ${contentType}. Server may be misconfigured.`);
+        throw new Error(`Expected JSON response, got ${contentType}. Response preview: ${responseText.substring(0, 200)}`);
       }
 
       const result = await response.json();
