@@ -91,7 +91,7 @@ const MobileTicketCard: React.FC<{
                 </Button>
               )}
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0" aria-label={`Ações para ticket ${ticket.number || ticket.id?.slice(0, 8)}`}>
@@ -310,7 +310,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       </Link>
                     </div>
                   </TableCell>
-                  
+
                   <TableCell className="max-w-0">
                     <div className="truncate">
                       <Link 
@@ -327,13 +327,13 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       )}
                     </div>
                   </TableCell>
-                  
+
                   <TableCell className="hidden lg:table-cell">
                     <span className="text-sm">
                       {ticket.company_name || "Empresa não informada"}
                     </span>
                   </TableCell>
-                  
+
                   <TableCell className="hidden md:table-cell">
                     <div className="text-sm">
                       <div className="font-medium">
@@ -346,7 +346,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       )}
                     </div>
                   </TableCell>
-                  
+
                   <TableCell className="hidden lg:table-cell">
                     {ticket.category ? (
                       <DynamicBadge
@@ -360,7 +360,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       <span className="text-gray-400">Não categorizado</span>
                     )}
                   </TableCell>
-                  
+
                   <TableCell className="hidden lg:table-cell">
                     <DynamicBadge
                       fieldName="status"
@@ -370,7 +370,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       {ticket.status}
                     </DynamicBadge>
                   </TableCell>
-                  
+
                   <TableCell className="hidden sm:table-cell">
                     <DynamicBadge
                       fieldName="priority"
@@ -380,7 +380,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       {ticket.priority}
                     </DynamicBadge>
                   </TableCell>
-                  
+
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

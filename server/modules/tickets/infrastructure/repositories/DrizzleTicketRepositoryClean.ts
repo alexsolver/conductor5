@@ -297,6 +297,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         }
       }
 
+      // Add updated_at parameter
+      setFields.push(`updated_at = NOW()`);
+
       // Add WHERE clause parameters
       values.push(id, tenantId);
       const whereIdParam = paramIndex;
@@ -320,7 +323,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       const updateQuery = `
         UPDATE ${schemaName}.tickets 
-        SET ${setFields.join(', ')}, updated_at = NOW()
+        SET ${setFields.join(', ')}
         WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam} AND is_active = true
         RETURNING *
       `;
