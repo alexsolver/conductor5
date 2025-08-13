@@ -331,6 +331,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
   app.use('/api/ticket-relationships', ticketRelationshipsRouter.default);
+  // 🎯 [1QA-COMPLIANCE] Mount batch endpoint under /api/tickets conforme especificações
+  app.use('/api/tickets', ticketRelationshipsRouter.default);
 
   // NOTE: File upload endpoint for tickets is now handled in server/modules/tickets/routes.ts
 
