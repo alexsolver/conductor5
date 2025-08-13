@@ -290,13 +290,38 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         RETURNING *
       `;
 
-      // FINAL APPROACH: Use Drizzle sql template with direct values insertion
+      // CRITICAL FIX: Use native Drizzle UPDATE with proper field mapping
+      const setFields: Record<string, any> = {};
+      
+      // Map only the essential fields that changed
+      if (data.subject !== undefined) setFields.subject = data.subject;
+      if (data.description !== undefined) setFields.description = data.description;
+      if (data.status !== undefined) setFields.status = data.status;
+      if (data.priority !== undefined) setFields.priority = data.priority;
+      if (data.urgency !== undefined) setFields.urgency = data.urgency;
+      if (data.impact !== undefined) setFields.impact = data.impact;
+      if (data.category !== undefined) setFields.category = data.category;
+      if (data.subcategory !== undefined) setFields.subcategory = data.subcategory;
+      if (data.assignedToId !== undefined) setFields.assignedToId = data.assignedToId;
+      
+      // Always update timestamp with proper formatting
+      setFields.updatedAt = new Date().toISOString();
+
+      console.log('🔧 [DIRECT-UPDATE] Fields to update:', setFields);
+
+      // Use raw SQL with proper schema and parameter escaping
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(schemaName, 'tickets')} 
-        SET ${sql.raw(setClause.replace(/\$\d+/g, (match, offset) => {
-          const paramIndex = parseInt(match.substring(1)) - 1;
-          return typeof allValues[paramIndex] === 'string' ? `'${allValues[paramIndex]}'` : allValues[paramIndex];
-        }))}
+        SET 
+          subject = ${setFields.subject || sql`subject`},
+          description = ${setFields.description || sql`description`},
+          status = ${setFields.status || sql`status`},
+          priority = ${setFields.priority || sql`priority`},
+          urgency = ${setFields.urgency || sql`urgency`},
+          impact = ${setFields.impact || sql`impact`},
+          category = ${setFields.category || sql`category`},
+          subcategory = ${setFields.subcategory || sql`subcategory`},
+          updated_at = ${setFields.updatedAt}
         WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
         RETURNING *
       `);
