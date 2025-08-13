@@ -532,6 +532,8 @@ export class DatabaseStorage implements IStorage {
         followersType: typeof ticketData.followers,
         customerIdRaw: ticketData.customer_id,
         assignedToIdRaw: ticketData.responsible_id || ticketData.assigned_to_id,
+        companyIdRaw: ticketData.company_id,
+        companyIdType: typeof ticketData.company_id,
         allKeys: Object.keys(ticketData)
       });
 

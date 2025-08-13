@@ -86,8 +86,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const insertQuery = `
         INSERT INTO "${schemaName}".ticket_relationships 
-        (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         RETURNING *
       `;
 
