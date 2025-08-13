@@ -229,110 +229,31 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   async update(id: string, data: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
     try {
-      console.log('🔧 [DrizzleTicketRepositoryClean] Starting update with simplified approach');
+      console.log('🔧 [DrizzleTicketRepositoryClean] DEFINITIVE UPDATE FIX');
       
-      // Step 1: Get current ticket to verify it exists
-      const current = await this.findById(id, tenantId);
-      if (!current) {
-        throw new Error('Ticket not found');
+      // Usar Drizzle ORM nativo - mais simples e confiável
+      const [updatedTicket] = await db
+        .update(tickets)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        } as any)
+        .where(and(
+          eq(tickets.id, id),
+          eq(tickets.tenantId, tenantId),
+          eq(tickets.isActive, true)
+        ))
+        .returning();
+
+      if (!updatedTicket) {
+        throw new Error('Ticket not found or update failed');
       }
 
-      // Step 2: Build update query with individual field updates
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      const updates: string[] = [];
-      const values: any[] = [];
-      let paramIndex = 1;
-
-      // Only update fields that are provided and not empty
-      if (data.subject) {
-        updates.push(`subject = $${paramIndex++}`);
-        values.push(data.subject);
-      }
-      if (data.description) {
-        updates.push(`description = $${paramIndex++}`);
-        values.push(data.description);
-      }
-      if (data.status) {
-        updates.push(`status = $${paramIndex++}`);
-        values.push(data.status);
-      }
-      if (data.priority) {
-        updates.push(`priority = $${paramIndex++}`);
-        values.push(data.priority);
-      }
-      if (data.urgency) {
-        updates.push(`urgency = $${paramIndex++}`);
-        values.push(data.urgency);
-      }
-      if (data.impact) {
-        updates.push(`impact = $${paramIndex++}`);
-        values.push(data.impact);
-      }
-      if (data.category) {
-        updates.push(`category = $${paramIndex++}`);
-        values.push(data.category);
-      }
-      if (data.subcategory) {
-        updates.push(`subcategory = $${paramIndex++}`);
-        values.push(data.subcategory);
-      }
-      if (data.assignedToId) {
-        updates.push(`assigned_to_id = $${paramIndex++}`);
-        values.push(data.assignedToId);
-      }
-      if (data.linkTicketNumber) {
-        updates.push(`link_ticket_number = $${paramIndex++}`);
-        values.push(data.linkTicketNumber);
-      }
-      if (data.linkType) {
-        updates.push(`link_type = $${paramIndex++}`);
-        values.push(data.linkType);
-      }
-      if (data.linkComment) {
-        updates.push(`link_comment = $${paramIndex++}`);
-        values.push(data.linkComment);
-      }
-
-      // Always update timestamp
-      updates.push(`updated_at = NOW()`);
-      
-      // Add WHERE parameters
-      values.push(id, tenantId);
-      const whereId = paramIndex++;
-      const whereTenant = paramIndex++;
-
-      if (updates.length === 1) {
-        // Only timestamp update, return current ticket
-        console.log('⚠️ Only timestamp update needed');
-        return current;
-      }
-
-      const query = `
-        UPDATE ${schemaName}.tickets 
-        SET ${updates.join(', ')}
-        WHERE id = $${whereId} AND tenant_id = $${whereTenant} AND is_active = true
-        RETURNING *
-      `;
-
-      console.log('📝 Executing update:', {
-        updatesCount: updates.length - 1, // exclude timestamp
-        valuesCount: values.length,
-        query: query.substring(0, 100) + '...'
-      });
-
-      const result = await db.execute(sql.raw(query, values));
-      
-      if (result.rows.length === 0) {
-        throw new Error('Update failed - no rows affected');
-      }
-
-      const updatedTicket = result.rows[0] as any;
-      console.log('✅ Update successful:', updatedTicket.id);
-
-      return this.transformToTicket(updatedTicket);
+      console.log('✅ [DrizzleTicketRepositoryClean] Update successful via Drizzle ORM');
+      return updatedTicket as Ticket;
 
     } catch (error: any) {
-      console.error('❌ Update error:', error.message);
+      console.error('❌ [DrizzleTicketRepositoryClean] Update error:', error.message);
       throw new Error(`Failed to update ticket: ${error.message}`);
     }
   }
