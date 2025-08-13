@@ -134,7 +134,14 @@ export const getQueryFn: <T>(options: {
     
     // Check if token exists
     if (!token) {
-      console.log('No token found for query');
+      console.log('🚫 [QUERY-CLIENT] No token found for query, returning null');
+      // Para queries críticas como tickets, retornar null para não causar erro
+      if (unauthorizedBehavior === "returnNull") {
+        return null;
+      }
+      // Para outros casos, redirecionar para login
+      console.log('🔄 [QUERY-CLIENT] Redirecting to login due to missing token');
+      window.location.href = '/auth';
       return null;
     }
     
@@ -170,7 +177,7 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,

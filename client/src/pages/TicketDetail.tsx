@@ -89,11 +89,24 @@ export default function TicketDetail() {
   const { getFieldLabel } = useFieldColors();
 
   // Fetch ticket details
-  const { data: ticket, isLoading: isTicketLoading } = useQuery<Ticket>({
+  const { data: ticket, isLoading: isTicketLoading, error: ticketError } = useQuery<Ticket>({
     queryKey: [`/api/tickets/${id}`],
     enabled: !!id,
+    retry: (failureCount, error: any) => {
+      // Se for erro 401 (não autorizado), não tenta novamente
+      if (error?.message?.includes('401')) {
+        console.log('🚫 [TICKET-QUERY] Authentication error, redirecting to login');
+        window.location.href = '/auth';
+        return false;
+      }
+      return failureCount < 3;
+    },
     select: (data: any) => {
       console.log('🎫 [TICKET-QUERY] Raw response:', data);
+      if (!data) {
+        console.log('❌ [TICKET-QUERY] No data received from API');
+        return null;
+      }
       return data?.data || data;
     },
   });
@@ -209,6 +222,23 @@ export default function TicketDetail() {
         </div>
       </div>
     );
+  }
+
+  if (ticketError) {
+    console.log('❌ [TICKET-DETAIL] Error loading ticket:', ticketError);
+    if (ticketError.message?.includes('401')) {
+      return (
+        <div className="container mx-auto p-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Sessão expirada</h1>
+            <p className="text-gray-600 mb-4">Faça login novamente para continuar</p>
+            <Button onClick={() => window.location.href = '/auth'}>
+              Ir para Login
+            </Button>
+          </div>
+        </div>
+      );
+    }
   }
 
   if (!ticket) {
