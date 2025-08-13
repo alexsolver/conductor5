@@ -1030,72 +1030,90 @@ const TicketDetails = React.memo(() => {
   // Não há mais necessidade de mapeamento hard-coded
 
   const onSubmit = useCallback((data: TicketFormData) => {
+    console.log("💾 [TicketDetails] onSubmit called with data:", data);
+    console.log("🔍 [TicketDetails] Current form state:", {
+      isEditMode,
+      formIsDirty: form.formState.isDirty,
+      hasChanges: Object.keys(form.formState.dirtyFields).length > 0,
+      dirtyFields: form.formState.dirtyFields
+    });
 
+    // CORREÇÃO CRÍTICA: Aplicar mapeamento completo Frontend→Backend seguindo 1qa.md
     const mappedData = {
-      // Core fields - status dinâmico sem mapeamento
+      // ✅ Core fields - mapeamento direto
       subject: data.subject,
       description: data.description,
       priority: data.priority,
-      status: data.status, // ✅ Valor dinâmico direto do form
-      category: data.category,
-      subcategory: data.subcategory,
-      action: data.action,
+      status: data.status,
+      category: data.category || '',
+      subcategory: data.subcategory || '',
+      action: data.action || '',
       impact: data.impact,
       urgency: data.urgency,
 
-      // Assignment mapping camelCase → snake_case
-      caller_id: data.callerId,
+      // ✅ Assignment fields - mapeamento camelCase → snake_case
+      caller_id: data.callerId || null,
       caller_type: data.callerType || 'customer',
-      callerType: data.callerType || 'customer', // Add explicit field for type validation
-      beneficiary_id: data.beneficiaryId,
+      beneficiary_id: data.beneficiaryId || null,
       beneficiary_type: data.beneficiaryType || 'customer',
-      beneficiaryType: data.beneficiaryType || 'customer', // Add explicit field for type validation
-      assigned_to_id: data.responsibleId,
-      assignment_group: data.assignmentGroup,
+      assigned_to_id: data.responsibleId || null,
+      assignment_group: data.assignmentGroup || null,
 
-      // CORREÇÃO PROBLEMA 3: Location field consistency - usar apenas location (campo texto)
-      // 🚨 CORREÇÃO: location é campo texto, não locationId (FK inexistente)
-      location: data.location || '',  // Campo texto livre conforme schema do banco
+      // ✅ Location field - campo texto livre
+      location: data.location || '',
       contact_type: data.contactType || 'email',
-      contactType: data.contactType || 'email', // Add explicit field for type validation
 
-      // Business fields
-      business_impact: data.businessImpact,
-      symptoms: data.symptoms,
-      workaround: data.workaround,
-      resolution: data.resolution,
+      // ✅ Business impact fields
+      business_impact: data.businessImpact || '',
+      symptoms: data.symptoms || '',
+      workaround: data.workaround || '',
+      resolution: data.resolution || '',
 
-      // Time tracking
-      estimated_hours: data.estimatedHours,
-      actualHours: data.actualHours,
+      // ✅ Time tracking
+      estimated_hours: data.estimatedHours || 0,
+      actual_hours: data.actualHours || 0,
 
-      // Collections - CORREÇÃO: Usar state ao invés de form data
-      followers: followers.length > 0 ? followers : (data.followers || []),
-      tags: tags.length > 0 ? tags : (data.tags || []),
+      // ✅ Environment and metadata
+      environment: data.environment || '',
+      template_alternative: data.templateAlternative || '',
 
-      // CORRIGIDO: Company relationship - usar selectedCompany se customerCompanyId vazio
-      company_id: data.customerCompanyId || selectedCompany || null,
+      // ✅ Linking fields
+      link_ticket_number: data.linkTicketNumber || '',
+      link_type: data.linkType || '',
+      link_comment: data.linkComment || '',
 
-      // Environment
-      environment: data.environment,
+      // ✅ Company relationship - usar estado atualizado
+      company_id: selectedCompany || data.customerCompanyId || null,
 
-      // Linking
-      link_ticket_number: data.linkTicketNumber,
-      link_type: data.linkType,
-      link_comment: data.linkComment,
+      // ✅ Collections - usar estados atualizados
+      followers: followers && followers.length > 0 ? followers : [],
+      tags: tags && tags.length > 0 ? tags : [],
+
+      // ✅ Audit fields
+      updated_by_id: form.getValues('updatedById'),
+      updated_at: new Date().toISOString()
     };
 
-    console.log("💾 Sending mapped data to API:", mappedData);
-    console.log("🔍 DEBUG - State values before sending:", {
+    // Remove campos undefined para evitar problemas no backend
+    Object.keys(mappedData).forEach(key => {
+      if (mappedData[key] === undefined) {
+        delete mappedData[key];
+      }
+    });
+
+    console.log("💾 [TicketDetails] Sending mapped data to API:", mappedData);
+    console.log("🔍 [TicketDetails] DEBUG - State values before sending:", {
       followersState: followers,
       selectedCompanyState: selectedCompany,
       dataFollowers: data.followers,
       dataCompanyId: data.customerCompanyId,
       finalFollowers: mappedData.followers,
-      finalCustomerId: mappedData.company_id
+      finalCompanyId: mappedData.company_id,
+      totalFields: Object.keys(mappedData).length
     });
+
     updateTicketMutation.mutate(mappedData);
-  }, [followers, selectedCompany, updateTicketMutation]);
+  }, [followers, selectedCompany, tags, form, updateTicketMutation]);
 
   const handleDelete = () => {
     if (confirm("Tem certeza que deseja excluir este ticket?")) {

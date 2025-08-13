@@ -227,348 +227,165 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
     }
   }
 
-  async update(id: string, data: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
-    try {
-      console.log('🔧 [DrizzleTicketRepositoryClean] FINAL SCHEMA-COMPLIANT UPDATE');
-      
-      // CRITICAL: Check current schema vs database mismatches
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      // Build individual field updates to avoid schema conflicts
-      const updateFields: Record<string, any> = {};
-      
-      // Map only valid fields that exist in both frontend DTO and database
-      // CRITICAL: Use database field names directly to match schema-master.ts
-      if (data.subject !== undefined) updateFields.subject = data.subject;
-      if (data.description !== undefined) updateFields.description = data.description;
-      if (data.status !== undefined) updateFields.status = data.status;
-      if (data.priority !== undefined) updateFields.priority = data.priority;
-      if (data.urgency !== undefined) updateFields.urgency = data.urgency;
-      if (data.impact !== undefined) updateFields.impact = data.impact;
-      if (data.category !== undefined) updateFields.category = data.category;
-      if (data.subcategory !== undefined) updateFields.subcategory = data.subcategory;
-      if (data.assignedToId !== undefined) updateFields.assigned_to_id = data.assignedToId;
-      if (data.linkTicketNumber !== undefined) updateFields.link_ticket_number = data.linkTicketNumber;
-      if (data.linkType !== undefined) updateFields.link_type = data.linkType;
-      if (data.linkComment !== undefined) updateFields.link_comment = data.linkComment;
-      
-      // Always update timestamp
-      updateFields.updatedAt = new Date();
-
-      if (Object.keys(updateFields).length === 1) {
-        // Only timestamp update
-        const existingTicket = await this.findById(id, tenantId);
-        return existingTicket!;
-      }
-
-      // CRITICAL FIX: Build parameter array FIRST to ensure correct count
-      const allValues = [...Object.values(updateFields), id, tenantId];
-      
-      // Use consistent parameter indices based on VALUES array length
-      const setClause = Object.keys(updateFields)
-        .map((key, index) => {
-          const dbField = key === 'updatedAt' ? 'updated_at' : key;
-          return `${dbField} = $${index + 1}`;
-        })
-        .join(', ');
-
-      const whereIdParam = Object.keys(updateFields).length + 1;
-      const whereTenantParam = Object.keys(updateFields).length + 2;
-
-      console.log('🔧 [CRITICAL-DEBUG] SQL Parameters:', {
-        setFieldsCount: Object.keys(updateFields).length,
-        whereIdParam,
-        whereTenantParam,
-        totalValues: allValues.length,
-        allValuesArray: allValues
-      });
-
-      const query = `
-        UPDATE ${schemaName}.tickets 
-        SET ${setClause}
-        WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam} AND is_active = true
-        RETURNING *
-      `;
-
-      // CRITICAL FIX: Use native Drizzle UPDATE with proper field mapping
-      const setFields: Record<string, any> = {};
-      
-      // Map only the essential fields that changed
-      if (data.subject !== undefined) setFields.subject = data.subject;
-      if (data.description !== undefined) setFields.description = data.description;
-      if (data.status !== undefined) setFields.status = data.status;
-      if (data.priority !== undefined) setFields.priority = data.priority;
-      if (data.urgency !== undefined) setFields.urgency = data.urgency;
-      if (data.impact !== undefined) setFields.impact = data.impact;
-      if (data.category !== undefined) setFields.category = data.category;
-      if (data.subcategory !== undefined) setFields.subcategory = data.subcategory;
-      if (data.assignedToId !== undefined) setFields.assignedToId = data.assignedToId;
-      
-      // Always update timestamp with proper formatting
-      setFields.updatedAt = new Date().toISOString();
-
-      console.log('🔧 [DIRECT-UPDATE] Fields to update:', setFields);
-
-      // CRITICAL: Build complete parameters array first 
-      const params = [
-        setFields.subject,
-        setFields.description,
-        setFields.status,
-        setFields.priority,
-        setFields.urgency,
-        setFields.impact,
-        setFields.category,
-        setFields.subcategory,
-        setFields.updatedAt
-      ];
-
-      console.log('🔧 [PARAMS-DEBUG] Array length:', params.length, 'Values:', params);
-
-      // FINAL SOLUTION: Use Drizzle template literals properly
-      const result = await db.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.${sql.identifier('tickets')} 
-        SET 
-          subject = ${setFields.subject},
-          description = ${setFields.description},
-          status = ${setFields.status},
-          priority = ${setFields.priority},
-          urgency = ${setFields.urgency},
-          impact = ${setFields.impact},
-          category = ${setFields.category},
-          subcategory = ${setFields.subcategory},
-          updated_at = ${setFields.updatedAt}
-        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
-        RETURNING *
-      `);
-
-      console.log('✅ [RAW-SQL] Update successful with raw SQL approach');
-      
-      if (result.rows.length === 0) {
-        throw new Error('Ticket not found or no changes made');
-      }
-
-      const updatedRow = result.rows[0] as any;
-      console.log('✅ [FINAL] Update successful');
-
-      // Transform database row back to Ticket format
-      return {
-        ...updatedRow,
-        callerId: updatedRow.caller_id,
-        assignedToId: updatedRow.assigned_to_id,
-        companyId: updatedRow.company_id,
-        linkTicketNumber: updatedRow.link_ticket_number,
-        linkType: updatedRow.link_type,
-        linkComment: updatedRow.link_comment,
-        tenantId: updatedRow.tenant_id,
-        createdAt: updatedRow.created_at,
-        updatedAt: updatedRow.updated_at,
-        isActive: updatedRow.is_active,
-        followers: [],
-        tags: []
-      } as Ticket;
-
-    } catch (error: any) {
-      console.error('❌ [FINAL] Update error:', error.message);
-      throw new Error(`Failed to update ticket: ${error.message}`);
-    }
-  }
-
-  private transformToTicket(dbRow: any): Ticket {
-    return {
-      ...dbRow,
-      callerId: dbRow.caller_id,
-      callerType: dbRow.caller_type,
-      beneficiaryId: dbRow.beneficiary_id,
-      beneficiaryType: dbRow.beneficiary_type,
-      assignedToId: dbRow.assigned_to_id,
-      assignmentGroupId: dbRow.assignment_group,
-      companyId: dbRow.company_id,
-      contactType: dbRow.contact_type,
-      businessImpact: dbRow.business_impact,
-      linkTicketNumber: dbRow.link_ticket_number,
-      linkType: dbRow.link_type,
-      linkComment: dbRow.link_comment,
-      tenantId: dbRow.tenant_id,
-      createdAt: dbRow.created_at,
-      updatedAt: dbRow.updated_at,
-      createdBy: dbRow.opened_by_id,
-      updatedBy: dbRow.updated_by,
-      isActive: dbRow.is_active,
-      followers: [],
-      tags: []
-    };
-  }
-
-  async updateComplex(id: string, data: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
-    console.log('💾 [DrizzleTicketRepositoryClean] update called:', { 
-      id, 
+  async update(ticketId: string, updateData: any, tenantId: string): Promise<Ticket | null> {
+    console.log('🔧 [DrizzleTicketRepositoryClean] Update called with:', {
+      ticketId,
       tenantId,
-      dataKeys: Object.keys(data)
+      updateDataKeys: Object.keys(updateData || {}),
+      updateDataSample: updateData
     });
 
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Map frontend fields to database columns - remove duplicates
-      const fieldMapping: Record<string, string> = {
-        'subject': 'subject',
-        'description': 'description', 
-        'priority': 'priority',
-        'status': 'status',
-        'urgency': 'urgency',
-        'impact': 'impact',
-        'category': 'category',
-        'subcategory': 'subcategory',
-        'action': 'action',
-        'caller_id': 'caller_id',
-        'caller_type': 'caller_type',
-        'callerType': 'caller_type',
-        'beneficiary_id': 'beneficiary_id', 
-        'beneficiary_type': 'beneficiary_type',
-        'beneficiaryType': 'beneficiary_type',
-        'assigned_to_id': 'assigned_to_id',
-        'assignment_group': 'assignment_group',
-        'assignmentGroup': 'assignment_group',
-        'company_id': 'company_id',
-        'location': 'location',
-        'contact_type': 'contact_type',
-        'contactType': 'contact_type',
-        'business_impact': 'business_impact',
-        'businessImpact': 'business_impact',
-        'symptoms': 'symptoms',
-        'workaround': 'workaround', 
-        'environment': 'environment',
-        'link_ticket_number': 'link_ticket_number',
-        'linkTicketNumber': 'link_ticket_number',
-        'link_type': 'link_type',
-        'linkType': 'link_type',
-        'link_comment': 'link_comment',
-        'linkComment': 'link_comment',
-        'updatedById': 'updated_by'
-      };
+      console.log('🔧 [DrizzleTicketRepositoryClean] FINAL SCHEMA-COMPLIANT UPDATE');
 
-      const setFields: string[] = [];
-      const values: any[] = [];
-      const processedColumns = new Set<string>(); // Track processed columns to avoid duplicates
+      // ✅ CORREÇÃO CRÍTICA: Sanitizar e validar dados antes da atualização
+      const sanitizedData = {};
+
+      // Map of allowed fields (only fields that exist in the database schema)
+      const allowedFields = [
+        'subject', 'description', 'status', 'priority', 'urgency', 'impact',
+        'category', 'subcategory', 'action', 'caller_id', 'caller_type', 
+        'beneficiary_id', 'beneficiary_type', 'assigned_to_id', 'assignment_group',
+        'company_id', 'location', 'contact_type', 'business_impact', 'symptoms',
+        'workaround', 'resolution', 'environment', 'template_alternative',
+        'link_ticket_number', 'link_type', 'link_comment', 'estimated_hours',
+        'actual_hours', 'followers', 'tags', 'updated_at', 'updated_by_id'
+      ];
+
+      // Sanitize input data - only keep allowed fields with non-undefined values
+      Object.entries(updateData).forEach(([key, value]) => {
+        if (allowedFields.includes(key) && value !== undefined) {
+          // Handle special data types
+          if (key === 'followers' || key === 'tags') {
+            sanitizedData[key] = Array.isArray(value) ? value : [];
+          } else if (key === 'estimated_hours' || key === 'actual_hours') {
+            sanitizedData[key] = Number(value) || 0;
+          } else if (key === 'updated_at') {
+            sanitizedData[key] = value instanceof Date ? value.toISOString() : value;
+          } else if (typeof value === 'string') {
+            sanitizedData[key] = value.trim();
+          } else {
+            sanitizedData[key] = value;
+          }
+        }
+      });
+
+      console.log('🔧 [SANITIZED-DATA] Fields to update:', {
+        original: Object.keys(updateData).length,
+        sanitized: Object.keys(sanitizedData).length,
+        sanitizedFields: Object.keys(sanitizedData),
+        sanitizedData: sanitizedData
+      });
+
+      if (Object.keys(sanitizedData).length === 0) {
+        console.log('⚠️ [DrizzleTicketRepositoryClean] No valid fields to update after sanitization');
+        return this.findById(ticketId, tenantId);
+      }
+
+      // Build SQL with parameterized query
+      const setFields = [];
+      const values = [];
       let paramIndex = 1;
 
-      // Process each field in the update data
-      for (const [key, value] of Object.entries(data)) {
-        if (key === 'tenantId' || key === 'updatedAt' || key === 'createdAt' || key === 'isActive' || key === 'id') continue; // Skip meta fields
+      Object.entries(sanitizedData).forEach(([key, value]) => {
+        setFields.push(`"${key}" = $${paramIndex}`);
+        values.push(value);
+        paramIndex++;
+      });
 
-        const dbColumn = fieldMapping[key] || key;
-
-        // Skip if we've already processed this database column
-        if (processedColumns.has(dbColumn)) {
-          continue;
-        }
-
-        if (value !== undefined && value !== null) {
-          processedColumns.add(dbColumn); // Mark this column as processed
-          
-          if (Array.isArray(value) || typeof value === 'object') {
-            setFields.push(`${dbColumn} = $${paramIndex}`);
-            values.push(JSON.stringify(value));
-          } else {
-            setFields.push(`${dbColumn} = $${paramIndex}`);
-            values.push(value);
-          }
-          paramIndex++;
-        }
-      }
-
-      // Add updated_at field (using NOW() function, not a parameter)
-      setFields.push(`updated_at = NOW()`);
-
-      if (setFields.length === 1) { // Only updated_at field
-        console.log('⚠️ [DrizzleTicketRepositoryClean] No actual fields to update beyond timestamp');
-        // Return the existing ticket if no actual fields are updated
-        const existingTicket = await this.findById(id, tenantId);
-        if (!existingTicket) {
-            throw new Error('Ticket not found');
-        }
-        return existingTicket;
-      }
-
-      // Add WHERE clause parameters - paramIndex continues from setFields
-      values.push(id);
+      // Add WHERE clause parameters
       const whereIdParam = paramIndex++;
-
-      values.push(tenantId);
       const whereTenantParam = paramIndex++;
+      values.push(ticketId, tenantId);
 
-      const updateQuery = `
-        UPDATE ${schemaName}.tickets 
+      const sql = `
+        UPDATE "${schemaName}".tickets 
         SET ${setFields.join(', ')}
-        WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam} AND is_active = true
+        WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam}
         RETURNING *
       `;
 
-      console.log('🔍 [DrizzleTicketRepositoryClean] Update query:', updateQuery);
-      console.log('🔍 [DrizzleTicketRepositoryClean] Values count:', values.length);
-      console.log('[UPDATE-DEBUG] Final query:', updateQuery);
-      console.log('[UPDATE-DEBUG] Values:', values);
-      console.log('[UPDATE-DEBUG] Values length:', values.length);
-      console.log('[UPDATE-DEBUG] Set fields count:', setFields.length);
-
-      // Validate parameter count using SQL parameter validator
-      const parameterMatches = updateQuery.match(/\$\d+/g) || [];
-      const maxParameterIndex = parameterMatches.length > 0 
-        ? Math.max(...parameterMatches.map(p => parseInt(p.substring(1)))) 
-        : 0;
-      
-      if (maxParameterIndex > values.length) {
-        throw new Error(`SQL parameter index error: highest parameter is $${maxParameterIndex} but only ${values.length} values provided`);
-      }
-
-      if (parameterMatches.length !== values.length) {
-        throw new Error(`SQL parameter count mismatch: query expects ${parameterMatches.length} parameters, got ${values.length}`);
-      }
-
-      // Validate SQL parameters before execution
-      SqlParameterValidator.validateParameters(updateQuery, values);
-      
-      const result = await db.execute(sql.raw(updateQuery, values));
-
-      if (result.rows.length === 0) {
-        throw new Error('Ticket not found or update failed');
-      }
-
-      const updatedTicket = result.rows[0] as any;
-      console.log('✅ [DrizzleTicketRepositoryClean] Update successful:', {
-        ticketId: updatedTicket.id,
-        updatedAt: updatedTicket.updated_at
+      console.log('🔧 [SQL-EXECUTION] Executing update:', {
+        sql: sql.replace(/\$\d+/g, '?'),
+        fieldsCount: setFields.length,
+        valuesCount: values.length,
+        parameterMapping: setFields.map((field, idx) => `${field} = ${values[idx]}`)
       });
 
-      // Transform back to frontend format if necessary (based on original Ticket structure)
-      return {
-        ...updatedTicket,
-        callerId: updatedTicket.caller_id,
-        callerType: updatedTicket.caller_type,
-        beneficiaryId: updatedTicket.beneficiary_id,
-        beneficiaryType: updatedTicket.beneficiary_type,
-        assignedToId: updatedTicket.assigned_to_id,
-        assignmentGroupId: updatedTicket.assignment_group,
-        companyId: updatedTicket.company_id,
-        contactType: updatedTicket.contact_type,
-        businessImpact: updatedTicket.business_impact,
-        linkTicketNumber: updatedTicket.link_ticket_number,
-        linkType: updatedTicket.link_type,
-        linkComment: updatedTicket.link_comment,
-        tenantId: updatedTicket.tenant_id,
-        createdAt: updatedTicket.created_at,
-        updatedAt: updatedTicket.updated_at,
-        createdBy: updatedTicket.created_by,
-        updatedBy: updatedTicket.updated_by,
-        isActive: updatedTicket.is_active,
-        followers: [], // Default empty array for missing field
-        tags: [] // Default empty array for missing field
-      };
+      // Execute the update
+      const { rows } = await this.pool.query(sql, values);
+
+      if (!rows || rows.length === 0) {
+        throw new Error(`No ticket found with ID ${ticketId} in tenant ${tenantId}`);
+      }
+
+      console.log('✅ [UPDATE-SUCCESS] Ticket updated successfully:', {
+        ticketId,
+        fieldsUpdated: Object.keys(sanitizedData).length,
+        rowsAffected: rows.length
+      });
+
+      // Transform result back to domain entity
+      const updatedRow = rows[0];
+      const ticket = this.toDomainEntity(updatedRow);
+
+      return ticket;
 
     } catch (error: any) {
-      console.error('❌ [DrizzleTicketRepositoryClean] Error in update:', error);
+      console.error('❌ [DrizzleTicketRepositoryClean] Error in update:', {
+        error: error.message,
+        ticketId,
+        tenantId,
+        stack: error.stack
+      });
       throw new Error(`Failed to update ticket: ${error.message}`);
     }
+  }
+
+  private toDomainEntity(row: any): Ticket {
+    return {
+      id: row.id,
+      number: row.number,
+      subject: row.subject,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      urgency: row.urgency,
+      impact: row.impact,
+      category: row.category,
+      subcategory: row.subcategory,
+      action: row.action,
+      callerId: row.caller_id,
+      callerType: row.caller_type,
+      beneficiaryId: row.beneficiary_id,
+      beneficiaryType: row.beneficiary_type,
+      assignedToId: row.assigned_to_id,
+      assignmentGroupId: row.assignment_group,
+      companyId: row.company_id,
+      location: row.location,
+      contactType: row.contact_type,
+      businessImpact: row.business_impact,
+      symptoms: row.symptoms,
+      workaround: row.workaround,
+      resolution: row.resolution,
+      environment: row.environment,
+      templateAlternative: row.template_alternative,
+      linkTicketNumber: row.link_ticket_number,
+      linkType: row.link_type,
+      linkComment: row.link_comment,
+      estimatedHours: row.estimated_hours,
+      actualHours: row.actual_hours,
+      tenantId: row.tenant_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      createdBy: row.opened_by_id,
+      updatedBy: row.updated_by_id,
+      isActive: row.is_active,
+      followers: row.followers || [],
+      tags: row.tags || []
+    };
   }
 
   async delete(id: string, tenantId: string, userId: string): Promise<void> {

@@ -383,27 +383,91 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
     // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
 
-    // Standardize field naming consistency
+    console.log('🔍 [TICKETS-ROUTE] Raw frontend updates:', frontendUpdates);
+    console.log('🔍 [TICKETS-ROUTE] After initial mapping:', backendUpdates);
+
+    // ✅ MAPEAMENTO ESPECÍFICO - Garantir consistência de campos
+    
+    // Company relationship
     if (frontendUpdates.customerCompanyId !== undefined) {
       backendUpdates.company_id = frontendUpdates.customerCompanyId;
       delete backendUpdates.customerCompanyId;
     }
+    if (frontendUpdates.company_id !== undefined) {
+      backendUpdates.company_id = frontendUpdates.company_id;
+    }
 
+    // Assignment fields
     if (frontendUpdates.assignedToId !== undefined) {
       backendUpdates.assigned_to_id = frontendUpdates.assignedToId;
       delete backendUpdates.assignedToId;
     }
+    if (frontendUpdates.responsibleId !== undefined) {
+      backendUpdates.assigned_to_id = frontendUpdates.responsibleId;
+      delete backendUpdates.responsibleId;
+    }
 
-    // DEBUG: Log after mapping
-    console.log('🔍 DEBUGGING TICKET UPDATE - After mapping:', {
-      backendFollowers: backendUpdates.followers,
-      backendCustomerId: backendUpdates.customer_id,
-      backendAssignedToId: backendUpdates.assigned_to_id,
-      allBackendKeys: Object.keys(backendUpdates)
-    });
+    // Customer fields
+    if (frontendUpdates.callerId !== undefined) {
+      backendUpdates.caller_id = frontendUpdates.callerId;
+      delete backendUpdates.callerId;
+    }
+    if (frontendUpdates.beneficiaryId !== undefined) {
+      backendUpdates.beneficiary_id = frontendUpdates.beneficiaryId;
+      delete backendUpdates.beneficiaryId;
+    }
+
+    // Contact and type fields
+    if (frontendUpdates.callerType !== undefined) {
+      backendUpdates.caller_type = frontendUpdates.callerType;
+      delete backendUpdates.callerType;
+    }
+    if (frontendUpdates.beneficiaryType !== undefined) {
+      backendUpdates.beneficiary_type = frontendUpdates.beneficiaryType;
+      delete backendUpdates.beneficiaryType;
+    }
+    if (frontendUpdates.contactType !== undefined) {
+      backendUpdates.contact_type = frontendUpdates.contactType;
+      delete backendUpdates.contactType;
+    }
+
+    // Business fields
+    if (frontendUpdates.businessImpact !== undefined) {
+      backendUpdates.business_impact = frontendUpdates.businessImpact;
+      delete backendUpdates.businessImpact;
+    }
+
+    // Time tracking
+    if (frontendUpdates.estimatedHours !== undefined) {
+      backendUpdates.estimated_hours = frontendUpdates.estimatedHours;
+      delete backendUpdates.estimatedHours;
+    }
+    if (frontendUpdates.actualHours !== undefined) {
+      backendUpdates.actual_hours = frontendUpdates.actualHours;
+      delete backendUpdates.actualHours;
+    }
+
+    // Template fields
+    if (frontendUpdates.templateAlternative !== undefined) {
+      backendUpdates.template_alternative = frontendUpdates.templateAlternative;
+      delete backendUpdates.templateAlternative;
+    }
+
+    // Linking fields
+    if (frontendUpdates.linkTicketNumber !== undefined) {
+      backendUpdates.link_ticket_number = frontendUpdates.linkTicketNumber;
+      delete backendUpdates.linkTicketNumber;
+    }
+    if (frontendUpdates.linkType !== undefined) {
+      backendUpdates.link_type = frontendUpdates.linkType;
+      delete backendUpdates.linkType;
+    }
+    if (frontendUpdates.linkComment !== undefined) {
+      backendUpdates.link_comment = frontendUpdates.linkComment;
+      delete backendUpdates.linkComment;
+    }
 
     // CORREÇÃO CRÍTICA 3: Campo location é texto livre, não FK
-    // Manter consistência com schema do banco
     if (frontendUpdates.locationId) {
       backendUpdates.location = frontendUpdates.locationId;
       delete backendUpdates.location_id; // FK não existe no schema
@@ -411,6 +475,24 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
 
     // Garantir que location_id nunca seja enviado ao banco
     delete backendUpdates.location_id;
+
+    // Audit fields
+    if (frontendUpdates.updated_by_id) {
+      backendUpdates.updated_by_id = frontendUpdates.updated_by_id;
+    }
+    if (frontendUpdates.updated_at) {
+      backendUpdates.updated_at = frontendUpdates.updated_at;
+    }
+
+    console.log('🔍 [TICKETS-ROUTE] Final backend updates after complete mapping:', {
+      backendFollowers: backendUpdates.followers,
+      backendCompanyId: backendUpdates.company_id,
+      backendAssignedToId: backendUpdates.assigned_to_id,
+      backendCallerId: backendUpdates.caller_id,
+      backendBeneficiaryId: backendUpdates.beneficiary_id,
+      allBackendKeys: Object.keys(backendUpdates),
+      totalFields: Object.keys(backendUpdates).length
+    });
 
     // Remove undefined values
     Object.keys(backendUpdates).forEach(key => {
