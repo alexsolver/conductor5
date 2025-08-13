@@ -261,24 +261,35 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         return existingTicket!;
       }
 
-      // FINAL FIX: Use Drizzle ORM eq() function instead of raw SQL to avoid parameter issues
-      const result = await db
-        .update(tickets)
-        .set(updateFields)
-        .where(and(
-          eq(tickets.id, id),
-          eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
-        ))
-        .returning();
-
-      console.log('✅ [DRIZZLE-ORM] Update successful with Drizzle ORM approach');
+      // CRITICAL FIX: Use raw SQL since schema field names don't match database
       
-      if (result.length === 0) {
+      const setClause = Object.keys(updateFields)
+        .map((key, index) => {
+          const dbField = key === 'updatedAt' ? 'updated_at' : key;
+          return `${dbField} = $${index + 1}`;
+        })
+        .join(', ');
+
+      const allValues = [...Object.values(updateFields), id, tenantId];
+      const whereIdParam = Object.keys(updateFields).length + 1;
+      const whereTenantParam = Object.keys(updateFields).length + 2;
+
+      const query = `
+        UPDATE ${schemaName}.tickets 
+        SET ${setClause}
+        WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam} AND is_active = true
+        RETURNING *
+      `;
+
+      const result = await db.execute(sql.raw(query, allValues));
+
+      console.log('✅ [RAW-SQL] Update successful with raw SQL approach');
+      
+      if (result.rows.length === 0) {
         throw new Error('Ticket not found or no changes made');
       }
 
-      const updatedRow = result[0] as any;
+      const updatedRow = result.rows[0] as any;
       console.log('✅ [FINAL] Update successful');
 
       // Transform database row back to Ticket format
