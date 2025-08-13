@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // CRITICAL FIX: Bypass API routes with different prefix
+  // CRITICAL FIX: Bypass tickets/id/relationships endpoint
   app.post('/bypass/tickets/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
@@ -576,59 +576,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
+        return res.status(400).json({
+          success: false,
+          message: 'Tenant ID is required',
+          code: 'TENANT_REQUIRED'
+        });
       }
 
       console.log(`Fetching customers for company ${companyId} in tenant ${tenantId}`);
 
-      const { pool } = await import('./db');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      // Simplified query to get customers associated with the company
-      const result = await pool.query(
-        `SELECT DISTINCT 
+      // ✅ Fix: Use tickets table to find customers associated with a company
+      const query = sql`
+        SELECT DISTINCT 
           c.id,
+          c.tenant_id,
           c.first_name,
           c.last_name,
           c.email,
           c.phone,
+          c.is_active,
           c.created_at,
-          c.updated_at,
-          cr.relationship_type as role
-        FROM "${schemaName}"."customers" c
-        INNER JOIN "${schemaName}"."companies_relationships" cr
-          ON c.id = cr.customer_id
-        WHERE cr.company_id = $1 
-          AND cr.is_active = true
-        ORDER BY c.first_name, c.last_name`,
-        [companyId]
-      );
+          c.updated_at
+        FROM ${sql.identifier(schemaName)}.customers c
+        INNER JOIN ${sql.identifier(schemaName)}.tickets t ON c.id = t.caller_id
+        WHERE t.company_id = ${companyId}
+          AND c.tenant_id = ${tenantId}
+          AND c.is_active = true
+        ORDER BY c.first_name, c.last_name
+      `;
 
-      console.log(`Found ${result.rows.length} customers for company ${companyId}`);
+      const result = await db.execute(query);
+      console.log(`Found ${result.rowCount} customers for company ${companyId}`);
 
       const customers = result.rows.map(row => ({
         id: row.id,
-        first_name: row.first_name,
-        last_name: row.last_name,
+        tenantId: row.tenant_id,
         firstName: row.first_name,
         lastName: row.last_name,
-        fullName: `${row.first_name} ${row.last_name}`,
         email: row.email,
         phone: row.phone,
-        role: row.role,
+        isActive: row.is_active,
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }));
 
       res.json({
         success: true,
-        customers: customers
+        data: customers,
+        count: customers.length
       });
+
     } catch (error) {
-      console.error('Error fetching customers by company:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch customers for company' 
+      console.error('❌ [GET-COMPANY-CUSTOMERS]', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to fetch customers',
+        code: 'FETCH_CUSTOMERS_ERROR'
       });
     }
   });
@@ -1998,7 +2001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // === Tickets Clean Architecture Integration - REMOVED ===
-  // Already registered above at /api/tickets for main endpoint
+  // Already registered above at /api/tickets
 
   // === Users Clean Architecture Integration ===
   try {

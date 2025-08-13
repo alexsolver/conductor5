@@ -31,20 +31,20 @@ export function FilteredCustomerSelect({
 
   // Buscar clientes da empresa se uma empresa foi selecionada
   const { data: companyCustomersData, isLoading: isLoadingCompanyCustomers } = useQuery({
-    queryKey: ['/api/customers/companies', selectedCompanyId, 'customers'],
+    queryKey: ['/api/companies', selectedCompanyId, 'customers'],
     queryFn: async () => {
       if (!selectedCompanyId || selectedCompanyId === 'unspecified') return { customers: [] };
-      const response = await apiRequest('GET', `/api/customers/companies/${selectedCompanyId}/customers`);
+      const response = await apiRequest('GET', `/api/companies/${selectedCompanyId}/customers`);
       return response.json();
     },
     enabled: !!selectedCompanyId && selectedCompanyId !== 'unspecified',
   });
 
   const isLoading = isLoadingCustomers || (selectedCompanyId && selectedCompanyId !== 'unspecified' && isLoadingCompanyCustomers);
-  
+
   // Determinar quais clientes mostrar baseado EXCLUSIVAMENTE na empresa
   let customersToShow = [];
-  
+
   if (selectedCompanyId && selectedCompanyId !== 'unspecified') {
     // Empresa selecionada - mostrar APENAS clientes desta empresa
     if (companyCustomersData?.customers) {
@@ -118,7 +118,7 @@ export function FilteredCustomerSelect({
                                   customer.email || 'Cliente sem nome';
               // Ensure customer.id is not empty or undefined
               const customerId = customer.id || `customer_${Math.random().toString(36).substr(2, 9)}`;
-              
+
               return (
                 <SelectItem key={customerId} value={customerId}>
                   <div className="flex flex-col">
