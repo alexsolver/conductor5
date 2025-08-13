@@ -331,7 +331,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
 ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedRequest, res) => {
   try {
     console.log('🎯 [TICKETS-ROUTE] PUT /:id called');
-    
+
     if (!req.user?.tenantId) {
       console.log('❌ [TICKETS-ROUTE] No tenant ID in user');
       return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
@@ -387,7 +387,7 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
     console.log('🔍 [TICKETS-ROUTE] After initial mapping:', backendUpdates);
 
     // ✅ MAPEAMENTO ESPECÍFICO - Garantir consistência de campos
-    
+
     // Company relationship
     if (frontendUpdates.customerCompanyId !== undefined) {
       backendUpdates.company_id = frontendUpdates.customerCompanyId;
@@ -904,7 +904,7 @@ ticketsRouter.delete('/:id/attachments/:attachmentId', jwtAuth, async (req: Auth
     const { id, attachmentId } = req.params;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
 
     // Get attachment info before deletion for audit trail
     try {

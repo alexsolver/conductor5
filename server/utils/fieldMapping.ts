@@ -25,7 +25,7 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   updatedAt: 'updated_at',
   deletedAt: 'deleted_at',
   tenantId: 'tenant_id',
-  // CORREÇÃO: Remover duplicate mapping 
+  // CORREÇÃO: Remover duplicate mapping
   // customerId: 'customer_id', // já tem customerCompanyId
 
   businessImpact: 'business_impact',
@@ -112,7 +112,7 @@ export function mapFrontendToBackend(frontendData: any): any {
   console.log('✅ [FIELD-MAPPING] Mapping completed:', {
     inputFields: Object.keys(frontendData).length,
     outputFields: Object.keys(backendData).length,
-    mappingsApplied: Object.keys(frontendData).filter(key => 
+    mappingsApplied: Object.keys(frontendData).filter(key =>
       mapping[key] || criticalMappings[key]
     ).length,
     finalKeys: Object.keys(backendData)
@@ -163,3 +163,35 @@ export const TICKET_FIELD_MAPPING = {
     display_field: 'name'
   },
 };
+
+export function mapClientToServer(clientData: any): any {
+  console.log('🔄 [FieldMapping] Client to Server mapping started:', {
+    inputKeys: Object.keys(clientData),
+    mappingRules: CLIENT_TO_SERVER_MAPPING
+  });
+
+  const mapped = {};
+
+  for (const [clientKey, serverKey] of Object.entries(CLIENT_TO_SERVER_MAPPING)) {
+    if (clientData.hasOwnProperty(clientKey)) {
+      mapped[serverKey] = clientData[clientKey];
+      console.log(`✅ [FieldMapping] Mapped: ${clientKey} -> ${serverKey} = ${clientData[clientKey]}`);
+    }
+  }
+
+  // Copy any fields that don't need mapping
+  for (const [key, value] of Object.entries(clientData)) {
+    if (!CLIENT_TO_SERVER_MAPPING.hasOwnProperty(key) && !mapped.hasOwnProperty(key)) {
+      mapped[key] = value;
+      console.log(`📋 [FieldMapping] Direct copy: ${key} = ${value}`);
+    }
+  }
+
+  console.log('✅ [FieldMapping] Mapping complete:', {
+    inputCount: Object.keys(clientData).length,
+    outputCount: Object.keys(mapped).length,
+    mappedFields: mapped
+  });
+
+  return mapped;
+}
