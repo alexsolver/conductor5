@@ -62,6 +62,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
 
+  // CRITICAL FIX: API Route Protection Middleware
+  // Ensure API routes are processed before Vite catch-all
+  app.use('/api/*', (req, res, next) => {
+    // Force Express to handle API routes, not Vite
+    res.setHeader('X-API-Route', 'true');
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  });
+
+  // CRITICAL FIX: Bypass API routes with different prefix
+  app.post('/bypass/tickets/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ message: "User not associated with a tenant" });
+      }
+
+      const { id } = req.params;
+      const { targetTicketId, relationshipType, description } = req.body;
+      const tenantId = req.user.tenantId;
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      const insertQuery = `
+        INSERT INTO "${schemaName}".ticket_relationships 
+        (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        RETURNING *
+      `;
+
+      const relationshipId = crypto.randomUUID();
+      const result = await pool.query(insertQuery, [
+        relationshipId, tenantId, id, targetTicketId, relationshipType, description || null, req.user.id
+      ]);
+
+      return res.status(201).json({
+        success: true,
+        data: result.rows[0],
+        message: "Relationship created successfully via bypass"
+      });
+
+    } catch (error) {
+      console.error("Error in bypass relationship:", error);
+      return res.status(500).json({ 
+        success: false,
+        message: "Failed to create ticket relationship via bypass" 
+      });
+    }
+  });
+
   // Apply CSP middleware
   app.use(createCSPMiddleware({
     environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',

@@ -185,7 +185,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       if (!currentTicket?.id) {
         throw new Error("Ticket atual não encontrado");
       }
-      const response = await apiRequest("POST", `/api/tickets/${currentTicket.id}/relationships`, data);
+      const response = await apiRequest("POST", `/bypass/tickets/${currentTicket.id}/relationships`, data);
       return response.json();
     },
     onSuccess: () => {
