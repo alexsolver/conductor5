@@ -40,45 +40,44 @@ companiesIntegrationRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, r
       });
     }
 
-    const companiesList = await db
-      .select()
-      .from(companies)
-      .where(and(
-        eq(companies.tenantId, tenantId),
-        eq(companies.isActive, true)
-      ))
-      .orderBy(asc(companies.name));
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
 
-    const formattedCompanies = companiesList.map(company => ({
-      id: company.id,
-      tenantId: company.tenantId,
-      name: company.name,
-      displayName: company.displayName || company.name,
-      description: company.description,
-      email: company.email,
-      phone: company.phone,
-      address: company.address,
-      taxId: company.taxId,
-      registrationNumber: company.registrationNumber,
-      size: company.size,
-      subscriptionTier: company.subscriptionTier,
-      status: company.status,
-      isActive: company.isActive,
-      createdAt: company.createdAt?.toISOString(),
-      updatedAt: company.updatedAt?.toISOString()
-    }));
+    // ✅ Use direct SQL query with proper schema reference
+    const result = await pool.query(`
+        SELECT 
+          id,
+          name,
+          display_name as "displayName",
+          description,
+          industry,
+          website,
+          phone,
+          email,
+          address,
+          size,
+          subscription_tier as "subscriptionTier",
+          status,
+          is_active as "isActive",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM "${schemaName}".companies
+        WHERE tenant_id = $1 AND is_active = true
+        ORDER BY 
+          CASE WHEN name ILIKE '%default%' THEN 0 ELSE 1 END,
+          status = 'active' DESC,
+          name ASC
+      `, [tenantId]);
 
-    res.json({
-      success: true,
-      message: `Found ${companiesList.length} companies`,
-      data: formattedCompanies,
-      count: companiesList.length
-    });
+    console.log('✅ [COMPANIES-INTEGRATION] Found companies:', result.rows.length, 'for tenant:', tenantId);
+
+    res.json(result.rows);
   } catch (error) {
-    console.error('[COMPANIES-LIST-LEGACY]', error);
+    console.error('[COMPANIES-LIST-INTEGRATION]', error);
     res.status(500).json({
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to retrieve companies',
+      message: 'Failed to fetch companies',
       code: 'LIST_COMPANIES_ERROR'
     });
   }
@@ -109,7 +108,7 @@ companiesIntegrationRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest
     }
 
     const companyData = company[0];
-    
+
     res.json({
       success: true,
       message: 'Company retrieved successfully',

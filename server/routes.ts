@@ -585,8 +585,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Fetching customers for company ${companyId} in tenant ${tenantId}`);
 
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
       // ✅ Fix: Use tickets table to find customers associated with a company
-      const query = sql`
+      const result = await pool.query(`
         SELECT DISTINCT 
           c.id,
           c.tenant_id,
@@ -597,16 +601,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.is_active,
           c.created_at,
           c.updated_at
-        FROM ${sql.identifier(schemaName)}.customers c
-        INNER JOIN ${sql.identifier(schemaName)}.tickets t ON c.id = t.caller_id
-        WHERE t.company_id = ${companyId}
-          AND c.tenant_id = ${tenantId}
+        FROM "${schemaName}".customers c
+        INNER JOIN "${schemaName}".tickets t ON c.id = t.caller_id
+        WHERE t.company_id = $1
+          AND c.tenant_id = $2
           AND c.is_active = true
         ORDER BY c.first_name, c.last_name
-      `;
+      `, [companyId, tenantId]);
 
-      const result = await db.execute(query);
-      console.log(`Found ${result.rowCount} customers for company ${companyId}`);
+      console.log(`Found ${result.rows.length} customers for company ${companyId}`);
 
       const customers = result.rows.map(row => ({
         id: row.id,
