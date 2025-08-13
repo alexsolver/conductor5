@@ -260,7 +260,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         return existingTicket!;
       }
 
-      // Use direct SQL to avoid Drizzle schema mapping issues
+      // CRITICAL FIX: Separate SET values from WHERE values
+      const setValues = Object.values(updateFields);
+      const totalParams = setValues.length + 2; // +2 for id and tenantId in WHERE
+      
       const setClause = Object.keys(updateFields)
         .map((key, index) => {
           const dbField = key === 'assignedToId' ? 'assigned_to_id' : 
@@ -272,23 +275,28 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         })
         .join(', ');
 
-      const values = Object.values(updateFields);
-      values.push(id, tenantId);
+      // Build complete values array: SET values + WHERE values
+      const allValues = [...setValues, id, tenantId];
+      const whereIdParam = setValues.length + 1;
+      const whereTenantParam = setValues.length + 2;
 
       const query = `
         UPDATE ${schemaName}.tickets 
         SET ${setClause}
-        WHERE id = $${values.length - 1} AND tenant_id = $${values.length} AND is_active = true
+        WHERE id = $${whereIdParam} AND tenant_id = $${whereTenantParam} AND is_active = true
         RETURNING *
       `;
 
-      console.log('📝 [FINAL] Executing SQL:', {
-        fieldsCount: Object.keys(updateFields).length,
-        valuesCount: values.length,
-        setClause
+      console.log('📝 [PARAMETER-FIX] Executing SQL:', {
+        setFieldsCount: Object.keys(updateFields).length,
+        setValuesCount: setValues.length,
+        totalParams: totalParams,
+        whereIdParam: whereIdParam,
+        whereTenantParam: whereTenantParam,
+        allValuesLength: allValues.length
       });
 
-      const result = await db.execute(sql.raw(query, values));
+      const result = await db.execute(sql.raw(query, allValues));
       
       if (result.rows.length === 0) {
         throw new Error('Ticket not found or no changes made');
