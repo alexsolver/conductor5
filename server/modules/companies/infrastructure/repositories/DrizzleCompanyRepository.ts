@@ -5,7 +5,7 @@
 
 import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { companies } from '@shared/schema';
+import { customer_companies } from '@shared/schema';
 import { Company, CompanySize, CompanyStatus, SubscriptionTier } from '../../domain/entities/Company';
 import {
   ICompanyRepository,
@@ -25,8 +25,8 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
   async findById(id: string): Promise<Company | null> {
     const result = await db
       .select()
-      .from(companies)
-      .where(eq(companies.id, id))
+      .from(customer_companies)
+      .where(eq(customer_companies.id, id))
       .limit(1);
 
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
@@ -35,10 +35,10 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
   async findByIdAndTenant(id: string, tenantId: string): Promise<Company | null> {
     const result = await db
       .select()
-      .from(companies)
+      .from(customer_companies)
       .where(and(
-        eq(companies.id, id),
-        eq(companies.tenantId, tenantId)
+        eq(customer_companies.id, id),
+        eq(customer_companies.tenant_id, tenantId)
       ))
       .limit(1);
 
@@ -47,11 +47,11 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
   async create(companyData: Omit<Company, 'id' | 'createdAt' | 'updatedAt'>): Promise<Company> {
     const [result] = await db
-      .insert(companies)
+      .insert(customer_companies)
       .values({
         ...companyData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        created_at: new Date(),
+        updated_at: new Date()
       })
       .returning();
 
@@ -153,7 +153,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
     // Count total records
     const totalResult = await db
       .select({ count: count() })
-      .from(companies)
+      .from(customer_companies)
       .where(and(...conditions));
 
     const total = totalResult[0]?.count || 0;
@@ -163,7 +163,7 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
     const result = await db
       .select()
-      .from(companies)
+      .from(customer_companies)
       .where(and(...conditions))
       .orderBy(orderBy)
       .limit(pagination.limit)
@@ -247,12 +247,12 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
   async findByTenant(tenantId: string): Promise<Company[]> {
     const result = await db
       .select()
-      .from(companies)
+      .from(customer_companies)
       .where(and(
-        eq(companies.tenantId, tenantId),
-        eq(companies.isActive, true)
+        eq(customer_companies.tenant_id, tenantId),
+        eq(customer_companies.is_active, true)
       ))
-      .orderBy(asc(companies.name));
+      .orderBy(asc(customer_companies.company_name));
 
     return result.map(row => this.mapToEntity(row));
   }
@@ -596,66 +596,52 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
     // Tenant filter
     if (tenantId) {
-      conditions.push(eq(companies.tenantId, tenantId));
+      conditions.push(eq(customer_companies.tenant_id, tenantId));
     }
 
     // Basic filters
     if (filters.name) {
-      conditions.push(like(companies.name, `%${filters.name}%`));
+      conditions.push(like(customer_companies.company_name, `%${filters.name}%`));
     }
 
     if (filters.cnpj) {
-      conditions.push(eq(companies.taxId, filters.cnpj));
+      conditions.push(eq(customer_companies.cnpj, filters.cnpj));
     }
 
     if (filters.industry) {
-      conditions.push(like(companies.description, `%${filters.industry}%`));
+      conditions.push(like(customer_companies.description, `%${filters.industry}%`));
     }
 
     if (filters.state || filters.city) {
       const locationTerm = [filters.state, filters.city].filter(Boolean).join(' ');
-      conditions.push(like(companies.address, `%${locationTerm}%`));
-    }
-
-    // Array filters
-    if (filters.size && filters.size.length > 0) {
-      conditions.push(inArray(companies.size, filters.size));
-    }
-
-    if (filters.status && filters.status.length > 0) {
-      conditions.push(inArray(companies.status, filters.status));
-    }
-
-    if (filters.subscriptionTier && filters.subscriptionTier.length > 0) {
-      conditions.push(inArray(companies.subscriptionTier, filters.subscriptionTier));
+      conditions.push(like(customer_companies.address, `%${locationTerm}%`));
     }
 
     // Boolean filters
     if (filters.isActive !== undefined) {
-      conditions.push(eq(companies.isActive, filters.isActive));
+      conditions.push(eq(customer_companies.is_active, filters.isActive));
     } else {
       // Default to active companies only
-      conditions.push(eq(companies.isActive, true));
+      conditions.push(eq(customer_companies.is_active, true));
     }
 
     // Date filters
     if (filters.dateFrom) {
-      conditions.push(gte(companies.createdAt, filters.dateFrom));
+      conditions.push(gte(customer_companies.created_at, filters.dateFrom));
     }
 
     if (filters.dateTo) {
-      conditions.push(lte(companies.createdAt, filters.dateTo));
+      conditions.push(lte(customer_companies.created_at, filters.dateTo));
     }
 
     // General search
     if (filters.search) {
       conditions.push(
         or(
-          like(companies.name, `%${filters.search}%`),
-          like(companies.displayName, `%${filters.search}%`),
-          like(companies.taxId, `%${filters.search}%`),
-          like(companies.email, `%${filters.search}%`),
-          like(companies.description, `%${filters.search}%`)
+          like(customer_companies.company_name, `%${filters.search}%`),
+          like(customer_companies.cnpj, `%${filters.search}%`),
+          like(customer_companies.email, `%${filters.search}%`),
+          like(customer_companies.description, `%${filters.search}%`)
         )
       );
     }
@@ -668,34 +654,30 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
 
     switch (sortBy) {
       case 'name':
-        return orderFunction(companies.name);
-      case 'status':
-        return orderFunction(companies.status);
-      case 'size':
-        return orderFunction(companies.size);
+        return orderFunction(customer_companies.company_name);
       case 'industry':
-        return orderFunction(companies.description);
+        return orderFunction(customer_companies.description);
       case 'createdAt':
-        return orderFunction(companies.createdAt);
+        return orderFunction(customer_companies.created_at);
       case 'updatedAt':
-        return orderFunction(companies.updatedAt);
+        return orderFunction(customer_companies.updated_at);
       default:
-        return orderFunction(companies.name);
+        return orderFunction(customer_companies.company_name);
     }
   }
 
   private mapToEntity(row: any): Company {
     return {
       id: row.id,
-      tenantId: row.tenantId,
-      name: row.name,
-      displayName: row.displayName || row.name,
+      tenantId: row.tenant_id,
+      name: row.company_name,
+      displayName: row.company_name,
       description: row.description || '',
-      cnpj: row.taxId || '',
-      industry: row.description || '', // Using description as industry substitute
-      size: row.size || 'medium',
-      status: row.status || 'active',
-      subscriptionTier: row.subscriptionTier || 'basic',
+      cnpj: row.cnpj || '',
+      industry: row.description || '',
+      size: 'medium',
+      status: 'active',
+      subscriptionTier: 'basic',
       email: row.email || '',
       phone: row.phone || '',
       website: '',
@@ -703,12 +685,12 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
       addressNumber: '',
       complement: '',
       neighborhood: '',
-      city: '', // These fields don't exist in current schema
-      state: '', // Will be extracted from address if needed
+      city: '',
+      state: '',
       zipCode: '',
-      isActive: row.isActive,
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt)
+      isActive: row.is_active,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at)
     };
   }
 }
