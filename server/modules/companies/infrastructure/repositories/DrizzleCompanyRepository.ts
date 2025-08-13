@@ -145,38 +145,68 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
   async findWithFilters(
     filters: CompanyFilters,
     pagination: PaginationOptions,
-    tenantId?: string
+    tenantId: string
   ): Promise<CompanyListResult> {
-    const conditions = this.buildFilterConditions(filters, tenantId);
-    const offset = (pagination.page - 1) * pagination.limit;
+    try {
+      console.log('🔍 [DrizzleCompanyRepository] findWithFilters called with:', { filters, pagination, tenantId });
 
-    // Count total records
-    const totalResult = await db
-      .select({ count: count() })
-      .from(companies)
-      .where(and(...conditions));
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const offset = (pagination.page - 1) * pagination.limit;
 
-    const total = totalResult[0]?.count || 0;
+      // Build WHERE conditions
+      let whereClause = '';
+      const whereParams: any[] = [];
 
-    // Get paginated results
-    const orderBy = this.buildOrderBy(pagination.sortBy, pagination.sortOrder);
+      if (filters.search) {
+        whereClause += ` AND (name ILIKE ? OR display_name ILIKE ?)`;
+        whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
+      }
 
-    const result = await db
-      .select()
-      .from(companies)
-      .where(and(...conditions))
-      .orderBy(orderBy)
-      .limit(pagination.limit)
-      .offset(offset);
+      if (filters.status && filters.status.length > 0) {
+        const statusPlaceholders = filters.status.map(() => '?').join(',');
+        whereClause += ` AND status IN (${statusPlaceholders})`;
+        whereParams.push(...filters.status);
+      }
 
-    const companiesData = result.map(row => this.mapToEntity(row));
+      // Count total records - using tenant schema
+      const countResult = await db.execute(sql.raw(`
+        SELECT COUNT(*) as total
+        FROM "${schemaName}".companies
+        WHERE tenant_id = ? AND is_active = true ${whereClause}
+      `, [tenantId, ...whereParams]));
 
-    return {
-      companies: companiesData,
-      total,
-      page: pagination.page,
-      totalPages: Math.ceil(total / pagination.limit)
-    };
+      const total = Number(countResult.rows[0]?.total || 0);
+      const totalPages = Math.ceil(total / pagination.limit);
+
+      // Fetch paginated results - using tenant schema
+      const results = await db.execute(sql.raw(`
+        SELECT 
+          id, tenant_id as "tenantId", name, display_name as "displayName", 
+          description, industry, size, email, phone, website, address,
+          tax_id as "taxId", registration_number as "registrationNumber",
+          subscription_tier as "subscriptionTier", contract_type as "contractType",
+          max_users as "maxUsers", max_tickets as "maxTickets",
+          settings, tags, metadata, status, is_active as "isActive",
+          is_primary as "isPrimary", created_at as "createdAt", updated_at as "updatedAt",
+          created_by as "createdBy", updated_by as "updatedBy"
+        FROM "${schemaName}".companies
+        WHERE tenant_id = ? AND is_active = true ${whereClause}
+        ORDER BY created_at DESC
+        LIMIT ${pagination.limit} OFFSET ${offset}
+      `, [tenantId, ...whereParams]));
+
+      return {
+        companies: results.rows,
+        total,
+        page: pagination.page,
+        totalPages
+      };
+
+    } catch (error: any) {
+      console.error('❌ [DrizzleCompanyRepository] findWithFilters error:', error);
+      this.logger.error('Failed to find companies with filters', { error: error.message, filters, pagination, tenantId });
+      throw error;
+    }
   }
 
   async searchCompanies(
