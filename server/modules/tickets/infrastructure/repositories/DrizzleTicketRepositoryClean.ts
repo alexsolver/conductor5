@@ -238,6 +238,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const updateFields: Record<string, any> = {};
       
       // Map only valid fields that exist in both frontend DTO and database
+      // CRITICAL: Use database field names directly to match schema-master.ts
       if (data.subject !== undefined) updateFields.subject = data.subject;
       if (data.description !== undefined) updateFields.description = data.description;
       if (data.status !== undefined) updateFields.status = data.status;
@@ -246,10 +247,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       if (data.impact !== undefined) updateFields.impact = data.impact;
       if (data.category !== undefined) updateFields.category = data.category;
       if (data.subcategory !== undefined) updateFields.subcategory = data.subcategory;
-      if (data.assignedToId !== undefined) updateFields.assignedToId = data.assignedToId;
-      if (data.linkTicketNumber !== undefined) updateFields.linkTicketNumber = data.linkTicketNumber;
-      if (data.linkType !== undefined) updateFields.linkType = data.linkType;
-      if (data.linkComment !== undefined) updateFields.linkComment = data.linkComment;
+      if (data.assignedToId !== undefined) updateFields.assigned_to_id = data.assignedToId;
+      if (data.linkTicketNumber !== undefined) updateFields.link_ticket_number = data.linkTicketNumber;
+      if (data.linkType !== undefined) updateFields.link_type = data.linkType;
+      if (data.linkComment !== undefined) updateFields.link_comment = data.linkComment;
       
       // Always update timestamp
       updateFields.updatedAt = new Date();
@@ -264,13 +265,11 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const setValues = Object.values(updateFields);
       const totalParams = setValues.length + 2; // +2 for id and tenantId in WHERE
       
+      // SIMPLIFIED: Use field names directly since they already match database columns
       const setClause = Object.keys(updateFields)
         .map((key, index) => {
-          const dbField = key === 'assignedToId' ? 'assigned_to_id' : 
-                         key === 'linkTicketNumber' ? 'link_ticket_number' :
-                         key === 'linkType' ? 'link_type' :
-                         key === 'linkComment' ? 'link_comment' :
-                         key === 'updatedAt' ? 'updated_at' : key;
+          // Only map updatedAt to updated_at, all others are already correct
+          const dbField = key === 'updatedAt' ? 'updated_at' : key;
           return `${dbField} = $${index + 1}`;
         })
         .join(', ');
