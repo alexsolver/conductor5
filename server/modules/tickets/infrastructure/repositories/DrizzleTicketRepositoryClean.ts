@@ -229,31 +229,93 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   async update(id: string, data: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
     try {
-      console.log('🔧 [DrizzleTicketRepositoryClean] DEFINITIVE UPDATE FIX');
+      console.log('🔧 [DrizzleTicketRepositoryClean] FINAL SCHEMA-COMPLIANT UPDATE');
       
-      // Usar Drizzle ORM nativo - mais simples e confiável
-      const [updatedTicket] = await db
-        .update(tickets)
-        .set({
-          ...data,
-          updatedAt: new Date()
-        } as any)
-        .where(and(
-          eq(tickets.id, id),
-          eq(tickets.tenantId, tenantId),
-          eq(tickets.isActive, true)
-        ))
-        .returning();
+      // CRITICAL: Check current schema vs database mismatches
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Build individual field updates to avoid schema conflicts
+      const updateFields: Record<string, any> = {};
+      
+      // Map only valid fields that exist in both frontend DTO and database
+      if (data.subject !== undefined) updateFields.subject = data.subject;
+      if (data.description !== undefined) updateFields.description = data.description;
+      if (data.status !== undefined) updateFields.status = data.status;
+      if (data.priority !== undefined) updateFields.priority = data.priority;
+      if (data.urgency !== undefined) updateFields.urgency = data.urgency;
+      if (data.impact !== undefined) updateFields.impact = data.impact;
+      if (data.category !== undefined) updateFields.category = data.category;
+      if (data.subcategory !== undefined) updateFields.subcategory = data.subcategory;
+      if (data.assignedToId !== undefined) updateFields.assignedToId = data.assignedToId;
+      if (data.linkTicketNumber !== undefined) updateFields.linkTicketNumber = data.linkTicketNumber;
+      if (data.linkType !== undefined) updateFields.linkType = data.linkType;
+      if (data.linkComment !== undefined) updateFields.linkComment = data.linkComment;
+      
+      // Always update timestamp
+      updateFields.updatedAt = new Date();
 
-      if (!updatedTicket) {
-        throw new Error('Ticket not found or update failed');
+      if (Object.keys(updateFields).length === 1) {
+        // Only timestamp update
+        const existingTicket = await this.findById(id, tenantId);
+        return existingTicket!;
       }
 
-      console.log('✅ [DrizzleTicketRepositoryClean] Update successful via Drizzle ORM');
-      return updatedTicket as Ticket;
+      // Use direct SQL to avoid Drizzle schema mapping issues
+      const setClause = Object.keys(updateFields)
+        .map((key, index) => {
+          const dbField = key === 'assignedToId' ? 'assigned_to_id' : 
+                         key === 'linkTicketNumber' ? 'link_ticket_number' :
+                         key === 'linkType' ? 'link_type' :
+                         key === 'linkComment' ? 'link_comment' :
+                         key === 'updatedAt' ? 'updated_at' : key;
+          return `${dbField} = $${index + 1}`;
+        })
+        .join(', ');
+
+      const values = Object.values(updateFields);
+      values.push(id, tenantId);
+
+      const query = `
+        UPDATE ${schemaName}.tickets 
+        SET ${setClause}
+        WHERE id = $${values.length - 1} AND tenant_id = $${values.length} AND is_active = true
+        RETURNING *
+      `;
+
+      console.log('📝 [FINAL] Executing SQL:', {
+        fieldsCount: Object.keys(updateFields).length,
+        valuesCount: values.length,
+        setClause
+      });
+
+      const result = await db.execute(sql.raw(query, values));
+      
+      if (result.rows.length === 0) {
+        throw new Error('Ticket not found or no changes made');
+      }
+
+      const updatedRow = result.rows[0] as any;
+      console.log('✅ [FINAL] Update successful');
+
+      // Transform database row back to Ticket format
+      return {
+        ...updatedRow,
+        callerId: updatedRow.caller_id,
+        assignedToId: updatedRow.assigned_to_id,
+        companyId: updatedRow.company_id,
+        linkTicketNumber: updatedRow.link_ticket_number,
+        linkType: updatedRow.link_type,
+        linkComment: updatedRow.link_comment,
+        tenantId: updatedRow.tenant_id,
+        createdAt: updatedRow.created_at,
+        updatedAt: updatedRow.updated_at,
+        isActive: updatedRow.is_active,
+        followers: [],
+        tags: []
+      } as Ticket;
 
     } catch (error: any) {
-      console.error('❌ [DrizzleTicketRepositoryClean] Update error:', error.message);
+      console.error('❌ [FINAL] Update error:', error.message);
       throw new Error(`Failed to update ticket: ${error.message}`);
     }
   }
