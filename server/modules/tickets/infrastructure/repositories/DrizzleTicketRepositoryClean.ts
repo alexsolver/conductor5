@@ -309,7 +309,22 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       console.log('🔧 [DIRECT-UPDATE] Fields to update:', setFields);
 
-      // CRITICAL: Use correct PostgreSQL syntax with schema.table format
+      // CRITICAL: Build complete parameters array first 
+      const params = [
+        setFields.subject,
+        setFields.description,
+        setFields.status,
+        setFields.priority,
+        setFields.urgency,
+        setFields.impact,
+        setFields.category,
+        setFields.subcategory,
+        setFields.updatedAt
+      ];
+
+      console.log('🔧 [PARAMS-DEBUG] Array length:', params.length, 'Values:', params);
+
+      // Use correct PostgreSQL syntax with matching parameter count
       const result = await db.execute(sql.raw(`
         UPDATE ${schemaName}.tickets 
         SET 
@@ -322,21 +337,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           category = $7,
           subcategory = $8,
           updated_at = $9
-        WHERE id = $10 AND tenant_id = $11 AND is_active = true
+        WHERE id = '${id}' AND tenant_id = '${tenantId}' AND is_active = true
         RETURNING *
-      `, [
-        setFields.subject,
-        setFields.description,
-        setFields.status,
-        setFields.priority,
-        setFields.urgency,
-        setFields.impact,
-        setFields.category,
-        setFields.subcategory,
-        setFields.updatedAt,
-        id,
-        tenantId
-      ]));
+      `, params));
 
       console.log('✅ [RAW-SQL] Update successful with raw SQL approach');
       
