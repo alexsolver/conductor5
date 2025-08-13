@@ -209,15 +209,25 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
         whereParams.push(`%${filters.name}%`);
       }
 
+      // Construct base WHERE conditions
+      const baseConditions = ['tenant_id = ?', 'is_active = true'];
+      const allParams = [tenantId];
+
+      // Add additional filter conditions if they exist
+      if (whereConditions.length > 0) {
+        baseConditions.push(...whereConditions);
+        allParams.push(...whereParams);
+      }
+
       // Construct the complete WHERE clause
-      const whereClause = whereConditions.length > 0 ? ` AND ${whereConditions.join(' AND ')}` : '';
+      const whereClause = baseConditions.join(' AND ');
 
       // Count total records - using tenant schema
       const countResult = await db.execute(sql.raw(`
         SELECT COUNT(*) as total
         FROM "${schemaName}".companies
-        WHERE tenant_id = ? AND is_active = true${whereClause}
-      `, [tenantId, ...whereParams]));
+        WHERE ${whereClause}
+      `, allParams));
 
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
@@ -234,10 +244,10 @@ export class DrizzleCompanyRepository implements ICompanyRepository {
           is_primary as "isPrimary", created_at as "createdAt", updated_at as "updatedAt",
           created_by as "createdBy", updated_by as "updatedBy"
         FROM "${schemaName}".companies
-        WHERE tenant_id = ? AND is_active = true${whereClause}
+        WHERE ${whereClause}
         ORDER BY created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
-      `, [tenantId, ...whereParams]));
+      `, allParams));
 
       return {
         companies: results.rows,
