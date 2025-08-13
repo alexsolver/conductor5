@@ -114,6 +114,27 @@ export default function TicketDetail() {
     select: (data: any) => data?.data || [],
   });
 
+  // 🎯 [1QA-COMPLIANCE] Fetch company details for proper display
+  const { data: company } = useQuery({
+    queryKey: [`/api/companies/${ticket?.companyId}`],
+    enabled: !!ticket?.companyId,
+    select: (data: any) => data?.data || data,
+  });
+
+  // 🎯 [1QA-COMPLIANCE] Fetch user details for assigned user display  
+  const { data: assignedUser } = useQuery({
+    queryKey: [`/api/users/${ticket?.assignedToId}`],
+    enabled: !!ticket?.assignedToId,
+    select: (data: any) => data?.data || data,
+  });
+
+  // 🎯 [1QA-COMPLIANCE] Fetch location details for proper display
+  const { data: location } = useQuery({
+    queryKey: [`/api/locations/${ticket?.locationId}`],
+    enabled: !!ticket?.locationId,
+    select: (data: any) => data?.data || data,
+  });
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -449,7 +470,12 @@ export default function TicketDetail() {
                 <div className="flex items-center text-sm">
                   <User className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-gray-500">Responsável:</span>
-                  <span className="ml-2 font-medium">{ticket.assignedToId}</span>
+                  <span className="ml-2 font-medium">
+                    {assignedUser?.firstName && assignedUser?.lastName 
+                      ? `${assignedUser.firstName} ${assignedUser.lastName}`
+                      : assignedUser?.email || ticket.assignedToId
+                    }
+                  </span>
                 </div>
               )}
 
@@ -457,7 +483,9 @@ export default function TicketDetail() {
                 <div className="flex items-center text-sm">
                   <Building className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-gray-500">Empresa:</span>
-                  <span className="ml-2 font-medium">{ticket.companyId}</span>
+                  <span className="ml-2 font-medium">
+                    {company?.name || ticket.companyId}
+                  </span>
                 </div>
               )}
 
@@ -465,7 +493,9 @@ export default function TicketDetail() {
                 <div className="flex items-center text-sm">
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="text-gray-500">Local:</span>
-                  <span className="ml-2 font-medium">{ticket.locationId}</span>
+                  <span className="ml-2 font-medium">
+                    {location?.name || location?.address || ticket.locationId}
+                  </span>
                 </div>
               )}
             </CardContent>
