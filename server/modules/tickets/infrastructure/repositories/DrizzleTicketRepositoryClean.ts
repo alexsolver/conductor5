@@ -76,8 +76,21 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           t.created_at as "createdAt",
           t.updated_at as "updatedAt",
           t.opened_by_id as "createdBy",
-          t.is_active as "isActive"
+          t.is_active as "isActive",
+          
+          -- Dados da empresa
+          c.name as "company_name",
+          c.display_name as "company_display_name",
+          
+          -- Dados do caller
+          caller.first_name as "caller_first_name",
+          caller.last_name as "caller_last_name",
+          caller.email as "caller_email",
+          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_name"
+          
         FROM ${sql.identifier(schemaName)}.tickets t
+        LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
+        LEFT JOIN ${sql.identifier(schemaName)}.people caller ON t.caller_id = caller.id
         WHERE t.id = ${id} AND t.tenant_id = ${tenantId} AND t.is_active = true
       `);
 
@@ -159,16 +172,36 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
 
-      // Fetch paginated results - ONLY ACTIVE tickets
+      // Fetch paginated results with JOIN para incluir dados de clientes e empresas
       const results = await db.execute(sql.raw(`
         SELECT 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
-          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId", assignment_group as "assignmentGroupId"
-        FROM ${schemaName}.tickets
-        WHERE is_active = true ${whereClause}
-        ORDER BY created_at DESC
+          t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
+          t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
+          t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
+          t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.assignment_group as "assignmentGroupId",
+          
+          -- Dados da empresa (company)
+          c.name as "company_name",
+          c.display_name as "company_display_name",
+          
+          -- Dados do cliente/caller (person que abriu o ticket)
+          caller.first_name as "caller_first_name",
+          caller.last_name as "caller_last_name",
+          caller.email as "caller_email",
+          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_name",
+          
+          -- Dados do beneficiário (se diferente do caller)
+          beneficiary.first_name as "beneficiary_first_name",
+          beneficiary.last_name as "beneficiary_last_name",
+          beneficiary.email as "beneficiary_email",
+          CONCAT(beneficiary.first_name, ' ', beneficiary.last_name) as "beneficiary_name"
+          
+        FROM ${schemaName}.tickets t
+        LEFT JOIN ${schemaName}.companies c ON t.company_id = c.id
+        LEFT JOIN ${schemaName}.people caller ON t.caller_id = caller.id
+        LEFT JOIN ${schemaName}.people beneficiary ON t.beneficiary_id = beneficiary.id
+        WHERE t.is_active = true ${whereClause}
+        ORDER BY t.created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
       `, whereParams));
 
