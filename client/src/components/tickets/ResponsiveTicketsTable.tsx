@@ -55,9 +55,9 @@ const TicketRowSkeleton: React.FC = () => (
 );
 
 // Mobile card view for better responsiveness
-const MobileTicketCard: React.FC<{ 
-  ticket: any; 
-  onEdit: (ticket: any) => void; 
+const MobileTicketCard: React.FC<{
+  ticket: any;
+  onEdit: (ticket: any) => void;
   onDelete: (ticketId: string) => void;
   hasRelationships?: boolean;
   onToggleExpand?: (ticketId: string) => void;
@@ -72,7 +72,7 @@ const MobileTicketCard: React.FC<{
           {/* Header with ticket number and actions */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Link 
+              <Link
                 href={`/tickets/${ticket.id}`}
                 className="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                 aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
@@ -282,9 +282,9 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
               </TableCell>
             </TableRow>
           ) : (
-            tickets.map((ticket) => (
-              <React.Fragment key={ticket.id}>
-                <TableRow 
+            tickets.map((ticket, index) => (
+              <React.Fragment key={`ticket-${ticket.id}-${index}`}>
+                <TableRow
                   className="hover:bg-gray-50 transition-colors"
                   role="row"
                   aria-label={`Ticket ${ticket.number || ticket.id?.slice(0, 8)}: ${ticket.subject}`}
@@ -299,13 +299,13 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                           className="p-0 h-4 w-4"
                           aria-label={expandedTickets.has(ticket.id) ? "Recolher relacionamentos" : "Expandir relacionamentos"}
                         >
-                          {expandedTickets.has(ticket.id) ? 
-                            <ChevronDown className="h-3 w-3" /> : 
+                          {expandedTickets.has(ticket.id) ?
+                            <ChevronDown className="h-3 w-3" /> :
                             <ChevronRight className="h-3 w-3" />
                           }
                         </Button>
                       )}
-                      <Link 
+                      <Link
                         href={`/tickets/${ticket.id}`}
                         className="font-mono text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                         aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
@@ -317,7 +317,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
 
                   <TableCell className="max-w-0">
                     <div className="truncate">
-                      <Link 
+                      <Link
                         href={`/tickets/${ticket.id}`}
                         className="font-medium hover:text-blue-600 transition-colors"
                         aria-label={`Ver detalhes do ticket: ${ticket.subject}`}
@@ -388,8 +388,8 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           className="h-8 w-8 p-0"
                           aria-label={`Ações para ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
                         >
@@ -429,16 +429,16 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                           {ticketRelationships[ticket.id].map((rel: any) => (
                             <div key={rel.relationshipId} className="flex items-center gap-3 text-sm">
                               <span className="text-gray-500">{rel.relationshipType}:</span>
-                              <Link 
+                              <Link
                                 href={`/tickets/${rel.targetTicket?.id || rel.id}`}
                                 className="font-mono text-blue-600 hover:underline"
                               >
                                 #{rel.targetTicket?.number || rel.number}
                               </Link>
                               <span className="truncate">{rel.targetTicket?.subject || rel.subject}</span>
-                              <DynamicBadge 
-                                fieldName="status" 
-                                value={rel.targetTicket?.status || rel.status} 
+                              <DynamicBadge
+                                fieldName="status"
+                                value={rel.targetTicket?.status || rel.status}
                                 className="text-xs"
                               >
                                 {rel.targetTicket?.status || rel.status}

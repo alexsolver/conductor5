@@ -1777,11 +1777,6 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
         const userAgent = getUserAgent(req);
         const sessionId = getSessionId(req);
 
-        // Get user name
-        const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-        const userResult = await pool.query(userQuery, [req.user.id]);
-        const userName = userResult.rows[0]?.full_name || 'Unknown User';
-
         await pool.query(`
           INSERT INTO "${schemaName}".ticket_history 
           (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)

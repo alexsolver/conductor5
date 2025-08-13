@@ -828,8 +828,22 @@ const TicketDetails = React.memo(() => {
         isPrivate: data.isPrivate || false
       });
 
+      console.log('📝 [NOTES] Response status:', response.status);
+      console.log('📝 [NOTES] Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('📝 [NOTES] Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText.substring(0, 200)}`);
+      }
+
+      // Verificar se a resposta é JSON válido
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        const responseText = await response.text();
+        console.error('📝 [NOTES] Invalid content type:', contentType);
+        console.error('📝 [NOTES] Response body:', responseText.substring(0, 500));
+        throw new Error(`Expected JSON response, got ${contentType}. Response: ${responseText.substring(0, 100)}`);
       }
 
       const result = await response.json();
@@ -860,9 +874,19 @@ const TicketDetails = React.memo(() => {
     } catch (error) {
       console.error('❌ [NOTES] Failed to add note:', error);
 
+      let errorMessage = "Erro ao adicionar nota. Tente novamente.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('DOCTYPE')) {
+          errorMessage = "Erro de comunicação com servidor. Verifique se a API está funcionando corretamente.";
+        } else if (error.message.includes('application/json')) {
+          errorMessage = "Servidor retornou resposta inválida. Contate o administrador.";
+        }
+      }
+
       toast({
         title: "Erro",
-        description: "Erro ao adicionar nota. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
