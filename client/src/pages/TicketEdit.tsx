@@ -801,7 +801,7 @@ export default function TicketEdit() {
                           <option value="unspecified">Não especificado</option>
                           {companies.map((company: any) => (
                             <option key={company.id} value={company.id}>
-                              {company.company_name || company.name}
+                              {company.name}
                             </option>
                           ))}
                         </select>
