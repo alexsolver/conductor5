@@ -117,9 +117,7 @@ export const ticketFormSchema = z.object({
     .datetime("Data de vencimento deve estar em formato ISO válido")
     .optional(),
 
-  // Arrays JSON
-  followers: z.array(z.string().uuid()).default([]),
-  tags: z.array(z.string().max(50)).default([]),
+  // Arrays JSON - removed: followers, tags (not present in current schema)
 
   // Relacionamento com empresa cliente
   customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID da empresa deve ser um UUID válido").optional(),

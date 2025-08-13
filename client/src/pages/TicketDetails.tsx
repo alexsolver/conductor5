@@ -852,7 +852,6 @@ const TicketDetails = React.memo(() => {
       contactType: ticket.contact_type || "email",
       followers: ticket.followers || [],
       tags: ticket.tags || [],
-      customerCompanyId: ticket.company_id || "",
     };
   }, [
     ticket?.id,
@@ -1082,13 +1081,10 @@ const TicketDetails = React.memo(() => {
       // ✅ Company relationship - usar estado atualizado
       company_id: selectedCompany || data.customerCompanyId || null,
 
-      // ✅ Collections - usar estados atualizados
-      followers: followers && followers.length > 0 ? followers : [],
-      tags: tags && tags.length > 0 ? tags : [],
+      // Fields removed - not present in current schema: followers, tags
 
-      // ✅ Audit fields
-      updated_by_id: form.getValues('updatedById'),
-      updated_at: new Date().toISOString()
+      // ✅ Metadata
+      tenantId: ticket?.tenantId
     };
 
     // Remove campos undefined para evitar problemas no backend
@@ -2144,8 +2140,7 @@ const TicketDetails = React.memo(() => {
                           className="text-xs"
                         >
                           {relTicket.status === 'open' ? 'Aberto' :
-                           relTicket.status === 'in_progress' ? 'Em Progresso' :
-                           relTicket.status === 'resolved' ? 'Resolvido' : 'Fechado'}
+                           relTicket.status === 'in_progress' ? 'Em Progresso' : 'Fechado'}
                         </Badge>
                         <span className="font-medium">{relTicket.number}</span>
                       </div>

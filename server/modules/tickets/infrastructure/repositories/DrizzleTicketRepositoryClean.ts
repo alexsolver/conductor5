@@ -275,7 +275,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         'company_id', 'location', 'contact_type', 'business_impact', 'symptoms',
         'workaround', 'environment', 'template_alternative',
         'link_ticket_number', 'link_type', 'link_comment', 
-        'followers', 'tags', 'updated_at', 'updated_by_id'
+        'updated_at', 'updated_by_id'
       ];
 
       // Sanitize input data - only keep allowed fields with non-undefined values
