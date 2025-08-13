@@ -481,10 +481,157 @@ const TicketsTable = React.memo(() => {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
+  // 🔧 [1QA-COMPLIANCE] Queries seguindo Clean Architecture
+  const { 
+    data: ticketsData, 
+    isLoading, 
+    error: ticketsError 
+  } = useOptimizedQuery({
+    queryKey: ['/api/tickets', { 
+      page: currentPage, 
+      limit: itemsPerPage,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      priority: priorityFilter !== 'all' ? priorityFilter : undefined,
+      search: searchTerm || undefined
+    }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('page', currentPage.toString());
+      params.append('limit', itemsPerPage.toString());
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (priorityFilter !== 'all') params.append('priority', priorityFilter);
+      if (searchTerm) params.append('search', searchTerm);
+      
+      const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch tickets');
+      return response.json();
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    gcTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  // 🔧 [1QA-COMPLIANCE] Query para views seguindo Clean Architecture
+  const { 
+    data: ticketViews = [], 
+    refetch: refetchViews 
+  } = useOptimizedQuery({
+    queryKey: ['/api/ticket-views'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-views');
+      if (!response.ok) throw new Error('Failed to fetch views');
+      const data = await response.json();
+      return data.views || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  // 🔧 [1QA-COMPLIANCE] Query para usuários seguindo Clean Architecture
+  const { 
+    data: users = [] 
+  } = useOptimizedQuery({
+    queryKey: ['/api/tenant-admin/users'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/tenant-admin/users');
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 🔧 [1QA-COMPLIANCE] Query para empresas seguindo Clean Architecture
+  const { 
+    data: companies = [] 
+  } = useOptimizedQuery({
+    queryKey: ['/api/companies'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/companies');
+      if (!response.ok) throw new Error('Failed to fetch companies');
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 🔧 [1QA-COMPLIANCE] Processar dados de tickets seguindo Clean Architecture
+  const tickets = useMemo(() => {
+    if (!ticketsData) return [];
+    
+    // Standard Clean Architecture response structure
+    if (ticketsData.success && ticketsData.data?.tickets && Array.isArray(ticketsData.data.tickets)) {
+      return ticketsData.data.tickets;
+    }
+    
+    // Legacy support for direct data property
+    if (ticketsData.data?.tickets && Array.isArray(ticketsData.data.tickets)) {
+      return ticketsData.data.tickets;
+    }
+    
+    // Direct tickets array (fallback)
+    if (ticketsData.tickets && Array.isArray(ticketsData.tickets)) {
+      return ticketsData.tickets;
+    }
+    
+    // Raw array (ultimate fallback)
+    if (Array.isArray(ticketsData)) {
+      return ticketsData;
+    }
+    
+    return [];
+  }, [ticketsData]);
+
+  // 🔧 [1QA-COMPLIANCE] Paginação seguindo Clean Architecture
+  const pagination = useMemo(() => {
+    if (!ticketsData) return { total: 0, totalPages: 0 };
+    
+    const total = ticketsData.total || ticketsData.pagination?.total || tickets.length;
+    const totalPages = Math.ceil(total / itemsPerPage);
+    
+    return { total, totalPages };
+  }, [ticketsData, tickets.length, itemsPerPage]);
+
 
 
   // 🔧 [1QA-COMPLIANCE] Verificar se um ticket tem relacionamentos - Clean Architecture
   // 🔧 [1QA-COMPLIANCE] Buscar relacionamentos seguindo Clean Architecture
+  // 🔧 [1QA-COMPLIANCE] Função para expandir relacionamentos seguindo Clean Architecture
+  const toggleTicketExpansion = useCallback(async (ticketId: string) => {
+    if (expandedTickets.has(ticketId)) {
+      // Contraindo - simplesmente remover do set
+      setExpandedTickets(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(ticketId);
+        return newSet;
+      });
+    } else {
+      // Expandindo - buscar relacionamentos se não existirem
+      if (!ticketRelationships[ticketId]) {
+        try {
+          const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
+          const data = await response.json();
+          
+          let relationships = [];
+          if (data.success && Array.isArray(data.data)) {
+            relationships = data.data;
+          } else if (Array.isArray(data.relationships)) {
+            relationships = data.relationships;
+          } else if (Array.isArray(data)) {
+            relationships = data;
+          }
+
+          setTicketRelationships(prev => ({
+            ...prev,
+            [ticketId]: relationships
+          }));
+        } catch (error) {
+          console.error(`❌ [RELATIONSHIP-FETCH] Erro ao buscar relacionamentos para ticket ${ticketId}:`, error);
+        }
+      }
+      
+      setExpandedTickets(prev => new Set([...prev, ticketId]));
+    }
+  }, [expandedTickets, ticketRelationships]);
+
   // 🔧 [1QA-COMPLIANCE] Inicialização de relacionamentos seguindo Clean Architecture
   useEffect(() => {
     if (tickets.length > 0) {
