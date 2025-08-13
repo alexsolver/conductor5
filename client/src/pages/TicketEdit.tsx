@@ -125,7 +125,11 @@ export default function TicketEdit() {
 
   // Ensure customers is always an array
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+  
+  // 🎯 [1QA-COMPLIANCE] Debug and fix companies data structure
+  console.log('🔍 [TICKET-EDIT-DEBUG] companiesData raw:', companiesData);
   const companies = Array.isArray(companiesData) ? companiesData : [];
+  console.log('✅ [TICKET-EDIT-DEBUG] companies processed:', companies.length, 'items');
 
   // Initialize company from ticket data
   useEffect(() => {
