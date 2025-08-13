@@ -1,0 +1,33 @@
+queryClient.ts:94  PUT https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/api/tickets/6fdae7d3-67cd-49f3-99d1-8ddd3efcb653 500 (Internal Server Error)
+apiRequest @ queryClient.ts:94
+mutationFn @ TicketDetails.tsx:896
+fn @ @tanstack_react-query.js?v=4022a503:1189
+run @ @tanstack_react-query.js?v=4022a503:494
+start @ @tanstack_react-query.js?v=4022a503:536
+execute @ @tanstack_react-query.js?v=4022a503:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=4022a503:2630
+(anonymous) @ @tanstack_react-query.js?v=4022a503:3295
+(anonymous) @ TicketDetails.tsx:1097
+(anonymous) @ TicketDetails.tsx:3359
+Promise.then
+onClick @ TicketDetails.tsx:3356
+callCallback2 @ chunk-SXRIVT2P.js?v=6a579b58:3680
+invokeGuardedCallbackDev @ chunk-SXRIVT2P.js?v=6a579b58:3705
+invokeGuardedCallback @ chunk-SXRIVT2P.js?v=6a579b58:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-SXRIVT2P.js?v=6a579b58:3742
+executeDispatch @ chunk-SXRIVT2P.js?v=6a579b58:7046
+processDispatchQueueItemsInOrder @ chunk-SXRIVT2P.js?v=6a579b58:7066
+processDispatchQueue @ chunk-SXRIVT2P.js?v=6a579b58:7075
+dispatchEventsForPlugins @ chunk-SXRIVT2P.js?v=6a579b58:7083
+(anonymous) @ chunk-SXRIVT2P.js?v=6a579b58:7206
+batchedUpdates$1 @ chunk-SXRIVT2P.js?v=6a579b58:18966
+batchedUpdates @ chunk-SXRIVT2P.js?v=6a579b58:3585
+dispatchEventForPluginEventSystem @ chunk-SXRIVT2P.js?v=6a579b58:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SXRIVT2P.js?v=6a579b58:5484
+dispatchEvent @ chunk-SXRIVT2P.js?v=6a579b58:5478
+dispatchDiscreteEvent @ chunk-SXRIVT2P.js?v=6a579b58:5455Understand this error
+main.tsx:16 ❌ Mutation error: Error: 500: {"success":false,"message":"Update failed: Failed to update ticket: there is no parameter $32","error":"UPDATE_OPERATION_FAILED","details":"Error: Update failed: Failed to update ticket: there is no parameter $32\n    at UpdateTicketUseCase.execute (/home/runner/workspace/server/modules/tickets/application/use-cases/UpdateTicketUseCase.ts:95:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at TicketController.update (/home/runner/workspace/server/modules/tickets/application/controllers/TicketController.ts:210:22)\n    at <anonymous> (/home/runner/workspace/server/modules/tickets/routes-integration.ts:569:5)"}
+    at throwIfResNotOk (queryClient.ts:53:11)
+    at async apiRequest (queryClient.ts:120:3)
+    at async Object.mutationFn (TicketDetails.tsx:896:24)

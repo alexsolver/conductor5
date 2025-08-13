@@ -228,6 +228,142 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
   }
 
   async update(id: string, data: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
+    try {
+      console.log('🔧 [DrizzleTicketRepositoryClean] Starting update with simplified approach');
+      
+      // Step 1: Get current ticket to verify it exists
+      const current = await this.findById(id, tenantId);
+      if (!current) {
+        throw new Error('Ticket not found');
+      }
+
+      // Step 2: Build update query with individual field updates
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const updates: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      // Only update fields that are provided and not empty
+      if (data.subject) {
+        updates.push(`subject = $${paramIndex++}`);
+        values.push(data.subject);
+      }
+      if (data.description) {
+        updates.push(`description = $${paramIndex++}`);
+        values.push(data.description);
+      }
+      if (data.status) {
+        updates.push(`status = $${paramIndex++}`);
+        values.push(data.status);
+      }
+      if (data.priority) {
+        updates.push(`priority = $${paramIndex++}`);
+        values.push(data.priority);
+      }
+      if (data.urgency) {
+        updates.push(`urgency = $${paramIndex++}`);
+        values.push(data.urgency);
+      }
+      if (data.impact) {
+        updates.push(`impact = $${paramIndex++}`);
+        values.push(data.impact);
+      }
+      if (data.category) {
+        updates.push(`category = $${paramIndex++}`);
+        values.push(data.category);
+      }
+      if (data.subcategory) {
+        updates.push(`subcategory = $${paramIndex++}`);
+        values.push(data.subcategory);
+      }
+      if (data.assignedToId) {
+        updates.push(`assigned_to_id = $${paramIndex++}`);
+        values.push(data.assignedToId);
+      }
+      if (data.linkTicketNumber) {
+        updates.push(`link_ticket_number = $${paramIndex++}`);
+        values.push(data.linkTicketNumber);
+      }
+      if (data.linkType) {
+        updates.push(`link_type = $${paramIndex++}`);
+        values.push(data.linkType);
+      }
+      if (data.linkComment) {
+        updates.push(`link_comment = $${paramIndex++}`);
+        values.push(data.linkComment);
+      }
+
+      // Always update timestamp
+      updates.push(`updated_at = NOW()`);
+      
+      // Add WHERE parameters
+      values.push(id, tenantId);
+      const whereId = paramIndex++;
+      const whereTenant = paramIndex++;
+
+      if (updates.length === 1) {
+        // Only timestamp update, return current ticket
+        console.log('⚠️ Only timestamp update needed');
+        return current;
+      }
+
+      const query = `
+        UPDATE ${schemaName}.tickets 
+        SET ${updates.join(', ')}
+        WHERE id = $${whereId} AND tenant_id = $${whereTenant} AND is_active = true
+        RETURNING *
+      `;
+
+      console.log('📝 Executing update:', {
+        updatesCount: updates.length - 1, // exclude timestamp
+        valuesCount: values.length,
+        query: query.substring(0, 100) + '...'
+      });
+
+      const result = await db.execute(sql.raw(query, values));
+      
+      if (result.rows.length === 0) {
+        throw new Error('Update failed - no rows affected');
+      }
+
+      const updatedTicket = result.rows[0] as any;
+      console.log('✅ Update successful:', updatedTicket.id);
+
+      return this.transformToTicket(updatedTicket);
+
+    } catch (error: any) {
+      console.error('❌ Update error:', error.message);
+      throw new Error(`Failed to update ticket: ${error.message}`);
+    }
+  }
+
+  private transformToTicket(dbRow: any): Ticket {
+    return {
+      ...dbRow,
+      callerId: dbRow.caller_id,
+      callerType: dbRow.caller_type,
+      beneficiaryId: dbRow.beneficiary_id,
+      beneficiaryType: dbRow.beneficiary_type,
+      assignedToId: dbRow.assigned_to_id,
+      assignmentGroupId: dbRow.assignment_group,
+      companyId: dbRow.company_id,
+      contactType: dbRow.contact_type,
+      businessImpact: dbRow.business_impact,
+      linkTicketNumber: dbRow.link_ticket_number,
+      linkType: dbRow.link_type,
+      linkComment: dbRow.link_comment,
+      tenantId: dbRow.tenant_id,
+      createdAt: dbRow.created_at,
+      updatedAt: dbRow.updated_at,
+      createdBy: dbRow.opened_by_id,
+      updatedBy: dbRow.updated_by,
+      isActive: dbRow.is_active,
+      followers: [],
+      tags: []
+    };
+  }
+
+  async updateComplex(id: string, data: UpdateTicketDTO, tenantId: string): Promise<Ticket> {
     console.log('💾 [DrizzleTicketRepositoryClean] update called:', { 
       id, 
       tenantId,
