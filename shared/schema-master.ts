@@ -290,6 +290,11 @@ export const tickets = pgTable("tickets", {
   resolutionCode: varchar("resolution_code", { length: 100 }),
   resolutionNotes: text("resolution_notes"),
 
+  // Ticket linking fields for relationships
+  linkTicketNumber: varchar("link_ticket_number", { length: 255 }),
+  linkType: varchar("link_type", { length: 50 }),
+  linkComment: text("link_comment"),
+
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
