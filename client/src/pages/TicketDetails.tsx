@@ -318,11 +318,15 @@ const TicketDetails = React.memo(() => {
     // Otimização: Update UI primeiro, depois fetch data
     setSelectedCompany(newCompanyId);
     form.setValue('customerCompanyId', newCompanyId);
+    
+    // 🚨 CORREÇÃO CRÍTICA: Marcar campo como dirty para garantir que seja enviado
+    form.trigger('customerCompanyId');
 
     console.log('✅ Company state updated:', {
       newSelectedCompany: newCompanyId,
-      formValueAfter: form.getValues('customerCompanyId')
-    });
+      formValueAfter: form.getValues('customerCompanyId'),
+      isFieldDirty: form.formState.dirtyFields.customerCompanyId
+    });</old_str>
 
     // Reset customer selections only when changing company
     form.setValue('callerId', '');
@@ -1078,8 +1082,8 @@ const TicketDetails = React.memo(() => {
       link_type: data.linkType || '',
       link_comment: data.linkComment || '',
 
-      // ✅ Company relationship - usar estado atualizado
-      company_id: selectedCompany || data.customerCompanyId || null,
+      // ✅ Company relationship - usar estado atualizado com fallback
+      company_id: selectedCompany || data.customerCompanyId || ticket?.company_id || ticket?.companyId || null,
 
       // Fields removed - not present in current schema: followers, tags
 
@@ -1095,14 +1099,19 @@ const TicketDetails = React.memo(() => {
     });
 
     console.log("💾 [TicketDetails] Sending mapped data to API:", mappedData);
-    console.log("🔍 [TicketDetails] DEBUG - State values before sending:", {
-      followersState: followers,
+    console.log("🔍 [TicketDetails] DEBUG - Company field mapping:", {
       selectedCompanyState: selectedCompany,
-      dataFollowers: data.followers,
-      dataCompanyId: data.customerCompanyId,
-      finalFollowers: mappedData.followers,
+      dataCustomerCompanyId: data.customerCompanyId,
+      ticketCompanyId: ticket?.company_id,
+      ticketCompanyIdAlt: ticket?.companyId,
       finalCompanyId: mappedData.company_id,
-      totalFields: Object.keys(mappedData).length
+      isCompanyFieldDirty: form.formState.dirtyFields.customerCompanyId,
+      formCompanyValue: form.getValues('customerCompanyId')
+    });
+    console.log("🔍 [TicketDetails] DEBUG - All mapped fields:", {
+      totalFields: Object.keys(mappedData).length,
+      mappedFieldsList: Object.keys(mappedData),
+      mappedData: mappedData
     });
 
     updateTicketMutation.mutate(mappedData);

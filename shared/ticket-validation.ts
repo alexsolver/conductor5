@@ -120,7 +120,7 @@ export const ticketFormSchema = z.object({
   // Arrays JSON - removed: followers, tags (not present in current schema)
 
   // Relacionamento com empresa cliente
-  customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID da empresa deve ser um UUID válido").optional(),
+  customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success || val === 'unspecified', "ID da empresa deve ser um UUID válido").optional(),
 
   // Ambiente
   environment: z.string().max(100).optional(),
