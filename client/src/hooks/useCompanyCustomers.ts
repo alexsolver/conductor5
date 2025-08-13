@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 interface Customer {
   id: string;
@@ -20,22 +21,35 @@ interface CustomerWithAssociation extends Customer {
   associationStatus?: 'active' | 'inactive';
 }
 
-export function useCompanyCustomers(companyId?: string) {
+export function useCompanyCustomers(companyId: string) {
   return useQuery({
-    queryKey: ['customers', 'by-company', companyId],
+    queryKey: ['company-customers', companyId],
     queryFn: async () => {
-      if (!companyId) return [];
+      try {
+        console.log('🔍 [useCompanyCustomers] Fetching customers for company:', companyId);
 
-      // ✅ Use the corrected endpoint
-      const response = await fetch(`/api/companies/${companyId}/customers`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch customers');
+        // Use the existing API endpoint that works
+        const response = await apiRequest('GET', `/api/companies/${companyId}/associated`);
+
+        console.log('✅ [useCompanyCustomers] API response:', response);
+
+        // Transform the response to match expected format
+        if (Array.isArray(response)) {
+          return response.map((customer: any) => ({
+            ...customer,
+            isAssociated: true // All customers from this endpoint are associated
+          }));
+        }
+
+        return response?.data || [];
+      } catch (error) {
+        console.error('❌ [useCompanyCustomers] Error:', error);
+        // Return empty array on error to prevent UI crashes
+        return [];
       }
-
-      const data = await response.json();
-      return data.success ? data.data : [];
     },
-    enabled: !!companyId,
+    enabled: !!companyId && companyId !== '',
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }

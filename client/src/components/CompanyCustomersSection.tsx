@@ -13,7 +13,7 @@ export default function CompanyCustomersSection({
   onAssociateCustomers 
 }: CompanyCustomersSectionProps) {
   // 🎯 [1QA-COMPLIANCE] Properly destructure from useQuery result
-  const { data: allCustomers, isLoading } = useCompanyCustomers(companyId);
+  const { data: allCustomers, isLoading, error } = useCompanyCustomers(companyId);
 
   if (isLoading) {
     return (
@@ -27,10 +27,14 @@ export default function CompanyCustomersSection({
     );
   }
 
+  if (error) {
+    console.warn('CompanyCustomersSection error:', error);
+  }
+
   // 🎯 [1QA-COMPLIANCE] Defensive programming - proteger contra undefined
-  const safeCustomers = allCustomers || [];
+  const safeCustomers = Array.isArray(allCustomers) ? allCustomers : [];
   const associatedCount = safeCustomers.filter((c: any) => c.isAssociated).length;
-  const availableCount = safeCustomers.filter((c: any) => !c.isAssociated).length;
+  const availableCount = safeCustomers.filter((c: any) => !c.isAssociated).length;ength;
 
   return (
     <div className="space-y-3 pt-3 border-t">

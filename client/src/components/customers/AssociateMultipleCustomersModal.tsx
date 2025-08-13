@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -17,6 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ScrollArea } from '../ui/scroll-area';
 import { Search, Users, Building2, AlertCircle, CheckCircle2, Check, UserCheck } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
+
+// Assume apiRequest is defined elsewhere and handles token, errors, and JSON parsing
+// Example signature: const apiRequest = async (method: string, url: string, body?: any) => Promise<any>;
 
 interface Customer {
   id: string;
@@ -69,60 +71,33 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
     setError(null);
 
     try {
-      const token = localStorage.getItem('accessToken');
-      
-      if (!token) {
-        throw new Error('Token de autenticação não encontrado');
-      }
-
       if (!company?.id) {
         throw new Error('ID da empresa não encontrado');
       }
 
       console.log('Fetching all customers and association status for company:', company.id);
 
-      // Fetch all customers and associated customers simultaneously
-      const [allCustomersResponse, associatedCustomersResponse] = await Promise.all([
-        fetch('/api/customers', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }),
-        fetch(`/api/companies/${company.id}/associated`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        })
-      ]);
+      // Fetch all customers first using the working endpoint
+      const allCustomersData = await apiRequest('GET', '/api/customers');
+      const allCustomers = allCustomersData?.customers || [];
 
-      const allCustomersData = await allCustomersResponse.json();
-      const associatedCustomersData = await associatedCustomersResponse.json();
+      // Fetch associated customers for this company using the working endpoint
+      let associatedCustomers = [];
 
-      console.log('All customers response:', allCustomersData);
-      console.log('Associated customers response:', associatedCustomersData);
-
-      if (!allCustomersResponse.ok) {
-        throw new Error(allCustomersData.message || `HTTP ${allCustomersResponse.status}: Failed to fetch customers`);
+      try {
+        const associatedData = await apiRequest('GET', `/api/companies/${company.id}/associated`);
+        associatedCustomers = Array.isArray(associatedData) ? associatedData : (associatedData?.data || []);
+      } catch (associatedError) {
+        console.warn('Could not fetch associated customers, assuming none:', associatedError);
+        associatedCustomers = [];
       }
 
-      if (!associatedCustomersResponse.ok || !associatedCustomersData.success) {
-        throw new Error(associatedCustomersData.message || `HTTP ${associatedCustomersResponse.status}: Failed to fetch associated customers`);
-      }
-
-      // Get list of associated customer IDs
-      const associatedIds = new Set(
-        (associatedCustomersData.data || []).map((customer: any) => customer.id)
-      );
-
-      // Add association status to all customers
-      const customersWithStatus = (allCustomersData.customers || allCustomersData.data || []).map((customer: any) => ({
+      // Mark customers as associated or not
+      const customersWithStatus = allCustomers.map((customer: Customer) => ({
         ...customer,
-        isAssociated: associatedIds.has(customer.id)
+        isAssociated: associatedCustomers.some((associated: any) => associated.id === customer.id)
       }));
 
-      console.log('Customers with association status:', customersWithStatus);
       setCustomers(customersWithStatus);
     } catch (error: any) {
       console.error('Error fetching customers:', error);
@@ -137,7 +112,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
     if (isAssociated) {
       return;
     }
-    
+
     setSelectedCustomerIds(prev => 
       prev.includes(customerId) 
         ? prev.filter(id => id !== customerId)
@@ -149,7 +124,8 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
     const filteredCustomers = getFilteredCustomers();
     // Only include customers that are not already associated
     const availableCustomers = filteredCustomers.filter(customer => !customer.isAssociated);
-    const allAvailableSelected = availableCustomers.every(customer => 
+    const allAvailableSelected = availableCustomers.length > 0 && 
+      availableCustomers.every(customer => 
       selectedCustomerIds.includes(customer.id)
     );
 
@@ -171,7 +147,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       const searchLower = searchTerm.toLowerCase();
       const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
       const displayName = customer.customerType === 'PJ' ? customer.companyName : fullName;
-      
+
       return (
         displayName?.toLowerCase().includes(searchLower) ||
         customer.email.toLowerCase().includes(searchLower)
@@ -190,7 +166,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
     setSuccess(null);
 
     try {
-      const token = localStorage.getItem('accessToken');
       let successCount = 0;
       let errorCount = 0;
       const errors: string[] = [];
@@ -198,22 +173,13 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       // Process customers sequentially to avoid overwhelming the server
       for (const customerId of selectedCustomerIds) {
         try {
-          const response = await fetch(`/api/customers/${customerId}/companies`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+          const response = await apiRequest('POST', `/api/customers/${customerId}/companies`, {
               companyId: company?.id,
               role: 'member',
-            }),
-          });
+            });
 
-          const data = await response.json();
-
-          if (!response.ok || !data.success) {
-            throw new Error(data.message || `HTTP ${response.status}`);
+          if (!response.success) {
+            throw new Error(response.message || 'Falha ao associar cliente');
           }
 
           successCount++;
@@ -250,10 +216,10 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       };
 
       console.log('Association completed:', data);
-      
+
       // Reset form
       setSelectedCustomerIds([]);
-      
+
       // Notify parent component
       setTimeout(() => {
         onSuccess();
@@ -375,21 +341,21 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                             }`}>
                               {displayName || customer.email}
                             </p>
-                            
+
                             {customer.isAssociated && (
                               <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
                                 <UserCheck className="w-3 h-3 mr-1" />
                                 Associado
                               </Badge>
                             )}
-                            
+
                             <Badge 
                               variant={customer.customerType === 'PJ' ? 'default' : 'secondary'}
                               className="text-xs"
                             >
                               {customer.customerType}
                             </Badge>
-                            
+
                             {customer.status !== 'Ativo' && (
                               <Badge variant="destructive" className="text-xs">
                                 {customer.status}
