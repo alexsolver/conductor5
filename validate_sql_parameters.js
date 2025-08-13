@@ -1,12 +1,16 @@
 
 /**
- * SQL Parameter Validation Script - Node.js Compatible
+ * SQL Parameter Validation Script - ES Modules Compatible
  * Systematically identifies and fixes SQL parameter indexing issues
  * Following 1qa.md compliance
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class SQLParameterValidator {
   constructor() {
@@ -204,7 +208,7 @@ class SQLParameterValidator {
 }
 
 // Execute if run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const validator = new SQLParameterValidator();
   validator.validateAllFiles()
     .then(() => {
@@ -223,3 +227,5 @@ if (require.main === module) {
       process.exit(1);
     });
 }
+
+export { SQLParameterValidator };
