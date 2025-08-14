@@ -874,7 +874,7 @@ export default function TenantAdminIntegrations() {
     }
   };
 
-  const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
+  const onSubmitConfig = async (data: z.infer<typeof integrationConfigSchema>) => {
     if (!selectedIntegration) {
       toast({
         title: "❌ Erro de validação",
