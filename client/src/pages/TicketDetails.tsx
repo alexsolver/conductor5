@@ -100,7 +100,7 @@ const TicketDetails = React.memo(() => {
   const [showInternalActionModal, setShowInternalActionModal] = useState(false);
   const [showExternalActionModal, setShowExternalActionModal] = useState(false);
   // Move history view mode state outside form context to prevent unwanted updates
-  const [historyViewMode, setHistoryViewMode] = useState<'simple' | 'advanced'>('simple');
+  const [historyViewMode, setHistoryViewMode] = useState<'simple' | 'advanced'>('advanced');
   const [latestInteractions, setLatestInteractions] = useState<any[]>([]);
   // Followers state removed - using direct computation with currentFollowers
   const [tags, setTags] = useState<string[]>([]);
