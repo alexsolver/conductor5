@@ -2456,9 +2456,8 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
 
     console.log(`🔍 [HISTORY-ULTRA-COMPLETE] Buscando histórico 100% completo para ticket: ${id}`);
 
-    // ✅ HISTÓRICO SIMPLIFICADO PARA TESTE
+    // ✅ TESTE SIMPLES - APENAS ticket_history
     const ultraCompleteHistoryQuery = `
-      -- 🔥 HISTÓRICO PRINCIPAL DO TICKET (ticket_history) - TESTE SIMPLES
       SELECT 
         'ticket_history' as source,
         th.id,
@@ -2466,322 +2465,25 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.description,
         th.performed_by,
         th.performed_by_name,
-        th.created_at,
-        'Histórico do Sistema' as category_name
-      FROM "${schemaName}".ticket_history th
-      WHERE th.ticket_id = $1::uuid AND th.tenant_id = $2::uuid
-
-      UNION ALL
-
-      -- 🔥 AUDITORIA DE CRIAÇÃO DO TICKET (baseada na tabela tickets)
-      SELECT 
-        'ticket_creation' as source,
-        CONCAT('ticket-creation-', t.id) as id,
-        'ticket_created' as action_type,
-        'Ticket criado: ' || t.subject || 
-        CASE WHEN t.description IS NOT NULL AND t.description != '' 
-             THEN ' - ' || LEFT(t.description, 100) || CASE WHEN LENGTH(t.description) > 100 THEN '...' ELSE '' END 
-             ELSE '' END as description,
-        COALESCE(t.created_by, '00000000-0000-0000-0000-000000000000'::uuid) as performed_by,
-        COALESCE(u_creator.first_name || ' ' || u_creator.last_name, u_creator.email, 'Sistema Automatizado') as performed_by_name,
         null as ip_address,
         null as user_agent,
         null as session_id,
-        t.subject as old_value,
-        t.subject as new_value,
-        'ticket_subject' as field_name,
-        t.created_at,
-        json_build_object(
-          'ticket_number', t.number,
-          'initial_status', t.status,
-          'initial_priority', t.priority,
-          'initial_category', t.category,
-          'initial_subcategory', t.subcategory,
-          'caller_id', t.caller_id,
-          'company_id', t.company_id,
-          'created_method', 'direct_creation'
-        )::text as metadata,
+        th.old_value,
+        th.new_value,
+        th.field_name,
+        th.created_at,
+        th.metadata,
         true as is_visible,
         'primary' as priority_level,
-        'Criação do Ticket' as category_name,
-        'ticket_lifecycle' as activity_group,
-        0 as sort_priority
-      FROM "${schemaName}".tickets t
-      LEFT JOIN public.users u_creator ON t.created_by = u_creator.id
-      WHERE t.id = $1::uuid AND t.tenant_id = $2::uuid
-
-      UNION ALL
-
-      -- 🔥 AÇÕES INTERNAS DETALHADAS (ticket_internal_actions)
+        'Histórico do Sistema' as category_name,
+        'system_activity' as activity_group,
+        1 as sort_priority
+      FROM "${schemaName}".ticket_history th
+      WHERE th.ticket_id = $1::uuid AND th.tenant_id = $2::uuid
+      ORDER BY th.created_at DESC`;
       SELECT 
         'internal_action' as source,
         tia.id,
-        'internal_action_' || tia.action_type as action_type,
-        CASE 
-          WHEN tia.title IS NOT NULL AND tia.title != '' THEN 
-            'Ação Interna: ' || tia.title || CASE WHEN tia.description IS NOT NULL AND tia.description != '' THEN ' - ' || tia.description ELSE '' END
-          ELSE 
-            'Ação Interna: ' || COALESCE(tia.action_type, 'Indefinida') || CASE WHEN tia.description IS NOT NULL THEN ' - ' || tia.description ELSE '' END
-        END as description,
-        tia.agent_id as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Agente Desconhecido') as performed_by_name,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        CASE 
-          WHEN tia.start_time IS NOT NULL THEN TO_CHAR(tia.start_time, 'DD/MM/YYYY HH24:MI')
-          ELSE COALESCE(tia.status, 'pendente')
-        END as old_value,
-        CASE 
-          WHEN tia.end_time IS NOT NULL THEN TO_CHAR(tia.end_time, 'DD/MM/YYYY HH24:MI')
-          ELSE COALESCE(tia.status, 'pendente')
-        END as new_value,
-        'internal_action' as field_name,
-        tia.created_at,
-        json_build_object(
-          'action_number', tia.action_number,
-          'estimated_hours', COALESCE(tia.estimated_hours, 0),
-          'start_time', tia.start_time,
-          'end_time', tia.end_time,
-          'planned_start_time', tia.planned_start_time,
-          'planned_end_time', tia.planned_end_time,
-          'priority', COALESCE(tia.priority, 'medium'),
-          'status', COALESCE(tia.status, 'pending'),
-          'action_type', tia.action_type,
-          'title', tia.title,
-          'agent_id', tia.agent_id,
-          'has_time_tracking', CASE WHEN tia.start_time IS NOT NULL OR tia.end_time IS NOT NULL THEN true ELSE false END
-        )::text as metadata,
-        true as is_visible,
-        'secondary' as priority_level,
-        'Ação Interna' as category_name,
-        'internal_work' as activity_group,
-        2 as sort_priority
-      FROM "${schemaName}".ticket_internal_actions tia
-      LEFT JOIN public.users u ON tia.agent_id = u.id
-      WHERE tia.ticket_id = $1::uuid AND tia.tenant_id = $2::uuid
-
-      UNION ALL
-
-      -- 🔥 NOTAS DETALHADAS (ticket_notes) - INCLUINDO EXCLUÍDAS
-      SELECT 
-        'note' as source,
-        tn.id,
-        CASE 
-          WHEN tn.is_active = false THEN 'note_deleted'
-          WHEN tn.is_internal THEN 'note_internal_added' 
-          ELSE 'note_public_added' 
-        END as action_type,
-        CASE 
-          WHEN tn.is_active = false THEN 'Nota EXCLUÍDA: '
-          WHEN tn.is_internal THEN 'Nota Interna: ' 
-          ELSE 'Nota Pública: ' 
-        END || LEFT(tn.content, 150) || 
-        CASE WHEN LENGTH(tn.content) > 150 THEN '...' ELSE '' END as description,
-        tn.created_by as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as performed_by_name,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        null as old_value,
-        CASE WHEN tn.is_active = false THEN '[NOTA EXCLUÍDA]' ELSE tn.content END as new_value,
-        'note_content' as field_name,
-        CASE WHEN tn.is_active = false THEN tn.updated_at ELSE tn.created_at END as created_at,
-        json_build_object(
-          'note_type', COALESCE(tn.note_type, 'general'),
-          'is_internal', tn.is_internal,
-          'is_public', tn.is_public,
-          'is_active', tn.is_active,
-          'content_length', LENGTH(tn.content),
-          'content_preview', LEFT(tn.content, 200),
-          'note_id', tn.id,
-          'note_status', CASE WHEN tn.is_active = false THEN 'deleted' ELSE 'active' END
-        )::text as metadata,
-        true as is_visible,
-        'secondary' as priority_level,
-        CASE 
-          WHEN tn.is_active = false THEN 'Nota Excluída'
-          WHEN tn.is_internal THEN 'Nota Interna' 
-          ELSE 'Nota Pública' 
-        END as category_name,
-        'communication' as activity_group,
-        3 as sort_priority
-      FROM "${schemaName}".ticket_notes tn
-      LEFT JOIN public.users u ON tn.created_by = u.id
-      WHERE tn.ticket_id = $1::uuid AND tn.tenant_id = $2::uuid
-
-      UNION ALL
-
-      -- 🔥 ANEXOS DETALHADOS (ticket_attachments) - INCLUINDO EXCLUÍDOS
-      SELECT 
-        'attachment' as source,
-        ta.id,
-        CASE 
-          WHEN ta.is_active = false THEN 'attachment_deleted'
-          ELSE 'attachment_uploaded'
-        END as action_type,
-        CASE 
-          WHEN ta.is_active = false THEN 'Anexo EXCLUÍDO: '
-          ELSE 'Anexo enviado: '
-        END || ta.file_name || 
-        ' (Tamanho: ' || ROUND(ta.file_size::numeric / 1024, 2) || ' KB' ||
-        CASE WHEN ta.description IS NOT NULL AND ta.description != '' THEN ', Descrição: ' || ta.description ELSE '' END || ')' as description,
-        ta.created_by as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as performed_by_name,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        null as old_value,
-        CASE WHEN ta.is_active = false THEN '[ANEXO EXCLUÍDO]' ELSE ta.file_name END as new_value,
-        'attachment' as field_name,
-        CASE WHEN ta.is_active = false THEN ta.updated_at ELSE ta.created_at END as created_at,
-        json_build_object(
-          'file_name', ta.file_name,
-          'file_size', ta.file_size,
-          'file_size_kb', ROUND(ta.file_size::numeric / 1024, 2),
-          'content_type', COALESCE(ta.content_type, ta.file_type),
-          'file_path', ta.file_path,
-          'description', ta.description,
-          'attachment_id', ta.id,
-          'is_active', ta.is_active,
-          'attachment_status', CASE WHEN ta.is_active = false THEN 'deleted' ELSE 'active' END
-        )::text as metadata,
-        true as is_visible,
-        'secondary' as priority_level,
-        CASE WHEN ta.is_active = false THEN 'Anexo Excluído' ELSE 'Anexo' END as category_name,
-        'file_management' as activity_group,
-        4 as sort_priority
-      FROM "${schemaName}".ticket_attachments ta
-      LEFT JOIN public.users u ON ta.created_by = u.id
-      WHERE ta.ticket_id = $1::uuid AND ta.tenant_id = $2::uuid
-
-      UNION ALL
-
-      -- 🔥 COMUNICAÇÕES EXTERNAS (ticket_communications) 
-      SELECT 
-        'communication' as source,
-        tc.id,
-        'communication_' || COALESCE(tc.communication_type, 'unknown') as action_type,
-        CASE COALESCE(tc.communication_type, 'unknown')
-          WHEN 'email' THEN 'Email ' || COALESCE(tc.direction, 'unknown') || ': ' || COALESCE(tc.subject, 'Sem assunto')
-          WHEN 'phone' THEN 'Chamada telefônica ' || COALESCE(tc.direction, 'unknown')
-          WHEN 'chat' THEN 'Chat ' || COALESCE(tc.direction, 'unknown')
-          ELSE 'Comunicação ' || COALESCE(tc.direction, 'unknown') || ' via ' || COALESCE(tc.communication_type, 'unknown')
-        END || 
-        CASE WHEN tc.content IS NOT NULL AND LENGTH(tc.content) > 0 
-             THEN ' - ' || LEFT(tc.content, 100) || CASE WHEN LENGTH(tc.content) > 100 THEN '...' ELSE '' END 
-             ELSE '' END as description,
-        COALESCE(tc.created_by, '00000000-0000-0000-0000-000000000000'::uuid) as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Comunicação') as performed_by_name,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        COALESCE(tc.from_address, '') as old_value,
-        COALESCE(tc.to_address, '') as new_value,
-        'communication' as field_name,
-        tc.created_at,
-        json_build_object(
-          'communication_type', COALESCE(tc.communication_type, 'unknown'),
-          'direction', COALESCE(tc.direction, 'unknown'),
-          'from_address', tc.from_address,
-          'to_address', tc.to_address,
-          'subject', tc.subject,
-          'content_preview', LEFT(COALESCE(tc.content, ''), 200),
-          'message_id', tc.message_id,
-          'thread_id', tc.thread_id,
-          'is_active', COALESCE(tc.is_active, true)
-        )::text as metadata,
-        true as is_visible,
-        'secondary' as priority_level,
-        'Comunicação Externa' as category_name,
-        'external_communication' as activity_group,
-        5 as sort_priority
-      FROM "${schemaName}".ticket_communications tc
-      LEFT JOIN public.users u ON tc.created_by = u.id
-      WHERE tc.ticket_id = $1::uuid AND tc.tenant_id = $2::uuid AND COALESCE(tc.is_active, true) = true
-
-      UNION ALL
-
-      -- 🔥 RELACIONAMENTOS ENTRE TICKETS (ticket_relationships)
-      SELECT 
-        'relationship' as source,
-        tr.id,
-        'ticket_relationship_' || COALESCE(tr.relationship_type, 'unknown') as action_type,
-        'Relacionamento criado: ' || COALESCE(tr.relationship_type, 'desconhecido') || ' com ticket ' ||
-        COALESCE(
-          (SELECT COALESCE(number, 'T-' || SUBSTRING(id::text, 1, 8)) FROM "${schemaName}".tickets 
-           WHERE id = CASE WHEN tr.source_ticket_id = $1 THEN tr.target_ticket_id ELSE tr.source_ticket_id END),
-          'ticket desconhecido'
-        ) ||
-        CASE WHEN tr.description IS NOT NULL AND tr.description != '' THEN ' - ' || tr.description ELSE '' END as description,
-        COALESCE(tr.created_by, '00000000-0000-0000-0000-000000000000'::uuid) as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Relacionamentos') as performed_by_name,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        tr.source_ticket_id::text as old_value,
-        tr.target_ticket_id::text as new_value,
-        'ticket_relationship' as field_name,
-        tr.created_at,
-        json_build_object(
-          'relationship_type', COALESCE(tr.relationship_type, 'unknown'),
-          'source_ticket_id', tr.source_ticket_id,
-          'target_ticket_id', tr.target_ticket_id,
-          'description', tr.description,
-          'relationship_id', tr.id,
-          'is_bidirectional', tr.relationship_type IN ('related', 'duplicate')
-        )::text as metadata,
-        true as is_visible,
-        'secondary' as priority_level,
-        'Relacionamento' as category_name,
-        'ticket_linking' as activity_group,
-        6 as sort_priority
-      FROM "${schemaName}".ticket_relationships tr
-      LEFT JOIN public.users u ON tr.created_by = u.id
-      WHERE (tr.source_ticket_id = $1::uuid OR tr.target_ticket_id = $1::uuid) AND tr.tenant_id = $2::uuid
-
-      UNION ALL
-
-      -- 🔥 AUDITORIA DE EDIÇÕES DO TICKET (baseada em updated_at vs created_at)
-      SELECT 
-        'ticket_edit_detection' as source,
-        t.id || '_edit_' || EXTRACT(EPOCH FROM t.updated_at)::text as id,
-        'ticket_edited' as action_type,
-        'Ticket editado - detecção automática baseada em timestamp de atualização' as description,
-        COALESCE(t.updated_by, t.created_by, '00000000-0000-0000-0000-000000000000'::uuid) as performed_by,
-        COALESCE(u_editor.first_name || ' ' || u_editor.last_name, u_editor.email, 'Editor Desconhecido') as performed_by_name,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
-        TO_CHAR(t.created_at, 'DD/MM/YYYY HH24:MI:SS') as old_value,
-        TO_CHAR(t.updated_at, 'DD/MM/YYYY HH24:MI:SS') as new_value,
-        'ticket_last_modified' as field_name,
-        t.updated_at,
-        json_build_object(
-          'detection_method', 'timestamp_comparison',
-          'created_at', t.created_at,
-          'updated_at', t.updated_at,
-          'time_since_creation_hours', EXTRACT(EPOCH FROM (t.updated_at - t.created_at)) / 3600,
-          'current_status', t.status,
-          'current_priority', t.priority,
-          'last_editor', COALESCE(t.updated_by::text, 'unknown')
-        )::text as metadata,
-        true as is_visible,
-        'primary' as priority_level,
-        'Edição Automática Detectada' as category_name,
-        'auto_detection' as activity_group,
-        7 as sort_priority
-      FROM "${schemaName}".tickets t
-      LEFT JOIN public.users u_editor ON COALESCE(t.updated_by, t.created_by) = u_editor.id
-      WHERE t.id = $1::uuid AND t.tenant_id = $2::uuid
-        AND t.updated_at > t.created_at + INTERVAL '1 second'
-
-      -- ✅ ORDENAÇÃO CRONOLÓGICA REVERSA COM PRIORIDADE DE SISTEMA
-      ORDER BY created_at DESC, sort_priority ASC, source ASC
-    `;
-
-    const historyResult = await pool.query(ultraCompleteHistoryQuery, [id, tenantId]);
-
     console.log(`✅ [HISTORY-ULTRA-COMPLETE] Encontradas ${historyResult.rows.length} entradas de histórico 100% completo`);
 
     // ✅ PROCESSAMENTO E ENRIQUECIMENTO 100% COMPLETO DOS DADOS
