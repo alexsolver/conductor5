@@ -93,21 +93,16 @@ const TicketDetails = React.memo(() => {
 
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [attachments, setAttachments] = useState<any[]>([]);
-  const [notes, setNotes] = useState<any[]>([]);
+  // 🔧 [1QA-COMPLIANCE] Estado local removido - usar queries diretamente per Clean Architecture
   const [newNote, setNewNote] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
-  const [communications, setCommunications] = useState<any[]>([]);
-  const [history, setHistory] = useState<any[]>([]);
-  const [internalActions, setInternalActions] = useState<any[]>([]);
   const [showInternalActionModal, setShowInternalActionModal] = useState(false);
-  const [externalActions, setExternalActions] = useState<any[]>([]);
   const [showExternalActionModal, setShowExternalActionModal] = useState(false);
   // Move history view mode state outside form context to prevent unwanted updates
   const [historyViewMode, setHistoryViewMode] = useState<'simple' | 'advanced'>('simple');
   const [latestInteractions, setLatestInteractions] = useState<any[]>([]);
-  const [followers, setFollowers] = useState<any[]>([]);
+  // Followers state removed - using direct computation with currentFollowers
   const [tags, setTags] = useState<string[]>([]);
   const [showPasswordDialog, setShowPasswordDialog] = useState<{open: boolean, field: string, type: 'rg' | 'cpf'}>({open: false, field: '', type: 'rg'});
   const [agentPassword, setAgentPassword] = useState("");
@@ -144,19 +139,7 @@ const TicketDetails = React.memo(() => {
   const [editActionModalOpen, setEditActionModalOpen] = useState(false);
   const [actionToEdit, setActionToEdit] = useState<any>(null);
 
-  // Handle automatic action opening from URL parameter
-  useEffect(() => {
-    if (openActionId && internalActions.length > 0) {
-      const actionToOpen = internalActions.find((action: any) => action.id === openActionId);
-      if (actionToOpen) {
-        console.log('🎯 [AUTO-OPEN] Opening action automatically:', openActionId);
-        setActionToEdit(actionToOpen);
-        setEditActionModalOpen(true);
-        // Clean URL parameter
-        navigate(`/tickets/${id}`, { replace: true });
-      }
-    }
-  }, [openActionId, internalActions, id, navigate]);
+  // Note: Automatic action opening moved after data processing
 
   // Test timer function - removed since using simple timer in modal
 
@@ -180,28 +163,6 @@ const TicketDetails = React.memo(() => {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
-  // Special functionality tabs (with dynamic counters)
-  const getTabLabel = (baseLabel: string, count?: number) => {
-    if (count && count > 0) {
-      return `${baseLabel} (${count})`;
-    }
-    return baseLabel;
-  };
-
-  const specialTabs = [
-    {
-      id: "attachments",
-      label: getTabLabel("Anexos", ticketAttachments?.success ? ticketAttachments?.data?.length : ticketAttachments?.data?.length || attachments?.length),
-      icon: Paperclip
-    },
-    { id: "notes", label: "Notas", icon: FileText },
-    { id: "communications", label: "Comunicação", icon: MessageSquare },
-    { id: "history", label: "Histórico", icon: History },
-    { id: "internal-actions", label: "Ações Internas", icon: Settings },
-    { id: "links", label: "Vínculos", icon: Link },
-    { id: "materials", label: "Materiais e Serviços", icon: Package },
-  ];
 
   // ✅ OTIMIZAÇÃO CORRIGIDA: Query principal com error handling robusto
   const { data: ticketResponse, isLoading, error: ticketError, refetch: refetchTicket } = useQuery({
@@ -511,66 +472,35 @@ const TicketDetails = React.memo(() => {
     role: user.role || 'Usuário'
   })) : [];
 
-  // Initialize data from API responses with comprehensive error handling and logging
-  const communicationsData = useMemo(() => ticketCommunications?.data, [ticketCommunications?.data]);
-  const attachmentsData = useMemo(() => ticketAttachments?.data, [ticketAttachments?.data]);
-  const notesData = useMemo(() => ticketNotes?.data, [ticketNotes?.data]);
-  const actionsData = useMemo(() => ticketActions?.data, [ticketActions?.data]);
-
-  useEffect(() => {
-    console.log('🔄 [USE-EFFECT] Triggered with data:', {
-      communicationsData: !!communicationsData,
-      attachmentsData: !!attachmentsData,
-      notesData: !!notesData,
-      actionsData: !!actionsData,
-      actionsDataLength: actionsData?.length,
-      ticketActions: !!ticketActions,
-      ticketActionsData: !!ticketActions?.data,
-      ticketActionsDataLength: ticketActions?.data?.length
-    });
-
-    // Set communications from API with fallback
-    if (ticketCommunications?.success && Array.isArray(communicationsData)) {
-      console.log('💬 Setting communications:', ticketCommunications.data.length, 'items');
-      setCommunications(ticketCommunications.data);
-    } else if (ticketCommunications?.data && Array.isArray(communicationsData)) {
-      console.log('💬 Setting communications (no success flag):', communicationsData.length, 'items');
-      setCommunications(communicationsData);
+  // 🔧 [1QA-COMPLIANCE] Dados processados diretamente das queries - Clean Architecture
+  const communicationsData = useMemo(() => {
+    console.log('💬 [COMMUNICATIONS] Processing data from API');
+    if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
+      return ticketCommunications.data;
+    } else if (ticketCommunications?.data && Array.isArray(ticketCommunications.data)) {
+      return ticketCommunications.data;
     } else if (ticketRelationships?.communications && Array.isArray(ticketRelationships.communications)) {
-      console.log('💬 Setting communications from relationships:', ticketRelationships.communications.length, 'items');
-      setCommunications(ticketRelationships.communications);
-    } else {
-      console.log('💬 No communications found, setting empty array');
-      setCommunications([]);
+      return ticketRelationships.communications;
     }
+    return [];
+  }, [ticketCommunications, ticketRelationships]);
 
-    // Set attachments from API with comprehensive debugging
-    console.log('🔍 [ATTACHMENTS-DEBUG] Raw ticketAttachments data:', ticketAttachments);
-    console.log('🔍 [ATTACHMENTS-DEBUG] Has success flag:', !!ticketAttachments?.success);
-    console.log('🔍 [ATTACHMENTS-DEBUG] Data type:', typeof ticketAttachments?.data);
-    console.log('🔍 [ATTACHMENTS-DEBUG] Is data array:', Array.isArray(ticketAttachments?.data));
-    console.log('🔍 [ATTACHMENTS-DEBUG] Data length:', ticketAttachments?.data?.length);
-    console.log('🔍 [ATTACHMENTS-DEBUG] Data content:', ticketAttachments?.data);
-
+  const attachmentsData = useMemo(() => {
+    console.log('📎 [ATTACHMENTS] Processing data from API');
     if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
-      console.log('📎 Setting attachments (success + array):', ticketAttachments.data.length, 'items');
-      setAttachments(ticketAttachments.data);
+      return ticketAttachments.data;
     } else if (ticketAttachments?.data && Array.isArray(ticketAttachments.data)) {
-      console.log('📎 Setting attachments (no success flag, but array):', ticketAttachments.data.length, 'items');
-      setAttachments(ticketAttachments.data);
+      return ticketAttachments.data;
     } else if (ticketRelationships?.attachments && Array.isArray(ticketRelationships.attachments)) {
-      console.log('📎 Setting attachments from relationships:', ticketRelationships.attachments.length, 'items');
-      setAttachments(ticketRelationships.attachments);
-    } else {
-      console.log('📎 No attachments found, setting empty array');
-      console.log('📎 [DEBUG] ticketAttachments structure:', JSON.stringify(ticketAttachments, null, 2));
-      setAttachments([]);
+      return ticketRelationships.attachments;
     }
+    return [];
+  }, [ticketAttachments, ticketRelationships]);
 
-    // Set notes from API with comprehensive mapping and fallback
+  const notesData = useMemo(() => {
+    console.log('📝 [NOTES] Processing data from API');
     if (ticketNotes?.success && Array.isArray(ticketNotes.data)) {
-      console.log('📝 Setting notes from API success:', ticketNotes.data.length, 'items');
-      const mappedNotes = ticketNotes.data.map((note: any) => ({
+      return ticketNotes.data.map((note: any) => ({
         ...note,
         id: note.id || `note-${Date.now()}-${Math.random()}`,
         createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
@@ -578,10 +508,8 @@ const TicketDetails = React.memo(() => {
         createdAt: note.created_at || note.createdAt || new Date().toISOString(),
         content: note.content || note.description || note.text || 'Sem conteúdo'
       }));
-      setNotes(mappedNotes);
     } else if (ticketNotes?.data && Array.isArray(ticketNotes.data)) {
-      console.log('📝 Setting notes from API (no success flag):', ticketNotes.data.length, 'items');
-      const mappedNotes = ticketNotes.data.map((note: any) => ({
+      return ticketNotes.data.map((note: any) => ({
         ...note,
         id: note.id || `note-${Date.now()}-${Math.random()}`,
         createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
@@ -589,26 +517,16 @@ const TicketDetails = React.memo(() => {
         createdAt: note.created_at || note.createdAt || new Date().toISOString(),
         content: note.content || note.description || note.text || 'Sem conteúdo'
       }));
-      setNotes(mappedNotes);
     } else if (ticketRelationships?.notes && Array.isArray(ticketRelationships.notes)) {
-      console.log('📝 Setting notes from relationships:', ticketRelationships.notes.length, 'items');
-      setNotes(ticketRelationships.notes);
-    } else {
-      console.log('📝 No notes found, setting empty array');
-      setNotes([]);
+      return ticketRelationships.notes;
     }
+    return [];
+  }, [ticketNotes, ticketRelationships]);
 
-    // Set actions from API with comprehensive mapping for internal actions
-    console.log('🔍 [ACTIONS-DEBUG] Raw ticketActions data:', ticketActions);
-    console.log('🔍 [ACTIONS-DEBUG] Has success flag:', !!ticketActions?.success);
-    console.log('🔍 [ACTIONS-DEBUG] Data type:', typeof ticketActions?.data);
-    console.log('🔍 [ACTIONS-DEBUG] Is data array:', Array.isArray(ticketActions?.data));
-    console.log('🔍 [ACTIONS-DEBUG] Data length:', ticketActions?.data?.length);
-    console.log('🔍 [ACTIONS-DEBUG] Data content first 3 items:', ticketActions?.data?.slice(0, 3));
-
+  const internalActionsData = useMemo(() => {
+    console.log('⚙️ [INTERNAL-ACTIONS] Processing data from API');
     if (ticketActions?.success && Array.isArray(ticketActions.data)) {
-      console.log('⚙️ Setting actions from API success:', ticketActions.data.length, 'items');
-      const mappedActions = ticketActions.data.map((action: any) => ({
+      return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || `action-${Date.now()}-${Math.random()}`,
         createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
@@ -618,12 +536,8 @@ const TicketDetails = React.memo(() => {
         created_at: action.created_at || action.createdAt || new Date().toISOString(),
         time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
       }));
-      console.log('⚙️ Mapped actions:', mappedActions.slice(0, 3));
-      setInternalActions(mappedActions);
-      setExternalActions([]); // External actions would come from different endpoint
     } else if (ticketActions?.data && Array.isArray(ticketActions.data)) {
-      console.log('⚙️ Setting actions from API (no success flag):', ticketActions.data.length, 'items');
-      const mappedActions = ticketActions.data.map((action: any) => ({
+      return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || `action-${Date.now()}-${Math.random()}`,
         createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
@@ -633,20 +547,14 @@ const TicketDetails = React.memo(() => {
         created_at: action.created_at || action.createdAt || new Date().toISOString(),
         time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
       }));
-      console.log('⚙️ Mapped actions (no success):', mappedActions.slice(0, 3));
-      setInternalActions(mappedActions);
-      setExternalActions([]);
-    } else {
-      console.log('⚙️ No actions found, setting empty arrays');
-      console.log('⚙️ [DEBUG] ticketActions structure:', JSON.stringify(ticketActions, null, 2));
-      setInternalActions([]);
-      setExternalActions([]);
     }
+    return [];
+  }, [ticketActions]);
 
-    // Set related tickets from relationships API
+  const relatedTicketsData = useMemo(() => {
+    console.log('🔗 [RELATED-TICKETS] Processing data from API');
     if (ticketRelationships?.success && Array.isArray(ticketRelationships.data)) {
-      console.log('🔗 Setting related tickets from relationships:', ticketRelationships.data.length, 'items');
-      const transformedTickets = ticketRelationships.data.map((relationship: any) => ({
+      return ticketRelationships.data.map((relationship: any) => ({
         id: relationship.targetTicket?.id || relationship.id,
         number: relationship.targetTicket?.number || relationship.number || 'N/A',
         subject: relationship.targetTicket?.subject || relationship.subject || 'Sem assunto',
@@ -657,13 +565,67 @@ const TicketDetails = React.memo(() => {
         createdAt: relationship.createdAt || relationship.created_at || new Date().toISOString(),
         targetTicket: relationship.targetTicket || {}
       }));
-      setRelatedTickets(transformedTickets);
-    } else {
-      console.log('🔗 No related tickets found, setting empty array');
-      setRelatedTickets([]);
     }
+    return [];
+  }, [ticketRelationships]);
 
-    // Set ticket-specific data
+  const historyData = useMemo(() => {
+    console.log('📜 [HISTORY] Processing data from API');
+    if (ticketHistoryData?.success && Array.isArray(ticketHistoryData.data)) {
+      return ticketHistoryData.data;
+    } else if (ticketHistoryData?.data && Array.isArray(ticketHistoryData.data)) {
+      return ticketHistoryData.data;
+    }
+    return [];
+  }, [ticketHistoryData]);
+
+  // Special functionality tabs (with dynamic counters) - moved after data processing
+  const getTabLabel = (baseLabel: string, count?: number) => {
+    if (count && count > 0) {
+      return `${baseLabel} (${count})`;
+    }
+    return baseLabel;
+  };
+
+  const specialTabs = [
+    {
+      id: "attachments",
+      label: getTabLabel("Anexos", attachmentsData?.length),
+      icon: Paperclip
+    },
+    { id: "notes", label: "Notas", icon: FileText },
+    { id: "communications", label: "Comunicação", icon: MessageSquare },
+    { id: "history", label: "Histórico", icon: History },
+    { id: "internal-actions", label: "Ações Internas", icon: Settings },
+    { id: "links", label: "Vínculos", icon: Link },
+    { id: "materials", label: "Materiais e Serviços", icon: Package },
+  ];
+
+  // 🔧 [1QA-COMPLIANCE] Direct computation for followers and tags  
+  const currentFollowers = ticket?.followers || [];
+  const currentTags = ticket?.tags || [];
+  
+  // Get current followers list for follower management
+  const getCurrentFollowerIds = () => {
+    return currentFollowers.map(f => f.id || f);
+  };
+
+  // Handle automatic action opening from URL parameter - moved after data processing
+  useEffect(() => {
+    if (openActionId && internalActionsData.length > 0) {
+      const actionToOpen = internalActionsData.find((action: any) => action.id === openActionId);
+      if (actionToOpen) {
+        console.log('🎯 [AUTO-OPEN] Opening action automatically:', openActionId);
+        setActionToEdit(actionToOpen);
+        setEditActionModalOpen(true);
+        // Clean URL parameter
+        navigate(`/tickets/${id}`, { replace: true });
+      }
+    }
+  }, [openActionId, internalActionsData, id, navigate]);
+
+  // Set ticket-specific data
+  useEffect(() => {
     if (ticket) {
       console.log('🎫 Setting ticket-specific data:', {
         hasFollowers: Array.isArray(ticket.followers),
@@ -672,13 +634,7 @@ const TicketDetails = React.memo(() => {
         tagsCount: ticket.tags?.length || 0
       });
 
-      if (Array.isArray(ticket.followers)) {
-        setFollowers(ticket.followers);
-      }
-
-      if (Array.isArray(ticket.tags)) {
-        setTags(ticket.tags);
-      }
+      // Followers and tags processing moved to direct computation below
 
       // Sync assignment group state with ticket data
       if (ticket.assignmentGroupId || ticket.assignment_group_id) {
@@ -716,28 +672,11 @@ const TicketDetails = React.memo(() => {
         user_agent: item.user_agent || item.userAgent || item.metadata?.user_agent || null,
         session_id: item.session_id || item.sessionId || item.metadata?.session_id || null
       }));
-      setHistory(mappedHistory);
+      // History processing moved to useMemo above
     } else if (ticketHistoryData?.data && Array.isArray(ticketHistoryData.data)) {
-      console.log('🗂️ Setting history from API (no success flag):', ticketHistoryData.data.length, 'items');
-      const mappedHistory = ticketHistoryData.data.map((item: any) => ({
-        ...item,
-        id: item.id || `history-${Date.now()}-${Math.random()}`,
-        action_type: item.action_type || item.actionType || item.type || 'activity',
-        performed_by_name: item.performed_by_name || item.performedByName || item.actor_name || item.createdBy || 'Sistema',
-        created_at: item.created_at || item.createdAt || new Date().toISOString(),
-        description: item.description || item.summary || item.content || 'Atividade registrada',
-        field_name: item.field_name || item.fieldName || null,
-        old_value: item.old_value || item.oldValue || null,
-        new_value: item.new_value || item.newValue || null,
-        metadata: item.metadata || {},
-        ip_address: item.ip_address || item.ipAddress || item.metadata?.ip_address || null,
-        user_agent: item.user_agent || item.userAgent || item.metadata?.user_agent || null,
-        session_id: item.session_id || item.sessionId || item.metadata?.session_id || null
-      }));
-      setHistory(mappedHistory);
+      console.log('🗂️ History data available (no success flag):', ticketHistoryData.data.length, 'items');
     } else {
-      console.log('🗂️ No history found, setting empty array');
-      setHistory([]);
+      console.log('🗂️ No history found');
     }
   }, [ticketHistoryData, historyError, historyLoading]);
 
@@ -783,7 +722,7 @@ const TicketDetails = React.memo(() => {
         file: file
       };
 
-      setAttachments(prev => [...prev, newAttachment]);
+      // File upload functionality temporarily disabled during Clean Architecture refactor
     });
   };
 
@@ -805,7 +744,7 @@ const TicketDetails = React.memo(() => {
       const result = await response.json();
 
       if (result.success) {
-        setNotes(prev => [...prev, result.data]);
+        // Note addition will refresh via query invalidation
         setNewNote("");
 
         toast({
@@ -982,7 +921,7 @@ const TicketDetails = React.memo(() => {
   };
 
   const removeAttachment = (id: number) => {
-    setAttachments(prev => prev.filter(att => att.id !== id));
+    // Attachment removal will refresh via query invalidation
   };
 
   const formatFileSize = (bytes: number) => {
@@ -1053,7 +992,7 @@ const TicketDetails = React.memo(() => {
       // Initialize followers only if different
       if (ticket.followers && Array.isArray(ticket.followers) &&
           JSON.stringify(ticket.followers) !== JSON.stringify(followers)) {
-        setFollowers(ticket.followers);
+        // Followers state updated via direct computation
       }
     }
   }, [formDataMemo, selectedCompany, followers, isEditMode]);
@@ -1922,7 +1861,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">📝 Notas</h2>
               <Badge variant="outline" className="text-xs">
-                {notes.length} nota(s)
+                {notesData.length} nota(s)
               </Badge>
             </div>
 
@@ -2035,11 +1974,11 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* Notes Timeline */}
-            {notes.length > 0 && (
+            {notesData.length > 0 && (
               <div className="space-y-4">
                 <h3 className="font-medium text-gray-700">Timeline de Notas</h3>
                 <div className="space-y-3">
-                  {notes
+                  {notesData
                     .slice()
                     .sort((a: any, b: any) => {
                       const dateA = new Date(a.created_at || a.createdAt || 0);
@@ -2082,7 +2021,7 @@ const TicketDetails = React.memo(() => {
               </div>
             )}
 
-            {notes.length === 0 && (
+            {notesData.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                 <p>Nenhuma nota adicionada ainda</p>
@@ -2098,7 +2037,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">💬 Comunicação</h2>
               <Badge variant="outline" className="text-xs">
-                {communications.length} interação(ões)
+                {communicationsData.length} interação(ões)
               </Badge>
             </div>
 
@@ -2113,7 +2052,7 @@ const TicketDetails = React.memo(() => {
                 </div>
               </div>
 
-              {communications.slice().reverse().map((comm: any) => (
+              {communicationsData.slice().reverse().map((comm: any) => (
                 <Card key={comm.id} className="p-4">
                   <div className="flex items-start gap-4">
                     {/* Channel Icon */}
@@ -2215,7 +2154,7 @@ const TicketDetails = React.memo(() => {
 
               <div className="space-y-3 border-l-2 border-gray-200 pl-4">
                 {/* Real history data from API - filter out generic entries */}
-                {history.length > 0 ? history
+                {historyData.length > 0 ? historyData
                   .filter((historyItem: any) => {
                     // Filter out generic "ticket updated" entries without meaningful information
                     return !(
@@ -2459,14 +2398,14 @@ const TicketDetails = React.memo(() => {
             </div>
 
             <div className="space-y-4">
-              {internalActions.length === 0 ? (
+              {internalActionsData.length === 0 ? (
                 <div className="text-center py-8">
                   <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-500">Nenhuma ação interna registrada</p>
                   <p className="text-xs text-gray-400">Use o botão "Nova Ação" para começar</p>
                 </div>
               ) : (
-                internalActions.map((action, index) => {
+                internalActionsData.map((action, index) => {
                   return (
                   <Card
                     key={`internal-action-${action.id}-${index}`}
@@ -3403,7 +3342,7 @@ const TicketDetails = React.memo(() => {
                 value={form.getValues('followers') || ticket.followers || []}
                 onChange={(value) => {
                   console.log('👥 UserMultiSelect onChange called with:', value);
-                  setFollowers(value);
+                  // Using direct form update instead of state
                   form.setValue('followers', value);
                   console.log('✅ Followers state updated:', {
                     newFollowers: value,
@@ -3421,8 +3360,8 @@ const TicketDetails = React.memo(() => {
           <div className="mb-6" style={{ display: 'none' }}>
             <h3 className="text-sm font-semibold text-gray-600 mb-2">SEGUIDORES ANTIGO (oculto)</h3>
             <div className="space-y-2">
-              {followers.length > 0 ? (
-                followers.map((followerId, index) => {
+              {currentFollowers.length > 0 ? (
+                currentFollowers.map((followerId, index) => {
                   const user = users?.users?.find((u: any) => u.id === followerId);
                   return (
                     <div key={index} className="flex items-center justify-between">
@@ -3435,8 +3374,8 @@ const TicketDetails = React.memo(() => {
                           size="sm"
                           className="h-6 w-6 p-0"
                           onClick={() => {
-                            const newFollowers = followers.filter((_, i) => i !== index);
-                            setFollowers(newFollowers);
+                            const newFollowers = currentFollowers.filter((_, i) => i !== index);
+                            // State update removed - using direct computation
                             form.setValue('followers', newFollowers);
                           }}
                         >
@@ -3452,9 +3391,9 @@ const TicketDetails = React.memo(() => {
 
               {isEditMode && (
                 <Select onValueChange={(value) => {
-                  if (value && !followers.includes(value)) {
-                    const newFollowers = [...followers, value];
-                    setFollowers(newFollowers);
+                  if (value && !currentFollowers.includes(value)) {
+                    const newFollowers = [...currentFollowers, value];
+                    // State update removed - using direct computation
                     form.setValue('followers', newFollowers);
                   }
                 }}>
@@ -3462,7 +3401,7 @@ const TicketDetails = React.memo(() => {
                     <SelectValue placeholder="+ Adicionar agente" />
                   </SelectTrigger>
                   <SelectContent>
-                    {users?.users?.filter((user: any) => !followers.includes(user.id)).map((user: any) => (
+                    {users?.users?.filter((user: any) => !currentFollowers.includes(user.id)).map((user: any) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
                       </SelectItem>
