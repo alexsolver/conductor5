@@ -235,7 +235,7 @@ export default function TenantAdminIntegrations() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
-      }, 45000); // Increased timeout to 45 seconds
+      }, 30000); // Reduced timeout to 30 seconds
 
       let response;
       try {
@@ -649,12 +649,34 @@ export default function TenantAdminIntegrations() {
     setSelectedIntegration(integration);
 
     try {
-      // ✅ CRITICAL FIX: Validar se existe configuração antes de tentar carregar
+      // ✅ CRITICAL FIX: Usar fetch direto com headers corretos
       console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id}`);
-      const response = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
+      
+      const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/config`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error(`❌ [CONFIG-LOAD] Non-JSON response received:`, {
+          status: response.status,
+          contentType,
+          bodyStart: textResponse.substring(0, 200)
+        });
+        throw new Error('Servidor retornou resposta inválida (não JSON)');
       }
 
       const existingConfig = await response.json();

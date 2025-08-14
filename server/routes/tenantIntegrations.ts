@@ -5,6 +5,9 @@ import { Permission } from '../domain/authorization/RolePermissions';
 
 const router = Router();
 
+// ✅ DEBUG: Log quando as rotas são carregadas
+console.log('🔧 [TENANT-INTEGRATIONS] Registrando rotas de integrações tenant...');
+
 // Aplicar middlewares de autenticação e autorização
 router.use(jwtAuth);
 
@@ -126,15 +129,30 @@ router.get('/', async (req: any, res) => {
 /**
  * Obter configuração específica de uma integração
  */
-router.get('/:integrationId/config', async (req: any, res) => {
+// ✅ GET /api/tenant-admin/integrations/:integrationId/config - Get integration configuration
+router.get('/:integrationId/config', async (req: any, res: any) => {
   try {
+    console.log(`🔍 [GET-CONFIG] Route hit for integration: ${req.params.integrationId}`);
+
     const { integrationId } = req.params;
-    const tenantId = req.user!.tenantId;
+    const tenantId = req.user?.tenantId;
 
     if (!tenantId) {
-      return res.status(400).json({ message: 'User not associated with a tenant' });
+      console.error('❌ [GET-CONFIG] Tenant ID not found');
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID not found'
+      });
     }
 
+    if (!integrationId) {
+      console.error('❌ [GET-CONFIG] Integration ID not provided');
+      return res.status(400).json({
+        success: false,
+        message: 'Integration ID is required'
+      });
+    }
+    
     console.log(`[GET config route] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
     const { storage } = await import('../storage-simple');
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
@@ -328,7 +346,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
     // ✅ CRITICAL FIX: Set JSON content type header immediately to prevent HTML error pages
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'no-cache');
-    
+
     console.log(`🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para integração: ${req.params.integrationId}`);
 
     const { integrationId } = req.params;
