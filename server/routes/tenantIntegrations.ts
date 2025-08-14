@@ -111,7 +111,7 @@ router.get('/', async (req: any, res) => {
     const integrations = await storage.getTenantIntegrations(tenantId);
 
     console.log(`🔧 Found ${integrations.length} integrations for tenant ${tenantId}`);
-    
+
     // ✅ TELEGRAM FIX: Log específico para verificar se Telegram está nas integrações
     const telegramIntegration = integrations.find(i => i.id === 'telegram');
     if (telegramIntegration) {
@@ -874,4 +874,301 @@ router.post('/populate-all-14', async (req: any, res) => {
   }
 });
 
-export { router as default };
+// ===== TELEGRAM WEBHOOK ROUTES - RECEIVE MESSAGES =====
+
+/**
+ * Telegram Webhook Endpoint - Receive incoming messages
+ * POST /api/tenant-admin/integrations/telegram/webhook/:tenantId
+ */
+router.post('/telegram/webhook/:tenantId', async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    const webhookData = req.body;
+
+    console.log(`📨 [TELEGRAM-WEBHOOK] Received webhook for tenant: ${tenantId}`);
+    console.log(`📨 [TELEGRAM-WEBHOOK] Webhook data:`, JSON.stringify(webhookData, null, 2));
+
+    // ✅ VALIDATION: Check if it's a valid Telegram webhook
+    if (!webhookData.update_id) {
+      console.log(`❌ [TELEGRAM-WEBHOOK] Invalid webhook data - missing update_id`);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Telegram webhook data'
+      });
+    }
+
+    // ✅ SECURITY: Verify tenant exists
+    const { storage } = await import('../storage-simple');
+    const configResult = await storage.getTenantIntegrationConfig(tenantId, 'telegram');
+
+    if (!configResult.configured) {
+      console.log(`❌ [TELEGRAM-WEBHOOK] Telegram not configured for tenant: ${tenantId}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Telegram integration not configured for this tenant'
+      });
+    }
+
+    // ✅ PROCESSING: Handle different types of updates
+    const update = webhookData;
+    let processedMessage = null;
+
+    // Handle text messages
+    if (update.message && update.message.text) {
+      processedMessage = await processTelegramMessage(tenantId, update.message);
+    }
+
+    // Handle callback queries (inline keyboard buttons)
+    else if (update.callback_query) {
+      processedMessage = await processTelegramCallback(tenantId, update.callback_query);
+    }
+
+    // Handle other types of updates
+    else {
+      console.log(`📝 [TELEGRAM-WEBHOOK] Unsupported update type for tenant: ${tenantId}`);
+    }
+
+    // ✅ SUCCESS: Telegram expects 200 OK response
+    return res.status(200).json({
+      success: true,
+      message: 'Webhook processed successfully',
+      processed: !!processedMessage,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error: any) {
+    console.error(`❌ [TELEGRAM-WEBHOOK] Error processing webhook:`, error);
+
+    // ✅ CRITICAL: Always return 200 to Telegram to avoid retries
+    return res.status(200).json({
+      success: false,
+      message: 'Webhook processing error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+/**
+ * Set Telegram Webhook URL
+ * POST /api/tenant-admin/integrations/telegram/set-webhook
+ */
+router.post('/telegram/set-webhook', jwtAuth, enhancedTenantValidator(), async (req, res) => {
+  try {
+    const tenantId = req.user?.tenant_id || req.headers['x-tenant-id'] as string;
+    const { webhookUrl } = req.body;
+
+    console.log(`🔧 [TELEGRAM-WEBHOOK-SETUP] Setting webhook for tenant: ${tenantId}`);
+
+    // ✅ VALIDATION: Check webhook URL format
+    if (!webhookUrl || typeof webhookUrl !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'URL do webhook é obrigatória'
+      });
+    }
+
+    if (!webhookUrl.startsWith('https://')) {
+      return res.status(400).json({
+        success: false,
+        message: 'URL do webhook deve usar HTTPS'
+      });
+    }
+
+    // ✅ GET CONFIG: Load Telegram configuration
+    const { storage } = await import('../storage-simple');
+    const configResult = await storage.getTenantIntegrationConfig(tenantId, 'telegram');
+
+    if (!configResult.configured) {
+      return res.status(400).json({
+        success: false,
+        message: 'Configure a integração Telegram antes de definir o webhook'
+      });
+    }
+
+    const config = configResult.config;
+
+    // ✅ SET WEBHOOK: Call Telegram API to set webhook
+    const telegramWebhookUrl = `${webhookUrl}/api/tenant-admin/integrations/telegram/webhook/${tenantId}`;
+
+    console.log(`📤 [TELEGRAM-WEBHOOK-SETUP] Setting webhook URL: ${telegramWebhookUrl}`);
+
+    const response = await fetch(`https://api.telegram.org/bot${config.telegramBotToken}/setWebhook`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        url: telegramWebhookUrl,
+        allowed_updates: ['message', 'callback_query']
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.ok) {
+      // ✅ SAVE: Update configuration with webhook URL
+      const updatedConfig = {
+        ...config,
+        telegramWebhookUrl: webhookUrl,
+        webhookConfigured: true,
+        lastWebhookUpdate: new Date().toISOString()
+      };
+
+      await storage.saveTenantIntegrationConfig(tenantId, 'telegram', updatedConfig);
+
+      console.log(`✅ [TELEGRAM-WEBHOOK-SETUP] Webhook configured successfully`);
+
+      return res.json({
+        success: true,
+        message: '✅ Webhook do Telegram configurado com sucesso!',
+        details: {
+          webhookUrl: telegramWebhookUrl,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } else {
+      console.error(`❌ [TELEGRAM-WEBHOOK-SETUP] Failed to set webhook:`, result);
+
+      return res.status(400).json({
+        success: false,
+        message: `Erro ao configurar webhook: ${result.description || 'Erro desconhecido'}`,
+        details: result
+      });
+    }
+
+  } catch (error: any) {
+    console.error(`❌ [TELEGRAM-WEBHOOK-SETUP] Error:`, error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Erro interno ao configurar webhook',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Get Webhook Status
+ * GET /api/tenant-admin/integrations/telegram/webhook-status
+ */
+router.get('/telegram/webhook-status', jwtAuth, enhancedTenantValidator(), async (req, res) => {
+  try {
+    const tenantId = req.user?.tenant_id || req.headers['x-tenant-id'] as string;
+
+    // ✅ GET CONFIG: Load configuration
+    const { storage } = await import('../storage-simple');
+    const configResult = await storage.getTenantIntegrationConfig(tenantId, 'telegram');
+
+    if (!configResult.configured) {
+      return res.status(400).json({
+        success: false,
+        message: 'Integração Telegram não configurada'
+      });
+    }
+
+    const config = configResult.config;
+
+    // ✅ CHECK WEBHOOK: Get webhook info from Telegram
+    const response = await fetch(`https://api.telegram.org/bot${config.telegramBotToken}/getWebhookInfo`);
+    const webhookInfo = await response.json();
+
+    if (webhookInfo.ok) {
+      return res.json({
+        success: true,
+        webhookInfo: webhookInfo.result,
+        localConfig: {
+          webhookUrl: config.telegramWebhookUrl || null,
+          webhookConfigured: config.webhookConfigured || false,
+          lastUpdate: config.lastWebhookUpdate || null
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Erro ao obter status do webhook',
+        error: webhookInfo.description
+      });
+    }
+
+  } catch (error: any) {
+    console.error(`❌ [TELEGRAM-WEBHOOK-STATUS] Error:`, error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Erro interno ao verificar status do webhook',
+      error: error.message
+    });
+  }
+});
+
+// ===== HELPER FUNCTIONS =====
+
+/**
+ * Process incoming Telegram text message
+ */
+async function processTelegramMessage(tenantId: string, message: any) {
+  try {
+    console.log(`📝 [TELEGRAM-MESSAGE] Processing message for tenant: ${tenantId}`);
+    console.log(`📝 [TELEGRAM-MESSAGE] From: ${message.from.first_name} (@${message.from.username})`);
+    console.log(`📝 [TELEGRAM-MESSAGE] Text: ${message.text}`);
+
+    // ✅ STORE MESSAGE: Save to database or trigger workflows
+    const messageData = {
+      messageId: message.message_id,
+      chatId: message.chat.id,
+      fromUserId: message.from.id,
+      fromUsername: message.from.username,
+      fromFirstName: message.from.first_name,
+      text: message.text,
+      timestamp: new Date(message.date * 1000).toISOString(),
+      tenantId: tenantId
+    };
+
+    // TODO: Implement message storage or workflow triggers here
+    // Example: Create ticket, send to support team, trigger automation, etc.
+
+    console.log(`✅ [TELEGRAM-MESSAGE] Message processed successfully`);
+    return messageData;
+
+  } catch (error: any) {
+    console.error(`❌ [TELEGRAM-MESSAGE] Error processing message:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Process Telegram callback query (button clicks)
+ */
+async function processTelegramCallback(tenantId: string, callbackQuery: any) {
+  try {
+    console.log(`🔘 [TELEGRAM-CALLBACK] Processing callback for tenant: ${tenantId}`);
+    console.log(`🔘 [TELEGRAM-CALLBACK] Data: ${callbackQuery.data}`);
+    console.log(`🔘 [TELEGRAM-CALLBACK] From: ${callbackQuery.from.first_name}`);
+
+    // ✅ PROCESS CALLBACK: Handle button interactions
+    const callbackData = {
+      callbackId: callbackQuery.id,
+      data: callbackQuery.data,
+      messageId: callbackQuery.message?.message_id,
+      chatId: callbackQuery.message?.chat?.id,
+      fromUserId: callbackQuery.from.id,
+      fromUsername: callbackQuery.from.username,
+      fromFirstName: callbackQuery.from.first_name,
+      timestamp: new Date().toISOString(),
+      tenantId: tenantId
+    };
+
+    // TODO: Implement callback handling logic here
+    // Example: Update ticket status, confirm actions, etc.
+
+    console.log(`✅ [TELEGRAM-CALLBACK] Callback processed successfully`);
+    return callbackData;
+
+  } catch (error: any) {
+    console.error(`❌ [TELEGRAM-CALLBACK] Error processing callback:`, error);
+    throw error;
+  }
+}
+
+export default router;

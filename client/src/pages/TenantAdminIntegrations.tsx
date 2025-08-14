@@ -76,6 +76,7 @@ interface TenantIntegration {
   lastSync?: string;
 }
 
+// ✅ VALIDATION: Schema for integration configurations
 const integrationConfigSchema = z.object({
   enabled: z.boolean().default(false),
   apiKey: z.string().optional(),
@@ -101,11 +102,11 @@ const integrationConfigSchema = z.object({
   dropboxAppKey: z.string().optional(),
   dropboxAppSecret: z.string().optional(),
   dropboxAccessToken: z.string().optional(),
-  dropboxRefreshToken: z.string().optional(),
   backupFolder: z.string().optional(),
   // Telegram specific fields
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
+  telegramWebhookUrl: z.string().optional(), // Webhook URL for receiving messages
 });
 
 export default function TenantAdminIntegrations() {
@@ -113,6 +114,8 @@ export default function TenantAdminIntegrations() {
   const queryClient = useQueryClient();
   const [selectedIntegration, setSelectedIntegration] = useState<TenantIntegration | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [isTestingIntegration, setIsTestingIntegration] = useState(false); // State for general testing
+  const [testResult, setTestResult] = useState<any>(null); // State for test results
 
   const configForm = useForm<z.infer<typeof integrationConfigSchema>>({
     resolver: zodResolver(integrationConfigSchema),
@@ -141,28 +144,31 @@ export default function TenantAdminIntegrations() {
       // Telegram default values
       telegramBotToken: '',
       telegramChatId: '',
+      telegramWebhookUrl: '', // Default for webhook URL
     },
   });
 
-  // Query para buscar integrações
-  const { data: integrationsData, isLoading } = useQuery({
-    queryKey: ['/api/tenant-admin/integrations'],
-    queryFn: async () => {
-      const response = await fetch('/api/tenant-admin/integrations', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
+  // Function to load integrations
+  const loadIntegrations = async () => {
+    const response = await fetch('/api/tenant-admin/integrations', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    return response.json();
+  };
+
+  // Query para buscar integrações
+  const { data: integrationsData, isLoading, refetch } = useQuery({
+    queryKey: ['/api/tenant-admin/integrations'],
+    queryFn: loadIntegrations,
   });
 
   // Mutation para salvar configuração
@@ -186,210 +192,196 @@ export default function TenantAdminIntegrations() {
     }
   });
 
-  // Estado para controlar qual integração específica está sendo testada
-  const [testingIntegrationId, setTestingIntegrationId] = useState<string | null>(null);
-
-  const testIntegrationMutation = useMutation({
-    mutationFn: async (integrationId: string) => {
-      const response = await apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
-      return response.json();
-    },
-    onSuccess: (data, integrationId) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
-      toast({
-        title: "Teste realizado",
-        description: data.success ? "Integração funcionando corretamente." : "Erro na integração: " + data.error,
-        variant: data.success ? "default" : "destructive",
-      });
-      setTestingIntegrationId(null);
-    },
-    onError: (error, integrationId) => {
-      toast({
-        title: "Erro no teste",
-        description: "Falha ao testar a integração",
-        variant: "destructive",
-      });
-      setTestingIntegrationId(null);
-    }
-  });
-
   // ✅ CRITICAL FIX: Função para testar uma integração específica com melhor tratamento de erros
   const handleTestIntegration = async (integrationId: string) => {
-    setTestingIntegrationId(integrationId);
+    console.log('🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para:', integrationId);
+
+    setIsTestingIntegration(true);
+    setTestResult(null);
 
     try {
-      console.log(`🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para: ${integrationId}`);
-
-      // ✅ VALIDATION: Check for valid integration ID
-      if (!integrationId || typeof integrationId !== 'string') {
-        throw new Error('ID de integração inválido');
-      }
-
-      // ✅ VALIDATION: Check for access token
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        throw new Error('Token de acesso não encontrado. Faça login novamente.');
-      }
-
-      // ✅ SAFETY: Create AbortController for timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-      }, 30000); // Reduced timeout to 30 seconds
-
-      let response;
-      try {
-        response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
-          },
-          signal: controller.signal
-        });
-      } catch (fetchError: any) {
-        clearTimeout(timeoutId);
-
-        if (fetchError.name === 'AbortError') {
-          throw new Error('Timeout na requisição - o servidor não respondeu em 45 segundos. Tente novamente.');
+      const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Use accessToken consistently
+          'Content-Type': 'application/json'
         }
+      });
 
-        throw new Error(`Erro de rede: ${fetchError.message || 'Falha na conexão'}`);
-      }
-
-      clearTimeout(timeoutId);
-      console.log(`🧪 [TESTE-INTEGRAÇÃO] Response status: ${response.status}`);
-
-      // ✅ CRITICAL FIX: Better content type checking
-      const contentType = response.headers.get('content-type') || '';
-      const isJSON = contentType.includes('application/json');
-
-      console.log(`🔍 [TESTE-INTEGRAÇÃO] Response details:`, {
+      console.log('🧪 [TESTE-INTEGRAÇÃO] Response status:', response.status);
+      console.log('🔍 [TESTE-INTEGRAÇÃO] Response details:', {
         status: response.status,
-        contentType,
+        contentType: response.headers.get('content-type'),
         headers: Object.fromEntries(response.headers.entries())
       });
 
-      if (!isJSON) {
-        // ✅ CRITICAL FIX: Handle non-JSON responses better
-        let textResponse = '';
-        try {
-          textResponse = await response.text();
-        } catch (textError) {
-          console.error('❌ [TESTE-INTEGRAÇÃO] Error reading response text:', textError);
-          throw new Error('Resposta inválida do servidor - não foi possível ler o conteúdo');
-        }
+      // ✅ VALIDATION: Check for JSON response
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('❌ [TESTE-INTEGRAÇÃO] Non-JSON response received:', { status: response.status, contentType, body: textResponse.substring(0, 200) });
+        throw new Error(`Resposta inválida do servidor (Content-Type: ${contentType || 'N/A'})`);
+      }
 
-        console.error(`❌ [TESTE-INTEGRAÇÃO] Non-JSON response received:`, {
-          status: response.status,
-          contentType,
-          bodyStart: textResponse.substring(0, 500)
+      const result = await response.json();
+
+      if (response.ok && result.success) { // Check for HTTP OK and backend success flag
+        console.log('✅ [TESTE-INTEGRAÇÃO] Sucesso:', result);
+        setTestResult({
+          success: true,
+          message: result.message || "Teste bem-sucedido!",
+          details: result.details
         });
-
-        // ✅ IMPROVED: Better error classification
-        if (textResponse.includes('<!DOCTYPE html>') || textResponse.includes('<html>')) {
-          if (textResponse.includes('createHotContext') || textResponse.includes('vite')) {
-            throw new Error('Erro interno do sistema - o servidor retornou uma página de desenvolvimento. Verifique se o servidor backend está funcionando corretamente.');
-          } else {
-            throw new Error('Erro interno do servidor - uma página de erro foi retornada ao invés da resposta esperada.');
-          }
-        }
-
-        if (response.status >= 500) {
-          throw new Error('Erro interno do servidor - tente novamente em alguns minutos.');
-        } else if (response.status >= 400) {
-          throw new Error(`Erro na requisição (${response.status}) - verifique a configuração da integração.`);
-        }
-
-        throw new Error(`Resposta inválida do servidor (Status: ${response.status})`);
-      }
-
-      // ✅ SAFETY: Parse JSON with improved error handling
-      let result;
-      try {
-        result = await response.json();
-      } catch (jsonError) {
-        console.error('❌ [TESTE-INTEGRAÇÃO] JSON parse error:', jsonError);
-        throw new Error('Resposta JSON inválida do servidor - formato de dados corrompido');
-      }
-
-      // ✅ VALIDATION: Check for expected response structure
-      if (typeof result !== 'object' || result === null) {
-        throw new Error('Estrutura de resposta inválida - dados recebidos não são um objeto válido');
-      }
-
-      // ✅ IMPROVED: Better success/error handling with detailed feedback
-      if (response.ok && result.success) {
-        console.log(`✅ [TESTE-INTEGRAÇÃO] Sucesso:`, result);
-
-        toast({
-          title: "🎉 Teste bem-sucedido",
-          description: result.message || "A integração está funcionando corretamente.",
-          duration: 5000,
-        });
-
-        // ✅ ENHANCEMENT: Invalidate queries to refresh integration status
+        // Invalidate queries to reflect any status changes
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
-
-      } else if (response.ok && result.success === false) {
-        // ✅ SUCCESS RESPONSE but logical failure
-        const errorMessage = result.message || 'Falha na validação da integração';
-        console.warn(`⚠️ [TESTE-INTEGRAÇÃO] Falha lógica:`, result);
-
-        toast({
-          title: "⚠️ Problema na integração",
-          description: errorMessage,
-          variant: "destructive",
-          duration: 8000,
-        });
-
       } else {
-        // ✅ HTTP ERROR responses
-        const errorMessage = result.message || result.error || `Erro HTTP ${response.status}`;
-        console.error(`❌ [TESTE-INTEGRAÇÃO] Erro HTTP:`, result);
-
-        toast({
-          title: "❌ Erro no teste",
-          description: errorMessage,
-          variant: "destructive",
-          duration: 8000,
+        console.warn('⚠️ [TESTE-INTEGRAÇÃO] Falha na integração:', result);
+        setTestResult({
+          success: false,
+          message: result.message || result.error || 'Falha no teste da integração',
+          details: result.details
         });
       }
     } catch (error: any) {
-      console.error('❌ [TESTE-INTEGRAÇÃO] Erro durante teste:', error);
-
-      let errorMessage = 'Erro inesperado durante o teste da integração';
-      let errorTitle = "❌ Erro no teste de integração";
-
+      console.error('❌ [TESTE-INTEGRAÇÃO] Erro:', error);
+      let errorMessage = 'Erro desconhecido';
       if (error instanceof Error) {
         errorMessage = error.message;
-
-        // ✅ IMPROVED: Categorize error types for better UX
-        if (error.message.includes('Token de acesso')) {
-          errorTitle = "🔐 Erro de autenticação";
-        } else if (error.message.includes('Timeout')) {
-          errorTitle = "⏱️ Timeout na conexão";
-        } else if (error.message.includes('rede') || error.message.includes('conexão')) {
-          errorTitle = "🌐 Erro de conectividade";
-        } else if (error.message.includes('servidor')) {
-          errorTitle = "🖥️ Erro do servidor";
-        }
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-
-      toast({
-        title: errorTitle,
-        description: errorMessage,
-        variant: "destructive",
-        duration: 10000, // Longer duration for errors
+      setTestResult({
+        success: false,
+        message: `Falha ao testar integração: ${errorMessage}`,
+        error: error
       });
     } finally {
-      setTestingIntegrationId(null);
+      setIsTestingIntegration(false);
     }
   };
+
+  // ✅ NEW: Webhook management functions for Telegram
+  const handleSetWebhook = async () => {
+    if (!selectedIntegration) return;
+
+    console.log('🔧 [WEBHOOK-SETUP] Configurando webhook para Telegram');
+    setIsTestingIntegration(true);
+    setTestResult(null); // Clear previous test results
+
+    try {
+      const webhookUrl = configForm.getValues('telegramWebhookUrl');
+
+      if (!webhookUrl) {
+        setTestResult({
+          success: false,
+          message: 'URL do webhook é obrigatória para configurar recebimento de mensagens'
+        });
+        return;
+      }
+
+      // ✅ SECURITY: Ensure the URL is valid and points to your service
+      if (!webhookUrl.startsWith(window.location.origin)) {
+          console.warn(`⚠️ [WEBHOOK-SETUP] A URL do webhook (${webhookUrl}) não parece ser interna. Certifique-se de que é segura e pública.`);
+      }
+
+      const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ webhookUrl })
+      });
+
+      console.log('🔧 [WEBHOOK-SETUP] Response status:', response.status);
+      const result = await response.json();
+
+      if (response.ok && result.ok) { // Assuming the backend returns { ok: true, ... } for success
+        console.log('✅ [WEBHOOK-SETUP] Webhook configurado com sucesso:', result);
+        setTestResult({
+          success: true,
+          message: result.description || 'Webhook configurado com sucesso!',
+          details: result
+        });
+
+        // Invalidate queries to refresh integration status and potentially show updated info
+        queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
+      } else {
+        console.error('❌ [WEBHOOK-SETUP] Erro:', result);
+        setTestResult({
+          success: false,
+          message: result.description || result.error || 'Erro ao configurar webhook',
+          details: result
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ [WEBHOOK-SETUP] Erro de rede:', error);
+      setTestResult({
+        success: false,
+        message: `Erro de conexão ao configurar webhook: ${error.message}`,
+        error: error
+      });
+    } finally {
+      setIsTestingIntegration(false);
+    }
+  };
+
+  const handleCheckWebhookStatus = async () => {
+    if (!selectedIntegration) return;
+
+    console.log('📊 [WEBHOOK-STATUS] Verificando status do webhook');
+    setIsTestingIntegration(true);
+    setTestResult(null); // Clear previous test results
+
+    try {
+      const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('📊 [WEBHOOK-STATUS] Response status:', response.status);
+      const result = await response.json();
+
+      if (response.ok && result.ok) { // Assuming the backend returns { ok: true, ... } for success
+        console.log('✅ [WEBHOOK-STATUS] Status obtido:', result);
+
+        const webhookInfo = result.result; // Assuming webhook info is under 'result' key
+        let statusMessage = 'Webhook não configurado ou erro ao obter status.';
+
+        if (webhookInfo) {
+          statusMessage = `✅ Webhook: ${webhookInfo.url || 'N/A'}\n` +
+                           `📊 Pendentes: ${webhookInfo.pending_update_count || 0}\n` +
+                           `⏰ Último erro: ${webhookInfo.last_error_message ? new Date(webhookInfo.last_error_date * 1000).toLocaleString() + ': ' + webhookInfo.last_error_message : 'Nenhum'}`;
+        }
+
+        setTestResult({
+          success: true,
+          message: statusMessage,
+          details: result
+        });
+      } else {
+        console.error('❌ [WEBHOOK-STATUS] Erro:', result);
+        setTestResult({
+          success: false,
+          message: result.description || result.error || 'Erro ao verificar status do webhook',
+          details: result
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ [WEBHOOK-STATUS] Erro de rede:', error);
+      setTestResult({
+        success: false,
+        message: `Erro de conexão ao verificar status do webhook: ${error.message}`,
+        error: error
+      });
+    } finally {
+      setIsTestingIntegration(false);
+    }
+  };
+
 
   // Map integrations with proper icons and saved configuration status
   const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations?.length > 0 
@@ -647,11 +639,12 @@ export default function TenantAdminIntegrations() {
   const onConfigureIntegration = async (integration: TenantIntegration) => {
     console.log(`🔧 [CONFIG-LOAD] Configurando integração: ${integration.id}`);
     setSelectedIntegration(integration);
+    setTestResult(null); // Clear previous test results when opening dialog
 
     try {
       // ✅ CRITICAL FIX: Usar fetch direto com headers corretos
       console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id}`);
-      
+
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/config`, {
         method: 'GET',
         headers: {
@@ -661,10 +654,18 @@ export default function TenantAdminIntegrations() {
         },
         credentials: 'include'
       });
-      
+
       console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
-      
+
       if (!response.ok) {
+        // Handle case where config might not exist yet (e.g., return 404)
+        if (response.status === 404) {
+          console.log(`ℹ️ [CONFIG-LOAD] Configuração não encontrada para ${integration.id}, usando valores padrão.`);
+          // Set default values here
+          configForm.reset(getDefaultValues(integration.id));
+          setIsConfigDialogOpen(true);
+          return;
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -679,64 +680,68 @@ export default function TenantAdminIntegrations() {
         throw new Error('Servidor retornou resposta inválida (não JSON)');
       }
 
-      const existingConfig = await response.json();
-      console.log(`📋 [CONFIG-LOAD] Resposta recebida:`, existingConfig);
+      const existingConfigData = await response.json(); // Renamed to avoid confusion with form data
+      console.log(`📋 [CONFIG-LOAD] Resposta recebida:`, existingConfigData);
 
       // ✅ IMPROVED: Validação mais robusta da configuração existente
-      const hasValidConfig = existingConfig && 
-        existingConfig.configured === true && 
-        existingConfig.config && 
-        typeof existingConfig.config === 'object' &&
-        Object.keys(existingConfig.config).length > 0;
+      // Check if 'configured' field exists and is true, and if 'config' object is present and has keys
+      const hasValidConfig = existingConfigData && 
+        existingConfigData.configured === true && 
+        existingConfigData.config && 
+        typeof existingConfigData.config === 'object' &&
+        Object.keys(existingConfigData.config).length > 0;
 
       if (hasValidConfig) {
-        const config = existingConfig.config;
+        const config = existingConfigData.config;
         console.log(`✅ [CONFIG-LOAD] Configuração válida encontrada para ${integration.id}`);
 
         // ✅ SECURITY: Função para mascarar dados sensíveis de forma consistente
         const maskSensitiveData = (value: string | undefined | null): string => {
           if (!value || value.length === 0) return '';
-          if (value === '••••••••') return value; // Já mascarado
-          return '••••••••';
+          // Keep already masked values or mask new ones
+          if (value === '••••••••') return value; 
+          // Mask if the value is long enough to be considered sensitive
+          return value.length > 8 ? '••••••••' : value; 
         };
 
         // ✅ STANDARDIZED: Carregamento padronizado para todas as integrações
         const formValues = {
           enabled: Boolean(config.enabled),
           useSSL: config.useSSL !== false,
-          
+
           // OAuth2 fields
           clientId: config.clientId || '',
           clientSecret: maskSensitiveData(config.clientSecret),
           redirectUri: config.redirectUri || '',
           tenantId: config.tenantId || '',
-          
+
           // Generic API fields
           apiKey: maskSensitiveData(config.apiKey),
           apiSecret: maskSensitiveData(config.apiSecret),
           webhookUrl: config.webhookUrl || '',
-          
+
           // Server/Email fields
           serverHost: config.serverHost || config.imapServer || '',
-          serverPort: config.serverPort ? String(config.serverPort) : (config.imapPort ? String(config.imapPort) : '993'),
+          serverPort: config.serverPort ? String(config.serverPort) : (config.imapPort ? String(config.imapPort) : ''),
           username: config.username || config.emailAddress || '',
           password: maskSensitiveData(config.password),
-          
+
           // IMAP specific fields
           imapServer: config.imapServer || 'imap.gmail.com',
           imapPort: config.imapPort ? String(config.imapPort) : '993',
           imapSecurity: config.imapSecurity || 'SSL/TLS',
           emailAddress: config.emailAddress || '',
-          
+
           // Dropbox specific fields
           dropboxAppKey: config.dropboxAppKey || '',
           dropboxAppSecret: maskSensitiveData(config.dropboxAppSecret),
           dropboxAccessToken: maskSensitiveData(config.dropboxAccessToken),
           backupFolder: config.backupFolder || '/Backups/Conductor',
-          
+
           // Telegram specific fields - CRITICAL FIX
           telegramBotToken: maskSensitiveData(config.telegramBotToken),
           telegramChatId: config.telegramChatId || '',
+          telegramWebhookUrl: config.telegramWebhookUrl || '', // Load the webhook URL
         };
 
         // ✅ TELEGRAM DEBUG: Log específico para debugging
@@ -745,7 +750,8 @@ export default function TenantAdminIntegrations() {
             enabled: formValues.enabled,
             hasBotToken: Boolean(config.telegramBotToken),
             botTokenMasked: formValues.telegramBotToken,
-            chatId: formValues.telegramChatId
+            chatId: formValues.telegramChatId,
+            webhookUrl: formValues.telegramWebhookUrl
           });
         }
 
@@ -757,48 +763,7 @@ export default function TenantAdminIntegrations() {
         });
 
       } else {
-        console.log(`⚠️ [CONFIG-LOAD] Configuração não encontrada para ${integration.id}, usando valores padrão`);
-        
-        // ✅ IMPROVED: Valores padrão específicos por tipo de integração
-        const getDefaultValues = (integrationId: string) => {
-          const baseDefaults = {
-            enabled: false,
-            useSSL: true,
-            apiKey: '',
-            apiSecret: '',
-            webhookUrl: '',
-            clientId: '',
-            clientSecret: '',
-            redirectUri: '',
-            tenantId: '',
-            serverHost: '',
-            serverPort: '',
-            username: '',
-            password: '',
-            imapServer: 'imap.gmail.com',
-            imapPort: '993',
-            imapSecurity: 'SSL/TLS' as const,
-            emailAddress: '',
-            dropboxAppKey: '',
-            dropboxAppSecret: '',
-            dropboxAccessToken: '',
-            backupFolder: '/Backups/Conductor',
-            telegramBotToken: '',
-            telegramChatId: '',
-          };
-
-          // Defaults específicos por integração
-          if (integrationId === 'imap-email') {
-            return { ...baseDefaults, serverPort: '993' };
-          }
-          
-          if (integrationId === 'email-smtp') {
-            return { ...baseDefaults, serverPort: '587' };
-          }
-
-          return baseDefaults;
-        };
-
+        console.log(`⚠️ [CONFIG-LOAD] Configuração não encontrada ou inválida para ${integration.id}, usando valores padrão.`);
         configForm.reset(getDefaultValues(integration.id));
 
         toast({
@@ -813,39 +778,15 @@ export default function TenantAdminIntegrations() {
       // ✅ IMPROVED: Tratamento de erro mais robusto
       const errorMessage = error?.message || 'Erro desconhecido';
       const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('Network');
-      
-      // Fallback values
-      configForm.reset({
-        enabled: false,
-        useSSL: true,
-        apiKey: '',
-        apiSecret: '',
-        webhookUrl: '',
-        clientId: '',
-        clientSecret: '',
-        redirectUri: '',
-        tenantId: '',
-        serverHost: '',
-        serverPort: integration.id === 'imap-email' ? '993' : '',
-        username: '',
-        password: '',
-        imapServer: 'imap.gmail.com',
-        imapPort: '993',
-        imapSecurity: 'SSL/TLS' as const,
-        emailAddress: '',
-        dropboxAppKey: '',
-        dropboxAppSecret: '',
-        dropboxAccessToken: '',
-        backupFolder: '/Backups/Conductor',
-        telegramBotToken: '',
-        telegramChatId: '',
-      });
+
+      // Fallback values if an error occurs during loading
+      configForm.reset(getDefaultValues(integration.id));
 
       toast({
         title: "⚠️ Erro ao carregar configuração",
         description: isNetworkError 
           ? "Problema de conectividade. Usando valores padrão." 
-          : "Erro do servidor. Usando valores padrão.",
+          : `Erro do servidor: ${errorMessage}. Usando valores padrão.`,
         variant: "destructive",
       });
     }
@@ -853,23 +794,78 @@ export default function TenantAdminIntegrations() {
     setIsConfigDialogOpen(true);
   };
 
-  // Função para iniciar fluxo OAuth2
+  // Helper function to get default values based on integration ID
+  const getDefaultValues = (integrationId: string) => {
+    const baseDefaults = {
+      enabled: false,
+      useSSL: true, // Default to true for secure connections
+      apiKey: '',
+      apiSecret: '',
+      webhookUrl: '',
+      clientId: '',
+      clientSecret: '',
+      redirectUri: '',
+      tenantId: '',
+      serverHost: '',
+      serverPort: '',
+      username: '',
+      password: '',
+      imapServer: 'imap.gmail.com', // Common default
+      imapPort: '993', // Common default for IMAP SSL
+      imapSecurity: 'SSL/TLS' as const,
+      emailAddress: '',
+      dropboxAppKey: '',
+      dropboxAppSecret: '',
+      dropboxAccessToken: '',
+      backupFolder: '/Backups/Conductor',
+      telegramBotToken: '',
+      telegramChatId: '',
+      telegramWebhookUrl: '', // Default for webhook URL
+    };
+
+    // Specific defaults by integration type
+    switch (integrationId) {
+      case 'imap-email':
+        return { ...baseDefaults, serverPort: '993', imapPort: '993', imapSecurity: 'SSL/TLS' };
+      case 'email-smtp':
+        return { ...baseDefaults, serverPort: '587', useSSL: true }; // SMTP often uses STARTTLS on 587
+      case 'telegram':
+        return { ...baseDefaults, telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram` }; // Suggest a default webhook URL
+      default:
+        return baseDefaults;
+    }
+  };
+
+  // Function to initiate OAuth2 flow
   const startOAuthFlow = async (integration: TenantIntegration) => {
     try {
-      const response = await apiRequest('POST', `/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
-        clientId: 'your-client-id', // This would come from form data
-        redirectUri: window.location.origin + `/auth/${integration.id}/callback`
+      // ✅ ENHANCEMENT: Use the actual integration ID to construct the redirect URI
+      const redirectUri = `${window.location.origin}/auth/${integration.id}/callback`;
+
+      // ✅ IMPROVEMENT: Pass redirectUri to backend for state management and validation
+      const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ redirectUri }) // Send redirect URI to backend
       });
 
-      if (response.authUrl) {
-        // Open OAuth2 URL in new window
-        window.open(response.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
-        toast({
-          title: "OAuth2 Iniciado",
-          description: "Janela de autorização aberta. Complete o processo de login.",
-        });
+      // ✅ VALIDATION: Check for 'authUrl' in response
+      const result = await response.json();
+      if (!result.authUrl) {
+        throw new Error(result.error || 'Não foi possível obter a URL de autorização.');
       }
+
+      // Open OAuth2 URL in new window
+      window.open(result.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
+      toast({
+        title: "OAuth2 Iniciado",
+        description: "Janela de autorização aberta. Complete o processo de login.",
+      });
     } catch (error: any) {
+      console.error('❌ [OAUTH-FLOW] Erro:', error);
       toast({
         title: "Erro OAuth2",
         description: error.message || "Erro ao iniciar fluxo OAuth2",
@@ -893,6 +889,12 @@ export default function TenantAdminIntegrations() {
       const validateIntegrationData = (integrationId: string, formData: any) => {
         const errors: string[] = [];
 
+        // Helper to check if a sensitive field needs to be provided (not masked)
+        const isSensitiveFieldProvided = (fieldName: string): boolean => {
+          const value = formData[fieldName];
+          return value && value !== '••••••••';
+        };
+
         switch (integrationId) {
           case 'telegram':
             if (formData.enabled) {
@@ -901,6 +903,10 @@ export default function TenantAdminIntegrations() {
               }
               if (!formData.telegramChatId) {
                 errors.push('Chat ID é obrigatório para ativar o Telegram');
+              }
+              // Optional: Validate webhook URL if it's intended to be used
+              if (formData.telegramWebhookUrl && !formData.telegramWebhookUrl.startsWith('https://')) {
+                errors.push('URL do Webhook deve começar com "https://"');
               }
             }
             break;
@@ -944,13 +950,19 @@ export default function TenantAdminIntegrations() {
               }
             }
             break;
+            
+          case 'webhooks':
+            if (formData.enabled && formData.webhookUrl && !formData.webhookUrl.startsWith('https://')) {
+                errors.push('URL do Webhook deve começar com "https://"');
+            }
+            break;
         }
 
         return errors;
       };
 
       const validationErrors = validateIntegrationData(selectedIntegration.id, data);
-      
+
       if (validationErrors.length > 0) {
         toast({
           title: "❌ Erro de validação",
@@ -969,6 +981,47 @@ export default function TenantAdminIntegrations() {
       };
 
       // ✅ SPECIALIZED PROCESSING: Processamento específico por integração
+      // Ensure sensitive data is not re-masked if it was already '••••••••'
+      const processSensitiveData = (currentConfig: any, newData: any) => {
+        const sensitiveFields = [
+          'clientSecret', 'apiSecret', 'password', 'dropboxAppSecret', 
+          'dropboxAccessToken', 'telegramBotToken'
+        ];
+        sensitiveFields.forEach(field => {
+          if (newData[field] === '••••••••' && currentConfig && currentConfig[field]) {
+            // If the new value is masked and we have a previous value, keep the previous one
+            newData[field] = currentConfig[field];
+          } else if (newData[field] === '••••••••' && (!currentConfig || !currentConfig[field])) {
+             // If it's masked and there was no previous value, it's an invalid state
+             // This should ideally be caught by validation, but as a safeguard:
+             // newData[field] = ''; // Or handle as error
+          }
+        });
+        return newData;
+      };
+
+      // Fetch current config to handle sensitive data correctly
+      let currentConfig = null;
+      try {
+        const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (configResponse.ok) {
+          const configResult = await configResponse.json();
+          if (configResult.config) {
+            currentConfig = configResult.config;
+          }
+        }
+      } catch (fetchError) {
+        console.warn("Could not fetch current config for sensitive data processing:", fetchError);
+      }
+      
+      configData = processSensitiveData(currentConfig, configData);
+
       switch (selectedIntegration.id) {
         case 'imap-email':
           configData = {
@@ -976,8 +1029,7 @@ export default function TenantAdminIntegrations() {
             imapServer: data.imapServer || 'imap.gmail.com',
             imapPort: parseInt(data.imapPort || '993') || 993,
             emailAddress: data.emailAddress || '',
-            useSSL: data.useSSL !== false,
-            // Compatibilidade com campos genéricos
+            // useSSL is handled by the general field, but ensure it maps correctly if needed
             serverHost: data.imapServer || 'imap.gmail.com',
             serverPort: parseInt(data.imapPort || '993') || 993,
             username: data.emailAddress || ''
@@ -990,7 +1042,7 @@ export default function TenantAdminIntegrations() {
             serverHost: data.serverHost || '',
             serverPort: parseInt(data.serverPort || '587') || 587,
             username: data.username || '',
-            useSSL: data.useSSL !== false
+            // useSSL is handled by the general field
           };
           break;
 
@@ -998,7 +1050,8 @@ export default function TenantAdminIntegrations() {
           configData = {
             ...configData,
             telegramBotToken: data.telegramBotToken || '',
-            telegramChatId: data.telegramChatId || ''
+            telegramChatId: data.telegramChatId || '',
+            telegramWebhookUrl: data.telegramWebhookUrl || '', // Include the webhook URL
           };
           break;
 
@@ -1013,7 +1066,7 @@ export default function TenantAdminIntegrations() {
           break;
 
         default:
-          // Para integrações genéricas, manter todos os campos
+          // For other integrations, standard fields apply
           break;
       }
 
@@ -1030,7 +1083,7 @@ export default function TenantAdminIntegrations() {
 
     } catch (error: any) {
       console.error('❌ [SUBMIT-CONFIG] Erro ao processar configuração:', error);
-      
+
       toast({
         title: "❌ Erro interno",
         description: "Erro ao processar a configuração. Tente novamente.",
@@ -1184,7 +1237,7 @@ export default function TenantAdminIntegrations() {
                         </div>
                       </div>
                     </CardHeader>
-                    
+
                     <CardContent className="flex-1 flex flex-col">
                       <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={integration.description}>
                         {integration.description}
@@ -1251,10 +1304,10 @@ export default function TenantAdminIntegrations() {
                               e.stopPropagation();
                               handleTestIntegration(integration.id);
                             }}
-                            disabled={testingIntegrationId === integration.id}
+                            disabled={isTestingIntegration}
                             className={`${(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') ? 'flex-1' : 'w-full'}`}
                           >
-                            {testingIntegrationId === integration.id ? (
+                            {isTestingIntegration ? ( // Use the general isTestingIntegration state
                               <>
                                 <div className="h-4 w-4 mr-1 animate-spin border-2 border-current border-t-transparent rounded-full" />
                                 <span className="hidden sm:inline">Testando...</span>
@@ -1666,12 +1719,72 @@ export default function TenantAdminIntegrations() {
                         <FormItem>
                           <FormLabel>Chat ID</FormLabel>
                           <FormControl>
-                            <Input placeholder="ID do chat para enviar mensagens" {...field} />
+                            <Input placeholder="ID do chat (ex: @meucanal ou 123456789)" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={configForm.control}
+                      name="telegramWebhookUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL do Webhook (Para receber mensagens)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://seu-dominio.com (opcional)" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Configure para receber mensagens do Telegram no sistema
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Webhook Management Section */}
+                    {selectedIntegration.status === 'connected' && (
+                      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium text-sm">🔗 Gerenciamento de Webhook</h4>
+
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleSetWebhook}
+                            disabled={isTestingIntegration}
+                          >
+                            📤 Configurar Webhook
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline" 
+                            size="sm"
+                            onClick={handleCheckWebhookStatus}
+                            disabled={isTestingIntegration}
+                          >
+                            📊 Status do Webhook
+                          </Button>
+                        </div>
+
+                        <p className="text-xs text-gray-600">
+                          Configure o webhook para receber mensagens e comandos enviados para seu bot Telegram
+                        </p>
+
+                        {testResult && (
+                          <pre className={`p-2 text-xs rounded-md ${testResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {testResult.message}
+                            {testResult.details && <code className="block mt-1">{JSON.stringify(testResult.details, null, 2)}</code>}
+                          </pre>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -1708,6 +1821,14 @@ export default function TenantAdminIntegrations() {
                   </>
                 )}
 
+                {/* Display test results below the form if available and not for webhook section */}
+                {testResult && !['telegram'].includes(selectedIntegration.id) && (
+                  <pre className={`p-2 text-xs rounded-md ${testResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {testResult.message}
+                    {testResult.details && <code className="block mt-1">{JSON.stringify(testResult.details, null, 2)}</code>}
+                  </pre>
+                )}
+
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button
                     type="button"
@@ -1718,7 +1839,7 @@ export default function TenantAdminIntegrations() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={saveConfigMutation.isPending}
+                    disabled={saveConfigMutation.isPending || isTestingIntegration} // Disable if saving or testing
                   >
                     {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
                   </Button>
