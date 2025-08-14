@@ -411,7 +411,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       updatedAt: row.updatedAt,
       createdById: row.createdById || null,
       updatedById: row.updatedById || null,
-      customerCompanyId: row.company_id,
+      customerCompanyId: null, // Temporarily set to null to fix schema mapping
       isActive: row.isActive !== false
     } as Ticket;
   }
