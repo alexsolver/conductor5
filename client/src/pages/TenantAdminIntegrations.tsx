@@ -216,7 +216,7 @@ export default function TenantAdminIntegrations() {
   // ✅ CRITICAL FIX: Função para testar uma integração específica com melhor tratamento de erros
   const handleTestIntegration = async (integrationId: string) => {
     setTestingIntegrationId(integrationId);
-    
+
     try {
       console.log(`🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para: ${integrationId}`);
 
@@ -251,11 +251,11 @@ export default function TenantAdminIntegrations() {
         });
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
-        
+
         if (fetchError.name === 'AbortError') {
           throw new Error('Timeout na requisição - o servidor não respondeu em 45 segundos. Tente novamente.');
         }
-        
+
         throw new Error(`Erro de rede: ${fetchError.message || 'Falha na conexão'}`);
       }
 
@@ -281,7 +281,7 @@ export default function TenantAdminIntegrations() {
           console.error('❌ [TESTE-INTEGRAÇÃO] Error reading response text:', textError);
           throw new Error('Resposta inválida do servidor - não foi possível ler o conteúdo');
         }
-        
+
         console.error(`❌ [TESTE-INTEGRAÇÃO] Non-JSON response received:`, {
           status: response.status,
           contentType,
@@ -332,7 +332,7 @@ export default function TenantAdminIntegrations() {
 
         // ✅ ENHANCEMENT: Invalidate queries to refresh integration status
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
-        
+
       } else if (response.ok && result.success === false) {
         // ✅ SUCCESS RESPONSE but logical failure
         const errorMessage = result.message || 'Falha na validação da integração';
@@ -344,7 +344,7 @@ export default function TenantAdminIntegrations() {
           variant: "destructive",
           duration: 8000,
         });
-        
+
       } else {
         // ✅ HTTP ERROR responses
         const errorMessage = result.message || result.error || `Erro HTTP ${response.status}`;
@@ -359,13 +359,13 @@ export default function TenantAdminIntegrations() {
       }
     } catch (error: any) {
       console.error('❌ [TESTE-INTEGRAÇÃO] Erro durante teste:', error);
-      
+
       let errorMessage = 'Erro inesperado durante o teste da integração';
       let errorTitle = "❌ Erro no teste de integração";
-      
+
       if (error instanceof Error) {
         errorMessage = error.message;
-        
+
         // ✅ IMPROVED: Categorize error types for better UX
         if (error.message.includes('Token de acesso')) {
           errorTitle = "🔐 Erro de autenticação";
@@ -653,16 +653,16 @@ export default function TenantAdminIntegrations() {
       console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id}`);
       const response = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
       const existingConfig = await response.json();
-      
+
       console.log(`📋 [CONFIG-LOAD] Resposta recebida:`, existingConfig);
 
       if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
         const config = existingConfig.config;
         console.log(`✅ [CONFIG-LOAD] Configuração encontrada para ${integration.id}:`, config);
-        
+
         // ✅ CRITICAL FIX: Corrigir carregamento específico para Telegram
         let formValues;
-        
+
         if (integration.id === 'telegram') {
           formValues = {
             enabled: config.enabled === true,
@@ -690,7 +690,7 @@ export default function TenantAdminIntegrations() {
             telegramBotToken: config.telegramBotToken ? '••••••••' : '',
             telegramChatId: config.telegramChatId || '',
           };
-          
+
           console.log(`📱 [TELEGRAM-CONFIG] Valores carregados:`, {
             enabled: formValues.enabled,
             telegramBotToken: config.telegramBotToken ? `${config.telegramBotToken.substring(0, 10)}...` : 'VAZIO',
@@ -762,9 +762,9 @@ export default function TenantAdminIntegrations() {
           telegramBotToken: '',
           telegramChatId: '',
         };
-        
+
         configForm.reset(defaultValues);
-        
+
         toast({
           title: "ℹ️ Nova configuração",
           description: `Configure ${integration.name} pela primeira vez`,
@@ -772,7 +772,7 @@ export default function TenantAdminIntegrations() {
       }
     } catch (error) {
       console.error(`❌ [CONFIG-LOAD] Erro ao carregar configuração para ${integration.id}:`, error);
-      
+
       // Fallback to default values
       const fallbackValues = {
         enabled: false,
@@ -800,9 +800,9 @@ export default function TenantAdminIntegrations() {
         telegramBotToken: '',
         telegramChatId: '',
       };
-      
+
       configForm.reset(fallbackValues);
-      
+
       toast({
         title: "⚠️ Erro ao carregar configuração",
         description: "Usando valores padrão. Verifique sua conexão.",

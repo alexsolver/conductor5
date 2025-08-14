@@ -328,6 +328,8 @@ router.post('/:integrationId/test', async (req: any, res) => {
     // ✅ CRITICAL FIX: Set JSON content type header immediately to prevent HTML error pages
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'no-cache');
+    
+    console.log(`🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para integração: ${req.params.integrationId}`);
 
     const { integrationId } = req.params;
     const tenantId = req.user?.tenantId;
@@ -590,26 +592,32 @@ router.post('/:integrationId/test', async (req: any, res) => {
         });
     }
   } catch (error: any) {
-    console.error('❌ [TEST-INTEGRATION] Critical system error:', error);
+    console.error('❌ [TESTE-INTEGRAÇÃO] Erro crítico do sistema:', error);
 
     // ✅ CRITICAL FIX: Ensure JSON response even in catastrophic failure
     try {
-      res.setHeader('Content-Type', 'application/json');
-      return res.status(500).json({ 
-        success: false,
-        message: 'Erro interno do servidor durante teste de integração',
-        details: {
-          error: error.message || 'Critical system error',
-          timestamp: new Date().toISOString()
-        }
-      });
+      if (!res.headersSent) {
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(500).json({ 
+          success: false,
+          message: 'Erro interno do servidor durante teste de integração',
+          details: {
+            error: error.message || 'Critical system error',
+            timestamp: new Date().toISOString()
+          }
+        });
+      } else {
+        console.error('❌ [TESTE-INTEGRAÇÃO] Headers já enviados, não é possível definir resposta JSON');
+      }
     } catch (headerError) {
       // ✅ LAST RESORT: If even setting headers fails, return a simple response
-      console.error('❌ [TEST-INTEGRATION] Header setting failed:', headerError);
-      return res.end(JSON.stringify({
-        success: false,
-        message: 'Critical system error'
-      }));
+      console.error('❌ [TESTE-INTEGRAÇÃO] Falha ao definir headers:', headerError);
+      if (!res.headersSent) {
+        return res.end(JSON.stringify({
+          success: false,
+          message: 'Critical system error'
+        }));
+      }
     }
   }
 });

@@ -1521,6 +1521,17 @@ export class DatabaseStorage implements IStorage {
       // ✅ CRITICAL FIX: Return structured response with configured flag
       const isConfigured = integration.configured === true || (parsedConfig && Object.keys(parsedConfig).length > 0);
       
+      // ✅ TELEGRAM SPECIFIC: Log configuração do Telegram
+      if (integration.id === 'telegram') {
+        console.log(`📱 [TELEGRAM-CONFIG] Dados carregados:`, {
+          configured: isConfigured,
+          hasConfig: !!parsedConfig,
+          configKeys: parsedConfig ? Object.keys(parsedConfig) : [],
+          botToken: parsedConfig?.telegramBotToken ? '***' + parsedConfig.telegramBotToken.slice(-4) : 'VAZIO',
+          chatId: parsedConfig?.telegramChatId || 'VAZIO'
+        });
+      }
+      
       const finalResult = {
         id: integration.id,
         name: integration.name,
