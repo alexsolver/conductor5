@@ -118,7 +118,7 @@ app.use((req, res, next) => {
   app.use('/api', userManagementRoutes);
 
   // Import tenant integrations routes
-  const tenantIntegrationsRouter = require('./routes/tenantIntegrations');
+  const { default: tenantIntegrationsRouter } = await import('./routes/tenantIntegrations');
   app.use('/api/tenant-admin/integrations', tenantIntegrationsRouter);
 
   app.get('/health', async (req, res) => {

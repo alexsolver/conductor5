@@ -860,4 +860,4 @@ router.post('/populate-all-14', async (req: any, res) => {
   }
 });
 
-export default router;
+export { router as default };
