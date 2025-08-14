@@ -274,12 +274,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/companies', companiesRoutes);
   app.use('/api/locations', locationsRoutes);
 
-  // ✅ TICKET RELATIONSHIPS ENDPOINT - Quick fix for missing endpoint per 1qa.md
+  // ✅ TICKET RELATIONSHIPS ENDPOINT - Real count from database per 1qa.md
   app.get('/api/ticket-relationships/:ticketId/relationships-count', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      // Return zero count to maintain UI compatibility while preserving Clean Architecture
-      res.json({ count: 0 });
+      if (!req.user?.tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+      const ticketId = req.params.ticketId;
+
+      // Count relationships where this ticket is either source or target
+      const result = await pool.query(`
+        SELECT COUNT(*) as count 
+        FROM "${schemaName}".ticket_relationships 
+        WHERE source_ticket_id = $1 OR target_ticket_id = $1
+      `, [ticketId]);
+
+      const count = parseInt(result.rows[0]?.count || '0');
+      res.json({ count });
     } catch (error) {
+      console.error('Error counting ticket relationships:', error);
       res.status(500).json({ message: 'Failed to fetch relationships' });
     }
   });
