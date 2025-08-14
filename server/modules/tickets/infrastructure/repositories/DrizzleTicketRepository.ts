@@ -135,7 +135,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       }
 
       if (filters.companyId) {
-        conditions.push(eq(tickets.companyId, filters.companyId));
+        conditions.push(eq(tickets.customerCompanyId, filters.companyId));
       }
 
       if (filters.category) {
@@ -304,7 +304,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filters.companyId) {
-      conditions.push(eq(tickets.companyId, filters.companyId));
+      conditions.push(eq(tickets.customerCompanyId, filters.companyId));
     }
 
     if (filters.category) {
@@ -363,6 +363,32 @@ export class DrizzleTicketRepository implements ITicketRepository {
       );
   }
 
+  // ✅ CLEAN ARCHITECTURE - Additional methods from interface
+  async bulkUpdate(updates: Array<{ id: string; data: Partial<Ticket> }>, tenantId: string): Promise<void> {
+    for (const update of updates) {
+      await this.update(update.id, update.data, tenantId);
+    }
+  }
+
+  async searchTickets(searchTerm: string, tenantId: string): Promise<Ticket[]> {
+    const results = await db
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.tenantId, tenantId),
+          or(
+            ilike(tickets.subject, `%${searchTerm}%`),
+            ilike(tickets.description, `%${searchTerm}%`),
+            ilike(tickets.number, `%${searchTerm}%`)
+          )
+        )
+      )
+      .orderBy(desc(tickets.createdAt));
+
+    return results.map(ticket => this.mapToTicket(ticket));
+  }
+
   // ✅ CLEAN ARCHITECTURE - Private mapping method
   private mapToTicket(row: any): Ticket {
     return {
@@ -383,7 +409,8 @@ export class DrizzleTicketRepository implements ITicketRepository {
       updatedAt: row.updatedAt,
       createdById: row.createdById || null,
       updatedById: row.updatedById || null,
-      customerCompanyId: row.companyId
+      customerCompanyId: row.customerCompanyId,
+      isActive: row.isActive !== false
     } as Ticket;
   }
 }
