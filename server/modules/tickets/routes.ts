@@ -2456,9 +2456,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
 
     console.log(`🔍 [HISTORY-ULTRA-COMPLETE] Buscando histórico 100% completo para ticket: ${id}`);
 
-    // ✅ HISTÓRICO 100% COMPLETO - TODAS as ações do sistema + auditoria automática
+    // ✅ HISTÓRICO SIMPLIFICADO PARA TESTE
     const ultraCompleteHistoryQuery = `
-      -- 🔥 HISTÓRICO PRINCIPAL DO TICKET (ticket_history) - PRIORIDADE MÁXIMA
+      -- 🔥 HISTÓRICO PRINCIPAL DO TICKET (ticket_history) - TESTE SIMPLES
       SELECT 
         'ticket_history' as source,
         th.id,
@@ -2466,21 +2466,10 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.description,
         th.performed_by,
         th.performed_by_name,
-        th.ip_address,
-        th.user_agent,
-        th.session_id,
-        th.old_value,
-        th.new_value,
-        th.field_name,
         th.created_at,
-        th.metadata,
-        true as is_visible,
-        'primary' as priority_level,
-        'Histórico do Sistema' as category_name,
-        'system_activity' as activity_group,
-        1 as sort_priority
+        'Histórico do Sistema' as category_name
       FROM "${schemaName}".ticket_history th
-      WHERE th.ticket_id = $1 AND th.tenant_id = $2::uuid
+      WHERE th.ticket_id = $1::uuid AND th.tenant_id = $2::uuid
 
       UNION ALL
 
