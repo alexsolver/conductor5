@@ -428,7 +428,7 @@ const TicketDetails = React.memo(() => {
 
   // Fetch team users/members for assignments and followers
   const { data: usersData } = useQuery({
-    queryKey: ["/api/tenant-admin/users"],
+    queryKey: ["/api/users"],
   });
 
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
@@ -437,12 +437,22 @@ const TicketDetails = React.memo(() => {
   const availableCustomers = selectedCompanyCustomers.length > 0 ? selectedCompanyCustomers : customers;
 
   // Transform users data for UserSelect and UserMultiSelect components
-  const teamUsers = (usersData as any)?.users ? (usersData as any).users.map((user: any) => ({
+  const teamUsers = Array.isArray((usersData as any)?.users) ? (usersData as any).users.map((user: any) => ({
     id: user.id,
-    name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+    name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email?.split('@')[0] || 'Usuário',
     email: user.email,
     role: user.role || 'Usuário'
   })) : [];
+
+  // Debug log to understand the data flow
+  React.useEffect(() => {
+    console.log('🔍 [DEBUG] UserMultiSelect data flow:', {
+      usersDataRaw: usersData,
+      usersArray: (usersData as any)?.users,
+      teamUsersProcessed: teamUsers,
+      teamUsersLength: teamUsers.length
+    });
+  }, [usersData, teamUsers]);
 
   // 🔧 [1QA-COMPLIANCE] Dados processados diretamente das queries - Clean Architecture
   const communicationsData = useMemo(() => {

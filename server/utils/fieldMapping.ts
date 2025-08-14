@@ -52,7 +52,7 @@ export function mapFrontendToBackend(frontendData: any): any {
     return {};
   }
 
-  const mapping = getFieldMapping();
+  const mapping = FRONTEND_TO_BACKEND_MAPPING;
   const backendData: any = {};
 
   console.log('🔍 [FIELD-MAPPING] Starting mapping with data:', {
@@ -73,8 +73,8 @@ export function mapFrontendToBackend(frontendData: any): any {
     }
   });
 
-  // Ensure critical fields are properly mapped
-  const criticalMappings = {
+  // Ensure critical fields are properly mapped using TypeScript safe access
+  const criticalMappings: Record<string, string> = {
     'customerCompanyId': 'company_id',
     'callerId': 'caller_id',
     'beneficiaryId': 'beneficiary_id',
@@ -164,34 +164,7 @@ export const TICKET_FIELD_MAPPING = {
   },
 };
 
+// Legacy function - using new FRONTEND_TO_BACKEND_MAPPING instead
 export function mapClientToServer(clientData: any): any {
-  console.log('🔄 [FieldMapping] Client to Server mapping started:', {
-    inputKeys: Object.keys(clientData),
-    mappingRules: CLIENT_TO_SERVER_MAPPING
-  });
-
-  const mapped = {};
-
-  for (const [clientKey, serverKey] of Object.entries(CLIENT_TO_SERVER_MAPPING)) {
-    if (clientData.hasOwnProperty(clientKey)) {
-      mapped[serverKey] = clientData[clientKey];
-      console.log(`✅ [FieldMapping] Mapped: ${clientKey} -> ${serverKey} = ${clientData[clientKey]}`);
-    }
-  }
-
-  // Copy any fields that don't need mapping
-  for (const [key, value] of Object.entries(clientData)) {
-    if (!CLIENT_TO_SERVER_MAPPING.hasOwnProperty(key) && !mapped.hasOwnProperty(key)) {
-      mapped[key] = value;
-      console.log(`📋 [FieldMapping] Direct copy: ${key} = ${value}`);
-    }
-  }
-
-  console.log('✅ [FieldMapping] Mapping complete:', {
-    inputCount: Object.keys(clientData).length,
-    outputCount: Object.keys(mapped).length,
-    mappedFields: mapped
-  });
-
-  return mapped;
+  return mapFrontendToBackend(clientData);
 }
