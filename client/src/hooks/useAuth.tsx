@@ -124,13 +124,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        const { accessToken, refreshToken: newRefreshToken } = await response.json();
-        localStorage.setItem('accessToken', accessToken);
-        if (newRefreshToken) {
-          localStorage.setItem('refreshToken', newRefreshToken);
+        const responseData = await response.json();
+        
+        // ✅ CRITICAL FIX - Handle backend response structure per 1qa.md compliance
+        if (responseData.success && responseData.data?.tokens) {
+          const { accessToken, refreshToken: newRefreshToken } = responseData.data.tokens;
+          localStorage.setItem('accessToken', accessToken);
+          if (newRefreshToken) {
+            localStorage.setItem('refreshToken', newRefreshToken);
+          }
+          return true;
         }
-        return true;
+        
+        // Fallback for direct token response
+        if (responseData.accessToken) {
+          localStorage.setItem('accessToken', responseData.accessToken);
+          if (responseData.refreshToken) {
+            localStorage.setItem('refreshToken', responseData.refreshToken);
+          }
+          return true;
+        }
+        
+        console.error('Invalid refresh response structure:', responseData);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        return false;
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Refresh failed:', errorData.message || response.statusText);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         return false;
