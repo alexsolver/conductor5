@@ -306,7 +306,7 @@ router.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     // 🎯 LOG NOTE CREATION TO HISTORY per 1qa.md specification
     try {
-      await historyApplicationService.logHistoryEntry({
+      await historyApplicationService.createHistoryEntry({
         ticketId: id,
         actionType: 'note_created',
         fieldName: '',

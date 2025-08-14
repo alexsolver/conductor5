@@ -151,6 +151,57 @@ export class TicketHistoryApplicationService {
   }
 
   /**
+   * Create a single history entry for notes, relationships, etc.
+   * Following 1qa.md Clean Architecture pattern
+   */
+  async createHistoryEntry(params: {
+    ticketId: string;
+    actionType: string;
+    fieldName: string;
+    oldValue: string;
+    newValue: string;
+    performedBy: string;
+    tenantId: string;
+    description?: string;
+    metadata?: Record<string, any>;
+  }): Promise<TicketHistory> {
+    
+    console.log('📝 [TicketHistoryApplicationService] Creating single history entry:', { 
+      ticketId: params.ticketId,
+      actionType: params.actionType,
+      performedBy: params.performedBy
+    });
+
+    try {
+      // Create history data using domain service
+      const historyData = this.ticketHistoryDomainService.createActionHistory(
+        params.ticketId,
+        params.actionType,
+        params.description || `${params.actionType} performed`,
+        params.performedBy,
+        'Sistema', // Default performer name for system actions
+        params.tenantId,
+        {
+          ...params.metadata,
+          fieldName: params.fieldName,
+          oldValue: params.oldValue,
+          newValue: params.newValue
+        }
+      );
+
+      const history = await this.ticketHistoryRepository.create(historyData);
+
+      console.log('✅ [TicketHistoryApplicationService] History entry created:', history.id);
+      
+      return history;
+
+    } catch (error: any) {
+      console.error('❌ [TicketHistoryApplicationService] Error creating history entry:', error);
+      throw new Error(`Failed to create history entry: ${error.message}`);
+    }
+  }
+
+  /**
    * Get ticket history
    */
   async getTicketHistory(ticketId: string, tenantId: string): Promise<TicketHistory[]> {

@@ -123,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 🎯 LOG RELATIONSHIP CREATION TO HISTORY per 1qa.md specification
       try {
-        await historyApplicationService.logHistoryEntry({
+        await historyApplicationService.createHistoryEntry({
           ticketId: id,
           actionType: 'relationship_created',
           fieldName: '',
