@@ -3726,14 +3726,14 @@ const TicketDetails = React.memo(() => {
             role="tab"
             aria-selected={activeTab === "internal-actions"}
             aria-controls="tab-content"
-            aria-label={`Ações Internas - ${internalActions?.length || 0} itens`}
+            aria-label={`Ações Internas - ${internalActionsData?.length || 0} itens`}
           >
             <div className="flex items-center gap-3">
               <Settings className="h-4 w-4" />
               <span className="text-sm font-medium">Ações Internas</span>
             </div>
             <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
-              {internalActions?.length || 0}
+              {internalActionsData?.length || 0}
             </Badge>
           </button>
 
