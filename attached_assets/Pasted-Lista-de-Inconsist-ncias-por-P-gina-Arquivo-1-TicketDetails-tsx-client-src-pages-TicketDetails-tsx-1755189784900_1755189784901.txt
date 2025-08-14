@@ -1,0 +1,40 @@
+Lista de Inconsistências por Página/Arquivo
+1. TicketDetails.tsx (client/src/pages/TicketDetails.tsx)
+❌ Beneficiary not found: Beneficiário com ID c4e3806a-8cf1-4495-af04-1098ef1ccf43 não encontrado
+❌ Empty beneficiariesData: Query de beneficiários retornando dados vazios
+❌ UserMultiSelect receiving 0 users: Componente não recebendo usuários
+2. server/routes.ts
+❌ Rotas duplicadas: Múltiplas implementações para mesmos endpoints
+❌ Conflitos entre rotas legacy e Clean Architecture
+❌ Middleware aplicado inconsistentemente
+3. server/modules/customers/routes.ts
+❌ Customer-company relationship inconsistencies: Problemas nos relacionamentos
+❌ Missing columns validation: Validação de colunas faltantes
+❌ Table schema mismatches: Incompatibilidades no schema
+4. server/modules/beneficiaries/routes-clean.ts
+❌ Clean Architecture not fully implemented: Implementação parcial
+❌ Route mapping inconsistencies: Mapeamento de rotas inconsistente
+5. Logs do Console (Webview)
+❌ API response format inconsistencies: Formatos de resposta inconsistentes
+❌ Badge lookup failures: Falhas na busca de badges/etiquetas
+❌ Field color mapping issues: Problemas no mapeamento de cores
+6. Database Schema Issues (Inferido dos logs)
+❌ beneficiaries table structure: Estrutura da tabela de beneficiários
+❌ companies_relationships table: Tabela de relacionamentos de empresas
+❌ Foreign key constraints: Restrições de chave estrangeira
+7. Frontend Components (Inferido)
+❌ FilteredBeneficiarySelect.tsx: Componente de seleção de beneficiários
+❌ UserMultiSelect.tsx: Componente de seleção múltipla de usuários
+❌ DynamicBadge.tsx: Componente de badges dinâmicos
+8. API Endpoints (server/modules/*/routes.ts)
+❌ GET /api/beneficiaries: Endpoint retornando dados vazios
+❌ GET /api/customers: Inconsistências na estrutura de resposta
+❌ GET /api/companies: Problemas de relacionamento
+9. Query/State Management
+❌ React Query cache inconsistencies: Cache inconsistente
+❌ State synchronization issues: Problemas de sincronização de estado
+❌ Form data mapping: Mapeamento de dados do formulário
+10. Configuration Files (Inferido)
+❌ Drizzle ORM configuration: Configuração do Drizzle ORM
+❌ Database connection settings: Configurações de conexão
+❌ Route registration order: Ordem de registro das rotas
