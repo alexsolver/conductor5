@@ -626,27 +626,72 @@ const TicketDetails = React.memo(() => {
         new_value: item.new_value || item.newValue || null,
         metadata: item.metadata || {},
         // ✅ MAPEAMENTO ROBUSTO DE DADOS DE SESSÃO - MÚLTIPLAS FONTES
-        ip_address: item.ip_address || 
-                   item.ipAddress || 
-                   item.metadata?.client_info?.ip_address || 
-                   item.metadata?.ip_address ||
-                   item.metadata?.session_backup?.ip_address ||
-                   (item.metadata && typeof item.metadata === 'string' ? JSON.parse(item.metadata)?.client_info?.ip_address : null) ||
-                   'N/A',
-        user_agent: item.user_agent || 
-                   item.userAgent || 
-                   item.metadata?.client_info?.user_agent || 
-                   item.metadata?.user_agent ||
-                   item.metadata?.session_backup?.user_agent ||
-                   (item.metadata && typeof item.metadata === 'string' ? JSON.parse(item.metadata)?.client_info?.user_agent : null) ||
-                   'N/A',
-        session_id: item.session_id || 
-                   item.sessionId || 
-                   item.metadata?.client_info?.session_id || 
-                   item.metadata?.session_id ||
-                   item.metadata?.session_backup?.session_id ||
-                   (item.metadata && typeof item.metadata === 'string' ? JSON.parse(item.metadata)?.client_info?.session_id : null) ||
-                   'N/A'
+        ip_address: (() => {
+          // 1. Verificar campos diretos primeiro
+          if (item.ip_address && item.ip_address !== 'N/A') return item.ip_address;
+          if (item.ipAddress && item.ipAddress !== 'N/A') return item.ipAddress;
+          
+          // 2. Parse metadata se for string
+          let parsedMetadata = item.metadata;
+          if (typeof item.metadata === 'string') {
+            try {
+              parsedMetadata = JSON.parse(item.metadata);
+            } catch (e) {
+              parsedMetadata = {};
+            }
+          }
+          
+          // 3. Verificar dentro do metadata
+          if (parsedMetadata?.client_info?.ip_address) return parsedMetadata.client_info.ip_address;
+          if (parsedMetadata?.ip_address) return parsedMetadata.ip_address;
+          if (parsedMetadata?.session_backup?.ip_address) return parsedMetadata.session_backup.ip_address;
+          
+          return 'N/A';
+        })(),
+        user_agent: (() => {
+          // 1. Verificar campos diretos primeiro
+          if (item.user_agent && item.user_agent !== 'N/A') return item.user_agent;
+          if (item.userAgent && item.userAgent !== 'N/A') return item.userAgent;
+          
+          // 2. Parse metadata se for string
+          let parsedMetadata = item.metadata;
+          if (typeof item.metadata === 'string') {
+            try {
+              parsedMetadata = JSON.parse(item.metadata);
+            } catch (e) {
+              parsedMetadata = {};
+            }
+          }
+          
+          // 3. Verificar dentro do metadata
+          if (parsedMetadata?.client_info?.user_agent) return parsedMetadata.client_info.user_agent;
+          if (parsedMetadata?.user_agent) return parsedMetadata.user_agent;
+          if (parsedMetadata?.session_backup?.user_agent) return parsedMetadata.session_backup.user_agent;
+          
+          return 'N/A';
+        })(),
+        session_id: (() => {
+          // 1. Verificar campos diretos primeiro
+          if (item.session_id && item.session_id !== 'N/A') return item.session_id;
+          if (item.sessionId && item.sessionId !== 'N/A') return item.sessionId;
+          
+          // 2. Parse metadata se for string
+          let parsedMetadata = item.metadata;
+          if (typeof item.metadata === 'string') {
+            try {
+              parsedMetadata = JSON.parse(item.metadata);
+            } catch (e) {
+              parsedMetadata = {};
+            }
+          }
+          
+          // 3. Verificar dentro do metadata
+          if (parsedMetadata?.client_info?.session_id) return parsedMetadata.client_info.session_id;
+          if (parsedMetadata?.session_id) return parsedMetadata.session_id;
+          if (parsedMetadata?.session_backup?.session_id) return parsedMetadata.session_backup.session_id;
+          
+          return 'N/A';
+        })()
       }));
 
       console.log('🔍 [TICKET-HISTORY] Dados de sessão mapeados:', {
@@ -2148,23 +2193,23 @@ const TicketDetails = React.memo(() => {
                               <div>
                                 <span className="text-gray-500">IP:</span>
                                 <span className="ml-1 font-medium text-blue-600">
-                                  {historyItem.ip_address || historyItem.metadata?.client_info?.ip_address || historyItem.metadata?.ip_address || 'N/A'}
+                                  {historyItem.ip_address && historyItem.ip_address !== 'N/A' ? historyItem.ip_address : 'N/A'}
                                 </span>
                               </div>
                             </div>
-                            {(historyItem.user_agent || historyItem.metadata?.client_info?.user_agent || historyItem.metadata?.user_agent) && (
+                            {historyItem.user_agent && historyItem.user_agent !== 'N/A' && (
                               <div className="mb-2">
                                 <span className="text-gray-500">User-Agent:</span>
                                 <p className="text-xs break-all mt-1 text-gray-700">
-                                  {historyItem.user_agent || historyItem.metadata?.client_info?.user_agent || historyItem.metadata?.user_agent}
+                                  {historyItem.user_agent}
                                 </p>
                               </div>
                             )}
-                            {(historyItem.session_id || historyItem.metadata?.client_info?.session_id || historyItem.metadata?.session_id) && (
+                            {historyItem.session_id && historyItem.session_id !== 'N/A' && (
                               <div className="mb-2">
                                 <span className="text-gray-500">Session ID:</span>
                                 <span className="ml-1 font-mono text-xs">
-                                  {historyItem.session_id || historyItem.metadata?.client_info?.session_id || historyItem.metadata?.session_id}
+                                  {historyItem.session_id}
                                 </span>
                               </div>
                             )}
