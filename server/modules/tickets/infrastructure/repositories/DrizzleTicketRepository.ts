@@ -253,6 +253,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     // Company filter removed - field doesn't exist in current schema
+    if (filters.companyId) {
+      conditions.push(eq(tickets.companyId, filters.companyId));
+    }
 
     if (filters.category) {
       conditions.push(eq(tickets.category, filters.category));
