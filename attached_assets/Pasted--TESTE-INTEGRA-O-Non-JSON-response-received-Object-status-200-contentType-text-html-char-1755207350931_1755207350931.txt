@@ -1,0 +1,26 @@
+❌ [TESTE-INTEGRAÇÃO] Non-JSON response received: 
+Object {status: 200, contentType: "text/html; charset=utf-8", bodyStart: "<!DOCTYPE html>↵<html lang="en">↵  <head>↵    <script type="module">↵import {…"}
+bodyStart: "<!DOCTYPE html>↵<html lang="en">↵ <head>↵ <script type="module">↵import { createHotContext } from "/@vite/client";↵const hot = createHotContext("/__dummy__runtime-error-plugin");↵↵function sendError(error) {↵ if (!(error instanceof Error)) {↵ error = new Error("(unknown runtime error)");↵ }↵ const serialized = {↵ message: error.message,↵ stack: error.stack,↵ };↵ hot.send("runtime-error-plugin:error", serialized);↵}↵↵window.addEventListener("error", (evt) => {↵ sendError(evt.er"
+contentType: "text/html; charset=utf-8"
+status: 200
+[[Prototype]]: Object
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+❌ [TESTE-INTEGRAÇÃO] Erro durante teste: 
+Error {}
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+❌ [CONFIG-LOAD] Erro ao carregar configuração para telegram: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"
+stack: "SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON↵ at onConfigureIntegration (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TenantAdminIntegrations.tsx:630:45)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
