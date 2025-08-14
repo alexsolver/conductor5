@@ -84,3 +84,14 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 - **Actions Integration**: Enhanced internal action history with full metadata including IP, email, User-Agent
 - **Data Completeness**: All history entries now capture: IP address, User-Agent, performer email, field names, complete metadata
 - **Architecture Compliance**: Maintained Clean Architecture patterns while fixing data completeness issues
+
+### Ticket Relationships Module - August 14, 2025
+**CLEAN ARCHITECTURE IMPLEMENTATION - 1QA.MD COMPLIANCE**
+- **Problem**: Legacy endpoints in routes.ts were returning incomplete relationship data without related ticket details, causing "ticket not found" errors when clicking on linked tickets
+- **Solution**: Created complete Clean Architecture module following 1qa.md specifications
+- **Domain Layer**: TicketRelationship entity with complete data structure including related ticket details
+- **Infrastructure**: DrizzleTicketRelationshipRepository with JOIN queries to fetch complete ticket information (number, subject, status)
+- **Application**: FindTicketRelationshipsUseCase and TicketRelationshipController following Clean Architecture patterns
+- **Presentation**: Routes integrated with JWT authentication and proper error handling
+- **Legacy Removal**: Replaced direct database queries in routes.ts with Clean Architecture implementation
+- **Data Completeness**: Now returns related_ticket_number, related_ticket_subject, related_ticket_status preventing frontend "not found" errors
