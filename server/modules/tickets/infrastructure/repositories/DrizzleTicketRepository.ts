@@ -1,3 +1,4 @@
+
 /**
  * INFRASTRUCTURE LAYER - DRIZZLE TICKET REPOSITORY
  * Seguindo Clean Architecture - 1qa.md compliance
@@ -19,32 +20,45 @@ export class DrizzleTicketRepository implements ITicketRepository {
   constructor(private logger: Logger) {}
 
   async findById(id: string, tenantId: string): Promise<Ticket | null> {
-    const [ticket] = await db
-      .select()
-      .from(tickets)
-      .where(
-        and(
-          eq(tickets.id, id),
-          eq(tickets.tenantId, tenantId)
-        )
-      );
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await db.execute(sql`
+        SELECT 
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
+        LIMIT 1
+      `);
 
-    return ticket ? this.mapToTicket(ticket) : null;
+      return result.rows[0] ? this.mapToTicket(result.rows[0]) : null;
+    } catch (error) {
+      this.logger.error('Failed to find ticket by ID', { error: (error as Error).message, id, tenantId });
+      throw error;
+    }
   }
 
   async findByNumber(number: string, tenantId: string): Promise<Ticket | null> {
-    const result = await db
-      .select()
-      .from(tickets)
-      .where(
-        and(
-          eq(tickets.number, number),
-          eq(tickets.tenantId, tenantId)
-        )
-      )
-      .limit(1);
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await db.execute(sql`
+        SELECT 
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE number = ${number} AND tenant_id = ${tenantId} AND is_active = true
+        LIMIT 1
+      `);
 
-    return result[0] ? this.mapToTicket(result[0]) : null;
+      return result.rows[0] ? this.mapToTicket(result.rows[0]) : null;
+    } catch (error) {
+      this.logger.error('Failed to find ticket by number', { error: (error as Error).message, number, tenantId });
+      throw error;
+    }
   }
 
   async create(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<Ticket> {
@@ -101,7 +115,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       );
   }
 
-  // ✅ CLEAN ARCHITECTURE - Main implementation method
+  // ✅ CLEAN ARCHITECTURE - Main implementation method with RAW SQL
   async findByFilters(
     filters: TicketFilters,
     pagination: PaginationOptions,
@@ -114,67 +128,82 @@ export class DrizzleTicketRepository implements ITicketRepository {
     });
 
     try {
-      // Calculate offset
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Build filter conditions
-      const conditions = [eq(tickets.tenantId, tenantId)];
+      // Build WHERE conditions
+      let whereClause = 'WHERE is_active = true';
+      const whereParams: any[] = [];
 
-      if (filters.status?.length) {
-        conditions.push(inArray(tickets.status, filters.status));
+      if (filters.status && filters.status.length > 0) {
+        const statusPlaceholders = filters.status.map(() => '?').join(',');
+        whereClause += ` AND status IN (${statusPlaceholders})`;
+        whereParams.push(...filters.status);
       }
 
-      if (filters.priority?.length) {
-        conditions.push(inArray(tickets.priority, filters.priority));
+      if (filters.priority && filters.priority.length > 0) {
+        const priorityPlaceholders = filters.priority.map(() => '?').join(',');
+        whereClause += ` AND priority IN (${priorityPlaceholders})`;
+        whereParams.push(...filters.priority);
       }
 
       if (filters.assignedToId) {
-        conditions.push(eq(tickets.responsibleId, filters.assignedToId));
+        whereClause += ` AND assigned_to_id = ?`;
+        whereParams.push(filters.assignedToId);
       }
 
       if (filters.customerId) {
-        conditions.push(eq(tickets.callerId, filters.customerId));
+        whereClause += ` AND caller_id = ?`;
+        whereParams.push(filters.customerId);
       }
 
       if (filters.companyId) {
-        conditions.push(eq(tickets.companyId, filters.companyId));
+        whereClause += ` AND company_id = ?`;
+        whereParams.push(filters.companyId);
       }
 
       if (filters.category) {
-        conditions.push(eq(tickets.category, filters.category));
+        whereClause += ` AND category = ?`;
+        whereParams.push(filters.category);
       }
 
       if (filters.search) {
-        conditions.push(
-          or(
-            ilike(tickets.subject, `%${filters.search}%`),
-            ilike(tickets.description, `%${filters.search}%`)
-          )
-        );
+        whereClause += ` AND (subject ILIKE ? OR description ILIKE ?)`;
+        whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
       }
 
-      // Apply filters to main query
-      const ticketResults = await db
-        .select()
-        .from(tickets)
-        .where(and(...conditions))
-        .orderBy(desc(tickets.createdAt))
-        .limit(pagination.limit)
-        .offset(offset);
+      // Count total records
+      const countResult = await db.execute(sql.raw(`
+        SELECT COUNT(*) as total
+        FROM ${schemaName}.tickets
+        ${whereClause}
+      `, whereParams));
 
-      // Count total results with same filters
-      const total = await this.countByFilters(filters, tenantId);
+      const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
+
+      // Get paginated results
+      const results = await db.execute(sql.raw(`
+        SELECT 
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+        FROM ${schemaName}.tickets
+        ${whereClause}
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
+      `, [...whereParams, pagination.limit, offset]));
 
       console.log('✅ [DrizzleTicketRepository] Query successful:', {
         total,
         page: pagination.page,
         totalPages,
-        resultsCount: ticketResults.length
+        resultsCount: results.rows.length
       });
 
       return {
-        tickets: ticketResults.map(ticket => this.mapToTicket(ticket)),
+        tickets: results.rows.map(ticket => this.mapToTicket(ticket)),
         total,
         page: pagination.page,
         totalPages
@@ -203,13 +232,19 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
   async findByTenant(tenantId: string): Promise<Ticket[]> {
     try {
-      const results = await db
-        .select()
-        .from(tickets)
-        .where(eq(tickets.tenantId, tenantId))
-        .orderBy(desc(tickets.createdAt));
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const results = await db.execute(sql`
+        SELECT 
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE is_active = true
+        ORDER BY created_at DESC
+      `);
 
-      return results.map(ticket => this.mapToTicket(ticket));
+      return results.rows.map(ticket => this.mapToTicket(ticket));
     } catch (error) {
       this.logger.error('Failed to find tickets by tenant', { 
         error: (error as Error).message, 
@@ -220,92 +255,107 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   async findByAssignedUser(userId: string, tenantId: string): Promise<Ticket[]> {
-    const results = await db
-      .select()
-      .from(tickets)
-      .where(
-        and(
-          eq(tickets.responsibleId, userId),
-          eq(tickets.tenantId, tenantId)
-        )
-      )
-      .orderBy(desc(tickets.createdAt));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const results = await db.execute(sql`
+      SELECT 
+        id, number, subject, description, status, priority, urgency, impact,
+        category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+        tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+        company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+      FROM ${sql.identifier(schemaName)}.tickets
+      WHERE assigned_to_id = ${userId} AND tenant_id = ${tenantId} AND is_active = true
+      ORDER BY created_at DESC
+    `);
 
-    return results.map(ticket => this.mapToTicket(ticket));
+    return results.rows.map(ticket => this.mapToTicket(ticket));
   }
 
   async findByCustomer(customerId: string, tenantId: string): Promise<Ticket[]> {
-    const results = await db
-      .select()
-      .from(tickets)
-      .where(
-        and(
-          eq(tickets.callerId, customerId),
-          eq(tickets.tenantId, tenantId)
-        )
-      )
-      .orderBy(desc(tickets.createdAt));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const results = await db.execute(sql`
+      SELECT 
+        id, number, subject, description, status, priority, urgency, impact,
+        category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+        tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+        company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+      FROM ${sql.identifier(schemaName)}.tickets
+      WHERE caller_id = ${customerId} AND tenant_id = ${tenantId} AND is_active = true
+      ORDER BY created_at DESC
+    `);
 
-    return results.map(ticket => this.mapToTicket(ticket));
+    return results.rows.map(ticket => this.mapToTicket(ticket));
   }
 
   async findByStatus(status: string, tenantId: string): Promise<Ticket[]> {
-    const results = await db
-      .select()
-      .from(tickets)
-      .where(
-        and(
-          eq(tickets.status, status),
-          eq(tickets.tenantId, tenantId)
-        )
-      )
-      .orderBy(desc(tickets.createdAt));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const results = await db.execute(sql`
+      SELECT 
+        id, number, subject, description, status, priority, urgency, impact,
+        category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+        tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+        company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
+      FROM ${sql.identifier(schemaName)}.tickets
+      WHERE status = ${status} AND tenant_id = ${tenantId} AND is_active = true
+      ORDER BY created_at DESC
+    `);
 
-    return results.map(ticket => this.mapToTicket(ticket));
+    return results.rows.map(ticket => this.mapToTicket(ticket));
   }
 
   async countByFilters(filters: TicketFilters, tenantId: string): Promise<number> {
-    const conditions = [eq(tickets.tenantId, tenantId)];
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      let whereClause = 'WHERE is_active = true';
+      const whereParams: any[] = [];
 
-    if (filters.status?.length) {
-      conditions.push(inArray(tickets.status, filters.status));
+      if (filters.status && filters.status.length > 0) {
+        const statusPlaceholders = filters.status.map(() => '?').join(',');
+        whereClause += ` AND status IN (${statusPlaceholders})`;
+        whereParams.push(...filters.status);
+      }
+
+      if (filters.priority && filters.priority.length > 0) {
+        const priorityPlaceholders = filters.priority.map(() => '?').join(',');
+        whereClause += ` AND priority IN (${priorityPlaceholders})`;
+        whereParams.push(...filters.priority);
+      }
+
+      if (filters.assignedToId) {
+        whereClause += ` AND assigned_to_id = ?`;
+        whereParams.push(filters.assignedToId);
+      }
+
+      if (filters.customerId) {
+        whereClause += ` AND caller_id = ?`;
+        whereParams.push(filters.customerId);
+      }
+
+      if (filters.companyId) {
+        whereClause += ` AND company_id = ?`;
+        whereParams.push(filters.companyId);
+      }
+
+      if (filters.category) {
+        whereClause += ` AND category = ?`;
+        whereParams.push(filters.category);
+      }
+
+      if (filters.search) {
+        whereClause += ` AND (subject ILIKE ? OR description ILIKE ?)`;
+        whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
+      }
+
+      const result = await db.execute(sql.raw(`
+        SELECT COUNT(*) as count
+        FROM ${schemaName}.tickets
+        ${whereClause}
+      `, whereParams));
+
+      return Number(result.rows[0]?.count || 0);
+    } catch (error) {
+      this.logger.error('Failed to count tickets by filters', { error: (error as Error).message, filters, tenantId });
+      return 0;
     }
-
-    if (filters.priority?.length) {
-      conditions.push(inArray(tickets.priority, filters.priority));
-    }
-
-    if (filters.assignedToId) {
-      conditions.push(eq(tickets.responsibleId, filters.assignedToId));
-    }
-
-    if (filters.customerId) {
-      conditions.push(eq(tickets.callerId, filters.customerId));
-    }
-
-    if (filters.companyId) {
-      conditions.push(eq(tickets.companyId, filters.companyId));
-    }
-
-    if (filters.category) {
-      conditions.push(eq(tickets.category, filters.category));
-    }
-
-    if (filters.search) {
-      conditions.push(
-        or(
-          ilike(tickets.subject, `%${filters.search}%`),
-          ilike(tickets.description, `%${filters.search}%`)
-        )
-      );
-    }
-
-    const result = await db
-      .select({ count: count() })
-      .from(tickets)
-      .where(and(...conditions));
-
-    return result[0]?.count || 0;
   }
 
   async getStatistics(tenantId: string): Promise<{
@@ -363,39 +413,12 @@ export class DrizzleTicketRepository implements ITicketRepository {
     };
 
     const paginationOptions = pagination || defaultPagination;
-    const offset = (paginationOptions.page - 1) * paginationOptions.limit;
-
-    const searchConditions = and(
-      eq(tickets.tenantId, tenantId),
-      or(
-        ilike(tickets.subject, `%${searchTerm}%`),
-        ilike(tickets.description, `%${searchTerm}%`),
-        ilike(tickets.number, `%${searchTerm}%`)
-      )
+    
+    return await this.findByFilters(
+      { search: searchTerm },
+      paginationOptions,
+      tenantId
     );
-
-    const results = await db
-      .select()
-      .from(tickets)
-      .where(searchConditions)
-      .orderBy(desc(tickets.createdAt))
-      .limit(paginationOptions.limit)
-      .offset(offset);
-
-    const totalResult = await db
-      .select({ count: count() })
-      .from(tickets)
-      .where(searchConditions);
-
-    const total = totalResult[0]?.count || 0;
-    const totalPages = Math.ceil(total / paginationOptions.limit);
-
-    return {
-      tickets: results.map(ticket => this.mapToTicket(ticket)),
-      total,
-      page: paginationOptions.page,
-      totalPages
-    };
   }
 
   // ✅ CLEAN ARCHITECTURE - Private mapping method
@@ -413,7 +436,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       subcategory: row.subcategory || null,
       action: row.action || null,
       callerId: row.callerId || null,
-      assignedToId: row.assignedToId || row.responsibleId || null,
+      assignedToId: row.assignedToId || null,
       tenantId: row.tenantId,
       createdAt: row.createdAt || new Date(),
       updatedAt: row.updatedAt || new Date(),
