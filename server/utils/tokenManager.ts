@@ -93,7 +93,7 @@ export class TokenManager {
       }
 
       return {
-        userId: decoded.userId,
+        userId: decoded.userId || decoded.sub, // ✅ CRITICAL FIX - Handle both userId and sub per 1qa.md
         email: decoded.email,
         role: decoded.role,
         tenantId: decoded.tenantId

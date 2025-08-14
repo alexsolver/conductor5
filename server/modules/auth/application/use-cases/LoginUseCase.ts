@@ -122,6 +122,7 @@ export class LoginUseCase {
   private generateAccessToken(user: any, expiresAt: Date): string {
     const payload = {
       sub: user.id,
+      userId: user.id, // ✅ CRITICAL FIX - Adding userId for middleware compatibility per 1qa.md
       email: user.email,
       role: user.role,
       tenantId: user.tenantId,
