@@ -172,26 +172,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
       // Calculate offset
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Simple query with minimal conditions to avoid schema conflicts
+      // Simple query with verified fields only
       const ticketResults = await db
-        .select({
-          id: tickets.id,
-          tenantId: tickets.tenantId,
-          number: tickets.number,
-          subject: tickets.subject,
-          description: tickets.description,
-          status: tickets.status,
-          priority: tickets.priority,
-          urgency: tickets.urgency,
-          impact: tickets.impact,
-          category: tickets.category,
-          subcategory: tickets.subcategory,
-          callerId: tickets.callerId,
-          assignedToId: tickets.assignedToId,
-          createdAt: tickets.createdAt,
-          updatedAt: tickets.updatedAt,
-          isActive: tickets.isActive
-        })
+        .select()
         .from(tickets)
         .where(eq(tickets.tenantId, tenantId))
         .orderBy(desc(tickets.createdAt))
@@ -406,24 +389,25 @@ export class DrizzleTicketRepository implements ITicketRepository {
   // ✅ CLEAN ARCHITECTURE - Private mapping method
   private mapToTicket(row: any): Ticket {
     return {
-      id: row.id,
-      number: row.number,
-      subject: row.subject,
-      description: row.description,
-      status: row.status,
-      priority: row.priority,
-      urgency: row.urgency,
-      impact: row.impact,
-      category: row.category,
-      subcategory: row.subcategory,
-      callerId: row.callerId,
-      assignedToId: row.assignedToId || row.responsibleId,
+      id: row.id || null,
+      number: row.number || null,
+      subject: row.subject || '',
+      description: row.description || '',
+      status: row.status || 'new',
+      priority: row.priority || 'medium',
+      urgency: row.urgency || 'medium',
+      impact: row.impact || 'medium',
+      category: row.category || null,
+      subcategory: row.subcategory || null,
+      action: row.action || null,
+      callerId: row.callerId || null,
+      assignedToId: row.assignedToId || row.responsibleId || null,
       tenantId: row.tenantId,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
+      createdAt: row.createdAt || new Date(),
+      updatedAt: row.updatedAt || new Date(),
       createdById: row.createdById || null,
       updatedById: row.updatedById || null,
-      customerCompanyId: null, // Field excluded from select to avoid schema mapping issues
+      companyId: row.companyId || null,
       isActive: row.isActive !== false
     } as Ticket;
   }
