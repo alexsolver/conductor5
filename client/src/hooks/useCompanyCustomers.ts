@@ -28,20 +28,35 @@ export function useCompanyCustomers(companyId: string) {
       try {
         console.log('🔍 [useCompanyCustomers] Fetching customers for company:', companyId);
 
-        // Use the existing API endpoint that works
-        const response = await apiRequest('GET', `/api/companies/${companyId}/associated`);
+        // Use the correct API endpoint that works
+        const response = await apiRequest('GET', `/api/companies/${companyId}/customers`);
 
-        console.log('✅ [useCompanyCustomers] API response:', response);
+        const data = await response.json();
+        console.log('✅ [useCompanyCustomers] API response:', data);
 
-        // Transform the response to match expected format
-        if (Array.isArray(response)) {
-          return response.map((customer: any) => ({
-            ...customer,
-            isAssociated: true // All customers from this endpoint are associated
-          }));
+        // Handle different response formats
+        let customers = [];
+        
+        if (data.success && data.customers) {
+          // Format: { success: true, customers: [...] }
+          customers = data.customers;
+        } else if (data.success && data.data && Array.isArray(data.data)) {
+          // Format: { success: true, data: [...] }
+          customers = data.data;
+        } else if (Array.isArray(data)) {
+          // Direct array format
+          customers = data;
+        } else if (data.data && Array.isArray(data.data)) {
+          // Nested data format
+          customers = data.data;
         }
 
-        return response?.data || [];
+        console.log('🔍 [useCompanyCustomers] Processed customers:', customers.length);
+
+        return customers.map((customer: any) => ({
+          ...customer,
+          isAssociated: true // All customers from this endpoint are associated
+        }));
       } catch (error) {
         console.error('❌ [useCompanyCustomers] Error:', error);
         // Return empty array on error to prevent UI crashes
