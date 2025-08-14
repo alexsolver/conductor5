@@ -2474,7 +2474,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.field_name,
         th.created_at,
         th.metadata,
-        COALESCE(th.is_visible, true) as is_visible,
+        true as is_visible,
         'primary' as priority_level,
         'Histórico do Sistema' as category_name,
         'system_activity' as activity_group,
