@@ -114,65 +114,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
     });
 
     try {
-      // Build where conditions
-      const conditions = [eq(tickets.tenantId, tenantId)];
-
-      // Apply filters
-      if (filters.status?.length) {
-        conditions.push(inArray(tickets.status, filters.status));
-      }
-
-      if (filters.priority?.length) {
-        conditions.push(inArray(tickets.priority, filters.priority));
-      }
-
-      if (filters.assignedToId) {
-        conditions.push(eq(tickets.assignedToId, filters.assignedToId));
-      }
-
-      if (filters.customerId) {
-        conditions.push(eq(tickets.callerId, filters.customerId));
-      }
-
-      // Company filter disabled temporarily for schema stability
-      // if (filters.companyId) {
-      //   conditions.push(eq(tickets.companyId, filters.companyId));
-      // }
-
-      if (filters.category) {
-        conditions.push(eq(tickets.category, filters.category));
-      }
-
-      if (filters.dateFrom) {
-        conditions.push(gte(tickets.createdAt, filters.dateFrom));
-      }
-
-      if (filters.dateTo) {
-        conditions.push(lte(tickets.createdAt, filters.dateTo));
-      }
-
-      if (filters.search) {
-        conditions.push(
-          or(
-            ilike(tickets.subject, `%${filters.search}%`),
-            ilike(tickets.description, `%${filters.search}%`),
-            ilike(tickets.number, `%${filters.search}%`)
-          )
-        );
-      }
-
-      // Count total results with basic tenant filter only
-      const totalResult = await db
-        .select({ count: count() })
-        .from(tickets)
-        .where(eq(tickets.tenantId, tenantId));
-
-      const total = totalResult[0]?.count || 0;
-
       // Calculate offset
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Simple query with tenant filter only
+      // Simple query with only tenant filter for now - avoiding all problematic fields
       const ticketResults = await db
         .select()
         .from(tickets)
@@ -181,6 +126,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .limit(pagination.limit)
         .offset(offset);
 
+      // Count total results with same simple filter
+      const totalResult = await db
+        .select({ count: count() })
+        .from(tickets)
+        .where(eq(tickets.tenantId, tenantId));
+
+      const total = totalResult[0]?.count || 0;
       const totalPages = Math.ceil(total / pagination.limit);
 
       console.log('✅ [DrizzleTicketRepository] Query successful:', {
