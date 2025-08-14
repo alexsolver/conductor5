@@ -1465,23 +1465,24 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
 
     // ✅ VERIFICAÇÃO DE EXISTÊNCIA DO TICKET - Padrão 1qa.md
     try {
-      const ticketCheck = await pool.query(
-        `SELECT id FROM "${schemaName}".tickets WHERE id = $1::uuid AND tenant_id = $2::uuid`,
-        [id, tenantId]
-      );
+      const ticketCheckQuery = `SELECT id FROM "${schemaName}".tickets WHERE id = $1 AND tenant_id = $2`;
+      const ticketCheck = await pool.query(ticketCheckQuery, [id, tenantId]);
 
       if (ticketCheck.rows.length === 0) {
-        console.log('❌ [INTERNAL-ACTION-CREATE] Ticket not found');
+        console.log('❌ [INTERNAL-ACTION-CREATE] Ticket not found:', { ticketId: id, tenantId });
         return res.status(404).json({ 
           success: false,
           message: "Ticket not found" 
         });
       }
+      
+      console.log('✅ [INTERNAL-ACTION-CREATE] Ticket exists:', ticketCheck.rows[0].id);
     } catch (ticketCheckError) {
       console.error('❌ [INTERNAL-ACTION-CREATE] Error checking ticket existence:', ticketCheckError);
       return res.status(500).json({
         success: false,
-        message: "Error validating ticket existence"
+        message: "Error validating ticket existence",
+        error: ticketCheckError instanceof Error ? ticketCheckError.message : "Unknown error"
       });
     }
 
@@ -1540,43 +1541,70 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     const internalActionQuery = `
       INSERT INTO "${schemaName}".ticket_internal_actions 
       (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, planned_start_time, planned_end_time, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
-      VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3, $4, $5, $6, $7::uuid, $8, $9, $10, $11, $12::numeric, $13, $14, NOW(), NOW())
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
       RETURNING id, action_number, action_type, description, created_at, title, status, priority, estimated_hours
     `;
 
     // Prepare values with proper type conversion and null handling
     const values = [
-      tenantId,                                                              // $1 tenant_id (uuid)
-      id,                                                                   // $2 ticket_id (uuid)
-      actionNumber,                                                         // $3 action_number (varchar)
-      finalActionType,                                                      // $4 action_type (varchar)
-      finalTitle || `${finalActionType} - Ticket #${id.slice(0, 8)}`,     // $5 title (varchar)
-      actionDescription,                                                    // $6 description (text)
-      finalAssignedId,                                                      // $7 agent_id (uuid)
-      finalPlannedStartTime,                                               // $8 planned_start_time (timestamp)
-      finalPlannedEndTime,                                                 // $9 planned_end_time (timestamp)
-      finalStartTime,                                                      // $10 start_time (timestamp)
-      finalEndTime,                                                        // $11 end_time (timestamp)
-      finalEstimatedHoursFinal,                                           // $12 estimated_hours (numeric)
-      finalStatus,                                                         // $13 status (varchar)
-      finalPriority                                                        // $14 priority (varchar)
+      tenantId,                                                              // $1 tenant_id
+      id,                                                                   // $2 ticket_id
+      actionNumber,                                                         // $3 action_number
+      finalActionType,                                                      // $4 action_type
+      finalTitle || `${finalActionType} - Ticket #${id.slice(0, 8)}`,     // $5 title
+      actionDescription,                                                    // $6 description
+      finalAssignedId,                                                      // $7 agent_id
+      finalPlannedStartTime,                                               // $8 planned_start_time
+      finalPlannedEndTime,                                                 // $9 planned_end_time
+      finalStartTime,                                                      // $10 start_time
+      finalEndTime,                                                        // $11 end_time
+      finalEstimatedHoursFinal,                                           // $12 estimated_hours
+      finalStatus,                                                         // $13 status
+      finalPriority                                                        // $14 priority
     ];
 
-    console.log('🔧 [INTERNAL-ACTION-CREATE] Executing query with values:', values.map((v, i) => `$${i+1}: ${v}`));
+    console.log('🔧 [INTERNAL-ACTION-CREATE] Executing query with values:', {
+      paramCount: values.length,
+      tenantId: tenantId?.substring(0, 8) + '...',
+      ticketId: id?.substring(0, 8) + '...',
+      actionType: finalActionType,
+      assignedTo: finalAssignedId?.substring(0, 8) + '...',
+      hasDescription: !!actionDescription,
+      hasTitle: !!finalTitle
+    });
 
     let result;
     try {
+      // ✅ VALIDAÇÃO PRÉVIA DOS PARÂMETROS - Padrão 1qa.md
+      if (values.some(v => v === undefined)) {
+        const undefinedIndexes = values.map((v, i) => v === undefined ? i + 1 : null).filter(Boolean);
+        throw new Error(`Undefined parameters at positions: ${undefinedIndexes.join(', ')}`);
+      }
+
       result = await pool.query(internalActionQuery, values);
 
       if (!result.rows || result.rows.length === 0) {
         throw new Error('No data returned from insert operation');
       }
+      
+      console.log('✅ [INTERNAL-ACTION-CREATE] Insert successful:', {
+        actionId: result.rows[0].id,
+        actionNumber: result.rows[0].action_number
+      });
     } catch (insertError) {
-      console.error('❌ [INTERNAL-ACTION-CREATE] Database insert error:', insertError);
+      console.error('❌ [INTERNAL-ACTION-CREATE] Database insert error:', {
+        error: insertError instanceof Error ? insertError.message : insertError,
+        sqlState: (insertError as any)?.code,
+        detail: (insertError as any)?.detail,
+        hint: (insertError as any)?.hint,
+        position: (insertError as any)?.position,
+        values: values.map((v, i) => `$${i+1}: ${typeof v} = ${v?.toString?.()?.substring(0, 50)}`)
+      });
       return res.status(500).json({
         success: false,
         message: "Failed to create internal action in database",
-        error: insertError instanceof Error ? insertError.message : "Database insert failed"
+        error: insertError instanceof Error ? insertError.message : "Database insert failed",
+        sqlCode: (insertError as any)?.code || 'UNKNOWN'
       });
     }
 
