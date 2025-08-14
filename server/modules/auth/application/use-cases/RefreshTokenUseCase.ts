@@ -40,7 +40,7 @@ export class RefreshTokenUseCase {
     try {
       jwt.verify(
         dto.refreshToken, 
-        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'your-refresh-secret'
+        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025'
       );
     } catch (error) {
       // Invalidate invalid session
@@ -106,7 +106,7 @@ export class RefreshTokenUseCase {
       iat: Math.floor(Date.now() / 1000)
     };
 
-    return jwt.sign(payload, process.env.JWT_SECRET || 'your-secret-key', {
+    return jwt.sign(payload, process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025', {
       algorithm: 'HS256'
     });
   }
@@ -119,7 +119,7 @@ export class RefreshTokenUseCase {
       iat: Math.floor(Date.now() / 1000)
     };
 
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'your-refresh-secret', {
+    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025', {
       algorithm: 'HS256'
     });
   }

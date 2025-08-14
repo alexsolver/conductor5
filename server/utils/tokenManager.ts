@@ -17,9 +17,9 @@ export class TokenManager {
   private readonly refreshSecret: string;
   
   private constructor() {
-    // Fixed secrets for development stability
-    this.accessSecret = process.env.JWT_ACCESS_SECRET || 'conductor-platform-development-fixed-secret-2025';
-    this.refreshSecret = process.env.JWT_REFRESH_SECRET || 'conductor-platform-refresh-fixed-secret-2025';
+    // ✅ CRITICAL FIX - Use same secrets as Use Cases per 1qa.md compliance
+    this.accessSecret = process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025';
+    this.refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025';
   }
 
   static getInstance(): TokenManager {
