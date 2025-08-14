@@ -72,20 +72,37 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
     );
   }
 
-  // Extract relationships from API response with minimal validation
+  // Extract relationships from API response with enhanced validation
   const relationships: RelatedTicket[] = relatedTicketsData?.success 
     ? (relatedTicketsData.data || []).filter((rel: any) => {
-        // Basic validation - only filter out completely empty objects
+        // Enhanced validation - check multiple ID sources
         const targetTicket = rel.targetTicket || rel;
-        const hasValidId = targetTicket?.id && typeof targetTicket.id === 'string' && targetTicket.id.trim() !== '';
+        const possibleIds = [
+          targetTicket?.id,
+          rel.targetTicketId, 
+          rel.ticketId,
+          rel.id
+        ];
         
-        if (!hasValidId) {
-          console.log('🔗 [RELATED-TICKETS] Filtering out ticket without valid ID:', {
+        const validId = possibleIds.find(id => 
+          id && typeof id === 'string' && id.trim() !== '' && id !== 'UNKNOWN'
+        );
+        
+        if (!validId) {
+          console.warn('🔗 [RELATED-TICKETS] Filtering out relationship without valid ticket ID:', {
             rel,
-            targetTicketId: targetTicket?.id
+            targetTicket,
+            possibleIds,
+            relationshipId: rel.id
           });
           return false;
         }
+        
+        console.log('🔗 [RELATED-TICKETS] Valid relationship found:', {
+          relationshipId: rel.id,
+          validTicketId: validId,
+          relationshipType: rel.relationshipType || rel.relationship_type
+        });
         
         return true;
       })
@@ -110,9 +127,13 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
           {relationships.map((rel: RelatedTicket, index: number) => {
             // Extract ticket data with improved fallbacks following 1qa.md patterns
             const relatedTicket = rel.targetTicket || rel;
+            
+            // ✅ [1QA-COMPLIANCE] Ensure proper ID extraction for navigation
+            const ticketId = relatedTicket.id || rel.targetTicketId || rel.id;
+            
             const ticketNumber = relatedTicket.number || 
                                rel.number ||
-                               `T-${relatedTicket.id?.slice(0, 8) || 'UNKNOWN'}`;
+                               `T-${ticketId?.slice(0, 8) || 'UNKNOWN'}`;
             const ticketSubject = relatedTicket.subject || 
                                 rel.subject || 
                                 'Ticket relacionado';
@@ -148,12 +169,14 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
               index,
               rel,
               relatedTicket,
+              ticketId,
               ticketNumber,
               ticketSubject,
               ticketStatus,
               ticketPriority,
               relationshipType,
-              targetTicketId: relatedTicket.id
+              originalTargetTicketId: relatedTicket.id,
+              extractedTicketId: ticketId
             });
 
             return (
@@ -166,7 +189,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                     {getRelationshipLabel(relationshipType)}
                   </span>
                   <Link
-                    href={`/tickets/${relatedTicket.id}`}
+                    href={`/tickets/${ticketId}`}
                     className="font-mono text-blue-600 hover:underline font-medium whitespace-nowrap"
                   >
                     #{ticketNumber}
@@ -189,7 +212,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                     aria-label={`Prioridade: ${ticketPriority}`}
                   />
                   <Link
-                    href={`/tickets/${relatedTicket.id}`}
+                    href={`/tickets/${ticketId}`}
                     className="text-gray-400 hover:text-blue-600 transition-colors"
                     title="Abrir ticket"
                   >

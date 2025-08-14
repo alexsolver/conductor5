@@ -142,12 +142,18 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
           description: row.description || '',
           createdAt: row.created_at,
           createdBy: row.created_by,
-          targetTicket,
+          targetTicket: {
+            ...targetTicket,
+            // ✅ [1QA-COMPLIANCE] Ensure ID is always present for navigation
+            id: targetTicket.id
+          },
           // Direct fields for compatibility
           number: targetTicket.number,
           subject: targetTicket.subject,
           status: targetTicket.status,
-          priority: targetTicket.priority
+          priority: targetTicket.priority,
+          // ✅ [1QA-COMPLIANCE] Explicit ticket ID for frontend navigation
+          ticketId: targetTicket.id
         };
         
         logInfo('Relationship data structure', { 
