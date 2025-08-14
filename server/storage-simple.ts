@@ -1436,12 +1436,12 @@ export class DatabaseStorage implements IStorage {
       // ✅ VALIDATION: Input validation
       if (!tenantId || typeof tenantId !== 'string') {
         console.error(`❌ [GET-CONFIG] Invalid tenantId: ${tenantId}`);
-        return null;
+        return { configured: false, config: null };
       }
 
       if (!integrationId || typeof integrationId !== 'string') {
         console.error(`❌ [GET-CONFIG] Invalid integrationId: ${integrationId}`);
-        return null;
+        return { configured: false, config: null };
       }
 
       const validatedTenantId = await validateTenantAccess(tenantId);
@@ -1460,33 +1460,44 @@ export class DatabaseStorage implements IStorage {
         tableExists = tableExistsResult.rows?.[0]?.exists;
       } catch (tableCheckError) {
         console.error(`❌ [GET-CONFIG] Error checking table existence:`, tableCheckError);
-        return null;
+        return { configured: false, config: null };
       }
 
       if (!tableExists) {
         console.log(`❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`);
-        return null;
+        // ✅ CRITICAL FIX: Create default integrations if table doesn't exist
+        await this.createDefaultIntegrations(validatedTenantId);
+        return { configured: false, config: null };
       }
 
       // ✅ SAFETY: Execute query with proper error handling
       let result;
       try {
         result = await tenantDb.execute(sql`
-          SELECT id, name, description, category, icon, status, config, features, created_at, updated_at
+          SELECT id, name, description, category, icon, status, config, features, created_at, updated_at, configured
           FROM ${sql.identifier(schemaName)}.integrations 
           WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
           LIMIT 1
         `);
       } catch (queryError) {
         console.error(`❌ [GET-CONFIG] Database query error:`, queryError);
-        return null;
+        return { configured: false, config: null };
       }
 
       console.log(`🔍 [GET-CONFIG] Query result:`, { rowsFound: result.rows?.length || 0 });
 
       if (!result.rows || result.rows.length === 0) {
-        console.log(`❌ [GET-CONFIG] Nenhuma configuração encontrada para ${integrationId}`);
-        return null;
+        console.log(`❌ [GET-CONFIG] Nenhuma configuração encontrada para ${integrationId}, criando integração default...`);
+        // ✅ CRITICAL FIX: Create integration if it doesn't exist
+        await this.createTenantIntegration(validatedTenantId, {
+          id: integrationId,
+          name: integrationId === 'telegram' ? 'Telegram' : integrationId,
+          description: integrationId === 'telegram' ? 'Envio de notificações via Telegram' : `Integration ${integrationId}`,
+          category: 'Comunicação',
+          icon: integrationId === 'telegram' ? 'Send' : 'Settings',
+          features: integrationId === 'telegram' ? ['Notificações em tempo real', 'Mensagens personalizadas'] : []
+        });
+        return { configured: false, config: {} };
       }
 
       const integration = result.rows[0];
@@ -1507,13 +1518,26 @@ export class DatabaseStorage implements IStorage {
         parsedConfig = {};
       }
 
+      // ✅ CRITICAL FIX: Return structured response with configured flag
+      const isConfigured = integration.configured === true || (parsedConfig && Object.keys(parsedConfig).length > 0);
+      
       const finalResult = {
-        ...integration,
-        config: parsedConfig || {}
+        id: integration.id,
+        name: integration.name,
+        description: integration.description,
+        category: integration.category,
+        icon: integration.icon,
+        status: integration.status,
+        configured: isConfigured,
+        config: parsedConfig || {},
+        features: integration.features,
+        created_at: integration.created_at,
+        updated_at: integration.updated_at
       };
 
       console.log(`✅ [GET-CONFIG] Configuração retornada:`, {
         id: finalResult.id,
+        configured: finalResult.configured,
         hasConfig: !!finalResult.config,
         configKeys: Object.keys(finalResult.config || {})
       });
@@ -1521,7 +1545,7 @@ export class DatabaseStorage implements IStorage {
       return finalResult;
     } catch (error) {
       console.error('❌ [GET-CONFIG] Critical error in getTenantIntegrationConfig:', error);
-      return null; // Return null on error as per original behavior
+      return { configured: false, config: null };
     }
   }
 
@@ -1541,13 +1565,22 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
-      const validatedTenantId = this.validateUUID(tenantId);
-      if (!validatedTenantId) {
-        throw new Error(`Invalid tenant UUID: ${tenantId}`);
-      }
-
-      const tenantDb = this.getTenantConnection(validatedTenantId);
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // ✅ SAFETY: Check if integrations table exists
+      const tableExists = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} AND table_name = 'integrations'
+        );
+      `);
+
+      if (!tableExists.rows?.[0]?.exists) {
+        console.log(`🔧 Creating integrations table for tenant ${validatedTenantId}`);
+        await this.createDefaultIntegrations(validatedTenantId);
+      }
 
       // Verificar se a integração existe
       console.log(`🔍 [SAVE-CONFIG] Verificando se integração ${integrationId} existe...`);
@@ -1602,7 +1635,7 @@ export class DatabaseStorage implements IStorage {
           configured: updatedIntegration.configured,
           config: updatedIntegration.config,
           status: updatedIntegration.status,
-          lastUpdated: updatedIntegration.updated_at
+          updatedAt: updatedIntegration.updated_at
         };
       } else {
         throw new Error('Failed to save integration configuration');
@@ -1647,6 +1680,7 @@ export class DatabaseStorage implements IStorage {
           category VARCHAR(100),
           icon VARCHAR(100),
           status VARCHAR(50) DEFAULT 'disconnected',
+          configured BOOLEAN DEFAULT false,
           config JSONB DEFAULT '{}',
           features TEXT[],
           created_at TIMESTAMP DEFAULT NOW(),
@@ -1704,21 +1738,49 @@ export class DatabaseStorage implements IStorage {
     return poolManager.getTenantConnection(validatedTenantId);
   }
 
+  // ✅ CRITICAL FIX: Add missing deleteTenantIntegrations method
+  async deleteTenantIntegrations(tenantId: string): Promise<void> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      await tenantDb.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.integrations
+        WHERE tenant_id = ${validatedTenantId}
+      `);
+
+      console.log(`🗑️ [DELETE-INTEGRATIONS] Limpeza de integrações para tenant ${validatedTenantId} concluída`);
+    } catch (error) {
+      console.error(`❌ [DELETE-INTEGRATIONS] Erro ao limpar integrações:`, error);
+      throw error;
+    }
+  }
+
   // Creates a new integration entry for a tenant
   private async createTenantIntegration(tenantId: string, integrationData: any): Promise<void> {
-    const tenantDb = await this.getTenantConnection(tenantId);
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    try {
+      const tenantDb = await poolManager.getTenantConnection(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    await tenantDb.execute(sql`
-      INSERT INTO ${sql.identifier(schemaName)}.integrations 
-      (id, tenant_id, name, description, category, icon, status, config, features, created_at, updated_at)
-      VALUES 
-      (${integrationData.id}, ${tenantId}, ${integrationData.name}, ${integrationData.description}, 
-       ${integrationData.category}, ${integrationData.icon}, 'disconnected', '{}', 
-       ${`ARRAY[${integrationData.features.map((f: string) => `'${f}'`).join(', ')}]`}, 
-       CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      ON CONFLICT (id) DO NOTHING
-    `);
+      // Use raw SQL since Drizzle has issues with TEXT[] arrays
+      const insertQuery = `
+        INSERT INTO ${schemaName}.integrations 
+        (id, tenant_id, name, description, category, icon, status, configured, config, features, created_at, updated_at)
+        VALUES 
+        ('${integrationData.id}', '${tenantId}', '${integrationData.name}', '${integrationData.description}', 
+         '${integrationData.category}', '${integrationData.icon}', 'disconnected', false, '{}', 
+         ARRAY[${integrationData.features.map((f: string) => `'${f}'`).join(', ')}], 
+         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT (id) DO NOTHING
+      `;
+
+      await tenantDb.execute(sql.raw(insertQuery));
+      console.log(`✅ [CREATE-INTEGRATION] Integração ${integrationData.id} criada para tenant ${tenantId}`);
+    } catch (error) {
+      console.error(`❌ [CREATE-INTEGRATION] Erro ao criar integração:`, error);
+      throw error;
+    }
   }
 
   // ==============================

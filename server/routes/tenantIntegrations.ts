@@ -140,11 +140,11 @@ router.get('/:integrationId/config', async (req: any, res) => {
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
     console.log(`[GET config route] Resultado recebido do storage:`, configResult);
 
-    if (!configResult || !configResult.config) {
-      console.log(`⚠️ [GET config route] Nenhuma config encontrada para ${integrationId}, retornando null`);
+    if (!configResult || configResult.configured === false) {
+      console.log(`⚠️ [GET config route] Nenhuma config encontrada para ${integrationId}, retornando dados padrão`);
       return res.json({ 
         configured: false, 
-        config: null,
+        config: {},
         message: `Configuração não encontrada para ${integrationId}`
       });
     }
