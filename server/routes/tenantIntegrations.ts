@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { jwtAuth } from '../middleware/jwtAuth';
+import { enhancedTenantValidator } from '../middleware/tenantValidator';
 // ✅ LEGACY authorizationMiddleware eliminated per 1qa.md
 import { Permission } from '../domain/authorization/RolePermissions';
 
