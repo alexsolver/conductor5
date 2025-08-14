@@ -72,7 +72,7 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
   }
 }
 
-// 🚨 COMPLIANCE: Função auxiliar para auditoria completa
+// 🚨 COMPLIANCE: Função auxiliar para auditoria completa conforme 1qa.md
 async function createCompleteAuditEntry(
   pool: any,
   schemaName: string,
@@ -92,36 +92,125 @@ async function createCompleteAuditEntry(
     const userAgent = getUserAgent(req);
     const sessionId = getSessionId(req);
 
-    // Get user name with null check
-    const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-    const userResult = await pool.query(userQuery, [req.user?.id]);
-    const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
+    // Get user name with comprehensive fallback
+    let userName = 'Sistema';
+    let actorType = 'system';
+    let actorId = null;
+    
+    if (req.user?.id) {
+      try {
+        const userQuery = `SELECT first_name || ' ' || last_name as full_name, email FROM public.users WHERE id = $1`;
+        const userResult = await pool.query(userQuery, [req.user.id]);
+        if (userResult.rows[0]) {
+          userName = userResult.rows[0].full_name || userResult.rows[0].email || req.user.email || 'Usuário';
+          actorType = 'user';
+          actorId = req.user.id;
+        }
+      } catch (userError) {
+        console.warn('⚠️ Erro ao buscar dados do usuário:', userError);
+        userName = req.user.email || 'Usuário Desconhecido';
+        actorType = 'user';
+        actorId = req.user.id;
+      }
+    }
+
+    // ✅ AUDITORIA COMPLETA - seguindo schema ticket_history completo
+    const enhancedMetadata = {
+      ...metadata,
+      request_timestamp: new Date().toISOString(),
+      request_method: req.method,
+      request_url: req.originalUrl,
+      request_body_size: JSON.stringify(req.body || {}).length,
+      client_info: {
+        ip_address: ipAddress,
+        user_agent: userAgent,
+        session_id: sessionId
+      },
+      actor_info: {
+        actor_id: actorId,
+        actor_type: actorType,
+        actor_name: userName
+      },
+      change_details: fieldName ? {
+        field_name: fieldName,
+        old_value: oldValue,
+        new_value: newValue,
+        change_type: !oldValue ? 'created' : !newValue ? 'deleted' : 'modified'
+      } : null,
+      system_context: {
+        tenant_id: tenantId,
+        ticket_id: ticketId,
+        action_category: actionType.split('_')[0], // ticket, field, status, etc.
+        action_subcategory: actionType.split('_').slice(1).join('_')
+      }
+    };
 
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_history 
-      (tenant_id, ticket_id, performed_by, performed_by_name, action_type, description, field_name, old_value, new_value, ip_address, user_agent, session_id, created_at, metadata)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13)
-      RETURNING *
+      (tenant_id, ticket_id, action_type, performed_by, performed_by_name, 
+       description, field_name, old_value, new_value, 
+       ip_address, user_agent, session_id, created_at, metadata,
+       actor_id, actor_type, actor_name, is_visible, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13, $14, $15, $16, $17, $18)
+      RETURNING id, action_type, description, created_at
     `;
 
-    return await pool.query(insertQuery, [
-      tenantId,
-      ticketId,
-      req.user?.id,
-      userName,
-      actionType,
-      description,
-      fieldName || null,
-      oldValue || null,
-      newValue || null,
-      ipAddress,
-      userAgent,
-      sessionId,
-      JSON.stringify(metadata)
+    const result = await pool.query(insertQuery, [
+      tenantId,                                    // $1
+      ticketId,                                    // $2
+      actionType,                                  // $3
+      actorId,                                     // $4 - performed_by
+      userName,                                    // $5 - performed_by_name
+      description,                                 // $6
+      fieldName || null,                          // $7
+      oldValue || null,                           // $8
+      newValue || null,                           // $9
+      ipAddress,                                  // $10
+      userAgent,                                  // $11
+      sessionId,                                  // $12
+      JSON.stringify(enhancedMetadata),           // $13 - metadata
+      actorId,                                    // $14 - actor_id
+      actorType,                                  // $15 - actor_type
+      userName,                                   // $16 - actor_name
+      true,                                       // $17 - is_visible
+      true                                        // $18 - is_active
     ]);
+
+    console.log(`✅ [AUDIT-COMPLETE] Entrada criada: ${actionType} para ticket ${ticketId}`);
+    return result;
+    
   } catch (error) {
-    console.error('⚠️ Erro na auditoria completa:', error);
-    throw error;
+    console.error('❌ [AUDIT-ERROR] Erro na auditoria completa:', {
+      error: error.message,
+      actionType,
+      ticketId,
+      tenantId
+    });
+    
+    // ✅ FALLBACK AUDITORIA SIMPLES - garantir que pelo menos algo seja registrado
+    try {
+      const fallbackQuery = `
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by_name, created_at, is_visible, is_active)
+        VALUES ($1, $2, $3, $4, $5, NOW(), true, true)
+        RETURNING id
+      `;
+      
+      const fallbackResult = await pool.query(fallbackQuery, [
+        tenantId,
+        ticketId,
+        actionType,
+        description,
+        'Sistema'
+      ]);
+      
+      console.log(`⚠️ [AUDIT-FALLBACK] Entrada simples criada para ${actionType}`);
+      return fallbackResult;
+      
+    } catch (fallbackError) {
+      console.error('❌ [AUDIT-CRITICAL] Falha total na auditoria:', fallbackError);
+      throw error; // Re-throw original error
+    }
   }
 }
 
@@ -599,6 +688,56 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
     } catch (historyError) {
       console.error('❌ CRITICAL: Audit trail creation failed:', historyError);
       // Don't fail the update, but log the error
+    }
+
+    // ✅ AUDITORIA DETALHADA FINAL - garantir registro completo
+    try {
+      if (meaningfulChanges.length > 0) {
+        // Registrar auditoria geral da operação
+        await createCompleteAuditEntry(
+          await import('../../db').then(m => m.pool),
+          `tenant_${req.user.tenantId.replace(/-/g, '_')}`,
+          req.user.tenantId,
+          ticketId,
+          req,
+          'ticket_update_complete',
+          `Ticket atualizado completamente: ${meaningfulChanges.length} alterações`,
+          {
+            total_fields_changed: meaningfulChanges.length,
+            changed_fields_list: meaningfulChanges,
+            original_state: req.originalTicketState || {},
+            final_state: updatedTicket,
+            update_method: 'PUT',
+            update_source: 'web_interface_form'
+          }
+        );
+
+        // ✅ REGISTRAR CADA MUDANÇA INDIVIDUAL para auditoria detalhada
+        for (const field of meaningfulChanges) {
+          const oldVal = currentTicket[field];
+          const newVal = backendUpdates[field];
+          
+          await createCompleteAuditEntry(
+            await import('../../db').then(m => m.pool),
+            `tenant_${req.user.tenantId.replace(/-/g, '_')}`,
+            req.user.tenantId,
+            ticketId,
+            req,
+            `field_${field}_updated`,
+            `Campo '${field}' alterado`,
+            {
+              field_type: typeof newVal,
+              change_impact: criticalFields.includes(field) ? 'high' : 'medium',
+              change_timestamp: new Date().toISOString()
+            },
+            field,
+            String(oldVal || ''),
+            String(newVal || '')
+          );
+        }
+      }
+    } catch (auditError) {
+      console.error('❌ CRITICAL: Falha na auditoria detalhada:', auditError);
     }
 
     // ✅ RESPOSTA OTIMIZADA COM DADOS ESSENCIAIS
@@ -2150,7 +2289,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res)
   }
 });
 
-// Get ticket history
+// Get ticket history - ✅ HISTÓRICO COMPLETO conforme 1qa.md
 ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
@@ -2162,15 +2301,20 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Get only ticket history - actions are already recorded in history when created
-    const historyQuery = `
+    console.log(`🔍 [HISTORY] Buscando histórico completo para ticket: ${id}`);
+
+    // ✅ HISTÓRICO UNIFICADO - todas as ações em ordem cronológica
+    const completeHistoryQuery = `
       SELECT 
-        'history' as source,
+        'ticket_history' as source,
         th.id,
         th.action_type,
         th.description,
-        th.performed_by as performed_by,
+        th.performed_by,
         th.performed_by_name,
+        th.actor_id,
+        th.actor_type,
+        th.actor_name,
         th.old_value,
         th.new_value,
         th.field_name,
@@ -2178,25 +2322,172 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.ip_address,
         th.user_agent,
         th.session_id,
-        th.metadata
+        th.metadata,
+        th.is_visible,
+        'primary' as priority_level
       FROM "${schemaName}".ticket_history th
-      WHERE th.ticket_id = $1 AND th.tenant_id = $2
-      ORDER BY th.created_at DESC
+      WHERE th.ticket_id = $1 AND th.tenant_id = $2 AND th.is_active = true
+      
+      UNION ALL
+      
+      -- ✅ AÇÕES INTERNAS como eventos históricos
+      SELECT 
+        'internal_action' as source,
+        tia.id,
+        'internal_action_' || tia.action_type as action_type,
+        COALESCE(tia.title, '') || CASE 
+          WHEN tia.description IS NOT NULL AND tia.description != '' 
+          THEN ': ' || tia.description 
+          ELSE '' 
+        END as description,
+        tia.agent_id as performed_by,
+        u.first_name || ' ' || u.last_name as performed_by_name,
+        tia.agent_id as actor_id,
+        'user' as actor_type,
+        u.first_name || ' ' || u.last_name as actor_name,
+        tia.status as old_value,
+        tia.status as new_value,
+        'internal_action' as field_name,
+        tia.created_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        json_build_object(
+          'action_number', tia.action_number,
+          'estimated_hours', tia.estimated_hours,
+          'start_time', tia.start_time,
+          'end_time', tia.end_time,
+          'priority', tia.priority,
+          'action_type', tia.action_type
+        ) as metadata,
+        true as is_visible,
+        'secondary' as priority_level
+      FROM "${schemaName}".ticket_internal_actions tia
+      LEFT JOIN public.users u ON tia.agent_id = u.id
+      WHERE tia.ticket_id = $1 AND tia.tenant_id = $2
+      
+      UNION ALL
+      
+      -- ✅ NOTAS como eventos históricos  
+      SELECT 
+        'note' as source,
+        tn.id,
+        'note_' || CASE 
+          WHEN tn.is_internal THEN 'internal_added' 
+          ELSE 'public_added' 
+        END as action_type,
+        'Nota adicionada: ' || LEFT(tn.content, 100) || 
+        CASE WHEN LENGTH(tn.content) > 100 THEN '...' ELSE '' END as description,
+        tn.created_by as performed_by,
+        u.first_name || ' ' || u.last_name as performed_by_name,
+        tn.created_by as actor_id,
+        'user' as actor_type,
+        u.first_name || ' ' || u.last_name as actor_name,
+        null as old_value,
+        tn.content as new_value,
+        'note_content' as field_name,
+        tn.created_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        json_build_object(
+          'note_type', tn.note_type,
+          'is_internal', tn.is_internal,
+          'is_public', tn.is_public,
+          'content_length', LENGTH(tn.content)
+        ) as metadata,
+        true as is_visible,
+        'secondary' as priority_level
+      FROM "${schemaName}".ticket_notes tn
+      LEFT JOIN public.users u ON tn.created_by = u.id
+      WHERE tn.ticket_id = $1 AND tn.tenant_id = $2 AND tn.is_active = true
+      
+      UNION ALL
+      
+      -- ✅ ANEXOS como eventos históricos
+      SELECT 
+        'attachment' as source,
+        ta.id,
+        'attachment_uploaded' as action_type,
+        'Anexo enviado: ' || ta.file_name || 
+        ' (' || ROUND(ta.file_size::numeric / 1024, 2) || ' KB)' as description,
+        ta.created_by as performed_by,
+        u.first_name || ' ' || u.last_name as performed_by_name,
+        ta.created_by as actor_id,
+        'user' as actor_type,
+        u.first_name || ' ' || u.last_name as actor_name,
+        null as old_value,
+        ta.file_name as new_value,
+        'attachment' as field_name,
+        ta.created_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        json_build_object(
+          'file_name', ta.file_name,
+          'file_size', ta.file_size,
+          'content_type', ta.content_type,
+          'file_path', ta.file_path
+        ) as metadata,
+        true as is_visible,
+        'secondary' as priority_level
+      FROM "${schemaName}".ticket_attachments ta
+      LEFT JOIN public.users u ON ta.created_by = u.id
+      WHERE ta.ticket_id = $1 AND ta.tenant_id = $2 AND ta.is_active = true
+      
+      ORDER BY created_at DESC, priority_level ASC
     `;
 
-    const historyResult = await pool.query(historyQuery, [id, tenantId]);
+    const historyResult = await pool.query(completeHistoryQuery, [id, tenantId]);
+
+    console.log(`✅ [HISTORY] Encontradas ${historyResult.rows.length} entradas de histórico`);
+
+    // ✅ PROCESSAMENTO E ENRIQUECIMENTO DOS DADOS
+    const enrichedHistory = historyResult.rows.map(row => ({
+      ...row,
+      // Garantir campos obrigatórios
+      performed_by_name: row.performed_by_name || row.actor_name || 'Sistema',
+      actor_name: row.actor_name || row.performed_by_name || 'Sistema',
+      // Parse metadata se for string
+      metadata: typeof row.metadata === 'string' 
+        ? JSON.parse(row.metadata) 
+        : row.metadata || {},
+      // Adicionar informações de contexto
+      display_time: new Date(row.created_at).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      // Categoria para agrupamento no frontend
+      category: row.source === 'ticket_history' ? 'system' : 
+               row.source === 'internal_action' ? 'action' :
+               row.source === 'note' ? 'communication' : 
+               'attachment'
+    }));
 
     res.json({
       success: true,
-      data: historyResult.rows,
-      count: historyResult.rows.length
+      data: enrichedHistory,
+      count: enrichedHistory.length,
+      breakdown: {
+        total: enrichedHistory.length,
+        system_events: enrichedHistory.filter(h => h.category === 'system').length,
+        actions: enrichedHistory.filter(h => h.category === 'action').length,
+        communications: enrichedHistory.filter(h => h.category === 'communication').length,
+        attachments: enrichedHistory.filter(h => h.category === 'attachment').length
+      }
     });
 
   } catch (error) {
-    console.error("Error fetching ticket history:", error);
+    console.error("❌ [HISTORY] Erro ao buscar histórico completo:", error);
     res.status(500).json({ 
       success: false,
-      message: "Failed to fetch ticket history" 
+      message: "Failed to fetch complete ticket history",
+      error: error.message
     });
   }
 });
@@ -2558,6 +2849,25 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
+});
+
+// ✅ MIDDLEWARE AUDITORIA AUTOMÁTICA - interceptar todas as mudanças
+ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) => {
+  // Capturar estado original antes de qualquer modificação
+  if (['PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (tenantId && id) {
+        const originalTicket = await storageSimple.getTicketById(tenantId, id);
+        req.originalTicketState = originalTicket; // Armazenar estado original
+      }
+    } catch (error) {
+      console.warn('⚠️ [AUDIT-MIDDLEWARE] Não foi possível capturar estado original:', error);
+    }
+  }
+  next();
 });
 
 // Update internal action
