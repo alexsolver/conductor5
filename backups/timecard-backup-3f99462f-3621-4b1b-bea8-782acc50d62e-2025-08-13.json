@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e",
+    "backupDate": "2025-08-13T00:00:00.000Z",
+    "recordCount": 1,
+    "createdAt": "2025-08-14T20:03:36.781Z",
+    "version": "1.0",
+    "compliance": "CLT-Portaria-671-2021"
+  },
+  "records": [
+    {
+      "id": "a42193fc-20cb-456e-afb8-9c08e27f3ca0",
+      "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e",
+      "userId": "550e8400-e29b-41d4-a716-446655440001",
+      "nsr": "127",
+      "checkIn": "2025-08-13T17:10:06.343Z",
+      "checkOut": "2025-08-13T17:10:29.597Z",
+      "totalHours": null,
+      "notes": null,
+      "location": null,
+      "isManualEntry": false,
+      "approvedBy": null,
+      "status": "approved",
+      "recordHash": "0472fd98a9069281968ae08bb64079e3869fda4e41df391542d012d8a3a6eb5b",
+      "previousRecordHash": "55a7dd8cef388d31823c2ee13621ffd1920df45ff21b0e9851d5b3a50718db97",
+      "digitalSignature": null,
+      "signedBy": null,
+      "deviceInfo": null,
+      "ipAddress": null,
+      "geoLocation": null,
+      "modificationHistory": [],
+      "originalRecordHash": "0472fd98a9069281968ae08bb64079e3869fda4e41df391542d012d8a3a6eb5b",
+      "modifiedBy": null,
+      "modificationReason": null,
+      "createdAt": "2025-08-13T17:10:06.476Z",
+      "updatedAt": "2025-08-14T02:27:19.052Z",
+      "isDeleted": false,
+      "deletedBy": null,
+      "deletionReason": null
+    }
+  ]
+}
