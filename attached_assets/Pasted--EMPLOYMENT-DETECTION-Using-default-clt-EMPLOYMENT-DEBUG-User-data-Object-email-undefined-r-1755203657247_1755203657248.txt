@@ -1,0 +1,31 @@
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para: telegram
+🧪 [TESTE-INTEGRAÇÃO] Response status: 200
+❌ [TESTE-INTEGRAÇÃO] Erro de conexão: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+Error loading integration config: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
