@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
+import { useCompanyCustomers } from '@/hooks/useCompanyCustomers';
 
 interface FilteredCustomerSelectProps {
   value?: string;
@@ -30,15 +31,9 @@ export function FilteredCustomerSelect({
   });
 
   // Buscar clientes da empresa se uma empresa foi selecionada
-  const { data: companyCustomersData, isLoading: isLoadingCompanyCustomers } = useQuery({
-    queryKey: ['/api/companies', selectedCompanyId, 'customers'],
-    queryFn: async () => {
-      if (!selectedCompanyId || selectedCompanyId === 'unspecified') return { customers: [] };
-      const response = await apiRequest('GET', `/api/companies/${selectedCompanyId}/customers`);
-      return response.json();
-    },
-    enabled: !!selectedCompanyId && selectedCompanyId !== 'unspecified',
-  });
+  const { data: companyCustomersData, isLoading: isLoadingCompanyCustomers } = useCompanyCustomers(
+    selectedCompanyId && selectedCompanyId !== 'unspecified' ? selectedCompanyId : ''
+  );
 
   const isLoading = isLoadingCustomers || (selectedCompanyId && selectedCompanyId !== 'unspecified' && isLoadingCompanyCustomers);
 
@@ -47,19 +42,19 @@ export function FilteredCustomerSelect({
 
   if (selectedCompanyId && selectedCompanyId !== 'unspecified') {
     // Empresa selecionada - mostrar APENAS clientes desta empresa
-    if (companyCustomersData?.customers) {
-      customersToShow = companyCustomersData.customers;
+    if (isLoadingCompanyCustomers) {
+      customersToShow = [];
+      console.log('[FilteredCustomerSelect] ⏳ Loading customers for company:', selectedCompanyId);
+    } else if (companyCustomersData && Array.isArray(companyCustomersData) && companyCustomersData.length > 0) {
+      customersToShow = companyCustomersData;
       console.log('[FilteredCustomerSelect] ✅ FILTERED by company:', {
         companyId: selectedCompanyId, 
         customersCount: customersToShow.length,
         customers: customersToShow.map(c => ({ id: c.id, name: c.name || c.fullName, email: c.email }))
       });
-    } else if (isLoadingCompanyCustomers) {
-      customersToShow = [];
-      console.log('[FilteredCustomerSelect] ⏳ Loading customers for company:', selectedCompanyId);
     } else {
       customersToShow = [];
-      console.log('[FilteredCustomerSelect] ❌ No customers found for company:', selectedCompanyId);
+      console.log('[FilteredCustomerSelect] ❌ No customers found for company:', selectedCompanyId, 'Data:', companyCustomersData);
     }
   } else {
     // Nenhuma empresa selecionada - mostrar todos os clientes
