@@ -68,6 +68,10 @@ interface ResponsiveTicketsTableProps {
   expandedTickets?: Set<string>;
   ticketsWithRelationships?: Set<string>;
   ticketRelationships?: Record<string, TicketRelationship[]>;
+  columnWidths?: Record<string, number>;
+  renderCell?: (ticket: any, key: string) => React.ReactNode;
+  TableCellComponent?: React.ComponentType<any>;
+  ResizeHandle?: React.ComponentType<any>;
 }
 
 // Loading Skeleton Component

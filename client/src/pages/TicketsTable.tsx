@@ -635,7 +635,7 @@ const TicketsTable = React.memo(() => {
 
         console.log(`📊 [RELATIONSHIP-FETCH] Response for ticket ${ticketId}:`, data);
 
-        let relationships = [];
+        let relationships: any[] = [];
         if (data.success && Array.isArray(data.data)) {
           relationships = data.data;
         } else if (Array.isArray(data.relationships)) {
@@ -656,7 +656,7 @@ const TicketsTable = React.memo(() => {
 
         // Always update the relationships map, even if empty
         if (relationships.length > 0) {
-          setTicketsWithRelationships(prev => new Set([...prev, ticketId]));
+          setTicketsWithRelationships(prev => new Set(Array.from(prev).concat([ticketId])));
           console.log(`✅ [RELATIONSHIP-DETECTION] Ticket ${ticketId} has ${relationships.length} relationships`);
         } else {
           console.log(`ℹ️ [RELATIONSHIP-DETECTION] Ticket ${ticketId} has no relationships`);
@@ -671,7 +671,7 @@ const TicketsTable = React.memo(() => {
       }
     }
 
-    setExpandedTickets(prev => new Set([...prev, ticketId]));
+    setExpandedTickets(prev => new Set(Array.from(prev).concat([ticketId])));
   }, [expandedTickets, ticketRelationships]);
 
   // 🔧 [1QA-COMPLIANCE] Inicialização de relacionamentos seguindo Clean Architecture
@@ -684,13 +684,13 @@ const TicketsTable = React.memo(() => {
       const ticketsWithRelationshipsSet = new Set<string>();
 
       Promise.all(
-        tickets.map(async (ticket) => {
+        tickets.map(async (ticket: any) => {
           try {
             console.log(`🔄 [RELATIONSHIP-INIT] Buscando relacionamentos para ticket ${ticket.id}`);
             const response = await apiRequest("GET", `/api/ticket-relationships/${ticket.id}/relationships`);
             const data = await response.json();
 
-            let relationships = [];
+            let relationships: any[] = [];
             if (data?.success && Array.isArray(data.data)) {
               relationships = data.data;
             } else if (data?.relationships && Array.isArray(data.relationships)) {
@@ -2122,7 +2122,6 @@ const TicketsTable = React.memo(() => {
             expandedTickets={expandedTickets}
             ticketRelationships={ticketRelationships}
             ticketsWithRelationships={ticketsWithRelationships}
-            columnOrder={visibleColumns.map(col => col.id)}
             columnWidths={columnWidths}
             renderCell={renderCell}
             TableCellComponent={OptimizedTableCell}
@@ -2261,7 +2260,7 @@ const TicketsTable = React.memo(() => {
             </DialogDescription>
           </DialogHeader>
           <div className="divide-y divide-gray-200">
-            {ticketViews.map((view) => (
+            {ticketViews.map((view: any) => (
               <div key={view.id} className="py-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-medium">{view.name}</h3>
@@ -2427,7 +2426,7 @@ const TicketsTable = React.memo(() => {
       <TicketLinkingModal
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
-        currentTicket={undefined}
+        currentTicket={undefined as any}
       />
       </div>
     </LoadingStateProvider>
