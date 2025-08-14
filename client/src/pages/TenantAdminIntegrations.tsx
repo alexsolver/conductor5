@@ -297,11 +297,11 @@ export default function TenantAdminIntegrations() {
       console.log('🔧 [WEBHOOK-SETUP] Response status:', response.status);
       const result = await response.json();
 
-      if (response.ok && result.ok) { // Assuming the backend returns { ok: true, ... } for success
+      if (response.ok && result.success) { // Check for HTTP OK and backend success flag
         console.log('✅ [WEBHOOK-SETUP] Webhook configurado com sucesso:', result);
         setTestResult({
           success: true,
-          message: result.description || 'Webhook configurado com sucesso!',
+          message: result.message || 'Webhook configurado com sucesso!',
           details: result
         });
 
@@ -311,7 +311,7 @@ export default function TenantAdminIntegrations() {
         console.error('❌ [WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.description || result.error || 'Erro ao configurar webhook',
+          message: result.message || result.error || 'Erro ao configurar webhook',
           details: result
         });
       }
@@ -327,55 +327,55 @@ export default function TenantAdminIntegrations() {
     }
   };
 
-  const handleCheckWebhookStatus = async () => {
+  // ✅ NEW: Set default webhook using current domain
+  const handleSetDefaultWebhook = async () => {
     if (!selectedIntegration) return;
 
-    console.log('📊 [WEBHOOK-STATUS] Verificando status do webhook');
+    console.log('🚀 [DEFAULT-WEBHOOK-SETUP] Configurando webhook padrão para Telegram');
     setIsTestingIntegration(true);
-    setTestResult(null); // Clear previous test results
+    setTestResult(null);
 
     try {
-      const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
-        method: 'GET',
+      const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ 
+          useDefault: true 
+        })
       });
 
-      console.log('📊 [WEBHOOK-STATUS] Response status:', response.status);
+      console.log('🚀 [DEFAULT-WEBHOOK-SETUP] Response status:', response.status);
       const result = await response.json();
 
-      if (response.ok && result.ok) { // Assuming the backend returns { ok: true, ... } for success
-        console.log('✅ [WEBHOOK-STATUS] Status obtido:', result);
-
-        const webhookInfo = result.result; // Assuming webhook info is under 'result' key
-        let statusMessage = 'Webhook não configurado ou erro ao obter status.';
-
-        if (webhookInfo) {
-          statusMessage = `✅ Webhook: ${webhookInfo.url || 'N/A'}\n` +
-                           `📊 Pendentes: ${webhookInfo.pending_update_count || 0}\n` +
-                           `⏰ Último erro: ${webhookInfo.last_error_message ? new Date(webhookInfo.last_error_date * 1000).toLocaleString() + ': ' + webhookInfo.last_error_message : 'Nenhum'}`;
-        }
-
+      if (response.ok && result.success) {
+        console.log('✅ [DEFAULT-WEBHOOK-SETUP] Webhook padrão configurado com sucesso:', result);
         setTestResult({
           success: true,
-          message: statusMessage,
+          message: result.message || '✅ Webhook padrão configurado automaticamente!',
           details: result
         });
+
+        // Invalidate queries to refresh integration status
+        queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
+
+        // Refresh config to show the new webhook URL
+        queryClient.invalidateQueries({ queryKey: [`/api/tenant-admin/integrations/${selectedIntegration.id}/config`] });
       } else {
-        console.error('❌ [WEBHOOK-STATUS] Erro:', result);
+        console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro:', result);
         setTestResult({
           success: false,
-          message: result.description || result.error || 'Erro ao verificar status do webhook',
+          message: result.message || result.error || 'Erro ao configurar webhook padrão',
           details: result
         });
       }
     } catch (error: any) {
-      console.error('❌ [WEBHOOK-STATUS] Erro de rede:', error);
+      console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro de rede:', error);
       setTestResult({
         success: false,
-        message: `Erro de conexão ao verificar status do webhook: ${error.message}`,
+        message: `Erro de conexão ao configurar webhook padrão: ${error.message}`,
         error: error
       });
     } finally {
@@ -951,7 +951,7 @@ export default function TenantAdminIntegrations() {
               }
             }
             break;
-            
+
           case 'webhooks':
             if (formData.enabled && formData.webhookUrl && !formData.webhookUrl.startsWith('https://')) {
                 errors.push('URL do Webhook deve começar com "https://"');
@@ -1020,7 +1020,7 @@ export default function TenantAdminIntegrations() {
       } catch (fetchError) {
         console.warn("Could not fetch current config for sensitive data processing:", fetchError);
       }
-      
+
       configData = processSensitiveData(currentConfig, configData);
 
       switch (selectedIntegration.id) {
@@ -1735,12 +1735,12 @@ export default function TenantAdminIntegrations() {
                           <FormLabel>URL do Webhook (Para receber mensagens)</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="https://seu-dominio.com (opcional)" 
+                              placeholder="https://seu-dominio.com (opcional - use o botão 'Webhook Padrão' para configurar automaticamente)" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormDescription>
-                            Configure para receber mensagens do Telegram no sistema
+                            <FormDescription>
+                            Configure para receber mensagens do Telegram no sistema. Use o botão "Webhook Padrão" para configurar automaticamente com a URL atual.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -1761,6 +1761,16 @@ export default function TenantAdminIntegrations() {
                             disabled={isTestingIntegration}
                           >
                             📤 Configurar Webhook
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline" 
+                            size="sm"
+                            onClick={handleSetDefaultWebhook}
+                            disabled={isTestingIntegration}
+                          >
+                            🚀 Webhook Padrão
                           </Button>
 
                           <Button

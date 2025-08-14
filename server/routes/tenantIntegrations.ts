@@ -957,9 +957,28 @@ router.post('/telegram/webhook/:tenantId', async (req, res) => {
 router.post('/telegram/set-webhook', jwtAuth, enhancedTenantValidator(), async (req, res) => {
   try {
     const tenantId = req.user?.tenant_id || req.headers['x-tenant-id'] as string;
-    const { webhookUrl } = req.body;
+    let { webhookUrl, useDefault } = req.body;
 
     console.log(`🔧 [TELEGRAM-WEBHOOK-SETUP] Setting webhook for tenant: ${tenantId}`);
+
+    // ✅ AUTO-WEBHOOK: Generate default webhook URL if requested
+    if (useDefault === true || !webhookUrl) {
+      // Generate default webhook URL based on current request
+      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+      const host = req.get('x-forwarded-host') || req.get('host');
+      
+      if (!host) {
+        return res.status(400).json({
+          success: false,
+          message: 'Não foi possível determinar a URL do servidor automaticamente'
+        });
+      }
+
+      // Generate the default webhook URL
+      webhookUrl = `${protocol}://${host}`;
+      
+      console.log(`🔧 [TELEGRAM-WEBHOOK-SETUP] Generated default webhook URL: ${webhookUrl}`);
+    }
 
     // ✅ VALIDATION: Check webhook URL format
     if (!webhookUrl || typeof webhookUrl !== 'string') {
