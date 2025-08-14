@@ -564,26 +564,39 @@ const TicketsTable = React.memo(() => {
   const tickets = useMemo(() => {
     if (!ticketsData) return [];
 
-    // Standard Clean Architecture response structure
+    console.log('🔍 [DEBUG] ticketsData structure:', JSON.stringify(ticketsData, null, 2));
+
+    // ✅ CRITICAL FIX: Backend returns { success: true, data: [...] } directly
+    if (ticketsData.success && Array.isArray(ticketsData.data)) {
+      console.log('✅ [SUCCESS] Found tickets in ticketsData.data:', ticketsData.data.length);
+      return ticketsData.data;
+    }
+
+    // Standard Clean Architecture response structure with nested tickets
     if (ticketsData.success && ticketsData.data?.tickets && Array.isArray(ticketsData.data.tickets)) {
+      console.log('✅ [SUCCESS] Found tickets in ticketsData.data.tickets:', ticketsData.data.tickets.length);
       return ticketsData.data.tickets;
     }
 
     // Legacy support for direct data property
     if (ticketsData.data?.tickets && Array.isArray(ticketsData.data.tickets)) {
+      console.log('✅ [SUCCESS] Found tickets in legacy data.tickets:', ticketsData.data.tickets.length);
       return ticketsData.data.tickets;
     }
 
     // Direct tickets array (fallback)
     if (ticketsData.tickets && Array.isArray(ticketsData.tickets)) {
+      console.log('✅ [SUCCESS] Found tickets in direct tickets:', ticketsData.tickets.length);
       return ticketsData.tickets;
     }
 
     // Raw array (ultimate fallback)
     if (Array.isArray(ticketsData)) {
+      console.log('✅ [SUCCESS] Found tickets as raw array:', ticketsData.length);
       return ticketsData;
     }
 
+    console.log('❌ [ERROR] No tickets found in any expected format');
     return [];
   }, [ticketsData]);
 
