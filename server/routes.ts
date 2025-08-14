@@ -126,17 +126,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await historyApplicationService.createHistoryEntry({
           ticketId: id,
           actionType: 'relationship_created',
-          fieldName: '',
+          fieldName: 'relationships',
           oldValue: '',
           newValue: `${relationshipType} → Ticket ${targetTicketId}`,
           performedBy: req.user.id,
           tenantId: tenantId,
           description: `Novo vínculo criado: ${relationshipType}${description ? ` - ${description}` : ''}`,
+          ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+          userAgent: req.get('User-Agent') || 'unknown',
+          performedByName: req.user?.email || `User ${req.user.id}`,
           metadata: {
             relationshipId,
             targetTicketId,
             relationshipType,
-            description
+            description: description || null
           }
         });
         console.log('✅ [RELATIONSHIP-HISTORY] Relationship creation logged to history successfully');
