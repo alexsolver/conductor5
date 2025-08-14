@@ -117,22 +117,49 @@ export class DrizzleTicketRepository implements ITicketRepository {
       // Calculate offset
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Simple query with only tenant filter for now - avoiding all problematic fields
+      // Build filter conditions
+      const conditions = [eq(tickets.tenantId, tenantId)];
+
+      if (filters.status?.length) {
+        conditions.push(inArray(tickets.status, filters.status));
+      }
+
+      if (filters.priority?.length) {
+        conditions.push(inArray(tickets.priority, filters.priority));
+      }
+
+      if (filters.assignedToId) {
+        conditions.push(eq(tickets.responsibleId, filters.assignedToId));
+      }
+
+      if (filters.customerId) {
+        conditions.push(eq(tickets.callerId, filters.customerId));
+      }
+
+      if (filters.category) {
+        conditions.push(eq(tickets.category, filters.category));
+      }
+
+      if (filters.search) {
+        conditions.push(
+          or(
+            ilike(tickets.subject, `%${filters.search}%`),
+            ilike(tickets.description, `%${filters.search}%`)
+          )
+        );
+      }
+
+      // Apply filters to main query
       const ticketResults = await db
         .select()
         .from(tickets)
-        .where(eq(tickets.tenantId, tenantId))
+        .where(and(...conditions))
         .orderBy(desc(tickets.createdAt))
         .limit(pagination.limit)
         .offset(offset);
 
-      // Count total results with same simple filter
-      const totalResult = await db
-        .select({ count: count() })
-        .from(tickets)
-        .where(eq(tickets.tenantId, tenantId));
-
-      const total = totalResult[0]?.count || 0;
+      // Count total results with same filters
+      const total = await this.countByFilters(filters, tenantId);
       const totalPages = Math.ceil(total / pagination.limit);
 
       console.log('✅ [DrizzleTicketRepository] Query successful:', {
@@ -252,10 +279,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
       conditions.push(eq(tickets.callerId, filters.customerId));
     }
 
-    // Company filter removed - field doesn't exist in current schema
-    if (filters.companyId) {
-      conditions.push(eq(tickets.companyId, filters.companyId));
-    }
+    // TODO: Re-enable companyId filter when schema is fixed
+    // if (filters.companyId) {
+    //   conditions.push(eq(tickets.companyId, filters.companyId));
+    // }
 
     if (filters.category) {
       conditions.push(eq(tickets.category, filters.category));
@@ -320,23 +347,52 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
-  async searchTickets(searchTerm: string, tenantId: string): Promise<Ticket[]> {
+  async searchTickets(
+    searchTerm: string, 
+    tenantId: string, 
+    pagination?: PaginationOptions
+  ): Promise<TicketListResult> {
+    const defaultPagination: PaginationOptions = {
+      page: 1,
+      limit: 50,
+      sortBy: 'createdAt',
+      sortOrder: 'desc'
+    };
+
+    const paginationOptions = pagination || defaultPagination;
+    const offset = (paginationOptions.page - 1) * paginationOptions.limit;
+
+    const searchConditions = and(
+      eq(tickets.tenantId, tenantId),
+      or(
+        ilike(tickets.subject, `%${searchTerm}%`),
+        ilike(tickets.description, `%${searchTerm}%`),
+        ilike(tickets.number, `%${searchTerm}%`)
+      )
+    );
+
     const results = await db
       .select()
       .from(tickets)
-      .where(
-        and(
-          eq(tickets.tenantId, tenantId),
-          or(
-            ilike(tickets.subject, `%${searchTerm}%`),
-            ilike(tickets.description, `%${searchTerm}%`),
-            ilike(tickets.number, `%${searchTerm}%`)
-          )
-        )
-      )
-      .orderBy(desc(tickets.createdAt));
+      .where(searchConditions)
+      .orderBy(desc(tickets.createdAt))
+      .limit(paginationOptions.limit)
+      .offset(offset);
 
-    return results.map(ticket => this.mapToTicket(ticket));
+    const totalResult = await db
+      .select({ count: count() })
+      .from(tickets)
+      .where(searchConditions);
+
+    const total = totalResult[0]?.count || 0;
+    const totalPages = Math.ceil(total / paginationOptions.limit);
+
+    return {
+      tickets: results.map(ticket => this.mapToTicket(ticket)),
+      total,
+      page: paginationOptions.page,
+      totalPages
+    };
   }
 
   // ✅ CLEAN ARCHITECTURE - Private mapping method
