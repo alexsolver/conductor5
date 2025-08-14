@@ -477,7 +477,7 @@ export default function TenantAdminIntegrations() {
       name: 'Telegram',
       category: 'Comunicação',
       description: 'Envio de notificações e alertas via Telegram para grupos ou usuários',
-      icon: Send, // Using Send icon for Telegram
+      icon: Send,
       status: 'disconnected',
       configured: false,
       features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']

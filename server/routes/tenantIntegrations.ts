@@ -152,7 +152,7 @@ router.get('/:integrationId/config', async (req: any, res: any) => {
         message: 'Integration ID is required'
       });
     }
-    
+
     console.log(`[GET config route] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
     const { storage } = await import('../storage-simple');
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
