@@ -54,7 +54,7 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
     const sequenceQuery = `
       SELECT COALESCE(MAX(CAST(SUBSTRING(action_number FROM '${ticketNumber}AI(\\d+)') AS INTEGER)), 0) + 1 as next_seq
       FROM "${schemaName}".ticket_internal_actions 
-      WHERE ticket_id = $1 AND tenant_id = $2 
+      WHERE ticket_id = $1::uuid AND tenant_id = $2::uuid 
       AND action_number ~ '^${ticketNumber}AI\\d+$'
     `;
 
@@ -1723,7 +1723,7 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
         tc.created_at as timestamp,
         tc.updated_at
       FROM "${schemaName}".ticket_communications tc
-      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2
+      WHERE tc.ticket_id = $1::uuid AND tc.tenant_id = $2::uuid
       ORDER BY tc.created_at DESC
     `;
 
@@ -1769,7 +1769,7 @@ ticketsRouter.get('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res)
         tc.created_at as timestamp,
         tc.updated_at
       FROM "${schemaName}".ticket_communications tc
-      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND tc.channel = 'email' AND tc.is_active = true
+      WHERE tc.ticket_id = $1::uuid AND tc.tenant_id = $2::uuid AND tc.channel = 'email' AND tc.is_active = true
       ORDER BY tc.created_at DESC
     `;
 
@@ -2709,7 +2709,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         5 as sort_priority
       FROM "${schemaName}".ticket_communications tc
       LEFT JOIN public.users u ON tc.created_by = u.id
-      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND COALESCE(tc.is_active, true) = true
+      WHERE tc.ticket_id = $1::uuid AND tc.tenant_id = $2::uuid AND COALESCE(tc.is_active, true) = true
 
       UNION ALL
 
@@ -2749,7 +2749,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         6 as sort_priority
       FROM "${schemaName}".ticket_relationships tr
       LEFT JOIN public.users u ON tr.created_by = u.id
-      WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1) AND tr.tenant_id = $2
+      WHERE (tr.source_ticket_id = $1::uuid OR tr.target_ticket_id = $1::uuid) AND tr.tenant_id = $2::uuid
 
       UNION ALL
 
@@ -2784,7 +2784,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         7 as sort_priority
       FROM "${schemaName}".tickets t
       LEFT JOIN public.users u_editor ON COALESCE(t.updated_by, t.created_by) = u_editor.id
-      WHERE t.id = $1 AND t.tenant_id = $2 
+      WHERE t.id = $1::uuid AND t.tenant_id = $2::uuid
         AND t.updated_at > t.created_at + INTERVAL '1 second'
 
       -- ✅ ORDENAÇÃO CRONOLÓGICA REVERSA COM PRIORIDADE DE SISTEMA
