@@ -73,7 +73,7 @@ export class UpdateTicketUseCase {
       const updateData = {
         ...data,
         updatedById: userId,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
         tenantId: tenantId // Ensure tenant consistency
       };
 

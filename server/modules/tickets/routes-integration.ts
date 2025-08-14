@@ -512,26 +512,32 @@ router.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const newAction = result.rows[0];
     console.log('✅ [CLEAN-ARCH-ACTIONS] Action created successfully:', newAction.id);
 
-    // ✅ CRIAÇÃO DE ENTRADA DE AUDITORIA
+    // 🎯 LOG INTERNAL ACTION TO HISTORY per 1qa.md specification
     try {
-      await db.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, 
-         created_at, metadata)
-        VALUES 
-        (${tenantId}, ${id}, 'internal_action_created', 
-         ${'Ação interna criada: ' + finalDescription}, ${userId}, ${req.user?.email || 'Sistema'}, 
-         NOW(), ${JSON.stringify({
-           action_id: newAction.id,
-           action_number: actionNumber,
-           action_type: finalActionType,
-           estimated_hours: finalEstimatedHours,
-           status: status,
-           created_time: new Date().toISOString()
-         })})
-      `);
+      await historyApplicationService.createHistoryEntry({
+        ticketId: id,
+        actionType: 'internal_action_created',
+        fieldName: '',
+        oldValue: '',
+        newValue: `${finalActionType} - ${finalDescription}`,
+        performedBy: userId,
+        tenantId: tenantId,
+        description: `Ação interna criada: ${finalActionType} - ${finalDescription}`,
+        metadata: {
+          action_id: newAction.id,
+          action_number: actionNumber,
+          action_type: finalActionType,
+          estimated_hours: finalEstimatedHours,
+          status: status,
+          created_time: new Date().toISOString(),
+          agent_id: finalAgentId,
+          title: newAction.title
+        }
+      });
+      console.log('✅ [ACTION-HISTORY] Internal action creation logged to history successfully');
     } catch (historyError) {
-      console.warn('⚠️ [CLEAN-ARCH-ACTIONS] Could not create audit entry:', historyError);
+      console.error('❌ [ACTION-HISTORY] Failed to log internal action creation:', historyError);
+      // Don't fail the main operation for history logging issues
     }
 
     // ✅ ATUALIZAÇÃO DO TIMESTAMP DO TICKET
