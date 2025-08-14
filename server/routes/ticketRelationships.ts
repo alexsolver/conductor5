@@ -92,14 +92,22 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
 
     const result = await pool.query(query, [id, tenantId]);
 
-    // Transform results to proper format
+    // Transform results to proper format with improved validation
     const relationships = result.rows
       .filter(row => {
-        // Double check that we have valid ticket data
+        // Basic validation - ensure we have essential data
         const isSourceRelationship = row.source_ticket_id === id;
         const hasValidTicket = isSourceRelationship ? 
-          (row.target_ticket_id && row.target_ticket_is_active) : 
-          (row.source_ticket_id && row.source_ticket_is_active);
+          (row.target_ticket_id) : 
+          (row.source_ticket_id);
+        
+        if (!hasValidTicket) {
+          logInfo('Filtering out relationship without valid ticket data', { 
+            row, 
+            isSourceRelationship,
+            ticketId: id 
+          });
+        }
         
         return hasValidTicket;
       })
@@ -125,7 +133,7 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
           isActive: row.source_ticket_is_active
         };
 
-        return {
+        const relationshipData = {
           id: row.id,
           sourceTicketId: row.source_ticket_id,
           targetTicketId: row.target_ticket_id,
@@ -141,6 +149,14 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
           status: targetTicket.status,
           priority: targetTicket.priority
         };
+        
+        logInfo('Relationship data structure', { 
+          relationshipId: row.id, 
+          targetTicketId: targetTicket.id,
+          relationshipType: row.relationship_type
+        });
+        
+        return relationshipData;
       });
 
     logInfo('Ticket relationships fetched', { 

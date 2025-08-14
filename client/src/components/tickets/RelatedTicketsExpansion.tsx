@@ -72,19 +72,16 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
     );
   }
 
-  // Extract relationships from API response with validation
+  // Extract relationships from API response with minimal validation
   const relationships: RelatedTicket[] = relatedTicketsData?.success 
     ? (relatedTicketsData.data || []).filter((rel: any) => {
-        // Validate that the target ticket exists and has a valid ID
+        // Basic validation - only filter out completely empty objects
         const targetTicket = rel.targetTicket || rel;
-        const hasValidId = targetTicket?.id && targetTicket.id !== 'mock-1' && targetTicket.id !== 'mock-2';
-        const hasValidNumber = targetTicket?.number && !targetTicket.number.includes('MOCK');
+        const hasValidId = targetTicket?.id && typeof targetTicket.id === 'string' && targetTicket.id.trim() !== '';
         
-        if (!hasValidId || !hasValidNumber) {
-          console.log('🔗 [RELATED-TICKETS] Filtering out invalid ticket:', {
+        if (!hasValidId) {
+          console.log('🔗 [RELATED-TICKETS] Filtering out ticket without valid ID:', {
             rel,
-            hasValidId,
-            hasValidNumber,
             targetTicketId: targetTicket?.id
           });
           return false;
@@ -111,17 +108,23 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
       {relationships.length > 0 ? (
         <div className="space-y-2">
           {relationships.map((rel: RelatedTicket, index: number) => {
-            // Extract ticket data with proper fallbacks following 1qa.md patterns
+            // Extract ticket data with improved fallbacks following 1qa.md patterns
             const relatedTicket = rel.targetTicket || rel;
             const ticketNumber = relatedTicket.number || 
-                               relatedTicket.id?.slice(-8) || 
-                               `REL-${index + 1}`;
-            const ticketSubject = relatedTicket.subject || 'Sem assunto definido';
-            const ticketStatus = relatedTicket.status || 'unknown';
-            const ticketPriority = relatedTicket.priority || 'medium';
+                               rel.number ||
+                               `T-${relatedTicket.id?.slice(0, 8) || 'UNKNOWN'}`;
+            const ticketSubject = relatedTicket.subject || 
+                                rel.subject || 
+                                'Ticket relacionado';
+            const ticketStatus = relatedTicket.status || 
+                               rel.status || 
+                               'open';
+            const ticketPriority = relatedTicket.priority || 
+                                 rel.priority || 
+                                 'medium';
             const relationshipType = rel.relationshipType || 
                                    rel.relationship_type || 
-                                   'relacionado';
+                                   'related';
 
             // Map relationship types to Portuguese following 1qa.md
             const getRelationshipLabel = (type: string) => {

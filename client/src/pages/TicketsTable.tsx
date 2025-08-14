@@ -641,8 +641,12 @@ const TicketsTable = React.memo(() => {
           [ticketId]: relationships
         }));
 
+        // Always update the relationships map, even if empty
         if (relationships.length > 0) {
           setTicketsWithRelationships(prev => new Set([...prev, ticketId]));
+          console.log(`✅ [RELATIONSHIP-DETECTION] Ticket ${ticketId} has ${relationships.length} relationships`);
+        } else {
+          console.log(`ℹ️ [RELATIONSHIP-DETECTION] Ticket ${ticketId} has no relationships`);
         }
       } catch (error) {
         console.error(`❌ [RELATIONSHIP-FETCH] Erro ao buscar relacionamentos para ticket ${ticketId}:`, error);
