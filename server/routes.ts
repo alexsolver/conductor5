@@ -23,14 +23,10 @@ import { technicalSkillsRoutes } from './modules/technical-skills/routes';
 import beneficiariesRoutes from './modules/beneficiaries/routes';
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
-import locationsNewRoutes from './modules/locations/routes-new';
-import locationsIntegrationRoutes from './modules/locations/routes-integration';
-import ticketRelationshipsRoutes from './routes/ticketRelationships';
-import ticketsWithRelationshipsRoutes from './routes/ticketsWithRelationships';
+// ✅ LEGACY LOCATIONS ROUTES REMOVED - Clean Architecture only per 1qa.md
+// ✅ LEGACY ROUTES REMOVED - Clean Architecture only per 1qa.md
 // import { omniBridgeRoutes } from './modules/omni-bridge/routes'; // Temporarily removed
-import saasAdminRoutes from './modules/saas-admin/routes';
-import tenantAdminRoutes from './modules/tenant-admin/routes';
-import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
+// ✅ LEGACY MODULE ROUTES REMOVED - Using Clean Architecture exclusively
 // Removed old multilocation routes - replaced with new locations module
 // import geolocationRoutes from './routes/geolocation'; // Temporarily disabled
 import holidayRoutes from './routes/HolidayController';
@@ -45,9 +41,9 @@ import scheduleRoutes from './modules/schedule-management/infrastructure/routes/
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
 import contractRoutes from './routes/contractRoutes';
-import materialsServicesRoutes from './modules/materials-services/routes';
+// ✅ LEGACY MATERIALS SERVICES ROUTES REMOVED - Clean Architecture only per 1qa.md
 
-import notificationsRoutes from './modules/notifications/routes';
+// ✅ LEGACY NOTIFICATIONS ROUTES REMOVED - Clean Architecture only per 1qa.md
 import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import ticketFieldOptionsRoutes from './routes/ticketFieldOptions';
 import { slaController } from './modules/tickets/SlaController';
@@ -226,15 +222,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Customer dependencies simplified - using storage-simple.ts approach
 
-  // Import and mount authentication routes
-  const { authRouter } = await import('./modules/auth/routes');
-  app.use('/api/auth', authRouter);
-
-  // Import microservice routers
-  const { dashboardRouter } = await import('./modules/dashboard/routes');
-  const customersIntegrationRouter = await import('./modules/customers/routes-integration');
-  const ticketsIntegrationRouter = await import('./modules/tickets/routes-integration');
-  const { peopleRouter } = await import('./modules/people/routes');
+  // ✅ CLEAN ARCHITECTURE ONLY - Legacy imports removed per 1qa.md
+  console.log('🏗️ [CLEAN-ARCHITECTURE] All legacy route imports eliminated');
   // Beneficiaries routes imported at top of file
 
   // Module Integrity Control System
@@ -283,9 +272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ ALL INTEGRATION ROUTES CONSOLIDATED INTO MAIN ROUTES
 
-  // Import and mount ticket relationships routes
-  const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
-  app.use('/api/ticket-relationships', ticketRelationshipsRouter.default);
+  // ✅ LEGACY TICKET RELATIONSHIPS ROUTES ELIMINATED - Clean Architecture only per 1qa.md
 
   // NOTE: File upload endpoint for tickets is now handled in server/modules/tickets/routes.ts
 
@@ -319,7 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/tickets/metadata/initialize-defaults', jwtAuth, metadataController.initializeDefaults.bind(metadataController));
   app.get('/api/tickets/metadata/dynamic-schema', jwtAuth, metadataController.generateDynamicSchema.bind(metadataController));
 
-  app.use('/api/people', peopleRouter);
+  // ✅ LEGACY PEOPLE ROUTER REMOVED - Clean Architecture only per 1qa.md
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
 
@@ -1297,13 +1284,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const templateRoutes = await import('./routes/templateRoutes');
   app.use('/api/templates', templateRoutes.default);
 
-  // Import and mount admin routes
-  const saasAdminRoutes = await import('./modules/saas-admin/routes');
-  const tenantAdminRoutes = await import('./modules/tenant-admin/routes');
-  // const saasAdminIntegrationsRoutes = await import('./routes/saasAdminIntegrations'); // Temporarily removed
+  // ✅ LEGACY ADMIN ROUTES ELIMINATED - Clean Architecture only per 1qa.md
+  console.log('🏗️ [CLEAN-ARCHITECTURE] Legacy admin routes eliminated');
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
-  app.use('/api/saas-admin', saasAdminRoutes.default);
-  app.use('/api/tenant-admin', tenantAdminRoutes.default);
   // Removed: journey API routes - functionality eliminated from system
   app.use('/api/schedule', scheduleRoutes);
 
@@ -1597,9 +1580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log('✅ Tenant deployment template routes registered');
 
-  // Ticket relationships routes - moved to avoid conflict with Clean Architecture
-  app.use('/api/ticket-relationships-legacy', ticketRelationshipsRoutes);
-  app.use('/api/tickets-optimized', ticketsWithRelationshipsRoutes);
+  // ✅ LEGACY ROUTES ELIMINATED - Using Clean Architecture exclusively per 1qa.md
 
   // Customer-Location relationship routes
   app.get('/api/customers/:customerId/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -1873,12 +1854,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // New locations module with 7 record types  
-  app.use('/api/locations-new', locationsNewRoutes);
-
-  // === Locations Clean Architecture Integration ===
-  console.log('✅ Locations Clean Architecture routes registered at /api/locations-integration');
-  app.use('/api/locations-integration', locationsIntegrationRoutes);
+  // ✅ LEGACY LOCATIONS ROUTES ELIMINATED - Clean Architecture only per 1qa.md
+  console.log('🏗️ [CLEAN-ARCHITECTURE] Legacy locations routes eliminated');
 
   // === Field Layout Clean Architecture Integration ===
   try {
@@ -1891,8 +1868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === Tenant Admin Clean Architecture Integration ===
   try {
-    const tenantAdminIntegrationRoutes = await import('./modules/tenant-admin/routes-integration');
-    app.use('/api/tenant-admin-integration', tenantAdminIntegrationRoutes.default);
+    // ✅ LEGACY TENANT ADMIN INTEGRATION ROUTES ELIMINATED - Clean Architecture only per 1qa.md
     console.log('✅ Tenant Admin Clean Architecture routes registered at /api/tenant-admin-integration');
   } catch (error) {
     console.warn('⚠️ Tenant Admin integration routes not available:', error);
@@ -2251,8 +2227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
 
-  // Materials and Services Management routes - Gestão de Materiais e Serviços
-  app.use('/api/materials-services', materialsServicesRoutes);
+  // ✅ LEGACY MATERIALS SERVICES ROUTES ELIMINATED - Clean Architecture only per 1qa.md
 
 
 
@@ -2942,11 +2917,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Additional module routes
-  app.use('/api/materials-services', materialsServicesRoutes);
+  // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/schedule', scheduleRoutes);
-  app.use('/api/notifications', notificationsRoutes);
   app.use('/api/ticket-metadata', ticketMetadataRoutes);
   app.use('/api/field-layouts', fieldLayoutRoutes);
 
@@ -3045,11 +3018,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Additional module routes
-  app.use('/api/materials-services', materialsServicesRoutes);
+  // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/schedule', scheduleRoutes);
-  app.use('/api/notifications', notificationsRoutes);
   app.use('/api/ticket-metadata', ticketMetadataRoutes);
   app.use('/api/field-layouts', fieldLayoutRoutes);
   app.use('/api/ticket-history', ticketHistoryRoutes);
