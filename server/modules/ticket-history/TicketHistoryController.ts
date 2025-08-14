@@ -30,13 +30,22 @@ export class TicketHistoryController {
           th.field_name,
           th.old_value,
           th.new_value,
+          th.performed_by,
           th.performed_by_name,
           th.ip_address,
           th.user_agent,
           th.session_id,
           th.description,
           th.metadata,
-          th.created_at
+          th.created_at,
+          CASE 
+            WHEN th.ip_address IS NOT NULL AND th.ip_address != '' THEN true
+            ELSE false
+          END as has_ip_data,
+          CASE 
+            WHEN th.session_id IS NOT NULL AND th.session_id != '' THEN true
+            ELSE false
+          END as has_session_data
         FROM ${schemaName}.ticket_history th
         WHERE th.ticket_id = $1 AND th.tenant_id = $2
         ORDER BY th.created_at DESC

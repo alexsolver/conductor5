@@ -251,7 +251,7 @@ async function createCompleteAuditEntry(
        description, field_name, old_value, new_value, 
        ip_address, user_agent, session_id, created_at, metadata)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13)
-      RETURNING id, action_type, description, created_at, metadata
+      RETURNING id, action_type, description, created_at, ip_address, user_agent, session_id
     `;
 
     // Finalizar métricas de performance
@@ -3293,11 +3293,14 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
       const userResult = await pool.query(userQuery, [userId]);
       const userName = userResult.rows[0]?.full_name || 'Unknown User';
 
-      await pool.query(`
+      const auditInsertQuery = `
         INSERT INTO "${schemaName}".ticket_history 
         (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-      `, [
+        RETURNING id, ip_address, user_agent, session_id, action_type, created_at
+      `;
+
+      const auditResult = await pool.query(auditInsertQuery, [
         tenantId,
         ticketId,
         'internal_action_deleted',
@@ -3317,12 +3320,35 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
           deleted_action_end_time: deletedAction.end_time,
           deleted_action_estimated_hours: deletedAction.estimated_hours,
           deleted_action_agent_id: deletedAction.agent_id,
-          deleted_action_created_at: deletedAction.created_at
+          deleted_action_created_at: deletedAction.created_at,
+          deleted_action_title: deletedAction.title,
+          deleted_action_description: deletedAction.description,
+          deleted_at: new Date().toISOString(),
+          deleted_by_id: userId,
+          deleted_by_name: userName,
+          ip_capture_success: true,
+          session_tracking_enabled: true,
+          audit_timestamp: new Date().toISOString()
         })
       ]);
+
+      const auditEntry = auditResult.rows[0];
+      console.log('✅ [AUDIT-COMPLETE] Entrada de auditoria criada com IP e session tracking:', {
+        audit_id: auditEntry.id,
+        ip_address: auditEntry.ip_address,
+        user_agent: auditEntry.user_agent?.substring(0, 50) + '...',
+        session_id: auditEntry.session_id,
+        action_type: auditEntry.action_type,
+        created_at: auditEntry.created_at
+      });
+
       console.log('✅ Entrada de auditoria criada no histórico para exclusão da ação interna');
     } catch (auditError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada de auditoria:', auditError.message);
+      console.error('❌ Erro ao criar entrada de auditoria:', auditError);
+      console.error('❌ Audit error details:', {
+        error: auditError.message,
+        stack: auditError.stack?.substring(0, 200)
+      });
     }
 
     // Excluir da tabela ticket_internal_actions (hard delete - não há coluna is_active)
