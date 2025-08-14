@@ -156,13 +156,14 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     return selectedTickets.some(t => t.id === ticket.id);
   };
 
-  // Get existing relationships
+  // Get existing relationships - Clean Architecture endpoint only per 1qa.md
   const { data: relationships = [] } = useQuery<TicketRelationship[]>({
-    queryKey: ["/api/tickets", currentTicket?.id, "relationships"],
+    queryKey: ["/api/ticket-relationships", currentTicket?.id, "relationships"],
     queryFn: async () => {
       if (!currentTicket?.id) return [];
-      const response = await apiRequest("GET", `/api/tickets/${currentTicket.id}/relationships`);
-      return response.json();
+      const response = await apiRequest("GET", `/api/ticket-relationships/${currentTicket.id}/relationships`);
+      const data = await response.json();
+      return data.success ? data.data : [];
     },
     enabled: !!currentTicket?.id,
   });
@@ -186,8 +187,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         description: "Chamado vinculado com sucesso",
       });
       if (currentTicket?.id) {
-        // Invalidate relationships
-        queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
+        // Invalidate relationships - Clean Architecture only per 1qa.md
         queryClient.invalidateQueries({ queryKey: ["/api/ticket-relationships", currentTicket.id, "relationships"] });
         
         // 🚀 CORREÇÃO: Invalidate history immediately to show link events
@@ -212,10 +212,10 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     },
   });
 
-  // Remove relationship mutation
+  // Remove relationship mutation - Clean Architecture endpoint per 1qa.md
   const removeRelationshipMutation = useMutation({
     mutationFn: async (relationshipId: string) => {
-      await apiRequest("DELETE", `/api/tickets/relationships/${relationshipId}`);
+      await apiRequest("DELETE", `/api/ticket-relationships/${relationshipId}`);
     },
     onSuccess: () => {
       toast({
@@ -223,8 +223,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         description: "Vínculo removido com sucesso",
       });
       if (currentTicket?.id) {
-        // Invalidate relationships
-        queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
+        // Invalidate relationships - Clean Architecture only per 1qa.md
         queryClient.invalidateQueries({ queryKey: ["/api/ticket-relationships", currentTicket.id, "relationships"] });
         
         // 🚀 CORREÇÃO: Invalidate history immediately to show unlink events

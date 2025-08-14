@@ -6,6 +6,7 @@
 
 import { Request, Response } from 'express';
 import { FindTicketRelationshipsUseCase } from '../use-cases/FindTicketRelationshipsUseCase';
+import { DeleteTicketRelationshipUseCase } from '../use-cases/DeleteTicketRelationshipUseCase';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -17,7 +18,8 @@ interface AuthenticatedRequest extends Request {
 
 export class TicketRelationshipController {
   constructor(
-    private findTicketRelationshipsUseCase: FindTicketRelationshipsUseCase
+    private findTicketRelationshipsUseCase: FindTicketRelationshipsUseCase,
+    private deleteTicketRelationshipUseCase: DeleteTicketRelationshipUseCase
   ) {
     console.log('✅ [TicketRelationshipController] Initialized with dependencies');
   }
@@ -97,6 +99,51 @@ export class TicketRelationshipController {
       console.error('❌ [TicketRelationshipController] Error getting relationships count:', error);
       res.status(500).json({ 
         message: 'Failed to fetch relationships count',
+        error: error.message 
+      });
+    }
+  }
+
+  async deleteRelationship(req: AuthenticatedRequest, res: Response): Promise<void> {
+    console.log('🗑️ [TicketRelationshipController] deleteRelationship called with:', { 
+      relationshipId: req.params.relationshipId,
+      tenantId: req.user?.tenantId 
+    });
+
+    try {
+      const relationshipId = req.params.relationshipId;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        res.status(401).json({ 
+          success: false, 
+          message: 'Tenant ID required' 
+        });
+        return;
+      }
+
+      if (!relationshipId) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Relationship ID required' 
+        });
+        return;
+      }
+
+      const deleted = await this.deleteTicketRelationshipUseCase.execute(relationshipId, tenantId);
+
+      console.log('✅ [TicketRelationshipController] Relationship deleted successfully:', relationshipId);
+      
+      res.json({ 
+        success: true, 
+        message: 'Relationship deleted successfully'
+      });
+
+    } catch (error: any) {
+      console.error('❌ [TicketRelationshipController] Error deleting relationship:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete relationship',
         error: error.message 
       });
     }
