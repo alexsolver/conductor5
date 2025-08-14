@@ -630,7 +630,7 @@ const TicketDetails = React.memo(() => {
           // 1. Verificar campos diretos primeiro
           if (item.ip_address && item.ip_address !== 'N/A') return item.ip_address;
           if (item.ipAddress && item.ipAddress !== 'N/A') return item.ipAddress;
-          
+
           // 2. Parse metadata se for string
           let parsedMetadata = item.metadata;
           if (typeof item.metadata === 'string') {
@@ -640,19 +640,25 @@ const TicketDetails = React.memo(() => {
               parsedMetadata = {};
             }
           }
-          
-          // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.ip_address) return parsedMetadata.client_info.ip_address;
-          if (parsedMetadata?.ip_address) return parsedMetadata.ip_address;
-          if (parsedMetadata?.session_backup?.ip_address) return parsedMetadata.session_backup.ip_address;
-          
+
+          // 3. Verificar em client_info no metadata
+          if (parsedMetadata?.client_info?.ip_address && parsedMetadata.client_info.ip_address !== 'N/A') {
+            return parsedMetadata.client_info.ip_address;
+          }
+
+          // 4. Verificar em session_backup no metadata
+          if (parsedMetadata?.session_backup?.ip_address && parsedMetadata.session_backup.ip_address !== 'N/A') {
+            return parsedMetadata.session_backup.ip_address;
+          }
+
           return 'N/A';
         })(),
+
         user_agent: (() => {
           // 1. Verificar campos diretos primeiro
           if (item.user_agent && item.user_agent !== 'N/A') return item.user_agent;
           if (item.userAgent && item.userAgent !== 'N/A') return item.userAgent;
-          
+
           // 2. Parse metadata se for string
           let parsedMetadata = item.metadata;
           if (typeof item.metadata === 'string') {
@@ -662,19 +668,25 @@ const TicketDetails = React.memo(() => {
               parsedMetadata = {};
             }
           }
-          
-          // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.user_agent) return parsedMetadata.client_info.user_agent;
-          if (parsedMetadata?.user_agent) return parsedMetadata.user_agent;
-          if (parsedMetadata?.session_backup?.user_agent) return parsedMetadata.session_backup.user_agent;
-          
+
+          // 3. Verificar em client_info no metadata
+          if (parsedMetadata?.client_info?.user_agent && parsedMetadata.client_info.user_agent !== 'N/A') {
+            return parsedMetadata.client_info.user_agent;
+          }
+
+          // 4. Verificar em session_backup no metadata
+          if (parsedMetadata?.session_backup?.user_agent && parsedMetadata.session_backup.user_agent !== 'N/A') {
+            return parsedMetadata.session_backup.user_agent;
+          }
+
           return 'N/A';
         })(),
+
         session_id: (() => {
           // 1. Verificar campos diretos primeiro
           if (item.session_id && item.session_id !== 'N/A') return item.session_id;
           if (item.sessionId && item.sessionId !== 'N/A') return item.sessionId;
-          
+
           // 2. Parse metadata se for string
           let parsedMetadata = item.metadata;
           if (typeof item.metadata === 'string') {
@@ -684,12 +696,17 @@ const TicketDetails = React.memo(() => {
               parsedMetadata = {};
             }
           }
-          
-          // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.session_id) return parsedMetadata.client_info.session_id;
-          if (parsedMetadata?.session_id) return parsedMetadata.session_id;
-          if (parsedMetadata?.session_backup?.session_id) return parsedMetadata.session_backup.session_id;
-          
+
+          // 3. Verificar em client_info no metadata
+          if (parsedMetadata?.client_info?.session_id && parsedMetadata.client_info.session_id !== 'N/A') {
+            return parsedMetadata.client_info.session_id;
+          }
+
+          // 4. Verificar em session_backup no metadata
+          if (parsedMetadata?.session_backup?.session_id && parsedMetadata.session_backup.session_id !== 'N/A') {
+            return parsedMetadata.session_backup.session_id;
+          }
+
           return 'N/A';
         })()
       }));
@@ -3331,7 +3348,7 @@ const TicketDetails = React.memo(() => {
         <div className="p-4 lg:p-6 h-full">
           {/* Header - Responsivo */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-2">
               <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")} className="self-start">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar
@@ -3690,8 +3707,7 @@ const TicketDetails = React.memo(() => {
               <div className="space-y-1 text-xs">
                 {(() => {
                   const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) ||
-                                    (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId);
 
                   const name = beneficiary ? (beneficiary.fullName || beneficiary.name ||
                              `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
