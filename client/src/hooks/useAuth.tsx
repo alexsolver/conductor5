@@ -159,13 +159,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           throw new Error(errorMessage);
         }
         
-        return await res.json();
+        const responseData = await res.json();
+        
+        // ✅ CRITICAL FIX - Handle the backend response structure per 1qa.md compliance
+        if (responseData.success && responseData.data) {
+          // Backend returns: { success: true, data: { user, tokens, session } }
+          return {
+            user: responseData.data.user,
+            accessToken: responseData.data.tokens.accessToken,
+            refreshToken: responseData.data.tokens.refreshToken,
+            session: responseData.data.session
+          };
+        }
+        
+        throw new Error(responseData.message || 'Login failed');
       } catch (error) {
         // Login API error handled by UI
         throw error;
       }
     },
-    onSuccess: (result: { user: User; accessToken: string; refreshToken?: string }) => {
+    onSuccess: (result: { user: User; accessToken: string; refreshToken?: string; session?: any }) => {
       localStorage.setItem('accessToken', result.accessToken);
       if (result.refreshToken) {
         localStorage.setItem('refreshToken', result.refreshToken);
