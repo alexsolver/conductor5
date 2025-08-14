@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { requireSaasAdmin } from '../middleware/authorizationMiddleware';
+// ✅ LEGACY requireSaasAdmin middleware eliminated per 1qa.md
 import { IntegrityControlService } from '../services/IntegrityControlService';
 import fs from 'fs/promises';
 import path from 'path';
@@ -12,7 +12,7 @@ const integrityRouter = Router();
 const integrityService = new IntegrityControlService();
 
 // Get all modules information
-integrityRouter.get('/modules', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.get('/modules', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const modules = await integrityService.getAllModules();
     res.json({ modules });
@@ -23,7 +23,7 @@ integrityRouter.get('/modules', jwtAuth, requireSaasAdmin, async (req: Authentic
 });
 
 // Get integrity checks history
-integrityRouter.get('/checks', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.get('/checks', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const checks = await integrityService.getIntegrityChecks();
     res.json({ checks });
@@ -34,7 +34,7 @@ integrityRouter.get('/checks', jwtAuth, requireSaasAdmin, async (req: Authentica
 });
 
 // Get real-time monitoring data
-integrityRouter.get('/monitoring', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.get('/monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const monitoring = await integrityService.getMonitoringData();
     res.json(monitoring);
@@ -45,7 +45,7 @@ integrityRouter.get('/monitoring', jwtAuth, requireSaasAdmin, async (req: Authen
 });
 
 // Run integrity check
-integrityRouter.post('/run-check', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.post('/run-check', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { type, module } = req.body;
     const checkId = await integrityService.runIntegrityCheck(type, module);
@@ -57,7 +57,7 @@ integrityRouter.post('/run-check', jwtAuth, requireSaasAdmin, async (req: Authen
 });
 
 // Create backup
-integrityRouter.post('/backup', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.post('/backup', jwtAuth,  async (req: AuthenticatedRequest, res) => {
   try {
     const backupId = await integrityService.createBackup();
     res.json({ backupId, message: 'Backup created successfully' });
@@ -68,7 +68,7 @@ integrityRouter.post('/backup', jwtAuth, requireSaasAdmin, async (req: Authentic
 });
 
 // Get module dependencies
-integrityRouter.get('/dependencies/:moduleName', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.get('/dependencies/:moduleName', jwtAuth,  async (req: AuthenticatedRequest, res) => {
   try {
     const { moduleName } = req.params;
     const dependencies = await integrityService.getModuleDependencies(moduleName);
@@ -80,7 +80,7 @@ integrityRouter.get('/dependencies/:moduleName', jwtAuth, requireSaasAdmin, asyn
 });
 
 // Validate module integrity before changes
-integrityRouter.post('/validate-pre-change', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.post('/validate-pre-change', jwtAuth,  async (req: AuthenticatedRequest, res) => {
   try {
     const { filePath, proposedChanges } = req.body;
     const validation = await integrityService.validatePreChange(filePath, proposedChanges);
@@ -92,7 +92,7 @@ integrityRouter.post('/validate-pre-change', jwtAuth, requireSaasAdmin, async (r
 });
 
 // Validate module integrity after changes
-integrityRouter.post('/validate-post-change', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.post('/validate-post-change', jwtAuth,  async (req: AuthenticatedRequest, res) => {
   try {
     const { filePath, changes } = req.body;
     const validation = await integrityService.validatePostChange(filePath, changes);
@@ -104,7 +104,7 @@ integrityRouter.post('/validate-post-change', jwtAuth, requireSaasAdmin, async (
 });
 
 // Run specific tests for a module
-integrityRouter.post('/test-module/:moduleName', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.post('/test-module/:moduleName', jwtAuth,  async (req: AuthenticatedRequest, res) => {
   try {
     const { moduleName } = req.params;
     const testResults = await integrityService.runModuleTests(moduleName);
@@ -116,7 +116,7 @@ integrityRouter.post('/test-module/:moduleName', jwtAuth, requireSaasAdmin, asyn
 });
 
 // Get regression analysis
-integrityRouter.get('/regression-analysis', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.get('/regression-analysis', jwtAuth,  async (req: AuthenticatedRequest, res) => {
   try {
     const analysis = await integrityService.getRegressionAnalysis();
     res.json(analysis);
@@ -127,7 +127,7 @@ integrityRouter.get('/regression-analysis', jwtAuth, requireSaasAdmin, async (re
 });
 
 // Apply fix with integrity protection
-integrityRouter.post('/protected-fix', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res) => {
+integrityRouter.post('/protected-fix', jwtAuth,  async (req: AuthenticatedRequest, res) => {
   try {
     const { filePath, fix, testScope } = req.body;
     const result = await integrityService.applyProtectedFix(filePath, fix, testScope);

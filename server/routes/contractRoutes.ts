@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ContractRepository } from '../repositories/ContractRepository-fixed';
+// ✅ LEGACY ContractRepository-fixed eliminated per 1qa.md
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { insertContractSchema, insertContractSlaSchema, insertContractServiceSchema, insertContractDocumentSchema, insertContractRenewalSchema, insertContractBillingSchema, insertContractEquipmentSchema } from '@shared/schema';
 import { z } from 'zod';
@@ -7,7 +7,7 @@ import multer from 'multer';
 import path from 'path';
 
 const router = Router();
-const contractRepository = new ContractRepository();
+// ✅ LEGACY ContractRepository eliminated per 1qa.md
 
 // Configure multer for document uploads
 const storage = multer.diskStorage({

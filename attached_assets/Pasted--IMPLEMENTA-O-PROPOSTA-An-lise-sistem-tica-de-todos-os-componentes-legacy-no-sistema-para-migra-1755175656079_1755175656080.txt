@@ -1,0 +1,59 @@
+🛠️ IMPLEMENTAÇÃO PROPOSTA:
+Análise sistemática de todos os componentes legacy no sistema para migração completa para Clean Architecture.
+
+📋 LEGACY COMPONENTS ENCONTRADOS PARA ELIMINAÇÃO
+🗂️ 1. ARQUIVOS LEGACY DE ROTAS
+server/modules/auth/routes-integration.ts          ❌ LEGACY
+server/modules/tickets/routes-integration.ts       ❌ LEGACY
+server/modules/customers/routes-integration.ts     ❌ LEGACY
+server/modules/beneficiaries/routes-integration.ts ❌ LEGACY
+server/modules/users/routes-integration.ts         ❌ LEGACY
+server/modules/companies/routes-integration.ts     ❌ LEGACY
+server/modules/locations/routes-integration.ts     ❌ LEGACY
+🗂️ 2. ARQUIVOS BACKUP LEGACY
+server/modules/customers/routes.ts.backup          ❌ LEGACY
+server/modules/customers/routes_backup_full.ts     ❌ LEGACY
+server/routes.ts.backup                            ❌ LEGACY
+server/db.ts.backup                                ❌ LEGACY
+client/src/pages/ItemCatalog.tsx.backup           ❌ LEGACY
+client/src/pages/TechnicalSkills.tsx.backup       ❌ LEGACY
+🗂️ 3. ARQUIVOS DEPRECATED
+server/db-master.ts.deprecated                     ❌ LEGACY
+server/db-unified.ts.deprecated                    ❌ LEGACY
+🗂️ 4. CONTROLADORES LEGACY
+server/modules/locations/LocationsController.ts    ❌ LEGACY
+server/modules/locations/LocationsNewController.ts ❌ LEGACY
+server/modules/locations/LocationsRepository.ts    ❌ LEGACY
+server/modules/locations/LocationsNewRepository.ts ❌ LEGACY
+server/modules/locations/LocationsServices.ts      ❌ LEGACY
+🗂️ 5. ROTAS LEGACY NÃO-CLEAN ARCHITECTURE
+server/modules/custom-fields/routes.ts            ❌ LEGACY (não Clean)
+server/modules/field-layouts/routes.ts            ❌ LEGACY (não Clean)
+server/modules/ticket-history/routes.ts           ❌ LEGACY (não Clean)
+server/modules/technical-skills/routes.ts         ❌ LEGACY (não Clean)
+🗂️ 6. REPOSITÓRIOS LEGACY
+server/repositories/ContractRepository-fixed.ts   ❌ LEGACY
+server/modules/technical-skills/infrastructure/repositories/DrizzleUserSkillRepository_FIXED.ts ❌ LEGACY
+🗂️ 7. CONTROLADORES DUPLICADOS LEGACY
+server/modules/materials-services/application/controllers/CustomerItemMappingController-fixed.ts ❌ LEGACY
+server/modules/template-audit/TemplateAuditController.ts ❌ LEGACY (duplicado)
+server/modules/template-audit/TemplateAuditService.ts ❌ LEGACY (duplicado)
+server/modules/template-versions/TemplateVersionController.ts ❌ LEGACY (duplicado)
+server/modules/template-versions/VersionControlService.ts ❌ LEGACY (duplicado)
+server/modules/template-hierarchy/TemplateHierarchyController.ts ❌ LEGACY (duplicado)
+server/modules/template-hierarchy/TemplateInheritanceService.ts ❌ LEGACY (duplicado)
+🗂️ 8. ARQUIVOS DE ROTAS LEGACY
+server/modules/materials-services/routes-old.ts   ❌ LEGACY
+server/modules/dashboard/routes.ts                ❌ LEGACY (não Clean)
+server/modules/people/routes.ts                   ❌ LEGACY (não Clean)
+🗂️ 9. SCRIPTS E UTILITÁRIOS LEGACY
+server/utils/tenantSchemaRecovery.ts              ❌ LEGACY
+server/services/UserManagementService-broken.ts   ❌ LEGACY
+server/services/IntegrityControlService_old.ts    ❌ LEGACY
+🗂️ 10. ARQUIVOS FRONTEND LEGACY
+client/src/pages/AgendaManager_backup.tsx         ❌ LEGACY
+client/src/pages/ItemCatalog_broken.tsx           ❌ LEGACY
+client/src/pages/LocationsNewOld.tsx              ❌ LEGACY
+🗂️ 11. MIDDLEWARES LEGACY NÃO USADOS
+server/middleware/authorizationMiddleware.ts       ❌ LEGACY (não usado)
+server/middleware/rateLimitMiddleware.ts           ❌ LEGACY (não usado)

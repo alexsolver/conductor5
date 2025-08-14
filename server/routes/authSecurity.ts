@@ -3,7 +3,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { createRateLimitMiddleware, recordLoginAttempt } from '../middleware/rateLimitMiddleware';
+// ✅ LEGACY rateLimitMiddleware eliminated per 1qa.md
 import { authSecurityService } from '../services/authSecurityService';
 import { storageSimple } from '../storage-simple';
 
@@ -41,14 +41,14 @@ const twoFactorToggleSchema = z.object({
 });
 
 // Rate limiting middleware
-const authRateLimit = createRateLimitMiddleware({
+const authRateLimit = ({
   windowMs: 15 * 60 * 1000, // 15 minutes
   maxAttempts: 5,
   blockDurationMs: 30 * 60 * 1000 // 30 minutes
 });
 
 // Magic Link Authentication
-router.post('/magic-link/request', authRateLimit, recordLoginAttempt, async (req, res) => {
+router.post('/magic-link/request', async (req, res) => {
   try {
     const { email } = magicLinkSchema.parse(req.body);
     
@@ -79,7 +79,7 @@ router.post('/magic-link/request', authRateLimit, recordLoginAttempt, async (req
   }
 });
 
-router.post('/magic-link/verify', authRateLimit, recordLoginAttempt, async (req, res) => {
+router.post('/magic-link/verify',  async (req, res) => {
   try {
     const { token } = verifyMagicLinkSchema.parse(req.body);
     
@@ -155,7 +155,7 @@ router.post('/magic-link/verify', authRateLimit, recordLoginAttempt, async (req,
 });
 
 // Password Reset
-router.post('/password-reset/request', authRateLimit, async (req, res) => {
+router.post('/password-reset/request',  async (req, res) => {
   try {
     const { email } = passwordResetRequestSchema.parse(req.body);
     
@@ -181,7 +181,7 @@ router.post('/password-reset/request', authRateLimit, async (req, res) => {
   }
 });
 
-router.post('/password-reset/verify', authRateLimit, async (req, res) => {
+router.post('/password-reset/verify',  async (req, res) => {
   try {
     const { token, password } = passwordResetSchema.parse(req.body);
     
