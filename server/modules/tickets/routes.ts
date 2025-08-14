@@ -2775,7 +2775,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           'time_since_creation_hours', EXTRACT(EPOCH FROM (t.updated_at - t.created_at)) / 3600,
           'current_status', t.status,
           'current_priority', t.priority,
-          'last_editor', COALESCE(t.updated_by, 'unknown')
+          'last_editor', COALESCE(t.updated_by::text, 'unknown')
         )::text as metadata,
         true as is_visible,
         'primary' as priority_level,
