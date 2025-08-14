@@ -344,6 +344,234 @@ router.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 /**
+ * CREATE TICKET ACTION - Clean Architecture Implementation
+ * POST /api/tickets/:id/actions
+ * ✅ 1qa.md COMPLIANCE: Clean Architecture endpoint for internal actions
+ */
+router.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  console.log('📝 [CLEAN-ARCH-ACTIONS] POST /:id/actions Clean Architecture endpoint called');
+
+  // ✅ FORÇA HEADERS JSON - Padrão 1qa.md
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  try {
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+    const userId = req.user?.id;
+
+    // ✅ VALIDAÇÕES OBRIGATÓRIAS - Padrão 1qa.md
+    if (!tenantId) {
+      console.log('❌ [CLEAN-ARCH-ACTIONS] No tenant ID');
+      return res.status(400).json({ 
+        success: false,
+        message: "User not associated with a tenant" 
+      });
+    }
+
+    if (!userId) {
+      console.log('❌ [CLEAN-ARCH-ACTIONS] No user ID');
+      return res.status(401).json({ 
+        success: false,
+        message: "User ID required" 
+      });
+    }
+
+    if (!id || typeof id !== 'string') {
+      console.log('❌ [CLEAN-ARCH-ACTIONS] Invalid ticket ID');
+      return res.status(400).json({ 
+        success: false,
+        message: "Valid ticket ID is required" 
+      });
+    }
+
+    // ✅ EXTRAÇÃO DOS DADOS - Clean Architecture
+    const {
+      action_type,
+      agent_id,
+      title,
+      description,
+      planned_start_time,
+      planned_end_time,
+      start_time,
+      end_time,
+      estimated_hours = 0,
+      status = 'pending',
+      priority = 'medium',
+      is_public = false,
+      // Legacy compatibility
+      actionType,
+      workLog,
+      assignedToId
+    } = req.body;
+
+    console.log('📝 [CLEAN-ARCH-ACTIONS] Data received:', {
+      ticketId: id,
+      action_type: action_type || actionType,
+      agent_id: agent_id || assignedToId,
+      description: description || workLog
+    });
+
+    // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS - Padrão 1qa.md
+    const finalActionType = action_type || actionType;
+    const finalAgentId = agent_id || assignedToId || userId; // Fallback to current user
+    const finalDescription = description || workLog || `${finalActionType} action performed`;
+
+    if (!finalActionType || typeof finalActionType !== 'string') {
+      console.log('❌ [CLEAN-ARCH-ACTIONS] Invalid action type');
+      return res.status(400).json({ 
+        success: false,
+        message: "Action type is required and must be a valid string" 
+      });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // ✅ VERIFICAÇÃO DE EXISTÊNCIA DO TICKET
+    const ticketCheck = await db.execute(sql`
+      SELECT id FROM ${sql.identifier(schemaName)}.tickets 
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+    `);
+
+    if (ticketCheck.rows.length === 0) {
+      console.log('❌ [CLEAN-ARCH-ACTIONS] Ticket not found');
+      return res.status(404).json({ 
+        success: false,
+        message: "Ticket not found" 
+      });
+    }
+
+    // ✅ GERAÇÃO DE UUID E NÚMERO DE AÇÃO - Padrão 1qa.md
+    const actionId = uuidv4();
+    const timestamp = Date.now();
+    const actionNumber = `AI-${timestamp.toString().slice(-6)}`;
+
+    // ✅ PREPARAÇÃO DOS DADOS COM TIPO CORRETO
+    const finalStartTime = start_time ? new Date(start_time) : null;
+    const finalEndTime = end_time ? new Date(end_time) : null;
+    const finalPlannedStartTime = planned_start_time ? new Date(planned_start_time) : null;
+    const finalPlannedEndTime = planned_end_time ? new Date(planned_end_time) : null;
+    const finalEstimatedHours = parseFloat(estimated_hours) || 0;
+
+    // ✅ INSERÇÃO COM DRIZZLE SQL TEMPLATES - Clean Architecture
+    const result = await db.execute(sql`
+      INSERT INTO ${sql.identifier(schemaName)}.ticket_internal_actions 
+      (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, 
+       planned_start_time, planned_end_time, start_time, end_time, estimated_hours, 
+       status, priority, created_at, updated_at)
+      VALUES 
+      (${actionId}, ${tenantId}, ${id}, ${actionNumber}, ${finalActionType}, 
+       ${title || `${finalActionType} - Ticket #${id.slice(0, 8)}`}, ${finalDescription}, 
+       ${finalAgentId}, ${finalPlannedStartTime}, ${finalPlannedEndTime}, 
+       ${finalStartTime}, ${finalEndTime}, ${finalEstimatedHours}, 
+       ${status}, ${priority}, NOW(), NOW())
+      RETURNING id, action_number, action_type, title, description, status, priority, 
+                estimated_hours, created_at
+    `);
+
+    if (!result.rows || result.rows.length === 0) {
+      throw new Error('No data returned from insert operation');
+    }
+
+    const newAction = result.rows[0];
+    console.log('✅ [CLEAN-ARCH-ACTIONS] Action created successfully:', newAction.id);
+
+    // ✅ CRIAÇÃO DE ENTRADA DE AUDITORIA
+    try {
+      await db.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, 
+         created_at, metadata)
+        VALUES 
+        (${tenantId}, ${id}, 'internal_action_created', 
+         ${'Ação interna criada: ' + finalDescription}, ${userId}, ${req.user?.email || 'Sistema'}, 
+         NOW(), ${JSON.stringify({
+           action_id: newAction.id,
+           action_number: actionNumber,
+           action_type: finalActionType,
+           estimated_hours: finalEstimatedHours,
+           status: status,
+           created_time: new Date().toISOString()
+         })})
+      `);
+    } catch (historyError) {
+      console.warn('⚠️ [CLEAN-ARCH-ACTIONS] Could not create audit entry:', historyError);
+    }
+
+    // ✅ ATUALIZAÇÃO DO TIMESTAMP DO TICKET
+    try {
+      await db.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.tickets 
+        SET updated_at = NOW() 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
+    } catch (updateError) {
+      console.warn('⚠️ [CLEAN-ARCH-ACTIONS] Could not update ticket timestamp:', updateError);
+    }
+
+    // ✅ RESPOSTA PADRONIZADA JSON - Clean Architecture
+    const response = {
+      success: true,
+      message: "Ação interna criada com sucesso",
+      data: {
+        id: newAction.id,
+        actionNumber: actionNumber,
+        actionType: newAction.action_type,
+        type: newAction.action_type,
+        content: newAction.description,
+        description: newAction.description,
+        title: newAction.title,
+        workLog: newAction.description,
+        timeSpent: newAction.estimated_hours,
+        status: newAction.status || 'active',
+        priority: newAction.priority || 'medium',
+        time_spent: newAction.estimated_hours,
+        start_time: finalStartTime?.toISOString() || null,
+        end_time: finalEndTime?.toISOString() || null,
+        customer_id: null,
+        linked_items: '[]',
+        has_file: false,
+        contact_method: 'system',
+        vendor: '',
+        is_public: true,
+        isPublic: true,
+        createdBy: userId,
+        createdByName: req.user?.email || 'Sistema',
+        createdAt: newAction.created_at,
+        agent_name: req.user?.email || 'Sistema',
+        estimated_hours: newAction.estimated_hours
+      }
+    };
+
+    console.log('✅ [CLEAN-ARCH-ACTIONS] Sending successful response');
+    return res.status(201).json(response);
+
+  } catch (error) {
+    console.error('❌ [CLEAN-ARCH-ACTIONS] Unexpected error:', error);
+
+    // ✅ FORÇA HEADERS JSON MESMO EM ERRO CRÍTICO
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    }
+
+    // ✅ RESPOSTA DE ERRO PADRONIZADA
+    const errorResponse = {
+      success: false,
+      message: "Failed to create internal action",
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString()
+    };
+
+    if (!res.headersSent) {
+      return res.status(500).json(errorResponse);
+    }
+  }
+});
+
+/**
  * GET TICKET HISTORY - Secondary data endpoint
  * GET /api/tickets/:id/history
  */
