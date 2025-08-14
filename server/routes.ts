@@ -65,6 +65,11 @@ import usersRoutes from './modules/users/routes-integration';
 import companiesRoutes from './modules/companies/routes-integration';
 import locationsRoutes from './modules/locations/routes-integration';
 
+// 🎯 IMPORT HISTORY SYSTEM FOR COMPREHENSIVE LOGGING per 1qa.md
+import { TicketHistoryApplicationService } from './modules/ticket-history/application/services/TicketHistoryApplicationService';
+import { DrizzleTicketHistoryRepository } from './modules/ticket-history/infrastructure/repositories/DrizzleTicketHistoryRepository';
+import { TicketHistoryDomainService } from './modules/ticket-history/domain/services/TicketHistoryDomainService';
+
 // Middleware to ensure JSON responses for API routes
 const ensureJSONResponse = (req: any, res: any, next: any) => {
   if (req.path.startsWith('/api/')) {
@@ -76,6 +81,11 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
+
+  // 🎯 INITIALIZE HISTORY SYSTEM per 1qa.md
+  const historyRepository = new DrizzleTicketHistoryRepository();
+  const historyDomainService = new TicketHistoryDomainService();
+  const historyApplicationService = new TicketHistoryApplicationService(historyRepository, historyDomainService);
 
   // ✅ CRITICAL FIX: API Route Protection Middleware per 1qa.md
   // Ensure API routes are processed before Vite catch-all - Clean Architecture compliance
@@ -110,6 +120,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await pool.query(insertQuery, [
         relationshipId, tenantId, id, targetTicketId, relationshipType, description || null, req.user.id
       ]);
+
+      // 🎯 LOG RELATIONSHIP CREATION TO HISTORY per 1qa.md specification
+      try {
+        await historyApplicationService.logHistoryEntry({
+          ticketId: id,
+          actionType: 'relationship_created',
+          fieldName: '',
+          oldValue: '',
+          newValue: `${relationshipType} → Ticket ${targetTicketId}`,
+          performedBy: req.user.id,
+          tenantId: tenantId,
+          description: `Novo vínculo criado: ${relationshipType}${description ? ` - ${description}` : ''}`,
+          metadata: {
+            relationshipId,
+            targetTicketId,
+            relationshipType,
+            description
+          }
+        });
+        console.log('✅ [RELATIONSHIP-HISTORY] Relationship creation logged to history successfully');
+      } catch (historyError) {
+        console.error('❌ [RELATIONSHIP-HISTORY] Failed to log relationship creation:', historyError);
+        // Don't fail the main operation for history logging issues
+      }
 
       return res.status(201).json({
         success: true,

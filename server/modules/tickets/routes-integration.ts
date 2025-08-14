@@ -25,6 +25,11 @@ import { TicketController } from './application/controllers/TicketController';
 // Initialize Clean Architecture following 1qa.md
 import { ConsoleLogger } from './domain/services/Logger';
 
+// 🎯 IMPORT HISTORY SYSTEM FOR COMPREHENSIVE LOGGING per 1qa.md
+import { TicketHistoryApplicationService } from '../ticket-history/application/services/TicketHistoryApplicationService';
+import { DrizzleTicketHistoryRepository } from '../ticket-history/infrastructure/repositories/DrizzleTicketHistoryRepository';
+import { TicketHistoryDomainService } from '../ticket-history/domain/services/TicketHistoryDomainService';
+
 const logger = new ConsoleLogger();
 const ticketRepository = new DrizzleTicketRepositoryClean(logger);
 const createTicketUseCase = new CreateTicketUseCase(ticketRepository);
@@ -37,6 +42,11 @@ const ticketController = new TicketController(
   deleteTicketUseCase,
   findTicketUseCase
 );
+
+// 🎯 INITIALIZE HISTORY SYSTEM per 1qa.md
+const historyRepository = new DrizzleTicketHistoryRepository();
+const historyDomainService = new TicketHistoryDomainService();
+const historyApplicationService = new TicketHistoryApplicationService(historyRepository, historyDomainService);
 
 /**
  * GET ALL TICKETS - Main endpoint for frontend
@@ -293,6 +303,31 @@ router.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
         (${noteId}, ${id}, ${tenantId}, ${content}, ${noteType}, ${isInternal}, ${isPublic}, ${userId}, NOW(), true)
       RETURNING *
     `);
+
+    // 🎯 LOG NOTE CREATION TO HISTORY per 1qa.md specification
+    try {
+      await historyApplicationService.logHistoryEntry({
+        ticketId: id,
+        actionType: 'note_created',
+        fieldName: '',
+        oldValue: '',
+        newValue: content.substring(0, 100) + (content.length > 100 ? '...' : ''), // Truncate for history
+        performedBy: userId,
+        tenantId: tenantId,
+        description: `Nova nota adicionada: ${noteType}${isInternal ? ' (interna)' : ''}`,
+        metadata: {
+          noteId,
+          noteType,
+          isInternal,
+          isPublic,
+          fullContent: content
+        }
+      });
+      console.log('✅ [NOTES-HISTORY] Note creation logged to history successfully');
+    } catch (historyError) {
+      console.error('❌ [NOTES-HISTORY] Failed to log note creation:', historyError);
+      // Don't fail the main operation for history logging issues
+    }
 
     console.log('✅ [NOTES-BACKEND] Note created successfully:', { noteId });
     res.status(201).json({ success: true, data: result.rows[0] });
