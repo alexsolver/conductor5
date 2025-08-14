@@ -214,10 +214,48 @@ export default function TenantAdminIntegrations() {
   });
 
   // Função para testar uma integração específica
-  const handleTestIntegration = (integrationId: string) => {
-    if (testingIntegrationId === null) {
-      setTestingIntegrationId(integrationId);
-      testIntegrationMutation.mutate(integrationId);
+  const handleTestIntegration = async (integrationId: string) => {
+    setTestingIntegrationId(integrationId);
+    try {
+      console.log(`🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para: ${integrationId}`);
+
+      const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      console.log(`🧪 [TESTE-INTEGRAÇÃO] Response status: ${response.status}`);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`✅ [TESTE-INTEGRAÇÃO] Sucesso:`, result);
+
+        toast({
+          title: "Teste bem-sucedido",
+          description: result.message || "A integração está funcionando corretamente.",
+        });
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        console.error(`❌ [TESTE-INTEGRAÇÃO] Erro:`, errorData);
+
+        toast({
+          title: "Erro no teste",
+          description: errorData.message || "Falha ao testar a integração.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('❌ [TESTE-INTEGRAÇÃO] Erro de conexão:', error);
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar com o servidor.",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingIntegrationId(null);
     }
   };
 
