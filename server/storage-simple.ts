@@ -1529,46 +1529,71 @@ export class DatabaseStorage implements IStorage {
   async saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any> {
     try {
       console.log(`💾 [SAVE-CONFIG] Salvando config para tenant: ${tenantId}, integration: ${integrationId}`);
-      console.log(`💾 [SAVE-CONFIG] Config a ser salvo:`, config);
+      
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // Use the mock `this.neon` method if not in a real DB context
-      const dbMethod = this.neon || (() => { throw new Error("Database connection (neon) is not available.") });
+      // ✅ VALIDATION: Check if integration exists
+      const checkResult = await tenantDb.execute(sql`
+        SELECT id FROM ${sql.identifier(schemaName)}.integrations 
+        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+        LIMIT 1
+      `);
 
-      // First check if integration exists
-      const checkQuery = `
-        SELECT id FROM tenant_integrations 
-        WHERE tenant_id = $1 AND id = $2
-      `;
-
-      const existingResult = await dbMethod.call(this, checkQuery, [tenantId, integrationId]);
-
-      if (existingResult.length === 0) {
-        console.error(`❌ [SAVE-CONFIG] Integração ${integrationId} não encontrada para tenant ${tenantId}`);
-        return false; // Return false if integration not found
+      if (!checkResult.rows || checkResult.rows.length === 0) {
+        console.error(`❌ [SAVE-CONFIG] Integração ${integrationId} não encontrada para tenant ${validatedTenantId}`);
+        throw new Error(`Integration ${integrationId} not found`);
       }
 
-      const configJson = JSON.stringify(config);
+      // ✅ SAFETY: Prepare config for storage with validation
+      let configToSave = config;
+      if (typeof config === 'object' && config !== null) {
+        // Remove any undefined or null values
+        configToSave = Object.fromEntries(
+          Object.entries(config).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        );
+      }
 
-      const updateQuery = `
-        UPDATE tenant_integrations 
-        SET config = $1, status = 'connected', updated_at = NOW()
-        WHERE tenant_id = $2 AND id = $3
-        RETURNING id, status, config
-      `;
+      const configJson = JSON.stringify(configToSave);
+      console.log(`💾 [SAVE-CONFIG] Config JSON to save:`, { 
+        length: configJson.length, 
+        keys: Object.keys(configToSave) 
+      });
 
-      console.log(`💾 [SAVE-CONFIG] Executando update...`);
-      const result = await dbMethod.call(this, updateQuery, [configJson, tenantId, integrationId]);
+      // ✅ CRITICAL FIX: Update with proper SQL and error handling
+      const updateResult = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.integrations 
+        SET 
+          config = ${configJson}::jsonb,
+          status = 'connected',
+          updated_at = NOW()
+        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+        RETURNING id, name, status, updated_at
+      `);
 
-      if (result.length > 0) {
-        console.log(`✅ [SAVE-CONFIG] Configuração salva com sucesso:`, result[0]);
-        return true; // Indicate success
+      if (updateResult.rows && updateResult.rows.length > 0) {
+        const savedConfig = updateResult.rows[0];
+        console.log(`✅ [SAVE-CONFIG] Configuração salva com sucesso:`, {
+          id: savedConfig.id,
+          name: savedConfig.name,
+          status: savedConfig.status,
+          updatedAt: savedConfig.updated_at
+        });
+        
+        return {
+          success: true,
+          id: savedConfig.id,
+          status: savedConfig.status,
+          updatedAt: savedConfig.updated_at
+        };
       } else {
         console.error(`❌ [SAVE-CONFIG] Nenhuma linha foi atualizada`);
-        return false; // Indicate failure if no rows were updated
+        throw new Error('No rows were updated - integration may not exist');
       }
     } catch (error) {
       console.error('❌ [SAVE-CONFIG] Erro ao salvar configuração:', error);
-      return false; // Return false on any error
+      throw error; // Re-throw to be handled by calling code
     }
   }
 

@@ -235,7 +235,7 @@ export default function TenantAdminIntegrations() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
-      }, 30000); // 30 second timeout
+      }, 45000); // Increased timeout to 45 seconds
 
       let response;
       try {
@@ -244,18 +244,19 @@ export default function TenantAdminIntegrations() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`,
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
           },
           signal: controller.signal
         });
-      } catch (fetchError) {
+      } catch (fetchError: any) {
         clearTimeout(timeoutId);
         
         if (fetchError.name === 'AbortError') {
-          throw new Error('Timeout na requisição - servidor não respondeu em 30 segundos');
+          throw new Error('Timeout na requisição - o servidor não respondeu em 45 segundos. Tente novamente.');
         }
         
-        throw new Error(`Erro de rede: ${fetchError.message}`);
+        throw new Error(`Erro de rede: ${fetchError.message || 'Falha na conexão'}`);
       }
 
       clearTimeout(timeoutId);
@@ -267,67 +268,117 @@ export default function TenantAdminIntegrations() {
 
       if (!isJSON) {
         // ✅ CRITICAL FIX: Handle non-JSON responses better
-        const textResponse = await response.text();
+        let textResponse = '';
+        try {
+          textResponse = await response.text();
+        } catch (textError) {
+          console.error('❌ [TESTE-INTEGRAÇÃO] Error reading response text:', textError);
+          throw new Error('Resposta inválida do servidor - não foi possível ler o conteúdo');
+        }
+        
         console.error(`❌ [TESTE-INTEGRAÇÃO] Non-JSON response received:`, {
           status: response.status,
           contentType,
-          bodyStart: textResponse.substring(0, 300)
+          bodyStart: textResponse.substring(0, 500)
         });
 
-        // Check if it's an HTML error page
+        // ✅ IMPROVED: Better error classification
         if (textResponse.includes('<!DOCTYPE html>') || textResponse.includes('<html>')) {
-          throw new Error('Erro interno do servidor - página de erro retornada');
+          if (textResponse.includes('createHotContext') || textResponse.includes('vite')) {
+            throw new Error('Erro interno do sistema - o servidor retornou uma página de desenvolvimento. Tente recarregar a página.');
+          } else {
+            throw new Error('Erro interno do servidor - uma página de erro foi retornada ao invés da resposta esperada.');
+          }
         }
 
-        throw new Error(`Resposta inválida do servidor (${response.status})`);
+        if (response.status >= 500) {
+          throw new Error('Erro interno do servidor - tente novamente em alguns minutos.');
+        } else if (response.status >= 400) {
+          throw new Error(`Erro na requisição (${response.status}) - verifique a configuração da integração.`);
+        }
+
+        throw new Error(`Resposta inválida do servidor (Status: ${response.status})`);
       }
 
-      // ✅ SAFETY: Parse JSON with error handling
+      // ✅ SAFETY: Parse JSON with improved error handling
       let result;
       try {
         result = await response.json();
       } catch (jsonError) {
         console.error('❌ [TESTE-INTEGRAÇÃO] JSON parse error:', jsonError);
-        throw new Error('Resposta JSON inválida do servidor');
+        throw new Error('Resposta JSON inválida do servidor - formato de dados corrompido');
       }
 
       // ✅ VALIDATION: Check for expected response structure
       if (typeof result !== 'object' || result === null) {
-        throw new Error('Estrutura de resposta inválida');
+        throw new Error('Estrutura de resposta inválida - dados recebidos não são um objeto válido');
       }
 
-      if (response.ok) {
+      // ✅ IMPROVED: Better success/error handling with detailed feedback
+      if (response.ok && result.success) {
         console.log(`✅ [TESTE-INTEGRAÇÃO] Sucesso:`, result);
 
         toast({
-          title: "Teste bem-sucedido",
+          title: "🎉 Teste bem-sucedido",
           description: result.message || "A integração está funcionando corretamente.",
+          duration: 5000,
         });
-      } else {
-        // ✅ SAFETY: Handle error responses properly
-        const errorMessage = result.message || result.error || 'Falha ao testar a integração';
-        console.error(`❌ [TESTE-INTEGRAÇÃO] Erro da API:`, result);
+
+        // ✅ ENHANCEMENT: Invalidate queries to refresh integration status
+        queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
+        
+      } else if (response.ok && result.success === false) {
+        // ✅ SUCCESS RESPONSE but logical failure
+        const errorMessage = result.message || 'Falha na validação da integração';
+        console.warn(`⚠️ [TESTE-INTEGRAÇÃO] Falha lógica:`, result);
 
         toast({
-          title: "Erro no teste",
+          title: "⚠️ Problema na integração",
           description: errorMessage,
           variant: "destructive",
+          duration: 8000,
+        });
+        
+      } else {
+        // ✅ HTTP ERROR responses
+        const errorMessage = result.message || result.error || `Erro HTTP ${response.status}`;
+        console.error(`❌ [TESTE-INTEGRAÇÃO] Erro HTTP:`, result);
+
+        toast({
+          title: "❌ Erro no teste",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 8000,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [TESTE-INTEGRAÇÃO] Erro durante teste:', error);
       
-      let errorMessage = 'Erro inesperado durante o teste';
+      let errorMessage = 'Erro inesperado durante o teste da integração';
+      let errorTitle = "❌ Erro no teste de integração";
+      
       if (error instanceof Error) {
         errorMessage = error.message;
+        
+        // ✅ IMPROVED: Categorize error types for better UX
+        if (error.message.includes('Token de acesso')) {
+          errorTitle = "🔐 Erro de autenticação";
+        } else if (error.message.includes('Timeout')) {
+          errorTitle = "⏱️ Timeout na conexão";
+        } else if (error.message.includes('rede') || error.message.includes('conexão')) {
+          errorTitle = "🌐 Erro de conectividade";
+        } else if (error.message.includes('servidor')) {
+          errorTitle = "🖥️ Erro do servidor";
+        }
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
 
       toast({
-        title: "Erro no teste de integração",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
+        duration: 10000, // Longer duration for errors
       });
     } finally {
       setTestingIntegrationId(null);
