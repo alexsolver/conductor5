@@ -621,7 +621,7 @@ export class DatabaseStorage implements IStorage {
         FROM ${sql.identifier(schemaName)}.tickets 
         WHERE tenant_id = ${validatedTenantId}
       `);
-      
+
       return parseInt((result.rows?.[0]?.count as string) || '0');
     } catch (error) {
       logError('Error getting tickets count', error, { tenantId });
@@ -1675,26 +1675,16 @@ export class DatabaseStorage implements IStorage {
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.created_at
             WHEN tr.target_ticket_id = ${ticketId} THEN t_source.created_at
-          END as "targetTicket.createdAt",
-          CASE 
-            WHEN tr.source_ticket_id = ${ticketId} THEN t_target.description
-            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.description
-          END as "targetTicket.description"
-        FROM ${sql.identifier(schemaName)}.ticket_relationships tr
-        LEFT JOIN ${sql.identifier(schemaName)}.tickets t_target ON t_target.id = tr.target_ticket_id
-        LEFT JOIN ${sql.identifier(schemaName)}.tickets t_source ON t_source.id = tr.source_ticket_id
-        WHERE (tr.source_ticket_id = ${ticketId} OR tr.target_ticket_id = ${ticketId})
-        AND tr.tenant_id = ${validatedTenantId}
+          END as "targetTicket.createdAt"
+        FROM "${schemaName}".ticket_relationships tr
+        LEFT JOIN "${schemaName}".tickets t_source ON tr.source_ticket_id = t_source.id
+        LEFT JOIN "${schemaName}".tickets t_target ON tr.target_ticket_id = t_target.id
+        WHERE tr.source_ticket_id = ${ticketId} OR tr.target_ticket_id = ${ticketId}
         ORDER BY tr.created_at DESC
       `);
 
-      console.log(`🔍 Backend: Query result for ticket ${ticketId}:`, {
-        rowCount: result.rows?.length || 0,
-        rows: result.rows
-      });
-
-      // Transform flat results into nested objects
-      const transformedResults = (result.rows || []).map(row => ({
+      // Transform the flat result into nested structure
+      const relationships = result.rows?.map((row: any) => ({
         id: row.id,
         relationshipType: row.relationshipType,
         description: row.description,
@@ -1705,13 +1695,11 @@ export class DatabaseStorage implements IStorage {
           status: row['targetTicket.status'],
           priority: row['targetTicket.priority'],
           number: row['targetTicket.number'],
-          createdAt: row['targetTicket.createdAt'],
-          description: row['targetTicket.description']
+          createdAt: row['targetTicket.createdAt']
         }
       }));
 
-      console.log(`🔍 Backend: Transformed results for ticket ${ticketId}:`, transformedResults);
-      return transformedResults;
+      return relationships || [];
     } catch (error) {
       logError('Error fetching ticket relationships', error, { tenantId, ticketId });
       throw error;

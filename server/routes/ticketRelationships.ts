@@ -39,13 +39,23 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
     const tenantId = req.user?.tenantId;
     const { id } = req.params;
 
+    logInfo('Getting ticket relationships', { tenantId, ticketId: id });
+
     if (!tenantId) {
       return sendError(res as any, "Tenant ID is required", "Tenant ID is required", 400);
     }
 
     const storage = await getStorage();
     const relationships = await storage.getTicketRelationships(tenantId, id);
-    return sendSuccess(res as any, relationships, "Ticket relationships retrieved successfully");
+    
+    logInfo('Ticket relationships fetched', { 
+      tenantId, 
+      ticketId: id, 
+      count: Array.isArray(relationships) ? relationships.length : 0,
+      relationships: relationships 
+    });
+
+    return sendSuccess(res as any, relationships || [], "Ticket relationships retrieved successfully");
   } catch (error) {
     logError('Error fetching ticket relationships', error as any, { tenantId: req.user?.tenantId, ticketId: req.params.id });
     return sendError(res as any, error as any, "Failed to fetch ticket relationships", 500);

@@ -604,39 +604,57 @@ const TicketsTable = React.memo(() => {
   // 🔧 [1QA-COMPLIANCE] Função para expandir relacionamentos seguindo Clean Architecture
   const toggleTicketExpansion = useCallback(async (ticketId: string) => {
     if (expandedTickets.has(ticketId)) {
-      // Contraindo - simplesmente remover do set
+      // Se já está expandido, colapsa
       setExpandedTickets(prev => {
         const newSet = new Set(prev);
         newSet.delete(ticketId);
         return newSet;
       });
-    } else {
-      // Expandindo - buscar relacionamentos se não existirem
-      if (!ticketRelationships[ticketId]) {
-        try {
-          const response = await apiRequest('GET', `/api/ticket-relationships/${ticketId}/relationships`);
-          const data = await response.json();
-
-          let relationships = [];
-          if (data.success && Array.isArray(data.data)) {
-            relationships = data.data;
-          } else if (Array.isArray(data.relationships)) {
-            relationships = data.relationships;
-          } else if (Array.isArray(data)) {
-            relationships = data;
-          }
-
-          setTicketRelationships(prev => ({
-            ...prev,
-            [ticketId]: relationships
-          }));
-        } catch (error) {
-          console.error(`❌ [RELATIONSHIP-FETCH] Erro ao buscar relacionamentos para ticket ${ticketId}:`, error);
-        }
-      }
-
-      setExpandedTickets(prev => new Set([...prev, ticketId]));
+      return;
     }
+
+    // Se não está expandido, expande e busca relacionamentos se necessário
+    if (!ticketRelationships[ticketId]) {
+      try {
+        console.log(`🔄 [RELATIONSHIP-FETCH] Fetching relationships for ticket ${ticketId}`);
+        const response = await apiRequest('GET', `/api/ticket-relationships/${ticketId}/relationships`);
+        const data = await response.json();
+
+        console.log(`📊 [RELATIONSHIP-FETCH] Response for ticket ${ticketId}:`, data);
+
+        let relationships = [];
+        if (data.success && Array.isArray(data.data)) {
+          relationships = data.data;
+        } else if (Array.isArray(data.relationships)) {
+          relationships = data.relationships;
+        } else if (Array.isArray(data)) {
+          relationships = data;
+        } else if (data.data && typeof data.data === 'object') {
+          // Handle case where data.data is an object with ticket relationships
+          relationships = Object.values(data.data).flat();
+        }
+
+        console.log(`✅ [RELATIONSHIP-FETCH] Processed ${relationships.length} relationships for ticket ${ticketId}`);
+
+        setTicketRelationships(prev => ({
+          ...prev,
+          [ticketId]: relationships
+        }));
+
+        if (relationships.length > 0) {
+          setTicketsWithRelationships(prev => new Set([...prev, ticketId]));
+        }
+      } catch (error) {
+        console.error(`❌ [RELATIONSHIP-FETCH] Erro ao buscar relacionamentos para ticket ${ticketId}:`, error);
+        // Mesmo em caso de erro, armazena array vazio para evitar novas tentativas
+        setTicketRelationships(prev => ({
+          ...prev,
+          [ticketId]: []
+        }));
+      }
+    }
+
+    setExpandedTickets(prev => new Set([...prev, ticketId]));
   }, [expandedTickets, ticketRelationships]);
 
   // 🔧 [1QA-COMPLIANCE] Inicialização de relacionamentos seguindo Clean Architecture
@@ -683,10 +701,10 @@ const TicketsTable = React.memo(() => {
         console.log(`💾 [RELATIONSHIP-INIT] Atualizando estados com ${Object.keys(batchResults).length} tickets`);
         setTicketRelationships(batchResults);
         setTicketsWithRelationships(ticketsWithRelationshipsSet);
-        
+
         console.log(`🎯 [RELATIONSHIP-DEBUG] Tickets com relacionamentos:`, Array.from(ticketsWithRelationshipsSet));
         console.log(`🎯 [RELATIONSHIP-DEBUG] Batch results:`, Object.keys(batchResults).map(id => ({ id, count: batchResults[id].length })));
-        
+
         // ✅ [1QA-COMPLIANCE] Debug final do estado
         console.log(`🔍 [RELATIONSHIP-STATE] ticketRelationships keys:`, Object.keys(batchResults));
         console.log(`🔍 [RELATIONSHIP-STATE] ticketsWithRelationships size:`, ticketsWithRelationshipsSet.size);
@@ -2388,6 +2406,7 @@ const TicketsTable = React.memo(() => {
         </DialogContent>
       </Dialog>
 
+      {/* Modal de Vinculação de Ticket */}
       <TicketLinkingModal
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
