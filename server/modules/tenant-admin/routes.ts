@@ -501,6 +501,20 @@ router.get('/integrations', async (req: AuthorizedRequest, res) => {
     const integrations = await storageSimple.getTenantIntegrations(tenantId);
     console.log(`📊 Found ${integrations.length} integrations`);
     
+    // ✅ TELEGRAM FIX: Log específico para verificar se Telegram está nas integrações
+    const telegramIntegration = integrations.find(i => i.id === 'telegram');
+    if (telegramIntegration) {
+      console.log(`✅ TELEGRAM FOUND:`, {
+        id: telegramIntegration.id,
+        name: telegramIntegration.name,
+        status: telegramIntegration.status,
+        configured: telegramIntegration.configured
+      });
+    } else {
+      console.log(`❌ TELEGRAM NOT FOUND in ${integrations.length} integrations`);
+      console.log(`🔍 Available integrations:`, integrations.map(i => i.id));
+    }
+    
     res.json({
       integrations: integrations || [],
       totalCount: integrations?.length || 0
