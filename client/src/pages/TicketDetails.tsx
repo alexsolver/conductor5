@@ -3656,7 +3656,7 @@ const TicketDetails = React.memo(() => {
               <span className="text-sm font-medium">Comunicação</span>
             </div>
             <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
-              {communications?.length || 0}
+              {communicationsData?.length || 0}
             </Badge>
           </button>
 
