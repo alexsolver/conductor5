@@ -628,8 +628,12 @@ const TicketDetails = React.memo(() => {
         // ✅ MAPEAMENTO ROBUSTO DE DADOS DE SESSÃO - MÚLTIPLAS FONTES
         ip_address: (() => {
           // 1. Verificar campos diretos primeiro
-          if (item.ip_address && item.ip_address !== 'N/A') return item.ip_address;
-          if (item.ipAddress && item.ipAddress !== 'N/A') return item.ipAddress;
+          if (item.ip_address && item.ip_address !== 'N/A' && item.ip_address !== null && item.ip_address !== '') {
+            return item.ip_address;
+          }
+          if (item.ipAddress && item.ipAddress !== 'N/A' && item.ipAddress !== null && item.ipAddress !== '') {
+            return item.ipAddress;
+          }
           
           // 2. Parse metadata se for string
           let parsedMetadata = item.metadata;
@@ -642,16 +646,26 @@ const TicketDetails = React.memo(() => {
           }
           
           // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.ip_address) return parsedMetadata.client_info.ip_address;
-          if (parsedMetadata?.ip_address) return parsedMetadata.ip_address;
-          if (parsedMetadata?.session_backup?.ip_address) return parsedMetadata.session_backup.ip_address;
+          if (parsedMetadata?.client_info?.ip_address && parsedMetadata.client_info.ip_address !== 'N/A') {
+            return parsedMetadata.client_info.ip_address;
+          }
+          if (parsedMetadata?.ip_address && parsedMetadata.ip_address !== 'N/A') {
+            return parsedMetadata.ip_address;
+          }
+          if (parsedMetadata?.session_backup?.ip_address && parsedMetadata.session_backup.ip_address !== 'N/A') {
+            return parsedMetadata.session_backup.ip_address;
+          }
           
           return 'N/A';
         })(),
         user_agent: (() => {
           // 1. Verificar campos diretos primeiro
-          if (item.user_agent && item.user_agent !== 'N/A') return item.user_agent;
-          if (item.userAgent && item.userAgent !== 'N/A') return item.userAgent;
+          if (item.user_agent && item.user_agent !== 'N/A' && item.user_agent !== null && item.user_agent !== '') {
+            return item.user_agent;
+          }
+          if (item.userAgent && item.userAgent !== 'N/A' && item.userAgent !== null && item.userAgent !== '') {
+            return item.userAgent;
+          }
           
           // 2. Parse metadata se for string
           let parsedMetadata = item.metadata;
@@ -664,16 +678,26 @@ const TicketDetails = React.memo(() => {
           }
           
           // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.user_agent) return parsedMetadata.client_info.user_agent;
-          if (parsedMetadata?.user_agent) return parsedMetadata.user_agent;
-          if (parsedMetadata?.session_backup?.user_agent) return parsedMetadata.session_backup.user_agent;
+          if (parsedMetadata?.client_info?.user_agent && parsedMetadata.client_info.user_agent !== 'N/A') {
+            return parsedMetadata.client_info.user_agent;
+          }
+          if (parsedMetadata?.user_agent && parsedMetadata.user_agent !== 'N/A') {
+            return parsedMetadata.user_agent;
+          }
+          if (parsedMetadata?.session_backup?.user_agent && parsedMetadata.session_backup.user_agent !== 'N/A') {
+            return parsedMetadata.session_backup.user_agent;
+          }
           
           return 'N/A';
         })(),
         session_id: (() => {
           // 1. Verificar campos diretos primeiro
-          if (item.session_id && item.session_id !== 'N/A') return item.session_id;
-          if (item.sessionId && item.sessionId !== 'N/A') return item.sessionId;
+          if (item.session_id && item.session_id !== 'N/A' && item.session_id !== null && item.session_id !== '') {
+            return item.session_id;
+          }
+          if (item.sessionId && item.sessionId !== 'N/A' && item.sessionId !== null && item.sessionId !== '') {
+            return item.sessionId;
+          }
           
           // 2. Parse metadata se for string
           let parsedMetadata = item.metadata;
@@ -686,9 +710,15 @@ const TicketDetails = React.memo(() => {
           }
           
           // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.session_id) return parsedMetadata.client_info.session_id;
-          if (parsedMetadata?.session_id) return parsedMetadata.session_id;
-          if (parsedMetadata?.session_backup?.session_id) return parsedMetadata.session_backup.session_id;
+          if (parsedMetadata?.client_info?.session_id && parsedMetadata.client_info.session_id !== 'N/A') {
+            return parsedMetadata.client_info.session_id;
+          }
+          if (parsedMetadata?.session_id && parsedMetadata.session_id !== 'N/A') {
+            return parsedMetadata.session_id;
+          }
+          if (parsedMetadata?.session_backup?.session_id && parsedMetadata.session_backup.session_id !== 'N/A') {
+            return parsedMetadata.session_backup.session_id;
+          }
           
           return 'N/A';
         })()
@@ -2192,27 +2222,23 @@ const TicketDetails = React.memo(() => {
                               </div>
                               <div>
                                 <span className="text-gray-500">IP:</span>
-                                <span className="ml-1 font-medium text-blue-600">
-                                  {historyItem.ip_address && historyItem.ip_address !== 'N/A' ? historyItem.ip_address : 'N/A'}
+                                <span className={`ml-1 font-medium ${historyItem.ip_address && historyItem.ip_address !== 'N/A' ? 'text-blue-600' : 'text-gray-400'}`}>
+                                  {historyItem.ip_address || 'N/A'}
                                 </span>
                               </div>
                             </div>
-                            {historyItem.user_agent && historyItem.user_agent !== 'N/A' && (
-                              <div className="mb-2">
-                                <span className="text-gray-500">User-Agent:</span>
-                                <p className="text-xs break-all mt-1 text-gray-700">
-                                  {historyItem.user_agent}
-                                </p>
-                              </div>
-                            )}
-                            {historyItem.session_id && historyItem.session_id !== 'N/A' && (
-                              <div className="mb-2">
-                                <span className="text-gray-500">Session ID:</span>
-                                <span className="ml-1 font-mono text-xs">
-                                  {historyItem.session_id}
-                                </span>
-                              </div>
-                            )}
+                            <div className="mb-2">
+                              <span className="text-gray-500">User-Agent:</span>
+                              <p className={`text-xs break-all mt-1 ${historyItem.user_agent && historyItem.user_agent !== 'N/A' ? 'text-gray-700' : 'text-gray-400'}`}>
+                                {historyItem.user_agent || 'N/A'}
+                              </p>
+                            </div>
+                            <div className="mb-2">
+                              <span className="text-gray-500">Session ID:</span>
+                              <span className={`ml-1 font-mono text-xs ${historyItem.session_id && historyItem.session_id !== 'N/A' ? 'text-gray-700' : 'text-gray-400'}`}>
+                                {historyItem.session_id || 'N/A'}
+                              </span>
+                            </div>
                             {historyItem.metadata && Object.keys(historyItem.metadata).length > 0 && (
                               <div className="border-t pt-2 mt-2">
                                 <span className="text-gray-500">Metadados:</span>
