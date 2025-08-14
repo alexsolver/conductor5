@@ -2481,9 +2481,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       FROM "${schemaName}".ticket_history th
       WHERE th.ticket_id = $1::uuid AND th.tenant_id = $2::uuid
       ORDER BY th.created_at DESC`;
-      SELECT 
-        'internal_action' as source,
-        tia.id,
+
+    const historyResult = await pool.query(ultraCompleteHistoryQuery, [id, tenantId]);
+
     console.log(`✅ [HISTORY-ULTRA-COMPLETE] Encontradas ${historyResult.rows.length} entradas de histórico 100% completo`);
 
     // ✅ PROCESSAMENTO E ENRIQUECIMENTO 100% COMPLETO DOS DADOS
