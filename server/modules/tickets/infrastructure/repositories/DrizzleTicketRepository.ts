@@ -67,7 +67,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
   async update(id: string, updateData: Partial<Ticket>, tenantId: string): Promise<Ticket> {
     const cleanUpdateData: any = {};
-    
+
     Object.keys(updateData).forEach(key => {
       const value = (updateData as any)[key];
       if (value !== undefined) {
@@ -161,7 +161,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         );
       }
 
-      // Count total results with basic condition only
+      // Count total results with basic tenant filter only
       const totalResult = await db
         .select({ count: count() })
         .from(tickets)
@@ -172,7 +172,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       // Calculate offset
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Simple query with verified fields only
+      // Simple query with tenant filter only
       const ticketResults = await db
         .select()
         .from(tickets)
@@ -332,7 +332,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }> {
     // Implementation for dashboard statistics
     const total = await this.countByFilters({}, tenantId);
-    
+
     return {
       total,
       byStatus: {},
