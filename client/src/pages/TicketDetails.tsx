@@ -475,31 +475,46 @@ const TicketDetails = React.memo(() => {
   // 🔧 [1QA-COMPLIANCE] Dados processados diretamente das queries - Clean Architecture
   const communicationsData = useMemo(() => {
     console.log('💬 [COMMUNICATIONS] Processing data from API');
+    console.log('💬 [COMMUNICATIONS] ticketCommunications:', ticketCommunications);
+    
     if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
+      console.log('💬 [COMMUNICATIONS] Using success path, data length:', ticketCommunications.data.length);
       return ticketCommunications.data;
     } else if (ticketCommunications?.data && Array.isArray(ticketCommunications.data)) {
+      console.log('💬 [COMMUNICATIONS] Using direct data path, data length:', ticketCommunications.data.length);
       return ticketCommunications.data;
     } else if (ticketRelationships?.communications && Array.isArray(ticketRelationships.communications)) {
+      console.log('💬 [COMMUNICATIONS] Using relationships path, data length:', ticketRelationships.communications.length);
       return ticketRelationships.communications;
     }
+    console.log('💬 [COMMUNICATIONS] No data found, returning empty array');
     return [];
   }, [ticketCommunications, ticketRelationships]);
 
   const attachmentsData = useMemo(() => {
     console.log('📎 [ATTACHMENTS] Processing data from API');
+    console.log('📎 [ATTACHMENTS] ticketAttachments:', ticketAttachments);
+    
     if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
+      console.log('📎 [ATTACHMENTS] Using success path, data length:', ticketAttachments.data.length);
       return ticketAttachments.data;
     } else if (ticketAttachments?.data && Array.isArray(ticketAttachments.data)) {
+      console.log('📎 [ATTACHMENTS] Using direct data path, data length:', ticketAttachments.data.length);
       return ticketAttachments.data;
     } else if (ticketRelationships?.attachments && Array.isArray(ticketRelationships.attachments)) {
+      console.log('📎 [ATTACHMENTS] Using relationships path, data length:', ticketRelationships.attachments.length);
       return ticketRelationships.attachments;
     }
+    console.log('📎 [ATTACHMENTS] No data found, returning empty array');
     return [];
   }, [ticketAttachments, ticketRelationships]);
 
   const notesData = useMemo(() => {
     console.log('📝 [NOTES] Processing data from API');
+    console.log('📝 [NOTES] ticketNotes:', ticketNotes);
+    
     if (ticketNotes?.success && Array.isArray(ticketNotes.data)) {
+      console.log('📝 [NOTES] Using success path, data length:', ticketNotes.data.length);
       return ticketNotes.data.map((note: any) => ({
         ...note,
         id: note.id || `note-${Date.now()}-${Math.random()}`,
@@ -509,6 +524,7 @@ const TicketDetails = React.memo(() => {
         content: note.content || note.description || note.text || 'Sem conteúdo'
       }));
     } else if (ticketNotes?.data && Array.isArray(ticketNotes.data)) {
+      console.log('📝 [NOTES] Using direct data path, data length:', ticketNotes.data.length);
       return ticketNotes.data.map((note: any) => ({
         ...note,
         id: note.id || `note-${Date.now()}-${Math.random()}`,
@@ -518,14 +534,19 @@ const TicketDetails = React.memo(() => {
         content: note.content || note.description || note.text || 'Sem conteúdo'
       }));
     } else if (ticketRelationships?.notes && Array.isArray(ticketRelationships.notes)) {
+      console.log('📝 [NOTES] Using relationships path, data length:', ticketRelationships.notes.length);
       return ticketRelationships.notes;
     }
+    console.log('📝 [NOTES] No data found, returning empty array');
     return [];
   }, [ticketNotes, ticketRelationships]);
 
   const internalActionsData = useMemo(() => {
     console.log('⚙️ [INTERNAL-ACTIONS] Processing data from API');
+    console.log('⚙️ [INTERNAL-ACTIONS] ticketActions:', ticketActions);
+    
     if (ticketActions?.success && Array.isArray(ticketActions.data)) {
+      console.log('⚙️ [INTERNAL-ACTIONS] Using success path, data length:', ticketActions.data.length);
       return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || `action-${Date.now()}-${Math.random()}`,
@@ -537,6 +558,7 @@ const TicketDetails = React.memo(() => {
         time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
       }));
     } else if (ticketActions?.data && Array.isArray(ticketActions.data)) {
+      console.log('⚙️ [INTERNAL-ACTIONS] Using direct data path, data length:', ticketActions.data.length);
       return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || `action-${Date.now()}-${Math.random()}`,
@@ -548,6 +570,7 @@ const TicketDetails = React.memo(() => {
         time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
       }));
     }
+    console.log('⚙️ [INTERNAL-ACTIONS] No data found, returning empty array');
     return [];
   }, [ticketActions]);
 
