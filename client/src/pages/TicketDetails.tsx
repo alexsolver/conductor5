@@ -3690,14 +3690,14 @@ const TicketDetails = React.memo(() => {
             role="tab"
             aria-selected={activeTab === "notes"}
             aria-controls="tab-content"
-            aria-label={`Notas - ${notes?.length || 0} itens`}
+            aria-label={`Notas - ${notesData?.length || 0} itens`}
           >
             <div className="flex items-center gap-3">
               <FileText className="h-4 w-4" />
               <span className="text-sm font-medium">Notas</span>
             </div>
             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
-              {notes?.length || 0}
+              {notesData?.length || 0}
             </Badge>
           </button>
 
