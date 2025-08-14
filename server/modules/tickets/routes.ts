@@ -2493,7 +2493,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         CASE WHEN t.description IS NOT NULL AND t.description != '' 
              THEN ' - ' || LEFT(t.description, 100) || CASE WHEN LENGTH(t.description) > 100 THEN '...' ELSE '' END 
              ELSE '' END as description,
-        COALESCE(t.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
+        COALESCE(t.created_by, '00000000-0000-0000-0000-000000000000'::uuid) as performed_by,
         COALESCE(u_creator.first_name || ' ' || u_creator.last_name, u_creator.email, 'Sistema Automatizado') as performed_by_name,
         null as ip_address,
         null as user_agent,
@@ -2682,7 +2682,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         CASE WHEN tc.content IS NOT NULL AND LENGTH(tc.content) > 0 
              THEN ' - ' || LEFT(tc.content, 100) || CASE WHEN LENGTH(tc.content) > 100 THEN '...' ELSE '' END 
              ELSE '' END as description,
-        COALESCE(tc.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
+        COALESCE(tc.created_by, '00000000-0000-0000-0000-000000000000'::uuid) as performed_by,
         COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Comunicação') as performed_by_name,
         null as ip_address,
         null as user_agent,
@@ -2725,7 +2725,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           'ticket desconhecido'
         ) ||
         CASE WHEN tr.description IS NOT NULL AND tr.description != '' THEN ' - ' || tr.description ELSE '' END as description,
-        COALESCE(tr.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
+        COALESCE(tr.created_by, '00000000-0000-0000-0000-000000000000'::uuid) as performed_by,
         COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Relacionamentos') as performed_by_name,
         null as ip_address,
         null as user_agent,
@@ -2759,7 +2759,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         t.id || '_edit_' || EXTRACT(EPOCH FROM t.updated_at)::text as id,
         'ticket_edited' as action_type,
         'Ticket editado - detecção automática baseada em timestamp de atualização' as description,
-        COALESCE(t.updated_by, t.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
+        COALESCE(t.updated_by, t.created_by, '00000000-0000-0000-0000-000000000000'::uuid) as performed_by,
         COALESCE(u_editor.first_name || ' ' || u_editor.last_name, u_editor.email, 'Editor Desconhecido') as performed_by_name,
         null as ip_address,
         null as user_agent,
