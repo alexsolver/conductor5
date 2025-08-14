@@ -5,7 +5,7 @@
 
 import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, ne, ilike, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { tickets } from '@shared/schema';
+import { tickets } from '@shared/schema-master';
 import { Ticket } from '../../domain/entities/Ticket';
 import {
   ITicketRepository,
@@ -134,10 +134,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
         conditions.push(eq(tickets.callerId, filters.customerId));
       }
 
-      // Company filter temporarily removed to fix schema mapping issue
-      // if (filters.companyId) {
-      //   conditions.push(eq(tickets.companyId, filters.companyId));
-      // }
+      if (filters.companyId) {
+        conditions.push(eq(tickets.companyId, filters.companyId));
+      }
 
       if (filters.category) {
         conditions.push(eq(tickets.category, filters.category));
@@ -310,10 +309,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
       conditions.push(eq(tickets.callerId, filters.customerId));
     }
 
-    // Company filter temporarily removed to fix schema mapping issue
-    // if (filters.companyId) {
-    //   conditions.push(eq(tickets.companyId, filters.companyId));
-    // }
+    if (filters.companyId) {
+      conditions.push(eq(tickets.companyId, filters.companyId));
+    }
 
     if (filters.category) {
       conditions.push(eq(tickets.category, filters.category));
@@ -417,7 +415,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       updatedAt: row.updatedAt,
       createdById: row.createdById || null,
       updatedById: row.updatedById || null,
-      customerCompanyId: null, // Temporarily set to null to fix schema mapping
+      customerCompanyId: row.companyId,
       isActive: row.isActive !== false
     } as Ticket;
   }
