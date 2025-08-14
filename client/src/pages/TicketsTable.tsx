@@ -541,17 +541,24 @@ const TicketsTable = React.memo(() => {
 
   // 🔧 [1QA-COMPLIANCE] Query para empresas seguindo Clean Architecture
   const { 
-    data: companies = [] 
+    data: companiesResponse = { companies: [] } 
   } = useOptimizedQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/companies');
       if (!response.ok) throw new Error('Failed to fetch companies');
       const data = await response.json();
-      return Array.isArray(data) ? data : [];
+      // O endpoint retorna { success: true, data: { companies: [...] } }
+      if (data.success && data.data && data.data.companies) {
+        return { companies: data.data.companies };
+      }
+      // Fallback para resposta direta como array
+      return { companies: Array.isArray(data) ? data : [] };
     },
     staleTime: 5 * 60 * 1000,
   });
+
+  const companies = companiesResponse?.companies || [];
 
   // 🔧 [1QA-COMPLIANCE] Processar dados de tickets seguindo Clean Architecture
   const tickets = useMemo(() => {
