@@ -154,8 +154,8 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
         </div>
       )}
       <div className="min-h-[100px] p-3">
-        <EditorContent 
-          editor={editor} 
+        <EditorContent
+          editor={editor}
           className="prose prose-sm max-w-none focus:outline-none"
         />
       </div>
@@ -271,7 +271,7 @@ const TicketsTable = React.memo(() => {
   // Status mapping simplificado - usar valores diretos do banco
   const statusMapping: Record<string, string> = {
     'new': 'new',
-    'open': 'open', 
+    'open': 'open',
     'in_progress': 'in_progress',
     'resolved': 'resolved',
     'closed': 'closed'
@@ -279,7 +279,7 @@ const TicketsTable = React.memo(() => {
 
   const priorityMapping: Record<string, string> = {
     'low': 'low',
-    'medium': 'medium', 
+    'medium': 'medium',
     'high': 'high',
     'critical': 'critical'
   };
@@ -298,7 +298,7 @@ const TicketsTable = React.memo(() => {
 
   const categoryMapping: Record<string, string> = {
     'hardware': 'hardware',
-    'software': 'software', 
+    'software': 'software',
     'network': 'network',
     'access': 'access',
     'other': 'other',
@@ -323,7 +323,7 @@ const TicketsTable = React.memo(() => {
     const defaultColors: Record<string, Record<string, string>> = {
       category: {
         'suporte_tecnico': '#3b82f6',
-        'atendimento_cliente': '#10b981', 
+        'atendimento_cliente': '#10b981',
         'financeiro': '#f59e0b',
         'support': '#3b82f6',
         'hardware': '#ef4444',
@@ -334,7 +334,7 @@ const TicketsTable = React.memo(() => {
       },
       priority: {
         'low': '#10b981',
-        'medium': '#22c55e', 
+        'medium': '#22c55e',
         'high': '#9333ea',
         'critical': '#dc2626'
       },
@@ -417,7 +417,7 @@ const TicketsTable = React.memo(() => {
     // Mapeamento de valores legados para valores configurados
     const categoryLegacyMapping: Record<string, string> = {
       'support': 'suporte_tecnico',
-      'hardware': 'suporte_tecnico', 
+      'hardware': 'suporte_tecnico',
       'software': 'suporte_tecnico',
       'network': 'suporte_tecnico',
       'access': 'suporte_tecnico',
@@ -482,13 +482,13 @@ const TicketsTable = React.memo(() => {
   const [, navigate] = useLocation();
 
   // 🔧 [1QA-COMPLIANCE] Queries seguindo Clean Architecture
-  const { 
-    data: ticketsData, 
-    isLoading, 
-    error: ticketsError 
+  const {
+    data: ticketsData,
+    isLoading,
+    error: ticketsError
   } = useOptimizedQuery({
-    queryKey: ['/api/tickets', { 
-      page: currentPage, 
+    queryKey: ['/api/tickets', {
+      page: currentPage,
       limit: itemsPerPage,
       status: statusFilter !== 'all' ? statusFilter : undefined,
       priority: priorityFilter !== 'all' ? priorityFilter : undefined,
@@ -501,7 +501,7 @@ const TicketsTable = React.memo(() => {
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (priorityFilter !== 'all') params.append('priority', priorityFilter);
       if (searchTerm) params.append('search', searchTerm);
-      
+
       const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch tickets');
       return response.json();
@@ -511,9 +511,9 @@ const TicketsTable = React.memo(() => {
   });
 
   // 🔧 [1QA-COMPLIANCE] Query para views seguindo Clean Architecture
-  const { 
-    data: ticketViews = [], 
-    refetch: refetchViews 
+  const {
+    data: ticketViews = [],
+    refetch: refetchViews
   } = useOptimizedQuery({
     queryKey: ['/api/ticket-views'],
     queryFn: async () => {
@@ -526,8 +526,8 @@ const TicketsTable = React.memo(() => {
   });
 
   // 🔧 [1QA-COMPLIANCE] Query para usuários seguindo Clean Architecture
-  const { 
-    data: users = [] 
+  const {
+    data: users = []
   } = useOptimizedQuery({
     queryKey: ['/api/tenant-admin/users'],
     queryFn: async () => {
@@ -540,8 +540,8 @@ const TicketsTable = React.memo(() => {
   });
 
   // 🔧 [1QA-COMPLIANCE] Query para empresas seguindo Clean Architecture
-  const { 
-    data: companiesResponse = { companies: [] } 
+  const {
+    data: companiesResponse = { companies: [] }
   } = useOptimizedQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
@@ -563,37 +563,37 @@ const TicketsTable = React.memo(() => {
   // 🔧 [1QA-COMPLIANCE] Processar dados de tickets seguindo Clean Architecture
   const tickets = useMemo(() => {
     if (!ticketsData) return [];
-    
+
     // Standard Clean Architecture response structure
     if (ticketsData.success && ticketsData.data?.tickets && Array.isArray(ticketsData.data.tickets)) {
       return ticketsData.data.tickets;
     }
-    
+
     // Legacy support for direct data property
     if (ticketsData.data?.tickets && Array.isArray(ticketsData.data.tickets)) {
       return ticketsData.data.tickets;
     }
-    
+
     // Direct tickets array (fallback)
     if (ticketsData.tickets && Array.isArray(ticketsData.tickets)) {
       return ticketsData.tickets;
     }
-    
+
     // Raw array (ultimate fallback)
     if (Array.isArray(ticketsData)) {
       return ticketsData;
     }
-    
+
     return [];
   }, [ticketsData]);
 
   // 🔧 [1QA-COMPLIANCE] Paginação seguindo Clean Architecture
   const pagination = useMemo(() => {
     if (!ticketsData) return { total: 0, totalPages: 0 };
-    
+
     const total = ticketsData.total || ticketsData.pagination?.total || tickets.length;
     const totalPages = Math.ceil(total / itemsPerPage);
-    
+
     return { total, totalPages };
   }, [ticketsData, tickets.length, itemsPerPage]);
 
@@ -616,7 +616,7 @@ const TicketsTable = React.memo(() => {
         try {
           const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
           const data = await response.json();
-          
+
           let relationships = [];
           if (data.success && Array.isArray(data.data)) {
             relationships = data.data;
@@ -634,7 +634,7 @@ const TicketsTable = React.memo(() => {
           console.error(`❌ [RELATIONSHIP-FETCH] Erro ao buscar relacionamentos para ticket ${ticketId}:`, error);
         }
       }
-      
+
       setExpandedTickets(prev => new Set([...prev, ticketId]));
     }
   }, [expandedTickets, ticketRelationships]);
@@ -647,133 +647,76 @@ const TicketsTable = React.memo(() => {
       // 🎯 Cache inteligente conforme 1qa.md
       const cacheKey = `ticketRelationships_${tickets.map(t => t.id).sort().join('_').slice(0, 50)}`;
       const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
-      const cacheData = localStorage.getItem(cacheKey);
-      const cacheExpiry = 3 * 60 * 1000; // 3 minutos - otimizado conforme 1qa.md
 
-      if (cacheTimestamp && cacheData && 
-          Date.now() - parseInt(cacheTimestamp) < cacheExpiry) {
-        console.log(`📦 [RELATIONSHIP-INIT] Usando dados cached válidos`);
-        try {
-          const cached = JSON.parse(cacheData);
-          setTicketsWithRelationships(new Set(cached.ticketsWithRelationships));
-          setTicketRelationships(cached.relationshipsData);
-          return;
-        } catch (cacheError) {
-          console.warn(`⚠️ [RELATIONSHIP-INIT] Cache corrompido, limpando:`, cacheError);
-          localStorage.removeItem(cacheKey);
-          localStorage.removeItem(`${cacheKey}_timestamp`);
-        }
-      }
+      const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+      const isCacheValid = cacheTimestamp && parseInt(cacheTimestamp) > fiveMinutesAgo;
 
-      console.log(`🔄 [RELATIONSHIP-INIT] Cache expirado/inexistente, buscando dados atualizados...`);
+      if (isCacheValid) {
+        console.log('📦 [RELATIONSHIP-INIT] Usando dados cached válidos');
+        const cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+          try {
+            const parsed = JSON.parse(cachedData);
+            setTicketRelationships(parsed);
 
-      // 🚀 Batch check otimizado seguindo Clean Architecture
-      const checkBatchRelationships = async () => {
-        try {
-          const ticketIds = tickets.map(ticket => ticket.id);
-          console.log(`📡 [BATCH-CHECK] Fazendo requisição batch para ${ticketIds.length} tickets`);
-
-          const response = await apiRequest('POST', '/api/tickets/batch-relationships', {
-            ticketIds
-          });
-
-          const batchResult = await response.json();
-          console.log(`📋 [BATCH-CHECK] Resultado batch:`, {
-            success: batchResult.success,
-            hasData: !!batchResult.data,
-            dataType: typeof batchResult.data,
-            message: batchResult.message
-          });
-
-          if (batchResult.success && batchResult.data) {
+            // Update ticketsWithRelationships set based on cached data
             const newTicketsWithRelationships = new Set<string>();
-            const newRelationshipsData: Record<string, any[]> = {};
-
-            // 🎯 Process batch results seguindo padrões 1qa.md
-            Object.entries(batchResult.data).forEach(([ticketId, relationships]: [string, any]) => {
+            Object.entries(parsed).forEach(([ticketId, relationships]: [string, any]) => {
               if (Array.isArray(relationships) && relationships.length > 0) {
                 newTicketsWithRelationships.add(ticketId);
-                newRelationshipsData[ticketId] = relationships;
-                console.log(`✅ [BATCH-CHECK] Ticket ${ticketId} tem ${relationships.length} relacionamentos`);
+                console.log(`🔗 [RELATIONSHIP-CACHE] Ticket ${ticketId} tem ${relationships.length} relacionamentos`);
               }
             });
-
             setTicketsWithRelationships(newTicketsWithRelationships);
-            setTicketRelationships(newRelationshipsData);
+          } catch (error) {
+            console.error('❌ [RELATIONSHIP-CACHE] Erro ao parse do cache:', error);
+          }
+        }
+        return;
+      }
 
-            // 💾 Salvar no cache seguindo 1qa.md
-            const cachePayload = {
-              ticketsWithRelationships: Array.from(newTicketsWithRelationships),
-              relationshipsData: newRelationshipsData
-            };
-            localStorage.setItem(cacheKey, JSON.stringify(cachePayload));
-            localStorage.setItem(`${cacheKey}_timestamp`, Date.now().toString());
-
-            console.log(`✅ [BATCH-CHECK] Batch relacionamentos concluído:`, {
-              totalTickets: ticketIds.length,
-              ticketsComRelacionamentos: newTicketsWithRelationships.size,
-              cacheAtualizado: true,
-              relacionamentosCarregados: Object.keys(newRelationshipsData).length
-            });
-
-          } else {
-            console.warn(`⚠️ [BATCH-CHECK] Resposta batch inválida, usando fallback individual`);
-            fallbackIndividualCheck();
+      // ✅ Inicialização completa dos relacionamentos
+      Promise.all(
+        tickets.map(async (ticket) => {
+          if (ticketRelationships[ticket.id]) {
+            console.log(`🔗 [RELATIONSHIP-INIT] Ticket ${ticket.id} já possui relacionamentos cached`);
+            return;
           }
 
-        } catch (error: any) {
-          console.error(`❌ [BATCH-CHECK] Erro na verificação batch:`, {
-            error: error.message,
-            stack: error.stack?.slice(0, 200)
-          });
-          fallbackIndividualCheck();
-        }
-      };
-
-      // 🔄 Fallback individual seguindo 1qa.md
-      const fallbackIndividualCheck = async () => {
-        console.log(`🔄 [FALLBACK-CHECK] Verificação individual de relacionamentos...`);
-
-        const promises = tickets.map(async (ticket) => {
           try {
-            const hasRel = await apiRequest('GET', `/api/tickets/${ticket.id}/relationships`);
-            const data = await hasRel.json();
-            
+            const response = await apiRequest("GET", `/api/ticket-relationships/${ticket.id}/relationships`);
+            const data = await response.json();
+
             let relationships = [];
-            if (data.success && Array.isArray(data.data)) {
+            if (data?.success && Array.isArray(data.data)) {
               relationships = data.data;
-            } else if (Array.isArray(data.relationships)) {
+            } else if (data?.relationships && Array.isArray(data.relationships)) {
               relationships = data.relationships;
             } else if (Array.isArray(data)) {
               relationships = data;
             }
 
-            return { ticketId: ticket.id, hasRelationships: relationships.length > 0 };
+            if (relationships.length > 0) {
+              console.log(`🔗 [RELATIONSHIP-INIT] Ticket ${ticket.id} tem ${relationships.length} relacionamentos`);
+              setTicketRelationships(prev => ({
+                ...prev,
+                [ticket.id]: relationships
+              }));
+
+              // Update ticketsWithRelationships set
+              setTicketsWithRelationships(prev => new Set([...prev, ticket.id]));
+            }
           } catch (error) {
-            console.error(`❌ [FALLBACK-CHECK] Erro ao verificar ticket ${ticket.id}:`, error);
-            return { ticketId: ticket.id, hasRelationships: false };
+            console.error(`❌ [RELATIONSHIP-INIT] Erro ao buscar relacionamentos para ${ticket.id}:`, error);
           }
-        });
-
-        const results = await Promise.allSettled(promises);
-        const newSet = new Set<string>();
-
-        results.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value.hasRelationships) {
-            newSet.add(result.value.ticketId);
-          }
-        });
-
-        setTicketsWithRelationships(newSet);
-        console.log(`✅ [FALLBACK-CHECK] Fallback individual concluído:`, {
-          ticketsVerificados: tickets.length,
-          ticketsComRelacionamentos: newSet.size,
-          successfulChecks: results.filter(r => r.status === 'fulfilled').length,
-          failedChecks: results.filter(r => r.status === 'rejected').length
-        });
-      };
-
-      checkBatchRelationships();
+        })
+      ).then(() => {
+        // Cache dos dados atualizados
+        localStorage.setItem(cacheKey, JSON.stringify(ticketRelationships));
+        localStorage.setItem(`${cacheKey}_timestamp`, Date.now().toString());
+        console.log('💾 [RELATIONSHIP-INIT] Relacionamentos salvos no cache');
+        console.log(`🎯 [RELATIONSHIP-DEBUG] Tickets com relacionamentos:`, Array.from(ticketsWithRelationships));
+      });
     }
   }, [tickets]);
 
@@ -916,8 +859,8 @@ const TicketsTable = React.memo(() => {
           const categoryValue = mapCategoryValue(rawCategoryValue);
 
           // Tentar buscar cor pelo valor original primeiro, depois pelo normalizado
-          const categoryColor = getFieldColor('category', rawCategoryValue) || 
-                               getFieldColor('category', categoryValue) || 
+          const categoryColor = getFieldColor('category', rawCategoryValue) ||
+                               getFieldColor('category', categoryValue) ||
                                '#3b82f6';
 
           // Debug log para verificar se a cor está sendo encontrada
@@ -925,15 +868,15 @@ const TicketsTable = React.memo(() => {
             console.log(`🔍 Category color lookup: ${rawCategoryValue} = ${categoryColor}`);
           }
 
-          const categoryLabel = getFieldLabel('category', rawCategoryValue) || 
-                               getFieldLabel('category', categoryValue) || 
+          const categoryLabel = getFieldLabel('category', rawCategoryValue) ||
+                               getFieldLabel('category', categoryValue) ||
                                rawCategoryValue;
 
 
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <DynamicBadge 
+              <DynamicBadge
                 fieldName="category"
                 value={rawCategoryValue}
                 colorHex={categoryColor}
@@ -959,7 +902,7 @@ const TicketsTable = React.memo(() => {
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <DynamicBadge 
+              <DynamicBadge
                 fieldName="status"
                 value={statusValue}
                 colorHex={statusColor}
@@ -985,7 +928,7 @@ const TicketsTable = React.memo(() => {
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <DynamicBadge 
+              <DynamicBadge
                 fieldName="priority"
                 value={priorityValue}
                 colorHex={priorityColor}
@@ -1007,7 +950,7 @@ const TicketsTable = React.memo(() => {
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <DynamicBadge 
+              <DynamicBadge
                 fieldName="impact"
                 value={mapImpactValue((ticket as any).impact)}
                 colorHex={getFieldColorWithFallback('impact', mapImpactValue((ticket as any).impact))}
@@ -1038,7 +981,7 @@ const TicketsTable = React.memo(() => {
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <div className="text-sm">
-                {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at) 
+                {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
                   ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
                       day: '2-digit',
                       month: '2-digit',
@@ -1089,7 +1032,7 @@ const TicketsTable = React.memo(() => {
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <DynamicBadge 
+              <DynamicBadge
                 fieldName="subcategory"
                 value={rawSubcategoryValue}
                 colorHex={subcategoryColor}
@@ -1111,8 +1054,8 @@ const TicketsTable = React.memo(() => {
 
           return (
             <TableCell>
-              <DynamicBadge 
-                fieldName="urgency" 
+              <DynamicBadge
+                fieldName="urgency"
                 value={mapUrgencyValue((ticket as any).urgency)}
                 colorHex={getFieldColorWithFallback('urgency', mapUrgencyValue((ticket as any).urgency))}
                 isLoading={false}
@@ -1155,8 +1098,8 @@ const TicketsTable = React.memo(() => {
         case 'sla_status':
           return (
             <TableCell>
-              <DynamicBadge 
-                fieldName="sla_status" 
+              <DynamicBadge
+                fieldName="sla_status"
                 value={(ticket as any).slaStatus || 'on_track'}
                 colorHex={getFieldColorWithFallback('sla_status', (ticket as any).slaStatus || 'on_track')}
               >
@@ -1560,7 +1503,7 @@ const TicketsTable = React.memo(() => {
     if (!data.companyId) {
       console.error('❌ Company is required');
       toast({
-        title: "Erro de Validação", 
+        title: "Erro de Validação",
         description: "Empresa é obrigatória",
         variant: "destructive",
       });
@@ -1571,7 +1514,7 @@ const TicketsTable = React.memo(() => {
       console.error('❌ Customer is required');
       toast({
         title: "Erro de Validação",
-        description: "Cliente é obrigatório", 
+        description: "Cliente é obrigatório",
         variant: "destructive",
       });
       return;
@@ -1662,8 +1605,8 @@ const TicketsTable = React.memo(() => {
                 errorMessages.push(errors.callerId.message || 'Cliente é obrigatório');
               }
 
-              const errorText = errorMessages.length > 0 
-                ? errorMessages.join('. ') 
+              const errorText = errorMessages.length > 0
+                ? errorMessages.join('. ')
                 : 'Por favor, preencha todos os campos obrigatórios';
 
               toast({
@@ -1683,10 +1626,10 @@ const TicketsTable = React.memo(() => {
               <FormItem>
                 <FormLabel>Detailed Description *</FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder="Detailed description of the problem or request"
                     className="min-h-[100px]"
-                    {...field} 
+                    {...field}
                   />
                                 </FormControl>
                 <FormMessage/>
@@ -1946,10 +1889,10 @@ const TicketsTable = React.memo(() => {
               <FormItem>
                 <FormLabel>Business Impact</FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder="Describe the business impact"
                     className="min-h-[80px]"
-                    {...field} 
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -1965,10 +1908,10 @@ const TicketsTable = React.memo(() => {
                 <FormItem>
                   <FormLabel>Symptoms</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Observed symptoms"
                       className="min-h-[80px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1983,10 +1926,10 @@ const TicketsTable = React.memo(() => {
                 <FormItem>
                   <FormLabel>Workaround</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Temporary solution or workaround"
                       className="min-h-[80px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -2001,8 +1944,8 @@ const TicketsTable = React.memo(() => {
           control={form.control}
           name="subject"
           render={({ field }) => (
-            <input 
-              type="hidden" 
+            <input
+              type="hidden"
               {...field}
               value={form.watch("subject") || field.value || ""}
             />
@@ -2027,8 +1970,8 @@ const TicketsTable = React.memo(() => {
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             disabled={createTicketMutation.isPending}
           >
-            {createTicketMutation.isPending 
-              ? "Creating..." 
+            {createTicketMutation.isPending
+              ? "Creating..."
               : "Create Ticket"
             }
           </Button>
@@ -2052,7 +1995,7 @@ const TicketsTable = React.memo(() => {
             <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
           </div>
           <div className="flex gap-3">
-            <Button 
+            <Button
               onClick={() => setIsNewTicketModalOpen(true)}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
@@ -2085,7 +2028,7 @@ const TicketsTable = React.memo(() => {
           <div className="flex items-center gap-4 pt-[10px] pb-[10px]">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Visualização Ativa:</span>
-              <select 
+              <select
                 className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
                 value={selectedViewId}
                 onChange={(e) => setSelectedViewId(e.target.value)}
@@ -2156,18 +2099,21 @@ const TicketsTable = React.memo(() => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-        <ResponsiveTicketsTable
-          tickets={tickets}
-          isLoading={isLoading || !isFieldColorsReady}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onToggleExpand={toggleTicketExpansion}
-          expandedTickets={expandedTickets}
-          ticketRelationships={ticketRelationships}
-          ticketsWithRelationships={ticketsWithRelationships}
-          columnOrder={visibleColumns.map(col => col.id)}
-          columnWidths={columnWidths}
-        />
+          <ResponsiveTicketsTable
+            tickets={tickets}
+            isLoading={isLoading || !isFieldColorsReady}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onToggleExpand={toggleTicketExpansion}
+            expandedTickets={expandedTickets}
+            ticketRelationships={ticketRelationships}
+            ticketsWithRelationships={ticketsWithRelationships}
+            columnOrder={visibleColumns.map(col => col.id)}
+            columnWidths={columnWidths}
+            renderCell={renderCell}
+            TableCellComponent={OptimizedTableCell}
+            ResizeHandle={ResizeHandle}
+          />
         </CardContent>
       </Card>
 
@@ -2214,9 +2160,9 @@ const TicketsTable = React.memo(() => {
             {/* Nome da visualização */}
             <div className="space-y-2">
               <Label htmlFor="name">Nome da Visualização</Label>
-              <Input 
-                type="text" 
-                id="name" 
+              <Input
+                type="text"
+                id="name"
                 value={newViewName}
                 onChange={(e) => setNewViewName(e.target.value)}
                 placeholder="Digite o nome da visualização"

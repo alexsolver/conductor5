@@ -141,12 +141,13 @@ export const ResponsiveTicketsTable = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onToggleExpand?.(ticket.id)}
-                          className="p-0 h-4 w-4"
+                          className="p-1 h-6 w-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700"
                           aria-label={expandedTickets.has(ticket.id) ? "Recolher relacionamentos" : "Expandir relacionamentos"}
+                          title="Expandir/Recolher tickets vinculados"
                         >
                           {expandedTickets.has(ticket.id) ?
-                            <ChevronDown className="h-3 w-3" /> :
-                            <ChevronRight className="h-3 w-3" />
+                            <ChevronDown className="h-4 w-4 text-blue-600 dark:text-blue-400" /> :
+                            <ChevronRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           }
                         </Button>
                       )}
