@@ -26,7 +26,7 @@ import {
   ChevronRight,
   GitBranch,
 } from "lucide-react";
-import { DynamicBadge } from "@/components/ui/dynamic-badge";
+import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 
 // Types
 interface Ticket {
@@ -182,33 +182,27 @@ export const ResponsiveTicketsTable = ({
                   </TableCell>
 
                   <TableCell className="hidden lg:table-cell">
-                    <DynamicBadge
+                    <OptimizedBadge
                       fieldName="category"
                       value={ticket.category}
-                      aria-label={`Categoria: ${ticket.category}`}
-                    >
-                      {ticket.category}
-                    </DynamicBadge>
+                      ariaLabel={`Categoria: ${ticket.category}`}
+                    />
                   </TableCell>
 
                   <TableCell className="hidden lg:table-cell">
-                    <DynamicBadge
+                    <OptimizedBadge
                       fieldName="status"
                       value={ticket.status}
-                      aria-label={`Status: ${ticket.status}`}
-                    >
-                      {ticket.status}
-                    </DynamicBadge>
+                      ariaLabel={`Status: ${ticket.status}`}
+                    />
                   </TableCell>
 
                   <TableCell className="hidden sm:table-cell">
-                    <DynamicBadge
+                    <OptimizedBadge
                       fieldName="priority"
                       value={ticket.priority}
-                      aria-label={`Prioridade: ${ticket.priority}`}
-                    >
-                      {ticket.priority}
-                    </DynamicBadge>
+                      ariaLabel={`Prioridade: ${ticket.priority}`}
+                    />
                   </TableCell>
 
                   <TableCell>
@@ -262,13 +256,12 @@ export const ResponsiveTicketsTable = ({
                               #{rel.targetTicket?.number || rel.number}
                             </Link>
                             <span className="truncate">{rel.targetTicket?.subject || rel.subject}</span>
-                            <DynamicBadge
+                            <OptimizedBadge
                               fieldName="status"
                               value={rel.targetTicket?.status || rel.status}
                               className="text-xs"
-                            >
-                              {rel.targetTicket?.status || rel.status}
-                            </DynamicBadge>
+                              ariaLabel={`Status: ${rel.targetTicket?.status || rel.status}`}
+                            />
                           </div>
                         ))}
                       </div>

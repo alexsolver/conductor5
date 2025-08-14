@@ -614,7 +614,7 @@ const TicketsTable = React.memo(() => {
       // Expandindo - buscar relacionamentos se não existirem
       if (!ticketRelationships[ticketId]) {
         try {
-          const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
+          const response = await apiRequest('GET', `/api/ticket-relationships/${ticketId}/relationships`);
           const data = await response.json();
 
           let relationships = [];
