@@ -332,8 +332,12 @@ router.post('/:integrationId/test', async (req: any, res) => {
       case 'telegram':
         try {
           const config = configResult.config;
+          console.log(`🔍 [TELEGRAM-TEST] Config received:`, { 
+            hasToken: !!config?.telegramBotToken, 
+            hasChatId: !!config?.telegramChatId 
+          });
 
-          if (!config.telegramBotToken) {
+          if (!config || !config.telegramBotToken) {
             return res.status(400).json({
               success: false,
               message: 'Bot Token não configurado'
@@ -350,6 +354,8 @@ router.post('/:integrationId/test', async (req: any, res) => {
           // Test Telegram bot by sending a test message
           const testMessage = `🧪 Teste de integração Telegram\nTenant: ${tenantId}\nData: ${new Date().toLocaleString('pt-BR')}`;
 
+          console.log(`📤 [TELEGRAM-TEST] Sending test message to Telegram API`);
+          
           const telegramResponse = await fetch(`https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`, {
             method: 'POST',
             headers: {
@@ -359,51 +365,73 @@ router.post('/:integrationId/test', async (req: any, res) => {
               chat_id: config.telegramChatId,
               text: testMessage,
               parse_mode: 'HTML'
-            })
+            }),
+            timeout: 10000 // 10 second timeout
           });
 
+          console.log(`📥 [TELEGRAM-TEST] Response status: ${telegramResponse.status}`);
+
           if (telegramResponse.ok) {
-            console.log(`✅ [TELEGRAM-TEST] Mensagem enviada com sucesso`);
-            res.json({ 
+            const telegramResult = await telegramResponse.json();
+            console.log(`✅ [TELEGRAM-TEST] Mensagem enviada com sucesso:`, telegramResult);
+            
+            return res.json({ 
               success: true, 
-              message: 'Teste do Telegram bem-sucedido! Mensagem enviada.' 
+              message: 'Teste do Telegram bem-sucedido! Mensagem enviada.',
+              details: {
+                messageId: telegramResult.result?.message_id,
+                chatId: config.telegramChatId
+              }
             });
           } else {
-            const telegramError = await telegramResponse.json();
+            const telegramError = await telegramResponse.json().catch(() => ({
+              description: `HTTP ${telegramResponse.status} - ${telegramResponse.statusText}`
+            }));
+            
             console.error(`❌ [TELEGRAM-TEST] Erro da API:`, telegramError);
-            res.status(400).json({ 
+            
+            return res.status(400).json({ 
               success: false, 
-              message: `Erro do Telegram: ${telegramError.description || 'Falha na comunicação'}` 
+              message: `Erro do Telegram: ${telegramError.description || 'Falha na comunicação'}`,
+              details: {
+                errorCode: telegramError.error_code,
+                status: telegramResponse.status
+              }
             });
           }
         } catch (telegramError) {
           console.error(`❌ [TELEGRAM-TEST] Erro interno:`, telegramError);
-          res.status(500).json({ 
+          
+          return res.status(500).json({ 
             success: false, 
-            message: 'Erro interno ao testar Telegram' 
+            message: 'Erro interno ao testar Telegram',
+            details: {
+              error: telegramError instanceof Error ? telegramError.message : 'Unknown error'
+            }
           });
         }
-        break;
 
       case 'gmail-oauth2':
-        res.json({ 
+        return res.json({ 
           success: true, 
           message: 'Gmail OAuth2 integration test successful' 
         });
-        break;
 
       default:
-        res.json({ 
+        return res.json({ 
           success: true, 
           message: `${integrationId} integration test successful` 
         });
-        break;
     }
   } catch (error) {
     console.error('❌ [TEST-INTEGRATION] Error testing integration:', error);
-    res.status(500).json({ 
+    
+    return res.status(500).json({ 
       success: false,
-      message: 'Failed to test integration' 
+      message: 'Failed to test integration',
+      details: {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
     });
   }
 });

@@ -223,13 +223,17 @@ export default function TenantAdminIntegrations() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
 
       console.log(`🧪 [TESTE-INTEGRAÇÃO] Response status: ${response.status}`);
 
-      if (response.ok) {
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      const isJSON = contentType && contentType.includes('application/json');
+
+      if (response.ok && isJSON) {
         const result = await response.json();
         console.log(`✅ [TESTE-INTEGRAÇÃO] Sucesso:`, result);
 
@@ -238,12 +242,27 @@ export default function TenantAdminIntegrations() {
           description: result.message || "A integração está funcionando corretamente.",
         });
       } else {
-        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
-        console.error(`❌ [TESTE-INTEGRAÇÃO] Erro:`, errorData);
+        let errorMessage = 'Falha ao testar a integração.';
+        
+        if (isJSON) {
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            console.error('Error parsing JSON:', e);
+          }
+        } else {
+          // Handle non-JSON responses (like HTML error pages)
+          const textResponse = await response.text();
+          console.error(`❌ [TESTE-INTEGRAÇÃO] Non-JSON response:`, textResponse.substring(0, 200));
+          errorMessage = `Erro interno do servidor (Status: ${response.status})`;
+        }
+
+        console.error(`❌ [TESTE-INTEGRAÇÃO] Erro:`, errorMessage);
 
         toast({
           title: "Erro no teste",
-          description: errorData.message || "Falha ao testar a integração.",
+          description: errorMessage,
           variant: "destructive",
         });
       }

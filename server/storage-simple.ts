@@ -1433,24 +1433,38 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`🔍 [GET-CONFIG] Buscando configuração: tenant=${tenantId}, integration=${integrationId}`);
 
-      // Use the mock `this.neon` method if not in a real DB context
-      const dbMethod = this.neon || (() => { throw new Error("Database connection (neon) is not available.") });
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const query = `
-        SELECT id, name, description, category, icon, status, config, features, created_at, updated_at, tenant_id, is_currently_monitoring
-        FROM tenant_integrations 
-        WHERE tenant_id = $1 AND id = $2
-      `;
+      // Check if integrations table exists
+      const tableExists = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} AND table_name = 'integrations'
+        );
+      `);
 
-      const result = await dbMethod.call(this, query, [tenantId, integrationId]); // Use call to preserve 'this' context
-      console.log(`🔍 [GET-CONFIG] Resultado da query:`, result);
+      if (!tableExists.rows?.[0]?.exists) {
+        console.log(`❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`);
+        return null;
+      }
 
-      if (result.length === 0) {
+      const result = await tenantDb.execute(sql`
+        SELECT id, name, description, category, icon, status, config, features, created_at, updated_at
+        FROM ${sql.identifier(schemaName)}.integrations 
+        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+        LIMIT 1
+      `);
+
+      console.log(`🔍 [GET-CONFIG] Query result:`, { rowsFound: result.rows?.length || 0 });
+
+      if (!result.rows || result.rows.length === 0) {
         console.log(`❌ [GET-CONFIG] Nenhuma configuração encontrada para ${integrationId}`);
         return null;
       }
 
-      const integration = result[0];
+      const integration = result.rows[0];
 
       // Parse config if it's a string
       let parsedConfig = integration.config;
@@ -1465,10 +1479,15 @@ export class DatabaseStorage implements IStorage {
 
       const finalResult = {
         ...integration,
-        config: parsedConfig
+        config: parsedConfig || {}
       };
 
-      console.log(`✅ [GET-CONFIG] Configuração retornada:`, finalResult);
+      console.log(`✅ [GET-CONFIG] Configuração retornada:`, {
+        id: finalResult.id,
+        hasConfig: !!finalResult.config,
+        configKeys: Object.keys(finalResult.config || {})
+      });
+      
       return finalResult;
     } catch (error) {
       console.error('❌ [GET-CONFIG] Erro ao buscar configuração:', error);
