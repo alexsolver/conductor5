@@ -127,7 +127,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       }
 
       if (filters.assignedToId) {
-        conditions.push(eq(tickets.responsibleId, filters.assignedToId));
+        conditions.push(eq(tickets.assignedToId, filters.assignedToId));
       }
 
       if (filters.customerId) {
@@ -196,7 +196,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
           category: tickets.category,
           subcategory: tickets.subcategory,
           callerId: tickets.callerId,
-          responsibleId: tickets.responsibleId,
+          assignedToId: tickets.assignedToId,
           createdAt: tickets.createdAt,
           updatedAt: tickets.updatedAt,
           isActive: tickets.isActive
@@ -426,7 +426,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       category: row.category,
       subcategory: row.subcategory,
       callerId: row.callerId,
-      assignedToId: row.responsibleId,
+      assignedToId: row.assignedToId,
       tenantId: row.tenantId,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
