@@ -4,7 +4,8 @@
  */
 
 import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
+// ✅ CRITICAL FIX - Default import for JWT per 1qa.md compliance
+import jwt from 'jsonwebtoken';
 import { AuthDomainService, AuthTokens } from '../../domain/entities/AuthSession';
 import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
 import { IUserRepository } from '../../../users/domain/repositories/IUserRepository';

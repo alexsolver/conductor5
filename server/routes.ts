@@ -77,10 +77,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
 
-  // CRITICAL FIX: API Route Protection Middleware
-  // Ensure API routes are processed before Vite catch-all
-  app.use('/api/*', (req, res, next) => {
-    // Force Express to handle API routes, not Vite
+  // ✅ CRITICAL FIX: API Route Protection Middleware per 1qa.md
+  // Ensure API routes are processed before Vite catch-all - Clean Architecture compliance
+  app.use('/api', (req, res, next) => {
+    // Force Express to handle ALL API routes, not Vite
     res.setHeader('X-API-Route', 'true');
     res.setHeader('Content-Type', 'application/json');
     next();
@@ -254,12 +254,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ✅ Apply JSON response middleware
+  // ✅ CRITICAL ORDER - Apply JSON middleware BEFORE routes per 1qa.md
   app.use(ensureJSONResponse);
 
-  // ✅ CLEAN ARCHITECTURE ONLY - All modules consolidated
+  // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
-  app.use('/api/auth', authRoutes);
+  
+  // ✅ Priority 1: Auth routes MUST be processed first
+  app.use('/api/auth', (req, res, next) => {
+    console.log(`[AUTH-ROUTE] Processing: ${req.method} ${req.path}`);
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  }, authRoutes);
+  
   app.use('/api/tickets', ticketsRoutes);
   app.use('/api/customers', customersRoutes);
   app.use('/api/beneficiaries', beneficiariesRoutes);

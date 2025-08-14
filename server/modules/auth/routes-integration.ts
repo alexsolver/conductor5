@@ -7,26 +7,13 @@
  */
 
 import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
+import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 
 const router = Router();
 
-// Import working routes
-let workingRoutes: Router;
-
-async function loadWorkingRoutes() {
-  try {
-    const module = await import('./routes-clean');
-    workingRoutes = module.default;
-    console.log('[AUTH-INTEGRATION] Working routes loaded successfully');
-  } catch (error) {
-    console.error('[AUTH-INTEGRATION] Failed to load working routes:', error);
-    workingRoutes = Router();
-  }
-}
-
-// Initialize working routes
-loadWorkingRoutes();
+// ✅ CLEAN ARCHITECTURE - Direct import per 1qa.md compliance
+import workingRoutesDefault from './routes-clean';
+const workingRoutes = workingRoutesDefault;
 
 /**
  * Status endpoint - Check module status
@@ -122,7 +109,7 @@ router.get('/health', jwtAuth, async (req, res) => {
  * Authentication validation endpoint
  * POST /api/auth-integration/validate-auth
  */
-router.post('/validate-auth', jwtAuth, async (req, res) => {
+router.post('/validate-auth', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.id;
     const userRole = req.user?.role;
@@ -179,18 +166,16 @@ router.post('/validate-auth', jwtAuth, async (req, res) => {
 });
 
 /**
- * Mount working routes under /working
+ * ✅ CLEAN ARCHITECTURE - Mount working routes following 1qa.md compliance
+ * Direct mounting per Clean Architecture specifications
  */
-router.use('/working', (req, res, next) => {
-  if (!workingRoutes) {
-    return res.status(503).json({
-      success: false,
-      message: 'Working routes not available',
-      error: 'Service temporarily unavailable'
-    });
-  }
-  next();
-}, () => workingRoutes);
+router.use('/working', workingRoutes);
+
+/**
+ * ✅ CRITICAL FIX - Mount Clean Architecture routes at root level
+ * This ensures /api/auth/login goes to the correct Clean Architecture endpoint
+ */
+router.use('/', workingRoutes);
 
 // Log successful mounting
 console.log('[AUTH-INTEGRATION] Mounting Phase 3 working routes at /working');

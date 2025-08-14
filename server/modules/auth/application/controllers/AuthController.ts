@@ -4,6 +4,7 @@
  */
 
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { LoginUseCase } from '../use-cases/LoginUseCase';
 import { RefreshTokenUseCase } from '../use-cases/RefreshTokenUseCase';
 import { LogoutUseCase } from '../use-cases/LogoutUseCase';
@@ -94,7 +95,7 @@ export class AuthController {
     }
   }
 
-  async logout(req: Request, res: Response): Promise<void> {
+  async logout(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
       const dto: LogoutDTO = req.body;
@@ -125,7 +126,7 @@ export class AuthController {
     }
   }
 
-  async validateToken(req: Request, res: Response): Promise<void> {
+  async validateToken(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader?.split(' ')[1]; // Bearer <token>
