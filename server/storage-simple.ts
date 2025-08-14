@@ -1702,23 +1702,23 @@ export class DatabaseStorage implements IStorage {
       // Use raw SQL since Drizzle has issues with TEXT[] arrays - ALL 14 INTEGRATIONS
       const insertQuery = `
         INSERT INTO ${schemaName}.integrations 
-        (id, tenant_id, name, description, category, icon, status, config, features)
+        (id, tenant_id, name, description, category, icon, status, configured, config, features)
         VALUES 
-        ('gmail-oauth2', '${tenantId}', 'Gmail OAuth2', 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']),
-        ('outlook-oauth2', '${tenantId}', 'Outlook OAuth2', 'Integração OAuth2 com Microsoft Outlook para emails corporativos', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']),
-        ('email-smtp', '${tenantId}', 'Email SMTP', 'Configuração de servidor SMTP para envio de emails automáticos e notificações', 'Comunicação', 'Mail', 'disconnected', '{}', ARRAY['Notificações por email', 'Tickets por email', 'Relatórios automáticos']),
-        ('imap-email', '${tenantId}', 'IMAP Email', 'Conecte sua caixa de email via IMAP para sincronização de tickets', 'Comunicação', 'Inbox', 'disconnected', '{}', ARRAY['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']),
-        ('whatsapp-business', '${tenantId}', 'WhatsApp Business', 'Integração com WhatsApp Business API para atendimento via WhatsApp', 'Comunicação', 'MessageSquare', 'disconnected', '{}', ARRAY['Mensagens automáticas', 'Templates aprovados', 'Webhooks']),
-        ('slack', '${tenantId}', 'Slack', 'Notificações e gerenciamento de tickets através do Slack', 'Comunicação', 'MessageCircle', 'disconnected', '{}', ARRAY['Notificações de tickets', 'Comandos slash', 'Bot integrado']),
-        ('twilio-sms', '${tenantId}', 'Twilio SMS', 'Envio de SMS para notificações e alertas importantes', 'Comunicação', 'Phone', 'disconnected', '{}', ARRAY['SMS automático', 'Notificações críticas', 'Verificação 2FA']),
-        ('telegram', '${tenantId}', 'Telegram', 'Envio de notificações e alertas via Telegram para grupos ou usuários', 'Comunicação', 'Send', 'disconnected', '{}', ARRAY['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']),
-        ('zapier', '${tenantId}', 'Zapier', 'Conecte com mais de 3000 aplicativos através de automações Zapier', 'Automação', 'Zap', 'disconnected', '{}', ARRAY['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']),
-        ('webhooks', '${tenantId}', 'Webhooks', 'Receba notificações em tempo real de eventos do sistema', 'Automação', 'Webhook', 'disconnected', '{}', ARRAY['Eventos em tempo real', 'Custom endpoints', 'Retry automático']),
-        ('crm-integration', '${tenantId}', 'CRM Integration', 'Sincronização com sistemas CRM para gestão unificada de clientes', 'Dados', 'Database', 'disconnected', '{}', ARRAY['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']),
-        ('dropbox-personal', '${tenantId}', 'Dropbox Pessoal', 'Backup automático de dados e arquivos importantes', 'Dados', 'Cloud', 'disconnected', '{}', ARRAY['Backup automático', 'Sincronização de arquivos', 'Versionamento']),
-        ('sso-saml', '${tenantId}', 'SSO/SAML', 'Single Sign-On para autenticação corporativa segura', 'Segurança', 'Shield', 'disconnected', '{}', ARRAY['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']),
-        ('google-workspace', '${tenantId}', 'Google Workspace', 'Integração completa com Gmail, Drive e Calendar', 'Produtividade', 'Calendar', 'disconnected', '{}', ARRAY['Gmail sync', 'Drive backup', 'Calendar integration']),
-        ('chatbot-ai', '${tenantId}', 'Chatbot IA', 'Assistente virtual inteligente para atendimento automatizado', 'Produtividade', 'Bot', 'disconnected', '{}', ARRAY['Respostas automáticas', 'Machine Learning', 'Escalação inteligente'])
+        ('gmail-oauth2', '${tenantId}', 'Gmail OAuth2', 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails', 'Comunicação', 'Mail', 'disconnected', false, '{}', ARRAY['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']),
+        ('outlook-oauth2', '${tenantId}', 'Outlook OAuth2', 'Integração OAuth2 com Microsoft Outlook para emails corporativos', 'Comunicação', 'Mail', 'disconnected', false, '{}', ARRAY['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']),
+        ('email-smtp', '${tenantId}', 'Email SMTP', 'Configuração de servidor SMTP para envio de emails automáticos e notificações', 'Comunicação', 'Mail', 'disconnected', false, '{}', ARRAY['Notificações por email', 'Tickets por email', 'Relatórios automáticos']),
+        ('imap-email', '${tenantId}', 'IMAP Email', 'Conecte sua caixa de email via IMAP para sincronização de tickets', 'Comunicação', 'Inbox', 'disconnected', false, '{}', ARRAY['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']),
+        ('whatsapp-business', '${tenantId}', 'WhatsApp Business', 'Integração com WhatsApp Business API para atendimento via WhatsApp', 'Comunicação', 'MessageSquare', 'disconnected', false, '{}', ARRAY['Mensagens automáticas', 'Templates aprovados', 'Webhooks']),
+        ('slack', '${tenantId}', 'Slack', 'Notificações e gerenciamento de tickets através do Slack', 'Comunicação', 'MessageCircle', 'disconnected', false, '{}', ARRAY['Notificações de tickets', 'Comandos slash', 'Bot integrado']),
+        ('twilio-sms', '${tenantId}', 'Twilio SMS', 'Envio de SMS para notificações e alertas importantes', 'Comunicação', 'Phone', 'disconnected', false, '{}', ARRAY['SMS automático', 'Notificações críticas', 'Verificação 2FA']),
+        ('telegram', '${tenantId}', 'Telegram', 'Envio de notificações e alertas via Telegram para grupos ou usuários', 'Comunicação', 'Send', 'disconnected', false, '{}', ARRAY['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']),
+        ('zapier', '${tenantId}', 'Zapier', 'Conecte com mais de 3000 aplicativos através de automações Zapier', 'Automação', 'Zap', 'disconnected', false, '{}', ARRAY['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']),
+        ('webhooks', '${tenantId}', 'Webhooks', 'Receba notificações em tempo real de eventos do sistema', 'Automação', 'Webhook', 'disconnected', false, '{}', ARRAY['Eventos em tempo real', 'Custom endpoints', 'Retry automático']),
+        ('crm-integration', '${tenantId}', 'CRM Integration', 'Sincronização com sistemas CRM para gestão unificada de clientes', 'Dados', 'Database', 'disconnected', false, '{}', ARRAY['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']),
+        ('dropbox-personal', '${tenantId}', 'Dropbox Pessoal', 'Backup automático de dados e arquivos importantes', 'Dados', 'Cloud', 'disconnected', false, '{}', ARRAY['Backup automático', 'Sincronização de arquivos', 'Versionamento']),
+        ('sso-saml', '${tenantId}', 'SSO/SAML', 'Single Sign-On para autenticação corporativa segura', 'Segurança', 'Shield', 'disconnected', false, '{}', ARRAY['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']),
+        ('google-workspace', '${tenantId}', 'Google Workspace', 'Integração completa com Gmail, Drive e Calendar', 'Produtividade', 'Calendar', 'disconnected', false, '{}', ARRAY['Gmail sync', 'Drive backup', 'Calendar integration']),
+        ('chatbot-ai', '${tenantId}', 'Chatbot IA', 'Assistente virtual inteligente para atendimento automatizado', 'Produtividade', 'Bot', 'disconnected', false, '{}', ARRAY['Respostas automáticas', 'Machine Learning', 'Escalação inteligente'])
         ON CONFLICT (id) DO NOTHING
       `;
 
