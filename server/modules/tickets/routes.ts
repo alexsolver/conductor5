@@ -1180,28 +1180,30 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       RETURNING id, action_number, action_type, description, created_at
     `;
 
-    const result = await pool.query(internalActionQuery, [
-      tenantId,                          // $1 tenant_id
-      id,                               // $2 ticket_id
-      actionNumber,                     // $3 action_number
-      finalActionType,                  // $4 action_type
-      finalTitle || `${finalActionType} - Ticket #${id.slice(0, 8)}`, // $5 title
-      actionDescription,                // $6 description
-      finalAssignedId,                  // $7 agent_id (assigned person)
-      finalPlannedStartTime || null,    // $8 planned_start_time (new field)
-      finalPlannedEndTime || null,      // $9 planned_end_time (new field)
-      finalStartTime || null,           // $10 start_time (nullable)
-      finalEndTime || null,             // $11 end_time (nullable)
-      finalEstimatedHoursFinal,         // $12 estimated_hours
-      finalStatus,                      // $13 status (from frontend)
-      finalPriority                     // $14 priority
-    ]);
+    // Prepare values with proper type conversion
+    const values = [
+      tenantId,                                                              // $1 tenant_id (uuid)
+      id,                                                                   // $2 ticket_id (uuid)
+      actionNumber,                                                         // $3 action_number (varchar)
+      action_type,                                                          // $4 action_type (varchar)
+      title || `${action_type} - Ticket #${id.slice(0, 8)}`,              // $5 title (varchar)
+      description || '',                                                    // $6 description (text)
+      agent_id || req.user.id,                                            // $7 agent_id (uuid)
+      planned_start_time || null,                                          // $8 planned_start_time (timestamp)
+      planned_end_time || null,                                            // $9 planned_end_time (timestamp)
+      start_time || null,                                                  // $10 start_time (timestamp)
+      end_time || null,                                                    // $11 end_time (timestamp)
+      parseFloat(estimated_hours) || 0,                                    // $12 estimated_hours (numeric)
+      status,                                                              // $13 status (varchar)
+      priority                                                             // $14 priority (varchar)
+    ];
+
+    console.log('🔧 Executing query with values:', values);
+
+    const result = await pool.query(internalActionQuery, values);
 
     if (result.rows.length === 0) {
-      return res.status(500).json({ 
-        success: false,
-        message: "Failed to create internal action" 
-      });
+      throw new Error('Failed to create internal action - no result returned');
     }
 
     const newAction = result.rows[0];
@@ -1276,11 +1278,16 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     });
 
   } catch (error) {
-    console.error("❌ Erro ao criar ação interna:", error);
-    res.status(500).json({ 
-      success: false,
-      message: "Falha ao criar ação interna",
-      error: error instanceof Error ? error.message : "Erro desconhecido"
+    console.error('❌ Error creating internal action:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+
+    return res.status(500).json({ 
+      success: false, 
+      message: "Failed to create internal action",
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
@@ -1880,11 +1887,11 @@ ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res)
         console.error('❌ [NOTES-API] Database pool is null/undefined');
         throw new Error('Database pool not initialized');
       }
-      
+
       // Test database connection
       await pool.query('SELECT 1');
       console.log('✅ [NOTES-API] Database connection verified');
-      
+
     } catch (dbError) {
       console.error('❌ [NOTES-API] Database initialization/connection error:', dbError);
       return res.status(500).json({
@@ -2476,191 +2483,6 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       endDateTime,
       status
     });
-
-    // Buscar a ação interna atual na tabela correta
-    const getCurrentActionQuery = `
-      SELECT * FROM "${schemaName}".ticket_internal_actions 
-      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
-    `;
-    const currentActionResult = await pool.query(getCurrentActionQuery, [actionId, tenantId, ticketId]);
-
-    if (currentActionResult.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Internal action not found" 
-      });
-    }
-
-    const currentAction = currentActionResult.rows[0];
-    const contentDescription = description || workLog || currentAction.description;
-    const finalActionType = actionType || currentAction.action_type;
-
-    // Preparar dados de tempo - TIMER CORRECTION
-    const startTime = startDateTime ? new Date(startDateTime).toISOString() : currentAction.start_time;
-    const endTime = endDateTime ? new Date(endDateTime).toISOString() : currentAction.end_time; 
-    const estimatedHours = timeSpent ? parseInt(timeSpent) / 60 : currentAction.estimated_hours;
-
-    // Atualizar na tabela ticket_internal_actions
-    const updateInternalQuery = `
-      UPDATE "${schemaName}".ticket_internal_actions 
-      SET 
-        description = $1,
-        action_type = $2,
-        start_time = $3,
-        end_time = $4,
-        status = $5,
-        agent_id = $6,
-        estimated_hours = $7,
-        updated_at = NOW()
-      WHERE id = $8 AND tenant_id = $9 AND ticket_id = $10
-      RETURNING *
-    `;
-
-    const result = await pool.query(updateInternalQuery, [
-      contentDescription,
-      finalActionType,
-      startTime,
-      endTime,
-      status || currentAction.status,
-      assignedToId || currentAction.agent_id,
-      estimatedHours,
-      actionId,
-      tenantId,
-      ticketId
-    ]);
-
-    if (result.rows.length === 0) {
-      return res.status(500).json({ 
-        success: false,
-        message: "Failed to update internal action" 
-      });
-    }
-
-    const updatedAction = result.rows[0];
-
-    // Criar entrada de auditoria no histórico
-    try {
-      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-      const ipAddress = getClientIP(req);
-      const userAgent = getUserAgent(req);
-      const sessionId = getSessionId(req);
-
-      // Buscar nomes dos usuários (editor e usuários atribuídos)
-      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-      const userResult = await pool.query(userQuery, [req.user.id]);
-      const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
-
-      // Buscar nomes dos usuários atribuídos (antigo e novo)
-      let oldAssignedName = 'N/A';
-      let newAssignedName = 'N/A';
-
-      if (currentAction.agent_id) {
-        const oldUserResult = await pool.query(userQuery, [currentAction.agent_id]);
-        oldAssignedName = oldUserResult.rows[0]?.full_name || 'Unknown User';
-      }
-
-      if (assignedToId || currentAction.agent_id) {
-        const newUserResult = await pool.query(userQuery, [assignedToId || currentAction.agent_id]);
-        newAssignedName = newUserResult.rows[0]?.full_name || 'Unknown User';
-      }
-
-      // Detectar mudanças e criar descrição detalhada
-      const changes = [];
-      if (currentAction.description !== contentDescription) {
-        changes.push(`descrição alterada`);
-      }
-      if (currentAction.action_type !== finalActionType) {
-        changes.push(`tipo alterado de "${currentAction.action_type}" para "${finalActionType}"`);
-      }
-      if (currentAction.status !== (status || currentAction.status)) {
-        changes.push(`status alterado de "${currentAction.status}" para "${status || currentAction.status}"`);
-      }
-      if (currentAction.agent_id !== (assignedToId || currentAction.agent_id)) {
-        changes.push(`atribuído de "${oldAssignedName}" para "${newAssignedName}"`);
-      }
-
-      const changeDescription = changes.length > 0 
-        ? `Ação interna ${updatedAction.action_number} editada: ${changes.join(', ')}`
-        : `Ação interna ${updatedAction.action_number} editada`;
-
-      await pool.query(`
-        INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-      `, [
-        tenantId,
-        ticketId,
-        'internal_action_updated',
-        changeDescription,
-        req.user.id,
-        userName,
-        ipAddress,
-        userAgent,
-        sessionId,
-        JSON.stringify({
-          action_id: actionId,
-          action_number: updatedAction.action_number,
-          old_description: currentAction.description,
-          new_description: contentDescription,
-          old_status: currentAction.status,
-          new_status: status || currentAction.status,
-          old_action_type: currentAction.action_type,
-          new_action_type: finalActionType,
-          old_assigned_to: currentAction.agent_id,
-          new_assigned_to: assignedToId || currentAction.agent_id,
-          old_assigned_name: oldAssignedName,
-          new_assigned_name: newAssignedName,
-          changes_detected: changes
-        })
-      ]);
-    } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
-    }
-
-    console.log('✅ Ação interna atualizada com sucesso na tabela ticket_internal_actions');
-
-    res.json({
-      success: true,
-      message: "Ação interna atualizada com sucesso",
-      data: updatedAction
-    });
-  } catch (error) {
-    console.error("Error updating internal action:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update internal action",
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// PATCH Update ticket action - for timer system
-ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { ticketId, actionId } = req.params;
-    const { 
-      status, 
-      description, 
-      title, 
-      estimated_hours, 
-      start_time,
-      end_time,
-      action_type,
-      agent_id,
-      planned_start_time,
-      planned_end_time,
-      priority
-    } = req.body;
-
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
-    }
-
-    console.log('🔧 [PATCH] Updating action with:', { status, description, title, estimated_hours, end_time });
-
-    const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // First, get the current action to calculate tempo_realizado if needed
     let currentAction = null;
