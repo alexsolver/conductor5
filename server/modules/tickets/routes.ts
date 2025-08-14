@@ -244,14 +244,13 @@ async function createCompleteAuditEntry(
       }
     };
 
-    // ✅ INSERT ULTRA-DETALHADO
+    // ✅ INSERT CORRIGIDO para schema atual
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_history 
       (tenant_id, ticket_id, action_type, performed_by, performed_by_name, 
        description, field_name, old_value, new_value, 
-       ip_address, user_agent, session_id, created_at, metadata,
-       actor_id, actor_type, actor_name, is_visible, is_active)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13, $14, $15, $16, $17, $18)
+       ip_address, user_agent, session_id, created_at, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13)
       RETURNING id, action_type, description, created_at, metadata
     `;
 
@@ -273,12 +272,7 @@ async function createCompleteAuditEntry(
       ipAddress,                                          // $10
       userAgent,                                          // $11
       sessionId,                                          // $12
-      JSON.stringify(ultraEnhancedMetadata),              // $13 - metadata
-      actorId,                                            // $14 - actor_id
-      actorType,                                          // $15 - actor_type
-      userName,                                           // $16 - actor_name
-      true,                                               // $17 - is_visible
-      true                                                // $18 - is_active
+      JSON.stringify(ultraEnhancedMetadata)               // $13 - metadata
     ]);
 
     console.log(`✅ [AUDIT-ULTRA-COMPLETE] Entrada ultra-detalhada criada: ${actionType} para ticket ${ticketId}`, {

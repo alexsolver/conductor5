@@ -302,7 +302,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                         <Icon className="h-4 w-4 text-gray-500" />
                         <div>
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">#{rel.targetTicket.number || `T-${rel.targetTicket.id.slice(-8)}`} - {rel.targetTicket.subject}</span>
+                            <span className="font-medium">#{rel.targetTicket?.number || `T-${rel.targetTicket?.id?.slice(-8) || 'N/A'}`} - {rel.targetTicket?.subject || 'Sem título'}</span>
                             <Badge variant="outline">
                               {getRelationshipLabel(rel.relationshipType)}
                             </Badge>
