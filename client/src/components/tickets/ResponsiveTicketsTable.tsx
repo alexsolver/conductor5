@@ -289,15 +289,6 @@ export const ResponsiveTicketsTable = ({
                     </div>
                   </TableCell>
                 </TableRow>
-              className="text-xs"
-                              aria-label={`Status: ${ticketStatus}`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
               )
             ].filter(Boolean)
             )
