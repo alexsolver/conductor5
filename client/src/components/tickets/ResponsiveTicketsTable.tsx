@@ -27,6 +27,7 @@ import {
   GitBranch,
 } from "lucide-react";
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
+import { RelatedTicketsExpansion } from "./RelatedTicketsExpansion";
 
 // Types
 interface Ticket {
@@ -97,6 +98,26 @@ export const ResponsiveTicketsTable = ({
   // Component loading state
   const isComponentLoading = isLoading || !tickets;
 
+  // Use a local state to manage expanded rows if not provided via props
+  const [localExpandedTickets, setLocalExpandedTickets] = useState<Set<string>>(new Set());
+  const currentExpandedTickets = expandedTickets.size > 0 ? expandedTickets : localExpandedTickets;
+  const handleToggleExpand = (ticketId: string) => {
+    if (onToggleExpand) {
+      onToggleExpand(ticketId);
+    } else {
+      setLocalExpandedTickets((prev) => {
+        const next = new Set(prev);
+        if (next.has(ticketId)) {
+          next.delete(ticketId);
+        } else {
+          next.add(ticketId);
+        }
+        return next;
+      });
+    }
+  };
+
+
   return (
     <div className="rounded-md border overflow-hidden" role="region" aria-label="Tabela de tickets">
       <Table>
@@ -140,12 +161,12 @@ export const ResponsiveTicketsTable = ({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onToggleExpand?.(ticket.id)}
+                          onClick={() => handleToggleExpand(ticket.id)}
                           className="p-1 h-6 w-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700"
-                          aria-label={expandedTickets.has(ticket.id) ? "Recolher relacionamentos" : "Expandir relacionamentos"}
+                          aria-label={currentExpandedTickets.has(ticket.id) ? "Recolher relacionamentos" : "Expandir relacionamentos"}
                           title="Expandir/Recolher tickets vinculados"
                         >
-                          {expandedTickets.has(ticket.id) ?
+                          {currentExpandedTickets.has(ticket.id) ?
                             <ChevronDown className="h-4 w-4 text-blue-600 dark:text-blue-400" /> :
                             <ChevronRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           }
@@ -235,9 +256,9 @@ export const ResponsiveTicketsTable = ({
                     </DropdownMenu>
                   </TableCell>
               </TableRow>,
-              
+
               /* Expanded relationships */
-              expandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
+              currentExpandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
                 <TableRow key={`relationships-${ticket.id}`} className="bg-blue-50">
                   <TableCell colSpan={8}>
                     <div className="p-4">
@@ -253,7 +274,7 @@ export const ResponsiveTicketsTable = ({
                           const ticketStatus = relatedTicket.status || relatedTicket['targetTicket.status'] || 'unknown';
                           const ticketPriority = relatedTicket.priority || relatedTicket['targetTicket.priority'] || 'medium';
                           const relationshipType = rel.relationshipType || rel.relationship_type || 'relacionado';
-                          
+
                           return (
                             <div key={`rel-${rel.id || index}`} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
                               <div className="flex items-center gap-2 min-w-0 flex-1">
