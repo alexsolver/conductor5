@@ -181,9 +181,26 @@ export class DrizzleTicketRepository implements ITicketRepository {
       if (!orderColumn) orderColumn = tickets.createdAt;
       const orderDirection = pagination.sortOrder === 'asc' ? asc : desc;
 
-      // Fetch paginated results
+      // Fetch paginated results with explicit field selection to avoid schema conflicts
       const ticketResults = await db
-        .select()
+        .select({
+          id: tickets.id,
+          tenantId: tickets.tenantId,
+          number: tickets.number,
+          subject: tickets.subject,
+          description: tickets.description,
+          status: tickets.status,
+          priority: tickets.priority,
+          urgency: tickets.urgency,
+          impact: tickets.impact,
+          category: tickets.category,
+          subcategory: tickets.subcategory,
+          callerId: tickets.callerId,
+          responsibleId: tickets.responsibleId,
+          createdAt: tickets.createdAt,
+          updatedAt: tickets.updatedAt,
+          isActive: tickets.isActive
+        })
         .from(tickets)
         .where(and(...conditions))
         .orderBy(orderDirection(orderColumn))
@@ -415,7 +432,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       updatedAt: row.updatedAt,
       createdById: row.createdById || null,
       updatedById: row.updatedById || null,
-      customerCompanyId: row.companyId,
+      customerCompanyId: null, // Field excluded from select to avoid schema mapping issues
       isActive: row.isActive !== false
     } as Ticket;
   }
