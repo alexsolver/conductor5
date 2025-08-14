@@ -289,9 +289,8 @@ export const ResponsiveTicketsTable = ({
                     </div>
                   </TableCell>
                 </TableRow>
-              )atus}
-                              className="text-xs"
-                              aria-label={`Status: ${rel.targetTicket?.status || rel.status}`}
+              className="text-xs"
+                              aria-label={`Status: ${ticketStatus}`}
                             />
                           </div>
                         ))}
