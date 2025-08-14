@@ -97,7 +97,7 @@ async function createCompleteAuditEntry(
     let userEmail = null;
     let actorType = 'system';
     let actorId = null;
-    
+
     if (req.user?.id) {
       try {
         const userQuery = `
@@ -118,7 +118,7 @@ async function createCompleteAuditEntry(
           userEmail = userData.email;
           actorType = 'user';
           actorId = req.user.id;
-          
+
           // Enriquecer metadata com dados do usuário
           metadata.user_context = {
             role: userData.role,
@@ -181,7 +181,7 @@ async function createCompleteAuditEntry(
         origin: req.headers['origin'],
         referer: req.headers['referer']
       },
-      
+
       // Client info expandida
       client_info: {
         ip_address: ipAddress,
@@ -190,7 +190,7 @@ async function createCompleteAuditEntry(
         forwarded_for: req.headers['x-forwarded-for'],
         real_ip: req.headers['x-real-ip']
       },
-      
+
       // Actor info completa
       actor_info: {
         actor_id: actorId,
@@ -199,7 +199,7 @@ async function createCompleteAuditEntry(
         actor_email: userEmail,
         tenant_id: tenantId
       },
-      
+
       // Change details expandidas
       change_details: fieldName ? {
         field_name: fieldName,
@@ -213,7 +213,7 @@ async function createCompleteAuditEntry(
           new_value_type: newValue ? typeof newValue : null
         }
       } : null,
-      
+
       // System context expandido
       system_context: {
         tenant_id: tenantId,
@@ -226,10 +226,10 @@ async function createCompleteAuditEntry(
         server_timestamp: Date.now(),
         process_id: process.pid
       },
-      
+
       // Ticket context
       ticket_context: ticketContext,
-      
+
       // Audit trail info
       audit_trail: {
         sequence_id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -237,7 +237,7 @@ async function createCompleteAuditEntry(
         version: '2.0',
         compliance_level: 'ultra_complete'
       },
-      
+
       // Performance metrics
       performance: {
         audit_creation_start: Date.now()
@@ -286,9 +286,9 @@ async function createCompleteAuditEntry(
       metadata_size: JSON.stringify(ultraEnhancedMetadata).length,
       duration_ms: ultraEnhancedMetadata.performance.audit_creation_duration_ms
     });
-    
+
     return result;
-    
+
   } catch (error) {
     console.error('❌ [AUDIT-ERROR] Erro na auditoria ultra-completa:', {
       error: error.message,
@@ -297,7 +297,7 @@ async function createCompleteAuditEntry(
       tenantId,
       stack: error.stack
     });
-    
+
     // ✅ FALLBACK AUDITORIA SIMPLES MELHORADA
     try {
       const fallbackMetadata = {
@@ -312,14 +312,14 @@ async function createCompleteAuditEntry(
           user_email: req.user?.email || null
         }
       };
-      
+
       const fallbackQuery = `
         INSERT INTO "${schemaName}".ticket_history 
         (tenant_id, ticket_id, action_type, description, performed_by_name, created_at, metadata, is_visible, is_active)
         VALUES ($1, $2, $3, $4, $5, NOW(), $6, true, true)
         RETURNING id, action_type, description, created_at
       `;
-      
+
       const fallbackResult = await pool.query(fallbackQuery, [
         tenantId,
         ticketId,
@@ -328,10 +328,10 @@ async function createCompleteAuditEntry(
         userName || 'Sistema',
         JSON.stringify(fallbackMetadata)
       ]);
-      
+
       console.log(`⚠️ [AUDIT-FALLBACK] Entrada simplificada criada para ${actionType}:`, fallbackResult.rows[0]?.id);
       return fallbackResult;
-      
+
     } catch (fallbackError) {
       console.error('❌ [AUDIT-CRITICAL] Falha total na auditoria:', {
         originalError: error.message,
@@ -869,7 +869,7 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
         for (const field of meaningfulChanges) {
           const oldVal = currentTicket[field];
           const newVal = backendUpdates[field];
-          
+
           await createCompleteAuditEntry(
             await import('../../db').then(m => m.pool),
             `tenant_${req.user.tenantId.replace(/-/g, '_')}`,
@@ -2466,17 +2466,14 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.description,
         th.performed_by,
         th.performed_by_name,
-        COALESCE(th.actor_id, th.performed_by) as actor_id,
-        COALESCE(th.actor_type, 'user') as actor_type,
-        COALESCE(th.actor_name, th.performed_by_name, 'Sistema') as actor_name,
+        th.ip_address,
+        th.user_agent,
+        th.session_id,
         th.old_value,
         th.new_value,
         th.field_name,
         th.created_at,
-        th.ip_address,
-        th.user_agent,
-        th.session_id,
-        COALESCE(th.metadata, '{}') as metadata,
+        th.metadata,
         COALESCE(th.is_visible, true) as is_visible,
         'primary' as priority_level,
         'Histórico do Sistema' as category_name,
@@ -2484,13 +2481,13 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         1 as sort_priority
       FROM "${schemaName}".ticket_history th
       WHERE th.ticket_id = $1 AND th.tenant_id = $2 AND COALESCE(th.is_active, true) = true
-      
+
       UNION ALL
-      
+
       -- 🔥 AUDITORIA DE CRIAÇÃO DO TICKET (baseada na tabela tickets)
       SELECT 
         'ticket_creation' as source,
-        t.id || '_creation' as id,
+        CONCAT('ticket-creation-', t.id) as id,
         'ticket_created' as action_type,
         'Ticket criado: ' || t.subject || 
         CASE WHEN t.description IS NOT NULL AND t.description != '' 
@@ -2498,16 +2495,13 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
              ELSE '' END as description,
         COALESCE(t.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
         COALESCE(u_creator.first_name || ' ' || u_creator.last_name, u_creator.email, 'Sistema Automatizado') as performed_by_name,
-        COALESCE(t.created_by, '00000000-0000-0000-0000-000000000000') as actor_id,
-        'user' as actor_type,
-        COALESCE(u_creator.first_name || ' ' || u_creator.last_name, u_creator.email, 'Sistema Automatizado') as actor_name,
-        null as old_value,
-        t.subject as new_value,
-        'ticket_subject' as field_name,
-        t.created_at,
         null as ip_address,
         null as user_agent,
         null as session_id,
+        t.subject as old_value,
+        t.subject as new_value,
+        'ticket_subject' as field_name,
+        t.created_at,
         json_build_object(
           'ticket_number', t.number,
           'initial_status', t.status,
@@ -2526,9 +2520,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       FROM "${schemaName}".tickets t
       LEFT JOIN public.users u_creator ON t.created_by = u_creator.id
       WHERE t.id = $1 AND t.tenant_id = $2
-      
+
       UNION ALL
-      
+
       -- 🔥 AÇÕES INTERNAS DETALHADAS (ticket_internal_actions)
       SELECT 
         'internal_action' as source,
@@ -2542,9 +2536,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         END as description,
         tia.agent_id as performed_by,
         COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Agente Desconhecido') as performed_by_name,
-        tia.agent_id as actor_id,
-        'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Agente Desconhecido') as actor_name,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
         CASE 
           WHEN tia.start_time IS NOT NULL THEN TO_CHAR(tia.start_time, 'DD/MM/YYYY HH24:MI')
           ELSE COALESCE(tia.status, 'pendente')
@@ -2555,9 +2549,6 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         END as new_value,
         'internal_action' as field_name,
         tia.created_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
         json_build_object(
           'action_number', tia.action_number,
           'estimated_hours', COALESCE(tia.estimated_hours, 0),
@@ -2580,9 +2571,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
       WHERE tia.ticket_id = $1 AND tia.tenant_id = $2
-      
+
       UNION ALL
-      
+
       -- 🔥 NOTAS DETALHADAS (ticket_notes) - INCLUINDO EXCLUÍDAS
       SELECT 
         'note' as source,
@@ -2600,16 +2591,13 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         CASE WHEN LENGTH(tn.content) > 150 THEN '...' ELSE '' END as description,
         tn.created_by as performed_by,
         COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as performed_by_name,
-        tn.created_by as actor_id,
-        'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as actor_name,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
         null as old_value,
         CASE WHEN tn.is_active = false THEN '[NOTA EXCLUÍDA]' ELSE tn.content END as new_value,
         'note_content' as field_name,
         CASE WHEN tn.is_active = false THEN tn.updated_at ELSE tn.created_at END as created_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
         json_build_object(
           'note_type', COALESCE(tn.note_type, 'general'),
           'is_internal', tn.is_internal,
@@ -2632,9 +2620,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       FROM "${schemaName}".ticket_notes tn
       LEFT JOIN public.users u ON tn.created_by = u.id
       WHERE tn.ticket_id = $1 AND tn.tenant_id = $2
-      
+
       UNION ALL
-      
+
       -- 🔥 ANEXOS DETALHADOS (ticket_attachments) - INCLUINDO EXCLUÍDOS
       SELECT 
         'attachment' as source,
@@ -2651,16 +2639,13 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         CASE WHEN ta.description IS NOT NULL AND ta.description != '' THEN ', Descrição: ' || ta.description ELSE '' END || ')' as description,
         ta.created_by as performed_by,
         COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as performed_by_name,
-        ta.created_by as actor_id,
-        'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as actor_name,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
         null as old_value,
         CASE WHEN ta.is_active = false THEN '[ANEXO EXCLUÍDO]' ELSE ta.file_name END as new_value,
         'attachment' as field_name,
         CASE WHEN ta.is_active = false THEN ta.updated_at ELSE ta.created_at END as created_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
         json_build_object(
           'file_name', ta.file_name,
           'file_size', ta.file_size,
@@ -2680,9 +2665,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       FROM "${schemaName}".ticket_attachments ta
       LEFT JOIN public.users u ON ta.created_by = u.id
       WHERE ta.ticket_id = $1 AND ta.tenant_id = $2
-      
+
       UNION ALL
-      
+
       -- 🔥 COMUNICAÇÕES EXTERNAS (ticket_communications) 
       SELECT 
         'communication' as source,
@@ -2699,16 +2684,13 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
              ELSE '' END as description,
         COALESCE(tc.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
         COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Comunicação') as performed_by_name,
-        COALESCE(tc.created_by, '00000000-0000-0000-0000-000000000000') as actor_id,
-        'system' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Comunicação') as actor_name,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
         COALESCE(tc.from_address, '') as old_value,
         COALESCE(tc.to_address, '') as new_value,
         'communication' as field_name,
         tc.created_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
         json_build_object(
           'communication_type', COALESCE(tc.communication_type, 'unknown'),
           'direction', COALESCE(tc.direction, 'unknown'),
@@ -2728,9 +2710,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       FROM "${schemaName}".ticket_communications tc
       LEFT JOIN public.users u ON tc.created_by = u.id
       WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND COALESCE(tc.is_active, true) = true
-      
+
       UNION ALL
-      
+
       -- 🔥 RELACIONAMENTOS ENTRE TICKETS (ticket_relationships)
       SELECT 
         'relationship' as source,
@@ -2745,16 +2727,13 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         CASE WHEN tr.description IS NOT NULL AND tr.description != '' THEN ' - ' || tr.description ELSE '' END as description,
         COALESCE(tr.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
         COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Relacionamentos') as performed_by_name,
-        COALESCE(tr.created_by, '00000000-0000-0000-0000-000000000000') as actor_id,
-        'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Relacionamentos') as actor_name,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
         tr.source_ticket_id::text as old_value,
         tr.target_ticket_id::text as new_value,
         'ticket_relationship' as field_name,
         tr.created_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
         json_build_object(
           'relationship_type', COALESCE(tr.relationship_type, 'unknown'),
           'source_ticket_id', tr.source_ticket_id,
@@ -2771,9 +2750,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       FROM "${schemaName}".ticket_relationships tr
       LEFT JOIN public.users u ON tr.created_by = u.id
       WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1) AND tr.tenant_id = $2
-      
+
       UNION ALL
-      
+
       -- 🔥 AUDITORIA DE EDIÇÕES DO TICKET (baseada em updated_at vs created_at)
       SELECT 
         'ticket_edit_detection' as source,
@@ -2782,16 +2761,13 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         'Ticket editado - detecção automática baseada em timestamp de atualização' as description,
         COALESCE(t.updated_by, t.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
         COALESCE(u_editor.first_name || ' ' || u_editor.last_name, u_editor.email, 'Editor Desconhecido') as performed_by_name,
-        COALESCE(t.updated_by, t.created_by) as actor_id,
-        'user' as actor_type,
-        COALESCE(u_editor.first_name || ' ' || u_editor.last_name, u_editor.email, 'Editor Desconhecido') as actor_name,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
         TO_CHAR(t.created_at, 'DD/MM/YYYY HH24:MI:SS') as old_value,
         TO_CHAR(t.updated_at, 'DD/MM/YYYY HH24:MI:SS') as new_value,
         'ticket_last_modified' as field_name,
         t.updated_at,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
         json_build_object(
           'detection_method', 'timestamp_comparison',
           'created_at', t.created_at,
@@ -2810,7 +2786,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       LEFT JOIN public.users u_editor ON COALESCE(t.updated_by, t.created_by) = u_editor.id
       WHERE t.id = $1 AND t.tenant_id = $2 
         AND t.updated_at > t.created_at + INTERVAL '1 second'
-      
+
       -- ✅ ORDENAÇÃO CRONOLÓGICA REVERSA COM PRIORIDADE DE SISTEMA
       ORDER BY created_at DESC, sort_priority ASC, source ASC
     `;
@@ -2844,7 +2820,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         actor_name: row.actor_name || row.performed_by_name || 'Sistema Automatizado',
         action_type: row.action_type || 'unknown_action',
         description: row.description || 'Ação não documentada',
-        
+
         // ✅ METADATA ENRIQUECIDO
         metadata: {
           ...parsedMetadata,
@@ -2856,7 +2832,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           activity_group: row.activity_group,
           sort_priority: row.sort_priority
         },
-        
+
         // ✅ FORMATAÇÃO TEMPORAL BRASILEIRA
         display_time: new Date(row.created_at).toLocaleString('pt-BR', {
           timeZone: 'America/Sao_Paulo',
@@ -2867,7 +2843,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           minute: '2-digit',
           second: '2-digit'
         }),
-        
+
         // ✅ CATEGORIZAÇÃO INTELIGENTE
         category: row.source === 'ticket_history' ? 'system' : 
                  row.source === 'ticket_creation' ? 'creation' :
@@ -2878,15 +2854,15 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
                  row.source === 'communication' ? 'external_communication' :
                  row.source === 'relationship' ? 'relationship' :
                  'other',
-        
+
         // ✅ CLASSIFICAÇÃO DE IMPACTO REFINADA
         impact_level: row.priority_level === 'primary' ? 'high' : 
                      ['internal_action', 'communication', 'relationship'].includes(row.source) ? 'medium' : 'low',
-        
+
         // ✅ TIMESTAMPS PARA ORDENAÇÃO
         timestamp_unix: new Date(row.created_at).getTime(),
         created_at_iso: new Date(row.created_at).toISOString(),
-        
+
         // ✅ INFORMAÇÕES DE DEBUG EXPANDIDAS
         debug_info: {
           source_table: row.source,
@@ -3344,15 +3320,15 @@ ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) 
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (tenantId && id) {
         const originalTicket = await storageSimple.getTicketById(tenantId, id);
         req.originalTicketState = originalTicket; // Armazenar estado original
-        
+
         // ✅ REGISTRAR TENTATIVA DE ACESSO/MODIFICAÇÃO
         const { pool } = await import('../../db');
         const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-        
+
         await createCompleteAuditEntry(
           pool, schemaName, tenantId, id, req,
           `ticket_${req.method.toLowerCase()}_attempt`,
@@ -3384,18 +3360,18 @@ ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) 
         try {
           const { id } = req.params;
           const tenantId = req.user?.tenantId;
-          
+
           if (tenantId && id) {
             const { pool } = await import('../../db');
             const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-            
+
             let responseData;
             try {
               responseData = typeof data === 'string' ? JSON.parse(data) : data;
             } catch {
               responseData = { raw_response: data };
             }
-            
+
             await createCompleteAuditEntry(
               pool, schemaName, tenantId, id, req,
               `ticket_${req.method.toLowerCase()}_completed`,
@@ -3413,7 +3389,7 @@ ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) 
           console.warn('⚠️ [AUDIT-POST-MIDDLEWARE] Erro na auditoria pós-operação:', error);
         }
       }, 100); // Delay pequeno para garantir que a operação foi concluída
-      
+
       return originalSend.call(this, data);
     };
   }
@@ -3437,7 +3413,13 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       endDateTime,
       assignedToId,
       status = 'pending',
-      is_public = false
+      is_public = false,
+      title,
+      estimated_hours,
+      agent_id,
+      planned_start_time,
+      planned_end_time,
+      priority
     } = req.body;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
