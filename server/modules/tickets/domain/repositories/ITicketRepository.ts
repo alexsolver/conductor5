@@ -65,6 +65,15 @@ export interface ITicketRepository {
     pagination: PaginationOptions, 
     tenantId: string
   ): Promise<TicketListResult>;
+
+  /**
+   * Find tickets with filters and pagination (alias for findByFilters)
+   */
+  findWithFilters(
+    filters: TicketFilters, 
+    pagination: PaginationOptions, 
+    tenantId: string
+  ): Promise<TicketListResult>;
   
   /**
    * Find all tickets for a tenant
