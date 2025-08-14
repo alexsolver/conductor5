@@ -213,28 +213,90 @@ export default function TenantAdminIntegrations() {
     }
   });
 
-  // Função para testar uma integração específica
+  // ✅ CRITICAL FIX: Função para testar uma integração específica com melhor tratamento de erros
   const handleTestIntegration = async (integrationId: string) => {
     setTestingIntegrationId(integrationId);
+    
     try {
       console.log(`🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para: ${integrationId}`);
 
-      const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      // ✅ VALIDATION: Check for valid integration ID
+      if (!integrationId || typeof integrationId !== 'string') {
+        throw new Error('ID de integração inválido');
+      }
 
+      // ✅ VALIDATION: Check for access token
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        throw new Error('Token de acesso não encontrado. Faça login novamente.');
+      }
+
+      // ✅ SAFETY: Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 30000); // 30 second timeout
+
+      let response;
+      try {
+        response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'Accept': 'application/json'
+          },
+          signal: controller.signal
+        });
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Timeout na requisição - servidor não respondeu em 30 segundos');
+        }
+        
+        throw new Error(`Erro de rede: ${fetchError.message}`);
+      }
+
+      clearTimeout(timeoutId);
       console.log(`🧪 [TESTE-INTEGRAÇÃO] Response status: ${response.status}`);
 
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      const isJSON = contentType && contentType.includes('application/json');
+      // ✅ CRITICAL FIX: Better content type checking
+      const contentType = response.headers.get('content-type') || '';
+      const isJSON = contentType.includes('application/json');
 
-      if (response.ok && isJSON) {
-        const result = await response.json();
+      if (!isJSON) {
+        // ✅ CRITICAL FIX: Handle non-JSON responses better
+        const textResponse = await response.text();
+        console.error(`❌ [TESTE-INTEGRAÇÃO] Non-JSON response received:`, {
+          status: response.status,
+          contentType,
+          bodyStart: textResponse.substring(0, 300)
+        });
+
+        // Check if it's an HTML error page
+        if (textResponse.includes('<!DOCTYPE html>') || textResponse.includes('<html>')) {
+          throw new Error('Erro interno do servidor - página de erro retornada');
+        }
+
+        throw new Error(`Resposta inválida do servidor (${response.status})`);
+      }
+
+      // ✅ SAFETY: Parse JSON with error handling
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.error('❌ [TESTE-INTEGRAÇÃO] JSON parse error:', jsonError);
+        throw new Error('Resposta JSON inválida do servidor');
+      }
+
+      // ✅ VALIDATION: Check for expected response structure
+      if (typeof result !== 'object' || result === null) {
+        throw new Error('Estrutura de resposta inválida');
+      }
+
+      if (response.ok) {
         console.log(`✅ [TESTE-INTEGRAÇÃO] Sucesso:`, result);
 
         toast({
@@ -242,23 +304,9 @@ export default function TenantAdminIntegrations() {
           description: result.message || "A integração está funcionando corretamente.",
         });
       } else {
-        let errorMessage = 'Falha ao testar a integração.';
-        
-        if (isJSON) {
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorMessage;
-          } catch (e) {
-            console.error('Error parsing JSON:', e);
-          }
-        } else {
-          // Handle non-JSON responses (like HTML error pages)
-          const textResponse = await response.text();
-          console.error(`❌ [TESTE-INTEGRAÇÃO] Non-JSON response:`, textResponse.substring(0, 200));
-          errorMessage = `Erro interno do servidor (Status: ${response.status})`;
-        }
-
-        console.error(`❌ [TESTE-INTEGRAÇÃO] Erro:`, errorMessage);
+        // ✅ SAFETY: Handle error responses properly
+        const errorMessage = result.message || result.error || 'Falha ao testar a integração';
+        console.error(`❌ [TESTE-INTEGRAÇÃO] Erro da API:`, result);
 
         toast({
           title: "Erro no teste",
@@ -267,10 +315,18 @@ export default function TenantAdminIntegrations() {
         });
       }
     } catch (error) {
-      console.error('❌ [TESTE-INTEGRAÇÃO] Erro de conexão:', error);
+      console.error('❌ [TESTE-INTEGRAÇÃO] Erro durante teste:', error);
+      
+      let errorMessage = 'Erro inesperado durante o teste';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
       toast({
-        title: "Erro de conexão",
-        description: "Não foi possível conectar com o servidor.",
+        title: "Erro no teste de integração",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

@@ -1433,29 +1433,54 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`🔍 [GET-CONFIG] Buscando configuração: tenant=${tenantId}, integration=${integrationId}`);
 
+      // ✅ VALIDATION: Input validation
+      if (!tenantId || typeof tenantId !== 'string') {
+        console.error(`❌ [GET-CONFIG] Invalid tenantId: ${tenantId}`);
+        return null;
+      }
+
+      if (!integrationId || typeof integrationId !== 'string') {
+        console.error(`❌ [GET-CONFIG] Invalid integrationId: ${integrationId}`);
+        return null;
+      }
+
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // Check if integrations table exists
-      const tableExists = await tenantDb.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'integrations'
-        );
-      `);
+      // ✅ SAFETY: Check if integrations table exists
+      let tableExists;
+      try {
+        const tableExistsResult = await tenantDb.execute(sql`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = ${schemaName} AND table_name = 'integrations'
+          );
+        `);
+        tableExists = tableExistsResult.rows?.[0]?.exists;
+      } catch (tableCheckError) {
+        console.error(`❌ [GET-CONFIG] Error checking table existence:`, tableCheckError);
+        return null;
+      }
 
-      if (!tableExists.rows?.[0]?.exists) {
+      if (!tableExists) {
         console.log(`❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`);
         return null;
       }
 
-      const result = await tenantDb.execute(sql`
-        SELECT id, name, description, category, icon, status, config, features, created_at, updated_at
-        FROM ${sql.identifier(schemaName)}.integrations 
-        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
-        LIMIT 1
-      `);
+      // ✅ SAFETY: Execute query with proper error handling
+      let result;
+      try {
+        result = await tenantDb.execute(sql`
+          SELECT id, name, description, category, icon, status, config, features, created_at, updated_at
+          FROM ${sql.identifier(schemaName)}.integrations 
+          WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+          LIMIT 1
+        `);
+      } catch (queryError) {
+        console.error(`❌ [GET-CONFIG] Database query error:`, queryError);
+        return null;
+      }
 
       console.log(`🔍 [GET-CONFIG] Query result:`, { rowsFound: result.rows?.length || 0 });
 
@@ -1466,7 +1491,7 @@ export class DatabaseStorage implements IStorage {
 
       const integration = result.rows[0];
 
-      // Parse config if it's a string
+      // ✅ SAFETY: Parse config if it's a string with proper error handling
       let parsedConfig = integration.config;
       if (typeof integration.config === 'string') {
         try {
@@ -1475,6 +1500,11 @@ export class DatabaseStorage implements IStorage {
           console.error(`❌ [GET-CONFIG] Erro ao fazer parse do config:`, parseError);
           parsedConfig = {}; // Default to empty object on parse error
         }
+      }
+
+      // ✅ VALIDATION: Ensure config is an object
+      if (parsedConfig === null || typeof parsedConfig !== 'object') {
+        parsedConfig = {};
       }
 
       const finalResult = {
@@ -1490,7 +1520,7 @@ export class DatabaseStorage implements IStorage {
       
       return finalResult;
     } catch (error) {
-      console.error('❌ [GET-CONFIG] Erro ao buscar configuração:', error);
+      console.error('❌ [GET-CONFIG] Critical error in getTenantIntegrationConfig:', error);
       return null; // Return null on error as per original behavior
     }
   }
