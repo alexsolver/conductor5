@@ -28,8 +28,34 @@ export default function Customers() {
     retry: false,
   });
 
-  const customers = customersData?.customers || [];
-  const total = customersData?.total || customers.length;
+  // Enhanced data structure handling for customers
+  let customers = [];
+  let total = 0;
+  
+  if (customersData) {
+    // Handle direct customers array
+    if (Array.isArray(customersData.customers)) {
+      customers = customersData.customers;
+      total = customersData.total || customers.length;
+    }
+    // Handle nested data structure
+    else if (customersData.data?.customers && Array.isArray(customersData.data.customers)) {
+      customers = customersData.data.customers;
+      total = customersData.data.total || customers.length;
+    }
+    // Fallback - treat whole response as customers array
+    else if (Array.isArray(customersData)) {
+      customers = customersData;
+      total = customers.length;
+    }
+  }
+  
+  console.log('[CUSTOMERS] Data structure:', { 
+    hasData: !!customersData, 
+    customersCount: customers.length,
+    structure: customersData ? Object.keys(customersData) : 'no data',
+    sampleCustomer: customers[0] || 'none'
+  });
 
   // Standardized field access helper with validation and defaults
   const getCustomerField = (customer: any, field: string) => {

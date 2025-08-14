@@ -300,9 +300,32 @@ export default function Beneficiaries() {
     },
   });
 
-  // Derived values
-  const beneficiaries = Array.isArray(beneficiariesData?.data?.beneficiaries) ? beneficiariesData.data.beneficiaries : [];
-  const pagination = beneficiariesData?.data?.pagination || { total: 0, totalPages: 0 };
+  // Derived values - handle both nested and direct data structures
+  let beneficiaries = [];
+  let pagination = { total: 0, totalPages: 0 };
+  
+  if (beneficiariesData) {
+    // Try nested structure first (data.beneficiaries)
+    if (beneficiariesData.data?.beneficiaries && Array.isArray(beneficiariesData.data.beneficiaries)) {
+      beneficiaries = beneficiariesData.data.beneficiaries;
+      pagination = beneficiariesData.data.pagination || pagination;
+    }
+    // Fallback to direct beneficiaries array
+    else if (Array.isArray(beneficiariesData.beneficiaries)) {
+      beneficiaries = beneficiariesData.beneficiaries;
+      pagination = beneficiariesData.pagination || pagination;
+    }
+    // Last fallback - treat the whole data as beneficiaries array
+    else if (Array.isArray(beneficiariesData)) {
+      beneficiaries = beneficiariesData;
+    }
+  }
+  
+  console.log('[BENEFICIARIES] Data structure:', { 
+    hasData: !!beneficiariesData, 
+    beneficiariesCount: beneficiaries.length,
+    structure: beneficiariesData ? Object.keys(beneficiariesData) : 'no data'
+  });
 
   // Filter beneficiaries based on search term
   const filteredBeneficiaries = useMemo(() => {

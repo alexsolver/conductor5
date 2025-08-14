@@ -71,7 +71,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
-    const db = schemaManager.getDb();
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const result = await db
       .update(locations)
       .set({
@@ -87,7 +87,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async findAll(tenantId: string, limit?: number, offset?: number): Promise<Location[]> {
-    const db = schemaManager.getDb();
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const query = db
       .select()
       .from(locations)
@@ -124,7 +124,8 @@ export class DrizzleLocationRepository implements ILocationRepository {
     const limit = Math.min(100, criteria.limit || 20);
     const offset = (page - 1) * limit;
 
-    const db = schemaManager.getDb(); const [results, totalResults] = await Promise.all([
+    const { db } = await schemaManager.getTenantDb(criteria.tenantId);
+    const [results, totalResults] = await Promise.all([
       db.select()
         .from(locations)
         .where(and(...conditions))
