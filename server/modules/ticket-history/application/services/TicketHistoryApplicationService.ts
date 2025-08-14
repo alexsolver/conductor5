@@ -174,7 +174,7 @@ export class TicketHistoryApplicationService {
 
     try {
       // Create history data using domain service
-      const historyData = this.ticketHistoryDomainService.createActionHistory(
+      const historyData = this.ticketHistoryDomainService.createInternalActionHistory(
         params.ticketId,
         params.actionType,
         params.description || `${params.actionType} performed`,
