@@ -172,8 +172,14 @@ export class DrizzleTicketRepository implements ITicketRepository {
       // Calculate offset
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Build order by
-      const orderColumn = tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt;
+      // Build order by with fallback for invalid sort columns
+      let orderColumn;
+      try {
+        orderColumn = tickets[pagination.sortBy as keyof typeof tickets];
+      } catch (e) {
+        orderColumn = tickets.createdAt; // Safe fallback
+      }
+      if (!orderColumn) orderColumn = tickets.createdAt;
       const orderDirection = pagination.sortOrder === 'asc' ? asc : desc;
 
       // Fetch paginated results
