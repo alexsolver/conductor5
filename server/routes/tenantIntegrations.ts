@@ -333,7 +333,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
     try {
       const importResult = await import('../storage-simple');
       storage = importResult.storage;
-      
+
       if (!storage) {
         throw new Error('Storage instance not available');
       }
@@ -372,6 +372,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
 
         // ✅ VALIDATION: Check required configuration fields
         if (!config || typeof config !== 'object') {
+          console.log(`❌ [TELEGRAM-TEST] Invalid config object`);
           return res.status(400).json({
             success: false,
             message: 'Configuração da integração inválida ou ausente'
@@ -379,6 +380,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
         }
 
         if (!config.telegramBotToken || typeof config.telegramBotToken !== 'string') {
+          console.log(`❌ [TELEGRAM-TEST] Missing bot token`);
           return res.status(400).json({
             success: false,
             message: 'Bot Token não configurado. Configure o Bot Token para continuar.'
@@ -386,6 +388,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
         }
 
         if (!config.telegramChatId || typeof config.telegramChatId !== 'string') {
+          console.log(`❌ [TELEGRAM-TEST] Missing chat ID`);
           return res.status(400).json({
             success: false,
             message: 'Chat ID não configurado. Configure o Chat ID para continuar.'
@@ -394,6 +397,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
 
         // ✅ VALIDATION: Basic bot token format validation
         if (!config.telegramBotToken.includes(':')) {
+          console.log(`❌ [TELEGRAM-TEST] Invalid token format`);
           return res.status(400).json({
             success: false,
             message: 'Formato do Bot Token inválido. O token deve ter o formato "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"'
@@ -404,7 +408,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
         const testMessage = `🧪 Teste de Integração Telegram\n\n✅ Tenant: ${tenantId}\n📅 Data: ${new Date().toLocaleString('pt-BR')}\n🔧 Status: Configuração validada com sucesso!\n\nSe você recebeu esta mensagem, a integração está funcionando corretamente.`;
 
         console.log(`📤 [TELEGRAM-TEST] Sending test message to Telegram API`);
-        
+
         // ✅ CRITICAL FIX: Proper fetch with timeout and comprehensive error handling
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased timeout to 15s
@@ -428,14 +432,14 @@ router.post('/:integrationId/test', async (req: any, res) => {
         } catch (fetchError: any) {
           clearTimeout(timeoutId);
           console.error(`❌ [TELEGRAM-TEST] Fetch error:`, fetchError);
-          
+
           if (fetchError.name === 'AbortError') {
             return res.status(408).json({
               success: false,
               message: 'Timeout na conexão com Telegram API. Verifique sua conexão de internet.'
             });
           }
-          
+
           return res.status(500).json({
             success: false,
             message: 'Erro de conectividade com Telegram API',
@@ -462,7 +466,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
           }
 
           console.log(`✅ [TELEGRAM-TEST] Mensagem enviada com sucesso:`, telegramResult);
-          
+
           return res.status(200).json({ 
             success: true, 
             message: '✅ Teste do Telegram realizado com sucesso! Mensagem enviada para o chat configurado.',
@@ -482,9 +486,9 @@ router.post('/:integrationId/test', async (req: any, res) => {
               description: `HTTP ${telegramResponse.status} - ${telegramResponse.statusText}`
             };
           }
-          
+
           console.error(`❌ [TELEGRAM-TEST] API error:`, telegramError);
-          
+
           // ✅ IMPROVED: Better error messages based on common Telegram API errors
           let userFriendlyMessage = 'Erro na API do Telegram';
           if (telegramError.error_code === 401) {
@@ -496,7 +500,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
           } else if (telegramError.description) {
             userFriendlyMessage = `Erro do Telegram: ${telegramError.description}`;
           }
-          
+
           return res.status(400).json({ 
             success: false, 
             message: userFriendlyMessage,
@@ -509,7 +513,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
         }
       } catch (telegramError: any) {
         console.error(`❌ [TELEGRAM-TEST] Unexpected error:`, telegramError);
-        
+
         return res.status(500).json({ 
           success: false, 
           message: 'Erro inesperado ao testar integração Telegram',
@@ -565,7 +569,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
     }
   } catch (error: any) {
     console.error('❌ [TEST-INTEGRATION] Critical system error:', error);
-    
+
     // ✅ CRITICAL FIX: Ensure JSON response even in catastrophic failure
     try {
       res.setHeader('Content-Type', 'application/json');

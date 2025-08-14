@@ -266,6 +266,12 @@ export default function TenantAdminIntegrations() {
       const contentType = response.headers.get('content-type') || '';
       const isJSON = contentType.includes('application/json');
 
+      console.log(`🔍 [TESTE-INTEGRAÇÃO] Response details:`, {
+        status: response.status,
+        contentType,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
       if (!isJSON) {
         // ✅ CRITICAL FIX: Handle non-JSON responses better
         let textResponse = '';
@@ -285,7 +291,7 @@ export default function TenantAdminIntegrations() {
         // ✅ IMPROVED: Better error classification
         if (textResponse.includes('<!DOCTYPE html>') || textResponse.includes('<html>')) {
           if (textResponse.includes('createHotContext') || textResponse.includes('vite')) {
-            throw new Error('Erro interno do sistema - o servidor retornou uma página de desenvolvimento. Tente recarregar a página.');
+            throw new Error('Erro interno do sistema - o servidor retornou uma página de desenvolvimento. Verifique se o servidor backend está funcionando corretamente.');
           } else {
             throw new Error('Erro interno do servidor - uma página de erro foi retornada ao invés da resposta esperada.');
           }
