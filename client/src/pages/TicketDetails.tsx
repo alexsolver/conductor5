@@ -1824,6 +1824,14 @@ const TicketDetails = React.memo(() => {
               }}
             />
 
+            {/* DEBUG: Show attachments data length */}
+            <div className="bg-yellow-100 p-2 text-xs border rounded mb-4">
+              DEBUG: attachmentsData.length = {attachmentsData ? attachmentsData.length : 'undefined'}
+              <br />DEBUG: ticketAttachments = {ticketAttachments ? 'exists' : 'null/undefined'}
+              <br />DEBUG: ticketAttachments.success = {ticketAttachments?.success ? 'true' : 'false'}
+              <br />DEBUG: ticketAttachments.data length = {Array.isArray(ticketAttachments?.data) ? ticketAttachments.data.length : 'not array'}
+            </div>
+
             {/* Existing Attachments List */}
             {(attachmentsData && attachmentsData.length > 0) && (
               <div className="space-y-3">
@@ -1993,6 +2001,14 @@ const TicketDetails = React.memo(() => {
               </Button>
             </div>
 
+            {/* DEBUG: Show notes data length */}
+            <div className="bg-yellow-100 p-2 text-xs border rounded mb-4">
+              DEBUG: notesData.length = {notesData.length}
+              <br />DEBUG: ticketNotes = {ticketNotes ? 'exists' : 'null/undefined'}
+              <br />DEBUG: ticketNotes.success = {ticketNotes?.success ? 'true' : 'false'}
+              <br />DEBUG: ticketNotes.data length = {Array.isArray(ticketNotes?.data) ? ticketNotes.data.length : 'not array'}
+            </div>
+
             {/* Notes Timeline */}
             {notesData.length > 0 && (
               <div className="space-y-4">
@@ -2072,6 +2088,14 @@ const TicketDetails = React.memo(() => {
                 </div>
               </div>
 
+              {/* DEBUG: Show communications data length */}
+              <div className="bg-yellow-100 p-2 text-xs border rounded mb-4">
+                DEBUG: communicationsData.length = {communicationsData.length}
+                <br />DEBUG: ticketCommunications = {ticketCommunications ? 'exists' : 'null/undefined'}
+                <br />DEBUG: ticketCommunications.success = {ticketCommunications?.success ? 'true' : 'false'}
+                <br />DEBUG: ticketCommunications.data length = {Array.isArray(ticketCommunications?.data) ? ticketCommunications.data.length : 'not array'}
+              </div>
+              
               {communicationsData.slice().reverse().map((comm: any) => (
                 <Card key={comm.id} className="p-4">
                   <div className="flex items-start gap-4">
@@ -2415,6 +2439,14 @@ const TicketDetails = React.memo(() => {
                   Nova Ação
                 </Button>
               </div>
+            </div>
+
+            {/* DEBUG: Show internal actions data length */}
+            <div className="bg-yellow-100 p-2 text-xs border rounded mb-4">
+              DEBUG: internalActionsData.length = {internalActionsData.length}
+              <br />DEBUG: ticketActions = {ticketActions ? 'exists' : 'null/undefined'}
+              <br />DEBUG: ticketActions.success = {ticketActions?.success ? 'true' : 'false'}
+              <br />DEBUG: ticketActions.data length = {Array.isArray(ticketActions?.data) ? ticketActions.data.length : 'not array'}
             </div>
 
             <div className="space-y-4">
