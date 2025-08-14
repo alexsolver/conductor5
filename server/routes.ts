@@ -290,12 +290,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
   
-  // ✅ Priority 1: Auth routes MUST be processed first
-  app.use('/api/auth', (req, res, next) => {
-    console.log(`[AUTH-ROUTE] Processing: ${req.method} ${req.path}`);
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }); // ✅ LEGACY authRoutes eliminated per 1qa.md
+  // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
+  console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
+  const authRoutes = (await import('./modules/auth/routes-clean')).default;
+  app.use('/api/auth', authRoutes);
+  console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
   
   // ✅ LEGACY route variables eliminated per 1qa.md
   // Clean Architecture routes are loaded dynamically above
