@@ -136,6 +136,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
         conditions.push(eq(tickets.callerId, filters.customerId));
       }
 
+      if (filters.companyId) {
+        conditions.push(eq(tickets.companyId, filters.companyId));
+      }
+
       if (filters.category) {
         conditions.push(eq(tickets.category, filters.category));
       }
@@ -279,10 +283,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
       conditions.push(eq(tickets.callerId, filters.customerId));
     }
 
-    // TODO: Re-enable companyId filter when schema is fixed
-    // if (filters.companyId) {
-    //   conditions.push(eq(tickets.companyId, filters.companyId));
-    // }
+    if (filters.companyId) {
+      conditions.push(eq(tickets.companyId, filters.companyId));
+    }
 
     if (filters.category) {
       conditions.push(eq(tickets.category, filters.category));
