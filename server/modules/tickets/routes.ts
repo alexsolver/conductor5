@@ -3784,3 +3784,4 @@ ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => 
 });
 
 export { ticketsRouter };
+export default ticketsRouter;
