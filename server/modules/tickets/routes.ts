@@ -72,7 +72,7 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
   }
 }
 
-// 🚨 COMPLIANCE: Função auxiliar para auditoria completa conforme 1qa.md
+// 🚨 COMPLIANCE: Função auxiliar para auditoria ULTRA-COMPLETA conforme 1qa.md
 async function createCompleteAuditEntry(
   pool: any,
   schemaName: string,
@@ -92,59 +92,159 @@ async function createCompleteAuditEntry(
     const userAgent = getUserAgent(req);
     const sessionId = getSessionId(req);
 
-    // Get user name with comprehensive fallback
-    let userName = 'Sistema';
+    // ✅ CAPTURA ULTRA-COMPLETA DE DADOS DO USUÁRIO
+    let userName = 'Sistema Automatizado';
+    let userEmail = null;
     let actorType = 'system';
     let actorId = null;
     
     if (req.user?.id) {
       try {
-        const userQuery = `SELECT first_name || ' ' || last_name as full_name, email FROM public.users WHERE id = $1`;
+        const userQuery = `
+          SELECT 
+            COALESCE(first_name || ' ' || last_name, first_name, last_name, email) as full_name,
+            email,
+            role,
+            employment_type,
+            created_at as user_created_at,
+            last_login_at
+          FROM public.users 
+          WHERE id = $1
+        `;
         const userResult = await pool.query(userQuery, [req.user.id]);
         if (userResult.rows[0]) {
-          userName = userResult.rows[0].full_name || userResult.rows[0].email || req.user.email || 'Usuário';
+          const userData = userResult.rows[0];
+          userName = userData.full_name || userData.email || 'Usuário';
+          userEmail = userData.email;
           actorType = 'user';
           actorId = req.user.id;
+          
+          // Enriquecer metadata com dados do usuário
+          metadata.user_context = {
+            role: userData.role,
+            employment_type: userData.employment_type,
+            user_created_at: userData.user_created_at,
+            last_login_at: userData.last_login_at
+          };
         }
       } catch (userError) {
-        console.warn('⚠️ Erro ao buscar dados do usuário:', userError);
+        console.warn('⚠️ [AUDIT-WARNING] Erro ao buscar dados detalhados do usuário:', userError);
         userName = req.user.email || 'Usuário Desconhecido';
+        userEmail = req.user.email;
         actorType = 'user';
         actorId = req.user.id;
       }
     }
 
-    // ✅ AUDITORIA COMPLETA - seguindo schema ticket_history completo
-    const enhancedMetadata = {
+    // ✅ CAPTURA DE CONTEXTO DO TICKET
+    let ticketContext = {};
+    try {
+      const ticketQuery = `
+        SELECT 
+          number, subject, status, priority, category, subcategory, 
+          company_id, assigned_to_id, created_at as ticket_created_at
+        FROM "${schemaName}".tickets 
+        WHERE id = $1 AND tenant_id = $2
+      `;
+      const ticketResult = await pool.query(ticketQuery, [ticketId, tenantId]);
+      if (ticketResult.rows[0]) {
+        ticketContext = {
+          ticket_number: ticketResult.rows[0].number,
+          ticket_subject: ticketResult.rows[0].subject,
+          current_status: ticketResult.rows[0].status,
+          current_priority: ticketResult.rows[0].priority,
+          current_category: ticketResult.rows[0].category,
+          current_subcategory: ticketResult.rows[0].subcategory,
+          company_id: ticketResult.rows[0].company_id,
+          assigned_to_id: ticketResult.rows[0].assigned_to_id,
+          ticket_created_at: ticketResult.rows[0].ticket_created_at
+        };
+      }
+    } catch (ticketError) {
+      console.warn('⚠️ [AUDIT-WARNING] Erro ao buscar contexto do ticket:', ticketError);
+    }
+
+    // ✅ AUDITORIA ULTRA-COMPLETA - seguindo schema ticket_history completo
+    const ultraEnhancedMetadata = {
       ...metadata,
+      // Timestamp e request info
+      audit_timestamp: new Date().toISOString(),
       request_timestamp: new Date().toISOString(),
       request_method: req.method,
       request_url: req.originalUrl,
+      request_path: req.path,
+      request_query: req.query,
       request_body_size: JSON.stringify(req.body || {}).length,
+      request_headers: {
+        content_type: req.headers['content-type'],
+        accept: req.headers['accept'],
+        origin: req.headers['origin'],
+        referer: req.headers['referer']
+      },
+      
+      // Client info expandida
       client_info: {
         ip_address: ipAddress,
         user_agent: userAgent,
-        session_id: sessionId
+        session_id: sessionId,
+        forwarded_for: req.headers['x-forwarded-for'],
+        real_ip: req.headers['x-real-ip']
       },
+      
+      // Actor info completa
       actor_info: {
         actor_id: actorId,
         actor_type: actorType,
-        actor_name: userName
+        actor_name: userName,
+        actor_email: userEmail,
+        tenant_id: tenantId
       },
+      
+      // Change details expandidas
       change_details: fieldName ? {
         field_name: fieldName,
         old_value: oldValue,
         new_value: newValue,
-        change_type: !oldValue ? 'created' : !newValue ? 'deleted' : 'modified'
+        change_type: !oldValue ? 'created' : !newValue ? 'deleted' : 'modified',
+        has_old_value: !!oldValue,
+        has_new_value: !!newValue,
+        value_types: {
+          old_value_type: oldValue ? typeof oldValue : null,
+          new_value_type: newValue ? typeof newValue : null
+        }
       } : null,
+      
+      // System context expandido
       system_context: {
         tenant_id: tenantId,
+        tenant_schema: schemaName,
         ticket_id: ticketId,
-        action_category: actionType.split('_')[0], // ticket, field, status, etc.
-        action_subcategory: actionType.split('_').slice(1).join('_')
+        action_type: actionType,
+        action_category: actionType.split('_')[0],
+        action_subcategory: actionType.split('_').slice(1).join('_'),
+        environment: process.env.NODE_ENV || 'development',
+        server_timestamp: Date.now(),
+        process_id: process.pid
+      },
+      
+      // Ticket context
+      ticket_context: ticketContext,
+      
+      // Audit trail info
+      audit_trail: {
+        sequence_id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        source: 'createCompleteAuditEntry',
+        version: '2.0',
+        compliance_level: 'ultra_complete'
+      },
+      
+      // Performance metrics
+      performance: {
+        audit_creation_start: Date.now()
       }
     };
 
+    // ✅ INSERT ULTRA-DETALHADO
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_history 
       (tenant_id, ticket_id, action_type, performed_by, performed_by_name, 
@@ -152,63 +252,94 @@ async function createCompleteAuditEntry(
        ip_address, user_agent, session_id, created_at, metadata,
        actor_id, actor_type, actor_name, is_visible, is_active)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13, $14, $15, $16, $17, $18)
-      RETURNING id, action_type, description, created_at
+      RETURNING id, action_type, description, created_at, metadata
     `;
 
+    // Finalizar métricas de performance
+    ultraEnhancedMetadata.performance.audit_creation_end = Date.now();
+    ultraEnhancedMetadata.performance.audit_creation_duration_ms = 
+      ultraEnhancedMetadata.performance.audit_creation_end - ultraEnhancedMetadata.performance.audit_creation_start;
+
     const result = await pool.query(insertQuery, [
-      tenantId,                                    // $1
-      ticketId,                                    // $2
-      actionType,                                  // $3
-      actorId,                                     // $4 - performed_by
-      userName,                                    // $5 - performed_by_name
-      description,                                 // $6
-      fieldName || null,                          // $7
-      oldValue || null,                           // $8
-      newValue || null,                           // $9
-      ipAddress,                                  // $10
-      userAgent,                                  // $11
-      sessionId,                                  // $12
-      JSON.stringify(enhancedMetadata),           // $13 - metadata
-      actorId,                                    // $14 - actor_id
-      actorType,                                  // $15 - actor_type
-      userName,                                   // $16 - actor_name
-      true,                                       // $17 - is_visible
-      true                                        // $18 - is_active
+      tenantId,                                           // $1
+      ticketId,                                           // $2
+      actionType,                                         // $3
+      actorId,                                            // $4 - performed_by
+      userName,                                           // $5 - performed_by_name
+      description,                                        // $6
+      fieldName || null,                                  // $7
+      oldValue || null,                                   // $8
+      newValue || null,                                   // $9
+      ipAddress,                                          // $10
+      userAgent,                                          // $11
+      sessionId,                                          // $12
+      JSON.stringify(ultraEnhancedMetadata),              // $13 - metadata
+      actorId,                                            // $14 - actor_id
+      actorType,                                          // $15 - actor_type
+      userName,                                           // $16 - actor_name
+      true,                                               // $17 - is_visible
+      true                                                // $18 - is_active
     ]);
 
-    console.log(`✅ [AUDIT-COMPLETE] Entrada criada: ${actionType} para ticket ${ticketId}`);
+    console.log(`✅ [AUDIT-ULTRA-COMPLETE] Entrada ultra-detalhada criada: ${actionType} para ticket ${ticketId}`, {
+      audit_id: result.rows[0]?.id,
+      metadata_size: JSON.stringify(ultraEnhancedMetadata).length,
+      duration_ms: ultraEnhancedMetadata.performance.audit_creation_duration_ms
+    });
+    
     return result;
     
   } catch (error) {
-    console.error('❌ [AUDIT-ERROR] Erro na auditoria completa:', {
+    console.error('❌ [AUDIT-ERROR] Erro na auditoria ultra-completa:', {
       error: error.message,
       actionType,
       ticketId,
-      tenantId
+      tenantId,
+      stack: error.stack
     });
     
-    // ✅ FALLBACK AUDITORIA SIMPLES - garantir que pelo menos algo seja registrado
+    // ✅ FALLBACK AUDITORIA SIMPLES MELHORADA
     try {
+      const fallbackMetadata = {
+        fallback_reason: 'ultra_complete_audit_failed',
+        original_error: error.message,
+        fallback_timestamp: new Date().toISOString(),
+        action_type: actionType,
+        basic_context: {
+          tenant_id: tenantId,
+          ticket_id: ticketId,
+          user_id: req.user?.id || null,
+          user_email: req.user?.email || null
+        }
+      };
+      
       const fallbackQuery = `
         INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by_name, created_at, is_visible, is_active)
-        VALUES ($1, $2, $3, $4, $5, NOW(), true, true)
-        RETURNING id
+        (tenant_id, ticket_id, action_type, description, performed_by_name, created_at, metadata, is_visible, is_active)
+        VALUES ($1, $2, $3, $4, $5, NOW(), $6, true, true)
+        RETURNING id, action_type, description, created_at
       `;
       
       const fallbackResult = await pool.query(fallbackQuery, [
         tenantId,
         ticketId,
         actionType,
-        description,
-        'Sistema'
+        description + ' [AUDITORIA SIMPLIFICADA]',
+        userName || 'Sistema',
+        JSON.stringify(fallbackMetadata)
       ]);
       
-      console.log(`⚠️ [AUDIT-FALLBACK] Entrada simples criada para ${actionType}`);
+      console.log(`⚠️ [AUDIT-FALLBACK] Entrada simplificada criada para ${actionType}:`, fallbackResult.rows[0]?.id);
       return fallbackResult;
       
     } catch (fallbackError) {
-      console.error('❌ [AUDIT-CRITICAL] Falha total na auditoria:', fallbackError);
+      console.error('❌ [AUDIT-CRITICAL] Falha total na auditoria:', {
+        originalError: error.message,
+        fallbackError: fallbackError.message,
+        actionType,
+        ticketId,
+        tenantId
+      });
       throw error; // Re-throw original error
     }
   }
@@ -2289,7 +2420,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res)
   }
 });
 
-// Get ticket history - ✅ HISTÓRICO COMPLETO conforme 1qa.md
+// Get ticket history - ✅ HISTÓRICO COMPLETO E DETALHADO conforme 1qa.md
 ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
@@ -2301,10 +2432,11 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    console.log(`🔍 [HISTORY] Buscando histórico completo para ticket: ${id}`);
+    console.log(`🔍 [HISTORY-COMPLETE] Buscando histórico ultra-detalhado para ticket: ${id}`);
 
-    // ✅ HISTÓRICO UNIFICADO - todas as ações em ordem cronológica
-    const completeHistoryQuery = `
+    // ✅ HISTÓRICO ULTRA-COMPLETO - TODAS as ações do sistema em ordem cronológica
+    const ultraCompleteHistoryQuery = `
+      -- 🔥 HISTÓRICO PRINCIPAL DO TICKET (ticket_history)
       SELECT 
         'ticket_history' as source,
         th.id,
@@ -2324,29 +2456,38 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.session_id,
         th.metadata,
         th.is_visible,
-        'primary' as priority_level
+        'primary' as priority_level,
+        'Histórico do Sistema' as category_name,
+        'system_activity' as activity_group
       FROM "${schemaName}".ticket_history th
       WHERE th.ticket_id = $1 AND th.tenant_id = $2 AND th.is_active = true
       
       UNION ALL
       
-      -- ✅ AÇÕES INTERNAS como eventos históricos
+      -- 🔥 AÇÕES INTERNAS DETALHADAS (ticket_internal_actions)
       SELECT 
         'internal_action' as source,
         tia.id,
         'internal_action_' || tia.action_type as action_type,
-        COALESCE(tia.title, '') || CASE 
-          WHEN tia.description IS NOT NULL AND tia.description != '' 
-          THEN ': ' || tia.description 
-          ELSE '' 
+        CASE 
+          WHEN tia.title IS NOT NULL AND tia.title != '' THEN 
+            tia.title || CASE WHEN tia.description IS NOT NULL AND tia.description != '' THEN ' - ' || tia.description ELSE '' END
+          ELSE 
+            'Ação Interna: ' || tia.action_type || CASE WHEN tia.description IS NOT NULL THEN ' - ' || tia.description ELSE '' END
         END as description,
         tia.agent_id as performed_by,
-        u.first_name || ' ' || u.last_name as performed_by_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
         tia.agent_id as actor_id,
         'user' as actor_type,
-        u.first_name || ' ' || u.last_name as actor_name,
-        tia.status as old_value,
-        tia.status as new_value,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
+        CASE 
+          WHEN tia.start_time IS NOT NULL THEN TO_CHAR(tia.start_time, 'DD/MM/YYYY HH24:MI')
+          ELSE tia.status 
+        END as old_value,
+        CASE 
+          WHEN tia.end_time IS NOT NULL THEN TO_CHAR(tia.end_time, 'DD/MM/YYYY HH24:MI')
+          ELSE tia.status 
+        END as new_value,
         'internal_action' as field_name,
         tia.created_at,
         null as ip_address,
@@ -2354,21 +2495,28 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         null as session_id,
         json_build_object(
           'action_number', tia.action_number,
-          'estimated_hours', tia.estimated_hours,
+          'estimated_hours', COALESCE(tia.estimated_hours, 0),
           'start_time', tia.start_time,
           'end_time', tia.end_time,
+          'planned_start_time', tia.planned_start_time,
+          'planned_end_time', tia.planned_end_time,
           'priority', tia.priority,
-          'action_type', tia.action_type
+          'status', tia.status,
+          'action_type', tia.action_type,
+          'title', tia.title,
+          'agent_id', tia.agent_id
         ) as metadata,
         true as is_visible,
-        'secondary' as priority_level
+        'secondary' as priority_level,
+        'Ação Interna' as category_name,
+        'internal_work' as activity_group
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
       WHERE tia.ticket_id = $1 AND tia.tenant_id = $2
       
       UNION ALL
       
-      -- ✅ NOTAS como eventos históricos  
+      -- 🔥 NOTAS DETALHADAS (ticket_notes)
       SELECT 
         'note' as source,
         tn.id,
@@ -2376,13 +2524,16 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           WHEN tn.is_internal THEN 'internal_added' 
           ELSE 'public_added' 
         END as action_type,
-        'Nota adicionada: ' || LEFT(tn.content, 100) || 
-        CASE WHEN LENGTH(tn.content) > 100 THEN '...' ELSE '' END as description,
+        CASE 
+          WHEN tn.is_internal THEN 'Nota Interna: ' 
+          ELSE 'Nota Pública: ' 
+        END || LEFT(tn.content, 150) || 
+        CASE WHEN LENGTH(tn.content) > 150 THEN '...' ELSE '' END as description,
         tn.created_by as performed_by,
-        u.first_name || ' ' || u.last_name as performed_by_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
         tn.created_by as actor_id,
         'user' as actor_type,
-        u.first_name || ' ' || u.last_name as actor_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
         null as old_value,
         tn.content as new_value,
         'note_content' as field_name,
@@ -2394,28 +2545,33 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           'note_type', tn.note_type,
           'is_internal', tn.is_internal,
           'is_public', tn.is_public,
-          'content_length', LENGTH(tn.content)
+          'content_length', LENGTH(tn.content),
+          'content_preview', LEFT(tn.content, 200),
+          'note_id', tn.id
         ) as metadata,
         true as is_visible,
-        'secondary' as priority_level
+        'secondary' as priority_level,
+        CASE WHEN tn.is_internal THEN 'Nota Interna' ELSE 'Nota Pública' END as category_name,
+        'communication' as activity_group
       FROM "${schemaName}".ticket_notes tn
       LEFT JOIN public.users u ON tn.created_by = u.id
       WHERE tn.ticket_id = $1 AND tn.tenant_id = $2 AND tn.is_active = true
       
       UNION ALL
       
-      -- ✅ ANEXOS como eventos históricos
+      -- 🔥 ANEXOS DETALHADOS (ticket_attachments)
       SELECT 
         'attachment' as source,
         ta.id,
         'attachment_uploaded' as action_type,
         'Anexo enviado: ' || ta.file_name || 
-        ' (' || ROUND(ta.file_size::numeric / 1024, 2) || ' KB)' as description,
+        ' (Tamanho: ' || ROUND(ta.file_size::numeric / 1024, 2) || ' KB' ||
+        CASE WHEN ta.description IS NOT NULL AND ta.description != '' THEN ', Descrição: ' || ta.description ELSE '' END || ')' as description,
         ta.created_by as performed_by,
-        u.first_name || ' ' || u.last_name as performed_by_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
         ta.created_by as actor_id,
         'user' as actor_type,
-        u.first_name || ' ' || u.last_name as actor_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
         null as old_value,
         ta.file_name as new_value,
         'attachment' as field_name,
@@ -2426,68 +2582,221 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         json_build_object(
           'file_name', ta.file_name,
           'file_size', ta.file_size,
+          'file_size_kb', ROUND(ta.file_size::numeric / 1024, 2),
           'content_type', ta.content_type,
-          'file_path', ta.file_path
+          'file_path', ta.file_path,
+          'description', ta.description,
+          'attachment_id', ta.id
         ) as metadata,
         true as is_visible,
-        'secondary' as priority_level
+        'secondary' as priority_level,
+        'Anexo' as category_name,
+        'file_management' as activity_group
       FROM "${schemaName}".ticket_attachments ta
       LEFT JOIN public.users u ON ta.created_by = u.id
       WHERE ta.ticket_id = $1 AND ta.tenant_id = $2 AND ta.is_active = true
       
+      UNION ALL
+      
+      -- 🔥 COMUNICAÇÕES (ticket_communications) 
+      SELECT 
+        'communication' as source,
+        tc.id,
+        'communication_' || tc.communication_type as action_type,
+        CASE tc.communication_type 
+          WHEN 'email' THEN 'Email ' || tc.direction || ': ' || COALESCE(tc.subject, 'Sem assunto')
+          WHEN 'phone' THEN 'Chamada telefônica ' || tc.direction
+          WHEN 'chat' THEN 'Chat ' || tc.direction
+          ELSE 'Comunicação ' || tc.direction || ' via ' || tc.communication_type
+        END || 
+        CASE WHEN tc.content IS NOT NULL AND LENGTH(tc.content) > 0 
+             THEN ' - ' || LEFT(tc.content, 100) || CASE WHEN LENGTH(tc.content) > 100 THEN '...' ELSE '' END 
+             ELSE '' END as description,
+        tc.created_by as performed_by,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
+        tc.created_by as actor_id,
+        'user' as actor_type,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
+        tc.from_address as old_value,
+        tc.to_address as new_value,
+        'communication' as field_name,
+        tc.created_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        json_build_object(
+          'communication_type', tc.communication_type,
+          'direction', tc.direction,
+          'from_address', tc.from_address,
+          'to_address', tc.to_address,
+          'subject', tc.subject,
+          'content_preview', LEFT(COALESCE(tc.content, ''), 200),
+          'message_id', tc.message_id,
+          'thread_id', tc.thread_id
+        ) as metadata,
+        true as is_visible,
+        'secondary' as priority_level,
+        'Comunicação' as category_name,
+        'external_communication' as activity_group
+      FROM "${schemaName}".ticket_communications tc
+      LEFT JOIN public.users u ON tc.created_by = u.id
+      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND tc.is_active = true
+      
+      UNION ALL
+      
+      -- 🔥 RELACIONAMENTOS ENTRE TICKETS (ticket_relationships)
+      SELECT 
+        'relationship' as source,
+        tr.id,
+        'ticket_relationship_' || tr.relationship_type as action_type,
+        'Relacionamento criado: ' || tr.relationship_type || ' com ticket ' ||
+        COALESCE(
+          (SELECT COALESCE(number, 'T-' || SUBSTRING(id::text, 1, 8)) FROM "${schemaName}".tickets 
+           WHERE id = CASE WHEN tr.source_ticket_id = $1 THEN tr.target_ticket_id ELSE tr.source_ticket_id END),
+          'desconhecido'
+        ) ||
+        CASE WHEN tr.description IS NOT NULL AND tr.description != '' THEN ' - ' || tr.description ELSE '' END as description,
+        tr.created_by as performed_by,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
+        tr.created_by as actor_id,
+        'user' as actor_type,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
+        tr.source_ticket_id::text as old_value,
+        tr.target_ticket_id::text as new_value,
+        'ticket_relationship' as field_name,
+        tr.created_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        json_build_object(
+          'relationship_type', tr.relationship_type,
+          'source_ticket_id', tr.source_ticket_id,
+          'target_ticket_id', tr.target_ticket_id,
+          'description', tr.description,
+          'relationship_id', tr.id
+        ) as metadata,
+        true as is_visible,
+        'secondary' as priority_level,
+        'Relacionamento' as category_name,
+        'ticket_linking' as activity_group
+      FROM "${schemaName}".ticket_relationships tr
+      LEFT JOIN public.users u ON tr.created_by = u.id
+      WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1) AND tr.tenant_id = $2
+      
       ORDER BY created_at DESC, priority_level ASC
     `;
 
-    const historyResult = await pool.query(completeHistoryQuery, [id, tenantId]);
+    const historyResult = await pool.query(ultraCompleteHistoryQuery, [id, tenantId]);
 
-    console.log(`✅ [HISTORY] Encontradas ${historyResult.rows.length} entradas de histórico`);
+    console.log(`✅ [HISTORY-COMPLETE] Encontradas ${historyResult.rows.length} entradas de histórico ultra-detalhado`);
 
-    // ✅ PROCESSAMENTO E ENRIQUECIMENTO DOS DADOS
-    const enrichedHistory = historyResult.rows.map(row => ({
-      ...row,
-      // Garantir campos obrigatórios
-      performed_by_name: row.performed_by_name || row.actor_name || 'Sistema',
-      actor_name: row.actor_name || row.performed_by_name || 'Sistema',
-      // Parse metadata se for string
-      metadata: typeof row.metadata === 'string' 
-        ? JSON.parse(row.metadata) 
-        : row.metadata || {},
-      // Adicionar informações de contexto
-      display_time: new Date(row.created_at).toLocaleString('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-        year: 'numeric',
-        month: '2-digit', 
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }),
-      // Categoria para agrupamento no frontend
-      category: row.source === 'ticket_history' ? 'system' : 
-               row.source === 'internal_action' ? 'action' :
-               row.source === 'note' ? 'communication' : 
-               'attachment'
-    }));
+    // ✅ PROCESSAMENTO E ENRIQUECIMENTO ULTRA-COMPLETO DOS DADOS
+    const ultraEnrichedHistory = historyResult.rows.map(row => {
+      // Parse metadata de forma segura
+      let parsedMetadata = {};
+      try {
+        parsedMetadata = typeof row.metadata === 'string' 
+          ? JSON.parse(row.metadata) 
+          : row.metadata || {};
+      } catch (e) {
+        console.warn('⚠️ Erro ao fazer parse do metadata:', e);
+        parsedMetadata = {};
+      }
+
+      return {
+        ...row,
+        // Garantir campos obrigatórios com fallbacks robustos
+        performed_by_name: row.performed_by_name || row.actor_name || 'Sistema Automatizado',
+        actor_name: row.actor_name || row.performed_by_name || 'Sistema Automatizado',
+        // Metadata processado
+        metadata: parsedMetadata,
+        // Informações de contexto expandidas
+        display_time: new Date(row.created_at).toLocaleString('pt-BR', {
+          timeZone: 'America/Sao_Paulo',
+          year: 'numeric',
+          month: '2-digit', 
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }),
+        // Categoria refinada para agrupamento no frontend
+        category: row.source === 'ticket_history' ? 'system' : 
+                 row.source === 'internal_action' ? 'action' :
+                 row.source === 'note' ? 'communication' : 
+                 row.source === 'attachment' ? 'attachment' :
+                 row.source === 'communication' ? 'external_communication' :
+                 row.source === 'relationship' ? 'relationship' :
+                 'other',
+        // Classificação de impacto
+        impact_level: row.priority_level === 'primary' ? 'high' : 
+                     ['internal_action', 'communication', 'relationship'].includes(row.source) ? 'medium' : 'low',
+        // Timestamp Unix para ordenação
+        timestamp_unix: new Date(row.created_at).getTime(),
+        // Informações adicionais para debugging
+        debug_info: {
+          source_table: row.source,
+          original_created_at: row.created_at,
+          has_metadata: Object.keys(parsedMetadata).length > 0,
+          metadata_keys: Object.keys(parsedMetadata)
+        }
+      };
+    });
+
+    // ✅ ESTATÍSTICAS DETALHADAS DO HISTÓRICO
+    const detailedBreakdown = {
+      total: ultraEnrichedHistory.length,
+      by_category: {
+        system_events: ultraEnrichedHistory.filter(h => h.category === 'system').length,
+        internal_actions: ultraEnrichedHistory.filter(h => h.category === 'action').length,
+        communications: ultraEnrichedHistory.filter(h => h.category === 'communication').length,
+        attachments: ultraEnrichedHistory.filter(h => h.category === 'attachment').length,
+        external_communications: ultraEnrichedHistory.filter(h => h.category === 'external_communication').length,
+        relationships: ultraEnrichedHistory.filter(h => h.category === 'relationship').length,
+        others: ultraEnrichedHistory.filter(h => h.category === 'other').length
+      },
+      by_source: {
+        ticket_history: ultraEnrichedHistory.filter(h => h.source === 'ticket_history').length,
+        internal_actions: ultraEnrichedHistory.filter(h => h.source === 'internal_action').length,
+        notes: ultraEnrichedHistory.filter(h => h.source === 'note').length,
+        attachments: ultraEnrichedHistory.filter(h => h.source === 'attachment').length,
+        communications: ultraEnrichedHistory.filter(h => h.source === 'communication').length,
+        relationships: ultraEnrichedHistory.filter(h => h.source === 'relationship').length
+      },
+      by_impact: {
+        high: ultraEnrichedHistory.filter(h => h.impact_level === 'high').length,
+        medium: ultraEnrichedHistory.filter(h => h.impact_level === 'medium').length,
+        low: ultraEnrichedHistory.filter(h => h.impact_level === 'low').length
+      },
+      date_range: {
+        first_entry: ultraEnrichedHistory.length > 0 ? ultraEnrichedHistory[ultraEnrichedHistory.length - 1].created_at : null,
+        last_entry: ultraEnrichedHistory.length > 0 ? ultraEnrichedHistory[0].created_at : null
+      }
+    };
+
+    console.log(`✅ [HISTORY-COMPLETE] Processamento concluído:`, detailedBreakdown);
 
     res.json({
       success: true,
-      data: enrichedHistory,
-      count: enrichedHistory.length,
-      breakdown: {
-        total: enrichedHistory.length,
-        system_events: enrichedHistory.filter(h => h.category === 'system').length,
-        actions: enrichedHistory.filter(h => h.category === 'action').length,
-        communications: enrichedHistory.filter(h => h.category === 'communication').length,
-        attachments: enrichedHistory.filter(h => h.category === 'attachment').length
+      data: ultraEnrichedHistory,
+      count: ultraEnrichedHistory.length,
+      breakdown: detailedBreakdown,
+      query_info: {
+        ticket_id: id,
+        tenant_id: tenantId,
+        query_executed_at: new Date().toISOString(),
+        sources_queried: ['ticket_history', 'internal_actions', 'notes', 'attachments', 'communications', 'relationships'],
+        data_completeness: 'ultra_complete'
       }
     });
 
   } catch (error) {
-    console.error("❌ [HISTORY] Erro ao buscar histórico completo:", error);
+    console.error("❌ [HISTORY-COMPLETE] Erro ao buscar histórico ultra-completo:", error);
     res.status(500).json({ 
       success: false,
-      message: "Failed to fetch complete ticket history",
-      error: error.message
+      message: "Failed to fetch ultra-complete ticket history",
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
