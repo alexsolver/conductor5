@@ -172,28 +172,86 @@ export class DrizzleTicketRepository implements ITicketRepository {
         whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
       }
 
-      // Count total records
-      const countResult = await db.execute(sql.raw(`
+      // Count total records using proper SQL template
+      const countQuery = sql`
         SELECT COUNT(*) as total
-        FROM ${schemaName}.tickets
-        ${whereClause}
-      `, whereParams));
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE is_active = true
+      `;
+      
+      // Apply filters to count query
+      const countConditions: any[] = [sql`is_active = true`];
+      
+      if (filters.status && filters.status.length > 0) {
+        countConditions.push(sql`status = ANY(${filters.status})`);
+      }
+      if (filters.priority && filters.priority.length > 0) {
+        countConditions.push(sql`priority = ANY(${filters.priority})`);
+      }
+      if (filters.assignedToId) {
+        countConditions.push(sql`assigned_to_id = ${filters.assignedToId}`);
+      }
+      if (filters.customerId) {
+        countConditions.push(sql`caller_id = ${filters.customerId}`);
+      }
+      if (filters.companyId) {
+        countConditions.push(sql`company_id = ${filters.companyId}`);
+      }
+      if (filters.category) {
+        countConditions.push(sql`category = ${filters.category}`);
+      }
+      if (filters.search) {
+        countConditions.push(sql`(subject ILIKE ${`%${filters.search}%`} OR description ILIKE ${`%${filters.search}%`})`);
+      }
 
+      const finalCountQuery = sql`
+        SELECT COUNT(*) as total
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE ${sql.join(countConditions, sql` AND `)}
+      `;
+
+      const countResult = await db.execute(finalCountQuery);
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
 
-      // Get paginated results
-      const results = await db.execute(sql.raw(`
+      // Get paginated results using proper SQL template
+      const dataConditions: any[] = [sql`is_active = true`];
+      
+      if (filters.status && filters.status.length > 0) {
+        dataConditions.push(sql`status = ANY(${filters.status})`);
+      }
+      if (filters.priority && filters.priority.length > 0) {
+        dataConditions.push(sql`priority = ANY(${filters.priority})`);
+      }
+      if (filters.assignedToId) {
+        dataConditions.push(sql`assigned_to_id = ${filters.assignedToId}`);
+      }
+      if (filters.customerId) {
+        dataConditions.push(sql`caller_id = ${filters.customerId}`);
+      }
+      if (filters.companyId) {
+        dataConditions.push(sql`company_id = ${filters.companyId}`);
+      }
+      if (filters.category) {
+        dataConditions.push(sql`category = ${filters.category}`);
+      }
+      if (filters.search) {
+        dataConditions.push(sql`(subject ILIKE ${`%${filters.search}%`} OR description ILIKE ${`%${filters.search}%`})`);
+      }
+
+      const finalDataQuery = sql`
         SELECT 
           id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
-        FROM ${schemaName}.tickets
-        ${whereClause}
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE ${sql.join(dataConditions, sql` AND `)}
         ORDER BY created_at DESC
-        LIMIT ? OFFSET ?
-      `, [...whereParams, pagination.limit, offset]));
+        LIMIT ${pagination.limit} OFFSET ${offset}
+      `;
+
+      const results = await db.execute(finalDataQuery);
 
       console.log('✅ [DrizzleTicketRepository] Query successful:', {
         total,
@@ -305,52 +363,38 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async countByFilters(filters: TicketFilters, tenantId: string): Promise<number> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      let whereClause = 'WHERE is_active = true';
-      const whereParams: any[] = [];
-
+      
+      const conditions: any[] = [sql`is_active = true`];
+      
       if (filters.status && filters.status.length > 0) {
-        const statusPlaceholders = filters.status.map(() => '?').join(',');
-        whereClause += ` AND status IN (${statusPlaceholders})`;
-        whereParams.push(...filters.status);
+        conditions.push(sql`status = ANY(${filters.status})`);
       }
-
       if (filters.priority && filters.priority.length > 0) {
-        const priorityPlaceholders = filters.priority.map(() => '?').join(',');
-        whereClause += ` AND priority IN (${priorityPlaceholders})`;
-        whereParams.push(...filters.priority);
+        conditions.push(sql`priority = ANY(${filters.priority})`);
       }
-
       if (filters.assignedToId) {
-        whereClause += ` AND assigned_to_id = ?`;
-        whereParams.push(filters.assignedToId);
+        conditions.push(sql`assigned_to_id = ${filters.assignedToId}`);
       }
-
       if (filters.customerId) {
-        whereClause += ` AND caller_id = ?`;
-        whereParams.push(filters.customerId);
+        conditions.push(sql`caller_id = ${filters.customerId}`);
       }
-
       if (filters.companyId) {
-        whereClause += ` AND company_id = ?`;
-        whereParams.push(filters.companyId);
+        conditions.push(sql`company_id = ${filters.companyId}`);
       }
-
       if (filters.category) {
-        whereClause += ` AND category = ?`;
-        whereParams.push(filters.category);
+        conditions.push(sql`category = ${filters.category}`);
       }
-
       if (filters.search) {
-        whereClause += ` AND (subject ILIKE ? OR description ILIKE ?)`;
-        whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
+        conditions.push(sql`(subject ILIKE ${`%${filters.search}%`} OR description ILIKE ${`%${filters.search}%`})`);
       }
 
-      const result = await db.execute(sql.raw(`
+      const query = sql`
         SELECT COUNT(*) as count
-        FROM ${schemaName}.tickets
-        ${whereClause}
-      `, whereParams));
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE ${sql.join(conditions, sql` AND `)}
+      `;
 
+      const result = await db.execute(query);
       return Number(result.rows[0]?.count || 0);
     } catch (error) {
       this.logger.error('Failed to count tickets by filters', { error: (error as Error).message, filters, tenantId });
