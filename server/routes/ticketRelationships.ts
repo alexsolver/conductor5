@@ -45,17 +45,112 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
       return sendError(res as any, "Tenant ID is required", "Tenant ID is required", 400);
     }
 
-    const storage = await getStorage();
-    const relationships = await storage.getTicketRelationships(tenantId, id);
+    // Use direct database query to ensure real data only
+    const { pool } = await import('../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Enhanced query with proper ticket validation
+    const query = `
+      SELECT 
+        tr.id,
+        tr.source_ticket_id,
+        tr.target_ticket_id,
+        tr.relationship_type,
+        tr.description,
+        tr.created_at,
+        tr.created_by,
+
+        -- Target ticket details with validation
+        target_t.id as target_ticket_id,
+        target_t.number as target_ticket_number,
+        target_t.subject as target_ticket_subject,
+        target_t.status as target_ticket_status,
+        target_t.priority as target_ticket_priority,
+        target_t.created_at as target_ticket_created_at,
+        target_t.is_active as target_ticket_is_active,
+
+        -- Source ticket details with validation  
+        source_t.id as source_ticket_id,
+        source_t.number as source_ticket_number,
+        source_t.subject as source_ticket_subject,
+        source_t.status as source_ticket_status,
+        source_t.priority as source_ticket_priority,
+        source_t.created_at as source_ticket_created_at,
+        source_t.is_active as source_ticket_is_active
+
+      FROM "${schemaName}".ticket_relationships tr
+      LEFT JOIN "${schemaName}".tickets target_t ON tr.target_ticket_id = target_t.id AND target_t.tenant_id = $2 AND target_t.is_active = true
+      LEFT JOIN "${schemaName}".tickets source_t ON tr.source_ticket_id = source_t.id AND source_t.tenant_id = $2 AND source_t.is_active = true
+      WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1)
+        AND tr.tenant_id = $2
+        AND tr.is_active = true
+        -- Only return relationships where the related ticket actually exists
+        AND ((tr.source_ticket_id = $1 AND target_t.id IS NOT NULL) 
+             OR (tr.target_ticket_id = $1 AND source_t.id IS NOT NULL))
+      ORDER BY tr.created_at DESC
+    `;
+
+    const result = await pool.query(query, [id, tenantId]);
+
+    // Transform results to proper format
+    const relationships = result.rows
+      .filter(row => {
+        // Double check that we have valid ticket data
+        const isSourceRelationship = row.source_ticket_id === id;
+        const hasValidTicket = isSourceRelationship ? 
+          (row.target_ticket_id && row.target_ticket_is_active) : 
+          (row.source_ticket_id && row.source_ticket_is_active);
+        
+        return hasValidTicket;
+      })
+      .map(row => {
+        const isSourceRelationship = row.source_ticket_id === id;
+
+        // Build target ticket object based on relationship direction
+        const targetTicket = isSourceRelationship ? {
+          id: row.target_ticket_id,
+          number: row.target_ticket_number || `T-${row.target_ticket_id?.slice(0, 8)}`,
+          subject: row.target_ticket_subject || 'Sem assunto',
+          status: row.target_ticket_status || 'unknown',
+          priority: row.target_ticket_priority || 'medium',
+          createdAt: row.target_ticket_created_at,
+          isActive: row.target_ticket_is_active
+        } : {
+          id: row.source_ticket_id,
+          number: row.source_ticket_number || `T-${row.source_ticket_id?.slice(0, 8)}`,
+          subject: row.source_ticket_subject || 'Sem assunto',
+          status: row.source_ticket_status || 'unknown',
+          priority: row.source_ticket_priority || 'medium',
+          createdAt: row.source_ticket_created_at,
+          isActive: row.source_ticket_is_active
+        };
+
+        return {
+          id: row.id,
+          sourceTicketId: row.source_ticket_id,
+          targetTicketId: row.target_ticket_id,
+          relationshipType: row.relationship_type,
+          relationship_type: row.relationship_type, // Legacy compatibility
+          description: row.description || '',
+          createdAt: row.created_at,
+          createdBy: row.created_by,
+          targetTicket,
+          // Direct fields for compatibility
+          number: targetTicket.number,
+          subject: targetTicket.subject,
+          status: targetTicket.status,
+          priority: targetTicket.priority
+        };
+      });
 
     logInfo('Ticket relationships fetched', { 
       tenantId, 
       ticketId: id, 
-      count: Array.isArray(relationships) ? relationships.length : 0,
-      relationships: relationships 
+      count: relationships.length,
+      validRelationships: relationships.length 
     });
 
-    return sendSuccess(res as any, relationships || [], "Ticket relationships retrieved successfully");
+    return sendSuccess(res as any, relationships, "Ticket relationships retrieved successfully");
   } catch (error) {
     logError('Error fetching ticket relationships', error as any, { tenantId: req.user?.tenantId, ticketId: req.params.id });
     return sendError(res as any, error as any, "Failed to fetch ticket relationships", 500);
@@ -214,167 +309,6 @@ router.get('/:id/hierarchy', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Injecting the modified API endpoint for ticket relationships
-// GET /api/ticket-relationships/:ticketId/relationships - Get all relationships for a ticket
-  app.get('/api/ticket-relationships/:ticketId/relationships', jwtAuth, async (req, res) => {
-    try {
-      if (!req.user?.tenantId) {
-        return res.status(401).json({ success: false, message: "Must be authenticated with a tenant" });
-      }
 
-      const { ticketId } = req.params;
-      const tenantId = req.user.tenantId;
-      const { pool } = await import('../db');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      console.log('🔗 [TICKET-RELATIONSHIPS] Fetching relationships for:', { ticketId, tenantId, schemaName });
-
-      // Enhanced query with better ticket details and validation
-      const query = `
-        SELECT 
-          tr.id,
-          tr.source_ticket_id,
-          tr.target_ticket_id,
-          tr.relationship_type,
-          tr.description,
-          tr.created_at,
-          tr.created_by,
-
-          -- Target ticket details with fallbacks
-          target_t.id as target_ticket_id_resolved,
-          COALESCE(target_t.number, 'T-' || SUBSTRING(target_t.id::text, 1, 8)) as target_ticket_number,
-          COALESCE(target_t.subject, 'Ticket sem assunto') as target_ticket_subject,
-          COALESCE(target_t.status, 'unknown') as target_ticket_status,
-          COALESCE(target_t.priority, 'medium') as target_ticket_priority,
-          target_t.created_at as target_ticket_created_at,
-          target_t.is_active as target_ticket_is_active,
-
-          -- Source ticket details with fallbacks
-          source_t.id as source_ticket_id_resolved,
-          COALESCE(source_t.number, 'T-' || SUBSTRING(source_t.id::text, 1, 8)) as source_ticket_number,
-          COALESCE(source_t.subject, 'Ticket sem assunto') as source_ticket_subject,
-          COALESCE(source_t.status, 'unknown') as source_ticket_status,
-          COALESCE(source_t.priority, 'medium') as source_ticket_priority,
-          source_t.created_at as source_ticket_created_at,
-          source_t.is_active as source_ticket_is_active
-
-        FROM "${schemaName}".ticket_relationships tr
-        LEFT JOIN "${schemaName}".tickets target_t ON tr.target_ticket_id = target_t.id AND target_t.tenant_id = $2
-        LEFT JOIN "${schemaName}".tickets source_t ON tr.source_ticket_id = source_t.id AND source_t.tenant_id = $2
-        WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1)
-          AND tr.tenant_id = $2
-          AND tr.is_active = true
-          -- Ensure we only get relationships where both tickets exist and are active
-          AND ((tr.source_ticket_id = $1 AND target_t.is_active = true) 
-               OR (tr.target_ticket_id = $1 AND source_t.is_active = true))
-        ORDER BY tr.created_at DESC
-      `;
-
-      const result = await pool.query(query, [ticketId, tenantId]);
-
-      console.log('🔗 [TICKET-RELATIONSHIPS] Raw query result:', {
-        ticketId,
-        rowCount: result.rows.length,
-        firstRow: result.rows[0]
-      });
-
-      // Transform the result to include properly structured nested objects
-      const relationships = result.rows
-        .filter(row => {
-          // Additional validation to ensure we have valid ticket data
-          const isSourceRelationship = row.source_ticket_id === ticketId;
-          const hasValidTargetTicket = isSourceRelationship ? 
-            row.target_ticket_id_resolved && row.target_ticket_is_active : 
-            row.source_ticket_id_resolved && row.source_ticket_is_active;
-
-          if (!hasValidTargetTicket) {
-            console.log('🔗 [TICKET-RELATIONSHIPS] Filtering out invalid relationship:', {
-              relationshipId: row.id,
-              isSourceRelationship,
-              hasValidTargetTicket,
-              targetTicketId: row.target_ticket_id_resolved,
-              sourceTicketId: row.source_ticket_id_resolved
-            });
-          }
-
-          return hasValidTargetTicket;
-        })
-        .map(row => {
-          const isSourceRelationship = row.source_ticket_id === ticketId;
-
-          // Build target ticket object based on relationship direction
-          const targetTicket = isSourceRelationship ? {
-            id: row.target_ticket_id_resolved,
-            number: row.target_ticket_number,
-            subject: row.target_ticket_subject,
-            status: row.target_ticket_status,
-            priority: row.target_ticket_priority,
-            createdAt: row.target_ticket_created_at,
-            isActive: row.target_ticket_is_active
-          } : {
-            id: row.source_ticket_id_resolved,
-            number: row.source_ticket_number,
-            subject: row.source_ticket_subject,
-            status: row.source_ticket_status,
-            priority: row.source_ticket_priority,
-            createdAt: row.source_ticket_created_at,
-            isActive: row.source_ticket_is_active
-          };
-
-          const relationship = {
-            id: row.id,
-            sourceTicketId: row.source_ticket_id,
-            targetTicketId: row.target_ticket_id,
-            relationshipType: row.relationship_type,
-            description: row.description || '',
-            createdAt: row.created_at,
-            createdBy: row.created_by,
-            targetTicket,
-            // Legacy compatibility fields
-            relationship_type: row.relationship_type,
-            // Direct fields for simpler access
-            number: targetTicket.number,
-            subject: targetTicket.subject,
-            status: targetTicket.status,
-            priority: targetTicket.priority
-          };
-
-          console.log('🔗 [TICKET-RELATIONSHIPS] Mapped relationship:', {
-            id: relationship.id,
-            type: relationship.relationshipType,
-            targetTicket: relationship.targetTicket,
-            isSourceRelationship
-          });
-
-          return relationship;
-        });
-
-      console.log('🔗 [TICKET-RELATIONSHIPS] Final relationships response:', {
-        ticketId,
-        count: relationships.length,
-        relationshipTypes: relationships.map(r => r.relationshipType),
-        hasValidData: relationships.length > 0 && relationships[0].targetTicket?.id
-      });
-
-      res.json({
-        success: true,
-        data: relationships,
-        count: relationships.length,
-        metadata: {
-          ticketId,
-          tenantId,
-          timestamp: new Date().toISOString()
-        }
-      });
-
-    } catch (error) {
-      console.error('🔗 [TICKET-RELATIONSHIPS] Error fetching relationships:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching ticket relationships',
-        error: error.message
-      });
-    }
-  });
 
 export default router;

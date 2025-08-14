@@ -257,57 +257,11 @@ export const ResponsiveTicketsTable = ({
                   </TableCell>
               </TableRow>,
 
-              /* Expanded relationships */
-              currentExpandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
+              /* Expanded relationships - using RelatedTicketsExpansion component for real data */
+              currentExpandedTickets.has(ticket.id) && (
                 <TableRow key={`relationships-${ticket.id}`} className="bg-blue-50">
-                  <TableCell colSpan={8}>
-                    <div className="p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <GitBranch className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium">Tickets Relacionados ({ticketRelationships[ticket.id].length})</span>
-                      </div>
-                      <div className="space-y-3">
-                        {ticketRelationships[ticket.id].map((rel: any, index: number) => {
-                          const relatedTicket = rel.targetTicket || rel;
-                          const ticketNumber = relatedTicket.number || relatedTicket['targetTicket.number'] || `T-${relatedTicket.id?.slice(0, 8)}` || 'N/A';
-                          const ticketSubject = relatedTicket.subject || relatedTicket['targetTicket.subject'] || 'Sem assunto';
-                          const ticketStatus = relatedTicket.status || relatedTicket['targetTicket.status'] || 'unknown';
-                          const ticketPriority = relatedTicket.priority || relatedTicket['targetTicket.priority'] || 'medium';
-                          const relationshipType = rel.relationshipType || rel.relationship_type || 'relacionado';
-
-                          return (
-                            <div key={`rel-${rel.id || index}`} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
-                              <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                  {relationshipType}
-                                </span>
-                                <Link
-                                  href={`/tickets/${relatedTicket.id || relatedTicket['targetTicket.id']}`}
-                                  className="font-mono text-blue-600 hover:underline font-medium"
-                                >
-                                  #{ticketNumber}
-                                </Link>
-                                <span className="text-sm text-gray-700 truncate flex-1">{ticketSubject}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <OptimizedBadge
-                                  fieldName="status"
-                                  value={ticketStatus}
-                                  className="text-xs"
-                                  aria-label={`Status: ${ticketStatus}`}
-                                />
-                                <OptimizedBadge
-                                  fieldName="priority"
-                                  value={ticketPriority}
-                                  className="text-xs"
-                                  aria-label={`Prioridade: ${ticketPriority}`}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                  <TableCell colSpan={8} className="p-0">
+                    <RelatedTicketsExpansion ticketId={ticket.id} />
                   </TableCell>
                 </TableRow>
               )

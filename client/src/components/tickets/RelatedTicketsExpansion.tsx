@@ -72,15 +72,33 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
     );
   }
 
-  // Extract relationships from API response
+  // Extract relationships from API response with validation
   const relationships: RelatedTicket[] = relatedTicketsData?.success 
-    ? relatedTicketsData.data || []
-    : relatedTicketsData?.relationships || relatedTicketsData || [];
+    ? (relatedTicketsData.data || []).filter((rel: any) => {
+        // Validate that the target ticket exists and has a valid ID
+        const targetTicket = rel.targetTicket || rel;
+        const hasValidId = targetTicket?.id && targetTicket.id !== 'mock-1' && targetTicket.id !== 'mock-2';
+        const hasValidNumber = targetTicket?.number && !targetTicket.number.includes('MOCK');
+        
+        if (!hasValidId || !hasValidNumber) {
+          console.log('🔗 [RELATED-TICKETS] Filtering out invalid ticket:', {
+            rel,
+            hasValidId,
+            hasValidNumber,
+            targetTicketId: targetTicket?.id
+          });
+          return false;
+        }
+        
+        return true;
+      })
+    : [];
 
   console.log('🔗 [RELATED-TICKETS] Processed relationships:', {
     originalData: relatedTicketsData,
     processedRelationships: relationships,
-    count: relationships.length
+    count: relationships.length,
+    filteredCount: relatedTicketsData?.data?.length || 0
   });
 
   return (
