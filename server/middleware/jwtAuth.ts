@@ -52,7 +52,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const userRepository = container.userRepository;
     const user = await userRepository.findById(payload.userId);
 
-    if (!user || !user.active) {
+    if (!user || !user.isActive) {
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
