@@ -1022,7 +1022,7 @@ ticketsRouter.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest,
         u.first_name || ' ' || u.last_name as uploaded_by_name
       FROM "${schemaName}".ticket_attachments ta
       LEFT JOIN public.users u ON ta.created_by = u.id
-      WHERE ta.ticket_id = $1 AND ta.tenant_id = $2 AND ta.is_active = true
+      WHERE ta.ticket_id = $1::uuid AND ta.tenant_id = $2::uuid AND ta.is_active = true
       ORDER BY ta.created_at DESC
     `;
 
@@ -2012,7 +2012,7 @@ ticketsRouter.get('/:id/notes', jwtAuth, trackNoteView, async (req: Authenticate
         u.first_name || ' ' || u.last_name as author_name
       FROM "${schemaName}".ticket_notes tn
       LEFT JOIN public.users u ON tn.created_by = u.id
-      WHERE tn.ticket_id = $1 AND tn.tenant_id = $2 AND tn.is_active = true
+      WHERE tn.ticket_id = $1::uuid AND tn.tenant_id = $2::uuid AND tn.is_active = true
       ORDER BY tn.created_at DESC
     `;
 
@@ -2480,7 +2480,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         'system_activity' as activity_group,
         1 as sort_priority
       FROM "${schemaName}".ticket_history th
-      WHERE th.ticket_id = $1 AND th.tenant_id = $2 AND COALESCE(th.is_active, true) = true
+      WHERE th.ticket_id = $1 AND th.tenant_id = $2::uuid
 
       UNION ALL
 
@@ -2519,7 +2519,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         0 as sort_priority
       FROM "${schemaName}".tickets t
       LEFT JOIN public.users u_creator ON t.created_by = u_creator.id
-      WHERE t.id = $1 AND t.tenant_id = $2
+      WHERE t.id = $1::uuid AND t.tenant_id = $2::uuid
 
       UNION ALL
 
@@ -2570,7 +2570,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         2 as sort_priority
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
-      WHERE tia.ticket_id = $1 AND tia.tenant_id = $2
+      WHERE tia.ticket_id = $1::uuid AND tia.tenant_id = $2::uuid
 
       UNION ALL
 
@@ -2619,7 +2619,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         3 as sort_priority
       FROM "${schemaName}".ticket_notes tn
       LEFT JOIN public.users u ON tn.created_by = u.id
-      WHERE tn.ticket_id = $1 AND tn.tenant_id = $2
+      WHERE tn.ticket_id = $1::uuid AND tn.tenant_id = $2::uuid
 
       UNION ALL
 
@@ -2664,7 +2664,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         4 as sort_priority
       FROM "${schemaName}".ticket_attachments ta
       LEFT JOIN public.users u ON ta.created_by = u.id
-      WHERE ta.ticket_id = $1 AND ta.tenant_id = $2
+      WHERE ta.ticket_id = $1::uuid AND ta.tenant_id = $2::uuid
 
       UNION ALL
 
