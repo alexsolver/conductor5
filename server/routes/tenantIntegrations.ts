@@ -140,26 +140,48 @@ router.get('/:integrationId/config', async (req: any, res) => {
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
     console.log(`[GET config route] Resultado recebido do storage:`, configResult);
 
-    if (!configResult) {
-      console.log(`[GET config route] Nenhuma config encontrada, retornando null`);
-      return res.json({ config: null, configured: false });
+    if (!configResult || !configResult.config) {
+      console.log(`⚠️ [GET config route] Nenhuma config encontrada para ${integrationId}, retornando null`);
+      return res.json({ 
+        configured: false, 
+        config: null,
+        message: `Configuração não encontrada para ${integrationId}`
+      });
     }
 
-    // Extrair apenas os dados de configuração do campo config
-    const configData = configResult.config || {};
-    console.log(`[GET config route] Config data extraída:`, configData);
-
-    // SEGURANÇA: Mascarar dados sensíveis antes de enviar ao frontend
-    const sanitizedConfig = sanitizeConfigForFrontend(configData);
-
-    // Retornar estrutura simples para o frontend
-    const response = {
-      config: sanitizedConfig,
-      configured: true
+    // ✅ SECURITY: Retornar dados mascarados para segurança
+    const maskedConfig = {
+      ...configResult,
+      config: {
+        ...configResult.config,
+        // Mascarar dados sensíveis
+        apiKey: configResult.config.apiKey ? '••••••••' : '',
+        apiSecret: configResult.config.apiSecret ? '••••••••' : '',
+        clientSecret: configResult.config.clientSecret ? '••••••••' : '',
+        password: configResult.config.password ? '••••••••' : '',
+        accessToken: configResult.config.accessToken ? '••••••••' : '',
+        refreshToken: configResult.config.refreshToken ? '••••••••' : '',
+        dropboxAppSecret: configResult.config.dropboxAppSecret ? '••••••••' : '',
+        dropboxAccessToken: configResult.config.dropboxAccessToken ? '••••••••' : '',
+        // ✅ TELEGRAM SPECIFIC: Mascarar token do Telegram mas manter Chat ID
+        telegramBotToken: configResult.config.telegramBotToken ? '••••••••' : '',
+        telegramChatId: configResult.config.telegramChatId || '',
+        // Manter outros campos não sensíveis
+        enabled: configResult.config.enabled,
+        clientId: configResult.config.clientId,
+        redirectUri: configResult.config.redirectUri,
+        webhookUrl: configResult.config.webhookUrl,
+        imapServer: configResult.config.imapServer,
+        imapPort: configResult.config.imapPort,
+        imapSecurity: configResult.config.imapSecurity,
+        emailAddress: configResult.config.emailAddress,
+        useSSL: configResult.config.useSSL,
+        backupFolder: configResult.config.backupFolder,
+      }
     };
-    console.log(`[GET config route] Response being sent (sanitized):`, JSON.stringify(response, null, 2));
 
-    res.json(response);
+    console.log(`✅ [GET config route] Retornando config mascarada para ${integrationId}`);
+    res.json(maskedConfig);
   } catch (error) {
     console.error('Error fetching tenant integration config:', error);
     res.status(500).json({ message: 'Failed to fetch integration configuration' });

@@ -645,54 +645,98 @@ export default function TenantAdminIntegrations() {
   };
 
   const onConfigureIntegration = async (integration: TenantIntegration) => {
+    console.log(`🔧 [CONFIG-LOAD] Configurando integração: ${integration.id}`);
     setSelectedIntegration(integration);
 
     try {
       // Load existing configuration from API
+      console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id}`);
       const response = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
       const existingConfig = await response.json();
-
+      
+      console.log(`📋 [CONFIG-LOAD] Resposta recebida:`, existingConfig);
 
       if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
         const config = existingConfig.config;
-        // Load existing configuration - dados reais do banco (mascarar dados sensíveis)
-        const formValues = {
-          enabled: config.enabled === true,
-          useSSL: config.useSSL !== false, // Default to true
-          apiKey: config.apiKey ? '••••••••' : '', // Mascarar API key
-          apiSecret: config.apiSecret ? '••••••••' : '', // Mascarar API secret
-          webhookUrl: config.webhookUrl || '',
-          clientId: config.clientId || '',
-          clientSecret: config.clientSecret ? '••••••••' : '', // Mascarar Client secret
-          redirectUri: config.redirectUri || '',
-          tenantId: config.tenantId || '',
-          serverHost: config.serverHost || config.imapServer || '',
-          serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
-          username: config.username || config.emailAddress || '',
-          password: config.password ? '••••••••' : '', // CRÍTICO: Mascarar senha
-          imapServer: config.imapServer || 'imap.gmail.com',
-          imapPort: config.imapPort ? config.imapPort.toString() : '993',
-          imapSecurity: config.imapSecurity || 'SSL/TLS',
-          emailAddress: config.emailAddress || '',
-          dropboxAppKey: config.dropboxAppKey || '',
-          dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
-          dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
-          backupFolder: config.backupFolder || '/Backups/Conductor',
-          // Telegram fields
-          telegramBotToken: config.telegramBotToken ? '••••••••' : '',
-          telegramChatId: config.telegramChatId || '',
-        };
+        console.log(`✅ [CONFIG-LOAD] Configuração encontrada para ${integration.id}:`, config);
+        
+        // ✅ CRITICAL FIX: Corrigir carregamento específico para Telegram
+        let formValues;
+        
+        if (integration.id === 'telegram') {
+          formValues = {
+            enabled: config.enabled === true,
+            useSSL: config.useSSL !== false,
+            apiKey: config.apiKey ? '••••••••' : '',
+            apiSecret: config.apiSecret ? '••••••••' : '',
+            webhookUrl: config.webhookUrl || '',
+            clientId: config.clientId || '',
+            clientSecret: config.clientSecret ? '••••••••' : '',
+            redirectUri: config.redirectUri || '',
+            tenantId: config.tenantId || '',
+            serverHost: config.serverHost || config.imapServer || '',
+            serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
+            username: config.username || config.emailAddress || '',
+            password: config.password ? '••••••••' : '',
+            imapServer: config.imapServer || 'imap.gmail.com',
+            imapPort: config.imapPort ? config.imapPort.toString() : '993',
+            imapSecurity: config.imapSecurity || 'SSL/TLS',
+            emailAddress: config.emailAddress || '',
+            dropboxAppKey: config.dropboxAppKey || '',
+            dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '',
+            dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '',
+            backupFolder: config.backupFolder || '/Backups/Conductor',
+            // ✅ TELEGRAM SPECIFIC: Carregar campos específicos do Telegram
+            telegramBotToken: config.telegramBotToken ? '••••••••' : '',
+            telegramChatId: config.telegramChatId || '',
+          };
+          
+          console.log(`📱 [TELEGRAM-CONFIG] Valores carregados:`, {
+            enabled: formValues.enabled,
+            telegramBotToken: config.telegramBotToken ? `${config.telegramBotToken.substring(0, 10)}...` : 'VAZIO',
+            telegramChatId: formValues.telegramChatId
+          });
+        } else {
+          // Load existing configuration - dados reais do banco (mascarar dados sensíveis)
+          formValues = {
+            enabled: config.enabled === true,
+            useSSL: config.useSSL !== false, // Default to true
+            apiKey: config.apiKey ? '••••••••' : '', // Mascarar API key
+            apiSecret: config.apiSecret ? '••••••••' : '', // Mascarar API secret
+            webhookUrl: config.webhookUrl || '',
+            clientId: config.clientId || '',
+            clientSecret: config.clientSecret ? '••••••••' : '', // Mascarar Client secret
+            redirectUri: config.redirectUri || '',
+            tenantId: config.tenantId || '',
+            serverHost: config.serverHost || config.imapServer || '',
+            serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
+            username: config.username || config.emailAddress || '',
+            password: config.password ? '••••••••' : '', // CRÍTICO: Mascarar senha
+            imapServer: config.imapServer || 'imap.gmail.com',
+            imapPort: config.imapPort ? config.imapPort.toString() : '993',
+            imapSecurity: config.imapSecurity || 'SSL/TLS',
+            emailAddress: config.emailAddress || '',
+            dropboxAppKey: config.dropboxAppKey || '',
+            dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
+            dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
+            backupFolder: config.backupFolder || '/Backups/Conductor',
+            // Telegram fields
+            telegramBotToken: config.telegramBotToken ? '••••••••' : '',
+            telegramChatId: config.telegramChatId || '',
+          };
+        }
 
         configForm.reset(formValues);
 
         toast({
-          title: "Configuração carregada",
-          description: "Dados existentes carregados com sucesso",
+          title: "✅ Configuração carregada",
+          description: `Dados existentes de ${integration.name} carregados com sucesso`,
         });
       } else {
+        console.log(`⚠️ [CONFIG-LOAD] Nenhuma configuração encontrada para ${integration.id}, usando valores padrão`);
 
         // Use default values if no configuration exists
-        configForm.reset({
+        const defaultValues = {
           enabled: false,
           useSSL: true,
           apiKey: '',
@@ -717,12 +761,20 @@ export default function TenantAdminIntegrations() {
           // Telegram default values
           telegramBotToken: '',
           telegramChatId: '',
+        };
+        
+        configForm.reset(defaultValues);
+        
+        toast({
+          title: "ℹ️ Nova configuração",
+          description: `Configure ${integration.name} pela primeira vez`,
         });
       }
     } catch (error) {
-      console.error('Error loading integration config:', error);
+      console.error(`❌ [CONFIG-LOAD] Erro ao carregar configuração para ${integration.id}:`, error);
+      
       // Fallback to default values
-      configForm.reset({
+      const fallbackValues = {
         enabled: false,
         useSSL: true,
         apiKey: '',
@@ -747,6 +799,14 @@ export default function TenantAdminIntegrations() {
         // Telegram default values
         telegramBotToken: '',
         telegramChatId: '',
+      };
+      
+      configForm.reset(fallbackValues);
+      
+      toast({
+        title: "⚠️ Erro ao carregar configuração",
+        description: "Usando valores padrão. Verifique sua conexão.",
+        variant: "destructive",
       });
     }
 

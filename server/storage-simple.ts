@@ -1517,7 +1517,7 @@ export class DatabaseStorage implements IStorage {
         hasConfig: !!finalResult.config,
         configKeys: Object.keys(finalResult.config || {})
       });
-      
+
       return finalResult;
     } catch (error) {
       console.error('❌ [GET-CONFIG] Critical error in getTenantIntegrationConfig:', error);
@@ -1528,72 +1528,88 @@ export class DatabaseStorage implements IStorage {
 
   async saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any> {
     try {
-      console.log(`💾 [SAVE-CONFIG] Salvando config para tenant: ${tenantId}, integration: ${integrationId}`);
-      
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      console.log(`💾 [SAVE-CONFIG] Salvando configuração: tenant=${tenantId}, integration=${integrationId}`);
+      console.log(`💾 [SAVE-CONFIG] Config data keys:`, Object.keys(config || {}));
+
+      // ✅ TELEGRAM SPECIFIC: Log específico para Telegram
+      if (integrationId === 'telegram') {
+        console.log(`📱 [TELEGRAM-SAVE] Campos Telegram:`, {
+          enabled: config.enabled,
+          hasBotToken: !!config.telegramBotToken,
+          botTokenStart: config.telegramBotToken ? config.telegramBotToken.substring(0, 10) + '...' : 'VAZIO',
+          chatId: config.telegramChatId
+        });
+      }
+
+      const validatedTenantId = this.validateUUID(tenantId);
+      if (!validatedTenantId) {
+        throw new Error(`Invalid tenant UUID: ${tenantId}`);
+      }
+
+      const tenantDb = this.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // ✅ VALIDATION: Check if integration exists
-      const checkResult = await tenantDb.execute(sql`
-        SELECT id FROM ${sql.identifier(schemaName)}.integrations 
-        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+      // Verificar se a integração existe
+      console.log(`🔍 [SAVE-CONFIG] Verificando se integração ${integrationId} existe...`);
+      const existingResult = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations 
+        WHERE tenant_id = ${validatedTenantId} 
+        AND id = ${integrationId}
         LIMIT 1
       `);
 
-      if (!checkResult.rows || checkResult.rows.length === 0) {
-        console.error(`❌ [SAVE-CONFIG] Integração ${integrationId} não encontrada para tenant ${validatedTenantId}`);
-        throw new Error(`Integration ${integrationId} not found`);
+      if (!existingResult.rows || existingResult.rows.length === 0) {
+        console.log(`⚠️ [SAVE-CONFIG] Integração ${integrationId} não encontrada, criando...`);
+        // Create the integration first
+        await this.createTenantIntegration(validatedTenantId, {
+          id: integrationId,
+          name: integrationId === 'telegram' ? 'Telegram' : integrationId,
+          description: integrationId === 'telegram' ? 'Envio de notificações via Telegram' : `Integration ${integrationId}`,
+          category: 'Comunicação',
+          icon: integrationId === 'telegram' ? 'Send' : 'Settings',
+          features: integrationId === 'telegram' ? ['Notificações em tempo real', 'Mensagens personalizadas'] : []
+        });
+      } else {
+        console.log(`✅ [SAVE-CONFIG] Integração ${integrationId} já existe`);
       }
 
-      // ✅ SAFETY: Prepare config for storage with validation
-      let configToSave = config;
-      if (typeof config === 'object' && config !== null) {
-        // Remove any undefined or null values
-        configToSave = Object.fromEntries(
-          Object.entries(config).filter(([_, value]) => value !== undefined && value !== null && value !== '')
-        );
-      }
-
-      const configJson = JSON.stringify(configToSave);
-      console.log(`💾 [SAVE-CONFIG] Config JSON to save:`, { 
-        length: configJson.length, 
-        keys: Object.keys(configToSave) 
-      });
-
-      // ✅ CRITICAL FIX: Update with proper SQL and error handling
+      // Update the integration configuration
+      console.log(`💾 [SAVE-CONFIG] Atualizando configuração na base de dados...`);
       const updateResult = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.integrations 
         SET 
-          config = ${configJson}::jsonb,
-          status = 'connected',
-          updated_at = NOW()
-        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
-        RETURNING id, name, status, updated_at
+          config = ${JSON.stringify(config)},
+          configured = true,
+          status = ${config.enabled ? 'connected' : 'disconnected'},
+          updated_at = CURRENT_TIMESTAMP
+        WHERE tenant_id = ${validatedTenantId} 
+        AND id = ${integrationId}
+        RETURNING *
       `);
 
       if (updateResult.rows && updateResult.rows.length > 0) {
-        const savedConfig = updateResult.rows[0];
-        console.log(`✅ [SAVE-CONFIG] Configuração salva com sucesso:`, {
-          id: savedConfig.id,
-          name: savedConfig.name,
-          status: savedConfig.status,
-          updatedAt: savedConfig.updated_at
+        const updatedIntegration = updateResult.rows[0] as any;
+        console.log(`✅ [SAVE-CONFIG] Configuração salva com sucesso para ${integrationId}`);
+        console.log(`📊 [SAVE-CONFIG] Status final:`, {
+          configured: updatedIntegration.configured,
+          status: updatedIntegration.status,
+          configKeys: updatedIntegration.config ? Object.keys(updatedIntegration.config) : []
         });
-        
+
         return {
-          success: true,
-          id: savedConfig.id,
-          status: savedConfig.status,
-          updatedAt: savedConfig.updated_at
+          integrationId: updatedIntegration.id,
+          tenantId: updatedIntegration.tenant_id,
+          configured: updatedIntegration.configured,
+          config: updatedIntegration.config,
+          status: updatedIntegration.status,
+          lastUpdated: updatedIntegration.updated_at
         };
       } else {
-        console.error(`❌ [SAVE-CONFIG] Nenhuma linha foi atualizada`);
-        throw new Error('No rows were updated - integration may not exist');
+        throw new Error('Failed to save integration configuration');
       }
     } catch (error) {
-      console.error('❌ [SAVE-CONFIG] Erro ao salvar configuração:', error);
-      throw error; // Re-throw to be handled by calling code
+      console.error(`❌ [SAVE-CONFIG] Erro ao salvar configuração:`, error);
+      throw error;
     }
   }
 
@@ -1666,6 +1682,43 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       throw error;
     }
+  }
+
+  // =========================================
+  // Helper methods for DatabaseStorage Class
+  // =========================================
+
+  // Validates if a string is a valid UUID
+  private validateUUID(uuid: string): string | null {
+    if (!uuid || typeof uuid !== 'string') return null;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid) ? uuid : null;
+  }
+
+  // Gets tenant specific database connection from pool manager
+  private async getTenantConnection(tenantId: string): Promise<any> {
+    const validatedTenantId = this.validateUUID(tenantId);
+    if (!validatedTenantId) {
+      throw new Error(`Invalid tenant UUID provided: ${tenantId}`);
+    }
+    return poolManager.getTenantConnection(validatedTenantId);
+  }
+
+  // Creates a new integration entry for a tenant
+  private async createTenantIntegration(tenantId: string, integrationData: any): Promise<void> {
+    const tenantDb = await this.getTenantConnection(tenantId);
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    await tenantDb.execute(sql`
+      INSERT INTO ${sql.identifier(schemaName)}.integrations 
+      (id, tenant_id, name, description, category, icon, status, config, features, created_at, updated_at)
+      VALUES 
+      (${integrationData.id}, ${tenantId}, ${integrationData.name}, ${integrationData.description}, 
+       ${integrationData.category}, ${integrationData.icon}, 'disconnected', '{}', 
+       ${`ARRAY[${integrationData.features.map((f: string) => `'${f}'`).join(', ')}]`}, 
+       CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ON CONFLICT (id) DO NOTHING
+    `);
   }
 
   // ==============================
