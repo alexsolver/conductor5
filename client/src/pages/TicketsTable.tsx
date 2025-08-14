@@ -644,46 +644,14 @@ const TicketsTable = React.memo(() => {
     if (tickets.length > 0) {
       console.log(`🔄 [RELATIONSHIP-INIT] Inicializando relacionamentos para ${tickets.length} tickets`);
 
-      // 🎯 Cache inteligente conforme 1qa.md
-      const cacheKey = `ticketRelationships_${tickets.map(t => t.id).sort().join('_').slice(0, 50)}`;
-      const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
+      // ✅ Inicialização completa dos relacionamentos - removido cache para debug
+      const batchResults: Record<string, any[]> = {};
+      const ticketsWithRelationshipsSet = new Set<string>();
 
-      const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-      const isCacheValid = cacheTimestamp && parseInt(cacheTimestamp) > fiveMinutesAgo;
-
-      if (isCacheValid) {
-        console.log('📦 [RELATIONSHIP-INIT] Usando dados cached válidos');
-        const cachedData = localStorage.getItem(cacheKey);
-        if (cachedData) {
-          try {
-            const parsed = JSON.parse(cachedData);
-            setTicketRelationships(parsed);
-
-            // Update ticketsWithRelationships set based on cached data
-            const newTicketsWithRelationships = new Set<string>();
-            Object.entries(parsed).forEach(([ticketId, relationships]: [string, any]) => {
-              if (Array.isArray(relationships) && relationships.length > 0) {
-                newTicketsWithRelationships.add(ticketId);
-                console.log(`🔗 [RELATIONSHIP-CACHE] Ticket ${ticketId} tem ${relationships.length} relacionamentos`);
-              }
-            });
-            setTicketsWithRelationships(newTicketsWithRelationships);
-          } catch (error) {
-            console.error('❌ [RELATIONSHIP-CACHE] Erro ao parse do cache:', error);
-          }
-        }
-        return;
-      }
-
-      // ✅ Inicialização completa dos relacionamentos
       Promise.all(
         tickets.map(async (ticket) => {
-          if (ticketRelationships[ticket.id]) {
-            console.log(`🔗 [RELATIONSHIP-INIT] Ticket ${ticket.id} já possui relacionamentos cached`);
-            return;
-          }
-
           try {
+            console.log(`🔄 [RELATIONSHIP-INIT] Buscando relacionamentos para ticket ${ticket.id}`);
             const response = await apiRequest("GET", `/api/ticket-relationships/${ticket.id}/relationships`);
             const data = await response.json();
 
@@ -696,26 +664,37 @@ const TicketsTable = React.memo(() => {
               relationships = data;
             }
 
+            // Sempre atualizar o batch, mesmo se vazio
+            batchResults[ticket.id] = relationships;
+
             if (relationships.length > 0) {
               console.log(`🔗 [RELATIONSHIP-INIT] Ticket ${ticket.id} tem ${relationships.length} relacionamentos`);
-              setTicketRelationships(prev => ({
-                ...prev,
-                [ticket.id]: relationships
-              }));
-
-              // Update ticketsWithRelationships set
-              setTicketsWithRelationships(prev => new Set([...prev, ticket.id]));
+              ticketsWithRelationshipsSet.add(ticket.id);
+            } else {
+              console.log(`🔗 [RELATIONSHIP-INIT] Ticket ${ticket.id} não tem relacionamentos`);
             }
           } catch (error) {
             console.error(`❌ [RELATIONSHIP-INIT] Erro ao buscar relacionamentos para ${ticket.id}:`, error);
+            batchResults[ticket.id] = []; // Inicializar vazio em caso de erro
           }
         })
       ).then(() => {
-        // Cache dos dados atualizados
-        localStorage.setItem(cacheKey, JSON.stringify(ticketRelationships));
-        localStorage.setItem(`${cacheKey}_timestamp`, Date.now().toString());
-        console.log('💾 [RELATIONSHIP-INIT] Relacionamentos salvos no cache');
-        console.log(`🎯 [RELATIONSHIP-DEBUG] Tickets com relacionamentos:`, Array.from(ticketsWithRelationships));
+        // Atualizar estados em batch após todas as chamadas
+        console.log(`💾 [RELATIONSHIP-INIT] Atualizando estados com ${Object.keys(batchResults).length} tickets`);
+        setTicketRelationships(batchResults);
+        setTicketsWithRelationships(ticketsWithRelationshipsSet);
+        
+        console.log(`🎯 [RELATIONSHIP-DEBUG] Tickets com relacionamentos:`, Array.from(ticketsWithRelationshipsSet));
+        console.log(`🎯 [RELATIONSHIP-DEBUG] Batch results:`, Object.keys(batchResults).map(id => ({ id, count: batchResults[id].length })));
+        
+        // ✅ [1QA-COMPLIANCE] Debug final do estado
+        console.log(`🔍 [RELATIONSHIP-STATE] ticketRelationships keys:`, Object.keys(batchResults));
+        console.log(`🔍 [RELATIONSHIP-STATE] ticketsWithRelationships size:`, ticketsWithRelationshipsSet.size);
+        console.log(`🔍 [RELATIONSHIP-STATE] Estado final:`, {
+          hasRelationships: ticketsWithRelationshipsSet.size > 0,
+          relationshipCount: Object.keys(batchResults).length,
+          ticketsWithRelationships: Array.from(ticketsWithRelationshipsSet)
+        });
       });
     }
   }, [tickets]);

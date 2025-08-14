@@ -184,8 +184,8 @@ export const ResponsiveTicketsTable = ({
                   <TableCell className="hidden lg:table-cell">
                     <OptimizedBadge
                       fieldName="category"
-                      value={ticket.category}
-                      ariaLabel={`Categoria: ${ticket.category}`}
+                      value={ticket.category || ''}
+                      aria-label={`Categoria: ${ticket.category}`}
                     />
                   </TableCell>
 
@@ -193,7 +193,7 @@ export const ResponsiveTicketsTable = ({
                     <OptimizedBadge
                       fieldName="status"
                       value={ticket.status}
-                      ariaLabel={`Status: ${ticket.status}`}
+                      aria-label={`Status: ${ticket.status}`}
                     />
                   </TableCell>
 
@@ -201,7 +201,7 @@ export const ResponsiveTicketsTable = ({
                     <OptimizedBadge
                       fieldName="priority"
                       value={ticket.priority}
-                      ariaLabel={`Prioridade: ${ticket.priority}`}
+                      aria-label={`Prioridade: ${ticket.priority}`}
                     />
                   </TableCell>
 
@@ -260,7 +260,7 @@ export const ResponsiveTicketsTable = ({
                               fieldName="status"
                               value={rel.targetTicket?.status || rel.status}
                               className="text-xs"
-                              ariaLabel={`Status: ${rel.targetTicket?.status || rel.status}`}
+                              aria-label={`Status: ${rel.targetTicket?.status || rel.status}`}
                             />
                           </div>
                         ))}
