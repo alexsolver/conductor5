@@ -153,10 +153,8 @@ const TicketDetails = React.memo(() => {
   const { data: ticketAttachments, isLoading: attachmentsLoading, error: attachmentsError } = useQuery({
     queryKey: ["/api/tickets", id, "attachments"],
     queryFn: async () => {
-      console.log('📎 Fetching ticket attachments for:', id);
       const response = await apiRequest("GET", `/api/tickets/${id}/attachments`);
       const data = await response.json();
-      console.log('📎 Attachments API response:', data);
       return data;
     },
     enabled: !!id,
@@ -169,14 +167,11 @@ const TicketDetails = React.memo(() => {
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
       try {
-        console.log('🎯 [FRONTEND] Fetching ticket:', id);
         const response = await apiRequest("GET", `/api/tickets/${id}`);
-        console.log('🎯 [FRONTEND] Response status:', response.status);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log('🎯 [FRONTEND] Response data:', data);
         if (!data.success && !data.data) {
           throw new Error(data.message || 'Ticket não encontrado');
         }
@@ -203,7 +198,6 @@ const TicketDetails = React.memo(() => {
 
   // Extract ticket from response data
   const ticket = ticketResponse?.success ? ticketResponse.data : null;
-  console.log('🎯 [FRONTEND] Ticket extraction:', { ticketResponse, ticket, isLoading, ticketError });
 
   // Fetch customers for dropdowns
   const { data: customersData } = useQuery({
@@ -217,10 +211,8 @@ const TicketDetails = React.memo(() => {
   const { data: beneficiariesData } = useQuery({
     queryKey: ["/api/beneficiaries"],
     queryFn: async () => {
-      console.log('🔍 Fetching beneficiaries data...');
       const response = await apiRequest("GET", "/api/beneficiaries");
       const data = await response.json();
-      console.log('🔍 Beneficiaries API response:', data);
       return data;
     },
   });
@@ -270,11 +262,8 @@ const TicketDetails = React.memo(() => {
   // PROBLEMA 9 RESOLVIDO: Handle company change otimizado com debounce
   const handleCompanyChange = useCallback(
     debounce(async (newCompanyId: string) => {
-      console.log('🏢 Company change:', { newCompanyId, selectedCompany });
-
       // Only proceed if company actually changed
       if (newCompanyId === selectedCompany) {
-        console.log('⚠️ Company already selected, skipping');
         return;
       }
 
@@ -284,12 +273,6 @@ const TicketDetails = React.memo(() => {
 
     // 🚨 CORREÇÃO CRÍTICA: Marcar campo como dirty para garantir que seja enviado
     form.trigger('companyId');
-
-    console.log('✅ Company state updated:', {
-      newSelectedCompany: newCompanyId,
-      formValueAfter: form.getValues('companyId'),
-      isFieldDirty: form.formState.dirtyFields.companyId
-    });
 
     // Reset customer selections only when changing company
     form.setValue('callerId', '');
@@ -303,7 +286,6 @@ const TicketDetails = React.memo(() => {
 
         if (data.success && data.customers) {
           setSelectedCompanyCustomers(data.customers);
-          console.log('✅ Customers loaded for company:', data.customers.length);
         } else {
           setSelectedCompanyCustomers([]);
         }
@@ -320,8 +302,6 @@ const TicketDetails = React.memo(() => {
 
   // Handle customer selection with proper form updates
   const handleCustomerChange = useCallback((customerId: string, type: 'caller' | 'beneficiary') => {
-    console.log('👤 Customer change:', { customerId, type });
-
     if (type === 'caller') {
       form.setValue('callerId', customerId);
       // Se não há favorecido específico, usar o mesmo cliente
@@ -344,22 +324,20 @@ const TicketDetails = React.memo(() => {
 
   // Fetch companies for client company selection
   // Buscar dados da empresa quando ticket tem company_id
-  const { 
-    data: companiesData, 
-    isLoading: companiesLoading, 
-    error: companiesError 
+  const {
+    data: companiesData,
+    isLoading: companiesLoading,
+    error: companiesError
   } = useQuery({
     queryKey: ['/api/companies'],
     enabled: true,
     retry: 3,
     staleTime: 5 * 60 * 1000, // 5 minutos
     select: (data: any) => {
-      console.log('🏢 [COMPANY-DATA] Raw API response:', data);
       if (Array.isArray(data)) return data;
       if (data?.companies) return data.companies;
       if (data?.data?.companies) return data.data.companies;
       if (data?.data && Array.isArray(data.data)) return data.data;
-      console.log('⚠️ [COMPANY-DATA] Unexpected data format, returning empty array');
       return [];
     },
     onError: (error) => {
@@ -411,10 +389,8 @@ const TicketDetails = React.memo(() => {
   const { data: ticketCommunications, isLoading: communicationsLoading, error: communicationsError } = useQuery({
     queryKey: ["/api/tickets", id, "communications"],
     queryFn: async () => {
-      console.log('💬 Fetching ticket communications for:', id);
       const response = await apiRequest("GET", `/api/tickets/${id}/communications`);
       const data = await response.json();
-      console.log('💬 Communications API response:', data);
       return data;
     },
     enabled: !!id,
@@ -427,10 +403,8 @@ const TicketDetails = React.memo(() => {
   const { data: ticketNotes, isLoading: notesLoading, error: notesError } = useQuery({
     queryKey: ["/api/tickets", id, "notes"],
     queryFn: async () => {
-      console.log('📝 Fetching ticket notes for:', id);
       const response = await apiRequest("GET", `/api/tickets/${id}/notes`);
       const data = await response.json();
-      console.log('📝 Notes API response:', data);
       return data;
     },
     enabled: !!id,
@@ -443,10 +417,8 @@ const TicketDetails = React.memo(() => {
   const { data: ticketActions, isLoading: actionsLoading, error: actionsError } = useQuery({
     queryKey: ["/api/tickets", id, "actions"],
     queryFn: async () => {
-      console.log('⚙️ Fetching ticket actions for:', id);
       const response = await apiRequest("GET", `/api/tickets/${id}/actions`);
       const data = await response.json();
-      console.log('⚙️ Actions API response:', data);
       return data;
     },
     enabled: !!id,
@@ -474,47 +446,29 @@ const TicketDetails = React.memo(() => {
 
   // 🔧 [1QA-COMPLIANCE] Dados processados diretamente das queries - Clean Architecture
   const communicationsData = useMemo(() => {
-    console.log('💬 [COMMUNICATIONS] Processing data from API');
-    console.log('💬 [COMMUNICATIONS] ticketCommunications:', ticketCommunications);
-
     if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
-      console.log('💬 [COMMUNICATIONS] Using success path, data length:', ticketCommunications.data.length);
       return ticketCommunications.data;
     } else if (ticketCommunications?.data && Array.isArray(ticketCommunications.data)) {
-      console.log('💬 [COMMUNICATIONS] Using direct data path, data length:', ticketCommunications.data.length);
       return ticketCommunications.data;
     } else if (ticketRelationships?.communications && Array.isArray(ticketRelationships.communications)) {
-      console.log('💬 [COMMUNICATIONS] Using relationships path, data length:', ticketRelationships.communications.length);
       return ticketRelationships.communications;
     }
-    console.log('💬 [COMMUNICATIONS] No data found, returning empty array');
     return [];
   }, [ticketCommunications, ticketRelationships]);
 
   const attachmentsData = useMemo(() => {
-    console.log('📎 [ATTACHMENTS] Processing data from API');
-    console.log('📎 [ATTACHMENTS] ticketAttachments:', ticketAttachments);
-
     if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
-      console.log('📎 [ATTACHMENTS] Using success path, data length:', ticketAttachments.data.length);
       return ticketAttachments.data;
     } else if (ticketAttachments?.data && Array.isArray(ticketAttachments.data)) {
-      console.log('📎 [ATTACHMENTS] Using direct data path, data length:', ticketAttachments.data.length);
       return ticketAttachments.data;
     } else if (ticketRelationships?.attachments && Array.isArray(ticketRelationships.attachments)) {
-      console.log('📎 [ATTACHMENTS] Using relationships path, data length:', ticketRelationships.attachments.length);
       return ticketRelationships.attachments;
     }
-    console.log('📎 [ATTACHMENTS] No data found, returning empty array');
     return [];
   }, [ticketAttachments, ticketRelationships]);
 
   const notesData = useMemo(() => {
-    console.log('📝 [NOTES] Processing data from API');
-    console.log('📝 [NOTES] ticketNotes:', ticketNotes);
-
     if (ticketNotes?.success && Array.isArray(ticketNotes.data)) {
-      console.log('📝 [NOTES] Using success path, data length:', ticketNotes.data.length);
       return ticketNotes.data.map((note: any) => ({
         ...note,
         id: note.id || `note-${Date.now()}-${Math.random()}`,
@@ -524,7 +478,6 @@ const TicketDetails = React.memo(() => {
         content: note.content || note.description || note.text || 'Sem conteúdo'
       }));
     } else if (ticketNotes?.data && Array.isArray(ticketNotes.data)) {
-      console.log('📝 [NOTES] Using direct data path, data length:', ticketNotes.data.length);
       return ticketNotes.data.map((note: any) => ({
         ...note,
         id: note.id || `note-${Date.now()}-${Math.random()}`,
@@ -534,19 +487,13 @@ const TicketDetails = React.memo(() => {
         content: note.content || note.description || note.text || 'Sem conteúdo'
       }));
     } else if (ticketRelationships?.notes && Array.isArray(ticketRelationships.notes)) {
-      console.log('📝 [NOTES] Using relationships path, data length:', ticketRelationships.notes.length);
       return ticketRelationships.notes;
     }
-    console.log('📝 [NOTES] No data found, returning empty array');
     return [];
   }, [ticketNotes, ticketRelationships]);
 
   const internalActionsData = useMemo(() => {
-    console.log('⚙️ [INTERNAL-ACTIONS] Processing data from API');
-    console.log('⚙️ [INTERNAL-ACTIONS] ticketActions:', ticketActions);
-
     if (ticketActions?.success && Array.isArray(ticketActions.data)) {
-      console.log('⚙️ [INTERNAL-ACTIONS] Using success path, data length:', ticketActions.data.length);
       return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || `action-${Date.now()}-${Math.random()}`,
@@ -558,7 +505,6 @@ const TicketDetails = React.memo(() => {
         time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
       }));
     } else if (ticketActions?.data && Array.isArray(ticketActions.data)) {
-      console.log('⚙️ [INTERNAL-ACTIONS] Using direct data path, data length:', ticketActions.data.length);
       return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || `action-${Date.now()}-${Math.random()}`,
@@ -570,12 +516,10 @@ const TicketDetails = React.memo(() => {
         time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
       }));
     }
-    console.log('⚙️ [INTERNAL-ACTIONS] No data found, returning empty array');
     return [];
   }, [ticketActions]);
 
   const relatedTicketsData = useMemo(() => {
-    console.log('🔗 [RELATED-TICKETS] Processing data from API');
     if (ticketRelationships?.success && Array.isArray(ticketRelationships.data)) {
       return ticketRelationships.data.map((relationship: any) => ({
         id: relationship.targetTicket?.id || relationship.id,
@@ -593,7 +537,6 @@ const TicketDetails = React.memo(() => {
   }, [ticketRelationships]);
 
   const historyData = useMemo(() => {
-    console.log('📜 [HISTORY] Processing data from API');
     if (ticketHistoryData?.success && Array.isArray(ticketHistoryData.data)) {
       return ticketHistoryData.data;
     } else if (ticketHistoryData?.data && Array.isArray(ticketHistoryData.data)) {
@@ -624,7 +567,7 @@ const TicketDetails = React.memo(() => {
     { id: "materials", label: "Materiais e Serviços", icon: Package },
   ];
 
-  // 🔧 [1QA-COMPLIANCE] Direct computation for followers and tags  
+  // 🔧 [1QA-COMPLIANCE] Direct computation for followers and tags
   const currentFollowers = ticket?.followers || [];
   const currentTags = ticket?.tags || [];
 
@@ -638,7 +581,6 @@ const TicketDetails = React.memo(() => {
     if (openActionId && internalActionsData.length > 0) {
       const actionToOpen = internalActionsData.find((action: any) => action.id === openActionId);
       if (actionToOpen) {
-        console.log('🎯 [AUTO-OPEN] Opening action automatically:', openActionId);
         setActionToEdit(actionToOpen);
         setEditActionModalOpen(true);
         // Clean URL parameter
@@ -650,13 +592,6 @@ const TicketDetails = React.memo(() => {
   // Set ticket-specific data
   useEffect(() => {
     if (ticket) {
-      console.log('🎫 Setting ticket-specific data:', {
-        hasFollowers: Array.isArray(ticket.followers),
-        hasTags: Array.isArray(ticket.tags),
-        followersCount: ticket.followers?.length || 0,
-        tagsCount: ticket.tags?.length || 0
-      });
-
       // Followers and tags processing moved to direct computation below
 
       // Sync assignment group state with ticket data
@@ -668,18 +603,7 @@ const TicketDetails = React.memo(() => {
 
   // Initialize real history data from API with comprehensive mapping
   useEffect(() => {
-    console.log('🗂️ Initializing history data:', {
-      hasHistoryData: !!ticketHistoryData,
-      historySuccess: ticketHistoryData?.success,
-      historyDataType: typeof ticketHistoryData?.data,
-      historyIsArray: Array.isArray(ticketHistoryData?.data),
-      historyLength: ticketHistoryData?.data?.length || 0,
-      historyError: historyError,
-      historyLoading: historyLoading
-    });
-
     if (ticketHistoryData?.success && Array.isArray(ticketHistoryData.data)) {
-      console.log('🗂️ Setting history from API success:', ticketHistoryData.data.length, 'items');
       const mappedHistory = ticketHistoryData.data.map((item: any) => ({
         ...item,
         id: item.id || `history-${Date.now()}-${Math.random()}`,
@@ -696,10 +620,6 @@ const TicketDetails = React.memo(() => {
         session_id: item.session_id || item.sessionId || item.metadata?.session_id || null
       }));
       // History processing moved to useMemo above
-    } else if (ticketHistoryData?.data && Array.isArray(ticketHistoryData.data)) {
-      console.log('🗂️ History data available (no success flag):', ticketHistoryData.data.length, 'items');
-    } else {
-      console.log('🗂️ No history found');
     }
   }, [ticketHistoryData, historyError, historyLoading]);
 
@@ -792,28 +712,13 @@ const TicketDetails = React.memo(() => {
 
   // 🔧 [1QA-COMPLIANCE] Função onNotesSubmit seguindo Clean Architecture
   const onNotesSubmit = async (data: any) => {
-    console.log('📝 [NOTES-FRONTEND] onNotesSubmit called with:', { 
-      data, 
-      hasContent: !!data?.content,
-      contentLength: data?.content?.length,
-      isSubmitting: isSubmittingNote 
-    });
-
     if (!data?.content?.trim() || isSubmittingNote) {
-      console.log('📝 [NOTES-FRONTEND] Validation failed or already submitting');
       return;
     }
 
     setIsSubmittingNote(true);
 
     try {
-      console.log('📝 [NOTES-FRONTEND] Submitting note to API:', { 
-        ticketId: id, 
-        contentPreview: data.content.substring(0, 50),
-        noteType: data.noteType || 'general',
-        isInternal: data.isPrivate || false
-      });
-
       // Preparar payload seguindo especificação da API
       const payload = {
         content: data.content.trim(),
@@ -822,71 +727,31 @@ const TicketDetails = React.memo(() => {
         isPublic: !(data.isPrivate || false)
       };
 
-      console.log('📝 [NOTES-FRONTEND] Sending payload:', payload);
-      console.log('📝 [NOTES-FRONTEND] Request URL:', `/api/tickets/${id}/notes`);
-      console.log('📝 [NOTES-FRONTEND] Request headers will include:', {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer [token]',
-        'X-Tenant-ID': 'auto-detected'
-      });
-
       const response = await apiRequest("POST", `/api/tickets/${id}/notes`, payload);
-
-      console.log('📝 [NOTES-FRONTEND] Response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: {
-          contentType: response.headers.get("content-type"),
-          contentLength: response.headers.get("content-length")
-        }
-      });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('📝 [NOTES-FRONTEND] Error response body:', errorText.substring(0, 500));
-
         // Verificar se é erro HTML (indica erro de servidor)
         if (errorText.includes('<!DOCTYPE')) {
-          throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}. This indicates a server-side error.`);
+          throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}. This indicates a backend routing or middleware issue.`);
         }
-
         throw new Error(`HTTP error! status: ${response.status} - ${errorText.substring(0, 200)}`);
       }
 
       // Verificar content-type antes de tentar fazer parse JSON
       const contentType = response.headers.get("content-type");
-      console.log('📝 [NOTES-FRONTEND] Response content-type:', contentType);
-
       if (!contentType?.includes("application/json")) {
         const responseText = await response.text();
-        console.error('📝 [NOTES-FRONTEND] Non-JSON response:', {
-          contentType,
-          bodyPreview: responseText.substring(0, 500),
-          responseStatus: response.status,
-          responseURL: response.url
-        });
-
         // Check if it's an HTML error page (server error)
         if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html>')) {
-          console.error('🚨 [NOTES-FRONTEND] Server returned HTML page instead of JSON:', {
-            responseText: responseText.substring(0, 500),
-            status: response.status,
-            url: response.url,
-            headers: Object.fromEntries(response.headers.entries())
-          });
           throw new Error(`Server Error: API endpoint returned HTML instead of JSON. This indicates a backend routing or middleware issue. Status: ${response.status}`);
         }
-
         throw new Error(`Expected JSON response, got ${contentType}. Response preview: ${responseText.substring(0, 200)}`);
       }
 
       const result = await response.json();
-      console.log('📝 [NOTES-FRONTEND] Parsed JSON result:', result);
 
       if (result.success) {
-        console.log('✅ [NOTES-FRONTEND] Note created successfully, invalidating queries');
-
         // Invalidate queries in the correct order seguindo 1qa.md
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "notes"] }),
@@ -903,10 +768,7 @@ const TicketDetails = React.memo(() => {
           title: "Nota adicionada",
           description: "A nota foi salva com sucesso.",
         });
-
-        console.log('✅ [NOTES-FRONTEND] Note workflow completed successfully');
       } else {
-        console.error('📝 [NOTES-FRONTEND] API returned success=false:', result);
         throw new Error(result.message || "Failed to add note - API returned success=false");
       }
     } catch (error) {
@@ -915,13 +777,6 @@ const TicketDetails = React.memo(() => {
       let errorMessage = "Erro ao adicionar nota. Tente novamente.";
 
       if (error instanceof Error) {
-        console.log('📝 [NOTES-FRONTEND] Error analysis:', {
-          message: error.message,
-          includesDOCTYPE: error.message.includes('DOCTYPE'),
-          includesJSON: error.message.includes('application/json'),
-          includesHTML: error.message.includes('HTML')
-        });
-
         if (error.message.includes('DOCTYPE') || error.message.includes('HTML')) {
           errorMessage = "Erro do servidor: resposta HTML recebida ao invés de JSON. Contate o administrador.";
         } else if (error.message.includes('application/json')) {
@@ -1003,7 +858,6 @@ const TicketDetails = React.memo(() => {
 
   useEffect(() => {
     if (formDataMemo && ticket && !isEditMode && !form.formState.isDirty) {
-      console.log('🎫 Optimized form reset with memoized data (view mode only, form not dirty)');
       form.reset(formDataMemo);
 
       // Update local states only if changed
@@ -1022,34 +876,23 @@ const TicketDetails = React.memo(() => {
   // Update mutation
   const updateTicketMutation = useMutation({
     mutationFn: async (data: TicketFormData) => {
-      console.log("🚀 Mutation started, sending PUT request to:", `/api/tickets/${id}`);
-      console.log("📤 Request payload:", data);
-
       const response = await apiRequest("PUT", `/api/tickets/${id}`, data);
-      console.log("📥 Response status:", response.status);
-
       const result = await response.json();
-      console.log("📥 Response data:", result);
-
       return result;
     },
     onSuccess: (data) => {
-      console.log("✅ Mutation success:", data);
       toast({
         title: "Sucesso",
         description: "Ticket atualizado com sucesso",
       });
 
       // 🚀 ATUALIZAÇÃO OTIMIZADA: Update imediato sem esperar invalidação
-      console.log('⚡ Optimized cache update after ticket save...');
-
       // 1. Primeiro: Atualizar o cache do ticket específico IMEDIATAMENTE
       if (data?.success && data?.data) {
         queryClient.setQueryData(["/api/tickets", id], {
           success: true,
           data: data.data
         });
-        console.log('⚡ Ticket cache updated immediately');
 
         // 2. Atualizar o form imediatamente com os dados salvos
         const freshFormData = {
@@ -1064,13 +907,11 @@ const TicketDetails = React.memo(() => {
         };
 
         form.reset(freshFormData);
-        console.log('⚡ Form updated immediately with fresh data');
       }
 
       // 3. Invalidação em background (não bloqueia a UI)
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-        console.log('🔄 Background cache refresh completed');
       }, 200);
 
       setIsEditMode(false);
@@ -1135,7 +976,6 @@ const TicketDetails = React.memo(() => {
   // Delete note mutation
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
-      console.log('🗑️ Deleting note:', noteId);
       const response = await apiRequest("DELETE", `/api/tickets/${id}/notes/${noteId}`);
       return response.json();
     },
@@ -1162,14 +1002,6 @@ const TicketDetails = React.memo(() => {
   // Não há mais necessidade de mapeamento hard-coded
 
   const onSubmit = useCallback((data: TicketFormData) => {
-    console.log("💾 [TicketDetails] onSubmit called with data:", data);
-    console.log("🔍 [TicketDetails] Current form state:", {
-      isEditMode,
-      formIsDirty: form.formState.isDirty,
-      hasChanges: Object.keys(form.formState.dirtyFields).length > 0,
-      dirtyFields: form.formState.dirtyFields
-    });
-
     // CORREÇÃO CRÍTICA: Aplicar mapeamento completo Frontend→Backend seguindo 1qa.md
     const mappedData = {
       // ✅ Core fields - mapeamento direto
@@ -1228,22 +1060,6 @@ const TicketDetails = React.memo(() => {
       }
     });
 
-    console.log("💾 [TicketDetails] Sending mapped data to API:", mappedData);
-    console.log("🔍 [TicketDetails] DEBUG - Company field mapping:", {
-      selectedCompanyState: selectedCompany,
-      dataCompanyId: data.companyId,
-      ticketCompanyId: ticket?.company_id,
-      ticketCompanyIdAlt: ticket?.companyId,
-      finalCompanyId: mappedData.company_id,
-      isCompanyFieldDirty: form.formState.dirtyFields.companyId,
-      formCompanyValue: form.getValues('companyId')
-    });
-    console.log("🔍 [TicketDetails] DEBUG - All mapped fields:", {
-      totalFields: Object.keys(mappedData).length,
-      mappedFieldsList: Object.keys(mappedData),
-      mappedData: mappedData
-    });
-
     updateTicketMutation.mutate(mappedData);
   }, [selectedCompany, form, updateTicketMutation]);
 
@@ -1255,11 +1071,7 @@ const TicketDetails = React.memo(() => {
 
 
 
-  console.log('🎯 [FRONTEND] Render conditions:', { isLoading, ticket: !!ticket, ticketError });
-
-  // First check if ticket exists
   if (isLoading) {
-    console.log('🎯 [FRONTEND] Showing loading state');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -1268,7 +1080,6 @@ const TicketDetails = React.memo(() => {
   }
 
   if (ticketError) {
-    console.log('🎯 [FRONTEND] Showing error state:', ticketError);
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -1287,7 +1098,6 @@ const TicketDetails = React.memo(() => {
   }
 
   if (!ticket) {
-    console.log('🎯 [FRONTEND] Showing not found state');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -1607,7 +1417,7 @@ const TicketDetails = React.memo(() => {
                         placeholder="Digite a descrição do ticket..."
                       />
                     ) : (
-                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{
+                      <div className="p-3 bg-gray-50 rounded min-h-[100px]" dangerouslySetInnerHTML={{
                         __html: ticket?.description || field.value || '<p>Não informado</p>'
                       }} />
                     )}
@@ -1824,14 +1634,6 @@ const TicketDetails = React.memo(() => {
               }}
             />
 
-            {/* DEBUG: Show attachments data length */}
-            <div className="bg-yellow-100 p-2 text-xs border rounded mb-4">
-              DEBUG: attachmentsData.length = {attachmentsData ? attachmentsData.length : 'undefined'}
-              <br />DEBUG: ticketAttachments = {ticketAttachments ? 'exists' : 'null/undefined'}
-              <br />DEBUG: ticketAttachments.success = {ticketAttachments?.success ? 'true' : 'false'}
-              <br />DEBUG: ticketAttachments.data length = {Array.isArray(ticketAttachments?.data) ? ticketAttachments.data.length : 'not array'}
-            </div>
-
             {/* Existing Attachments List */}
             {(attachmentsData && attachmentsData.length > 0) && (
               <div className="space-y-3">
@@ -1969,7 +1771,7 @@ const TicketDetails = React.memo(() => {
                 />
               </div>
 
-              <Button 
+              <Button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
@@ -1999,14 +1801,6 @@ const TicketDetails = React.memo(() => {
                   "Adicionar Nota"
                 )}
               </Button>
-            </div>
-
-            {/* DEBUG: Show notes data length */}
-            <div className="bg-yellow-100 p-2 text-xs border rounded mb-4">
-              DEBUG: notesData.length = {notesData.length}
-              <br />DEBUG: ticketNotes = {ticketNotes ? 'exists' : 'null/undefined'}
-              <br />DEBUG: ticketNotes.success = {ticketNotes?.success ? 'true' : 'false'}
-              <br />DEBUG: ticketNotes.data length = {Array.isArray(ticketNotes?.data) ? ticketNotes.data.length : 'not array'}
             </div>
 
             {/* Notes Timeline */}
@@ -2086,9 +1880,6 @@ const TicketDetails = React.memo(() => {
                   <Badge variant="secondary" className="text-xs">Telefone</Badge>
                 </div>
               </div>
-
-              {/* DEBUG: Show communications data length */}
-              {/* This block is removed as per the user's request */}
 
               {communicationsData.slice().reverse().map((comm: any) => (
                 <Card key={comm.id} className="p-4">
@@ -2283,7 +2074,6 @@ const TicketDetails = React.memo(() => {
                               {historyItem.action_type === 'investigation' && 'Investigação'}
                               {historyItem.action_type === 'analysis' && 'Análise'}
                               {historyItem.action_type === 'work_log' && 'Log de Trabalho'}
-                              {historyItem.action_type === 'documentation' && 'Documentação'}
                               {!['created', 'ticket_created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'internal_action_created', 'internal_action_updated', 'internal_action_deleted', 'action_updated', 'action_deleted', 'ação interna', 'note_added', 'note_created', 'note_deleted', 'relationship_created', 'relationship_deleted', 'resolution', 'investigation', 'analysis', 'work_log', 'documentation'].includes(historyItem.action_type) && 'Atividade'}
                             </span>
                             {historyViewMode === 'advanced' && (
@@ -2433,14 +2223,6 @@ const TicketDetails = React.memo(() => {
                   Nova Ação
                 </Button>
               </div>
-            </div>
-
-            {/* DEBUG: Show internal actions data length */}
-            <div className="bg-yellow-100 p-2 text-xs border rounded mb-4">
-              DEBUG: internalActionsData.length = {internalActionsData.length}
-              <br />DEBUG: ticketActions = {ticketActions ? 'exists' : 'null/undefined'}
-              <br />DEBUG: ticketActions.success = {ticketActions?.success ? 'true' : 'false'}
-              <br />DEBUG: ticketActions.data length = {Array.isArray(ticketActions?.data) ? ticketActions.data.length : 'not array'}
             </div>
 
             <div className="space-y-4">
@@ -3059,14 +2841,12 @@ const TicketDetails = React.memo(() => {
               <div className="space-y-2">
                 <Select
                   onValueChange={(value) => {
-                    console.log('🏢 Company change:', { newCompanyId: value, selectedCompany });
                     handleCompanyChange(value);
                     // Limpar cliente e favorecido quando empresa muda
                     form.setValue('callerId', '');
                     form.setValue('beneficiaryId', '');
                     // Atualizar estado imediatamente
                     setSelectedCompany(value);
-                    console.log('✅ Company state updated:', { newSelectedCompany: value, formValueAfter: form.getValues('companyId') });
                   }}
                   value={selectedCompany || ''}
                 >
@@ -3139,12 +2919,10 @@ const TicketDetails = React.memo(() => {
                 <FilteredCustomerSelect
                   value={form.getValues('callerId') || ''}
                   onChange={(value) => {
-                    console.log('🔄 Setting new customer:', { oldValue: form.getValues('callerId'), newValue: value });
                     form.setValue('callerId', value, { shouldValidate: true, shouldDirty: true });
                     form.setValue('beneficiaryId', '', { shouldValidate: true, shouldDirty: true });
                     form.trigger('callerId'); // Force form re-render
                     handleCustomerChange(value, 'caller');
-                    console.log('👤 Customer change:', { customerId: value, type: 'caller', formValue: form.getValues('callerId') });
                   }}
                   selectedCompanyId={form.getValues('companyId') || '503389ff-7616-48e0-8759-c6b98faf5608'}
                   placeholder="Selecionar cliente"
@@ -3196,7 +2974,6 @@ const TicketDetails = React.memo(() => {
                 <FilteredBeneficiarySelect
                   value={form.getValues('beneficiaryId') || ''}
                   onChange={(value) => {
-                    console.log('🔄 Setting new beneficiary:', { oldValue: form.getValues('beneficiaryId'), newValue: value });
                     form.setValue('beneficiaryId', value, { shouldValidate: true, shouldDirty: true });
                     form.trigger('beneficiaryId'); // Force form re-render
                     handleCustomerChange(value, 'beneficiary');
@@ -3215,48 +2992,26 @@ const TicketDetails = React.memo(() => {
                   <Users className="h-4 w-4 mr-2" />
                   {(() => {
                     const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                    console.log('🎯 Badge beneficiary lookup:', { beneficiaryId, ticketBeneficiaryId: ticket.beneficiary_id });
-
-                    // Try to find in beneficiaries data first (correct data source)
                     let beneficiary = null;
-
-                    // Check if we have beneficiaries data from the API
-                    console.log('🔍 Available beneficiariesData:', {
-                      data: beneficiariesData,
-                      hasNestedBeneficiaries: !!beneficiariesData?.data?.beneficiaries,
-                      hasBeneficiaries: !!beneficiariesData?.beneficiaries,
-                      isNestedArray: Array.isArray(beneficiariesData?.data?.beneficiaries),
-                      isArray: Array.isArray(beneficiariesData?.beneficiaries),
-                      nestedCount: beneficiariesData?.data?.beneficiaries?.length || 0,
-                      count: beneficiariesData?.beneficiaries?.length || 0,
-                      searchingFor: beneficiaryId
-                    });
 
                     if (beneficiariesData?.data?.beneficiaries && Array.isArray(beneficiariesData.data.beneficiaries)) {
                       beneficiary = beneficiariesData.data.beneficiaries.find((b: any) => b.id === beneficiaryId);
-                      console.log('🔍 Found in beneficiariesData:', { beneficiary: beneficiary?.fullName || beneficiary?.name || null });
                     } else if (beneficiariesData?.beneficiaries && Array.isArray(beneficiariesData.beneficiaries)) {
                       beneficiary = beneficiariesData.beneficiaries.find((b: any) => b.id === beneficiaryId);
-                      console.log('🔍 Found in beneficiariesData (alt path):', { beneficiary: beneficiary?.fullName || beneficiary?.name || null });
                     }
 
-                    // Fallback to customers data (if beneficiary is also a customer)
                     if (!beneficiary) {
                       beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) ||
                                   (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
-                      console.log('🔍 Found in customers fallback:', { beneficiary: beneficiary?.name || null });
                     }
 
                     if (!beneficiary) {
-                      console.log('❌ Beneficiary not found:', { beneficiaryId, available: beneficiariesData?.beneficiaries?.length || 0 });
                       return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
                     }
 
                     const displayName = beneficiary.fullName || beneficiary.name ||
                            `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() ||
                            beneficiary.email || 'Favorecido sem nome';
-
-                    console.log('✅ Beneficiary display name:', displayName);
                     return displayName;
                   })()}
                 </Badge>
@@ -3387,74 +3142,12 @@ const TicketDetails = React.memo(() => {
               <UserMultiSelect
                 value={form.getValues('followers') || ticket.followers || []}
                 onChange={(value) => {
-                  console.log('👥 UserMultiSelect onChange called with:', value);
-                  // Using direct form update instead of state
                   form.setValue('followers', value);
-                  console.log('✅ Followers state updated:', {
-                    newFollowers: value,
-                    formValueAfter: form.getValues('followers')
-                  });
                 }}
                 users={teamUsers}
                 placeholder="Selecionar seguidores da equipe"
                 disabled={!isEditMode}
               />
-            </div>
-          </div>
-
-          {/* Campos Customizados Section - temporarily hidden */}
-          <div className="mb-6" style={{ display: 'none' }}>
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">SEGUIDORES ANTIGO (oculto)</h3>
-            <div className="space-y-2">
-              {currentFollowers.length > 0 ? (
-                currentFollowers.map((followerId, index) => {
-                  const user = users?.users?.find((u: any) => u.id === followerId);
-                  return (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">
-                        {user?.name || followerId}
-                      </span>
-                      {isEditMode && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => {
-                            const newFollowers = currentFollowers.filter((_, i) => i !== index);
-                            // State update removed - using direct computation
-                            form.setValue('followers', newFollowers);
-                          }}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-sm text-gray-500">Nenhum seguidor</div>
-              )}
-
-              {isEditMode && (
-                <Select onValueChange={(value) => {
-                  if (value && !currentFollowers.includes(value)) {
-                    const newFollowers = [...currentFollowers, value];
-                    // State update removed - using direct computation
-                    form.setValue('followers', newFollowers);
-                  }
-                }}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="+ Adicionar agente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users?.users?.filter((user: any) => !currentFollowers.includes(user.id)).map((user: any) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
             </div>
           </div>
 
@@ -3592,7 +3285,6 @@ const TicketDetails = React.memo(() => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      console.log("🔗 Botão Vincular clicado!");
                       setIsLinkingModalOpen(true);
                     }}
                     className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
@@ -3605,20 +3297,11 @@ const TicketDetails = React.memo(() => {
                     variant="default"
                     size="sm"
                     onClick={() => {
-                      console.log("💾 Botão Salvar clicado!");
-                      console.log("📋 Form valid:", form.formState.isValid);
-                      console.log("❌ Form errors:", form.formState.errors);
-
-                      // Force a manual validation first
                       const formData = form.getValues();
-
-                      // Try to trigger validation manually
                       form.trigger().then((isValid) => {
                         if (isValid) {
-                          console.log("✅ Form is valid, proceeding with onSubmit");
                           onSubmit(formData);
                         } else {
-                          console.log("❌ Form validation failed");
                           const errorMessages = Object.entries(form.formState.errors)
                             .map(([field, error]) => `${field}: ${error?.message || 'Erro de validação'}`)
                             .join('\n');
