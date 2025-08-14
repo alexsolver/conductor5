@@ -3747,14 +3747,14 @@ const TicketDetails = React.memo(() => {
             role="tab"
             aria-selected={activeTab === "external-actions"}
             aria-controls="tab-content"
-            aria-label={`Ações Externas - ${externalActions.length} itens`}
+            aria-label={`Ações Externas - 0 itens`}
           >
             <div className="flex items-center gap-3">
               <ExternalLink className="h-4 w-4" />
               <span className="text-sm font-medium">Ações Externas</span>
             </div>
             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
-              {externalActions.length}
+              0
             </Badge>
           </button>
 
