@@ -615,9 +615,9 @@ const TicketDetails = React.memo(() => {
         old_value: item.old_value || item.oldValue || null,
         new_value: item.new_value || item.newValue || null,
         metadata: item.metadata || {},
-        ip_address: item.ip_address || item.ipAddress || item.metadata?.ip_address || null,
-        user_agent: item.user_agent || item.userAgent || item.metadata?.user_agent || null,
-        session_id: item.session_id || item.sessionId || item.metadata?.session_id || null
+        ip_address: item.ip_address || item.ipAddress || item.metadata?.client_info?.ip_address || item.metadata?.ip_address || null,
+        user_agent: item.user_agent || item.userAgent || item.metadata?.client_info?.user_agent || item.metadata?.user_agent || null,
+        session_id: item.session_id || item.sessionId || item.metadata?.client_info?.session_id || item.metadata?.session_id || null
       }));
       // History processing moved to useMemo above
     }
@@ -2105,23 +2105,23 @@ const TicketDetails = React.memo(() => {
                               <div>
                                 <span className="text-gray-500">IP:</span>
                                 <span className="ml-1 font-medium text-blue-600">
-                                  {historyItem.ip_address || historyItem.metadata?.ip_address || 'N/A'}
+                                  {historyItem.ip_address || historyItem.metadata?.client_info?.ip_address || historyItem.metadata?.ip_address || 'N/A'}
                                 </span>
                               </div>
                             </div>
-                            {(historyItem.user_agent || historyItem.metadata?.user_agent) && (
+                            {(historyItem.user_agent || historyItem.metadata?.client_info?.user_agent || historyItem.metadata?.user_agent) && (
                               <div className="mb-2">
                                 <span className="text-gray-500">User-Agent:</span>
                                 <p className="text-xs break-all mt-1 text-gray-700">
-                                  {historyItem.user_agent || historyItem.metadata?.user_agent}
+                                  {historyItem.user_agent || historyItem.metadata?.client_info?.user_agent || historyItem.metadata?.user_agent}
                                 </p>
                               </div>
                             )}
-                            {(historyItem.session_id || historyItem.metadata?.session_id) && (
+                            {(historyItem.session_id || historyItem.metadata?.client_info?.session_id || historyItem.metadata?.session_id) && (
                               <div className="mb-2">
                                 <span className="text-gray-500">Session ID:</span>
                                 <span className="ml-1 font-mono text-xs">
-                                  {historyItem.session_id || historyItem.metadata?.session_id}
+                                  {historyItem.session_id || historyItem.metadata?.client_info?.session_id || historyItem.metadata?.session_id}
                                 </span>
                               </div>
                             )}
