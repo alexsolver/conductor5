@@ -954,9 +954,9 @@ router.post('/telegram/webhook/:tenantId', async (req, res) => {
  * Set Telegram Webhook URL
  * POST /api/tenant-admin/integrations/telegram/set-webhook
  */
-router.post('/telegram/set-webhook', jwtAuth, enhancedTenantValidator(), async (req, res) => {
+router.post('/telegram/set-webhook', jwtAuth, async (req, res) => {
   try {
-    const tenantId = req.user?.tenant_id || req.headers['x-tenant-id'] as string;
+    const tenantId = req.user?.tenantId;
     let { webhookUrl, useDefault } = req.body;
 
     console.log(`🔧 [TELEGRAM-WEBHOOK-SETUP] Setting webhook for tenant: ${tenantId}`);
@@ -1072,9 +1072,9 @@ router.post('/telegram/set-webhook', jwtAuth, enhancedTenantValidator(), async (
  * Get Webhook Status
  * GET /api/tenant-admin/integrations/telegram/webhook-status
  */
-router.get('/telegram/webhook-status', jwtAuth, enhancedTenantValidator(), async (req, res) => {
+router.get('/telegram/webhook-status', jwtAuth, async (req, res) => {
   try {
-    const tenantId = req.user?.tenant_id || req.headers['x-tenant-id'] as string;
+    const tenantId = req.user?.tenantId;
 
     // ✅ GET CONFIG: Load configuration
     const { storage } = await import('../storage-simple');
