@@ -173,19 +173,19 @@ export class TicketHistoryApplicationService {
     });
 
     try {
-      // Create history data using domain service
+      // Create history data using domain service with correct parameter order
       const historyData = this.ticketHistoryDomainService.createInternalActionHistory(
         params.ticketId,
         params.actionType,
-        params.description || `${params.actionType} performed`,
         params.performedBy,
-`User ${params.performedBy}`, // Use proper performer name
+        `User ${params.performedBy}`, // Use proper performer name
         params.tenantId,
         {
           ...params.metadata,
           fieldName: params.fieldName,
           oldValue: params.oldValue,
-          newValue: params.newValue
+          newValue: params.newValue,
+          description: params.description || `${params.actionType} performed`
         }
       );
 

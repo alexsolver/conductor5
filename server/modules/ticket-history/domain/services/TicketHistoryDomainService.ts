@@ -90,13 +90,20 @@ export class TicketHistoryDomainService {
     actionData: Record<string, any>
   ): CreateTicketHistoryData {
     
+    console.log('🎯 [TicketHistoryDomainService] Creating internal action history:', {
+      ticketId,
+      actionType,
+      performedBy,
+      tenantId: tenantId?.substring(0, 8) + '...'
+    });
+    
     return {
       ticketId,
       actionType: 'internal_action_created',
       performedBy,
       performedByName,
       description: `Ação interna criada: ${actionType} action performed`,
-      tenantId,
+      tenantId, // Ensure we use the correct tenantId parameter
       metadata: {
         action_type: actionType,
         action_id: actionData.action_id,
