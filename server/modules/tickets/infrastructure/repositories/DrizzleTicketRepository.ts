@@ -161,22 +161,39 @@ export class DrizzleTicketRepository implements ITicketRepository {
         );
       }
 
-      // Count total results
+      // Count total results with basic condition only
       const totalResult = await db
         .select({ count: count() })
         .from(tickets)
-        .where(and(...conditions));
+        .where(eq(tickets.tenantId, tenantId));
 
       const total = totalResult[0]?.count || 0;
 
       // Calculate offset
       const offset = (pagination.page - 1) * pagination.limit;
 
-      // Simple query without complex ordering to avoid Drizzle internal errors
+      // Simple query with minimal conditions to avoid schema conflicts
       const ticketResults = await db
-        .select()
+        .select({
+          id: tickets.id,
+          tenantId: tickets.tenantId,
+          number: tickets.number,
+          subject: tickets.subject,
+          description: tickets.description,
+          status: tickets.status,
+          priority: tickets.priority,
+          urgency: tickets.urgency,
+          impact: tickets.impact,
+          category: tickets.category,
+          subcategory: tickets.subcategory,
+          callerId: tickets.callerId,
+          assignedToId: tickets.assignedToId,
+          createdAt: tickets.createdAt,
+          updatedAt: tickets.updatedAt,
+          isActive: tickets.isActive
+        })
         .from(tickets)
-        .where(and(...conditions))
+        .where(eq(tickets.tenantId, tenantId))
         .orderBy(desc(tickets.createdAt))
         .limit(pagination.limit)
         .offset(offset);
