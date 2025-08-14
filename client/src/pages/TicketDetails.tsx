@@ -989,13 +989,10 @@ const TicketDetails = React.memo(() => {
         setSelectedCompany(newCompany);
       }
 
-      // Initialize followers only if different
-      if (ticket.followers && Array.isArray(ticket.followers) &&
-          JSON.stringify(ticket.followers) !== JSON.stringify(followers)) {
-        // Followers state updated via direct computation
-      }
+      // Followers processing moved to direct computation pattern
+      // Note: followers data now comes directly from ticket.followers via currentFollowers
     }
-  }, [formDataMemo, selectedCompany, followers, isEditMode]);
+  }, [formDataMemo, selectedCompany, isEditMode]);
 
 
 
