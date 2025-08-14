@@ -95,20 +95,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
     queryKey: ["/api/tickets", ticketId, "history"],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/tickets/${ticketId}/history`);
-      // Ensure the response is parsed as JSON and handle potential errors
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      // Ensure metadata is present and has the expected structure, otherwise default to an empty object
-      const processedData = data.map((entry: HistoryEntry) => ({
-        ...entry,
-        metadata: entry.metadata || {},
-        ip: entry.metadata?.ip || null,
-        session: entry.metadata?.session || null,
-        userAgent: entry.metadata?.userAgent || null,
-      }));
-      return processedData;
+      return response.json();
     },
     enabled: isOpen,
   });
@@ -161,16 +148,6 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
             {entry.newValue || 'Removido'}
           </span>
         </div>
-      </div>
-    );
-  };
-
-  const renderMetadataField = (label: string, value: string | undefined) => {
-    if (!value) return null;
-    return (
-      <div className="text-xs text-gray-600 flex items-center gap-1">
-        <span className="font-medium">{label}:</span>
-        <span className="bg-gray-200 px-1.5 py-0.5 rounded">{value}</span>
       </div>
     );
   };
@@ -243,7 +220,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
               <div className="text-center py-12">
                 <History className="mx-auto h-12 w-12 text-gray-400" />
                 <p className="mt-2 text-sm text-gray-500">
-                  {searchTerm || filter !== "all" || timeFilter !== "all"
+                  {searchTerm || filter !== "all" || timeFilter !== "all" 
                     ? "Nenhuma ação encontrada com os filtros aplicados"
                     : "Nenhum histórico disponível"
                   }
@@ -265,8 +242,8 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                       {/* Content */}
                       <div className="ml-12 flex-1">
                         <Card className={`border-l-4 ${
-                          entry.isPublic
-                            ? 'border-l-green-500 bg-green-50'
+                          entry.isPublic 
+                            ? 'border-l-green-500 bg-green-50' 
                             : 'border-l-gray-400 bg-gray-50'
                         }`}>
                           <CardContent className="p-4">
@@ -306,24 +283,16 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                             {entry.type === 'field_update' && renderFieldChange(entry)}
 
                             {/* Metadata */}
-                            {entry.metadata && (Object.keys(entry.metadata).length > 0 || entry.ip || entry.session || entry.userAgent) && (
+                            {entry.metadata && Object.keys(entry.metadata).length > 0 && (
                               <div className="mt-3 pt-2 border-t border-gray-200">
                                 <details className="text-xs">
                                   <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
-                                    Detalhes da sessão
+                                    Detalhes adicionais
                                   </summary>
-                                  <div className="mt-2 p-2 bg-gray-100 rounded space-y-1">
-                                    {renderMetadataField("IP", entry.ip)}
-                                    {renderMetadataField("Sessão", entry.session)}
-                                    {renderMetadataField("User-Agent", entry.userAgent)}
-                                    {entry.metadata && Object.keys(entry.metadata).length > 0 && (
-                                      <>
-                                        <div className="pt-1 border-t mt-1 border-gray-300"></div>
-                                        <pre className="text-xs overflow-x-auto">
-                                          {JSON.stringify(entry.metadata, null, 2)}
-                                        </pre>
-                                      </>
-                                    )}
+                                  <div className="mt-2 p-2 bg-gray-100 rounded">
+                                    <pre className="text-xs overflow-x-auto">
+                                      {JSON.stringify(entry.metadata, null, 2)}
+                                    </pre>
                                   </div>
                                 </details>
                               </div>

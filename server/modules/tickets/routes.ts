@@ -2537,7 +2537,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
 
     console.log(`🔍 [HISTORY-ULTRA-COMPLETE] Buscando histórico 100% completo para ticket: ${id}`);
 
-    // ✅ QUERY CORRIGIDA - INCLUINDO DADOS DE SESSÃO REAIS
+    // ✅ TESTE SIMPLES - APENAS ticket_history
     const ultraCompleteHistoryQuery = `
       SELECT 
         'ticket_history' as source,
@@ -2546,9 +2546,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.description,
         th.performed_by,
         th.performed_by_name,
-        COALESCE(th.ip_address, 'N/A') as ip_address,
-        COALESCE(th.user_agent, 'N/A') as user_agent,
-        COALESCE(th.session_id, 'N/A') as session_id,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
         th.old_value,
         th.new_value,
         th.field_name,
