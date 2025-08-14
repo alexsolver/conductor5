@@ -1,0 +1,32 @@
+🧪 [TESTE-INTEGRAÇÃO] Response status: 200
+🔍 [TESTE-INTEGRAÇÃO] Response details: 
+Object {status: 200, contentType: "text/html; charset=utf-8", headers: {…}}
+❌ [TESTE-INTEGRAÇÃO] Non-JSON response received: 
+Object {status: 200, contentType: "text/html; charset=utf-8", bodyStart: "<!DOCTYPE html>↵<html lang="en">↵  <head>↵    <script type="module">↵import {…"}
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+❌ [TESTE-INTEGRAÇÃO] Erro durante teste: 
+Error {}
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
