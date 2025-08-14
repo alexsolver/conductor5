@@ -31,7 +31,12 @@ export class ValidateTokenUseCase {
       // Verify JWT token
       const payload = jwt.verify(
         accessToken,
-        process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025'
+        process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025',
+        {
+          issuer: 'conductor-platform',
+          audience: 'conductor-users',
+          algorithms: ['HS256']
+        }
       ) as any;
 
       if (payload.type !== 'access') {

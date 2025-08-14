@@ -132,7 +132,9 @@ export class LoginUseCase {
     };
 
     return jwt.sign(payload, process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025', {
-      algorithm: 'HS256'
+      algorithm: 'HS256',
+      issuer: 'conductor-platform',
+      audience: 'conductor-users'
     });
   }
 
@@ -145,7 +147,9 @@ export class LoginUseCase {
     };
 
     return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025', {
-      algorithm: 'HS256'
+      algorithm: 'HS256',
+      issuer: 'conductor-platform',
+      audience: 'conductor-users'
     });
   }
 }

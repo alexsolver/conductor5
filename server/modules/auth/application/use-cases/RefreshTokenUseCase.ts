@@ -40,7 +40,12 @@ export class RefreshTokenUseCase {
     try {
       jwt.verify(
         dto.refreshToken, 
-        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025'
+        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025',
+        {
+          issuer: 'conductor-platform',
+          audience: 'conductor-users',
+          algorithms: ['HS256']
+        }
       );
     } catch (error) {
       // Invalidate invalid session
@@ -107,7 +112,9 @@ export class RefreshTokenUseCase {
     };
 
     return jwt.sign(payload, process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025', {
-      algorithm: 'HS256'
+      algorithm: 'HS256',
+      issuer: 'conductor-platform',
+      audience: 'conductor-users'
     });
   }
 
@@ -120,7 +127,9 @@ export class RefreshTokenUseCase {
     };
 
     return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025', {
-      algorithm: 'HS256'
+      algorithm: 'HS256',
+      issuer: 'conductor-platform',
+      audience: 'conductor-users'
     });
   }
 }
