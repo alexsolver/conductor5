@@ -409,7 +409,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       updatedAt: row.updatedAt,
       createdById: row.createdById || null,
       updatedById: row.updatedById || null,
-      customerCompanyId: row.customerCompanyId || row.companyId,
+      customerCompanyId: row.companyId,
       isActive: row.isActive !== false
     } as Ticket;
   }
