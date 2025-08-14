@@ -625,10 +625,43 @@ const TicketDetails = React.memo(() => {
         old_value: item.old_value || item.oldValue || null,
         new_value: item.new_value || item.newValue || null,
         metadata: item.metadata || {},
-        ip_address: item.ip_address || item.ipAddress || item.metadata?.client_info?.ip_address || item.metadata?.ip_address || null,
-        user_agent: item.user_agent || item.userAgent || item.metadata?.client_info?.user_agent || item.metadata?.user_agent || null,
-        session_id: item.session_id || item.sessionId || item.metadata?.client_info?.session_id || item.metadata?.session_id || null
+        // ✅ MAPEAMENTO ROBUSTO DE DADOS DE SESSÃO - MÚLTIPLAS FONTES
+        ip_address: item.ip_address || 
+                   item.ipAddress || 
+                   item.metadata?.client_info?.ip_address || 
+                   item.metadata?.ip_address ||
+                   item.metadata?.session_backup?.ip_address ||
+                   (item.metadata && typeof item.metadata === 'string' ? JSON.parse(item.metadata)?.client_info?.ip_address : null) ||
+                   'N/A',
+        user_agent: item.user_agent || 
+                   item.userAgent || 
+                   item.metadata?.client_info?.user_agent || 
+                   item.metadata?.user_agent ||
+                   item.metadata?.session_backup?.user_agent ||
+                   (item.metadata && typeof item.metadata === 'string' ? JSON.parse(item.metadata)?.client_info?.user_agent : null) ||
+                   'N/A',
+        session_id: item.session_id || 
+                   item.sessionId || 
+                   item.metadata?.client_info?.session_id || 
+                   item.metadata?.session_id ||
+                   item.metadata?.session_backup?.session_id ||
+                   (item.metadata && typeof item.metadata === 'string' ? JSON.parse(item.metadata)?.client_info?.session_id : null) ||
+                   'N/A'
       }));
+
+      console.log('🔍 [TICKET-HISTORY] Dados de sessão mapeados:', {
+        totalItems: mappedHistory.length,
+        itemsWithIP: mappedHistory.filter(h => h.ip_address && h.ip_address !== 'N/A').length,
+        itemsWithSession: mappedHistory.filter(h => h.session_id && h.session_id !== 'N/A').length,
+        sampleData: mappedHistory.slice(0, 3).map(h => ({
+          id: h.id,
+          ip_address: h.ip_address,
+          user_agent: h.user_agent?.substring(0, 30),
+          session_id: h.session_id,
+          action_type: h.action_type
+        }))
+      });
+
       // History processing moved to useMemo above
     }
   }, [ticketHistoryData, historyError, historyLoading]);

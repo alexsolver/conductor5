@@ -244,7 +244,7 @@ async function createCompleteAuditEntry(
       }
     };
 
-    // ✅ INSERT CORRIGIDO para schema atual
+    // ✅ INSERT CORRIGIDO para schema atual - COM CAMPOS IP/SESSION POPULADOS
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_history 
       (tenant_id, ticket_id, action_type, performed_by, performed_by_name, 
@@ -259,6 +259,20 @@ async function createCompleteAuditEntry(
     ultraEnhancedMetadata.performance.audit_creation_duration_ms = 
       ultraEnhancedMetadata.performance.audit_creation_end - ultraEnhancedMetadata.performance.audit_creation_start;
 
+    // ✅ GARANTIR QUE IP/USER-AGENT/SESSION SEJAM SEMPRE POPULADOS
+    const finalIpAddress = ipAddress || 'unknown';
+    const finalUserAgent = userAgent || 'unknown';
+    const finalSessionId = sessionId || `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    console.log(`✅ [AUDIT-IP-DEBUG] Dados de sessão capturados:`, {
+      ip_address: finalIpAddress,
+      user_agent: finalUserAgent?.substring(0, 50),
+      session_id: finalSessionId,
+      headers_forwarded: req.headers['x-forwarded-for'],
+      headers_real_ip: req.headers['x-real-ip'],
+      connection_remote: req.connection?.remoteAddress
+    });
+
     const result = await pool.query(insertQuery, [
       tenantId,                                           // $1
       ticketId,                                           // $2
@@ -269,9 +283,9 @@ async function createCompleteAuditEntry(
       fieldName || null,                                  // $7
       oldValue || null,                                   // $8
       newValue || null,                                   // $9
-      ipAddress,                                          // $10
-      userAgent,                                          // $11
-      sessionId,                                          // $12
+      finalIpAddress,                                     // $10 - CAMPO IP GARANTIDO
+      finalUserAgent,                                     // $11 - CAMPO USER-AGENT GARANTIDO
+      finalSessionId,                                     // $12 - CAMPO SESSION GARANTIDO
       JSON.stringify(ultraEnhancedMetadata)               // $13 - metadata
     ]);
 
@@ -309,18 +323,28 @@ async function createCompleteAuditEntry(
 
       const fallbackQuery = `
         INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by_name, created_at, metadata, is_visible, is_active)
-        VALUES ($1, $2, $3, $4, $5, NOW(), $6, true, true)
-        RETURNING id, action_type, description, created_at
+        (tenant_id, ticket_id, action_type, description, performed_by_name, 
+         ip_address, user_agent, session_id, created_at, metadata, is_visible, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9, true, true)
+        RETURNING id, action_type, description, created_at, ip_address, user_agent, session_id
       `;
 
+      // ✅ CAPTURA DE IP/SESSION MESMO EM FALLBACK
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const fallbackIpAddress = getClientIP(req) || 'fallback-ip';
+      const fallbackUserAgent = getUserAgent(req) || 'fallback-agent';
+      const fallbackSessionId = getSessionId(req) || `fallback-${Date.now()}`;
+
       const fallbackResult = await pool.query(fallbackQuery, [
-        tenantId,
-        ticketId,
-        actionType,
-        description + ' [AUDITORIA SIMPLIFICADA]',
-        userName || 'Sistema',
-        JSON.stringify(fallbackMetadata)
+        tenantId,                                         // $1
+        ticketId,                                         // $2
+        actionType,                                       // $3
+        description + ' [AUDITORIA SIMPLIFICADA]',       // $4
+        userName || 'Sistema',                            // $5
+        fallbackIpAddress,                                // $6 - IP GARANTIDO
+        fallbackUserAgent,                                // $7 - USER-AGENT GARANTIDO
+        fallbackSessionId,                                // $8 - SESSION GARANTIDO
+        JSON.stringify(fallbackMetadata)                  // $9
       ]);
 
       console.log(`⚠️ [AUDIT-FALLBACK] Entrada simplificada criada para ${actionType}:`, fallbackResult.rows[0]?.id);
@@ -1611,8 +1635,20 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     const newAction = result.rows[0];
     console.log('✅ [INTERNAL-ACTION-CREATE] Action created successfully:', newAction.id);
 
-    // ✅ CRIAÇÃO DE ENTRADA DE AUDITORIA - Padrão 1qa.md
+    // ✅ CRIAÇÃO DE ENTRADA DE AUDITORIA - Padrão 1qa.md COM IP GARANTIDO
     try {
+      // ✅ GARANTIR CAMPOS IP/SESSION PREENCHIDOS
+      const auditIpAddress = ipAddress || 'action-create-ip';
+      const auditUserAgent = userAgent || 'action-create-agent';
+      const auditSessionId = sessionId || `action-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+
+      console.log(`✅ [AUDIT-ACTION-CREATE] Dados de sessão para auditoria:`, {
+        ip_address: auditIpAddress,
+        user_agent: auditUserAgent?.substring(0, 50),
+        session_id: auditSessionId,
+        action_id: newAction.id
+      });
+
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_history 
         (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
@@ -1624,9 +1660,9 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
         `Ação interna criada: ${actionDescription}`,
         req.user.id,
         userName,
-        ipAddress,
-        userAgent,
-        sessionId,
+        auditIpAddress,                                   // IP GARANTIDO
+        auditUserAgent,                                   // USER-AGENT GARANTIDO
+        auditSessionId,                                   // SESSION GARANTIDO
         JSON.stringify({
           action_id: newAction.id,
           action_number: actionNumber,
@@ -1636,9 +1672,19 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
           end_time: finalEndTime?.toISOString(),
           assigned_to: finalAssignedId,
           status: finalStatus,
-          created_time: new Date().toISOString()
+          created_time: new Date().toISOString(),
+          // ✅ BACKUP DOS DADOS DE SESSÃO NO METADATA
+          session_backup: {
+            ip_address: auditIpAddress,
+            user_agent: auditUserAgent,
+            session_id: auditSessionId,
+            captured_at: new Date().toISOString()
+          }
         })
       ]);
+
+      console.log(`✅ [AUDIT-ACTION-CREATE] Entrada de auditoria criada com dados de sessão completos`);
+
     } catch (historyError) {
       console.warn('⚠️ [INTERNAL-ACTION-CREATE] Could not create audit entry:', historyError.message);
       // Audit failure should not block action creation - log and continue
