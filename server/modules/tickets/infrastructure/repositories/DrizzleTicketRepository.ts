@@ -5,7 +5,7 @@
 
 import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull, ne, ilike, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { tickets } from '@shared/schema-master';
+import { tickets } from '@shared/schema';
 import { Ticket } from '../../domain/entities/Ticket';
 import {
   ITicketRepository,
