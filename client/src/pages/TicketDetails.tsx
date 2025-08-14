@@ -476,7 +476,7 @@ const TicketDetails = React.memo(() => {
   const communicationsData = useMemo(() => {
     console.log('💬 [COMMUNICATIONS] Processing data from API');
     console.log('💬 [COMMUNICATIONS] ticketCommunications:', ticketCommunications);
-    
+
     if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
       console.log('💬 [COMMUNICATIONS] Using success path, data length:', ticketCommunications.data.length);
       return ticketCommunications.data;
@@ -494,7 +494,7 @@ const TicketDetails = React.memo(() => {
   const attachmentsData = useMemo(() => {
     console.log('📎 [ATTACHMENTS] Processing data from API');
     console.log('📎 [ATTACHMENTS] ticketAttachments:', ticketAttachments);
-    
+
     if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
       console.log('📎 [ATTACHMENTS] Using success path, data length:', ticketAttachments.data.length);
       return ticketAttachments.data;
@@ -512,7 +512,7 @@ const TicketDetails = React.memo(() => {
   const notesData = useMemo(() => {
     console.log('📝 [NOTES] Processing data from API');
     console.log('📝 [NOTES] ticketNotes:', ticketNotes);
-    
+
     if (ticketNotes?.success && Array.isArray(ticketNotes.data)) {
       console.log('📝 [NOTES] Using success path, data length:', ticketNotes.data.length);
       return ticketNotes.data.map((note: any) => ({
@@ -544,7 +544,7 @@ const TicketDetails = React.memo(() => {
   const internalActionsData = useMemo(() => {
     console.log('⚙️ [INTERNAL-ACTIONS] Processing data from API');
     console.log('⚙️ [INTERNAL-ACTIONS] ticketActions:', ticketActions);
-    
+
     if (ticketActions?.success && Array.isArray(ticketActions.data)) {
       console.log('⚙️ [INTERNAL-ACTIONS] Using success path, data length:', ticketActions.data.length);
       return ticketActions.data.map((action: any) => ({
@@ -627,7 +627,7 @@ const TicketDetails = React.memo(() => {
   // 🔧 [1QA-COMPLIANCE] Direct computation for followers and tags  
   const currentFollowers = ticket?.followers || [];
   const currentTags = ticket?.tags || [];
-  
+
   // Get current followers list for follower management
   const getCurrentFollowerIds = () => {
     return currentFollowers.map(f => f.id || f);
@@ -2077,7 +2077,6 @@ const TicketDetails = React.memo(() => {
               </Badge>
             </div>
 
-            {/* Communication Timeline */}
             <div className="space-y-4">
               <div className="flex items-center gap-4 mb-4">
                 <h3 className="font-medium text-gray-700">Timeline de Comunicação</h3>
@@ -2089,13 +2088,8 @@ const TicketDetails = React.memo(() => {
               </div>
 
               {/* DEBUG: Show communications data length */}
-              <div className="bg-yellow-100 p-2 text-xs border rounded mb-4">
-                DEBUG: communicationsData.length = {communicationsData.length}
-                <br />DEBUG: ticketCommunications = {ticketCommunications ? 'exists' : 'null/undefined'}
-                <br />DEBUG: ticketCommunications.success = {ticketCommunications?.success ? 'true' : 'false'}
-                <br />DEBUG: ticketCommunications.data length = {Array.isArray(ticketCommunications?.data) ? ticketCommunications.data.length : 'not array'}
-              </div>
-              
+              {/* This block is removed as per the user's request */}
+
               {communicationsData.slice().reverse().map((comm: any) => (
                 <Card key={comm.id} className="p-4">
                   <div className="flex items-start gap-4">
