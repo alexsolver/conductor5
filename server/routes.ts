@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/companies', companiesRoutes);
   app.use('/api/locations', locationsRoutes);
 
-  // ✅ TICKET RELATIONSHIPS ENDPOINT - Real count from database per 1qa.md
+  // ✅ TICKET RELATIONSHIPS ENDPOINTS - Real data from database per 1qa.md
   app.get('/api/ticket-relationships/:ticketId/relationships-count', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
@@ -298,6 +298,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error counting ticket relationships:', error);
       res.status(500).json({ message: 'Failed to fetch relationships' });
+    }
+  });
+
+  app.get('/api/ticket-relationships/:ticketId/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+      const ticketId = req.params.ticketId;
+
+      // Get all relationships where this ticket is either source or target
+      const result = await pool.query(`
+        SELECT tr.*, 
+               CASE 
+                 WHEN tr.source_ticket_id = $1 THEN 'outgoing'
+                 ELSE 'incoming'
+               END as direction,
+               CASE 
+                 WHEN tr.source_ticket_id = $1 THEN tr.target_ticket_id
+                 ELSE tr.source_ticket_id
+               END as related_ticket_id
+        FROM "${schemaName}".ticket_relationships tr
+        WHERE tr.source_ticket_id = $1 OR tr.target_ticket_id = $1
+        ORDER BY tr.created_at DESC
+      `, [ticketId]);
+
+      res.json({ success: true, data: result.rows });
+    } catch (error) {
+      console.error('Error fetching ticket relationships:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch relationships' });
     }
   });
   console.log('✅ [CLEAN-ARCHITECTURE] All modules using Clean Architecture pattern');
