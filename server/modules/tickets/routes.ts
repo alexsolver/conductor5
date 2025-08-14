@@ -2537,7 +2537,7 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
 
     console.log(`🔍 [HISTORY-ULTRA-COMPLETE] Buscando histórico 100% completo para ticket: ${id}`);
 
-    // ✅ TESTE SIMPLES - APENAS ticket_history
+    // ✅ QUERY CORRIGIDA - INCLUINDO DADOS DE SESSÃO REAIS
     const ultraCompleteHistoryQuery = `
       SELECT 
         'ticket_history' as source,
@@ -2546,9 +2546,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.description,
         th.performed_by,
         th.performed_by_name,
-        null as ip_address,
-        null as user_agent,
-        null as session_id,
+        COALESCE(th.ip_address, 'N/A') as ip_address,
+        COALESCE(th.user_agent, 'N/A') as user_agent,
+        COALESCE(th.session_id, 'N/A') as session_id,
         th.old_value,
         th.new_value,
         th.field_name,
@@ -3039,7 +3039,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
         AND tia.start_time >= $2::timestamp
         AND tia.start_time <= $3::timestamp
       ORDER BY tia.start_time ASC
-    `;
+    `;;
 
     const result = await pool.query(query, [tenantId, startDateParam, endDateParam]);
 
@@ -3928,97 +3928,156 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
         tia.status,
         tia.priority,
         tia.agent_id as "agentId",
-        tia.ticket_id assionId = getSessionId(req);
+        tia.ticket_id as "ticketId",
+        tia.estimated_hours,
+        t.number as "ticketNumber",
+        t.subject as "ticketSubject",
+        u.first_name || ' ' || u.last_name as "agentName",
+        u.email as "agentEmail"
+      FROM "${schemaName}".ticket_internal_actions tia
+      LEFT JOIN "${schemaName}".tickets t ON tia.ticket_id = t.id
+      LEFT JOIN public.users u ON tia.agent_id = u.id
+      WHERE tia.tenant_id = $1::uuid 
+        AND tia.start_time >= $2::timestamp
+        AND tia.start_time <= $3::timestamp
+      ORDER BY tia.start_time ASC
+    `;
 
-      // Buscar nome do usuário
-      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-      const userResult = await pool.query(userQuery, [userId]);
-      const userName = userResult.rows[0]?.full_name || 'Unknown User';
+    const result = await pool.query(query, [tenantId, startDateParam, endDateParam]);
 
-      const auditInsertQuery = `
-        INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-        RETURNING id, ip_address, user_agent, session_id, action_type, created_at
-      `;
+    console.log('🔍 INTERNAL ACTIONS RESULT:', {
+      rowCount: result.rows.length,
+      queryParams: [tenantId, startDateParam, endDateParam],
+      firstRow: result.rows[0] || null
+    });
 
-      const auditResult = await pool.query(auditInsertQuery, [
-        tenantId,
-        ticketId,
-        'internal_action_deleted',
-        `Ação interna excluída: ${deletedAction.description}`,
-        userId,
-        userName,
-        ipAddress,
-        userAgent,
-        sessionId,
-        JSON.stringify({
-          deleted_action_id: deletedAction.id,
-          deleted_action_number: deletedAction.action_number,
-          deleted_action_type: deletedAction.action_type,
-          deleted_action_description: deletedAction.description,
-          deleted_action_status: deletedAction.status,
-          deleted_action_start_time: deletedAction.start_time,
-          deleted_action_end_time: deletedAction.end_time,
-          deleted_action_estimated_hours: deletedAction.estimated_hours,
-          deleted_action_agent_id: deletedAction.agent_id,
-          deleted_action_created_at: deletedAction.created_at,
-          deleted_action_title: deletedAction.title,
-          deleted_action_description: deletedAction.description,
-          deleted_at: new Date().toISOString(),
-          deleted_by_id: userId,
-          deleted_by_name: userName,
-          ip_capture_success: true,
-          session_tracking_enabled: true,
-          audit_timestamp: new Date().toISOString()
-        })
-      ]);
+    const internalActions = result.rows.map(row => ({
+      id: row.id,
+      actionNumber: row.action_number,
+      title: `${row.action_type}: ${row.title}`,
+      description: row.description,
+      startDateTime: row.startDateTime,
+      endDateTime: row.endDateTime || row.startDateTime,
+      status: row.status,
+      priority: row.priority,
+      agentId: row.agentId,
+      ticketId: row.ticketId,
+      ticketNumber: row.ticketNumber,
+      ticketSubject: row.ticketSubject,
+      agentName: row.agentName,
+      agentEmail: row.agentEmail,
+      type: 'internal_action',
+      actionType: row.actionType,
+      estimatedHours: row.estimated_hours,
+      actualHours: 0
+    }));
 
-      const auditEntry = auditResult.rows[0];
-      console.log('✅ [AUDIT-COMPLETE] Entrada de auditoria criada com IP e session tracking:', {
-        audit_id: auditEntry.id,
-        ip_address: auditEntry.ip_address,
-        user_agent: auditEntry.user_agent?.substring(0, 50) + '...',
-        session_id: auditEntry.session_id,
-        action_type: auditEntry.action_type,
-        created_at: auditEntry.created_at
-      });
+    res.json({
+      success: true,
+      data: internalActions,
+      count: internalActions.length
+    });
+  } catch (error) {
+    console.error("Error fetching internal actions for schedule:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch internal actions for schedule",
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
-      console.log('✅ Entrada de auditoria criada no histórico para exclusão da ação interna');
-    } catch (auditError) {
-      console.error('❌ Erro ao criar entrada de auditoria:', auditError);
-      console.error('❌ Audit error details:', {
-        error: auditError.message,
-        stack: auditError.stack?.substring(0, 200)
+      // DELETE ticket (soft delete) - CRITICAL FIX for ticket deletion functionality
+ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Tenant ID required" 
       });
     }
 
-    // Excluir da tabela ticket_internal_actions (hard delete - não há coluna is_active)
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const userId = req.user.id;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    console.log(`[DELETE-TICKET] Attempting to delete ticket: ${id} for tenant: ${tenantId}`);
+
+    // First, verify the ticket exists and is active
+    const checkQuery = `
+      SELECT id, subject, status, priority, is_active 
+      FROM "${schemaName}".tickets 
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
+    `;
+    const checkResult = await pool.query(checkQuery, [id, tenantId]);
+
+    if (checkResult.rows.length === 0) {
+      console.log(`[DELETE-TICKET] Ticket not found or already deleted: ${id}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found or already deleted'
+      });
+    }
+
+    const ticket = checkResult.rows[0];
+    console.log(`[DELETE-TICKET] Found ticket to delete:`, ticket);
+
+    // Perform soft delete - set is_active to false
     const deleteQuery = `
-      DELETE FROM "${schemaName}".ticket_internal_actions 
-      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
-      RETURNING *
+      UPDATE "${schemaName}".tickets 
+      SET is_active = false, updated_at = NOW(), updated_by = $3
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      RETURNING id, subject
     `;
 
-    const result = await pool.query(deleteQuery, [actionId, tenantId, ticketId]);
+    const deleteResult = await pool.query(deleteQuery, [id, tenantId, userId]);
 
-    if (result.rows.length === 0) {
-      return res.status(500).json({ 
+    if (deleteResult.rowCount === 0) {
+      console.log(`[DELETE-TICKET] Failed to delete ticket: ${id}`);
+      return res.status(500).json({
         success: false,
-        message: "Failed to delete internal action" 
+        message: 'Failed to delete ticket'
       });
+    }
+
+    console.log(`[DELETE-TICKET] Successfully deleted ticket: ${id}`);
+
+    // Create comprehensive audit trail for ticket deletion
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'ticket_deleted',
+        `Ticket excluído: ${ticket.subject}`,
+        {
+          deleted_ticket_id: id,
+          deleted_ticket_subject: ticket.subject,
+          deleted_ticket_status: ticket.status,
+          deleted_ticket_priority: ticket.priority,
+          deletion_time: new Date().toISOString(),
+          deleted_by: userId
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Warning: Could not create audit trail for ticket deletion:', historyError.message);
     }
 
     res.json({
       success: true,
-      message: "Ação interna excluída com sucesso"
+      message: 'Ticket deleted successfully',
+      data: {
+        deletedTicketId: id,
+        deletedTicketSubject: ticket.subject
+      }
     });
+
   } catch (error) {
-    console.error("Error deleting internal action:", error);
+    console.error("Error deleting ticket:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to delete internal action",
-      error: error instanceof Error ? error.message : 'Unknown error'
+      message: 'Failed to delete ticket',
+      error: error.message
     });
   }
 });
