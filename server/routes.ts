@@ -296,8 +296,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth', authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
   
-  // ✅ LEGACY route variables eliminated per 1qa.md
-  // Clean Architecture routes are loaded dynamically above
+  // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
+  console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
+  const ticketsRoutes = (await import('./modules/tickets/routes-simple')).default;
+  app.use('/api/tickets', ticketsRoutes);
+  console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
+  
+  // ✅ TEMPORARY: Only critical Clean Architecture routes per 1qa.md to resolve tickets issue
+  console.log('✅ [CLEAN-ARCHITECTURE] Essential routes loaded - Tickets operational');
 
   // ✅ TICKET RELATIONSHIPS - Clean Architecture Implementation per 1qa.md
   const ticketRelationshipsRoutes = (await import('./modules/ticket-relationships/routes')).default;
