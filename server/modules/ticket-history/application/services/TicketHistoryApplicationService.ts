@@ -164,6 +164,9 @@ export class TicketHistoryApplicationService {
     tenantId: string;
     description?: string;
     metadata?: Record<string, any>;
+    ipAddress?: string;
+    userAgent?: string;
+    performedByName?: string;
   }): Promise<TicketHistory> {
     
     console.log('📝 [TicketHistoryApplicationService] Creating single history entry:', { 
@@ -173,21 +176,21 @@ export class TicketHistoryApplicationService {
     });
 
     try {
-      // Create history data using domain service with correct parameter order
-      const historyData = this.ticketHistoryDomainService.createInternalActionHistory(
-        params.ticketId,
-        params.actionType,
-        params.performedBy,
-        `User ${params.performedBy}`, // Use proper performer name
-        params.tenantId,
-        {
-          ...params.metadata,
-          fieldName: params.fieldName,
-          oldValue: params.oldValue,
-          newValue: params.newValue,
-          description: params.description || `${params.actionType} performed`
-        }
-      );
+      // Create history data directly with all required fields
+      const historyData = {
+        ticketId: params.ticketId,
+        actionType: params.actionType,
+        fieldName: params.fieldName,
+        oldValue: params.oldValue,
+        newValue: params.newValue,
+        performedBy: params.performedBy,
+        performedByName: params.performedByName || `User ${params.performedBy}`,
+        ipAddress: params.ipAddress || null,
+        userAgent: params.userAgent || null,
+        description: params.description || `${params.actionType} performed`,
+        tenantId: params.tenantId,
+        metadata: params.metadata || {}
+      };
 
       const history = await this.ticketHistoryRepository.create(historyData);
 

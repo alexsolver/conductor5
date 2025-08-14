@@ -309,18 +309,22 @@ router.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res) => {
       await historyApplicationService.createHistoryEntry({
         ticketId: id,
         actionType: 'note_created',
-        fieldName: '',
+        fieldName: 'notes',
         oldValue: '',
         newValue: content.substring(0, 100) + (content.length > 100 ? '...' : ''), // Truncate for history
         performedBy: userId,
         tenantId: tenantId,
         description: `Nova nota adicionada: ${noteType}${isInternal ? ' (interna)' : ''}`,
+        ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+        userAgent: req.get('User-Agent') || 'unknown',
+        performedByName: req.user?.email || `User ${userId}`,
         metadata: {
           noteId,
           noteType,
           isInternal,
           isPublic,
-          fullContent: content
+          fullContent: content,
+          contentLength: content.length
         }
       });
       console.log('✅ [NOTES-HISTORY] Note creation logged to history successfully');
@@ -517,12 +521,15 @@ router.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
       await historyApplicationService.createHistoryEntry({
         ticketId: id,
         actionType: 'internal_action_created',
-        fieldName: '',
+        fieldName: 'actions',
         oldValue: '',
         newValue: `${finalActionType} - ${finalDescription}`,
         performedBy: userId,
         tenantId: tenantId,
         description: `Ação interna criada: ${finalActionType} - ${finalDescription}`,
+        ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+        userAgent: req.get('User-Agent') || 'unknown',
+        performedByName: req.user?.email || `User ${userId}`,
         metadata: {
           action_id: newAction.id,
           action_number: actionNumber,
@@ -531,7 +538,7 @@ router.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
           status: status,
           created_time: new Date().toISOString(),
           agent_id: finalAgentId,
-          title: newAction.title
+          title: newAction.title || 'Sem título'
         }
       });
       console.log('✅ [ACTION-HISTORY] Internal action creation logged to history successfully');
