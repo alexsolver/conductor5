@@ -3676,7 +3676,7 @@ const TicketDetails = React.memo(() => {
               <span className="text-sm font-medium">Anexos</span>
             </div>
             <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
-              {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : ticketAttachments?.data?.length || attachments?.length || 0}
+              {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}
             </Badge>
           </button>
 
