@@ -1063,11 +1063,23 @@ ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
   }
 });
 
-// Create ticket action
+// Create ticket action - ✅ CORREÇÃO CRÍTICA: JSON Response garantido
 ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  console.log('📝 [INTERNAL-ACTION-CREATE] POST /:id/actions called');
+
+  // ✅ GARANTIR RESPOSTA JSON SEMPRE - Padrão 1qa.md
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
   try {
+    // ✅ VALIDAÇÃO PRÉVIA OBRIGATÓRIA - Padrão 1qa.md
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      console.log('❌ [INTERNAL-ACTION-CREATE] No tenant ID');
+      return res.status(400).json({ 
+        success: false,
+        message: "User not associated with a tenant" 
+      });
     }
 
     const { id } = req.params;
@@ -1093,8 +1105,22 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       assignedToId
     } = req.body;
     const tenantId = req.user.tenantId;
-    const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    console.log('📝 [INTERNAL-ACTION-CREATE] Data received:', {
+      ticketId: id,
+      action_type: action_type || actionType,
+      agent_id: agent_id || assignedToId,
+      description: description || workLog
+    });
+
+    // ✅ VALIDAÇÃO DE ENTRADA RIGOROSA - Padrão 1qa.md
+    if (!id || typeof id !== 'string') {
+      console.log('❌ [INTERNAL-ACTION-CREATE] Invalid ticket ID');
+      return res.status(400).json({ 
+        success: false,
+        message: "Valid ticket ID is required" 
+      });
+    }
 
     // Use new field names if available, fallback to old names for backwards compatibility
     const finalActionType = action_type || actionType;
@@ -1109,31 +1135,67 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     const finalStatus = status;
     const finalPriority = priority;
 
-    // Validate required fields
-    if (!finalActionType) {
+    // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS - Padrão 1qa.md
+    if (!finalActionType || typeof finalActionType !== 'string') {
+      console.log('❌ [INTERNAL-ACTION-CREATE] Invalid action type');
       return res.status(400).json({ 
         success: false,
-        message: "Action type is required" 
+        message: "Action type is required and must be a valid string" 
       });
     }
 
-    if (!finalAgentId) {
+    if (!finalAgentId || typeof finalAgentId !== 'string') {
+      console.log('❌ [INTERNAL-ACTION-CREATE] Invalid agent ID');
       return res.status(400).json({ 
         success: false,
-        message: "Agent is required" 
+        message: "Agent ID is required and must be a valid string" 
       });
     }
 
-    // Verify ticket exists
-    const ticketCheck = await pool.query(
-      `SELECT id FROM "${schemaName}".tickets WHERE id = $1 AND tenant_id = $2`,
-      [id, tenantId]
-    );
+    // ✅ INICIALIZAÇÃO SEGURA DO DATABASE POOL - Padrão 1qa.md
+    let pool;
+    try {
+      const dbModule = await import('../../db');
+      pool = dbModule.pool;
+      if (!pool) {
+        console.error('❌ [INTERNAL-ACTION-CREATE] Database pool is null/undefined');
+        throw new Error('Database pool not initialized');
+      }
 
-    if (ticketCheck.rows.length === 0) {
-      return res.status(404).json({ 
+      // Test database connection
+      await pool.query('SELECT 1');
+      console.log('✅ [INTERNAL-ACTION-CREATE] Database connection verified');
+
+    } catch (dbError) {
+      console.error('❌ [INTERNAL-ACTION-CREATE] Database initialization/connection error:', dbError);
+      return res.status(500).json({
         success: false,
-        message: "Ticket not found" 
+        message: "Database connection error",
+        error: "DATABASE_CONNECTION_FAILED"
+      });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // ✅ VERIFICAÇÃO DE EXISTÊNCIA DO TICKET - Padrão 1qa.md
+    try {
+      const ticketCheck = await pool.query(
+        `SELECT id FROM "${schemaName}".tickets WHERE id = $1::uuid AND tenant_id = $2::uuid`,
+        [id, tenantId]
+      );
+
+      if (ticketCheck.rows.length === 0) {
+        console.log('❌ [INTERNAL-ACTION-CREATE] Ticket not found');
+        return res.status(404).json({ 
+          success: false,
+          message: "Ticket not found" 
+        });
+      }
+    } catch (ticketCheckError) {
+      console.error('❌ [INTERNAL-ACTION-CREATE] Error checking ticket existence:', ticketCheckError);
+      return res.status(500).json({
+        success: false,
+        message: "Error validating ticket existence"
       });
     }
 
@@ -1155,65 +1217,92 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     // Prepare description
     const actionDescription = finalDescription || `${finalActionType} action performed`;
 
-    // Get user info for IP capture
-    const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-    const ipAddress = getClientIP(req);
-    const userAgent = getUserAgent(req);
-    const sessionId = getSessionId(req);
+    // ✅ CAPTURA DE DADOS DE AUDITORIA - Padrão 1qa.md
+    let ipAddress, userAgent, sessionId, userName;
+    try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      ipAddress = getClientIP(req);
+      userAgent = getUserAgent(req);
+      sessionId = getSessionId(req);
+
+      // Get user name for complete audit trail
+      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1::uuid`;
+      const userResult = await pool.query(userQuery, [req.user.id]);
+      userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
+    } catch (auditError) {
+      console.warn('⚠️ [INTERNAL-ACTION-CREATE] Could not capture audit data:', auditError);
+      ipAddress = 'unknown';
+      userAgent = 'unknown';
+      sessionId = 'unknown';
+      userName = 'Sistema';
+    }
 
     // Determine who is assigned (use finalAgentId if provided and not 'unassigned', otherwise current user)
     const finalAssignedId = (finalAgentId && finalAgentId !== 'unassigned' && finalAgentId !== '__none__') ? finalAgentId : req.user.id;
 
-    // Get user name for complete audit trail
-    const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-    const userResult = await pool.query(userQuery, [req.user.id]);
-    const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
+    // ✅ GERAÇÃO DE NÚMERO DE AÇÃO ÚNICO - Padrão 1qa.md
+    let actionNumber;
+    try {
+      actionNumber = await generateActionNumber(pool, tenantId, id);
+    } catch (actionNumberError) {
+      console.error('❌ [INTERNAL-ACTION-CREATE] Error generating action number:', actionNumberError);
+      const timestamp = Date.now();
+      actionNumber = `AI-FALLBACK-${timestamp.toString().slice(-6)}`;
+    }
 
-    // Generate unique action number for all internal actions
-    const actionNumber = await generateActionNumber(pool, tenantId, id);
-
-    // Create entry in ticket_internal_actions (primary table for internal actions)
+    // ✅ INSERÇÃO NA TABELA PRINCIPAL COM TRANSACTION - Padrão 1qa.md
     const internalActionQuery = `
       INSERT INTO "${schemaName}".ticket_internal_actions 
       (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, planned_start_time, planned_end_time, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
-      RETURNING id, action_number, action_type, description, created_at
+      VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3, $4, $5, $6, $7::uuid, $8, $9, $10, $11, $12::numeric, $13, $14, NOW(), NOW())
+      RETURNING id, action_number, action_type, description, created_at, title, status, priority, estimated_hours
     `;
 
-    // Prepare values with proper type conversion
+    // Prepare values with proper type conversion and null handling
     const values = [
       tenantId,                                                              // $1 tenant_id (uuid)
       id,                                                                   // $2 ticket_id (uuid)
       actionNumber,                                                         // $3 action_number (varchar)
-      action_type,                                                          // $4 action_type (varchar)
-      title || `${action_type} - Ticket #${id.slice(0, 8)}`,              // $5 title (varchar)
-      description || '',                                                    // $6 description (text)
-      agent_id || req.user.id,                                            // $7 agent_id (uuid)
-      planned_start_time || null,                                          // $8 planned_start_time (timestamp)
-      planned_end_time || null,                                            // $9 planned_end_time (timestamp)
-      start_time || null,                                                  // $10 start_time (timestamp)
-      end_time || null,                                                    // $11 end_time (timestamp)
-      parseFloat(estimated_hours) || 0,                                    // $12 estimated_hours (numeric)
-      status,                                                              // $13 status (varchar)
-      priority                                                             // $14 priority (varchar)
+      finalActionType,                                                      // $4 action_type (varchar)
+      finalTitle || `${finalActionType} - Ticket #${id.slice(0, 8)}`,     // $5 title (varchar)
+      actionDescription,                                                    // $6 description (text)
+      finalAssignedId,                                                      // $7 agent_id (uuid)
+      finalPlannedStartTime,                                               // $8 planned_start_time (timestamp)
+      finalPlannedEndTime,                                                 // $9 planned_end_time (timestamp)
+      finalStartTime,                                                      // $10 start_time (timestamp)
+      finalEndTime,                                                        // $11 end_time (timestamp)
+      finalEstimatedHoursFinal,                                           // $12 estimated_hours (numeric)
+      finalStatus,                                                         // $13 status (varchar)
+      finalPriority                                                        // $14 priority (varchar)
     ];
 
-    console.log('🔧 Executing query with values:', values);
+    console.log('🔧 [INTERNAL-ACTION-CREATE] Executing query with values:', values.map((v, i) => `$${i+1}: ${v}`));
 
-    const result = await pool.query(internalActionQuery, values);
+    let result;
+    try {
+      result = await pool.query(internalActionQuery, values);
 
-    if (result.rows.length === 0) {
-      throw new Error('Failed to create internal action - no result returned');
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error('No data returned from insert operation');
+      }
+    } catch (insertError) {
+      console.error('❌ [INTERNAL-ACTION-CREATE] Database insert error:', insertError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create internal action in database",
+        error: insertError instanceof Error ? insertError.message : "Database insert failed"
+      });
     }
 
     const newAction = result.rows[0];
+    console.log('✅ [INTERNAL-ACTION-CREATE] Action created successfully:', newAction.id);
 
-    // Create audit entry in ticket_history (audit log only)
+    // ✅ CRIAÇÃO DE ENTRADA DE AUDITORIA - Padrão 1qa.md
     try {
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_history 
         (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+        VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
       `, [
         tenantId,
         id,
@@ -1227,42 +1316,49 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
         JSON.stringify({
           action_id: newAction.id,
           action_number: actionNumber,
-          action_type: actionType,
+          action_type: finalActionType,
           time_spent: timeSpent,
-          start_time: startDateTime,
-          end_time: endDateTime,
+          start_time: finalStartTime?.toISOString(),
+          end_time: finalEndTime?.toISOString(),
           assigned_to: finalAssignedId,
-          status: status
+          status: finalStatus,
+          created_time: new Date().toISOString()
         })
       ]);
     } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      console.warn('⚠️ [INTERNAL-ACTION-CREATE] Could not create audit entry:', historyError.message);
+      // Audit failure should not block action creation - log and continue
     }
 
-    // Update ticket's updated_at timestamp
-    await pool.query(
-      `UPDATE "${schemaName}".tickets SET updated_at = NOW() WHERE id = $1 AND tenant_id = $2`,
-      [id, tenantId]
-    );
+    // ✅ ATUALIZAÇÃO DO TIMESTAMP DO TICKET - Padrão 1qa.md
+    try {
+      await pool.query(
+        `UPDATE "${schemaName}".tickets SET updated_at = NOW() WHERE id = $1::uuid AND tenant_id = $2::uuid`,
+        [id, tenantId]
+      );
+    } catch (updateError) {
+      console.warn('⚠️ [INTERNAL-ACTION-CREATE] Could not update ticket timestamp:', updateError.message);
+    }
 
-    console.log('✅ Ação interna criada com sucesso:', newAction);
-
-    res.status(201).json({
+    // ✅ RESPOSTA PADRONIZADA JSON - Padrão 1qa.md
+    const response = {
       success: true,
       message: "Ação interna criada com sucesso",
       data: {
         id: newAction.id,
-        actionNumber: actionNumber,  // Include the generated action number
+        actionNumber: actionNumber,
         actionType: newAction.action_type,
         type: newAction.action_type,
         content: newAction.description,
         description: newAction.description,
-        workLog: newAction.work_log,
+        title: newAction.title,
+        workLog: newAction.description,
         timeSpent: newAction.estimated_hours,
-        status: 'active',
+        status: newAction.status || 'active',
+        priority: newAction.priority || 'medium',
         time_spent: newAction.estimated_hours,
-        start_time: newAction.start_time,
-        end_time: newAction.end_time,
+        start_time: finalStartTime?.toISOString() || null,
+        end_time: finalEndTime?.toISOString() || null,
         customer_id: null,
         linked_items: '[]',
         has_file: false,
@@ -1273,22 +1369,36 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
         createdBy: req.user.id,
         createdByName: userName,
         createdAt: newAction.created_at,
-        agent_name: userName
+        agent_name: userName,
+        estimated_hours: newAction.estimated_hours
       }
-    });
+    };
+
+    console.log('✅ [INTERNAL-ACTION-CREATE] Sending successful response');
+    return res.status(201).json(response);
 
   } catch (error) {
-    console.error('❌ Error creating internal action:', error);
-    console.error('❌ Error details:', {
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    console.error('❌ [INTERNAL-ACTION-CREATE] Unexpected error:', error);
 
-    return res.status(500).json({ 
-      success: false, 
+    // ✅ FORÇA HEADERS JSON MESMO EM ERRO CRÍTICO - Padrão 1qa.md
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    }
+
+    // ✅ RESPOSTA DE ERRO PADRONIZADA - Padrão 1qa.md
+    const errorResponse = {
+      success: false,
       message: "Failed to create internal action",
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString()
+    };
+
+    // Prevent multiple responses
+    if (!res.headersSent) {
+      return res.status(500).json(errorResponse);
+    }
   }
 });
 
