@@ -368,7 +368,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   return ticketController.findAll(req, res);
 });
 
-// Get ticket by ID with messages
+// Get ticket by ID with messages - ✅ COM AUDITORIA DE VISUALIZAÇÃO
 ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
@@ -411,6 +411,28 @@ ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedReq
     const ticket = ticketResult.rows[0];
     if (!ticket) {
       return sendError(res, "Ticket not found", "Ticket not found", 404);
+    }
+
+    // ✅ AUDITORIA AUTOMÁTICA DE VISUALIZAÇÃO DETALHADA
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, req.params.id, req,
+        'ticket_viewed_detailed',
+        `Ticket visualizado em detalhes`,
+        {
+          view_timestamp: new Date().toISOString(),
+          view_method: 'direct_access',
+          ticket_subject: ticket.subject,
+          ticket_status: ticket.status,
+          ticket_priority: ticket.priority,
+          viewer_accessed_company_data: !!ticket.company_name,
+          viewer_accessed_customer_data: !!ticket.caller_name,
+          viewer_accessed_assignment_data: !!ticket.assigned_first_name,
+          access_context: 'ticket_details_page'
+        }
+      );
+    } catch (auditError) {
+      console.warn('⚠️ [AUDIT-VIEW] Erro na auditoria de visualização:', auditError);
     }
 
     return sendSuccess(res, ticket, "Ticket retrieved successfully");
@@ -2420,7 +2442,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, async (req: AuthenticatedRequest, res)
   }
 });
 
-// Get ticket history - ✅ HISTÓRICO COMPLETO E DETALHADO conforme 1qa.md
+// Get ticket history - ✅ HISTÓRICO ULTRA-COMPLETO E DETALHADO conforme 1qa.md
 ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
@@ -2432,11 +2454,11 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    console.log(`🔍 [HISTORY-COMPLETE] Buscando histórico ultra-detalhado para ticket: ${id}`);
+    console.log(`🔍 [HISTORY-ULTRA-COMPLETE] Buscando histórico 100% completo para ticket: ${id}`);
 
-    // ✅ HISTÓRICO ULTRA-COMPLETO - TODAS as ações do sistema em ordem cronológica
+    // ✅ HISTÓRICO 100% COMPLETO - TODAS as ações do sistema + auditoria automática
     const ultraCompleteHistoryQuery = `
-      -- 🔥 HISTÓRICO PRINCIPAL DO TICKET (ticket_history)
+      -- 🔥 HISTÓRICO PRINCIPAL DO TICKET (ticket_history) - PRIORIDADE MÁXIMA
       SELECT 
         'ticket_history' as source,
         th.id,
@@ -2444,9 +2466,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.description,
         th.performed_by,
         th.performed_by_name,
-        th.actor_id,
-        th.actor_type,
-        th.actor_name,
+        COALESCE(th.actor_id, th.performed_by) as actor_id,
+        COALESCE(th.actor_type, 'user') as actor_type,
+        COALESCE(th.actor_name, th.performed_by_name, 'Sistema') as actor_name,
         th.old_value,
         th.new_value,
         th.field_name,
@@ -2454,13 +2476,56 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         th.ip_address,
         th.user_agent,
         th.session_id,
-        th.metadata,
-        th.is_visible,
+        COALESCE(th.metadata, '{}') as metadata,
+        COALESCE(th.is_visible, true) as is_visible,
         'primary' as priority_level,
         'Histórico do Sistema' as category_name,
-        'system_activity' as activity_group
+        'system_activity' as activity_group,
+        1 as sort_priority
       FROM "${schemaName}".ticket_history th
-      WHERE th.ticket_id = $1 AND th.tenant_id = $2 AND th.is_active = true
+      WHERE th.ticket_id = $1 AND th.tenant_id = $2 AND COALESCE(th.is_active, true) = true
+      
+      UNION ALL
+      
+      -- 🔥 AUDITORIA DE CRIAÇÃO DO TICKET (baseada na tabela tickets)
+      SELECT 
+        'ticket_creation' as source,
+        t.id || '_creation' as id,
+        'ticket_created' as action_type,
+        'Ticket criado: ' || t.subject || 
+        CASE WHEN t.description IS NOT NULL AND t.description != '' 
+             THEN ' - ' || LEFT(t.description, 100) || CASE WHEN LENGTH(t.description) > 100 THEN '...' ELSE '' END 
+             ELSE '' END as description,
+        COALESCE(t.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
+        COALESCE(u_creator.first_name || ' ' || u_creator.last_name, u_creator.email, 'Sistema Automatizado') as performed_by_name,
+        COALESCE(t.created_by, '00000000-0000-0000-0000-000000000000') as actor_id,
+        'user' as actor_type,
+        COALESCE(u_creator.first_name || ' ' || u_creator.last_name, u_creator.email, 'Sistema Automatizado') as actor_name,
+        null as old_value,
+        t.subject as new_value,
+        'ticket_subject' as field_name,
+        t.created_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        json_build_object(
+          'ticket_number', t.number,
+          'initial_status', t.status,
+          'initial_priority', t.priority,
+          'initial_category', t.category,
+          'initial_subcategory', t.subcategory,
+          'caller_id', t.caller_id,
+          'company_id', t.company_id,
+          'created_method', 'direct_creation'
+        )::text as metadata,
+        true as is_visible,
+        'primary' as priority_level,
+        'Criação do Ticket' as category_name,
+        'ticket_lifecycle' as activity_group,
+        0 as sort_priority
+      FROM "${schemaName}".tickets t
+      LEFT JOIN public.users u_creator ON t.created_by = u_creator.id
+      WHERE t.id = $1 AND t.tenant_id = $2
       
       UNION ALL
       
@@ -2471,22 +2536,22 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         'internal_action_' || tia.action_type as action_type,
         CASE 
           WHEN tia.title IS NOT NULL AND tia.title != '' THEN 
-            tia.title || CASE WHEN tia.description IS NOT NULL AND tia.description != '' THEN ' - ' || tia.description ELSE '' END
+            'Ação Interna: ' || tia.title || CASE WHEN tia.description IS NOT NULL AND tia.description != '' THEN ' - ' || tia.description ELSE '' END
           ELSE 
-            'Ação Interna: ' || tia.action_type || CASE WHEN tia.description IS NOT NULL THEN ' - ' || tia.description ELSE '' END
+            'Ação Interna: ' || COALESCE(tia.action_type, 'Indefinida') || CASE WHEN tia.description IS NOT NULL THEN ' - ' || tia.description ELSE '' END
         END as description,
         tia.agent_id as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Agente Desconhecido') as performed_by_name,
         tia.agent_id as actor_id,
         'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Agente Desconhecido') as actor_name,
         CASE 
           WHEN tia.start_time IS NOT NULL THEN TO_CHAR(tia.start_time, 'DD/MM/YYYY HH24:MI')
-          ELSE tia.status 
+          ELSE COALESCE(tia.status, 'pendente')
         END as old_value,
         CASE 
           WHEN tia.end_time IS NOT NULL THEN TO_CHAR(tia.end_time, 'DD/MM/YYYY HH24:MI')
-          ELSE tia.status 
+          ELSE COALESCE(tia.status, 'pendente')
         END as new_value,
         'internal_action' as field_name,
         tia.created_at,
@@ -2500,82 +2565,99 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           'end_time', tia.end_time,
           'planned_start_time', tia.planned_start_time,
           'planned_end_time', tia.planned_end_time,
-          'priority', tia.priority,
-          'status', tia.status,
+          'priority', COALESCE(tia.priority, 'medium'),
+          'status', COALESCE(tia.status, 'pending'),
           'action_type', tia.action_type,
           'title', tia.title,
-          'agent_id', tia.agent_id
-        ) as metadata,
+          'agent_id', tia.agent_id,
+          'has_time_tracking', CASE WHEN tia.start_time IS NOT NULL OR tia.end_time IS NOT NULL THEN true ELSE false END
+        )::text as metadata,
         true as is_visible,
         'secondary' as priority_level,
         'Ação Interna' as category_name,
-        'internal_work' as activity_group
+        'internal_work' as activity_group,
+        2 as sort_priority
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
       WHERE tia.ticket_id = $1 AND tia.tenant_id = $2
       
       UNION ALL
       
-      -- 🔥 NOTAS DETALHADAS (ticket_notes)
+      -- 🔥 NOTAS DETALHADAS (ticket_notes) - INCLUINDO EXCLUÍDAS
       SELECT 
         'note' as source,
         tn.id,
-        'note_' || CASE 
-          WHEN tn.is_internal THEN 'internal_added' 
-          ELSE 'public_added' 
+        CASE 
+          WHEN tn.is_active = false THEN 'note_deleted'
+          WHEN tn.is_internal THEN 'note_internal_added' 
+          ELSE 'note_public_added' 
         END as action_type,
         CASE 
+          WHEN tn.is_active = false THEN 'Nota EXCLUÍDA: '
           WHEN tn.is_internal THEN 'Nota Interna: ' 
           ELSE 'Nota Pública: ' 
         END || LEFT(tn.content, 150) || 
         CASE WHEN LENGTH(tn.content) > 150 THEN '...' ELSE '' END as description,
         tn.created_by as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as performed_by_name,
         tn.created_by as actor_id,
         'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as actor_name,
         null as old_value,
-        tn.content as new_value,
+        CASE WHEN tn.is_active = false THEN '[NOTA EXCLUÍDA]' ELSE tn.content END as new_value,
         'note_content' as field_name,
-        tn.created_at,
+        CASE WHEN tn.is_active = false THEN tn.updated_at ELSE tn.created_at END as created_at,
         null as ip_address,
         null as user_agent,
         null as session_id,
         json_build_object(
-          'note_type', tn.note_type,
+          'note_type', COALESCE(tn.note_type, 'general'),
           'is_internal', tn.is_internal,
           'is_public', tn.is_public,
+          'is_active', tn.is_active,
           'content_length', LENGTH(tn.content),
           'content_preview', LEFT(tn.content, 200),
-          'note_id', tn.id
-        ) as metadata,
+          'note_id', tn.id,
+          'note_status', CASE WHEN tn.is_active = false THEN 'deleted' ELSE 'active' END
+        )::text as metadata,
         true as is_visible,
         'secondary' as priority_level,
-        CASE WHEN tn.is_internal THEN 'Nota Interna' ELSE 'Nota Pública' END as category_name,
-        'communication' as activity_group
+        CASE 
+          WHEN tn.is_active = false THEN 'Nota Excluída'
+          WHEN tn.is_internal THEN 'Nota Interna' 
+          ELSE 'Nota Pública' 
+        END as category_name,
+        'communication' as activity_group,
+        3 as sort_priority
       FROM "${schemaName}".ticket_notes tn
       LEFT JOIN public.users u ON tn.created_by = u.id
-      WHERE tn.ticket_id = $1 AND tn.tenant_id = $2 AND tn.is_active = true
+      WHERE tn.ticket_id = $1 AND tn.tenant_id = $2
       
       UNION ALL
       
-      -- 🔥 ANEXOS DETALHADOS (ticket_attachments)
+      -- 🔥 ANEXOS DETALHADOS (ticket_attachments) - INCLUINDO EXCLUÍDOS
       SELECT 
         'attachment' as source,
         ta.id,
-        'attachment_uploaded' as action_type,
-        'Anexo enviado: ' || ta.file_name || 
+        CASE 
+          WHEN ta.is_active = false THEN 'attachment_deleted'
+          ELSE 'attachment_uploaded'
+        END as action_type,
+        CASE 
+          WHEN ta.is_active = false THEN 'Anexo EXCLUÍDO: '
+          ELSE 'Anexo enviado: '
+        END || ta.file_name || 
         ' (Tamanho: ' || ROUND(ta.file_size::numeric / 1024, 2) || ' KB' ||
         CASE WHEN ta.description IS NOT NULL AND ta.description != '' THEN ', Descrição: ' || ta.description ELSE '' END || ')' as description,
         ta.created_by as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as performed_by_name,
         ta.created_by as actor_id,
         'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Usuário Desconhecido') as actor_name,
         null as old_value,
-        ta.file_name as new_value,
+        CASE WHEN ta.is_active = false THEN '[ANEXO EXCLUÍDO]' ELSE ta.file_name END as new_value,
         'attachment' as field_name,
-        ta.created_at,
+        CASE WHEN ta.is_active = false THEN ta.updated_at ELSE ta.created_at END as created_at,
         null as ip_address,
         null as user_agent,
         null as session_id,
@@ -2583,64 +2665,69 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           'file_name', ta.file_name,
           'file_size', ta.file_size,
           'file_size_kb', ROUND(ta.file_size::numeric / 1024, 2),
-          'content_type', ta.content_type,
+          'content_type', COALESCE(ta.content_type, ta.file_type),
           'file_path', ta.file_path,
           'description', ta.description,
-          'attachment_id', ta.id
-        ) as metadata,
+          'attachment_id', ta.id,
+          'is_active', ta.is_active,
+          'attachment_status', CASE WHEN ta.is_active = false THEN 'deleted' ELSE 'active' END
+        )::text as metadata,
         true as is_visible,
         'secondary' as priority_level,
-        'Anexo' as category_name,
-        'file_management' as activity_group
+        CASE WHEN ta.is_active = false THEN 'Anexo Excluído' ELSE 'Anexo' END as category_name,
+        'file_management' as activity_group,
+        4 as sort_priority
       FROM "${schemaName}".ticket_attachments ta
       LEFT JOIN public.users u ON ta.created_by = u.id
-      WHERE ta.ticket_id = $1 AND ta.tenant_id = $2 AND ta.is_active = true
+      WHERE ta.ticket_id = $1 AND ta.tenant_id = $2
       
       UNION ALL
       
-      -- 🔥 COMUNICAÇÕES (ticket_communications) 
+      -- 🔥 COMUNICAÇÕES EXTERNAS (ticket_communications) 
       SELECT 
         'communication' as source,
         tc.id,
-        'communication_' || tc.communication_type as action_type,
-        CASE tc.communication_type 
-          WHEN 'email' THEN 'Email ' || tc.direction || ': ' || COALESCE(tc.subject, 'Sem assunto')
-          WHEN 'phone' THEN 'Chamada telefônica ' || tc.direction
-          WHEN 'chat' THEN 'Chat ' || tc.direction
-          ELSE 'Comunicação ' || tc.direction || ' via ' || tc.communication_type
+        'communication_' || COALESCE(tc.communication_type, 'unknown') as action_type,
+        CASE COALESCE(tc.communication_type, 'unknown')
+          WHEN 'email' THEN 'Email ' || COALESCE(tc.direction, 'unknown') || ': ' || COALESCE(tc.subject, 'Sem assunto')
+          WHEN 'phone' THEN 'Chamada telefônica ' || COALESCE(tc.direction, 'unknown')
+          WHEN 'chat' THEN 'Chat ' || COALESCE(tc.direction, 'unknown')
+          ELSE 'Comunicação ' || COALESCE(tc.direction, 'unknown') || ' via ' || COALESCE(tc.communication_type, 'unknown')
         END || 
         CASE WHEN tc.content IS NOT NULL AND LENGTH(tc.content) > 0 
              THEN ' - ' || LEFT(tc.content, 100) || CASE WHEN LENGTH(tc.content) > 100 THEN '...' ELSE '' END 
              ELSE '' END as description,
-        tc.created_by as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
-        tc.created_by as actor_id,
-        'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
-        tc.from_address as old_value,
-        tc.to_address as new_value,
+        COALESCE(tc.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Comunicação') as performed_by_name,
+        COALESCE(tc.created_by, '00000000-0000-0000-0000-000000000000') as actor_id,
+        'system' as actor_type,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Comunicação') as actor_name,
+        COALESCE(tc.from_address, '') as old_value,
+        COALESCE(tc.to_address, '') as new_value,
         'communication' as field_name,
         tc.created_at,
         null as ip_address,
         null as user_agent,
         null as session_id,
         json_build_object(
-          'communication_type', tc.communication_type,
-          'direction', tc.direction,
+          'communication_type', COALESCE(tc.communication_type, 'unknown'),
+          'direction', COALESCE(tc.direction, 'unknown'),
           'from_address', tc.from_address,
           'to_address', tc.to_address,
           'subject', tc.subject,
           'content_preview', LEFT(COALESCE(tc.content, ''), 200),
           'message_id', tc.message_id,
-          'thread_id', tc.thread_id
-        ) as metadata,
+          'thread_id', tc.thread_id,
+          'is_active', COALESCE(tc.is_active, true)
+        )::text as metadata,
         true as is_visible,
         'secondary' as priority_level,
-        'Comunicação' as category_name,
-        'external_communication' as activity_group
+        'Comunicação Externa' as category_name,
+        'external_communication' as activity_group,
+        5 as sort_priority
       FROM "${schemaName}".ticket_communications tc
       LEFT JOIN public.users u ON tc.created_by = u.id
-      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND tc.is_active = true
+      WHERE tc.ticket_id = $1 AND tc.tenant_id = $2 AND COALESCE(tc.is_active, true) = true
       
       UNION ALL
       
@@ -2648,19 +2735,19 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       SELECT 
         'relationship' as source,
         tr.id,
-        'ticket_relationship_' || tr.relationship_type as action_type,
-        'Relacionamento criado: ' || tr.relationship_type || ' com ticket ' ||
+        'ticket_relationship_' || COALESCE(tr.relationship_type, 'unknown') as action_type,
+        'Relacionamento criado: ' || COALESCE(tr.relationship_type, 'desconhecido') || ' com ticket ' ||
         COALESCE(
           (SELECT COALESCE(number, 'T-' || SUBSTRING(id::text, 1, 8)) FROM "${schemaName}".tickets 
            WHERE id = CASE WHEN tr.source_ticket_id = $1 THEN tr.target_ticket_id ELSE tr.source_ticket_id END),
-          'desconhecido'
+          'ticket desconhecido'
         ) ||
         CASE WHEN tr.description IS NOT NULL AND tr.description != '' THEN ' - ' || tr.description ELSE '' END as description,
-        tr.created_by as performed_by,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as performed_by_name,
-        tr.created_by as actor_id,
+        COALESCE(tr.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Relacionamentos') as performed_by_name,
+        COALESCE(tr.created_by, '00000000-0000-0000-0000-000000000000') as actor_id,
         'user' as actor_type,
-        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema') as actor_name,
+        COALESCE(u.first_name || ' ' || u.last_name, u.email, 'Sistema de Relacionamentos') as actor_name,
         tr.source_ticket_id::text as old_value,
         tr.target_ticket_id::text as new_value,
         'ticket_relationship' as field_name,
@@ -2669,48 +2756,108 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         null as user_agent,
         null as session_id,
         json_build_object(
-          'relationship_type', tr.relationship_type,
+          'relationship_type', COALESCE(tr.relationship_type, 'unknown'),
           'source_ticket_id', tr.source_ticket_id,
           'target_ticket_id', tr.target_ticket_id,
           'description', tr.description,
-          'relationship_id', tr.id
-        ) as metadata,
+          'relationship_id', tr.id,
+          'is_bidirectional', tr.relationship_type IN ('related', 'duplicate')
+        )::text as metadata,
         true as is_visible,
         'secondary' as priority_level,
         'Relacionamento' as category_name,
-        'ticket_linking' as activity_group
+        'ticket_linking' as activity_group,
+        6 as sort_priority
       FROM "${schemaName}".ticket_relationships tr
       LEFT JOIN public.users u ON tr.created_by = u.id
       WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1) AND tr.tenant_id = $2
       
-      ORDER BY created_at DESC, priority_level ASC
+      UNION ALL
+      
+      -- 🔥 AUDITORIA DE EDIÇÕES DO TICKET (baseada em updated_at vs created_at)
+      SELECT 
+        'ticket_edit_detection' as source,
+        t.id || '_edit_' || EXTRACT(EPOCH FROM t.updated_at)::text as id,
+        'ticket_edited' as action_type,
+        'Ticket editado - detecção automática baseada em timestamp de atualização' as description,
+        COALESCE(t.updated_by, t.created_by, '00000000-0000-0000-0000-000000000000') as performed_by,
+        COALESCE(u_editor.first_name || ' ' || u_editor.last_name, u_editor.email, 'Editor Desconhecido') as performed_by_name,
+        COALESCE(t.updated_by, t.created_by) as actor_id,
+        'user' as actor_type,
+        COALESCE(u_editor.first_name || ' ' || u_editor.last_name, u_editor.email, 'Editor Desconhecido') as actor_name,
+        TO_CHAR(t.created_at, 'DD/MM/YYYY HH24:MI:SS') as old_value,
+        TO_CHAR(t.updated_at, 'DD/MM/YYYY HH24:MI:SS') as new_value,
+        'ticket_last_modified' as field_name,
+        t.updated_at,
+        null as ip_address,
+        null as user_agent,
+        null as session_id,
+        json_build_object(
+          'detection_method', 'timestamp_comparison',
+          'created_at', t.created_at,
+          'updated_at', t.updated_at,
+          'time_since_creation_hours', EXTRACT(EPOCH FROM (t.updated_at - t.created_at)) / 3600,
+          'current_status', t.status,
+          'current_priority', t.priority,
+          'last_editor', COALESCE(t.updated_by, 'unknown')
+        )::text as metadata,
+        true as is_visible,
+        'primary' as priority_level,
+        'Edição Automática Detectada' as category_name,
+        'auto_detection' as activity_group,
+        7 as sort_priority
+      FROM "${schemaName}".tickets t
+      LEFT JOIN public.users u_editor ON COALESCE(t.updated_by, t.created_by) = u_editor.id
+      WHERE t.id = $1 AND t.tenant_id = $2 
+        AND t.updated_at > t.created_at + INTERVAL '1 second'
+      
+      -- ✅ ORDENAÇÃO CRONOLÓGICA REVERSA COM PRIORIDADE DE SISTEMA
+      ORDER BY created_at DESC, sort_priority ASC, source ASC
     `;
 
     const historyResult = await pool.query(ultraCompleteHistoryQuery, [id, tenantId]);
 
-    console.log(`✅ [HISTORY-COMPLETE] Encontradas ${historyResult.rows.length} entradas de histórico ultra-detalhado`);
+    console.log(`✅ [HISTORY-ULTRA-COMPLETE] Encontradas ${historyResult.rows.length} entradas de histórico 100% completo`);
 
-    // ✅ PROCESSAMENTO E ENRIQUECIMENTO ULTRA-COMPLETO DOS DADOS
-    const ultraEnrichedHistory = historyResult.rows.map(row => {
-      // Parse metadata de forma segura
+    // ✅ PROCESSAMENTO E ENRIQUECIMENTO 100% COMPLETO DOS DADOS
+    const ultraEnrichedHistory = historyResult.rows.map((row, index) => {
+      // Parse metadata de forma ultra-segura
       let parsedMetadata = {};
       try {
-        parsedMetadata = typeof row.metadata === 'string' 
-          ? JSON.parse(row.metadata) 
-          : row.metadata || {};
+        if (typeof row.metadata === 'string') {
+          parsedMetadata = JSON.parse(row.metadata);
+        } else if (typeof row.metadata === 'object' && row.metadata !== null) {
+          parsedMetadata = row.metadata;
+        } else {
+          parsedMetadata = {};
+        }
       } catch (e) {
         console.warn('⚠️ Erro ao fazer parse do metadata:', e);
-        parsedMetadata = {};
+        parsedMetadata = { parse_error: true, original_value: row.metadata };
       }
 
       return {
         ...row,
-        // Garantir campos obrigatórios com fallbacks robustos
+        // ✅ ENRIQUECIMENTO GARANTIDO
+        id: row.id || `generated_${index}_${Date.now()}`,
         performed_by_name: row.performed_by_name || row.actor_name || 'Sistema Automatizado',
         actor_name: row.actor_name || row.performed_by_name || 'Sistema Automatizado',
-        // Metadata processado
-        metadata: parsedMetadata,
-        // Informações de contexto expandidas
+        action_type: row.action_type || 'unknown_action',
+        description: row.description || 'Ação não documentada',
+        
+        // ✅ METADATA ENRIQUECIDO
+        metadata: {
+          ...parsedMetadata,
+          // Informações adicionais de auditoria
+          processed_at: new Date().toISOString(),
+          source_table: row.source,
+          priority_level: row.priority_level,
+          category_name: row.category_name,
+          activity_group: row.activity_group,
+          sort_priority: row.sort_priority
+        },
+        
+        // ✅ FORMATAÇÃO TEMPORAL BRASILEIRA
         display_time: new Date(row.created_at).toLocaleString('pt-BR', {
           timeZone: 'America/Sao_Paulo',
           year: 'numeric',
@@ -2720,34 +2867,48 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
           minute: '2-digit',
           second: '2-digit'
         }),
-        // Categoria refinada para agrupamento no frontend
+        
+        // ✅ CATEGORIZAÇÃO INTELIGENTE
         category: row.source === 'ticket_history' ? 'system' : 
+                 row.source === 'ticket_creation' ? 'creation' :
+                 row.source === 'ticket_edit_detection' ? 'edit_detection' :
                  row.source === 'internal_action' ? 'action' :
                  row.source === 'note' ? 'communication' : 
                  row.source === 'attachment' ? 'attachment' :
                  row.source === 'communication' ? 'external_communication' :
                  row.source === 'relationship' ? 'relationship' :
                  'other',
-        // Classificação de impacto
+        
+        // ✅ CLASSIFICAÇÃO DE IMPACTO REFINADA
         impact_level: row.priority_level === 'primary' ? 'high' : 
                      ['internal_action', 'communication', 'relationship'].includes(row.source) ? 'medium' : 'low',
-        // Timestamp Unix para ordenação
+        
+        // ✅ TIMESTAMPS PARA ORDENAÇÃO
         timestamp_unix: new Date(row.created_at).getTime(),
-        // Informações adicionais para debugging
+        created_at_iso: new Date(row.created_at).toISOString(),
+        
+        // ✅ INFORMAÇÕES DE DEBUG EXPANDIDAS
         debug_info: {
           source_table: row.source,
           original_created_at: row.created_at,
           has_metadata: Object.keys(parsedMetadata).length > 0,
-          metadata_keys: Object.keys(parsedMetadata)
+          metadata_keys: Object.keys(parsedMetadata),
+          has_ip_address: !!row.ip_address,
+          has_user_agent: !!row.user_agent,
+          has_session_id: !!row.session_id,
+          entry_index: index,
+          processing_timestamp: Date.now()
         }
       };
     });
 
-    // ✅ ESTATÍSTICAS DETALHADAS DO HISTÓRICO
-    const detailedBreakdown = {
+    // ✅ ESTATÍSTICAS ULTRA-DETALHADAS DO HISTÓRICO
+    const ultraDetailedBreakdown = {
       total: ultraEnrichedHistory.length,
       by_category: {
         system_events: ultraEnrichedHistory.filter(h => h.category === 'system').length,
+        creation_events: ultraEnrichedHistory.filter(h => h.category === 'creation').length,
+        edit_detection: ultraEnrichedHistory.filter(h => h.category === 'edit_detection').length,
         internal_actions: ultraEnrichedHistory.filter(h => h.category === 'action').length,
         communications: ultraEnrichedHistory.filter(h => h.category === 'communication').length,
         attachments: ultraEnrichedHistory.filter(h => h.category === 'attachment').length,
@@ -2757,6 +2918,8 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
       },
       by_source: {
         ticket_history: ultraEnrichedHistory.filter(h => h.source === 'ticket_history').length,
+        ticket_creation: ultraEnrichedHistory.filter(h => h.source === 'ticket_creation').length,
+        ticket_edit_detection: ultraEnrichedHistory.filter(h => h.source === 'ticket_edit_detection').length,
         internal_actions: ultraEnrichedHistory.filter(h => h.source === 'internal_action').length,
         notes: ultraEnrichedHistory.filter(h => h.source === 'note').length,
         attachments: ultraEnrichedHistory.filter(h => h.source === 'attachment').length,
@@ -2768,35 +2931,49 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
         medium: ultraEnrichedHistory.filter(h => h.impact_level === 'medium').length,
         low: ultraEnrichedHistory.filter(h => h.impact_level === 'low').length
       },
+      by_priority: {
+        primary: ultraEnrichedHistory.filter(h => h.priority_level === 'primary').length,
+        secondary: ultraEnrichedHistory.filter(h => h.priority_level === 'secondary').length
+      },
+      data_quality: {
+        entries_with_metadata: ultraEnrichedHistory.filter(h => h.debug_info.has_metadata).length,
+        entries_with_ip: ultraEnrichedHistory.filter(h => h.debug_info.has_ip_address).length,
+        entries_with_user_agent: ultraEnrichedHistory.filter(h => h.debug_info.has_user_agent).length,
+        entries_with_session: ultraEnrichedHistory.filter(h => h.debug_info.has_session_id).length
+      },
       date_range: {
         first_entry: ultraEnrichedHistory.length > 0 ? ultraEnrichedHistory[ultraEnrichedHistory.length - 1].created_at : null,
-        last_entry: ultraEnrichedHistory.length > 0 ? ultraEnrichedHistory[0].created_at : null
+        last_entry: ultraEnrichedHistory.length > 0 ? ultraEnrichedHistory[0].created_at : null,
+        time_span_hours: ultraEnrichedHistory.length > 1 ? 
+          Math.abs(new Date(ultraEnrichedHistory[0].created_at).getTime() - 
+                   new Date(ultraEnrichedHistory[ultraEnrichedHistory.length - 1].created_at).getTime()) / (1000 * 60 * 60) : 0
       }
     };
 
-    console.log(`✅ [HISTORY-COMPLETE] Processamento concluído:`, detailedBreakdown);
+    console.log(`✅ [HISTORY-ULTRA-COMPLETE] Processamento 100% concluído:`, ultraDetailedBreakdown);
 
     res.json({
       success: true,
       data: ultraEnrichedHistory,
       count: ultraEnrichedHistory.length,
-      breakdown: detailedBreakdown,
+      breakdown: ultraDetailedBreakdown,
       query_info: {
         ticket_id: id,
         tenant_id: tenantId,
         query_executed_at: new Date().toISOString(),
-        sources_queried: ['ticket_history', 'internal_actions', 'notes', 'attachments', 'communications', 'relationships'],
-        data_completeness: 'ultra_complete'
+        sources_queried: ['ticket_history', 'ticket_creation', 'ticket_edit_detection', 'internal_actions', 'notes', 'attachments', 'communications', 'relationships'],
+        data_completeness: '100_percent_ultra_complete',
+        query_version: '2.0_ultra_enhanced'
       }
     });
 
   } catch (error) {
-    console.error("❌ [HISTORY-COMPLETE] Erro ao buscar histórico ultra-completo:", error);
+    console.error("❌ [HISTORY-ULTRA-COMPLETE] Erro ao buscar histórico 100% completo:", error);
     res.status(500).json({ 
       success: false,
-      message: "Failed to fetch ultra-complete ticket history",
-      error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: "Failed to fetch 100% complete ticket history",
+      error: error instanceof Error ? error.message : "Unknown error",
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
     });
   }
 });
@@ -3160,10 +3337,10 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
   }
 });
 
-// ✅ MIDDLEWARE AUDITORIA AUTOMÁTICA - interceptar todas as mudanças
+// ✅ MIDDLEWARE AUDITORIA ULTRA-AUTOMÁTICA - interceptar e registrar TODAS as mudanças
 ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) => {
   // Capturar estado original antes de qualquer modificação
-  if (['PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+  if (['PUT', 'PATCH', 'DELETE', 'POST'].includes(req.method)) {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -3171,10 +3348,74 @@ ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) 
       if (tenantId && id) {
         const originalTicket = await storageSimple.getTicketById(tenantId, id);
         req.originalTicketState = originalTicket; // Armazenar estado original
+        
+        // ✅ REGISTRAR TENTATIVA DE ACESSO/MODIFICAÇÃO
+        const { pool } = await import('../../db');
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+        
+        await createCompleteAuditEntry(
+          pool, schemaName, tenantId, id, req,
+          `ticket_${req.method.toLowerCase()}_attempt`,
+          `Tentativa de ${req.method} no ticket`,
+          {
+            http_method: req.method,
+            access_timestamp: new Date().toISOString(),
+            original_url: req.originalUrl,
+            user_agent: req.headers['user-agent'],
+            has_original_state: !!originalTicket
+          }
+        );
       }
     } catch (error) {
       console.warn('⚠️ [AUDIT-MIDDLEWARE] Não foi possível capturar estado original:', error);
     }
+  }
+  next();
+});
+
+// ✅ MIDDLEWARE AUDITORIA PÓS-OPERAÇÃO - registrar resultado final
+ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) => {
+  // Interceptar resposta para auditoria pós-operação
+  if (['PUT', 'PATCH', 'DELETE', 'POST'].includes(req.method)) {
+    const originalSend = res.send;
+    res.send = function(data) {
+      // Registrar resultado da operação
+      setTimeout(async () => {
+        try {
+          const { id } = req.params;
+          const tenantId = req.user?.tenantId;
+          
+          if (tenantId && id) {
+            const { pool } = await import('../../db');
+            const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+            
+            let responseData;
+            try {
+              responseData = typeof data === 'string' ? JSON.parse(data) : data;
+            } catch {
+              responseData = { raw_response: data };
+            }
+            
+            await createCompleteAuditEntry(
+              pool, schemaName, tenantId, id, req,
+              `ticket_${req.method.toLowerCase()}_completed`,
+              `Operação ${req.method} concluída com status ${res.statusCode}`,
+              {
+                http_method: req.method,
+                response_status: res.statusCode,
+                operation_timestamp: new Date().toISOString(),
+                response_success: res.statusCode >= 200 && res.statusCode < 300,
+                response_data_preview: JSON.stringify(responseData).substring(0, 500)
+              }
+            );
+          }
+        } catch (error) {
+          console.warn('⚠️ [AUDIT-POST-MIDDLEWARE] Erro na auditoria pós-operação:', error);
+        }
+      }, 100); // Delay pequeno para garantir que a operação foi concluída
+      
+      return originalSend.call(this, data);
+    };
   }
   next();
 });
