@@ -649,132 +649,151 @@ export default function TenantAdminIntegrations() {
     setSelectedIntegration(integration);
 
     try {
-      // Load existing configuration from API
+      // ✅ CRITICAL FIX: Validar se existe configuração antes de tentar carregar
       console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id}`);
       const response = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
-      const existingConfig = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
+      const existingConfig = await response.json();
       console.log(`📋 [CONFIG-LOAD] Resposta recebida:`, existingConfig);
 
-      if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
+      // ✅ IMPROVED: Validação mais robusta da configuração existente
+      const hasValidConfig = existingConfig && 
+        existingConfig.configured === true && 
+        existingConfig.config && 
+        typeof existingConfig.config === 'object' &&
+        Object.keys(existingConfig.config).length > 0;
+
+      if (hasValidConfig) {
         const config = existingConfig.config;
-        console.log(`✅ [CONFIG-LOAD] Configuração encontrada para ${integration.id}:`, config);
+        console.log(`✅ [CONFIG-LOAD] Configuração válida encontrada para ${integration.id}`);
 
-        // ✅ CRITICAL FIX: Corrigir carregamento específico para Telegram
-        let formValues;
+        // ✅ SECURITY: Função para mascarar dados sensíveis de forma consistente
+        const maskSensitiveData = (value: string | undefined | null): string => {
+          if (!value || value.length === 0) return '';
+          if (value === '••••••••') return value; // Já mascarado
+          return '••••••••';
+        };
 
+        // ✅ STANDARDIZED: Carregamento padronizado para todas as integrações
+        const formValues = {
+          enabled: Boolean(config.enabled),
+          useSSL: config.useSSL !== false,
+          
+          // OAuth2 fields
+          clientId: config.clientId || '',
+          clientSecret: maskSensitiveData(config.clientSecret),
+          redirectUri: config.redirectUri || '',
+          tenantId: config.tenantId || '',
+          
+          // Generic API fields
+          apiKey: maskSensitiveData(config.apiKey),
+          apiSecret: maskSensitiveData(config.apiSecret),
+          webhookUrl: config.webhookUrl || '',
+          
+          // Server/Email fields
+          serverHost: config.serverHost || config.imapServer || '',
+          serverPort: config.serverPort ? String(config.serverPort) : (config.imapPort ? String(config.imapPort) : '993'),
+          username: config.username || config.emailAddress || '',
+          password: maskSensitiveData(config.password),
+          
+          // IMAP specific fields
+          imapServer: config.imapServer || 'imap.gmail.com',
+          imapPort: config.imapPort ? String(config.imapPort) : '993',
+          imapSecurity: config.imapSecurity || 'SSL/TLS',
+          emailAddress: config.emailAddress || '',
+          
+          // Dropbox specific fields
+          dropboxAppKey: config.dropboxAppKey || '',
+          dropboxAppSecret: maskSensitiveData(config.dropboxAppSecret),
+          dropboxAccessToken: maskSensitiveData(config.dropboxAccessToken),
+          backupFolder: config.backupFolder || '/Backups/Conductor',
+          
+          // Telegram specific fields - CRITICAL FIX
+          telegramBotToken: maskSensitiveData(config.telegramBotToken),
+          telegramChatId: config.telegramChatId || '',
+        };
+
+        // ✅ TELEGRAM DEBUG: Log específico para debugging
         if (integration.id === 'telegram') {
-          formValues = {
-            enabled: config.enabled === true,
-            useSSL: config.useSSL !== false,
-            apiKey: config.apiKey ? '••••••••' : '',
-            apiSecret: config.apiSecret ? '••••••••' : '',
-            webhookUrl: config.webhookUrl || '',
-            clientId: config.clientId || '',
-            clientSecret: config.clientSecret ? '••••••••' : '',
-            redirectUri: config.redirectUri || '',
-            tenantId: config.tenantId || '',
-            serverHost: config.serverHost || config.imapServer || '',
-            serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
-            username: config.username || config.emailAddress || '',
-            password: config.password ? '••••••••' : '',
-            imapServer: config.imapServer || 'imap.gmail.com',
-            imapPort: config.imapPort ? config.imapPort.toString() : '993',
-            imapSecurity: config.imapSecurity || 'SSL/TLS',
-            emailAddress: config.emailAddress || '',
-            dropboxAppKey: config.dropboxAppKey || '',
-            dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '',
-            dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '',
-            backupFolder: config.backupFolder || '/Backups/Conductor',
-            // ✅ TELEGRAM SPECIFIC: Carregar campos específicos do Telegram
-            telegramBotToken: config.telegramBotToken ? '••••••••' : '',
-            telegramChatId: config.telegramChatId || '',
-          };
-
-          console.log(`📱 [TELEGRAM-CONFIG] Valores carregados:`, {
+          console.log(`📱 [TELEGRAM-CONFIG] Configuração carregada:`, {
             enabled: formValues.enabled,
-            telegramBotToken: config.telegramBotToken ? `${config.telegramBotToken.substring(0, 10)}...` : 'VAZIO',
-            telegramChatId: formValues.telegramChatId
+            hasBotToken: Boolean(config.telegramBotToken),
+            botTokenMasked: formValues.telegramBotToken,
+            chatId: formValues.telegramChatId
           });
-        } else {
-          // Load existing configuration - dados reais do banco (mascarar dados sensíveis)
-          formValues = {
-            enabled: config.enabled === true,
-            useSSL: config.useSSL !== false, // Default to true
-            apiKey: config.apiKey ? '••••••••' : '', // Mascarar API key
-            apiSecret: config.apiSecret ? '••••••••' : '', // Mascarar API secret
-            webhookUrl: config.webhookUrl || '',
-            clientId: config.clientId || '',
-            clientSecret: config.clientSecret ? '••••••••' : '', // Mascarar Client secret
-            redirectUri: config.redirectUri || '',
-            tenantId: config.tenantId || '',
-            serverHost: config.serverHost || config.imapServer || '',
-            serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
-            username: config.username || config.emailAddress || '',
-            password: config.password ? '••••••••' : '', // CRÍTICO: Mascarar senha
-            imapServer: config.imapServer || 'imap.gmail.com',
-            imapPort: config.imapPort ? config.imapPort.toString() : '993',
-            imapSecurity: config.imapSecurity || 'SSL/TLS',
-            emailAddress: config.emailAddress || '',
-            dropboxAppKey: config.dropboxAppKey || '',
-            dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
-            dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
-            backupFolder: config.backupFolder || '/Backups/Conductor',
-            // Telegram fields
-            telegramBotToken: config.telegramBotToken ? '••••••••' : '',
-            telegramChatId: config.telegramChatId || '',
-          };
         }
 
         configForm.reset(formValues);
 
         toast({
           title: "✅ Configuração carregada",
-          description: `Dados existentes de ${integration.name} carregados com sucesso`,
+          description: `Dados de ${integration.name} carregados com sucesso`,
         });
-      } else {
-        console.log(`⚠️ [CONFIG-LOAD] Nenhuma configuração encontrada para ${integration.id}, usando valores padrão`);
 
-        // Use default values if no configuration exists
-        const defaultValues = {
-          enabled: false,
-          useSSL: true,
-          apiKey: '',
-          apiSecret: '',
-          webhookUrl: '',
-          clientId: '',
-          clientSecret: '',
-          redirectUri: '',
-          tenantId: '',
-          serverHost: '',
-          serverPort: integration.id === 'imap-email' ? '993' : '',
-          username: '',
-          password: '',
-          imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
-          imapPort: '993',
-          imapSecurity: 'SSL/TLS',
-          emailAddress: '',
-          dropboxAppKey: '',
-          dropboxAppSecret: '',
-          dropboxAccessToken: '',
-          backupFolder: '/Backups/Conductor',
-          // Telegram default values
-          telegramBotToken: '',
-          telegramChatId: '',
+      } else {
+        console.log(`⚠️ [CONFIG-LOAD] Configuração não encontrada para ${integration.id}, usando valores padrão`);
+        
+        // ✅ IMPROVED: Valores padrão específicos por tipo de integração
+        const getDefaultValues = (integrationId: string) => {
+          const baseDefaults = {
+            enabled: false,
+            useSSL: true,
+            apiKey: '',
+            apiSecret: '',
+            webhookUrl: '',
+            clientId: '',
+            clientSecret: '',
+            redirectUri: '',
+            tenantId: '',
+            serverHost: '',
+            serverPort: '',
+            username: '',
+            password: '',
+            imapServer: 'imap.gmail.com',
+            imapPort: '993',
+            imapSecurity: 'SSL/TLS' as const,
+            emailAddress: '',
+            dropboxAppKey: '',
+            dropboxAppSecret: '',
+            dropboxAccessToken: '',
+            backupFolder: '/Backups/Conductor',
+            telegramBotToken: '',
+            telegramChatId: '',
+          };
+
+          // Defaults específicos por integração
+          if (integrationId === 'imap-email') {
+            return { ...baseDefaults, serverPort: '993' };
+          }
+          
+          if (integrationId === 'email-smtp') {
+            return { ...baseDefaults, serverPort: '587' };
+          }
+
+          return baseDefaults;
         };
 
-        configForm.reset(defaultValues);
+        configForm.reset(getDefaultValues(integration.id));
 
         toast({
           title: "ℹ️ Nova configuração",
           description: `Configure ${integration.name} pela primeira vez`,
         });
       }
-    } catch (error) {
+
+    } catch (error: any) {
       console.error(`❌ [CONFIG-LOAD] Erro ao carregar configuração para ${integration.id}:`, error);
 
-      // Fallback to default values
-      const fallbackValues = {
+      // ✅ IMPROVED: Tratamento de erro mais robusto
+      const errorMessage = error?.message || 'Erro desconhecido';
+      const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('Network');
+      
+      // Fallback values
+      configForm.reset({
         enabled: false,
         useSSL: true,
         apiKey: '',
@@ -788,24 +807,23 @@ export default function TenantAdminIntegrations() {
         serverPort: integration.id === 'imap-email' ? '993' : '',
         username: '',
         password: '',
-        imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
+        imapServer: 'imap.gmail.com',
         imapPort: '993',
-        imapSecurity: 'SSL/TLS',
+        imapSecurity: 'SSL/TLS' as const,
         emailAddress: '',
         dropboxAppKey: '',
         dropboxAppSecret: '',
         dropboxAccessToken: '',
         backupFolder: '/Backups/Conductor',
-        // Telegram default values
         telegramBotToken: '',
         telegramChatId: '',
-      };
-
-      configForm.reset(fallbackValues);
+      });
 
       toast({
         title: "⚠️ Erro ao carregar configuração",
-        description: "Usando valores padrão. Verifique sua conexão.",
+        description: isNetworkError 
+          ? "Problema de conectividade. Usando valores padrão." 
+          : "Erro do servidor. Usando valores padrão.",
         variant: "destructive",
       });
     }
@@ -839,30 +857,162 @@ export default function TenantAdminIntegrations() {
   };
 
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
-    if (selectedIntegration) {
+    if (!selectedIntegration) {
+      toast({
+        title: "❌ Erro de validação",
+        description: "Nenhuma integração selecionada",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      // Preparar dados específicos para IMAP
-      let configData = { ...data };
+    try {
+      // ✅ VALIDATION: Validação específica por tipo de integração
+      const validateIntegrationData = (integrationId: string, formData: any) => {
+        const errors: string[] = [];
 
-      if (selectedIntegration.id === 'imap-email') {
-        configData = {
-          ...data,
-          // Garantir que campos IMAP estejam presentes
-          imapServer: data.imapServer || 'imap.gmail.com',
-          imapPort: parseInt(data.imapPort || '993') || 993,
-          emailAddress: data.emailAddress || '',
-          password: data.password || '',
-          useSSL: data.useSSL !== false,
-          enabled: data.enabled === true,
-          // Manter compatibilidade com outros campos
-          serverHost: data.imapServer || 'imap.gmail.com',
-          serverPort: parseInt(data.imapPort || '993') || 993,
-          username: data.emailAddress || ''
-        };
+        switch (integrationId) {
+          case 'telegram':
+            if (formData.enabled) {
+              if (!formData.telegramBotToken || formData.telegramBotToken === '••••••••') {
+                errors.push('Bot Token é obrigatório para ativar o Telegram');
+              }
+              if (!formData.telegramChatId) {
+                errors.push('Chat ID é obrigatório para ativar o Telegram');
+              }
+            }
+            break;
+
+          case 'email-smtp':
+            if (formData.enabled) {
+              if (!formData.serverHost) errors.push('Servidor SMTP é obrigatório');
+              if (!formData.serverPort) errors.push('Porta SMTP é obrigatória');
+              if (!formData.username) errors.push('Usuário é obrigatório');
+              if (!formData.password || formData.password === '••••••••') {
+                errors.push('Senha é obrigatória');
+              }
+            }
+            break;
+
+          case 'imap-email':
+            if (formData.enabled) {
+              if (!formData.imapServer) errors.push('Servidor IMAP é obrigatório');
+              if (!formData.emailAddress) errors.push('Endereço de email é obrigatório');
+              if (!formData.password || formData.password === '••••••••') {
+                errors.push('Senha é obrigatória');
+              }
+            }
+            break;
+
+          case 'gmail-oauth2':
+          case 'outlook-oauth2':
+            if (formData.enabled) {
+              if (!formData.clientId) errors.push('Client ID é obrigatório');
+              if (!formData.clientSecret || formData.clientSecret === '••••••••') {
+                errors.push('Client Secret é obrigatório');
+              }
+            }
+            break;
+
+          case 'dropbox-personal':
+            if (formData.enabled) {
+              if (!formData.dropboxAppKey) errors.push('App Key é obrigatória');
+              if (!formData.dropboxAccessToken || formData.dropboxAccessToken === '••••••••') {
+                errors.push('Access Token é obrigatório');
+              }
+            }
+            break;
+        }
+
+        return errors;
+      };
+
+      const validationErrors = validateIntegrationData(selectedIntegration.id, data);
+      
+      if (validationErrors.length > 0) {
+        toast({
+          title: "❌ Erro de validação",
+          description: validationErrors.join('. '),
+          variant: "destructive",
+        });
+        return;
       }
+
+      // ✅ PREPARATION: Preparar dados baseado no tipo de integração
+      let configData: any = {
+        enabled: data.enabled === true,
+        lastUpdated: new Date().toISOString(),
+        integrationVersion: '1.0',
+        ...data
+      };
+
+      // ✅ SPECIALIZED PROCESSING: Processamento específico por integração
+      switch (selectedIntegration.id) {
+        case 'imap-email':
+          configData = {
+            ...configData,
+            imapServer: data.imapServer || 'imap.gmail.com',
+            imapPort: parseInt(data.imapPort || '993') || 993,
+            emailAddress: data.emailAddress || '',
+            useSSL: data.useSSL !== false,
+            // Compatibilidade com campos genéricos
+            serverHost: data.imapServer || 'imap.gmail.com',
+            serverPort: parseInt(data.imapPort || '993') || 993,
+            username: data.emailAddress || ''
+          };
+          break;
+
+        case 'email-smtp':
+          configData = {
+            ...configData,
+            serverHost: data.serverHost || '',
+            serverPort: parseInt(data.serverPort || '587') || 587,
+            username: data.username || '',
+            useSSL: data.useSSL !== false
+          };
+          break;
+
+        case 'telegram':
+          configData = {
+            ...configData,
+            telegramBotToken: data.telegramBotToken || '',
+            telegramChatId: data.telegramChatId || ''
+          };
+          break;
+
+        case 'dropbox-personal':
+          configData = {
+            ...configData,
+            dropboxAppKey: data.dropboxAppKey || '',
+            dropboxAppSecret: data.dropboxAppSecret || '',
+            dropboxAccessToken: data.dropboxAccessToken || '',
+            backupFolder: data.backupFolder || '/Backups/Conductor'
+          };
+          break;
+
+        default:
+          // Para integrações genéricas, manter todos os campos
+          break;
+      }
+
+      console.log(`💾 [SUBMIT-CONFIG] Enviando configuração para ${selectedIntegration.id}:`, {
+        integrationId: selectedIntegration.id,
+        enabled: configData.enabled,
+        fieldsCount: Object.keys(configData).length
+      });
+
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
         config: configData
+      });
+
+    } catch (error: any) {
+      console.error('❌ [SUBMIT-CONFIG] Erro ao processar configuração:', error);
+      
+      toast({
+        title: "❌ Erro interno",
+        description: "Erro ao processar a configuração. Tente novamente.",
+        variant: "destructive",
       });
     }
   };
@@ -973,62 +1123,72 @@ export default function TenantAdminIntegrations() {
 
         {Object.entries(groupedIntegrations).map(([category, integrations]) => (
           <TabsContent key={category} value={category} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
               {integrations.map((integration) => {
                 const IconComponent = integration.icon || Mail; // Fallback to Mail icon
                 return (
-                  <Card key={integration.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
+                  <Card key={integration.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex-shrink-0">
                             <IconComponent className="h-6 w-6 text-purple-600" />
                           </div>
-                          <div>
-                            <CardTitle className="text-lg">{integration.name}</CardTitle>
-                            <Badge className={getCategoryColor(integration.category)}>
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
+                              {integration.name}
+                            </CardTitle>
+                            <Badge className={`${getCategoryColor(integration.category)} text-xs mt-1`}>
                               {integration.category}
                             </Badge>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex flex-col items-end space-y-1 flex-shrink-0">
                           {integration.configured && (
-                            <Badge className="bg-green-100 text-green-800 border-green-200">
+                            <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
                               <CheckCircle className="h-3 w-3 mr-1" />
-                              Configurado
+                              <span className="hidden sm:inline">Configurado</span>
+                              <span className="sm:hidden">Config.</span>
                             </Badge>
                           )}
-                          <Badge className={getStatusColor(integration.status)}>
+                          <Badge className={`${getStatusColor(integration.status)} text-xs`}>
                             {getStatusIcon(integration.status)}
-                            <span className="ml-1 capitalize">{integration.status}</span>
+                            <span className="ml-1 capitalize hidden sm:inline">{integration.status}</span>
+                            <span className="ml-1 capitalize sm:hidden">
+                              {integration.status === 'connected' ? 'OK' : 
+                               integration.status === 'disconnected' ? 'OFF' : 'ERR'}
+                            </span>
                           </Badge>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 mb-4">
+                    
+                    <CardContent className="flex-1 flex flex-col">
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={integration.description}>
                         {integration.description}
                       </p>
 
                       {integration.features && integration.features.length > 0 && (
-                        <div className="mb-4">
+                        <div className="mb-4 flex-1">
                           <h4 className="text-sm font-medium mb-2">Recursos:</h4>
                           <div className="flex flex-wrap gap-1">
-                            {integration.features.slice(0, 3).map((feature, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {feature}
+                            {integration.features.slice(0, 2).map((feature, index) => (
+                              <Badge key={index} variant="outline" className="text-xs" title={feature}>
+                                {feature.length > 20 ? `${feature.substring(0, 20)}...` : feature}
                               </Badge>
                             ))}
-                            {integration.features.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{integration.features.length - 3} mais
+                            {integration.features.length > 2 && (
+                              <Badge variant="outline" className="text-xs" title={`${integration.features.length - 2} recursos adicionais`}>
+                                +{integration.features.length - 2}
                               </Badge>
                             )}
                           </div>
                         </div>
                       )}
 
-                      <div className="flex space-x-2">
+                      {/* ✅ IMPROVED: Layout responsivo dos botões */}
+                      <div className="space-y-2 mt-auto">
+                        {/* Primeira linha - Configurar (sempre visível) */}
                         <Button 
                           size="sm" 
                           onClick={(e) => {
@@ -1036,55 +1196,61 @@ export default function TenantAdminIntegrations() {
                             e.stopPropagation();
                             onConfigureIntegration(integration);
                           }}
-                          className="flex-1"
+                          className="w-full"
                         >
-                          <Settings className="h-4 w-4 mr-1" />
+                          <Settings className="h-4 w-4 mr-2" />
                           Configurar
                         </Button>
 
-                        {(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') && (
+                        {/* Segunda linha - OAuth2 e Testar */}
+                        <div className="flex gap-2">
+                          {(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') && (
+                            <Button 
+                              size="sm" 
+                              variant="secondary"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                startOAuthFlow(integration);
+                              }}
+                              className="flex-1"
+                            >
+                              <Key className="h-4 w-4 mr-1" />
+                              <span className="hidden sm:inline">OAuth2</span>
+                              <span className="sm:hidden">Auth</span>
+                            </Button>
+                          )}
+
                           <Button 
                             size="sm" 
-                            variant="secondary"
+                            variant="outline"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              startOAuthFlow(integration);
+                              handleTestIntegration(integration.id);
                             }}
-                            className="flex-1"
+                            disabled={testingIntegrationId === integration.id}
+                            className={`${(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') ? 'flex-1' : 'w-full'}`}
                           >
-                            <Key className="h-4 w-4 mr-1" />
-                            OAuth2
+                            {testingIntegrationId === integration.id ? (
+                              <>
+                                <div className="h-4 w-4 mr-1 animate-spin border-2 border-current border-t-transparent rounded-full" />
+                                <span className="hidden sm:inline">Testando...</span>
+                                <span className="sm:hidden">Test...</span>
+                              </>
+                            ) : (
+                              <>
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                Testar
+                              </>
+                            )}
                           </Button>
-                        )}
-
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleTestIntegration(integration.id);
-                          }}
-                          disabled={testingIntegrationId === integration.id}
-                        >
-                          {testingIntegrationId === integration.id ? (
-                            <>
-                              <div className="h-4 w-4 mr-1 animate-spin border-2 border-current border-t-transparent rounded-full" />
-                              Testando...
-                            </>
-                          ) : (
-                            <>
-                              <ExternalLink className="h-4 w-4 mr-1" />
-                              Testar
-                            </>
-                          )}
-                        </Button>
+                        </div>
                       </div>
 
                       {integration.lastSync && (
-                        <p className="text-xs text-gray-500 mt-2">
-                          Última sincronização: {new Date(integration.lastSync).toLocaleDateString()}
+                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')}`}>
+                          Sync: {new Date(integration.lastSync).toLocaleDateString('pt-BR')}
                         </p>
                       )}
                     </CardContent>
