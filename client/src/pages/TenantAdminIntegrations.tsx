@@ -383,6 +383,56 @@ export default function TenantAdminIntegrations() {
     }
   };
 
+  // ✅ NEW: Check webhook status function
+  const handleCheckWebhookStatus = async () => {
+    if (!selectedIntegration) return;
+
+    console.log('📊 [WEBHOOK-STATUS] Verificando status do webhook para Telegram');
+    setIsTestingIntegration(true);
+    setTestResult(null);
+
+    try {
+      const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('📊 [WEBHOOK-STATUS] Response status:', response.status);
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        console.log('✅ [WEBHOOK-STATUS] Status obtido com sucesso:', result);
+        setTestResult({
+          success: true,
+          message: '📊 Status do webhook obtido com sucesso!',
+          details: {
+            webhookInfo: result.webhookInfo,
+            localConfig: result.localConfig
+          }
+        });
+      } else {
+        console.error('❌ [WEBHOOK-STATUS] Erro:', result);
+        setTestResult({
+          success: false,
+          message: result.message || result.error || 'Erro ao obter status do webhook',
+          details: result
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ [WEBHOOK-STATUS] Erro de rede:', error);
+      setTestResult({
+        success: false,
+        message: `Erro de conexão ao verificar status do webhook: ${error.message}`,
+        error: error
+      });
+    } finally {
+      setIsTestingIntegration(false);
+    }
+  };
+
 
   // Map integrations with proper icons and saved configuration status
   const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations?.length > 0 
