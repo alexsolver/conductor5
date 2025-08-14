@@ -179,7 +179,7 @@ export class TicketHistoryApplicationService {
         params.actionType,
         params.description || `${params.actionType} performed`,
         params.performedBy,
-        'Sistema', // Default performer name for system actions
+`User ${params.performedBy}`, // Use proper performer name
         params.tenantId,
         {
           ...params.metadata,
