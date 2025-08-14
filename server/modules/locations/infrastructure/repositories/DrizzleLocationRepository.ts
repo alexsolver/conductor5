@@ -12,8 +12,8 @@
 import { eq, and, sql, ilike, desc, asc, count, inArray } from 'drizzle-orm';
 import { Location, LocationFilterCriteria, LocationStats, LocationType } from '../../domain/entities/Location';
 import { ILocationRepository } from '../../domain/repositories/ILocationRepository';
-import { schemaManager } from '../../../../server/db';
-import { locations } from '../../../../shared/schema-master';
+import { schemaManager } from '../../../../db';
+import { locations } from '../../../../../shared/schema';
 
 export class DrizzleLocationRepository implements ILocationRepository {
   

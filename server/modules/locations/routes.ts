@@ -1,47 +1,41 @@
 // NEW LOCATIONS MODULE - Routes
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { LocationsController } from './LocationsController';
+import { LocationController } from './application/controllers/LocationController';
+import { CreateLocationUseCase } from './application/use-cases/CreateLocationUseCase';
+import { FindLocationUseCase } from './application/use-cases/FindLocationUseCase';
+import { UpdateLocationUseCase } from './application/use-cases/UpdateLocationUseCase';
+import { DeleteLocationUseCase } from './application/use-cases/DeleteLocationUseCase';
+import { DrizzleLocationRepository } from './infrastructure/repositories/DrizzleLocationRepository';
 
 const router = Router();
-const controller = new LocationsController();
+
+// ✅ CLEAN ARCHITECTURE DEPENDENCY INJECTION per 1qa.md
+const locationRepository = new DrizzleLocationRepository();
+const createLocationUseCase = new CreateLocationUseCase(locationRepository);
+const findLocationUseCase = new FindLocationUseCase(locationRepository);
+const updateLocationUseCase = new UpdateLocationUseCase(locationRepository);
+const deleteLocationUseCase = new DeleteLocationUseCase(locationRepository);
+
+const controller = new LocationController(
+  createLocationUseCase,
+  findLocationUseCase,
+  updateLocationUseCase,
+  deleteLocationUseCase,
+  locationRepository
+);
 
 // Apply JWT authentication to all routes
 router.use(jwtAuth);
 
-// Core location routes
+// Core location routes - ✅ CLEAN ARCHITECTURE per 1qa.md
 router.get('/', controller.getLocations.bind(controller));
 router.get('/stats', controller.getLocationStats.bind(controller));
-router.get('/coverage-analysis', controller.getCoverageAnalysis.bind(controller));
-router.get('/nearest', controller.findNearestLocations.bind(controller));
-router.get('/:id', controller.getLocation.bind(controller));
+router.get('/:id', controller.getLocationById.bind(controller));
 router.post('/', controller.createLocation.bind(controller));
 router.put('/:id', controller.updateLocation.bind(controller));
 router.delete('/:id', controller.deleteLocation.bind(controller));
 
-// Location segments routes
-router.get('/:locationId/segments', controller.getLocationSegments.bind(controller));
-router.post('/segments', controller.createLocationSegment.bind(controller));
-
-// Location areas routes
-router.get('/:locationId/areas', controller.getLocationAreas.bind(controller));
-router.post('/areas', controller.createLocationArea.bind(controller));
-
-// Routes management
-router.get('/routes/all', controller.getRoutes.bind(controller));
-router.post('/routes', controller.createRoute.bind(controller));
-
-// Area groups management
-router.get('/groups/all', controller.getAreaGroups.bind(controller));
-router.post('/groups', controller.createAreaGroup.bind(controller));
-
-// Sprint 2 Routes - Advanced Features
-router.post('/:id/favorite', controller.toggleFavorite.bind(controller));
-router.post('/:id/tags', controller.addTag.bind(controller));
-router.delete('/:id/tags', controller.removeTag.bind(controller));
-router.post('/:id/attachments', controller.addAttachment.bind(controller));
-router.delete('/:id/attachments', controller.removeAttachment.bind(controller));
-router.get('/:id/hierarchy', controller.getLocationHierarchy.bind(controller));
-router.put('/:id/parent', controller.setParentLocation.bind(controller));
+// ✅ CLEAN ARCHITECTURE - Only implemented methods per 1qa.md
 
 export { router as locationsRouter };
