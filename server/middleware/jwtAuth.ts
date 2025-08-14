@@ -50,7 +50,15 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // Verify user exists and is active
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
-    const user = await userRepository.findById(payload.userId);
+    
+    // ✅ CRITICAL FIX - Handle different payload structures per 1qa.md compliance
+    const userId = payload.userId || payload.sub;
+    if (!userId) {
+      console.error('No userId found in token payload:', payload);
+      return res.status(401).json({ message: 'Invalid token payload' });
+    }
+    
+    const user = await userRepository.findById(userId);
 
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'User not found or inactive' });
