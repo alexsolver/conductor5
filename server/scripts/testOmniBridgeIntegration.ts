@@ -69,7 +69,7 @@ async function testOmniBridgeIntegration() {
 }
 
 // Execute test if run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   testOmniBridgeIntegration()
     .then(result => {
       console.log('\n📊 [TEST] Final Result:', result);
