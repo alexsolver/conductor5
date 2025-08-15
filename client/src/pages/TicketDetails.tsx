@@ -632,7 +632,9 @@ const TicketDetails = React.memo(() => {
             ip_address: item.ip_address,
             user_agent: item.user_agent,
             session_id: item.session_id,
-            metadata: parsedMetadata
+            metadata_raw: item.metadata,
+            metadata_parsed: parsedMetadata,
+            client_info: parsedMetadata?.client_info
           });
         }
 
@@ -647,10 +649,10 @@ const TicketDetails = React.memo(() => {
           old_value: item.old_value || item.oldValue || null,
           new_value: item.new_value || item.newValue || null,
           metadata: parsedMetadata,
-          // ✅ [1QA-COMPLIANCE] Dados de sessão com fallback em metadata
-          ip_address: item.ip_address || parsedMetadata?.ip_address || parsedMetadata?.client_info?.ip_address || parsedMetadata?.session_backup?.ip_address || 'N/A',
-          user_agent: item.user_agent || parsedMetadata?.user_agent || parsedMetadata?.client_info?.user_agent || parsedMetadata?.session_backup?.user_agent || 'N/A',
-          session_id: item.session_id || parsedMetadata?.session_id || parsedMetadata?.client_info?.session_id || parsedMetadata?.session_backup?.session_id || 'N/A'
+          // ✅ [1QA-COMPLIANCE] Mapeamento direto dos dados de client_info do metadata
+          ip_address: item.ip_address || parsedMetadata?.client_info?.ip_address || parsedMetadata?.ip_address || 'N/A',
+          user_agent: item.user_agent || parsedMetadata?.client_info?.user_agent || parsedMetadata?.user_agent || 'N/A', 
+          session_id: item.session_id || parsedMetadata?.client_info?.session_id || parsedMetadata?.session_id || 'N/A'
         };
       });
 
@@ -2197,21 +2199,21 @@ const TicketDetails = React.memo(() => {
                               </div>
                               <div>
                                 <span className="text-blue-700 font-semibold">IP:</span>
-                                <span className={`ml-1 font-mono text-xs ${(historyItem.ip_address || historyItem.metadata?.ip_address) && (historyItem.ip_address || historyItem.metadata?.ip_address) !== 'N/A' ? 'text-blue-800 bg-blue-100 px-1 rounded' : 'text-gray-400'}`}>
-                                  {historyItem.ip_address || historyItem.metadata?.ip_address || 'N/A'}
+                                <span className={`ml-1 font-mono text-xs ${historyItem.ip_address && historyItem.ip_address !== 'N/A' ? 'text-blue-800 bg-blue-100 px-1 rounded' : 'text-gray-400'}`}>
+                                  {historyItem.ip_address || 'N/A'}
                                 </span>
                               </div>
                             </div>
                             <div className="mb-2">
                               <span className="text-blue-700 font-semibold">User-Agent:</span>
-                              <p className={`text-xs break-all mt-1 p-1 rounded ${(historyItem.user_agent || historyItem.metadata?.user_agent) && (historyItem.user_agent || historyItem.metadata?.user_agent) !== 'N/A' ? 'text-gray-700 bg-gray-100' : 'text-gray-400'}`}>
-                                {historyItem.user_agent || historyItem.metadata?.user_agent || 'N/A'}
+                              <p className={`text-xs break-all mt-1 p-1 rounded ${historyItem.user_agent && historyItem.user_agent !== 'N/A' ? 'text-gray-700 bg-gray-100' : 'text-gray-400'}`}>
+                                {historyItem.user_agent || 'N/A'}
                               </p>
                             </div>
                             <div className="mb-2">
                               <span className="text-blue-700 font-semibold">Session ID:</span>
-                              <span className={`ml-1 font-mono text-xs ${(historyItem.session_id || historyItem.metadata?.session_id) && (historyItem.session_id || historyItem.metadata?.session_id) !== 'N/A' ? 'text-gray-700 bg-gray-100 px-1 rounded' : 'text-gray-400'}`}>
-                                {historyItem.session_id || historyItem.metadata?.session_id || 'N/A'}
+                              <span className={`ml-1 font-mono text-xs ${historyItem.session_id && historyItem.session_id !== 'N/A' ? 'text-gray-700 bg-gray-100 px-1 rounded' : 'text-gray-400'}`}>
+                                {historyItem.session_id || 'N/A'}
                               </span>
                             </div>
                             
