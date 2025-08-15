@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { jwtAuth } from '../middleware/jwtAuth';
 import { GlobalAutomationManager } from '../modules/omnibridge/infrastructure/services/AutomationEngine';
@@ -15,10 +14,10 @@ router.use(jwtAuth);
 router.get('/', async (req: any, res) => {
   const startTime = Date.now();
   let tenantId: string | undefined;
-  
+
   try {
     console.log('🔄 [AUTOMATION-RULES] Starting rules fetch request');
-    
+
     tenantId = req.user?.tenantId;
     console.log(`🔍 [AUTOMATION-RULES] Tenant ID: ${tenantId}`);
 
@@ -32,10 +31,10 @@ router.get('/', async (req: any, res) => {
 
     console.log('🚀 [AUTOMATION-RULES] Initializing automation manager...');
     const automationManager = GlobalAutomationManager.getInstance();
-    
+
     console.log('🔧 [AUTOMATION-RULES] Getting engine for tenant...');
     const engine = automationManager.getEngine(tenantId);
-    
+
     console.log('📋 [AUTOMATION-RULES] Fetching rules...');
     const rules = engine.getRules();
 
@@ -70,7 +69,7 @@ router.get('/', async (req: any, res) => {
       stack: error.stack,
       responseTime
     });
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to fetch automation rules',
@@ -191,7 +190,7 @@ router.post('/', async (req: any, res) => {
     }
 
     const ruleId = `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const rule = new AutomationRule(
       ruleId,
       tenantId,
