@@ -634,7 +634,12 @@ const TicketDetails = React.memo(() => {
             session_id: item.session_id,
             metadata_raw: item.metadata,
             metadata_parsed: parsedMetadata,
-            client_info: parsedMetadata?.client_info
+            client_info: parsedMetadata?.client_info,
+            extraction_test: {
+              from_client_info_ip: parsedMetadata?.client_info?.ip_address,
+              from_client_info_ua: parsedMetadata?.client_info?.user_agent,
+              from_client_info_session: parsedMetadata?.client_info?.session_id
+            }
           });
         }
 
@@ -649,10 +654,43 @@ const TicketDetails = React.memo(() => {
           old_value: item.old_value || item.oldValue || null,
           new_value: item.new_value || item.newValue || null,
           metadata: parsedMetadata,
-          // ✅ [1QA-COMPLIANCE] Mapeamento direto dos dados de client_info do metadata
-          ip_address: item.ip_address || parsedMetadata?.client_info?.ip_address || parsedMetadata?.ip_address || 'N/A',
-          user_agent: item.user_agent || parsedMetadata?.client_info?.user_agent || parsedMetadata?.user_agent || 'N/A', 
-          session_id: item.session_id || parsedMetadata?.client_info?.session_id || parsedMetadata?.session_id || 'N/A'
+          // ✅ [1QA-COMPLIANCE] Mapeamento direto dos dados de client_info do metadata  
+          ip_address: (() => {
+            const result = item.ip_address || parsedMetadata?.client_info?.ip_address || parsedMetadata?.ip_address || 'N/A';
+            if (item.action_type === 'note_deleted') {
+              console.log('🔍 [MAPPING-DEBUG] IP mapping for note_deleted:', {
+                item_ip: item.ip_address,
+                client_info_ip: parsedMetadata?.client_info?.ip_address,
+                parsed_ip: parsedMetadata?.ip_address,
+                final_result: result
+              });
+            }
+            return result;
+          })(),
+          user_agent: (() => {
+            const result = item.user_agent || parsedMetadata?.client_info?.user_agent || parsedMetadata?.user_agent || 'N/A';
+            if (item.action_type === 'note_deleted') {
+              console.log('🔍 [MAPPING-DEBUG] User-Agent mapping for note_deleted:', {
+                item_ua: item.user_agent,
+                client_info_ua: parsedMetadata?.client_info?.user_agent,
+                parsed_ua: parsedMetadata?.user_agent,
+                final_result: result
+              });
+            }
+            return result;
+          })(),
+          session_id: (() => {
+            const result = item.session_id || parsedMetadata?.client_info?.session_id || parsedMetadata?.session_id || 'N/A';
+            if (item.action_type === 'note_deleted') {
+              console.log('🔍 [MAPPING-DEBUG] Session ID mapping for note_deleted:', {
+                item_session: item.session_id,
+                client_info_session: parsedMetadata?.client_info?.session_id,
+                parsed_session: parsedMetadata?.session_id,
+                final_result: result
+              });
+            }
+            return result;
+          })()
         };
       });
 
@@ -686,7 +724,9 @@ const TicketDetails = React.memo(() => {
         }))
       });
 
-      // History processing moved to useMemo above
+      // ✅ [1QA-COMPLIANCE] Atualizar estado com dados mapeados
+      setTicketHistory(mappedHistory);
+      console.log('🔧 [STATE-UPDATE] História atualizada com dados de sessão mapeados');
     }
   }, [ticketHistoryData, historyError, historyLoading]);
 
