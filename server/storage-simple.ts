@@ -1472,10 +1472,10 @@ export class DatabaseStorage implements IStorage {
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // First ensure the table exists
+      // First ensure the table exists with proper constraint
       await pool.query(`
         CREATE TABLE IF NOT EXISTS "${schemaName}".service_integrations (
-          id TEXT PRIMARY KEY,
+          id TEXT NOT NULL,
           tenant_id UUID NOT NULL,
           name TEXT NOT NULL,
           description TEXT,
@@ -1487,7 +1487,8 @@ export class DatabaseStorage implements IStorage {
           features TEXT[] DEFAULT ARRAY[]::TEXT[],
           is_currently_monitoring BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          updated_at TIMESTAMP DEFAULT NOW(),
+          PRIMARY KEY (id, tenant_id)
         )
       `);
 
@@ -1571,7 +1572,10 @@ export class DatabaseStorage implements IStorage {
           `INSERT INTO "${schemaName}"."service_integrations" 
            (id, tenant_id, name, description, category, icon, status, enabled, config, features, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
-           ON CONFLICT (id, tenant_id) DO NOTHING`,
+           ON CONFLICT (id, tenant_id) DO UPDATE SET
+           name = EXCLUDED.name,
+           description = EXCLUDED.description,
+           updated_at = NOW()`,
           [
             integration.id,
             tenantId,
