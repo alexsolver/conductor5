@@ -39,6 +39,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const [quantity, setQuantity] = useState("");
   const [consumeSelectedItem, setConsumeSelectedItem] = useState("");
   const [consumeQuantity, setConsumeQuantity] = useState("");
+  const [consumedQuantity, setConsumedQuantity] = useState("");
 
   // Fetch items with customer-specific customizations
   const { data: itemsData, isLoading: itemsLoading, error: itemsError } = useQuery({
