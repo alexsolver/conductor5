@@ -662,35 +662,30 @@ export default function OmniBridge() {
       try {
         const response = await apiRequest('GET', '/api/tenant-admin/integrations');
         console.log('🔍 [OmniBridge] API Response for integrations:', response);
+        
+        // If API returned empty integrations but with initialization flag, refetch after short delay
+        if (response.initialized && response.integrations?.length > 0) {
+          console.log('🔄 [OmniBridge] Integrations were just initialized, data should be available');
+        }
+        
         return response;
       } catch (error) {
         console.error('❌ [OmniBridge] Failed to fetch integrations:', error);
-        // Fallback to mock data to ensure system functionality
+        // Return minimal fallback
         return {
-          integrations: [
-            {
-              id: 'imap-email',
-              name: 'Email IMAP',
-              category: 'Comunicação',
-              status: 'connected',
-              description: 'Integração de email via IMAP',
-              type: 'communication'
-            },
-            {
-              id: 'webhook-integration',
-              name: 'Webhook Genérico',
-              category: 'Comunicação', 
-              status: 'connected',
-              description: 'Recebimento via webhook',
-              type: 'communication'
-            }
-          ]
+          integrations: [],
+          fallback: true,
+          error: true
         };
       }
     },
     staleTime: 30000,
     gcTime: 60000,
     refetchOnWindowFocus: false,
+    retry: (failureCount, error) => {
+      // Retry up to 3 times for network errors
+      return failureCount < 3;
+    },
   });
 
   const { data: inboxData, isLoading: inboxLoading, refetch: refetchInbox } = useQuery({
@@ -1216,7 +1211,7 @@ export default function OmniBridge() {
                     <br />
                     <strong>Tenant Admin → Integrações</strong>
                   </p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto mb-4">
                     <h4 className="font-medium text-blue-900 mb-2">Integrações Suportadas:</h4>
                     <ul className="text-sm text-blue-700 space-y-1">
                       <li>• Email (IMAP/Gmail)</li>
@@ -1226,16 +1221,43 @@ export default function OmniBridge() {
                       <li>• SMS</li>
                     </ul>
                   </div>
-                  <Button 
-                    onClick={() => {
-                      refetchIntegrations();
-                      toast({ title: "Verificando integrações..." });
-                    }}
-                    className="mt-4"
-                    variant="outline"
-                  >
-                    Verificar Integrações
-                  </Button>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button 
+                      onClick={async () => {
+                        console.log('🔄 [OmniBridge] Force refresh triggered');
+                        await refetchIntegrations();
+                        await refetchInbox();
+                        toast({ 
+                          title: "Atualizando dados...", 
+                          description: "Buscando integrações e mensagens"
+                        });
+                      }}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Atualizar Agora
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => {
+                        // Navigate to tenant admin integrations
+                        window.location.href = '/tenant-admin/integrations';
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Configurar Integrações
+                    </Button>
+                  </div>
+                  
+                  {integrationsData?.fallback && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                      <strong>Modo Fallback:</strong> Não foi possível carregar as integrações. 
+                      Verifique sua conexão e tente atualizar.
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -1299,7 +1321,7 @@ export default function OmniBridge() {
                   <p className="text-sm text-gray-400 mt-2 mb-4">
                     As mensagens recebidas dos canais de comunicação aparecerão aqui
                   </p>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-w-md mx-auto">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-w-md mx-auto mb-4">
                     <h4 className="font-medium text-gray-900 mb-2">Para receber mensagens:</h4>
                     <ol className="text-sm text-gray-600 space-y-1 text-left">
                       <li>1. Configure canais na aba "Canais"</li>
@@ -1307,16 +1329,36 @@ export default function OmniBridge() {
                       <li>3. As mensagens aparecerão automaticamente</li>
                     </ol>
                   </div>
-                  <Button 
-                    onClick={() => {
-                      refetchInbox();
-                      toast({ title: "Verificando mensagens..." });
-                    }}
-                    className="mt-4"
-                    variant="outline"
-                  >
-                    Verificar Mensagens
-                  </Button>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button 
+                      onClick={async () => {
+                        console.log('🔄 [OmniBridge] Force refresh inbox');
+                        await refetchInbox();
+                        toast({ title: "Atualizando inbox..." });
+                      }}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Atualizar Inbox
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => setActiveTab('channels')}
+                      className="flex items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Ver Canais
+                    </Button>
+                  </div>
+                  
+                  {inboxData?.error && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                      <strong>Erro:</strong> Não foi possível carregar as mensagens. 
+                      Verifique se há canais configurados e ativos.
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

@@ -70,6 +70,7 @@ export interface IStorage {
   saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any>;
   updateTenantIntegrationStatus(tenantId: string, integrationId: string, status: string): Promise<void>;
   getIntegrationByType(tenantId: string, typeName: string): Promise<any | undefined>;
+  initializeTenantIntegrations(tenantId: string): Promise<void>;
 
   // Template Bulk Operations
   bulkDeleteTicketTemplates(tenantId: string, templateIds: string[]): Promise<boolean>;
@@ -1389,45 +1390,152 @@ export class DatabaseStorage implements IStorage {
 
   async getTenantIntegrations(tenantId: string): Promise<any[]> {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      console.log(`🔍 [STORAGE] Getting integrations for tenant: ${tenantId}`);
 
-      const tableExists = await tenantDb.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'integrations'
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      const result = await pool.query(
+        `SELECT * FROM "${schemaName}"."service_integrations" 
+         WHERE tenant_id = $1 
+         ORDER BY created_at DESC`,
+        [tenantId]
+      );
+
+      console.log(`📊 [STORAGE] Found ${result.rows.length} integrations for tenant: ${tenantId}`);
+      
+      // If no integrations are found, initialize default ones
+      if (result.rows.length === 0) {
+        console.log(`🔧 No integrations found for tenant ${tenantId}, initializing default integrations.`);
+        await this.initializeTenantIntegrations(tenantId);
+        // Re-fetch integrations after initialization
+        const newResult = await pool.query(
+          `SELECT * FROM "${schemaName}"."service_integrations" 
+           WHERE tenant_id = $1 
+           ORDER BY created_at DESC`,
+          [tenantId]
         );
-      `);
-
-      if (!tableExists.rows?.[0]?.exists) {
-        console.log(`🔧 Creating integrations table for tenant ${validatedTenantId}`);
-        await this.createDefaultIntegrations(validatedTenantId);
+        return newResult.rows;
       }
 
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.integrations
-        WHERE tenant_id = ${validatedTenantId}
-        ORDER BY created_at DESC
-      `);
-
-      if (result.rows && result.rows.length === 0) {
-        console.log(`🔧 No integrations found, creating defaults for tenant ${validatedTenantId}`);
-        await this.createDefaultIntegrations(validatedTenantId);
-        // Re-fetch after creating defaults
-        const newResult = await tenantDb.execute(sql`
-          SELECT * FROM ${sql.identifier(schemaName)}.integrations
-          WHERE tenant_id = ${validatedTenantId}
-          ORDER BY created_at DESC
-        `);
-        return newResult.rows || [];
-      }
-
-      return result.rows || [];
+      return result.rows;
     } catch (error) {
+      console.error(`❌ [STORAGE] Error getting tenant integrations:`, error);
       return [];
     }
   }
+
+  // Initialize default tenant integrations
+  async initializeTenantIntegrations(tenantId: string): Promise<void> {
+    try {
+      console.log(`🚀 [STORAGE] Initializing default integrations for tenant: ${tenantId}`);
+
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Check if integrations already exist
+      const existing = await pool.query(
+        `SELECT COUNT(*) as count FROM "${schemaName}"."service_integrations" WHERE tenant_id = $1`,
+        [tenantId]
+      );
+
+      if (parseInt(existing.rows[0].count) > 0) {
+        console.log(`✅ [STORAGE] Tenant ${tenantId} already has integrations, skipping initialization`);
+        return;
+      }
+
+      // Insert default communication integrations
+      const defaultIntegrations = [
+        {
+          id: 'imap-email',
+          name: 'Email IMAP',
+          description: 'Integração de email via IMAP para sincronização de tickets',
+          category: 'Comunicação',
+          icon: 'Mail',
+          status: 'disconnected',
+          config: '{}',
+          features: ['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']
+        },
+        {
+          id: 'gmail-oauth2',
+          name: 'Gmail OAuth2',
+          description: 'Integração OAuth2 com Gmail para acesso seguro',
+          category: 'Comunicação',
+          icon: 'Mail',
+          status: 'disconnected',
+          config: '{}',
+          features: ['OAuth2 seguro', 'Sincronização automática', 'Labels do Gmail']
+        },
+        {
+          id: 'whatsapp-business',
+          name: 'WhatsApp Business',
+          description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
+          category: 'Comunicação',
+          icon: 'MessageCircle',
+          status: 'disconnected',
+          config: '{}',
+          features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
+        },
+        {
+          id: 'telegram-bot',
+          name: 'Telegram Bot',
+          description: 'Bot para comunicação via Telegram',
+          category: 'Comunicação',
+          icon: 'Send',
+          status: 'disconnected',
+          config: '{}',
+          features: ['Bot integrado', 'Notificações push', 'Comandos customizados']
+        },
+        {
+          id: 'slack-integration',
+          name: 'Slack',
+          description: 'Notificações e gerenciamento de tickets através do Slack',
+          category: 'Comunicação',
+          icon: 'MessageCircle',
+          status: 'disconnected',
+          config: '{}',
+          features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
+        },
+        {
+          id: 'webhook-generic',
+          name: 'Webhooks Genéricos',
+          description: 'Recebimento de dados via webhooks HTTP',
+          category: 'Comunicação',
+          icon: 'Globe',
+          status: 'disconnected',
+          config: '{}',
+          features: ['HTTP POST/GET', 'Autenticação', 'Logs detalhados']
+        }
+      ];
+
+      for (const integration of defaultIntegrations) {
+        await pool.query(
+          `INSERT INTO "${schemaName}"."service_integrations" 
+           (id, tenant_id, name, description, category, icon, status, enabled, config, features, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+           ON CONFLICT (id, tenant_id) DO NOTHING`,
+          [
+            integration.id,
+            tenantId,
+            integration.name,
+            integration.description,
+            integration.category,
+            integration.icon,
+            integration.status,
+            false,
+            integration.config,
+            integration.features
+          ]
+        );
+      }
+
+      console.log(`✅ [STORAGE] Initialized ${defaultIntegrations.length} default integrations for tenant: ${tenantId}`);
+    } catch (error) {
+      console.error(`❌ [STORAGE] Error initializing tenant integrations:`, error);
+      throw error;
+    }
+  }
+
 
   async getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined> {
     try {
@@ -1520,7 +1628,7 @@ export class DatabaseStorage implements IStorage {
 
       // ✅ CRITICAL FIX: Return structured response with configured flag
       const isConfigured = integration.configured === true || (parsedConfig && Object.keys(parsedConfig).length > 0);
-      
+
       // ✅ TELEGRAM SPECIFIC: Log configuração do Telegram
       if (integration.id === 'telegram') {
         console.log(`📱 [TELEGRAM-CONFIG] Dados carregados:`, {
@@ -1531,7 +1639,7 @@ export class DatabaseStorage implements IStorage {
           chatId: parsedConfig?.telegramChatId || 'VAZIO'
         });
       }
-      
+
       const finalResult = {
         id: integration.id,
         name: integration.name,

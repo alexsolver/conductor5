@@ -1991,6 +1991,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Project routes temporarily removed due to syntax issues
 
+  // Tenant Admin Integrations API Route - Primary endpoint for OmniBridge
+  app.get('/api/tenant-admin/integrations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: "Tenant ID required" });
+      }
+
+      console.log(`🔍 [TENANT-ADMIN-INTEGRATIONS] Fetching integrations for tenant: ${tenantId}`);
+
+      // Get all integrations from database using unifiedStorage
+      const integrations = await unifiedStorage.getTenantIntegrations(tenantId);
+      console.log(`📊 [TENANT-ADMIN-INTEGRATIONS] Found ${integrations.length} total integrations`);
+
+      if (integrations.length === 0) {
+        console.log(`⚠️ [TENANT-ADMIN-INTEGRATIONS] No integrations found, initializing default ones for tenant: ${tenantId}`);
+        
+        // Initialize default integrations for tenant if none exist
+        await unifiedStorage.initializeTenantIntegrations(tenantId);
+        
+        // Fetch again after initialization
+        const newIntegrations = await unifiedStorage.getTenantIntegrations(tenantId);
+        console.log(`✅ [TENANT-ADMIN-INTEGRATIONS] Initialized ${newIntegrations.length} default integrations`);
+        
+        return res.json({ 
+          integrations: newIntegrations,
+          initialized: true,
+          message: `Initialized ${newIntegrations.length} default integrations`
+        });
+      }
+
+      console.log(`✅ [TENANT-ADMIN-INTEGRATIONS] Returning ${integrations.length} integrations to client`);
+      res.json({ 
+        integrations: integrations,
+        total: integrations.length
+      });
+
+    } catch (error) {
+      console.error('❌ [TENANT-ADMIN-INTEGRATIONS] Error fetching integrations:', error);
+
+      // Return fallback structure instead of error to prevent frontend breaks
+      res.json({ 
+        integrations: [],
+        fallback: true,
+        error: true,
+        message: "Error fetching integrations, fallback data provided"
+      });
+    }
+  });
+
   // Email Configuration API Routes - For OmniBridge integration
   app.get('/api/email-config/integrations', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
@@ -2039,16 +2089,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔍 [EMAIL-INBOX] Fetching inbox messages for tenant: ${tenantId}`);
 
-      // Get inbox messages from database
-      const messages = await unifiedStorage.getEmailInboxMessages(tenantId);
+      // Get inbox messages from database with detailed logging
+      let messages = [];
+      try {
+        messages = await unifiedStorage.getEmailInboxMessages(tenantId);
+        console.log(`📧 [EMAIL-INBOX] Successfully retrieved ${messages.length} messages from storage`);
+        
+        if (messages.length > 0) {
+          console.log(`📧 [EMAIL-INBOX] First message sample:`, {
+            id: messages[0].id,
+            subject: messages[0].subject,
+            fromEmail: messages[0].fromEmail,
+            hasData: !!messages[0]
+          });
+        }
+      } catch (storageError) {
+        console.error('❌ [EMAIL-INBOX] Storage error:', storageError);
+        messages = [];
+      }
 
-      console.log(`📧 [EMAIL-INBOX] Found ${messages.length} messages for tenant: ${tenantId}`);
+      console.log(`📧 [EMAIL-INBOX] Returning ${messages.length} messages for tenant: ${tenantId}`);
 
       res.json({ 
         messages,
         count: messages.length,
         tenantId: tenantId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        status: 'success'
       });
     } catch (error) {
       console.error('❌ [EMAIL-INBOX] Error fetching inbox messages:', error);
@@ -2058,7 +2125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messages: [],
         count: 0,
         error: true,
-        message: "Error fetching messages, empty structure provided"
+        message: "Error fetching messages, empty structure provided",
+        timestamp: new Date().toISOString()
       });
     }
   });
