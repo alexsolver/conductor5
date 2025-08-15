@@ -230,6 +230,18 @@ export default function AutomationRules() {
                 Array.isArray(rulesData) ? rulesData : mockRules;
   const metrics = (metricsData?.metrics && typeof metricsData.metrics === 'object') ? metricsData.metrics : mockMetrics;
 
+  // Validação adicional para evitar erros de includes
+  const safeRules = (rules || []).map(rule => ({
+    ...rule,
+    name: rule?.name || 'Nome não disponível',
+    description: rule?.description || 'Descrição não disponível',
+    enabled: Boolean(rule?.enabled),
+    priority: Number(rule?.priority) || 1,
+    conditionsCount: Number(rule?.conditionsCount) || 0,
+    actionsCount: Number(rule?.actionsCount) || 0,
+    id: rule?.id || `temp-${Math.random()}`
+  }));
+
   // Early return se houver erro crítico
   if (loadingError || rulesError) {
     return (
@@ -616,7 +628,7 @@ export default function AutomationRules() {
             </div>
           ) : (
             <div className="space-y-4">
-              {Array.isArray(rules) && rules.length > 0 && rules.map((rule: any) => {
+              {safeRules.length > 0 && safeRules.map((rule: any) => {
                 // Validação robusta para cada regra
                 if (!rule || typeof rule !== 'object') {
                   console.warn('🚨 [AutomationRules] Invalid rule object:', rule);
@@ -624,7 +636,7 @@ export default function AutomationRules() {
                 }
                 
                 return (
-                  <div key={rule.id || Math.random()} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
                         {rule.enabled ? (
@@ -633,20 +645,20 @@ export default function AutomationRules() {
                           <Pause className="h-4 w-4 text-gray-400" />
                         )}
                         <div>
-                          <p className="font-medium">{rule?.name || 'Nome não disponível'}</p>
-                          <p className="text-sm text-muted-foreground">{rule?.description || 'Descrição não disponível'}</p>
+                          <p className="font-medium">{rule.name}</p>
+                          <p className="text-sm text-muted-foreground">{rule.description}</p>
                           <div className="flex items-center space-x-2 mt-1">
                             <Badge variant="outline" className="text-xs">
-                              Prioridade {rule?.priority || 1}
+                              Prioridade {rule.priority}
                             </Badge>
                             <Badge variant="outline" className="text-xs">
-                              {rule?.conditionsCount || 0} condições
+                              {rule.conditionsCount} condições
                             </Badge>
                             <Badge variant="outline" className="text-xs">
-                              {rule?.actionsCount || 0} ações
+                              {rule.actionsCount} ações
                             </Badge>
-                            <Badge variant={rule?.enabled ? 'default' : 'secondary'} className="text-xs">
-                              {rule?.enabled ? 'Ativa' : 'Inativa'}
+                            <Badge variant={rule.enabled ? 'default' : 'secondary'} className="text-xs">
+                              {rule.enabled ? 'Ativa' : 'Inativa'}
                             </Badge>
                           </div>
                         </div>
@@ -658,12 +670,9 @@ export default function AutomationRules() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        if (rule?.id) {
-                          setSelectedRule(rule);
-                          setTestData('{"message": "teste suporte", "sender": "João", "hour": 14}');
-                        }
+                        setSelectedRule(rule);
+                        setTestData('{"message": "teste suporte", "sender": "João", "hour": 14}');
                       }}
-                      disabled={!rule?.id}
                     >
                       <TestTube className="h-4 w-4" />
                       Testar
@@ -671,8 +680,8 @@ export default function AutomationRules() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => rule?.id && deleteRuleMutation.mutate(rule.id)}
-                      disabled={deleteRuleMutation.isPending || !rule?.id}
+                      onClick={() => deleteRuleMutation.mutate(rule.id)}
+                      disabled={deleteRuleMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -690,7 +699,7 @@ export default function AutomationRules() {
         <Dialog open={!!selectedRule} onOpenChange={() => setSelectedRule(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>🧪 Testar Regra: {selectedRule?.name || 'Regra'}</DialogTitle>
+              <DialogTitle>🧪 Testar Regra: {selectedRule.name || 'Regra'}</DialogTitle>
             </DialogHeader>
             
             <div className="space-y-4">
@@ -709,8 +718,8 @@ export default function AutomationRules() {
 
               <div className="flex gap-2">
                 <Button
-                  onClick={() => selectedRule?.id && handleTestRule(selectedRule.id)}
-                  disabled={testRuleMutation.isPending || !selectedRule?.id}
+                  onClick={() => handleTestRule(selectedRule.id)}
+                  disabled={testRuleMutation.isPending}
                 >
                   {testRuleMutation.isPending ? '🔄 Testando...' : '🧪 Executar Teste'}
                 </Button>

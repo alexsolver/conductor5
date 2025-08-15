@@ -42,15 +42,15 @@ router.get('/', async (req: any, res) => {
     console.log(`✅ [AUTOMATION-RULES] Successfully retrieved ${rules.length} rules for tenant: ${tenantId} (${responseTime}ms)`);
 
     const mappedRules = rules.map(rule => ({
-      id: rule.id,
-      name: rule.name,
-      description: rule.description,
-      enabled: rule.enabled,
-      priority: rule.priority,
-      conditionsCount: rule.conditions.length,
-      actionsCount: rule.actions.length,
-      createdAt: rule.createdAt,
-      updatedAt: rule.updatedAt
+      id: rule?.id || `temp-${Date.now()}-${Math.random()}`,
+      name: rule?.name || 'Nome não disponível',
+      description: rule?.description || 'Descrição não disponível',
+      enabled: Boolean(rule?.enabled),
+      priority: Number(rule?.priority) || 1,
+      conditionsCount: Array.isArray(rule?.conditions) ? rule.conditions.length : 0,
+      actionsCount: Array.isArray(rule?.actions) ? rule.actions.length : 0,
+      createdAt: rule?.createdAt || new Date().toISOString(),
+      updatedAt: rule?.updatedAt || new Date().toISOString()
     }));
 
     const response = {
