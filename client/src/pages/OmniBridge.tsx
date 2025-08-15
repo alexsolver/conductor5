@@ -339,6 +339,34 @@ export default function OmniBridge() {
     fetchData();
   }, []);
 
+  const handleSyncIntegrations = async () => {
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/omnibridge/sync-integrations', {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        console.log('✅ [OmniBridge] Integrations synced successfully');
+        // Reload data after sync
+        await fetchData();
+      } else {
+        console.error('❌ [OmniBridge] Sync failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ [OmniBridge] Sync error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const handleChannelToggle = async (channelId: string, enabled: boolean) => {
     try {
       const token = localStorage.getItem('token');
@@ -453,6 +481,15 @@ export default function OmniBridge() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncIntegrations}
+            disabled={loading}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            {loading ? 'Sincronizando...' : 'Sincronizar Integrações'}
+          </Button>
           <Button variant="outline" size="sm">
             <Settings className="h-4 w-4 mr-2" />
             Configurações

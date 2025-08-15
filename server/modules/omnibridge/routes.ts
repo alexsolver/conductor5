@@ -72,6 +72,8 @@ router.post('/sync-integrations', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
 
+    console.log(`🔄 [OMNIBRIDGE] Starting manual integration sync for tenant: ${tenantId}`);
+
     const { IntegrationChannelSync } = await import('./infrastructure/services/IntegrationChannelSync');
     const { storage } = await import('../../storage-simple');
     
@@ -80,10 +82,44 @@ router.post('/sync-integrations', async (req, res) => {
     
     await syncService.syncIntegrationsToChannels(tenantId);
     
+    console.log(`✅ [OMNIBRIDGE] Manual integration sync completed for tenant: ${tenantId}`);
     res.json({ success: true, message: 'Integrations synced successfully' });
   } catch (error) {
     console.error('[OmniBridge] Sync error:', error);
     res.status(500).json({ success: false, error: 'Failed to sync integrations' });
+  }
+});
+
+// Get integration sync status
+router.get('/sync-status', async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const { storage } = await import('../../storage-simple');
+    const integrations = await storage.getTenantIntegrations(tenantId);
+    
+    const channelRepository = new DrizzleChannelRepository();
+    const channels = await channelRepository.findByTenant(tenantId);
+    
+    const status = {
+      totalIntegrations: integrations.length,
+      syncedChannels: channels.length,
+      lastSync: new Date().toISOString(),
+      integrations: integrations.map((int: any) => ({
+        id: int.id,
+        name: int.name,
+        status: int.status,
+        synced: channels.some((ch: any) => ch.id === int.id)
+      }))
+    };
+
+    res.json({ success: true, data: status });
+  } catch (error) {
+    console.error('[OmniBridge] Sync status error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get sync status' });
   }
 });
 

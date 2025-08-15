@@ -29,21 +29,18 @@ export class OmniBridgeController {
         const channelRepository = new DrizzleChannelRepository();
         const syncService = new IntegrationChannelSync(channelRepository, storage);
         await syncService.syncIntegrationsToChannels(tenantId);
+        console.log('✅ [OMNIBRIDGE-CONTROLLER] Auto-sync completed successfully');
       } catch (syncError) {
-        console.warn('[OmniBridge] Sync warning:', syncError);
-        // Continue with normal flow even if sync fails
+        console.warn('⚠️ [OMNIBRIDGE-CONTROLLER] Auto-sync failed, continuing with existing channels:', syncError);
       }
 
-      const result = await this.getChannelsUseCase.execute({ tenantId });
+      const channels = await this.getChannelsUseCase.execute(tenantId);
+      console.log(`✅ [OMNIBRIDGE-CONTROLLER] Retrieved ${channels.length} channels for tenant: ${tenantId}`);
 
-      if (result.success) {
-        res.json({ success: true, data: result.channels });
-      } else {
-        res.status(500).json({ success: false, error: result.error });
-      }
+      res.json({ success: true, data: channels });
     } catch (error) {
-      console.error('[OmniBridge] Error getting channels:', error);
-      res.status(500).json({ success: false, error: 'Internal server error' });
+      console.error('[OMNIBRIDGE-CONTROLLER] Error getting channels:', error);
+      res.status(500).json({ success: false, error: 'Failed to get channels' });
     }
   }
 

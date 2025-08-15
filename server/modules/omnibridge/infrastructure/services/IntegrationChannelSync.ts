@@ -13,22 +13,35 @@ export class IntegrationChannelSync {
 
       // Get integrations from Workspace Admin
       const integrations = await this.storage.getTenantIntegrations(tenantId);
+      console.log(`📊 [INTEGRATION-SYNC] Found ${integrations.length} total integrations`);
 
       // Filter communication integrations
       const communicationIntegrations = integrations.filter((integration: any) => {
         const category = integration.category?.toLowerCase() || '';
-        return category === 'comunicação' || category === 'communication';
+        const isComm = category === 'comunicação' || category === 'communication';
+        console.log(`🔍 [INTEGRATION-SYNC] Integration ${integration.name}: category=${category}, isComm=${isComm}`);
+        return isComm;
       });
 
       console.log(`📡 [INTEGRATION-SYNC] Found ${communicationIntegrations.length} communication integrations`);
 
+      let syncedCount = 0;
+      let errorCount = 0;
+
       // Convert integrations to channels
       for (const integration of communicationIntegrations) {
-        const channel = await this.mapIntegrationToChannel(integration, tenantId);
-        await this.channelRepository.save(channel);
+        try {
+          const channel = await this.mapIntegrationToChannel(integration, tenantId);
+          await this.channelRepository.save(channel);
+          syncedCount++;
+          console.log(`✅ [INTEGRATION-SYNC] Synced channel: ${channel.name} (${channel.type})`);
+        } catch (error) {
+          errorCount++;
+          console.error(`❌ [INTEGRATION-SYNC] Failed to sync integration ${integration.name}:`, error);
+        }
       }
 
-      console.log(`✅ [INTEGRATION-SYNC] Sync completed for tenant: ${tenantId}`);
+      console.log(`✅ [INTEGRATION-SYNC] Sync completed for tenant: ${tenantId} - Synced: ${syncedCount}, Errors: ${errorCount}`);
     } catch (error) {
       console.error(`❌ [INTEGRATION-SYNC] Error syncing for tenant ${tenantId}:`, error);
       throw error;
