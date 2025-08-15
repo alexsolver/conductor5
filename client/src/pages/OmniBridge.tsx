@@ -221,7 +221,7 @@ export default function OmniBridge() {
           integrationsResult = await integrationsResponse.json();
           console.log('🔍 [OmniBridge] Integrations API Response:', integrationsResult);
           console.log('🔍 [OmniBridge] Available integrations:', integrationsResult?.data?.length || integrationsResult?.length || 0);
-          
+
           // Debug: Log all integration categories
           const integrations = integrationsResult?.data || integrationsResult || [];
           console.log('🔍 [OmniBridge] Integration categories:', integrations.map((i: any) => ({ 
@@ -244,48 +244,18 @@ export default function OmniBridge() {
         let channelsData: Channel[] = [];
         let messagesData: Message[] = [];
 
-        // Process channels data - prioritize OmniBridge API response
         let communicationChannels: any[] = [];
 
         if (channelsResult?.success && channelsResult?.data) {
-          // Use OmniBridge channels API response
+          // Use OmniBridge channels API response (already filtered by backend)
           communicationChannels = channelsResult.data;
           console.log('📡 [OmniBridge] Using channels API - Found', communicationChannels.length, 'channels');
         } else if (integrationsResult?.success && integrationsResult?.data) {
-          // Fallback: Process integrations data for communication channels
+          // Fallback: Use integrations data directly (backend should already filter)
           const integrations = integrationsResult.data;
-          console.log('📡 [OmniBridge] Processing integrations fallback with', integrations.length, 'total integrations');
-          
-          communicationChannels = integrations.filter((integration: any) => {
-            const category = (integration.category || '').toString().toLowerCase();
-            const name = (integration.name || '').toString().toLowerCase();
-            const description = (integration.description || '').toString().toLowerCase();
-            
-            // Enhanced filtering to match backend logic
-            const categoryMatches = [
-              'comunicação', 'comunicacao', 'communication',
-              'comunicación', 'comunicacion'
-            ].some(cat => category.includes(cat));
-            
-            const nameMatches = [
-              'email', 'mail', 'smtp', 'imap', 'pop3',
-              'whatsapp', 'telegram', 'sms', 'chat',
-              'messenger', 'discord', 'slack'
-            ].some(pattern => name.includes(pattern));
-            
-            const descriptionMatches = [
-              'comunicação', 'comunicacao', 'communication',
-              'email', 'mensagem', 'chat', 'bot'
-            ].some(pattern => description.includes(pattern));
+          console.log('📡 [OmniBridge] Processing integrations fallback with', integrations.length, 'integrations');
 
-            const isMatch = categoryMatches || nameMatches || descriptionMatches;
-            
-            if (isMatch) {
-              console.log(`📡 [OmniBridge] Found communication integration: ${integration.name} (category: ${category})`);
-            }
-            
-            return isMatch;
-          }).map((integration: any) => ({
+          communicationChannels = integrations.map((integration: any) => ({
             id: integration.id,
             name: integration.name,
             type: getChannelType(integration.id),
@@ -300,39 +270,10 @@ export default function OmniBridge() {
           }));
           console.log('📡 [OmniBridge] Using integrations fallback - Found', communicationChannels.length, 'communication channels');
         } else if (integrationsResult && Array.isArray(integrationsResult)) {
-          // Legacy direct array response - filter for communication channels
-          console.log('📡 [OmniBridge] Processing direct array with', integrationsResult.length, 'integrations');
-          
-          communicationChannels = integrationsResult.filter((integration: any) => {
-            const category = (integration.category || '').toString().toLowerCase();
-            const name = (integration.name || '').toString().toLowerCase();
-            const description = (integration.description || '').toString().toLowerCase();
-            
-            // Enhanced filtering to match backend logic
-            const categoryMatches = [
-              'comunicação', 'comunicacao', 'communication',
-              'comunicación', 'comunicacion'
-            ].some(cat => category.includes(cat));
-            
-            const nameMatches = [
-              'email', 'mail', 'smtp', 'imap', 'pop3',
-              'whatsapp', 'telegram', 'sms', 'chat',
-              'messenger', 'discord', 'slack'
-            ].some(pattern => name.includes(pattern));
-            
-            const descriptionMatches = [
-              'comunicação', 'comunicacao', 'communication',
-              'email', 'mensagem', 'chat', 'bot'
-            ].some(pattern => description.includes(pattern));
+          // Legacy direct array response
+          console.log('📡 [OmniBridge] Processing direct array format with', integrationsResult.length, 'total integrations');
 
-            const isMatch = categoryMatches || nameMatches || descriptionMatches;
-            
-            if (isMatch) {
-              console.log(`📡 [OmniBridge] Found communication integration: ${integration.name} (category: ${category})`);
-            }
-            
-            return isMatch;
-          }).map((integration: any) => ({
+          communicationChannels = integrationsResult.map((integration: any) => ({
             id: integration.id,
             name: integration.name,
             type: getChannelType(integration.id),

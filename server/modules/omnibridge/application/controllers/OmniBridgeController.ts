@@ -31,13 +31,38 @@ export class OmniBridgeController {
         const integrations = await storage.getTenantIntegrations(tenantId);
         console.log('📡 [OmniBridge] Found total integrations:', integrations.length);
 
-        // Return all integrations without filtering
-        const communicationChannels = integrations.map((integration: any) => {
-          console.log(`📡 [OmniBridge] Including integration: ${integration.name} (category: ${integration.category || 'N/A'})`);
-          return integration;
+        // Filter only communication category integrations
+        const communicationChannels = integrations.filter((integration: any) => {
+          const category = (integration.category || '').toString().toLowerCase();
+          const name = (integration.name || '').toString().toLowerCase();
+          const description = (integration.description || '').toString().toLowerCase();
+          
+          // Check if it's a communication integration
+          const categoryMatches = [
+            'comunicação', 'comunicacao', 'communication',
+            'comunicación', 'comunicacion'
+          ].some(cat => category.includes(cat));
+          
+          const nameMatches = [
+            'email', 'mail', 'smtp', 'imap', 'pop3',
+            'whatsapp', 'telegram', 'sms', 'chat',
+            'messenger', 'discord', 'slack', 'twilio'
+          ].some(pattern => name.includes(pattern));
+          
+          const descriptionMatches = [
+            'email', 'mail', 'smtp', 'imap', 'whatsapp', 'telegram', 'sms', 'chat'
+          ].some(pattern => description.includes(pattern));
+
+          const isMatch = categoryMatches || nameMatches || descriptionMatches;
+          
+          if (isMatch) {
+            console.log(`📡 [OmniBridge] Including communication integration: ${integration.name} (category: ${category})`);
+          }
+          
+          return isMatch;
         });
 
-        console.log('📡 [OmniBridge] Communication channels found:', communicationChannels.length);
+        console.log('📡 [OmniBridge] Communication channels found:', communicationChannels.length, 'out of', integrations.length, 'total integrations');
 
         // Map to OmniBridge channel format with improved type detection
         const channels = communicationChannels.map((integration: any) => {
