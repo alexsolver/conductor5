@@ -53,6 +53,16 @@ export {
   priceListsRelations
 } from "./schema-materials-services";
 
+// Import all tables to create schema object
+import * as masterSchema from "./schema-master";
+import * as materialsSchema from "./schema-materials-services";
+
+// Create unified schema object that matches expected import pattern
+export const schema = {
+  ...masterSchema,
+  ...materialsSchema
+};
+
 // Validation: Ensure all critical exports are available
 import type {
   User, Customer, Ticket, Tenant, Company, Beneficiary,
