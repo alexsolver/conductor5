@@ -369,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/tickets/metadata/initialize-defaults', jwtAuth, metadataController.initializeDefaults.bind(metadataController));
   app.get('/api/tickets/metadata/dynamic-schema', jwtAuth, metadataController.generateDynamicSchema.bind(metadataController));
 
-  // ✅ LEGACY PEOPLE ROUTER REMOVED - Clean Architecture only per 1qa.md
+  // ✅ LEGACY PEOPLEROUTER REMOVED - Clean Architecture only per 1qa.md
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
 
@@ -1928,7 +1928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === Tenant Admin Clean Architecture Integration ===
   try {
-    // ✅ LEGACY TENANT ADMIN INTEGRATION ROUTES ELIMINATED - Clean Architecture only per 1qa.md
+    // ✅ LEGACY TENANT ADMIN ROUTES ELIMINATED - Clean Architecture only per 1qa.md
     console.log('✅ Tenant Admin Clean Architecture routes registered at /api/tenant-admin-integration');
   } catch (error) {
     console.warn('⚠️ Tenant Admin integration routes not available:', error);
@@ -2047,8 +2047,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         integrations = await storage.getTenantIntegrations(tenantId);
         console.log(`📡 [TENANT-INTEGRATIONS] Found ${integrations.length} total integrations`);
       } catch (storageError) {
-        console.warn('⚠️ [TENANT-INTEGRATIONS] Storage error, using fallback:', storageError);
-        integrations = [];
+        console.warn('⚠️ [TENANT-INTEGRATIONS] Storage error, initializing integrations:', storageError);
+        // Initialize integrations if they don't exist
+        await storage.initializeTenantIntegrations(tenantId);
+        integrations = await storage.getTenantIntegrations(tenantId);
+        console.log(`📡 [TENANT-INTEGRATIONS] After initialization: ${integrations.length} integrations`);
       }
 
       // Filter communication integrations - be flexible with category names
@@ -2059,18 +2062,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`📡 [TENANT-INTEGRATIONS] Found ${communicationIntegrations.length} communication integrations`);
 
-      // If no communication integrations found, return default structure for OmniBridge
-      let resultIntegrations = communicationIntegrations;
-
-      if (communicationIntegrations.length === 0) {
-        console.log('🔧 [TENANT-INTEGRATIONS] No communication integrations found, creating defaults');
-        resultIntegrations = [
+      // Always ensure we have at least the basic communication channels
+      const ensureBasicChannels = (channels: any[]) => {
+        const basicChannels = [
           {
             id: 'email-imap',
-            tenantId,
             name: 'Email IMAP',
             category: 'Comunicação',
-            description: 'Configuração de servidor IMAP para recebimento de emails',
+            description: 'Conecte sua caixa de email via IMAP para sincronização de tickets',
             enabled: false,
             status: 'disconnected',
             icon: 'Mail',
@@ -2078,7 +2077,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             id: 'whatsapp-business',
-            tenantId,
             name: 'WhatsApp Business',
             category: 'Comunicação', 
             description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
@@ -2089,7 +2087,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             id: 'telegram-bot',
-            tenantId,
             name: 'Telegram Bot',
             category: 'Comunicação',
             description: 'Bot do Telegram para atendimento automatizado',
@@ -2099,7 +2096,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             features: ['Bot integrado', 'Notificações em tempo real', 'Mensagens personalizadas']
           }
         ];
-      }
+
+        // Merge existing channels with basic channels
+        const existingIds = channels.map(c => c.id);
+        const missingChannels = basicChannels.filter(bc => !existingIds.includes(bc.id));
+
+        return [...channels, ...missingChannels];
+      };
+
+      const resultIntegrations = ensureBasicChannels(communicationIntegrations);
 
       console.log(`✅ [TENANT-INTEGRATIONS] Returning ${resultIntegrations.length} integrations to OmniBridge`);
 
@@ -2122,23 +2127,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: 'Comunicação',
             description: 'Configuração de email (erro ao carregar)',
             enabled: false,
-            status: 'error',
-            icon: 'Mail'
+            status: 'disconnected',
+            icon: 'Mail',
+            features: ['Auto-criação de tickets', 'Monitoramento de caixa de entrada']
           },
           {
-            id: 'whatsapp-business', 
+            id: 'whatsapp-business',
             name: 'WhatsApp Business',
             category: 'Comunicação',
             description: 'WhatsApp Business (erro ao carregar)',
             enabled: false,
-            status: 'error',
-            icon: 'MessageSquare'
+            status: 'disconnected',
+            icon: 'MessageSquare',
+            features: ['Mensagens automáticas', 'Templates aprovados']
+          },
+          {
+            id: 'telegram-bot',
+            name: 'Telegram Bot',
+            category: 'Comunicação',
+            description: 'Telegram Bot (erro ao carregar)',
+            enabled: false,
+            status: 'disconnected',
+            icon: 'MessageCircle',
+            features: ['Bot integrado', 'Notificações em tempo real']
           }
         ],
         success: false,
-        total: 2,
-        fallback: true,
-        message: "Error fetching integrations, fallback structure provided"
+        total: 3,
+        message: 'Erro ao carregar integrações - usando fallback'
       });
     }
   });
@@ -2423,7 +2439,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
 
-  // ✅ LEGACY MATERIALS SERVICES ROUTES ELIMINATED - Clean Architecture only per 1qa.md
+  // ✅ LEGACY MATERIALS SERVICES ROUTES REMOVED - Clean Architecture only per 1qa.md
 
 
 

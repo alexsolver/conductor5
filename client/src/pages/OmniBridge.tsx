@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -135,7 +134,7 @@ export default function OmniBridge() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch channels from integrations API (Workspace Admin → Integrações → Comunicação)
         const token = localStorage.getItem('token');
         const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
@@ -144,7 +143,7 @@ export default function OmniBridge() {
             'Content-Type': 'application/json'
           }
         });
-        
+
         const inboxResponse = await fetch('/api/omnibridge/messages', {
           headers: {
             'Authorization': token ? `Bearer ${token}` : '',
@@ -152,58 +151,54 @@ export default function OmniBridge() {
           }
         });
 
-        console.log('🔍 [OmniBridge] API Response for integrations:', integrationsResponse.ok ? await integrationsResponse.clone().json() : {});
-        console.log('🔍 [OmniBridge] API Response for inbox:', inboxResponse.ok ? await inboxResponse.clone().json() : {});
+        let integrationsResult = null;
+      if (integrationsResponse.ok) {
+        integrationsResult = await integrationsResponse.json();
+        console.log('🔍 [OmniBridge] API Response for integrations:', integrationsResult);
+      } else {
+        console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
+      }
 
-        let channelsData = [];
-        let messagesData = [];
+      let inboxResult = null;
+      if (inboxResponse.ok) {
+        inboxResult = await inboxResponse.json();
+        console.log('🔍 [OmniBridge] API Response for inbox:', inboxResult);
+      } else {
+        console.log('⚠️ [OmniBridge] Failed to fetch inbox, status:', inboxResponse.status);
+      }
 
-        if (integrationsResponse.ok) {
-          const integrationsResult = await integrationsResponse.json();
-          console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data?.length || 0, 'total');
-          
-          if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
-            // All data from integrations endpoint should be communication channels
-            const communicationChannels = integrationsResult.data.filter((integration: any) => {
-              const category = integration.category?.toLowerCase() || '';
-              return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
-            });
-            console.log('🔍 [OmniBridge] Filtered channels:', communicationChannels.length, 'communication channels');
-            
-            channelsData = communicationChannels.map((integration: any) => ({
-              id: integration.id,
-              name: integration.name,
-              type: integration.id.includes('email') ? 'email' : 
-                    integration.id.includes('whatsapp') ? 'whatsapp' : 
-                    integration.id.includes('telegram') ? 'telegram' : 'chat',
-              enabled: integration.enabled || false,
-              icon: integration.id.includes('email') ? Mail : 
-                    integration.id.includes('whatsapp') ? MessageSquare : 
-                    integration.id.includes('telegram') ? MessageCircle : Phone,
-              description: integration.description,
-              status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
-              messageCount: 0,
-              lastMessage: integration.enabled ? 'Configurado' : 'Não configurado',
-              lastActivity: integration.enabled ? 'Ativo' : 'Nunca'
-            }));
-          } else if (integrationsResult?.fallback) {
-            console.log('⚠️ [OmniBridge] Using fallback integration structure');
-            channelsData = integrationsResult.data || [];
-          }
-        } else {
-          console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
+      let channelsData = [];
+      let messagesData = [];
+
+      if (integrationsResult && integrationsResult.success) {
+        console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data?.length || 0, 'total');
+
+        if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
+          // Data from integrations endpoint should already be communication channels
+          const communicationChannels = integrationsResult.data;
+          console.log('🔍 [OmniBridge] Communication channels:', communicationChannels.length, 'channels');
+
+          channelsData = communicationChannels.map((integration: any) => ({
+            id: integration.id,
+            name: integration.name,
+            type: integration.id.includes('email') ? 'email' : 
+                  integration.id.includes('whatsapp') ? 'whatsapp' : 
+                  integration.id.includes('telegram') ? 'telegram' : 'chat',
+            enabled: integration.enabled || false,
+            icon: integration.id.includes('email') ? Mail : 
+                  integration.id.includes('whatsapp') ? MessageSquare : 
+                  integration.id.includes('telegram') ? MessageCircle : Phone,
+            description: integration.description,
+            status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
+            messageCount: 0,
+            lastMessage: integration.enabled ? 'Configurado' : 'Não configurado',
+            lastActivity: integration.enabled ? 'Ativo' : 'Nunca'
+          }));
         }
+      } else {
+        console.log('⚠️ [OmniBridge] No valid integrations response, using fallback');
+      }
 
-        if (inboxResponse.ok) {
-          const inboxResult = await inboxResponse.json();
-          if (inboxResult?.data && Array.isArray(inboxResult.data)) {
-            messagesData = inboxResult.data;
-          }
-        } else {
-          console.log('⚠️ [OmniBridge] Invalid inbox response structure, using fallback');
-        }
-
-        // Use fallback data if no channels found
         if (channelsData.length === 0) {
           console.log('⚠️ [OmniBridge] No integrations data available, showing default communication channels');
           channelsData = [
@@ -258,7 +253,7 @@ export default function OmniBridge() {
 
       } catch (error) {
         console.error('❌ [OmniBridge] Error fetching data:', error);
-        
+
         // Fallback data
         setChannels([
           {
@@ -364,10 +359,10 @@ export default function OmniBridge() {
     const matchesSearch = message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          message.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesStatus = filterStatus === 'all' || message.status === filterStatus;
     const matchesChannel = filterChannel === 'all' || message.channelType === filterChannel;
-    
+
     return matchesSearch && matchesStatus && matchesChannel;
   });
 
@@ -596,19 +591,19 @@ export default function OmniBridge() {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </div>
-                      
+
                       {selectedMessage.subject && (
                         <div>
                           <Label className="text-sm font-medium">Assunto</Label>
                           <p className="text-sm mt-1">{selectedMessage.subject}</p>
                         </div>
                       )}
-                      
+
                       <div>
                         <Label className="text-sm font-medium">Conteúdo</Label>
                         <p className="text-sm mt-1 whitespace-pre-wrap">{selectedMessage.content}</p>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className={getPriorityColor(selectedMessage.priority)}>
                           {selectedMessage.priority}
@@ -617,9 +612,9 @@ export default function OmniBridge() {
                           {selectedMessage.status}
                         </Badge>
                       </div>
-                      
+
                       <Separator />
-                      
+
                       <div className="space-y-2">
                         <Button className="w-full" size="sm">
                           <Reply className="h-4 w-4 mr-2" />
@@ -686,7 +681,7 @@ export default function OmniBridge() {
                       <p className="text-sm text-muted-foreground mb-3">
                         {channel.description}
                       </p>
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                           <span>Status:</span>
@@ -694,20 +689,20 @@ export default function OmniBridge() {
                             {channel.status}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center justify-between text-sm">
                           <span>Mensagens:</span>
                           <span className="font-medium">{channel.messageCount}</span>
                         </div>
-                        
+
                         <div className="flex items-center justify-between text-sm">
                           <span>Última atividade:</span>
                           <span className="text-muted-foreground">{channel.lastActivity}</span>
                         </div>
                       </div>
-                      
+
                       <Separator className="my-3" />
-                      
+
                       <div className="flex gap-2">
                         <Button 
                           variant="outline" 

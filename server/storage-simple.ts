@@ -1384,6 +1384,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async initializeTenantIntegrations(tenantId: string): Promise<void> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      
+      console.log(`🔧 [INIT-INTEGRATIONS] Initializing integrations for tenant: ${validatedTenantId}`);
+      
+      // Create default integrations if they don't exist
+      await this.createDefaultIntegrations(validatedTenantId);
+      
+      console.log(`✅ [INIT-INTEGRATIONS] Integrations initialized for tenant: ${validatedTenantId}`);
+    } catch (error) {
+      console.error(`❌ [INIT-INTEGRATIONS] Error initializing integrations:`, error);
+      throw error;
+    }
+  }
+
   // ===========================  
   // TENANT INTEGRATIONS
   // ===========================
