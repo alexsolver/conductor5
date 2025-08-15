@@ -1392,225 +1392,53 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`🔍 [STORAGE] Getting integrations for tenant: ${tenantId}`);
 
-      const { pool } = await import('./db');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // First ensure the table exists
-      try {
-        await pool.query(`
-          CREATE TABLE IF NOT EXISTS "${schemaName}".service_integrations (
-            id TEXT PRIMARY KEY,
-            tenant_id UUID NOT NULL,
-            name TEXT NOT NULL,
-            description TEXT,
-            category TEXT DEFAULT 'Comunicação',
-            icon TEXT DEFAULT 'Settings',
-            status TEXT DEFAULT 'disconnected',
-            enabled BOOLEAN DEFAULT FALSE,
-            config JSONB DEFAULT '{}',
-            features TEXT[] DEFAULT ARRAY[]::TEXT[],
-            is_currently_monitoring BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT NOW(),
-            updated_at TIMESTAMP DEFAULT NOW()
-          )
-        `);
-      } catch (tableError) {
-        console.error(`❌ [STORAGE] Error creating integrations table:`, tableError);
-      }
-
-      const result = await pool.query(
-        `SELECT * FROM "${schemaName}"."service_integrations" 
-         WHERE tenant_id = $1 
-         ORDER BY created_at DESC`,
-        [tenantId]
-      );
-
-      console.log(`📊 [STORAGE] Found ${result.rows.length} integrations for tenant: ${tenantId}`);
-      
-      // If no integrations are found, initialize default ones
-      if (result.rows.length === 0) {
-        console.log(`🔧 No integrations found for tenant ${tenantId}, initializing default integrations.`);
-        await this.initializeTenantIntegrations(tenantId);
-        // Re-fetch integrations after initialization
-        const newResult = await pool.query(
-          `SELECT * FROM "${schemaName}"."service_integrations" 
-           WHERE tenant_id = $1 
-           ORDER BY created_at DESC`,
-          [tenantId]
+      // Use the standard integrations table (not service_integrations)
+      const tableExists = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} AND table_name = 'integrations'
         );
-        return newResult.rows;
-      }
-
-      return result.rows;
-    } catch (error) {
-      console.error(`❌ [STORAGE] Error getting tenant integrations:`, error);
-      // Initialize default integrations if any error occurs
-      try {
-        await this.initializeTenantIntegrations(tenantId);
-        // Try to fetch again after initialization
-        const { pool } = await import('./db');
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-        const retryResult = await pool.query(
-          `SELECT * FROM "${schemaName}"."service_integrations" 
-           WHERE tenant_id = $1 
-           ORDER BY created_at DESC`,
-          [tenantId]
-        );
-        return retryResult.rows || [];
-      } catch (retryError) {
-        console.error(`❌ [STORAGE] Failed to initialize integrations on retry:`, retryError);
-        return [];
-      }
-    }
-  }
-
-  // Initialize default tenant integrations
-  async initializeTenantIntegrations(tenantId: string): Promise<void> {
-    try {
-      console.log(`🚀 [STORAGE] Initializing default integrations for tenant: ${tenantId}`);
-
-      const { pool } = await import('./db');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      // First ensure the table exists with proper constraint
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS "${schemaName}".service_integrations (
-          id TEXT NOT NULL,
-          tenant_id UUID NOT NULL,
-          name TEXT NOT NULL,
-          description TEXT,
-          category TEXT DEFAULT 'Comunicação',
-          icon TEXT DEFAULT 'Settings',
-          status TEXT DEFAULT 'disconnected',
-          enabled BOOLEAN DEFAULT FALSE,
-          config JSONB DEFAULT '{}',
-          features TEXT[] DEFAULT ARRAY[]::TEXT[],
-          is_currently_monitoring BOOLEAN DEFAULT FALSE,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          PRIMARY KEY (id, tenant_id)
-        )
       `);
 
-      // Check if integrations already exist
-      const existing = await pool.query(
-        `SELECT COUNT(*) as count FROM "${schemaName}"."service_integrations" WHERE tenant_id = $1`,
-        [tenantId]
-      );
-
-      if (parseInt(existing.rows[0].count) > 0) {
-        console.log(`✅ [STORAGE] Tenant ${tenantId} already has integrations, skipping initialization`);
-        return;
+      if (!tableExists.rows?.[0]?.exists) {
+        console.log(`🔧 Creating integrations table for tenant ${validatedTenantId}`);
+        await this.createDefaultIntegrations(validatedTenantId);
       }
 
-      // Insert default communication integrations using individual queries to avoid constraint issues
-      const defaultIntegrations = [
-        {
-          id: 'imap-email',
-          name: 'Email IMAP',
-          description: 'Integração de email via IMAP para sincronização de tickets',
-          category: 'Comunicação',
-          icon: 'Mail',
-          status: 'disconnected',
-          config: '{}',
-          features: ['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']
-        },
-        {
-          id: 'gmail-oauth2',
-          name: 'Gmail OAuth2',
-          description: 'Integração OAuth2 com Gmail para acesso seguro',
-          category: 'Comunicação',
-          icon: 'Mail',
-          status: 'disconnected',
-          config: '{}',
-          features: ['OAuth2 seguro', 'Sincronização automática', 'Labels do Gmail']
-        },
-        {
-          id: 'whatsapp-business',
-          name: 'WhatsApp Business',
-          description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
-          category: 'Comunicação',
-          icon: 'MessageCircle',
-          status: 'disconnected',
-          config: '{}',
-          features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
-        },
-        {
-          id: 'telegram-bot',
-          name: 'Telegram Bot',
-          description: 'Bot para comunicação via Telegram',
-          category: 'Comunicação',
-          icon: 'Send',
-          status: 'disconnected',
-          config: '{}',
-          features: ['Bot integrado', 'Notificações push', 'Comandos customizados']
-        },
-        {
-          id: 'slack-integration',
-          name: 'Slack',
-          description: 'Notificações e gerenciamento de tickets através do Slack',
-          category: 'Comunicação',
-          icon: 'MessageCircle',
-          status: 'disconnected',
-          config: '{}',
-          features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
-        },
-        {
-          id: 'webhook-generic',
-          name: 'Webhooks Genéricos',
-          description: 'Recebimento de dados via webhooks HTTP',
-          category: 'Comunicação',
-          icon: 'Globe',
-          status: 'disconnected',
-          config: '{}',
-          features: ['HTTP POST/GET', 'Autenticação', 'Logs detalhados']
-        }
-      ];
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.integrations
+        WHERE tenant_id = ${validatedTenantId}
+        ORDER BY created_at DESC
+      `);
 
-      // Insert each integration individually to handle constraints properly
-      for (const integration of defaultIntegrations) {
-        try {
-          // First check if this specific integration exists
-          const checkResult = await pool.query(
-            `SELECT id FROM "${schemaName}"."service_integrations" WHERE id = $1 AND tenant_id = $2`,
-            [integration.id, tenantId]
-          );
-
-          if (checkResult.rows.length === 0) {
-            // Only insert if it doesn't exist
-            await pool.query(
-              `INSERT INTO "${schemaName}"."service_integrations" 
-               (id, tenant_id, name, description, category, icon, status, enabled, config, features, created_at, updated_at)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`,
-              [
-                integration.id,
-                tenantId,
-                integration.name,
-                integration.description,
-                integration.category,
-                integration.icon,
-                integration.status,
-                false,
-                integration.config,
-                integration.features
-              ]
-            );
-            console.log(`✅ [STORAGE] Created integration: ${integration.id}`);
-          } else {
-            console.log(`⚠️ [STORAGE] Integration ${integration.id} already exists, skipping`);
-          }
-        } catch (integrationError) {
-          console.error(`❌ [STORAGE] Error creating integration ${integration.id}:`, integrationError);
-          // Continue with other integrations even if one fails
-        }
+      console.log(`📊 [STORAGE] Found ${result.rows.length} integrations for tenant: ${validatedTenantId}`);
+      
+      // If no integrations are found, create default ones
+      if (!result.rows || result.rows.length === 0) {
+        console.log(`🔧 No integrations found for tenant ${validatedTenantId}, creating defaults.`);
+        await this.createDefaultIntegrations(validatedTenantId);
+        
+        // Re-fetch after creation
+        const newResult = await tenantDb.execute(sql`
+          SELECT * FROM ${sql.identifier(schemaName)}.integrations
+          WHERE tenant_id = ${validatedTenantId}
+          ORDER BY created_at DESC
+        `);
+        return newResult.rows || [];
       }
 
-      console.log(`✅ [STORAGE] Integration initialization completed for tenant: ${tenantId}`);
+      return result.rows || [];
     } catch (error) {
-      console.error(`❌ [STORAGE] Error initializing tenant integrations:`, error);
-      throw error;
+      console.error(`❌ [STORAGE] Error getting tenant integrations:`, error);
+      return [];
     }
   }
+
+  
 
 
   async getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined> {
@@ -1651,7 +1479,41 @@ export class DatabaseStorage implements IStorage {
         console.log(`❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`);
         // ✅ CRITICAL FIX: Create default integrations if table doesn't exist
         await this.createDefaultIntegrations(validatedTenantId);
-        return { configured: false, config: null };
+        
+        // After creating, check if the specific integration exists
+        const retryResult = await tenantDb.execute(sql`
+          SELECT id, name, description, category, icon, status, config, features, created_at, updated_at, configured
+          FROM ${sql.identifier(schemaName)}.integrations 
+          WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+          LIMIT 1
+        `);
+        
+        if (retryResult.rows && retryResult.rows.length > 0) {
+          const integration = retryResult.rows[0];
+          let parsedConfig = integration.config;
+          if (typeof integration.config === 'string') {
+            try {
+              parsedConfig = JSON.parse(integration.config);
+            } catch (parseError) {
+              parsedConfig = {};
+            }
+          }
+          return {
+            id: integration.id,
+            name: integration.name,
+            description: integration.description,
+            category: integration.category,
+            icon: integration.icon,
+            status: integration.status,
+            configured: integration.configured || false,
+            config: parsedConfig || {},
+            features: integration.features,
+            created_at: integration.created_at,
+            updated_at: integration.updated_at
+          };
+        }
+        
+        return { configured: false, config: {} };
       }
 
       // ✅ SAFETY: Execute query with proper error handling
