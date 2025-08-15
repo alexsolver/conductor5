@@ -437,41 +437,58 @@ export default function TicketMaterials() {
                   </Badge>
                 </div>
 
-                {/* Sub-tabs for Material/Service */}
-                <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setPlannedSubTab('all')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      plannedSubTab === 'all'
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <Package className="w-4 h-4" />
-                    Todos
-                  </button>
-                  <button
-                    onClick={() => setPlannedSubTab('material')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      plannedSubTab === 'material'
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <Box className="w-4 h-4" />
-                    Materiais
-                  </button>
-                  <button
-                    onClick={() => setPlannedSubTab('service')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      plannedSubTab === 'service'
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <Wrench className="w-4 h-4" />
-                    Serviços
-                  </button>
+                {/* Sub-tabs for Material/Service - Enhanced Visual Design */}
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-3 rounded-xl border border-gray-200 shadow-sm">
+                  <div className="flex justify-center space-x-2">
+                    <button
+                      onClick={() => setPlannedSubTab('all')}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
+                        plannedSubTab === 'all'
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                          : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm'
+                      }`}
+                    >
+                      <Package className="w-5 h-5" />
+                      <span>Todos os Itens</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        plannedSubTab === 'all' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {(plannedItems as any)?.data?.plannedItems?.length || 0}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setPlannedSubTab('material')}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
+                        plannedSubTab === 'material'
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25'
+                          : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm'
+                      }`}
+                    >
+                      <Box className="w-5 h-5" />
+                      <span>Materiais</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        plannedSubTab === 'material' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-600'
+                      }`}>
+                        {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'material').length || 0}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setPlannedSubTab('service')}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
+                        plannedSubTab === 'service'
+                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
+                          : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm'
+                      }`}
+                    >
+                      <Wrench className="w-5 h-5" />
+                      <span>Serviços</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        plannedSubTab === 'service' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-600'
+                      }`}>
+                        {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'service').length || 0}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 {loadingPlanned ? (
@@ -492,50 +509,80 @@ export default function TicketMaterials() {
                     
                     if (filteredItems.length > 0) {
                       return (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           {filteredItems.map((item: TicketMaterial) => (
-                      <Card key={item.id} className={`border-l-4 ${item.itemType === 'material' ? 'border-l-blue-500' : 'border-l-green-500'}`}>
-                        <CardContent className="p-4">
+                      <Card key={item.id} className={`group hover:shadow-lg transition-all duration-300 border-l-4 ${
+                        item.itemType === 'material' 
+                          ? 'border-l-green-500 bg-gradient-to-r from-green-50/30 to-white hover:from-green-50/50' 
+                          : 'border-l-purple-500 bg-gradient-to-r from-purple-50/30 to-white hover:from-purple-50/50'
+                      }`}>
+                        <CardContent className="p-5">
                           <div className="flex items-start justify-between">
-                            <div className="space-y-2 flex-1">
-                              <div className="flex items-center gap-2">
-                                {item.itemType === 'material' ? (
-                                  <Box className="w-4 h-4 text-blue-600" />
-                                ) : (
-                                  <Wrench className="w-4 h-4 text-green-600" />
-                                )}
-                                <h4 className="font-semibold">{item.itemName || 'Item não encontrado'}</h4>
-                                <Badge variant="outline">{item.itemCode || 'N/A'}</Badge>
-                                <Badge className={`${item.itemType === 'material' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                                  {item.itemType === 'material' ? 'Material' : 'Serviço'}
-                                </Badge>
-                                {getStatusBadge(item.status)}
-                                {getPriorityBadge(item.priority)}
+                            <div className="space-y-3 flex-1">
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <div className={`p-2 rounded-lg ${
+                                  item.itemType === 'material' ? 'bg-green-100' : 'bg-purple-100'
+                                }`}>
+                                  {item.itemType === 'material' ? (
+                                    <Box className="w-5 h-5 text-green-600" />
+                                  ) : (
+                                    <Wrench className="w-5 h-5 text-purple-600" />
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-bold text-lg text-gray-800">{item.itemName || 'Item não encontrado'}</h4>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge variant="outline" className="text-xs">{item.itemCode || 'N/A'}</Badge>
+                                    <Badge className={`text-xs ${
+                                      item.itemType === 'material' 
+                                        ? 'bg-green-100 text-green-800 border-green-200' 
+                                        : 'bg-purple-100 text-purple-800 border-purple-200'
+                                    }`}>
+                                      {item.itemType === 'material' ? 'Material' : 'Serviço'}
+                                    </Badge>
+                                    {getStatusBadge(item.status)}
+                                    {getPriorityBadge(item.priority)}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-600 space-y-1">
-                                <p><strong>Quantidade:</strong> {item.plannedQuantity} {item.measurementUnit || 'UN'}</p>
-                                <p><strong>Preço Unitário:</strong> {formatCurrency(item.unitPriceAtPlanning)}</p>
-                                <p><strong>Custo Estimado:</strong> {formatCurrency(item.estimatedCost)}</p>
-                                {item.notes && <p><strong>Observações:</strong> {item.notes}</p>}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50/50 rounded-lg">
+                                <div className="text-center">
+                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Quantidade</p>
+                                  <p className="text-lg font-bold text-gray-800">{item.plannedQuantity} {item.measurementUnit || 'UN'}</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Preço Unitário</p>
+                                  <p className="text-lg font-bold text-blue-600">{formatCurrency(item.unitPriceAtPlanning)}</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Custo Estimado</p>
+                                  <p className="text-lg font-bold text-green-600">{formatCurrency(item.estimatedCost)}</p>
+                                </div>
                               </div>
+                              {item.notes && (
+                                <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200">
+                                  <p className="text-sm text-gray-700"><strong>Observações:</strong> {item.notes}</p>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex items-start gap-2">
-                              <div className="text-right text-sm text-gray-500">
-                                <p>Planejado em</p>
-                                <p>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</p>
+                            <div className="flex flex-col items-end gap-3 ml-4">
+                              <div className="text-right text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+                                <p className="font-medium">Planejado em</p>
+                                <p className="font-semibold">{new Date(item.createdAt).toLocaleDateString('pt-BR')}</p>
                               </div>
                               <Button
-                                variant="outline"
+                                variant="destructive"
                                 size="sm"
                                 onClick={() => {
-                                  if (confirm('Tem certeza que deseja excluir este item planejado?')) {
+                                  if (confirm('⚠️ Tem certeza que deseja excluir este item planejado?\n\nEsta ação não pode ser desfeita.')) {
                                     deletePlannedItemMutation.mutate(item.id);
                                   }
                                 }}
                                 disabled={deletePlannedItemMutation.isPending}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="group-hover:scale-105 transition-transform duration-200 bg-red-500 hover:bg-red-600 shadow-lg hover:shadow-red-500/25"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4 mr-1" />
+                                {deletePlannedItemMutation.isPending ? 'Excluindo...' : 'Excluir'}
                               </Button>
                             </div>
                           </div>
@@ -546,13 +593,40 @@ export default function TicketMaterials() {
                       );
                     } else {
                       return (
-                        <div className="text-center py-8 text-gray-500">
-                          <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                          <p>
+                        <div className="text-center py-12">
+                          <div className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
+                            plannedSubTab === 'material' ? 'bg-green-100' :
+                            plannedSubTab === 'service' ? 'bg-purple-100' : 'bg-gray-100'
+                          }`}>
+                            {plannedSubTab === 'material' ? (
+                              <Box className="w-12 h-12 text-green-400" />
+                            ) : plannedSubTab === 'service' ? (
+                              <Wrench className="w-12 h-12 text-purple-400" />
+                            ) : (
+                              <Package className="w-12 h-12 text-gray-400" />
+                            )}
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-700 mb-2">
                             {plannedSubTab === 'all' ? 'Nenhum item planejado' :
                              plannedSubTab === 'material' ? 'Nenhum material planejado' :
                              'Nenhum serviço planejado'}
+                          </h3>
+                          <p className="text-gray-500 mb-6">
+                            {plannedSubTab === 'all' ? 'Adicione materiais e serviços para começar o planejamento.' :
+                             plannedSubTab === 'material' ? 'Adicione materiais necessários para este ticket.' :
+                             'Adicione serviços necessários para este ticket.'}
                           </p>
+                          <Button 
+                            onClick={() => setActiveTab('add')}
+                            className={`${
+                              plannedSubTab === 'material' ? 'bg-green-500 hover:bg-green-600' :
+                              plannedSubTab === 'service' ? 'bg-purple-500 hover:bg-purple-600' :
+                              'bg-blue-500 hover:bg-blue-600'
+                            }`}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Adicionar {plannedSubTab === 'material' ? 'Material' : plannedSubTab === 'service' ? 'Serviço' : 'Item'}
+                          </Button>
                         </div>
                       );
                     }
