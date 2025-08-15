@@ -53,7 +53,8 @@ import {
   Wrench,
   Bell,
   CheckCircle,
-  MessageCircle // Import MessageCircle for OmniBridge
+  MessageCircle, // Import MessageCircle for OmniBridge
+  MessageSquare // Import MessageSquare for OmniBridge
 } from "lucide-react";
 
 interface SidebarProps {
@@ -163,7 +164,7 @@ const adminNavigation = [
       { name: "Clientes", href: "/customers", icon: Users },
       { name: "Favorecidos", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
-
+      { name: "OmniBridge", href: "/omnibridge", icon: MessageSquare }, // Added OmniBridge link
       { name: "Empresas", href: "/companies", icon: Building2 },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
