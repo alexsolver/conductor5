@@ -28,11 +28,17 @@ if (!process.env.DATABASE_URL) {
 console.log("🔥 [1QA-FINAL] NEON COMPLETAMENTE REMOVIDO DA CODEBASE - PostgreSQL (pg) driver ativo");
 console.log("✅ [1QA-SUCCESS] @neondatabase/serverless eliminado, node-postgres implementado");
 
+// Configuração otimizada para AWS RDS PostgreSQL
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 20,
+  max: process.env.NODE_ENV === 'production' ? 50 : 20,
+  min: process.env.NODE_ENV === 'production' ? 5 : 2,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 15000,
+  acquireTimeoutMillis: 20000,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000
 });
 export const db = drizzle({ client: pool, schema });
 

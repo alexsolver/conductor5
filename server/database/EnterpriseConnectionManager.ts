@@ -83,10 +83,11 @@ export class EnterpriseConnectionManager {
       createTimeoutMillis: this.enterpriseConfig.createTimeoutMs,
       maxUses: this.enterpriseConfig.maxUses,
       
-      // ENTERPRISE OPTIMIZATIONS
+      // ENTERPRISE OPTIMIZATIONS + AWS RDS
       allowExitOnIdle: false,    // Keep pool alive
       keepAlive: true,           // TCP keepalive
       keepAliveInitialDelayMillis: 10000,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     });
 
     // Error handling for main pool

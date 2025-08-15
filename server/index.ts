@@ -231,11 +231,11 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
 
-  // CRITICAL FIX: Enhanced server stability for WebSocket connections
-  server.keepAliveTimeout = 120000; // 2 minutes
-  server.headersTimeout = 120000; // 2 minutes  
-  server.timeout = 120000; // 2 minutes
-  server.maxConnections = 1000;
+  // CRITICAL FIX: Enhanced server stability for WebSocket connections + AWS Production
+  server.keepAliveTimeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; // 5min prod / 2min dev
+  server.headersTimeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; 
+  server.timeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; 
+  server.maxConnections = process.env.NODE_ENV === 'production' ? 2000 : 1000;
 
   // CRITICAL: WebSocket connection stability optimizations
   server.on('connection', (socket) => {
