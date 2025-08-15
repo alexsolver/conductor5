@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, Trash2, Calculator, AlertTriangle, Wrench, Clock } from "lucide-react";
+import { Package, Plus, Trash2, Calculator, AlertTriangle, Wrench, Clock, AlertCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
@@ -259,13 +259,20 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                          Array.isArray(availableItemsData) ? availableItemsData : [];
   const plannedMaterials = plannedData?.data?.plannedItems || [];
 
-  // Debug log for available items structure
-  console.log('🔍 [CONSUMPTION-DEBUG] Available items data:', {
-    rawData: availableItemsData,
-    processedItems: availableItems,
-    itemCount: availableItems.length,
-    sampleItem: availableItems[0] || 'No items'
-  });
+  // Debug logs for consumption availability
+  useEffect(() => {
+    console.log('🔍 [CONSUMPTION-DEBUG] Available items raw data:', availableItemsData);
+    if (availableItemsData?.data) {
+      const items = Array.isArray(availableItemsData.data) ? availableItemsData.data : [];
+      console.log('🔍 [CONSUMPTION-DEBUG] Available items data:', {
+        processedItems: items,
+        itemCount: items.length,
+        sampleItem: items[0] || 'No items',
+        isSuccess: availableItemsData.success
+      });
+    }
+  }, [availableItemsData]);
+
 
   // Process consumed materials data
   const consumedMaterials = useMemo(() => {
@@ -588,7 +595,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   <Label htmlFor="consumed-item-select">Item</Label>
                   {availableItemsLoading ? (
                     <div className="text-center py-2">Carregando itens disponíveis...</div>
-                  ) : availableItems.length === 0 ? (
+                  ) : Array.isArray(availableItemsData?.data) && availableItemsData.data.length === 0 ? (
                     <div className="text-center py-4 text-gray-500">
                       <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p>Nenhum item planejado disponível para consumo</p>
@@ -600,7 +607,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         <SelectValue placeholder="Selecione um item planejado" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableItems.map((item: any, index: number) => {
+                        {Array.isArray(availableItemsData?.data) && availableItemsData.data.map((item: any, index: number) => {
                           // Handle different data structures - try nested object first
                           const itemData = item.item || item.items || item;
 
@@ -682,7 +689,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
               <Button
                 onClick={handleAddConsumed}
-                disabled={addConsumedMutation.isPending || availableItems.length === 0}
+                disabled={addConsumedMutation.isPending || !Array.isArray(availableItemsData?.data) || availableItemsData.data.length === 0}
                 className="w-full"
               >
                 <Calculator className="h-4 w-4 mr-2" />

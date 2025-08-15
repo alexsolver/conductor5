@@ -577,7 +577,7 @@ export class TicketMaterialsController {
 
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-      
+
       if (!tenantId) {
         return res.status(400).json({ success: false, error: 'Tenant ID é obrigatório' });
       }
