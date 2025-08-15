@@ -1,3 +1,4 @@
+
 /**
  * INFRASTRUCTURE LAYER - DRIZZLE TICKET REPOSITORY
  * Seguindo Clean Architecture - 1qa.md compliance
@@ -57,7 +58,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         LEFT JOIN public.users u ON t.assigned_to_id = u.id
         WHERE t.id = ${id} AND t.tenant_id = ${tenantId} AND t.is_active = true
         LIMIT 1
-      `);
+      `);</old_str>
 
       return result.rows[0] ? this.mapToTicket(result.rows[0]) : null;
     } catch (error) {
@@ -204,10 +205,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
         FROM ${sql.identifier(schemaName)}.tickets
         WHERE is_active = true
       `;
-
+      
       // Apply filters to count query
       const countConditions: any[] = [sql`is_active = true`];
-
+      
       if (filters.status && filters.status.length > 0) {
         countConditions.push(sql`status = ANY(${filters.status})`);
       }
@@ -242,7 +243,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
       // Get paginated results using proper SQL template
       const dataConditions: any[] = [sql`is_active = true`];
-
+      
       if (filters.status && filters.status.length > 0) {
         dataConditions.push(sql`status = ANY(${filters.status})`);
       }
@@ -302,7 +303,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         WHERE ${sql.join(dataConditions, sql` AND `)}
         ORDER BY t.created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
-      `;
+      `;</old_str>
 
       const results = await db.execute(finalDataQuery);
 
@@ -380,7 +381,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         LEFT JOIN public.users u ON t.assigned_to_id = u.id
         WHERE t.is_active = true
         ORDER BY t.created_at DESC
-      `);
+      `);</old_str>
 
       return results.rows.map(ticket => this.mapToTicket(ticket));
     } catch (error) {
@@ -443,9 +444,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async countByFilters(filters: TicketFilters, tenantId: string): Promise<number> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
+      
       const conditions: any[] = [sql`is_active = true`];
-
+      
       if (filters.status && filters.status.length > 0) {
         conditions.push(sql`status = ANY(${filters.status})`);
       }
@@ -537,7 +538,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     };
 
     const paginationOptions = pagination || defaultPagination;
-
+    
     return await this.findByFilters(
       { search: searchTerm },
       paginationOptions,
@@ -577,5 +578,5 @@ export class DrizzleTicketRepository implements ITicketRepository {
       beneficiaryEmail: row.beneficiaryEmail || null,
       assignedToName: row.assignedToName || null
     } as Ticket;
-  }
+  }</old_str>
 }
