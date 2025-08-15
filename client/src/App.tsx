@@ -20,6 +20,8 @@ import Beneficiaries from "./pages/Beneficiaries";
 // Locations import moved below to avoid duplication
 
 import Analytics from "./pages/Analytics";
+import AutomationRules from "./pages/AutomationRules";
+import Compliance from "./pages/Compliance";
 import Settings from "./pages/SettingsSimple";
 import SecuritySettings from "./pages/SecuritySettings";
 
@@ -137,7 +139,7 @@ function AppRouter() {
         <Route path="/locations" component={LocationsNew} />
 
         <Route path="/analytics" component={Analytics} />
-
+        <Route path="/automation-rules" element={<AutomationRules />} />
         <Route path="/compliance" component={Compliance} />
         <Route path="/clt-compliance" component={CLTCompliance} />
         <Route path="/saas-admin" component={SaasAdmin} />
