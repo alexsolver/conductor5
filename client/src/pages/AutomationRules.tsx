@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -225,22 +225,55 @@ export default function AutomationRules() {
     avgExecutionTime: 0
   };
 
-  // Verificações de segurança para evitar undefined errors
-  const rules = Array.isArray(rulesData?.rules) ? rulesData.rules : 
-                Array.isArray(rulesData) ? rulesData : mockRules;
-  const metrics = (metricsData?.metrics && typeof metricsData.metrics === 'object') ? metricsData.metrics : mockMetrics;
+  // Verificações robustas de segurança para evitar undefined errors
+  const rules = useMemo(() => {
+    try {
+      if (Array.isArray(rulesData?.rules)) {
+        return rulesData.rules.filter(rule => rule && typeof rule === 'object');
+      }
+      if (Array.isArray(rulesData)) {
+        return rulesData.filter(rule => rule && typeof rule === 'object');
+      }
+      return mockRules;
+    } catch (error) {
+      console.error('🚨 [AutomationRules] Error processing rules data:', error);
+      return mockRules;
+    }
+  }, [rulesData]);
 
-  // Validação adicional para evitar erros de includes
-  const safeRules = (rules || []).map(rule => ({
-    ...rule,
-    name: rule?.name || 'Nome não disponível',
-    description: rule?.description || 'Descrição não disponível',
-    enabled: Boolean(rule?.enabled),
-    priority: Number(rule?.priority) || 1,
-    conditionsCount: Number(rule?.conditionsCount) || 0,
-    actionsCount: Number(rule?.actionsCount) || 0,
-    id: rule?.id || `temp-${Math.random()}`
-  }));
+  const metrics = useMemo(() => {
+    try {
+      if (metricsData?.metrics && typeof metricsData.metrics === 'object') {
+        return {
+          ...mockMetrics,
+          ...metricsData.metrics
+        };
+      }
+      return mockMetrics;
+    } catch (error) {
+      console.error('🚨 [AutomationRules] Error processing metrics data:', error);
+      return mockMetrics;
+    }
+  }, [metricsData]);
+
+  // Validação robusta para evitar erros de includes e undefined
+  const safeRules = useMemo(() => {
+    if (!Array.isArray(rules)) {
+      console.warn('🚨 [AutomationRules] Rules is not an array:', rules);
+      return [];
+    }
+    
+    return rules.filter(rule => rule && typeof rule === 'object').map(rule => ({
+      ...rule,
+      name: (rule?.name && typeof rule.name === 'string') ? rule.name : 'Nome não disponível',
+      description: (rule?.description && typeof rule.description === 'string') ? rule.description : 'Descrição não disponível',
+      enabled: Boolean(rule?.enabled),
+      priority: (typeof rule?.priority === 'number' && rule.priority > 0) ? rule.priority : 1,
+      conditionsCount: (typeof rule?.conditionsCount === 'number' && rule.conditionsCount >= 0) ? rule.conditionsCount : 0,
+      actionsCount: (typeof rule?.actionsCount === 'number' && rule.actionsCount >= 0) ? rule.actionsCount : 0,
+      id: (rule?.id && typeof rule.id === 'string') ? rule.id : `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    }));
+  }, [rules]);
 
   // Early return se houver erro crítico
   if (loadingError || rulesError) {
@@ -630,35 +663,46 @@ export default function AutomationRules() {
             <div className="space-y-4">
               {safeRules.length > 0 && safeRules.map((rule: any) => {
                 // Validação robusta para cada regra
-                if (!rule || typeof rule !== 'object') {
+                if (!rule || typeof rule !== 'object' || !rule.id) {
                   console.warn('🚨 [AutomationRules] Invalid rule object:', rule);
                   return null;
                 }
+
+                // Validação adicional para propriedades críticas
+                const safeRule = {
+                  ...rule,
+                  name: (typeof rule.name === 'string') ? rule.name : 'Nome não disponível',
+                  description: (typeof rule.description === 'string') ? rule.description : 'Descrição não disponível',
+                  enabled: Boolean(rule.enabled),
+                  priority: (typeof rule.priority === 'number') ? rule.priority : 1,
+                  conditionsCount: (typeof rule.conditionsCount === 'number') ? rule.conditionsCount : 0,
+                  actionsCount: (typeof rule.actionsCount === 'number') ? rule.actionsCount : 0
+                };
                 
                 return (
-                  <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={safeRule.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
-                        {rule.enabled ? (
+                        {safeRule.enabled ? (
                           <Play className="h-4 w-4 text-green-600" />
                         ) : (
                           <Pause className="h-4 w-4 text-gray-400" />
                         )}
                         <div>
-                          <p className="font-medium">{rule.name}</p>
-                          <p className="text-sm text-muted-foreground">{rule.description}</p>
+                          <p className="font-medium">{safeRule.name}</p>
+                          <p className="text-sm text-muted-foreground">{safeRule.description}</p>
                           <div className="flex items-center space-x-2 mt-1">
                             <Badge variant="outline" className="text-xs">
-                              Prioridade {rule.priority}
+                              Prioridade {safeRule.priority}
                             </Badge>
                             <Badge variant="outline" className="text-xs">
-                              {rule.conditionsCount} condições
+                              {safeRule.conditionsCount} condições
                             </Badge>
                             <Badge variant="outline" className="text-xs">
-                              {rule.actionsCount} ações
+                              {safeRule.actionsCount} ações
                             </Badge>
-                            <Badge variant={rule.enabled ? 'default' : 'secondary'} className="text-xs">
-                              {rule.enabled ? 'Ativa' : 'Inativa'}
+                            <Badge variant={safeRule.enabled ? 'default' : 'secondary'} className="text-xs">
+                              {safeRule.enabled ? 'Ativa' : 'Inativa'}
                             </Badge>
                           </div>
                         </div>
@@ -670,7 +714,7 @@ export default function AutomationRules() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setSelectedRule(rule);
+                        setSelectedRule(safeRule);
                         setTestData('{"message": "teste suporte", "sender": "João", "hour": 14}');
                       }}
                     >
@@ -680,7 +724,7 @@ export default function AutomationRules() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => deleteRuleMutation.mutate(rule.id)}
+                      onClick={() => deleteRuleMutation.mutate(safeRule.id)}
                       disabled={deleteRuleMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />

@@ -41,17 +41,29 @@ router.get('/', async (req: any, res) => {
     const responseTime = Date.now() - startTime;
     console.log(`✅ [AUTOMATION-RULES] Successfully retrieved ${rules.length} rules for tenant: ${tenantId} (${responseTime}ms)`);
 
-    const mappedRules = rules.map(rule => ({
-      id: rule?.id || `temp-${Date.now()}-${Math.random()}`,
-      name: rule?.name || 'Nome não disponível',
-      description: rule?.description || 'Descrição não disponível',
-      enabled: Boolean(rule?.enabled),
-      priority: Number(rule?.priority) || 1,
-      conditionsCount: Array.isArray(rule?.conditions) ? rule.conditions.length : 0,
-      actionsCount: Array.isArray(rule?.actions) ? rule.actions.length : 0,
-      createdAt: rule?.createdAt || new Date().toISOString(),
-      updatedAt: rule?.updatedAt || new Date().toISOString()
-    }));
+    const mappedRules = rules.filter(rule => rule && typeof rule === 'object').map(rule => {
+      // Validação robusta de cada campo
+      const safeRule = {
+        id: (rule?.id && typeof rule.id === 'string') ? rule.id : `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: (rule?.name && typeof rule.name === 'string') ? rule.name : 'Nome não disponível',
+        description: (rule?.description && typeof rule.description === 'string') ? rule.description : 'Descrição não disponível',
+        enabled: Boolean(rule?.enabled),
+        priority: (typeof rule?.priority === 'number' && rule.priority > 0) ? rule.priority : 1,
+        conditionsCount: Array.isArray(rule?.conditions) ? rule.conditions.length : 0,
+        actionsCount: Array.isArray(rule?.actions) ? rule.actions.length : 0,
+        createdAt: (rule?.createdAt && typeof rule.createdAt === 'string') ? rule.createdAt : new Date().toISOString(),
+        updatedAt: (rule?.updatedAt && typeof rule.updatedAt === 'string') ? rule.updatedAt : new Date().toISOString()
+      };
+
+      console.log(`🔍 [AUTOMATION-RULES] Mapped rule ${safeRule.id}:`, {
+        name: safeRule.name,
+        enabled: safeRule.enabled,
+        conditions: safeRule.conditionsCount,
+        actions: safeRule.actionsCount
+      });
+
+      return safeRule;
+    });
 
     const response = {
       success: true,
