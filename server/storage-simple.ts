@@ -1416,12 +1416,12 @@ export class DatabaseStorage implements IStorage {
       `);
 
       console.log(`📊 [STORAGE] Found ${result.rows.length} integrations for tenant: ${validatedTenantId}`);
-      
+
       // If no integrations are found, create default ones
       if (!result.rows || result.rows.length === 0) {
         console.log(`🔧 No integrations found for tenant ${validatedTenantId}, creating defaults.`);
         await this.createDefaultIntegrations(validatedTenantId);
-        
+
         // Re-fetch after creation
         const newResult = await tenantDb.execute(sql`
           SELECT * FROM ${sql.identifier(schemaName)}.integrations
@@ -1438,7 +1438,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  
+
 
 
   async getTenantIntegrationConfig(tenantId: string, integrationId: string): Promise<any | undefined> {
@@ -1479,7 +1479,7 @@ export class DatabaseStorage implements IStorage {
         console.log(`❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`);
         // ✅ CRITICAL FIX: Create default integrations if table doesn't exist
         await this.createDefaultIntegrations(validatedTenantId);
-        
+
         // After creating, check if the specific integration exists
         const retryResult = await tenantDb.execute(sql`
           SELECT id, name, description, category, icon, status, config, features, created_at, updated_at, configured
@@ -1487,7 +1487,7 @@ export class DatabaseStorage implements IStorage {
           WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
           LIMIT 1
         `);
-        
+
         if (retryResult.rows && retryResult.rows.length > 0) {
           const integration = retryResult.rows[0];
           let parsedConfig = integration.config;
@@ -1512,7 +1512,7 @@ export class DatabaseStorage implements IStorage {
             updated_at: integration.updated_at
           };
         }
-        
+
         return { configured: false, config: {} };
       }
 
@@ -1877,9 +1877,9 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.beneficiary_customer_relationships
-        (beneficiary_id, customer_id, created_at, updated_at)
-        VALUES (${beneficiaryId}, ${customerId}, NOW(), NOW())
+        INSERT INTO ${sql.identifier(schemaName)}.beneficiary_customer_relationships (
+          beneficiary_id, customer_id, created_at, updated_at
+        ) VALUES (${beneficiaryId}, ${customerId}, NOW(), NOW())
         ON CONFLICT (beneficiary_id, customer_id) DO NOTHING
         RETURNING *
       `);

@@ -137,16 +137,17 @@ export default function OmniBridge() {
         setLoading(true);
         
         // Fetch channels from integrations API (Workspace Admin → Integrações → Comunicação)
+        const token = localStorage.getItem('token');
         const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
           }
         });
         
         const inboxResponse = await fetch('/api/omnibridge/messages', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
           }
         });
@@ -309,10 +310,11 @@ export default function OmniBridge() {
   const handleChannelToggle = async (channelId: string, enabled: boolean) => {
     try {
       // Use the integrations endpoint to toggle channel status
+      const token = localStorage.getItem('token');
       const response = await fetch(`/api/tenant-admin-integration/integrations/${channelId}/toggle`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ enabled })

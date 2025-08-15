@@ -1991,6 +1991,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Project routes temporarily removed due to syntax issues
 
+  // Channel toggle endpoint for OmniBridge
+  app.put('/api/tenant-admin-integration/integrations/:channelId/toggle', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { channelId } = req.params;
+      const { enabled } = req.body;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ 
+          message: "Tenant ID required for integration toggle" 
+        });
+      }
+
+      console.log(`🔄 [CHANNEL-TOGGLE] Toggling channel ${channelId} to ${enabled} for tenant: ${tenantId}`);
+
+      const { storage } = await import('./storage-simple');
+
+      // Update integration status
+      await storage.updateTenantIntegrationStatus(tenantId, channelId, enabled ? 'connected' : 'disconnected');
+
+      res.json({
+        success: true,
+        message: `Canal ${enabled ? 'ativado' : 'desativado'} com sucesso`,
+        channelId,
+        enabled
+      });
+
+    } catch (error) {
+      console.error('❌ [CHANNEL-TOGGLE] Error toggling channel:', error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao alterar status do canal"
+      });
+    }
+  });
+
   // Tenant Admin Integrations API Route - Primary endpoint for OmniBridge
   app.get('/api/tenant-admin-integration/integrations', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
