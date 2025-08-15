@@ -43,6 +43,29 @@ export class ItemController {
 
   async getItems(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('🔍 [ItemController] Getting items for user:', req.user?.id, 'tenant:', req.user?.tenantId);
+
+      // ✅ Enhanced authentication validation per 1qa.md compliance
+      if (!req.user) {
+        console.error('❌ [ItemController] No user context found in request');
+        res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+          needsRefresh: true
+        });
+        return;
+      }
+
+      if (!req.user.tenantId) {
+        console.error('❌ [ItemController] No tenant ID found for user:', req.user.id);
+        res.status(403).json({
+          success: false,
+          message: 'Tenant access required for materials-services operations',
+          code: 'MISSING_TENANT_ACCESS'
+        });
+        return;
+      }
+
       const tenantId = req.user?.tenantId;
       console.log(`[ItemController] Getting items for tenant: ${tenantId}`);
       console.log(`[ItemController] User data:`, {
@@ -114,7 +137,7 @@ export class ItemController {
       // Add companyId filter
       if (companyId && companyId !== 'all') {
         whereConditions.push(`EXISTS (
-            SELECT 1 FROM "${schemaName}".customer_item_mappings cim 
+            SELECT 1 FROM "${schemaName}".customer_item_mappings cim
             WHERE cim.item_id = i.id AND cim.customer_id = $${paramIndex} AND cim.is_active = true
         )`);
         queryParams.push(companyId);

@@ -52,10 +52,13 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const userRepository = container.userRepository;
     
     // ✅ CRITICAL FIX - Handle different payload structures per 1qa.md compliance
-    const userId = payload.userId || payload.sub;
+    const userId = payload.userId || payload.sub || payload.id;
     if (!userId) {
-      console.error('No userId found in token payload:', payload);
-      return res.status(401).json({ message: 'Invalid token payload' });
+      console.error('❌ [JWT-AUTH] No userId found in token payload:', payload);
+      return res.status(401).json({ 
+        message: 'Invalid token payload',
+        needsRefresh: true 
+      });
     }
     
     const user = await userRepository.findById(userId);
@@ -88,9 +91,14 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       hasCustomerAccess: Array.isArray(permissions) ? permissions.some(p => typeof p === 'string' && p.includes('customer')) : false
     };
 
-    // Log successful authentication for parts-services endpoints
+    // Log successful authentication for materials-services endpoints per 1qa.md compliance
+    if (req.path.includes('/materials-services')) {
+      console.log(`✅ [AUTH] Materials-Services access granted for user: ${req.user.id}, tenant: ${req.user.tenantId}`);
+    }
+    
+    // Log successful authentication for parts-services endpoints (legacy)
     if (req.path.includes('/parts-services')) {
-      console.log(`[AUTH] Parts-Services access granted for tenant: ${req.user.tenantId}`);
+      console.log(`✅ [AUTH] Parts-Services access granted for tenant: ${req.user.tenantId}`);
     }
 
     // Debug: Token payload and user authentication (production mode disabled)

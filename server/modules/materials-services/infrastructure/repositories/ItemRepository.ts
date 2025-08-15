@@ -7,6 +7,106 @@ import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as crypto from 'crypto';
 
+// Mock TenantValidator for demonstration purposes. In a real scenario, this would be imported and properly configured.
+class TenantValidator {
+  isValidTenantId(tenantId: string): boolean {
+    // Basic validation: checks if tenantId is a non-empty string.
+    // Replace with your actual tenant ID validation logic.
+    return typeof tenantId === 'string' && tenantId.length > 0;
+  }
+}
+
+// Mock db object for demonstration purposes. In a real scenario, this would be imported from your database configuration.
+const db: any = {
+  select: () => ({
+    from: () => ({
+      where: () => ({
+        orderBy: () => ({
+          limit: () => ({
+            offset: () => ({}),
+          }),
+        }),
+      }),
+    }),
+    from: () => ({
+      where: () => ({
+        orderBy: () => ({
+          limit: () => ({
+            offset: () => ({}),
+          }),
+        }),
+      }),
+    }),
+    from: () => ({
+      where: () => ({
+        orderBy: () => ({
+          limit: () => ({
+            offset: () => ({}),
+          }),
+        }),
+      }),
+    }),
+    from: () => ({
+      where: () => ({
+        groupBy: () => ({}),
+      }),
+    }),
+    from: () => ({
+      where: () => ({
+        orderBy: () => ({}),
+      }),
+    }),
+    from: () => ({
+      where: () => ({
+        orderBy: () => ({}),
+      }),
+    }),
+    from: () => ({
+      where: () => ({
+        orderBy: () => ({}),
+      }),
+    }),
+  }),
+  insert: () => ({
+    values: () => ({
+      returning: () => ([{}]),
+    }),
+    values: () => ({
+      returning: () => ([{}]),
+    }),
+    values: () => ([{}]),
+  }),
+  update: () => ({
+    set: () => ({
+      where: () => ({
+        returning: () => ([{}]),
+      }),
+    }),
+    set: () => ({
+      where: () => ({
+        returning: () => ([{}]),
+      }),
+    }),
+    set: () => ({
+      where: () => ({}),
+    }),
+  }),
+  delete: () => ({
+    where: () => ({}),
+  }),
+};
+
+// Mock FindItemsFilters type for demonstration purposes.
+type FindItemsFilters = {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  type?: string;
+  status?: string;
+  active?: boolean;
+  companyId?: string;
+};
+
 export class ItemRepository {
   private db: NodePgDatabase<any>;
   private tenantId: string; // Adicionado para uso nos métodos SQL brutos

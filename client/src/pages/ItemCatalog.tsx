@@ -194,7 +194,7 @@ export default function ItemCatalog() {
   }, [searchTerm, typeFilter, statusFilter, hierarchyFilter]);
 
 
-  // Fetch items
+  // Fetch items with enhanced authentication handling per 1qa.md compliance
   const fetchItems = async () => {
     try {
       console.log('🔍 [ItemCatalog] Starting to fetch items...');
@@ -215,9 +215,18 @@ export default function ItemCatalog() {
       const url = `/api/materials-services/items${params.toString() ? `?${params}` : ''}`;
       console.log('🔍 [ItemCatalog] Fetching from URL:', url);
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
+      // ✅ CRITICAL FIX - Use correct token key per 1qa.md compliance
+      const token = localStorage.getItem('accessToken');
+      if (!token || token === 'null' || token === 'undefined') {
+        console.error('❌ [ItemCatalog] No valid authentication token found');
+        toast({
+          title: "Sessão expirada",
+          description: "Por favor, faça login novamente.",
+          variant: "destructive"
+        });
+        // Redirect to login
+        window.location.href = '/auth';
+        return;
       }
 
       const response = await fetch(url, {
@@ -228,6 +237,76 @@ export default function ItemCatalog() {
       });
 
       console.log('🔍 [ItemCatalog] Response status:', response.status);
+
+      // ✅ CRITICAL FIX - Handle 401/403 responses with token refresh per 1qa.md
+      if (response.status === 401 || response.status === 403) {
+        console.log('🔄 [ItemCatalog] Token expired, attempting refresh...');
+        
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+          console.error('❌ [ItemCatalog] No refresh token available');
+          toast({
+            title: "Sessão expirada",
+            description: "Por favor, faça login novamente.",
+            variant: "destructive"
+          });
+          window.location.href = '/auth';
+          return;
+        }
+
+        try {
+          const refreshResponse = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refreshToken }),
+          });
+
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            
+            // ✅ CRITICAL FIX - Handle backend response structure per 1qa.md compliance
+            if (refreshData.success && refreshData.data?.tokens) {
+              const { accessToken, refreshToken: newRefreshToken } = refreshData.data.tokens;
+              localStorage.setItem('accessToken', accessToken);
+              if (newRefreshToken) {
+                localStorage.setItem('refreshToken', newRefreshToken);
+              }
+              
+              // Retry the original request with new token
+              const retryResponse = await fetch(url, {
+                headers: {
+                  'Authorization': `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              
+              if (retryResponse.ok) {
+                const data = await retryResponse.json();
+                if (data.success && Array.isArray(data.data)) {
+                  setItems(data.data);
+                  console.log('✅ [ItemCatalog] Successfully loaded after token refresh:', data.data.length, 'items');
+                  return;
+                }
+              }
+            }
+          }
+        } catch (refreshError) {
+          console.error('❌ [ItemCatalog] Token refresh failed:', refreshError);
+        }
+        
+        // If refresh failed, redirect to login
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        toast({
+          title: "Sessão expirada",
+          description: "Por favor, faça login novamente.",
+          variant: "destructive"
+        });
+        window.location.href = '/auth';
+        return;
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -258,11 +337,20 @@ export default function ItemCatalog() {
       console.error('❌ [ItemCatalog] Error fetching items:', error);
       setItems([]);
 
-      // Show user-friendly error message
-      if (error.message.includes('authentication')) {
-        alert('Sessão expirada. Por favor, faça login novamente.');
+      // ✅ Enhanced error handling per 1qa.md compliance
+      if (error.message.includes('authentication') || error.message.includes('401') || error.message.includes('403')) {
+        toast({
+          title: "Sessão expirada",
+          description: "Por favor, faça login novamente.",
+          variant: "destructive"
+        });
+        window.location.href = '/auth';
       } else {
-        alert('Erro ao carregar itens do catálogo. Tente novamente.');
+        toast({
+          title: "Erro no catálogo",
+          description: "Erro ao carregar itens do catálogo. Tente novamente.",
+          variant: "destructive"
+        });
       }
     } finally {
       setLoading(false);
