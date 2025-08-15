@@ -336,9 +336,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ Priority 7: Materials-Services routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [MATERIALS-SERVICES-CLEAN-ARCH] Initializing Materials-Services Clean Architecture routes...');
-  const materialsServicesRoutes = (await import('./modules/materials-services/routes')).default;
-  app.use('/api/materials-services', materialsServicesRoutes);
+  const materialsServicesRoutes = await import('./modules/materials-services/routes');
+  app.use('/api/materials-services', materialsServicesRoutes.default);
   console.log('✅ [MATERIALS-SERVICES-CLEAN-ARCH] Materials-Services Clean Architecture routes configured successfully');
+
+  // OmniBridge Routes - Communication Hub
+  const omniBridgeRoutes = await import('./modules/omnibridge/routes');
+  app.use('/api/omnibridge', omniBridgeRoutes.default);
 
   // ✅ Priority 8: Locations routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [LOCATIONS-CLEAN-ARCH] Locations routes temporarily disabled for Clean Architecture fix');

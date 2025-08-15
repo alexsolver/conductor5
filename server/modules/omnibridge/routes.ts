@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { OmniBridgeController } from './application/controllers/OmniBridgeController';
 import { GetChannelsUseCase } from './application/use-cases/GetChannelsUseCase';

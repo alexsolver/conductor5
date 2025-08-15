@@ -168,78 +168,64 @@ export default function OmniBridge() {
       try {
         setLoading(true);
 
-        // Fetch channels from integrations API (Workspace Admin → Integrações → Comunicação)
         const token = localStorage.getItem('token');
-        const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
+
+        // Fetch channels from OmniBridge API (now synced with integrations)
+        const channelsResponse = await fetch('/api/omnibridge/channels', {
           headers: {
             'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
           }
         });
 
-        const inboxResponse = await fetch('/api/omnibridge/messages', {
+        const messagesResponse = await fetch('/api/omnibridge/messages', {
           headers: {
             'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
           }
         });
 
-        let integrationsResult = null;
-      if (integrationsResponse.ok) {
-        integrationsResult = await integrationsResponse.json();
-        console.log('🔍 [OmniBridge] API Response for integrations:', integrationsResult);
-      } else {
-        console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
-      }
+        let channelsData = [];
+        let messagesData = [];
 
-      let inboxResult = null;
-      if (inboxResponse.ok) {
-        inboxResult = await inboxResponse.json();
-        console.log('🔍 [OmniBridge] API Response for inbox:', inboxResult);
-      } else {
-        console.log('⚠️ [OmniBridge] Failed to fetch inbox, status:', inboxResponse.status);
-      }
+        if (channelsResponse.ok) {
+          const channelsResult = await channelsResponse.json();
+          console.log('🔍 [OmniBridge] Channels API Response:', channelsResult);
 
-      let channelsData = [];
-      let messagesData = [];
-
-      if (integrationsResult && integrationsResult.success) {
-        console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data?.length || 0, 'total');
-
-        if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
-          // Filter only communication category integrations
-          const communicationChannels = integrationsResult.data.filter((integration: any) => {
-            const category = integration.category?.toLowerCase() || '';
-            return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
-          });
-          
-          console.log('🔍 [OmniBridge] Filtered communication channels:', communicationChannels.length, 'channels');
-
-          channelsData = communicationChannels.map((integration: any) => ({
-            id: integration.id,
-            name: integration.name,
-            type: getChannelType(integration.id),
-            enabled: integration.status === 'connected' || integration.enabled === true,
-            icon: getChannelIcon(integration.id),
-            description: integration.description || 'Canal de comunicação',
-            status: integration.status || 'disconnected',
-            messageCount: 0,
-            lastMessage: integration.status === 'connected' ? 'Configurado' : 'Aguardando configuração',
-            lastActivity: integration.status === 'connected' ? 'Ativo' : 'Nunca',
-            features: integration.features || []
-          }));
+          if (channelsResult.success && channelsResult.channels) {
+            channelsData = channelsResult.channels.map((channel: any) => ({
+              id: channel.id,
+              name: channel.name,
+              type: channel.type,
+              enabled: channel.enabled,
+              icon: getChannelIcon(channel.id),
+              description: channel.description,
+              status: channel.status,
+              messageCount: channel.messageCount || 0,
+              lastMessage: channel.lastActivity || 'Nunca',
+              lastActivity: channel.lastActivity || 'Nunca',
+              features: channel.features || [],
+              integration: channel.integration || {}
+            }));
+          }
+        } else {
+          console.log('⚠️ [OmniBridge] Failed to fetch channels, status:', channelsResponse.status);
         }
-      } else {
-        console.log('⚠️ [OmniBridge] No valid integrations response, using fallback');
-      }
+
+        if (messagesResponse.ok) {
+          const messagesResult = await messagesResponse.json();
+          console.log('🔍 [OmniBridge] Messages API Response:', messagesResult);
+          messagesData = messagesResult.messages || [];
+        } else {
+          console.log('⚠️ [OmniBridge] Failed to fetch messages, status:', messagesResponse.status);
+        }
 
         if (channelsData.length === 0) {
-          console.log('⚠️ [OmniBridge] No integrations data available, showing message to configure in Workspace Admin');
-          channelsData = [];
+          console.log('⚠️ [OmniBridge] No channels found, user needs to configure integrations in Workspace Admin');
         }
 
         console.log('🔍 [OmniBridge-DEBUG] Final channels count:', channelsData.length);
-        console.log('🔍 [OmniBridge-DEBUG] Final inbox count:', messagesData.length);
+        console.log('🔍 [OmniBridge-DEBUG] Final messages count:', messagesData.length);
 
         setChannels(channelsData);
         setMessages(messagesData);
@@ -301,9 +287,10 @@ export default function OmniBridge() {
 
   const handleChannelToggle = async (channelId: string, enabled: boolean) => {
     try {
-      // Use the integrations endpoint to toggle channel status
+      console.log(`🔄 [CHANNEL-TOGGLE] ${enabled ? 'Ativando' : 'Desativando'} canal ${channelId}`);
+
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/tenant-admin-integration/integrations/${channelId}/toggle`, {
+      const response = await fetch(`/api/omnibridge/channels/${channelId}/toggle`, {
         method: 'PUT',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
@@ -312,7 +299,9 @@ export default function OmniBridge() {
         body: JSON.stringify({ enabled })
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         setChannels(prev => prev.map(channel => 
           channel.id === channelId 
             ? { 
@@ -325,13 +314,36 @@ export default function OmniBridge() {
             : channel
         ));
         
-        // Show success message
-        console.log(`✅ Canal ${channelId} ${enabled ? 'ativado' : 'desativado'} com sucesso`);
+        console.log(`✅ ${result.message}`);
+        
+        // Show success toast if available
+        if (typeof window !== 'undefined' && (window as any).showToast) {
+          (window as any).showToast(result.message, 'success');
+        }
       } else {
-        console.error('Erro ao alterar status do canal:', response.status);
+        console.error('❌ Erro ao alterar status do canal:', result.message);
+        
+        // Show error details if validation failed
+        if (result.errors && result.errors.length > 0) {
+          console.error('Erros de validação:', result.errors);
+        }
+        
+        if (result.recommendations && result.recommendations.length > 0) {
+          console.log('Recomendações:', result.recommendations);
+        }
+        
+        // Show error toast if available
+        if (typeof window !== 'undefined' && (window as any).showToast) {
+          (window as any).showToast(result.message || 'Erro ao alterar status do canal', 'error');
+        }
       }
     } catch (error) {
-      console.error('Error toggling channel:', error);
+      console.error('❌ [CHANNEL-TOGGLE] Erro na requisição:', error);
+      
+      // Show error toast if available
+      if (typeof window !== 'undefined' && (window as any).showToast) {
+        (window as any).showToast('Erro de conectividade', 'error');
+      }
     }
   };
 
