@@ -280,15 +280,15 @@ export default function OmniBridge() {
         }
 
         if (inboxResult && inboxResult.success) {
-          messagesData = inboxResult.data.map((msg: any) => ({
+          messagesData = inboxResult.messages.map((msg: any) => ({
             id: msg.id,
             channelId: msg.channelId,
             channelType: msg.channelType,
             from: msg.from,
             to: msg.to,
             subject: msg.subject,
-            content: msg.content,
-            timestamp: new Date(msg.timestamp).toLocaleString(),
+            content: msg.body || msg.content,
+            timestamp: new Date(msg.receivedAt || msg.timestamp || msg.createdAt).toLocaleString(),
             status: msg.status,
             priority: msg.priority,
             tags: msg.tags,
