@@ -42,7 +42,6 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
           END as related_ticket_id
         FROM "${schemaName}".ticket_relationships tr
         WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1)
-          AND tr.is_active = true
         ORDER BY tr.created_at DESC
       `, [ticketId]);
 
@@ -56,7 +55,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
             const ticketResult = await pool.query(`
               SELECT id, number, subject, status, priority, category, updated_at
               FROM "${schemaName}".tickets 
-              WHERE id = $1 AND is_active = true
+              WHERE id = $1
             `, [relatedTicketId]);
 
             const relatedTicket = ticketResult.rows[0];
@@ -149,8 +148,8 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
       const relationshipId = uuidv4();
       const result = await pool.query(`
         INSERT INTO "${schemaName}".ticket_relationships 
-        (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), true)
+        (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         RETURNING *
       `, [
         relationshipId,
