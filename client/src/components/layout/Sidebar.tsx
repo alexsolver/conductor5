@@ -107,6 +107,7 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Regras de Automação", href: "/automation-rules", icon: Bot },
 
   { name: "Compliance", href: "/compliance", icon: Shield },
   {
