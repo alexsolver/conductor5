@@ -1,16 +1,18 @@
 
 import { Router } from 'express';
-import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
+import { jwtAuth } from '../middleware/jwtAuth';
 import { GlobalAutomationManager } from '../modules/omnibridge/infrastructure/services/AutomationEngine';
 import { AutomationRule, AutomationCondition, AutomationAction } from '../modules/omnibridge/domain/entities/AutomationRule';
-import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
+
+// Aplicar middleware de autenticação
+router.use(jwtAuth);
 
 /**
  * Obter todas as regras de automação do tenant
  */
-router.get('/', async (req: AuthenticatedRequest, res) => {
+router.get('/', async (req: any, res) => {
   try {
     const tenantId = req.user?.tenantId;
 
@@ -54,7 +56,7 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
 /**
  * Obter regra específica com detalhes completos
  */
-router.get('/:ruleId', async (req: AuthenticatedRequest, res) => {
+router.get('/:ruleId', async (req: any, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const { ruleId } = req.params;
@@ -103,7 +105,7 @@ router.get('/:ruleId', async (req: AuthenticatedRequest, res) => {
 /**
  * Criar nova regra de automação
  */
-router.post('/', async (req: AuthenticatedRequest, res) => {
+router.post('/', async (req: any, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const { name, description, conditions, actions, enabled = true, priority = 1 } = req.body;
@@ -115,18 +117,17 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    if (!name || !conditions || !actions) {
+    // Validações básicas
+    if (!name || !conditions || !actions || conditions.length === 0 || actions.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'Name, conditions, and actions are required'
       });
     }
 
-    const ruleId = uuidv4();
-    const automationManager = GlobalAutomationManager.getInstance();
-    const engine = automationManager.getEngine(tenantId);
-
-    const newRule = new AutomationRule(
+    const ruleId = `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const rule = new AutomationRule(
       ruleId,
       tenantId,
       name,
@@ -137,24 +138,25 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
       priority
     );
 
-    engine.addRule(newRule);
+    const automationManager = GlobalAutomationManager.getInstance();
+    const engine = automationManager.getEngine(tenantId);
+    engine.addRule(rule);
 
     console.log(`✅ [AUTOMATION-RULES] Created rule: ${name} (${ruleId}) for tenant: ${tenantId}`);
 
     res.status(201).json({
       success: true,
+      message: 'Automation rule created successfully',
       rule: {
-        id: newRule.id,
-        name: newRule.name,
-        description: newRule.description,
-        conditions: newRule.conditions,
-        actions: newRule.actions,
-        enabled: newRule.enabled,
-        priority: newRule.priority,
-        createdAt: newRule.createdAt,
-        updatedAt: newRule.updatedAt
-      },
-      message: 'Automation rule created successfully'
+        id: rule.id,
+        name: rule.name,
+        description: rule.description,
+        enabled: rule.enabled,
+        priority: rule.priority,
+        conditionsCount: rule.conditions.length,
+        actionsCount: rule.actions.length,
+        createdAt: rule.createdAt
+      }
     });
   } catch (error) {
     console.error('❌ [AUTOMATION-RULES] Error creating rule:', error);
@@ -168,7 +170,7 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
 /**
  * Deletar regra de automação
  */
-router.delete('/:ruleId', async (req: AuthenticatedRequest, res) => {
+router.delete('/:ruleId', async (req: any, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const { ruleId } = req.params;
@@ -207,9 +209,44 @@ router.delete('/:ruleId', async (req: AuthenticatedRequest, res) => {
 });
 
 /**
+ * Obter métricas de automação
+ */
+router.get('/metrics/overview', async (req: any, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant ID not found'
+      });
+    }
+
+    const automationManager = GlobalAutomationManager.getInstance();
+    const engine = automationManager.getEngine(tenantId);
+    const metrics = engine.getMetrics();
+
+    res.json({
+      success: true,
+      metrics: {
+        ...metrics,
+        rulesCount: engine.getRules().length,
+        enabledRulesCount: engine.getRules().filter(r => r.enabled).length
+      }
+    });
+  } catch (error) {
+    console.error('❌ [AUTOMATION-RULES] Error fetching metrics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch automation metrics'
+    });
+  }
+});
+
+/**
  * Testar regra com dados simulados
  */
-router.post('/:ruleId/test', async (req: AuthenticatedRequest, res) => {
+router.post('/:ruleId/test', async (req: any, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const { ruleId } = req.params;
@@ -252,41 +289,6 @@ router.post('/:ruleId/test', async (req: AuthenticatedRequest, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to test automation rule'
-    });
-  }
-});
-
-/**
- * Obter métricas de automação
- */
-router.get('/metrics/overview', async (req: AuthenticatedRequest, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-
-    if (!tenantId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Tenant ID not found'
-      });
-    }
-
-    const automationManager = GlobalAutomationManager.getInstance();
-    const engine = automationManager.getEngine(tenantId);
-    const metrics = engine.getMetrics();
-
-    res.json({
-      success: true,
-      metrics: {
-        ...metrics,
-        rulesCount: engine.getRules().length,
-        enabledRulesCount: engine.getRules().filter(r => r.enabled).length
-      }
-    });
-  } catch (error) {
-    console.error('❌ [AUTOMATION-RULES] Error fetching metrics:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch automation metrics'
     });
   }
 });

@@ -48,17 +48,8 @@ import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import ticketFieldOptionsRoutes from './routes/ticketFieldOptions';
 import { slaController } from './modules/tickets/SlaController';
 // ✅ LEGACY NON-CLEAN routes eliminated per 1qa.md
-  import { TicketViewsController } from './controllers/TicketViewsController';
-  // Hierarchical ticket metadata import - loaded dynamically below
-
-  // Import automation routes
-  import automationRulesRoutes from './routes/automationRules';
-// ✅ LEGACY NON-CLEAN routes eliminated per 1qa.md
-  import { TicketViewsController } from './controllers/TicketViewsController';
-  // Hierarchical ticket metadata import - loaded dynamically below
-
-  // Import automation routes
-  import automationRulesRoutes from './routes/automationRules';
+import { TicketViewsController } from './controllers/TicketViewsController';
+// Hierarchical ticket metadata import - loaded dynamically below
 
 // Import uuid for note ID generation
 import { v4 as uuidv4 } from 'uuid';
@@ -298,19 +289,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
-
+  
   // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
   const authRoutes = (await import('./modules/auth/routes-clean')).default;
   app.use('/api/auth', authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
-
+  
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
   const ticketsRoutes = (await import('./modules/tickets/routes')).default;
   app.use('/api/tickets', ticketsRoutes);
   console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
-
+  
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');
   app.use('/api/beneficiaries', beneficiariesRoutes);
@@ -1717,10 +1708,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Removed: Multi-tenant routes - functionality eliminated from system
 
-  // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
-  // ✅ LEGACY technical-skills eliminated per 1qa.md
+  // ✅ LEGACY Technical Skills routes eliminated per 1qa.md
 
-  // Advanced ticket configuration routes
+// Advanced ticket configuration routes
   // CustomFields routes - Universal metadata and dynamic fields system
   // ✅ LEGACY customFieldsRoutes eliminated per 1qa.md
 
@@ -2213,9 +2203,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Timecard routes - Registro de Ponto  
   app.use('/api/timecard', jwtAuth, timecardRoutes);
 
-  // Automation Rules Routes
-  app.use('/api/automation-rules', automationRulesRoutes);
-
   // Timecard Approval Routes
   const timecardApprovalController = new TimecardApprovalController();
 
@@ -2583,7 +2570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log(`✅ [COMPANY-GET] Company found:`, formattedCompany.name);
-
+      
       res.json({
         success: true,
         data: formattedCompany
@@ -3036,7 +3023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // All project management functionality has been eliminated from the system
   // ========================================
 
-  // TICKET HISTORYROUTES - DIRECT INTEGRATION FOR REAL DATA
+  // TICKET HISTORY ROUTES - DIRECT INTEGRATION FOR REAL DATA
   app.get('/api/ticket-history/tickets/:ticketId/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { ticketId } = req.params;

@@ -8,14 +8,14 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useEmploymentDetection } from "@/hooks/useEmploymentDetection";
 import { useState } from "react";
-import {
-  BarChart3,
-  Users,
-  Ticket,
-  Bot,
-  BookOpen,
-  Plug,
-  Settings,
+import { 
+  BarChart3, 
+  Users, 
+  Ticket, 
+  Bot, 
+  BookOpen, 
+  Plug, 
+  Settings, 
   HelpCircle,
   ChevronDown,
   ChevronRight,
@@ -123,9 +123,9 @@ const baseNavigation: Array<{
 
 // Admin navigation with hierarchical structure
 const adminNavigation = [
-  {
-    name: "SaaS Admin",
-    icon: Shield,
+  { 
+    name: "SaaS Admin", 
+    icon: Shield, 
     roles: ['saas_admin'],
     children: [
       { name: "Dashboard", href: "/saas-admin", icon: BarChart3 },
@@ -143,9 +143,9 @@ const adminNavigation = [
       { name: "Multilocation Settings", href: "/tenant-admin/multilocation", icon: Globe2 },
     ]
   },
-  {
-    name: "Workspace Admin",
-    icon: Settings,
+  { 
+    name: "Workspace Admin", 
+    icon: Settings, 
     roles: ['saas_admin', 'tenant_admin'],
     children: [
       { name: "Geral", href: "/tenant-admin/geral", icon: BarChart3 },
@@ -209,7 +209,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     if (item.name === "Tickets" && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
-
+    
     // Update timecard section based on employment type
     if (item.name === "Controle de Jornadas") {
       const timecardRoute = employmentType === 'autonomo' ? '/timecard-autonomous' : '/timecard';
@@ -217,35 +217,35 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         ...item,
         name: employmentType === 'autonomo' ? 'Controle de Jornada' : 'Controle de Jornadas',
         children: [
-          {
-            name: terminology.recordLabel,
-            href: timecardRoute,
-            icon: Clock
+          { 
+            name: terminology.recordLabel, 
+            href: timecardRoute, 
+            icon: Clock 
           },
           { name: "Escalas de Trabalho", href: "/work-schedules", icon: Calendar },
-          {
-            name: terminology.timeControlLabel,
-            href: "/hour-bank",
-            icon: CreditCard
+          { 
+            name: terminology.timeControlLabel, 
+            href: "/hour-bank", 
+            icon: CreditCard 
           },
           { name: "Calendário de Feriados", href: "/holiday-calendar", icon: Calendar },
-          {
-            name: terminology.reportLabel,
-            href: "/timecard-reports",
-            icon: FileText
+          { 
+            name: terminology.reportLabel, 
+            href: "/timecard-reports", 
+            icon: FileText 
           },
           { name: "CLT Compliance", href: "/clt-compliance", icon: Shield },
-          {
-            name: terminology.approvalLabel,
-            href: "/timecard-approvals",
-            icon: CheckCircle
+          { 
+            name: terminology.approvalLabel, 
+            href: "/timecard-approvals", 
+            icon: CheckCircle 
           },
           { name: "Configuração de Aprovações", href: "/timecard-approval-settings", icon: Settings },
           { name: "Gestão de Ausências", href: "/absence-management", icon: Calendar },
         ]
       };
     }
-
+    
     return item;
   });
 
@@ -282,7 +282,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               </h1>
             )}
           </div>
-
+          
           {/* Toggle Button - Always visible and properly positioned */}
           {!collapsed && (
             <Button
@@ -448,7 +448,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
-                  } : {}}>
+                  } : {}}
+                  title={item.name}>
                     <item.icon className="h-6 w-6 flex-shrink-0" />
                     {item.badge && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -608,7 +609,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
                     isActive
                       ? "text-white shadow-lg"
-                      : "text-white hover:bg-white hover:bg-opacity-10"
+                      : "text-white hover:bg-white hover:bg-opacity-20"
                   )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
@@ -646,8 +647,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       {user?.email}
                     </p>
                     <p className="text-xs text-white text-opacity-70 truncate">
-                      {user?.role === 'saas_admin' ? 'SaaS Admin' :
-                       user?.role === 'tenant_admin' ? 'Admin' :
+                      {user?.role === 'saas_admin' ? 'SaaS Admin' : 
+                       user?.role === 'tenant_admin' ? 'Admin' : 
                        user?.role === 'agent' ? 'Agente' : 'Usuário'}
                     </p>
                   </div>

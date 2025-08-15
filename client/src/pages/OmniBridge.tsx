@@ -46,12 +46,10 @@ import {
   Workflow,
   Hash,
   MessageSquare,
-  RefreshCw,
-  Bot
+  RefreshCw
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import AutomationRules from './AutomationRules';
 
 export default function OmniBridge() {
   const { toast } = useToast();
@@ -260,11 +258,6 @@ export default function OmniBridge() {
     );
   }
 
-  // Componente interno para as regras de automação
-  const AutomationRulesContent = () => {
-    return <AutomationRules />;
-  };
-
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-6">
@@ -280,20 +273,17 @@ export default function OmniBridge() {
           
 
 
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline"
-              onClick={() => {
-                refetchIntegrations();
-                refetchInbox();
-                toast({ title: "Dados atualizados com sucesso" });
-              }}
-              size="sm"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Atualizar
-            </Button>
-          </div>
+          <Button 
+            variant="outline"
+            onClick={() => {
+              refetchIntegrations();
+              refetchInbox();
+              toast({ title: "Dados atualizados com sucesso" });
+            }}
+            size="sm"
+          >
+            Atualizar
+          </Button>
         </div>
       </div>
 
@@ -334,14 +324,12 @@ export default function OmniBridge() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Regras Ativas</p>
-                <p className="text-2xl font-bold">
-                  <span className="animate-pulse">🤖</span> Sistema Pronto
-                </p>
+                <p className="text-2xl font-bold">0</p>
               </div>
               <Workflow className="h-8 w-8 text-purple-600" />
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              automação inteligente
+              processamento automático
             </p>
           </CardContent>
         </Card>
@@ -580,7 +568,24 @@ export default function OmniBridge() {
 
         {/* Regras Tab */}
         <TabsContent value="rules" className="space-y-6">
-          <AutomationRulesContent />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Workflow className="h-5 w-5" />
+                Regras de Processamento
+              </CardTitle>
+              <CardDescription>
+                Configure regras automáticas para processar mensagens recebidas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Workflow className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Sistema de regras não implementado</p>
+                <p className="text-sm text-gray-400 mt-2">Esta funcionalidade será implementada em breve</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Templates Tab */}
