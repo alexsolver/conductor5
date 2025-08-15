@@ -65,14 +65,18 @@ export class AutomationController {
       const ruleData = req.body;
       console.log(`🔧 [AutomationController] Creating rule for tenant: ${tenantId}`, ruleData);
 
-      // Provide default values for required fields
+      // Validate and provide default values for required fields
       const rulePayload = {
-        name: ruleData.name || 'Nova Regra',
-        description: ruleData.description || 'Regra criada automaticamente',
-        isEnabled: ruleData.isEnabled ?? true,
-        triggers: ruleData.triggers || [{ type: 'new_message', conditions: [] }],
-        actions: ruleData.actions || [{ type: 'auto_reply', parameters: {} }],
-        priority: ruleData.priority || 0,
+        name: (ruleData.name && ruleData.name.trim()) || 'Nova Regra',
+        description: (ruleData.description && ruleData.description.trim()) || 'Regra criada automaticamente',
+        isEnabled: typeof ruleData.isEnabled === 'boolean' ? ruleData.isEnabled : true,
+        triggers: Array.isArray(ruleData.triggers) && ruleData.triggers.length > 0 
+          ? ruleData.triggers 
+          : [{ type: 'new_message', conditions: [] }],
+        actions: Array.isArray(ruleData.actions) && ruleData.actions.length > 0 
+          ? ruleData.actions 
+          : [{ type: 'auto_reply', parameters: {} }],
+        priority: typeof ruleData.priority === 'number' ? ruleData.priority : 0,
         tenantId
       };
 

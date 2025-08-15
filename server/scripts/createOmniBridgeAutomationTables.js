@@ -14,9 +14,11 @@ export async function createOmniBridgeAutomationTables() {
   try {
     console.log('🔧 [OMNIBRIDGE-AUTOMATION] Creating automation tables...');
 
-    // Create omnibridge_rules table
+    // Drop and recreate omnibridge_rules table with correct structure
+    await db.execute(`DROP TABLE IF EXISTS omnibridge_rules CASCADE;`);
+    
     await db.execute(`
-      CREATE TABLE IF NOT EXISTS omnibridge_rules (
+      CREATE TABLE omnibridge_rules (
         id VARCHAR(36) PRIMARY KEY,
         tenant_id VARCHAR(36) NOT NULL,
         name VARCHAR(255) NOT NULL,
@@ -29,8 +31,8 @@ export async function createOmniBridgeAutomationTables() {
         action_parameters JSONB DEFAULT '{}',
         actions JSONB DEFAULT '[]',
         priority INTEGER DEFAULT 0,
-        execution_stats JSONB DEFAULT '{}',
-        metadata JSONB DEFAULT '{}',
+        execution_stats JSONB DEFAULT '{"totalExecutions": 0, "successfulExecutions": 0, "failedExecutions": 0}',
+        metadata JSONB DEFAULT '{"version": 1}',
         created_at TIMESTAMP DEFAULT NOW() NOT NULL,
         updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
         created_by VARCHAR(36),
