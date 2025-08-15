@@ -115,6 +115,39 @@ interface Chatbot {
   fallback_to_human: boolean;
 }
 
+// Helper functions for channel mapping
+function getChannelType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
+  if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
+    return 'email';
+  }
+  if (integrationId.includes('whatsapp')) {
+    return 'whatsapp';
+  }
+  if (integrationId.includes('telegram')) {
+    return 'telegram';
+  }
+  if (integrationId.includes('sms') || integrationId.includes('twilio')) {
+    return 'sms';
+  }
+  return 'chat';
+}
+
+function getChannelIcon(integrationId: string) {
+  if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
+    return Mail;
+  }
+  if (integrationId.includes('whatsapp')) {
+    return MessageSquare;
+  }
+  if (integrationId.includes('telegram')) {
+    return MessageCircle;
+  }
+  if (integrationId.includes('sms') || integrationId.includes('twilio')) {
+    return Phone;
+  }
+  return MessageSquare;
+}
+
 export default function OmniBridge() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('inbox');
@@ -174,25 +207,26 @@ export default function OmniBridge() {
         console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data?.length || 0, 'total');
 
         if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
-          // Data from integrations endpoint should already be communication channels
-          const communicationChannels = integrationsResult.data;
-          console.log('🔍 [OmniBridge] Communication channels:', communicationChannels.length, 'channels');
+          // Filter only communication category integrations
+          const communicationChannels = integrationsResult.data.filter((integration: any) => {
+            const category = integration.category?.toLowerCase() || '';
+            return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+          });
+          
+          console.log('🔍 [OmniBridge] Filtered communication channels:', communicationChannels.length, 'channels');
 
           channelsData = communicationChannels.map((integration: any) => ({
             id: integration.id,
             name: integration.name,
-            type: integration.id.includes('email') ? 'email' : 
-                  integration.id.includes('whatsapp') ? 'whatsapp' : 
-                  integration.id.includes('telegram') ? 'telegram' : 'chat',
-            enabled: integration.enabled || false,
-            icon: integration.id.includes('email') ? Mail : 
-                  integration.id.includes('whatsapp') ? MessageSquare : 
-                  integration.id.includes('telegram') ? MessageCircle : Phone,
-            description: integration.description,
-            status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
+            type: getChannelType(integration.id),
+            enabled: integration.status === 'connected' || integration.enabled === true,
+            icon: getChannelIcon(integration.id),
+            description: integration.description || 'Canal de comunicação',
+            status: integration.status || 'disconnected',
             messageCount: 0,
-            lastMessage: integration.enabled ? 'Configurado' : 'Não configurado',
-            lastActivity: integration.enabled ? 'Ativo' : 'Nunca'
+            lastMessage: integration.status === 'connected' ? 'Configurado' : 'Aguardando configuração',
+            lastActivity: integration.status === 'connected' ? 'Ativo' : 'Nunca',
+            features: integration.features || []
           }));
         }
       } else {
@@ -200,45 +234,8 @@ export default function OmniBridge() {
       }
 
         if (channelsData.length === 0) {
-          console.log('⚠️ [OmniBridge] No integrations data available, showing default communication channels');
-          channelsData = [
-            {
-              id: 'email-imap',
-              name: 'Email (IMAP)',
-              type: 'email' as const,
-              enabled: false,
-              icon: Mail,
-              description: 'Configuração de email via IMAP/SMTP',
-              status: 'disconnected' as const,
-              messageCount: 0,
-              lastMessage: 'Não configurado',
-              lastActivity: 'Nunca'
-            },
-            {
-              id: 'whatsapp-business',
-              name: 'WhatsApp Business',
-              type: 'whatsapp' as const,
-              enabled: false,
-              icon: MessageSquare,
-              description: 'API do WhatsApp Business',
-              status: 'disconnected' as const,
-              messageCount: 0,
-              lastMessage: 'Não configurado',
-              lastActivity: 'Nunca'
-            },
-            {
-              id: 'telegram-bot',
-              name: 'Telegram Bot',
-              type: 'telegram' as const,
-              enabled: false,
-              icon: MessageCircle,
-              description: 'Bot do Telegram para atendimento',
-              status: 'disconnected' as const,
-              messageCount: 0,
-              lastMessage: 'Não configurado',
-              lastActivity: 'Nunca'
-            }
-          ];
+          console.log('⚠️ [OmniBridge] No integrations data available, showing message to configure in Workspace Admin');
+          channelsData = [];
         }
 
         console.log('🔍 [OmniBridge-DEBUG] Final channels count:', channelsData.length);
@@ -318,9 +315,20 @@ export default function OmniBridge() {
       if (response.ok) {
         setChannels(prev => prev.map(channel => 
           channel.id === channelId 
-            ? { ...channel, enabled, status: enabled ? 'connected' : 'disconnected' }
+            ? { 
+                ...channel, 
+                enabled, 
+                status: enabled ? 'connected' : 'disconnected',
+                lastMessage: enabled ? 'Ativo' : 'Desativado',
+                lastActivity: enabled ? 'Agora' : 'Desabilitado'
+              }
             : channel
         ));
+        
+        // Show success message
+        console.log(`✅ Canal ${channelId} ${enabled ? 'ativado' : 'desativado'} com sucesso`);
+      } else {
+        console.error('Erro ao alterar status do canal:', response.status);
       }
     } catch (error) {
       console.error('Error toggling channel:', error);
@@ -657,8 +665,24 @@ export default function OmniBridge() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {channels.map((channel) => (
+              {channels.length === 0 ? (
+                <div className="text-center py-12">
+                  <Settings className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">Nenhum canal configurado</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Configure seus canais de comunicação no Workspace Admin
+                  </p>
+                  <Button 
+                    onClick={() => window.location.href = '/tenant-admin/integrations'}
+                    className="gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Ir para Integrações
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {channels.map((channel) => (
                   <Card key={channel.id} className="relative">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
@@ -720,8 +744,9 @@ export default function OmniBridge() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

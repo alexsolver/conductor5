@@ -2000,6 +2000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!tenantId) {
         return res.status(400).json({ 
+          success: false,
           message: "Tenant ID required for integration toggle" 
         });
       }
@@ -2008,15 +2009,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { storage } = await import('./storage-simple');
 
-      // Update integration status
-      await storage.updateTenantIntegrationStatus(tenantId, channelId, enabled ? 'connected' : 'disconnected');
+      try {
+        // Update integration status
+        await storage.updateTenantIntegrationStatus(tenantId, channelId, enabled ? 'connected' : 'disconnected');
 
-      res.json({
-        success: true,
-        message: `Canal ${enabled ? 'ativado' : 'desativado'} com sucesso`,
-        channelId,
-        enabled
-      });
+        console.log(`✅ [CHANNEL-TOGGLE] Successfully updated channel ${channelId} status to ${enabled ? 'connected' : 'disconnected'}`);
+
+        res.json({
+          success: true,
+          message: `Canal ${enabled ? 'ativado' : 'desativado'} com sucesso`,
+          channelId,
+          enabled,
+          status: enabled ? 'connected' : 'disconnected'
+        });
+      } catch (storageError) {
+        console.error('❌ [CHANNEL-TOGGLE] Storage error:', storageError);
+        res.status(500).json({
+          success: false,
+          message: "Erro interno ao atualizar canal"
+        });
+      }
 
     } catch (error) {
       console.error('❌ [CHANNEL-TOGGLE] Error toggling channel:', error);
