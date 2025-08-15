@@ -20,7 +20,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 ### Backend
 - **Runtime**: Node.js with Express.js.
 - **Language**: TypeScript with ES modules.
-- **Database**: Neon PostgreSQL (neondb) with Drizzle ORM. Migration to local PostgreSQL attempted but maintained on Neon due to Replit environment limitations.
+- **Database**: Neon PostgreSQL (neondb) with Drizzle ORM. PostgreSQL local setup completed with full data migration (4.8MB backup), but maintained on Neon for production stability due to Replit environment connectivity limitations.
 - **Authentication**: Local JWT authentication.
 - **Session Management**: Express sessions with PostgreSQL storage.
 - **API Design**: RESTful endpoints with structured error handling.

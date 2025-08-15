@@ -17,6 +17,7 @@ export { sql };
 
 neonConfig.webSocketConstructor = ws;
 
+// Fallback to Neon while PostgreSQL local is being configured
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
