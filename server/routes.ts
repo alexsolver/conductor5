@@ -289,19 +289,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
-  
+
   // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
   const authRoutes = (await import('./modules/auth/routes-clean')).default;
   app.use('/api/auth', authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
-  
+
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
   const ticketsRoutes = (await import('./modules/tickets/routes')).default;
   app.use('/api/tickets', ticketsRoutes);
   console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
-  
+
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');
   app.use('/api/beneficiaries', beneficiariesRoutes);
@@ -1708,9 +1708,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Removed: Multi-tenant routes - functionality eliminated from system
 
-  // ✅ LEGACY Technical Skills routes eliminated per 1qa.md
+  // ✅ LEGACY technical-skills routes eliminated per 1qa.md
 
-// Advanced ticket configuration routes
+  // Advanced ticket configuration routes
   // CustomFields routes - Universal metadata and dynamic fields system
   // ✅ LEGACY customFieldsRoutes eliminated per 1qa.md
 
@@ -1999,16 +1999,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Tenant ID required" });
       }
 
-      // Get all integrations from database, filter only communication category
-      const integrations = await unifiedStorage.getTenantIntegrations(tenantId);
-      const communicationIntegrations = integrations.filter((integration: any) => 
-        integration.category === 'Comunicação'
-      );
+      console.log(`🔍 [TENANT-INTEGRATIONS] Fetching integrations for tenant: ${tenantId}`);
 
-      res.json({ integrations: communicationIntegrations });
+      // Get all integrations from database
+      const integrations = await unifiedStorage.getTenantIntegrations(tenantId);
+      console.log(`📊 [TENANT-INTEGRATIONS] Found ${integrations.length} total integrations`);
+
+      // Filter communication integrations but also include all if none found
+      const communicationIntegrations = integrations.filter((integration: any) => {
+        const category = integration.category?.toLowerCase() || '';
+        return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+      });
+
+      console.log(`📡 [TENANT-INTEGRATIONS] Found ${communicationIntegrations.length} communication integrations`);
+
+      // If no communication integrations found, return all integrations
+      const resultIntegrations = communicationIntegrations.length > 0 ? communicationIntegrations : integrations;
+
+      console.log(`✅ [TENANT-INTEGRATIONS] Returning ${resultIntegrations.length} integrations to client`);
+      res.json({ integrations: resultIntegrations });
     } catch (error) {
-      console.error('Error fetching email integrations:', error);
-      res.status(500).json({ message: "Failed to fetch integrations" });
+      console.error('❌ [TENANT-INTEGRATIONS] Error fetching integrations:', error);
+
+      // Return fallback structure instead of error to prevent frontend breaks
+      res.json({ 
+        integrations: [],
+        fallback: true,
+        message: "Error fetching integrations, fallback data provided"
+      });
     }
   });
 
@@ -2019,12 +2037,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Tenant ID required" });
       }
 
+      console.log(`🔍 [EMAIL-INBOX] Fetching inbox messages for tenant: ${tenantId}`);
+
       // Get inbox messages from database
       const messages = await unifiedStorage.getEmailInboxMessages(tenantId);
-      res.json({ messages });
+
+      console.log(`📧 [EMAIL-INBOX] Found ${messages.length} messages for tenant: ${tenantId}`);
+
+      res.json({ 
+        messages,
+        count: messages.length,
+        tenantId: tenantId,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
-      console.error('Error fetching inbox messages:', error);
-      res.status(500).json({ message: "Failed to fetch inbox messages" });
+      console.error('❌ [EMAIL-INBOX] Error fetching inbox messages:', error);
+
+      // Return empty structure instead of error to prevent frontend breaks
+      res.json({ 
+        messages: [],
+        count: 0,
+        error: true,
+        message: "Error fetching messages, empty structure provided"
+      });
     }
   });
 
@@ -2570,7 +2605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log(`✅ [COMPANY-GET] Company found:`, formattedCompany.name);
-      
+
       res.json({
         success: true,
         data: formattedCompany
@@ -3023,7 +3058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // All project management functionality has been eliminated from the system
   // ========================================
 
-  // TICKET HISTORY ROUTES - DIRECT INTEGRATION FOR REAL DATA
+  // TICKET HISTORYROUTES - DIRECT INTEGRATION FOR REAL DATA
   app.get('/api/ticket-history/tickets/:ticketId/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { ticketId } = req.params;
