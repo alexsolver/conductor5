@@ -115,7 +115,7 @@ export class TicketMaterialsController {
           tenantId,
           ticketId,
           'lpu_applied',
-          `LPU aplicada: ${lpuName}`,
+          `LPU byla aplikována: ${lpuName}`,
           userId,
           req.user?.name || 'Sistema',
           ipAddress,
@@ -168,8 +168,7 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          i.integration_code as item_code,
-          i.category as item_category
+          i.integration_code as item_code
         FROM "${schemaName}".ticket_planned_items tpi
         LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
         WHERE tpi.ticket_id = $1 AND tpi.tenant_id = $2 AND tpi.is_active = true
@@ -189,7 +188,6 @@ export class TicketMaterialsController {
         itemCode: row.item_code,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
-        itemCategory: row.item_category,
         lpuId: row.lpu_id,
         plannedQuantity: parseFloat(row.planned_quantity || 0),
         availableQuantity: parseFloat(row.planned_quantity || 0), // Quantidade disponível para consumo
@@ -241,8 +239,7 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          i.integration_code as item_code,
-          i.category as item_category
+          i.integration_code as item_code
         FROM "${schemaName}".ticket_consumed_items tci
         LEFT JOIN "${schemaName}".items i ON tci.item_id = i.id
         WHERE tci.ticket_id = $1 AND tci.tenant_id = $2
@@ -709,8 +706,7 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          i.integration_code as item_code,
-          i.category as item_category
+          i.integration_code as item_code
         FROM "${schemaName}".ticket_planned_items tpi
         LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
         WHERE tpi.ticket_id = $1 AND tpi.tenant_id = $2
@@ -729,7 +725,6 @@ export class TicketMaterialsController {
         itemCode: row.item_code,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
-        itemCategory: row.item_category,
         lpuId: row.lpu_id,
         plannedQuantity: parseFloat(row.planned_quantity || 0),
         unitPrice: parseFloat(row.unit_price_at_planning || 0),
