@@ -19,7 +19,10 @@ import {
   CheckCircle, 
   Clock,
   FileText,
-  Calculator
+  Calculator,
+  Trash2,
+  Wrench,
+  Box
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -31,6 +34,7 @@ interface TicketMaterial {
   itemName: string;
   itemCode: string;
   itemType: string;
+  measurementUnit?: string;
   plannedQuantity: string;
   actualQuantity?: string;
   unitPriceAtPlanning: string;
@@ -59,6 +63,7 @@ interface CostsSummary {
 export default function TicketMaterials() {
   const { id: ticketId } = useParams();
   const [activeTab, setActiveTab] = useState('planned');
+  const [plannedSubTab, setPlannedSubTab] = useState('all'); // all, material, service
   const [selectedItem, setSelectedItem] = useState('');
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
@@ -117,6 +122,19 @@ export default function TicketMaterials() {
     },
     onError: () => {
       toast({ title: 'Erro ao registrar consumo', variant: 'destructive' });
+    }
+  });
+
+  // Delete planned item mutation
+  const deletePlannedItemMutation = useMutation({
+    mutationFn: (itemId: string) => 
+      apiRequest(`/api/materials-services/tickets/${ticketId}/planned-items/${itemId}`, 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/tickets', ticketId] });
+      toast({ title: 'Item planejado excluído com sucesso' });
+    },
+    onError: () => {
+      toast({ title: 'Erro ao excluir item planejado', variant: 'destructive' });
     }
   });
 
@@ -308,40 +326,105 @@ export default function TicketMaterials() {
               {/* Planned Items Tab */}
               <TabsContent value="planned" className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Materiais Planejados</h3>
+                  <h3 className="text-lg font-semibold">Itens Planejados</h3>
                   <Badge variant="outline" className="bg-blue-50 text-blue-700">
                     {(plannedItems as any)?.data?.plannedItems?.length || 0} itens
                   </Badge>
                 </div>
 
+                {/* Sub-tabs for Material/Service */}
+                <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setPlannedSubTab('all')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      plannedSubTab === 'all'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <Package className="w-4 h-4" />
+                    Todos
+                  </button>
+                  <button
+                    onClick={() => setPlannedSubTab('material')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      plannedSubTab === 'material'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <Box className="w-4 h-4" />
+                    Materiais
+                  </button>
+                  <button
+                    onClick={() => setPlannedSubTab('service')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      plannedSubTab === 'service'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <Wrench className="w-4 h-4" />
+                    Serviços
+                  </button>
+                </div>
+
                 {loadingPlanned ? (
                   <div className="text-center py-8">
                     <Clock className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
-                    <p>Carregando materiais planejados...</p>
+                    <p>Carregando itens planejados...</p>
                   </div>
                 ) : (plannedItems as any)?.data?.plannedItems?.length > 0 ? (
                   <div className="space-y-3">
-                    {(plannedItems as any).data.plannedItems.map((item: TicketMaterial) => (
-                      <Card key={item.id} className="border-l-4 border-l-blue-500">
+                    {(plannedItems as any).data.plannedItems
+                      .filter((item: TicketMaterial) => {
+                        if (plannedSubTab === 'all') return true;
+                        return item.itemType === plannedSubTab;
+                      })
+                      .map((item: TicketMaterial) => (
+                      <Card key={item.id} className={`border-l-4 ${item.itemType === 'material' ? 'border-l-blue-500' : 'border-l-green-500'}`}>
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
-                            <div className="space-y-2">
+                            <div className="space-y-2 flex-1">
                               <div className="flex items-center gap-2">
+                                {item.itemType === 'material' ? (
+                                  <Box className="w-4 h-4 text-blue-600" />
+                                ) : (
+                                  <Wrench className="w-4 h-4 text-green-600" />
+                                )}
                                 <h4 className="font-semibold">{item.itemName || 'Item não encontrado'}</h4>
-                                <Badge variant="outline">{item.itemCode}</Badge>
+                                <Badge variant="outline">{item.itemCode || 'N/A'}</Badge>
+                                <Badge className={`${item.itemType === 'material' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                                  {item.itemType === 'material' ? 'Material' : 'Serviço'}
+                                </Badge>
                                 {getStatusBadge(item.status)}
                                 {getPriorityBadge(item.priority)}
                               </div>
                               <div className="text-sm text-gray-600 space-y-1">
-                                <p><strong>Quantidade:</strong> {item.plannedQuantity}</p>
+                                <p><strong>Quantidade:</strong> {item.plannedQuantity} {item.measurementUnit || 'UN'}</p>
                                 <p><strong>Preço Unitário:</strong> {formatCurrency(item.unitPriceAtPlanning)}</p>
                                 <p><strong>Custo Estimado:</strong> {formatCurrency(item.estimatedCost)}</p>
                                 {item.notes && <p><strong>Observações:</strong> {item.notes}</p>}
                               </div>
                             </div>
-                            <div className="text-right text-sm text-gray-500">
-                              <p>Planejado em</p>
-                              <p>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</p>
+                            <div className="flex items-start gap-2">
+                              <div className="text-right text-sm text-gray-500">
+                                <p>Planejado em</p>
+                                <p>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</p>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm('Tem certeza que deseja excluir este item planejado?')) {
+                                    deletePlannedItemMutation.mutate(item.id);
+                                  }
+                                }}
+                                disabled={deletePlannedItemMutation.isPending}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
                         </CardContent>
@@ -351,7 +434,11 @@ export default function TicketMaterials() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                    <p>Nenhum material planejado</p>
+                    <p>
+                      {plannedSubTab === 'all' ? 'Nenhum item planejado' :
+                       plannedSubTab === 'material' ? 'Nenhum material planejado' :
+                       'Nenhum serviço planejado'}
+                    </p>
                   </div>
                 )}
               </TabsContent>
@@ -359,7 +446,7 @@ export default function TicketMaterials() {
               {/* Consumed Items Tab */}
               <TabsContent value="consumed" className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Materiais Consumidos</h3>
+                  <h3 className="text-lg font-semibold">Itens Consumidos</h3>
                   <Badge variant="outline" className="bg-green-50 text-green-700">
                     {(consumedItems as any)?.data?.consumedItems?.length || 0} itens
                   </Badge>
@@ -373,17 +460,25 @@ export default function TicketMaterials() {
                 ) : (consumedItems as any)?.data?.consumedItems?.length > 0 ? (
                   <div className="space-y-3">
                     {(consumedItems as any).data.consumedItems.map((item: TicketMaterial) => (
-                      <Card key={item.id} className="border-l-4 border-l-green-500">
+                      <Card key={item.id} className={`border-l-4 ${item.itemType === 'material' ? 'border-l-blue-500' : 'border-l-green-500'}`}>
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
+                                {item.itemType === 'material' ? (
+                                  <Box className="w-4 h-4 text-blue-600" />
+                                ) : (
+                                  <Wrench className="w-4 h-4 text-green-600" />
+                                )}
                                 <h4 className="font-semibold">{item.itemName || 'Item não encontrado'}</h4>
-                                <Badge variant="outline">{item.itemCode}</Badge>
+                                <Badge variant="outline">{item.itemCode || 'N/A'}</Badge>
+                                <Badge className={`${item.itemType === 'material' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                                  {item.itemType === 'material' ? 'Material' : 'Serviço'}
+                                </Badge>
                                 {getStatusBadge('consumed')}
                               </div>
                               <div className="text-sm text-gray-600 space-y-1">
-                                <p><strong>Quantidade Consumida:</strong> {item.actualQuantity}</p>
+                                <p><strong>Quantidade Consumida:</strong> {item.actualQuantity} {item.measurementUnit || 'UN'}</p>
                                 <p><strong>Preço Unitário:</strong> {formatCurrency(item.unitPriceAtConsumption || '0')}</p>
                                 <p><strong>Custo Total:</strong> {formatCurrency(item.totalCost || '0')}</p>
                                 {item.notes && <p><strong>Observações:</strong> {item.notes}</p>}
