@@ -1503,7 +1503,7 @@ export class DatabaseStorage implements IStorage {
         return;
       }
 
-      // Insert default communication integrations
+      // Insert default communication integrations using individual queries to avoid constraint issues
       const defaultIntegrations = [
         {
           id: 'imap-email',
@@ -1567,31 +1567,45 @@ export class DatabaseStorage implements IStorage {
         }
       ];
 
+      // Insert each integration individually to handle constraints properly
       for (const integration of defaultIntegrations) {
-        await pool.query(
-          `INSERT INTO "${schemaName}"."service_integrations" 
-           (id, tenant_id, name, description, category, icon, status, enabled, config, features, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
-           ON CONFLICT (id, tenant_id) DO UPDATE SET
-           name = EXCLUDED.name,
-           description = EXCLUDED.description,
-           updated_at = NOW()`,
-          [
-            integration.id,
-            tenantId,
-            integration.name,
-            integration.description,
-            integration.category,
-            integration.icon,
-            integration.status,
-            false,
-            integration.config,
-            integration.features
-          ]
-        );
+        try {
+          // First check if this specific integration exists
+          const checkResult = await pool.query(
+            `SELECT id FROM "${schemaName}"."service_integrations" WHERE id = $1 AND tenant_id = $2`,
+            [integration.id, tenantId]
+          );
+
+          if (checkResult.rows.length === 0) {
+            // Only insert if it doesn't exist
+            await pool.query(
+              `INSERT INTO "${schemaName}"."service_integrations" 
+               (id, tenant_id, name, description, category, icon, status, enabled, config, features, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`,
+              [
+                integration.id,
+                tenantId,
+                integration.name,
+                integration.description,
+                integration.category,
+                integration.icon,
+                integration.status,
+                false,
+                integration.config,
+                integration.features
+              ]
+            );
+            console.log(`✅ [STORAGE] Created integration: ${integration.id}`);
+          } else {
+            console.log(`⚠️ [STORAGE] Integration ${integration.id} already exists, skipping`);
+          }
+        } catch (integrationError) {
+          console.error(`❌ [STORAGE] Error creating integration ${integration.id}:`, integrationError);
+          // Continue with other integrations even if one fails
+        }
       }
 
-      console.log(`✅ [STORAGE] Initialized ${defaultIntegrations.length} default integrations for tenant: ${tenantId}`);
+      console.log(`✅ [STORAGE] Integration initialization completed for tenant: ${tenantId}`);
     } catch (error) {
       console.error(`❌ [STORAGE] Error initializing tenant integrations:`, error);
       throw error;
