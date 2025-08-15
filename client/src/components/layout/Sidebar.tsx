@@ -165,7 +165,14 @@ const adminNavigation = [
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
 
       { name: "Empresas", href: "/companies", icon: Building2 },
-      { name: "OmniBridge", href: "/omnibridge", icon: Mail },
+      { 
+        name: "OmniBridge", 
+        icon: Mail,
+        children: [
+          { name: "Dashboard", href: "/omnibridge", icon: Mail },
+          { name: "Regras de Automação", href: "/omnibridge/automation-rules", icon: Bot },
+        ]
+      },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
     ]

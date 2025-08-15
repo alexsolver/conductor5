@@ -289,19 +289,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
-  
+
   // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
   const authRoutes = (await import('./modules/auth/routes-clean')).default;
   app.use('/api/auth', authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
-  
+
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
   const ticketsRoutes = (await import('./modules/tickets/routes')).default;
   app.use('/api/tickets', ticketsRoutes);
   console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
-  
+
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');
   app.use('/api/beneficiaries', beneficiariesRoutes);
@@ -1650,7 +1650,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { customerId } = req.params;
       const tenantId = req.user?.tenantId;
-
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -2200,7 +2199,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Timecard routes - Registro de Ponto  
+  // OmniBridge automation rules route (submenu)
+  app.get('/api/omnibridge/automation-rules', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      // Redirect to automation rules API
+      const { automationRulesRouter } = await import('./routes/automationRules');
+      return automationRulesRouter(req, res);
+    } catch (error) {
+      console.error('Error loading automation rules:', error);
+      res.status(500).json({ message: "Failed to load automation rules" });
+    }
+  });
+
+  // Timecard Routes - Registro de Ponto  
   app.use('/api/timecard', jwtAuth, timecardRoutes);
 
   // Timecard Approval Routes
@@ -2570,7 +2581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log(`✅ [COMPANY-GET] Company found:`, formattedCompany.name);
-      
+
       res.json({
         success: true,
         data: formattedCompany
@@ -3023,7 +3034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // All project management functionality has been eliminated from the system
   // ========================================
 
-  // TICKET HISTORY ROUTES - DIRECT INTEGRATION FOR REAL DATA
+  // TICKET HISTORYROUTES - DIRECT INTEGRATION FOR REAL DATA
   app.get('/api/ticket-history/tickets/:ticketId/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { ticketId } = req.params;
