@@ -2239,6 +2239,37 @@ const TicketDetails = React.memo(() => {
                             ` - ${historyItem.field_name}: "${historyItem.old_value}" → "${historyItem.new_value}"`
                           )}
                         </p>
+                        
+                        {/* 🔧 [1QA-COMPLIANCE] Dados de sessão visíveis diretamente no card (IP, User-Agent, Session ID) */}
+                        {historyViewMode === 'advanced' && (
+                          <div className="mt-2 p-2 bg-blue-50 rounded text-xs border-l-2 border-blue-200">
+                            <div className="grid grid-cols-2 gap-2 mb-1">
+                              <div>
+                                <span className="text-blue-700 font-medium">Usuário:</span>
+                                <span className="ml-1 text-gray-800">{historyItem.performed_by_name || historyItem.metadata?.user_name || 'Sistema'}</span>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 font-medium">IP:</span>
+                                <span className={`ml-1 font-mono text-xs ${historyItem.ip_address && historyItem.ip_address !== 'N/A' ? 'text-gray-800' : 'text-gray-400'}`}>
+                                  {historyItem.ip_address || historyItem.metadata?.ip_address || 'N/A'}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="mb-1">
+                              <span className="text-blue-700 font-medium">User-Agent:</span>
+                              <p className={`text-xs break-all mt-1 ${(historyItem.user_agent || historyItem.metadata?.user_agent) && (historyItem.user_agent || historyItem.metadata?.user_agent) !== 'N/A' ? 'text-gray-700' : 'text-gray-400'}`}>
+                                {historyItem.user_agent || historyItem.metadata?.user_agent || 'N/A'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-blue-700 font-medium">Session ID:</span>
+                              <span className={`ml-1 font-mono text-xs ${(historyItem.session_id || historyItem.metadata?.session_id) && (historyItem.session_id || historyItem.metadata?.session_id) !== 'N/A' ? 'text-gray-700' : 'text-gray-400'}`}>
+                                {historyItem.session_id || historyItem.metadata?.session_id || 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         {historyViewMode === 'advanced' && (
                           <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
                             <div className="grid grid-cols-2 gap-2 mb-2">
