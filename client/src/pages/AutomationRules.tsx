@@ -96,14 +96,17 @@ export default function AutomationRules() {
         throw error;
       }
     },
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+    staleTime: 30000, // 30 segundos
+    cacheTime: 300000, // 5 minutos
+    refetchOnWindowFocus: false,
     onError: (error: any) => {
       console.error('❌ [AutomationRules] Final error after retries:', error);
-      setLoadingError(`Erro ao carregar regras de automação: ${error?.message || 'Erro desconhecido'}`);
+      setLoadingError(`Erro ao carregar regras de automação: ${error?.message || 'Serviço temporariamente indisponível'}`);
     },
     onSuccess: (data) => {
-      console.log('✅ [AutomationRules] Rules query successful');
+      console.log('✅ [AutomationRules] Rules query successful:', data);
       setLoadingError(null);
     }
   });
@@ -234,14 +237,39 @@ export default function AutomationRules() {
             <AlertTriangle className="h-12 w-12 mx-auto text-red-500 mb-4" />
             <h3 className="text-lg font-semibold mb-2">Erro ao Carregar Página</h3>
             <p className="text-muted-foreground mb-4">
-              {loadingError || 'Não foi possível carregar as regras de automação'}
+              {loadingError || rulesError?.message || 'Não foi possível carregar as regras de automação'}
             </p>
-            <Button onClick={() => window.location.reload()}>
-              Tentar Novamente
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button 
+                onClick={() => {
+                  setLoadingError(null);
+                  queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+                }}
+              >
+                🔄 Tentar Novamente
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
+                🔃 Recarregar Página
+              </Button>
+            </div>
+            {process.env.NODE_ENV === 'development' && (
+              <details className="mt-4 text-left">
+                <summary className="cursor-pointer text-sm text-muted-foreground">
+                  Detalhes do Erro (Dev)
+                </summary>
+                <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-auto">
+                  {JSON.stringify(rulesError || loadingError, null, 2)}
+                </pre>
+              </details>
+            )}
           </div>
         </div>
       </div>
+    );
+  }</div>
     );
   }
 

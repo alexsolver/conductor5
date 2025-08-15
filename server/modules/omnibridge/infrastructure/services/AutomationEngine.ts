@@ -84,7 +84,14 @@ export class AutomationEngine {
   }
 
   public getRules(): AutomationRule[] {
-    return Array.from(this.rules.values());
+    try {
+      const rulesArray = Array.from(this.rules.values());
+      console.log(`📊 [AUTOMATION-ENGINE] Returning ${rulesArray.length} rules for tenant: ${this.tenantId}`);
+      return rulesArray;
+    } catch (error) {
+      console.error(`❌ [AUTOMATION-ENGINE] Error getting rules for tenant ${this.tenantId}:`, error);
+      return [];
+    }
   }
 
   public createDefaultRules(): void {

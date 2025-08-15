@@ -122,8 +122,12 @@ app.use((req, res, next) => {
   const { default: tenantIntegrationsRouter } = await import('./routes/tenantIntegrations');
   app.use('/api/tenant-admin-integration', tenantIntegrationsRouter);
 
-  // Automation rules routes
-  app.use('/api/automation-rules', automationRulesRoutes);
+  // ✅ Auth Clean Architecture routes eliminated
+  // ✅ Users Clean Architecture routes eliminated
+  // ✅ Companies Clean Architecture routes registered at /api/companies-integration & /api/companies-integration/v2
+
+  // 🤖 Automation Rules Routes
+  app.use('/api/automation-rules', require('./routes/automationRules').default);
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();

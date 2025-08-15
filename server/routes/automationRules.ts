@@ -13,42 +13,72 @@ router.use(jwtAuth);
  * Obter todas as regras de automação do tenant
  */
 router.get('/', async (req: any, res) => {
+  const startTime = Date.now();
+  let tenantId: string | undefined;
+  
   try {
-    const tenantId = req.user?.tenantId;
+    console.log('🔄 [AUTOMATION-RULES] Starting rules fetch request');
+    
+    tenantId = req.user?.tenantId;
+    console.log(`🔍 [AUTOMATION-RULES] Tenant ID: ${tenantId}`);
 
     if (!tenantId) {
+      console.error('❌ [AUTOMATION-RULES] No tenant ID found in request');
       return res.status(400).json({
         success: false,
         message: 'Tenant ID not found'
       });
     }
 
+    console.log('🚀 [AUTOMATION-RULES] Initializing automation manager...');
     const automationManager = GlobalAutomationManager.getInstance();
+    
+    console.log('🔧 [AUTOMATION-RULES] Getting engine for tenant...');
     const engine = automationManager.getEngine(tenantId);
+    
+    console.log('📋 [AUTOMATION-RULES] Fetching rules...');
     const rules = engine.getRules();
 
-    console.log(`📋 [AUTOMATION-RULES] Retrieved ${rules.length} rules for tenant: ${tenantId}`);
+    const responseTime = Date.now() - startTime;
+    console.log(`✅ [AUTOMATION-RULES] Successfully retrieved ${rules.length} rules for tenant: ${tenantId} (${responseTime}ms)`);
+
+    const mappedRules = rules.map(rule => ({
+      id: rule.id,
+      name: rule.name,
+      description: rule.description,
+      enabled: rule.enabled,
+      priority: rule.priority,
+      conditionsCount: rule.conditions.length,
+      actionsCount: rule.actions.length,
+      createdAt: rule.createdAt,
+      updatedAt: rule.updatedAt
+    }));
 
     res.json({
       success: true,
-      rules: rules.map(rule => ({
-        id: rule.id,
-        name: rule.name,
-        description: rule.description,
-        enabled: rule.enabled,
-        priority: rule.priority,
-        conditionsCount: rule.conditions.length,
-        actionsCount: rule.actions.length,
-        createdAt: rule.createdAt,
-        updatedAt: rule.updatedAt
-      })),
-      total: rules.length
+      rules: mappedRules,
+      total: rules.length,
+      metadata: {
+        responseTime,
+        tenantId
+      }
     });
-  } catch (error) {
-    console.error('❌ [AUTOMATION-RULES] Error fetching rules:', error);
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
+    console.error(`❌ [AUTOMATION-RULES] Error fetching rules for tenant ${tenantId}:`, {
+      error: error.message,
+      stack: error.stack,
+      responseTime
+    });
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch automation rules'
+      message: 'Failed to fetch automation rules',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+      metadata: {
+        responseTime,
+        tenantId
+      }
     });
   }
 });
