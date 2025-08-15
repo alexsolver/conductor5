@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -79,14 +79,21 @@ function AutomationRulesContent() {
 
   // Fetch automation rules
   const { data: rulesData, isLoading: rulesLoading, refetch: refetchRules } = useQuery({
-    queryKey: ['/api/automation-rules'],
+    queryKey: ['automation-rules'],
+    queryFn: () => apiRequest('GET', '/api/automation-rules'),
     staleTime: 30000,
+    gcTime: 60000, // Cache for 1 minute
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Fetch integrations para opções de canal
   const { data: integrationsData } = useQuery({
-    queryKey: ['/api/tenant-admin/integrations'],
+    queryKey: ['tenant-admin-integrations'],
+    queryFn: () => apiRequest('GET', '/api/tenant-admin/integrations'),
     staleTime: 60000,
+    gcTime: 120000, // Cache for 2 minutes
+    refetchOnWindowFocus: false,
   });
 
   const communicationChannels = (integrationsData as any)?.integrations?.filter((integration: any) => 
@@ -101,7 +108,32 @@ function AutomationRulesContent() {
     }
   }, [rulesData]);
 
-  const resetForm = () => {
+  
+
+  const createRuleMutation = useMutation({
+    mutationFn: async (ruleData: any) => {
+      return await apiRequest('POST', '/api/automation-rules', ruleData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Regra Criada",
+        description: "A regra de automação foi criada com sucesso."
+      });
+      refetchRules();
+      setCreateRuleOpen(false);
+      memoizedResetForm();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao Criar Regra",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Memoizar função de reset para evitar re-renders
+  const memoizedResetForm = useCallback(() => {
     setRuleName('');
     setRuleDescription('');
     setTriggerType('');
@@ -116,29 +148,7 @@ function AutomationRulesContent() {
       priority: 'medium',
       category: ''
     });
-  };
-
-  const createRuleMutation = useMutation({
-    mutationFn: async (ruleData: any) => {
-      return await apiRequest('POST', '/api/automation-rules', ruleData);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Regra Criada",
-        description: "A regra de automação foi criada com sucesso."
-      });
-      refetchRules();
-      setCreateRuleOpen(false);
-      resetForm();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao Criar Regra",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
+  }, []);
 
   const toggleRuleMutation = useMutation({
     mutationFn: async ({ ruleId, enabled }: { ruleId: string, enabled: boolean }) => {
@@ -611,7 +621,7 @@ function AutomationRulesContent() {
           <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={() => {
               setCreateRuleOpen(false);
-              resetForm();
+              memoizedResetForm();
             }}>
               Cancelar
             </Button>
@@ -647,22 +657,28 @@ export default function OmniBridge() {
 
   // Use only real APIs - no mock data
   const { data: integrationsData, isLoading: integrationsLoading, refetch: refetchIntegrations } = useQuery({
-    queryKey: ['/api/tenant-admin/integrations'],
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache (updated from cacheTime)
+    queryKey: ['omnibridge-integrations'],
+    queryFn: () => apiRequest('GET', '/api/tenant-admin/integrations'),
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 60000, // Cache for 1 minute
+    refetchOnWindowFocus: false,
   });
 
   const { data: inboxData, isLoading: inboxLoading, refetch: refetchInbox } = useQuery({
-    queryKey: ['/api/email-config/inbox'],
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache (updated from cacheTime)
+    queryKey: ['omnibridge-inbox'],
+    queryFn: () => apiRequest('GET', '/api/email-config/inbox'),
+    staleTime: 15000, // Cache for 15 seconds
+    gcTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: false,
   });
 
   // Monitoring status query - Using email-config API that works
   const { data: monitoringStatus } = useQuery({
-    queryKey: ['/api/email-config/monitoring/status'],
-    staleTime: 5000, // Cache for 5 seconds
-    refetchInterval: 5000, // Refetch every 5 seconds
+    queryKey: ['email-monitoring-status'],
+    queryFn: () => apiRequest('GET', '/api/email-config/monitoring/status'),
+    staleTime: 10000, // Cache for 10 seconds
+    refetchInterval: 15000, // Refetch every 15 seconds
+    refetchOnWindowFocus: false,
   });
 
   // Start monitoring mutation - Using email-config API
