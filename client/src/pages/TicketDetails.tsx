@@ -586,29 +586,29 @@ const TicketDetails = React.memo(() => {
         ? plannedMaterialsResponse.data.plannedItems 
         : [];
     }
-    // Fallback: usar dados dos logs do servidor que mostram 11 materiais planejados
-    if (!plannedMaterialsLoading) {
-      return new Array(11).fill({}); // Server logs: "Found 11 planned items"
+    if (plannedMaterialsResponse?.data && Array.isArray(plannedMaterialsResponse.data)) {
+      return plannedMaterialsResponse.data;
     }
     return [];
-  }, [plannedMaterialsResponse, plannedMaterialsLoading]);
+  }, [plannedMaterialsResponse]);
+
+  // ✅ [1QA-COMPLIANCE] Dados de materiais consumidos seguindo Clean Architecture
+  const consumedMaterialsData = useMemo(() => {
+    if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data?.consumedItems) {
+      return Array.isArray(consumedMaterialsResponse.data.consumedItems) 
+        ? consumedMaterialsResponse.data.consumedItems 
+        : [];
+    }
+    if (consumedMaterialsResponse?.data && Array.isArray(consumedMaterialsResponse.data)) {
+      return consumedMaterialsResponse.data;
+    }
+    return [];
+  }, [consumedMaterialsResponse]);
 
   // ✅ [1QA-COMPLIANCE] Manter materialsData para compatibilidade com abas existentes
   const materialsData = useMemo(() => {
-    let plannedArray = plannedMaterialsData;
-    let consumedArray = [];
-    
-    if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
-      consumedArray = Array.isArray(consumedMaterialsResponse.data) 
-        ? consumedMaterialsResponse.data 
-        : [];
-    }
-    
-    return [...plannedArray, ...consumedArray];
-  }, [plannedMaterialsData, consumedMaterialsResponse]);
-
-
-
+    return [...plannedMaterialsData, ...consumedMaterialsData];
+  }, [plannedMaterialsData, consumedMaterialsData]);
 
   // ✅ [1QA-COMPLIANCE] Special functionality tabs seguindo Clean Architecture
   const getTabLabel = (baseLabel: string, count?: number) => {
@@ -618,19 +618,6 @@ const TicketDetails = React.memo(() => {
     }
     return baseLabel;
   };
-
-  // ✅ [1QA-COMPLIANCE] Contador de materiais planejados seguindo padrão das outras abas
-  const plannedMaterialsCount = plannedMaterialsData?.length || 0;
-  
-  console.log('🔧 [PLANNED-MATERIALS-COUNT] Count for tab:', {
-    plannedMaterialsData: plannedMaterialsData?.length,
-    plannedMaterialsCount,
-    willShowCounter: plannedMaterialsCount > 0,
-    plannedMaterialsLoading,
-    plannedMaterialsResponse: !!plannedMaterialsResponse
-  });
-  
-  console.log('🔧 [DEBUG-TAB-GENERATION] Tab label will be:', getTabLabel("Materiais e Serviços", plannedMaterialsCount));
 
   const specialTabs = [
     {
@@ -661,7 +648,7 @@ const TicketDetails = React.memo(() => {
     },
     { 
       id: "materials", 
-      label: getTabLabel("Materiais e Serviços", plannedMaterialsCount), 
+      label: `Materiais e Serviços (${plannedMaterialsData?.length || 0}/${consumedMaterialsData?.length || 0})`, 
       icon: Package 
     },
   ];
