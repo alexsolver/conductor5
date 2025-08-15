@@ -5,6 +5,7 @@ interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     tenantId: string;
+    email?: string; // Added email for logging
   };
 }
 
@@ -43,19 +44,32 @@ export class ItemController {
   async getItems(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
+      console.log(`[ItemController] Getting items for tenant: ${tenantId}`);
+      console.log(`[ItemController] User data:`, {
+        id: req.user?.id,
+        email: req.user?.email,
+        tenantId: req.user?.tenantId
+      });
+
       if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
+        console.error('[ItemController] No tenant ID provided');
+        return res.status(400).json({
+          success: false,
+          message: 'Tenant ID is required'
+        });
       }
 
-      const {
-        limit = 50,
-        offset = 0,
-        search,
-        type,
-        status,
-        active,
-        companyId
-      } = req.query;
+      const { search, type, status, limit = 50, offset = 0, active, companyId } = req.query;
+      const filters = {
+        search: search as string,
+        type: type as string,
+        status: status as string,
+        active: active as string,
+        companyId: companyId as string
+      };
+
+      console.log(`[ItemController] Applied filters:`, filters);
+      console.log(`[ItemController] Pagination: limit=${limit}, offset=${offset}`);
 
       // Direct SQL query to get items with hierarchy and link counts
       const { pool } = await import('../../../../db.js');
@@ -68,8 +82,8 @@ export class ItemController {
       // Add search filter
       if (search) {
         whereConditions.push(`(
-          LOWER(i.name) LIKE LOWER($${paramIndex}) OR 
-          LOWER(i.integration_code) LIKE LOWER($${paramIndex}) OR 
+          LOWER(i.name) LIKE LOWER($${paramIndex}) OR
+          LOWER(i.integration_code) LIKE LOWER($${paramIndex}) OR
           LOWER(i.description) LIKE LOWER($${paramIndex})
         )`);
         queryParams.push(`%${search}%`);
@@ -83,10 +97,27 @@ export class ItemController {
         paramIndex++;
       }
 
+      // Add status filter
+      if (status && status !== 'all') {
+        whereConditions.push(`i.status = $${paramIndex}`);
+        queryParams.push(status);
+        paramIndex++;
+      }
+
       // Add active status filter
       if (active !== undefined && active !== 'all') {
         whereConditions.push(`i.active = $${paramIndex}`);
         queryParams.push(active === 'true');
+        paramIndex++;
+      }
+
+      // Add companyId filter
+      if (companyId && companyId !== 'all') {
+        whereConditions.push(`EXISTS (
+            SELECT 1 FROM "${schemaName}".customer_item_mappings cim 
+            WHERE cim.item_id = i.id AND cim.customer_id = $${paramIndex} AND cim.is_active = true
+        )`);
+        queryParams.push(companyId);
         paramIndex++;
       }
 
@@ -97,36 +128,36 @@ export class ItemController {
       try {
         const tableCheck = await pool.query(`
           SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = '${schemaName}' 
+            SELECT FROM information_schema.tables
+            WHERE table_schema = '${schemaName}'
             AND table_name = 'item_hierarchy'
           );
         `);
         hierarchyTableExists = tableCheck.rows[0].exists;
       } catch (error) {
-        console.log('Could not check hierarchy table existence:', error);
+        console.log('[ItemController] Could not check hierarchy table existence:', error);
       }
 
       const hierarchyFields = hierarchyTableExists ? `
           -- Check if item is a parent (has children)
-          CASE 
+          CASE
             WHEN EXISTS (
-              SELECT 1 FROM "${schemaName}".item_hierarchy h 
+              SELECT 1 FROM "${schemaName}".item_hierarchy h
               WHERE h.parent_item_id = i.id AND h.is_active = true
-            ) THEN true 
-            ELSE false 
+            ) THEN true
+            ELSE false
           END as "isParent",
 
           -- Count children
-          (SELECT COUNT(*) FROM "${schemaName}".item_hierarchy h 
+          (SELECT COUNT(*) FROM "${schemaName}".item_hierarchy h
            WHERE h.parent_item_id = i.id AND h.is_active = true) as "childrenCount",
 
           -- Get parent ID
-          (SELECT h.parent_item_id FROM "${schemaName}".item_hierarchy h 
+          (SELECT h.parent_item_id FROM "${schemaName}".item_hierarchy h
            WHERE h.child_item_id = i.id AND h.is_active = true LIMIT 1) as "parentId",
       ` : `
           false as "isParent",
-          0 as "childrenCount", 
+          0 as "childrenCount",
           null as "parentId",
       `;
 
@@ -135,14 +166,14 @@ export class ItemController {
       try {
         const supplierTableCheck = await pool.query(`
           SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = '${schemaName}' 
+            SELECT FROM information_schema.tables
+            WHERE table_schema = '${schemaName}'
             AND table_name = 'supplier_item_links'
           );
         `);
         supplierLinksTableExists = supplierTableCheck.rows[0].exists;
       } catch (error) {
-        console.log('Could not check supplier_item_links table existence:', error);
+        console.log('[ItemController] Could not check supplier_item_links table existence:', error);
       }
 
       // Check if customer_item_mappings table exists
@@ -150,35 +181,35 @@ export class ItemController {
       try {
         const customerTableCheck = await pool.query(`
           SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = '${schemaName}' 
+            SELECT FROM information_schema.tables
+            WHERE table_schema = '${schemaName}'
             AND table_name = 'customer_item_mappings'
           );
         `);
         customerMappingsTableExists = customerTableCheck.rows[0].exists;
       } catch (error) {
-        console.log('Could not check customer_item_mappings table existence:', error);
+        console.log('[ItemController] Could not check customer_item_mappings table existence:', error);
       }
 
-      const companiesCountField = customerMappingsTableExists ? 
-        `COALESCE((SELECT COUNT(*) FROM "${schemaName}".customer_item_mappings cim 
-           WHERE cim.item_id = i.id AND cim.is_active = true), 0)` : 
+      const companiesCountField = customerMappingsTableExists ?
+        `COALESCE((SELECT COUNT(*) FROM "${schemaName}".customer_item_mappings cim
+           WHERE cim.item_id = i.id AND cim.is_active = true), 0)` :
         '0';
 
       const suppliersCountField = supplierLinksTableExists ?
-        `COALESCE((SELECT COUNT(*) FROM "${schemaName}".supplier_item_links sil 
+        `COALESCE((SELECT COUNT(*) FROM "${schemaName}".supplier_item_links sil
            WHERE sil.item_id = i.id AND sil.is_active = true), 0)` :
         '0';
 
       const query = `
-        SELECT 
+        SELECT
           i.*,
           ${hierarchyFields}
 
           -- Count linked companies
           ${companiesCountField} as "companiesCount",
 
-          -- Count linked suppliers  
+          -- Count linked suppliers
           ${suppliersCountField} as "suppliersCount"
 
         FROM "${schemaName}".items i
@@ -198,13 +229,24 @@ export class ItemController {
 
       res.json({
         success: true,
-        data: result.rows
+        data: result.rows,
+        total: result.rows.length,
+        metadata: {
+          tenantId,
+          filters,
+          pagination: { limit: parseInt(limit as string), offset: parseInt(offset as string) },
+          timestamp: new Date().toISOString()
+        }
       });
     } catch (error) {
-      console.error('❌ Error fetching items:', error);
+      console.error('[ItemController] Error fetching items:', error);
+      console.error('[ItemController] Error stack:', error.stack);
+
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch items'
+        message: 'Failed to fetch items',
+        error: error.message,
+        tenantId: req.user?.tenantId
       });
     }
   }
@@ -218,16 +260,16 @@ export class ItemController {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      // Direct SQL query to avoid Drizzle ORM issues  
+      // Direct SQL query to avoid Drizzle ORM issues
       const { pool } = await import('../../../../db.js');
 
       // Get main item data
       const itemQuery = `
-        SELECT 
-          id, name, type, integration_code, description, 
+        SELECT
+          id, name, type, integration_code, description,
           measurement_unit, maintenance_plan, default_checklist,
           status, active, created_at, updated_at, tenant_id
-        FROM tenant_${tenantId.replace(/-/g, '_')}.items 
+        FROM tenant_${tenantId.replace(/-/g, '_')}.items
         WHERE id = $1 AND tenant_id = $2
       `;
       const itemResult = await pool.query(itemQuery, [id, tenantId]);
@@ -245,7 +287,7 @@ export class ItemController {
       const [attachments, customerLinks, supplierLinks] = await Promise.all([
         // Attachments
         pool.query(`
-          SELECT * FROM tenant_${tenantId.replace(/-/g, '_')}.item_attachments 
+          SELECT * FROM tenant_${tenantId.replace(/-/g, '_')}.item_attachments
           WHERE item_id = $1 ORDER BY created_at DESC
         `, [id]).catch(() => ({ rows: [] })),
 
@@ -253,7 +295,7 @@ export class ItemController {
         pool.query(`
           SELECT m.*, c.company as customer_name
           FROM tenant_${tenantId.replace(/-/g, '_')}.customer_item_mappings m
-          LEFT JOIN tenant_${tenantId.replace(/-/g, '_')}.customers c ON m.customer_id = c.id  
+          LEFT JOIN tenant_${tenantId.replace(/-/g, '_')}.customers c ON m.customer_id = c.id
           WHERE m.item_id = $1 AND m.is_active = true
           ORDER BY m.created_at DESC
         `, [id]).catch(() => ({ rows: [] })),
@@ -504,7 +546,7 @@ export class ItemController {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const query = `
-        SELECT 
+        SELECT
           g.*,
           COUNT(m.item_id) as item_count
         FROM "${schemaName}".item_groups g
@@ -555,7 +597,7 @@ export class ItemController {
       };
 
       const insertQuery = `
-        INSERT INTO "${schemaName}".item_groups 
+        INSERT INTO "${schemaName}".item_groups
         (id, tenant_id, name, description, color, icon, is_active, created_at, created_by, updated_at, updated_by)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING *
@@ -603,12 +645,12 @@ export class ItemController {
 
       // Remove existing memberships for these items in this group
       await pool.query(`
-        DELETE FROM "${schemaName}".item_group_memberships 
+        DELETE FROM "${schemaName}".item_group_memberships
         WHERE group_id = $1 AND item_id = ANY($2::uuid[]) AND tenant_id = $3
       `, [groupId, itemIds, tenantId]);
 
       // Add new memberships
-      const values = itemIds.map((itemId, index) => 
+      const values = itemIds.map((itemId, index) =>
         `($${index * 5 + 1}, $${index * 5 + 2}, $${index * 5 + 3}, $${index * 5 + 4}, $${index * 5 + 5})`
       ).join(', ');
 
@@ -621,7 +663,7 @@ export class ItemController {
       ]);
 
       await pool.query(`
-        INSERT INTO "${schemaName}".item_group_memberships 
+        INSERT INTO "${schemaName}".item_group_memberships
         (id, tenant_id, item_id, group_id, created_by)
         VALUES ${values}
       `, params);
@@ -655,7 +697,7 @@ export class ItemController {
       const [parentResult, childrenResult] = await Promise.all([
         // Get parent
         pool.query(`
-          SELECT 
+          SELECT
             h.*,
             pi.name as parent_name,
             pi.type as parent_type
@@ -666,7 +708,7 @@ export class ItemController {
 
         // Get children
         pool.query(`
-          SELECT 
+          SELECT
             h.*,
             ci.name as child_name,
             ci.type as child_type
@@ -714,7 +756,7 @@ export class ItemController {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Create hierarchy relationships
-      const values = childItemIds.map((childItemId, index) => 
+      const values = childItemIds.map((childItemId, index) =>
         `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`
       ).join(', ');
 
@@ -728,7 +770,7 @@ export class ItemController {
       ]);
 
       await pool.query(`
-        INSERT INTO "${schemaName}".item_hierarchy 
+        INSERT INTO "${schemaName}".item_hierarchy
         (id, tenant_id, parent_item_id, child_item_id, "order", created_by)
         VALUES ${values}
       `, params);
@@ -865,12 +907,12 @@ export class ItemController {
       let customerLinks = [];
       try {
         const customerLinksResult = await pool.query(`
-          SELECT c.id, c.company as name 
+          SELECT c.id, c.company as name
           FROM "${schemaName}".customer_item_mappings cim
           INNER JOIN "${schemaName}".companies c ON cim.customer_id = c.id
-          WHERE cim.item_id = $1 
-            AND cim.tenant_id = $2 
-            AND cim.is_active = true 
+          WHERE cim.item_id = $1
+            AND cim.tenant_id = $2
+            AND cim.is_active = true
             AND c.status = 'active'
           LIMIT 50
         `, [itemId, tenantId]);
@@ -881,11 +923,11 @@ export class ItemController {
         // Fallback: tentar com estrutura alternativa
         try {
           const fallbackResult = await pool.query(`
-            SELECT c.id, c.name 
+            SELECT c.id, c.name
             FROM "${schemaName}".item_customer_links icl
             INNER JOIN "${schemaName}".customers c ON icl.customer_id = c.id
-            WHERE icl.item_id = $1 
-              AND icl.tenant_id = $2 
+            WHERE icl.item_id = $1
+              AND icl.tenant_id = $2
               AND icl.is_active = true
             LIMIT 50
           `, [itemId, tenantId]);
@@ -899,11 +941,11 @@ export class ItemController {
       let supplierLinks = [];
       try {
         const supplierLinksResult = await pool.query(`
-          SELECT s.id, s.name 
+          SELECT s.id, s.name
           FROM "${schemaName}".item_supplier_links isl
           INNER JOIN "${schemaName}".suppliers s ON isl.supplier_id = s.id
-          WHERE isl.item_id = $1 
-            AND isl.tenant_id = $2 
+          WHERE isl.item_id = $1
+            AND isl.tenant_id = $2
             AND isl.is_active = true
             AND s.active = true
           LIMIT 50
@@ -939,14 +981,14 @@ export class ItemController {
       const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const groupsQuery = `
-        SELECT 
+        SELECT
           group_name,
           group_description,
           COUNT(*) as item_count,
           array_agg(DISTINCT item_id) as item_ids
-        FROM ${tenantSchema}.item_links 
-        WHERE tenant_id = $1 
-          AND group_name IS NOT NULL 
+        FROM ${tenantSchema}.item_links
+        WHERE tenant_id = $1
+          AND group_name IS NOT NULL
           AND is_active = true
         GROUP BY group_name, group_description
         ORDER BY group_name

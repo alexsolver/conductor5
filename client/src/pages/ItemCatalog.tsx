@@ -115,6 +115,7 @@ interface Item {
   suppliersCount?: number;
   linkedCompanies?: { id: string; name: string }[];
   linkedSuppliers?: { id: string; name: string }[];
+  linkedChildren?: { id: string; name: string }[];
 }
 
 const itemSchema = z.object({
@@ -148,6 +149,8 @@ export default function ItemCatalog() {
   // Estados principais
   const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'item-edit'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [items, setItems] = useState<Item[]>([]); // State to hold fetched items
+  const [loading, setLoading] = useState(true); // State for loading indicator
 
   // Estados de filtros e busca
   const [searchTerm, setSearchTerm] = useState("");
@@ -185,18 +188,88 @@ export default function ItemCatalog() {
     }
   });
 
-  // Queries
-  const { data: itemsResponse, isLoading: isLoadingItems } = useQuery({
-    queryKey: ["/api/materials-services/items", searchTerm, typeFilter, statusFilter, hierarchyFilter],
-    queryFn: () => apiRequest('GET', '/api/materials-services/items', {
-      search: searchTerm || undefined,
-      type: typeFilter !== 'all' ? typeFilter : undefined,
-      status: statusFilter !== 'all' ? statusFilter : undefined,
-      active: statusFilter === 'active' ? 'true' : statusFilter === 'inactive' ? 'false' : undefined
-    }).then(res => res.json()),
-    enabled: true
-  });
+  // Fetch items on mount and when filters change
+  useEffect(() => {
+    fetchItems();
+  }, [searchTerm, typeFilter, statusFilter, hierarchyFilter]);
 
+
+  // Fetch items
+  const fetchItems = async () => {
+    try {
+      console.log('🔍 [ItemCatalog] Starting to fetch items...');
+      setLoading(true);
+
+      const params = new URLSearchParams();
+
+      if (searchTerm && searchTerm.trim() !== '') {
+        params.append('search', searchTerm.trim());
+      }
+      if (typeFilter && typeFilter !== 'all') {
+        params.append('type', typeFilter);
+      }
+      if (statusFilter && statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+
+      const url = `/api/materials-services/items${params.toString() ? `?${params}` : ''}`;
+      console.log('🔍 [ItemCatalog] Fetching from URL:', url);
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('🔍 [ItemCatalog] Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔍 [ItemCatalog] Response error:', errorText);
+        throw new Error(`Failed to fetch items: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('🔍 [ItemCatalog] Response data:', {
+        success: data.success,
+        itemCount: data.data?.length || 0,
+        total: data.total,
+        metadata: data.metadata
+      });
+
+      if (data.success && Array.isArray(data.data)) {
+        setItems(data.data);
+        console.log('✅ [ItemCatalog] Successfully loaded', data.data.length, 'items');
+
+        if (data.data.length > 0) {
+          console.log('🔍 [ItemCatalog] Sample item:', data.data[0]);
+        }
+      } else {
+        console.warn('⚠️ [ItemCatalog] Unexpected response format:', data);
+        setItems([]);
+      }
+    } catch (error) {
+      console.error('❌ [ItemCatalog] Error fetching items:', error);
+      setItems([]);
+
+      // Show user-friendly error message
+      if (error.message.includes('authentication')) {
+        alert('Sessão expirada. Por favor, faça login novamente.');
+      } else {
+        alert('Erro ao carregar itens do catálogo. Tente novamente.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Queries
   const { data: availableCustomers, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ["/api/customers/companies"],
     queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
@@ -207,7 +280,7 @@ export default function ItemCatalog() {
     queryFn: () => apiRequest('GET', '/api/materials-services/suppliers').then(res => res.json()),
   });
 
-  // Query para vínculos do item específico quando estiver editando
+  // Query for specific item links when editing
   const { data: itemLinksData, refetch: refetchItemLinks } = useQuery({
     queryKey: ['/api/materials-services/items', selectedItem?.id, 'links'],
     queryFn: async () => {
@@ -299,7 +372,6 @@ export default function ItemCatalog() {
   });
 
   // Processar dados
-  const items: Item[] = (itemsResponse as any)?.data || [];
   const companies = (availableCustomers as any)?.data || [];
   const suppliers = (availableSuppliers as any)?.data || [];
 
@@ -308,7 +380,7 @@ export default function ItemCatalog() {
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || item.type === typeFilter;
-    const matchesStatus = statusFilter === "all" || 
+    const matchesStatus = statusFilter === "all" ||
                          (statusFilter === "active" && item.active) ||
                          (statusFilter === "inactive" && !item.active);
     const matchesHierarchy = hierarchyFilter === "all" ||
@@ -362,7 +434,7 @@ export default function ItemCatalog() {
           childrenIds: data.childrenIds, // Ensure childrenIds are sent
         });
         if (!updateResponse.ok) throw new Error('Failed to update item');
-        
+
         toast({ title: "Item atualizado", description: "Informações e vínculos salvos." });
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
         setCurrentView('item-details');
@@ -396,21 +468,20 @@ export default function ItemCatalog() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Catálogo de Itens</h1>
-          <p className="text-gray-600">
-            {items.length} itens • {items.filter(i => i.active).length} ativos • {items.filter(i => i.isParent).length} pais
+          <h1 className="text-2xl font-bold text-gray-900">Catálogo de Itens</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {items.length} {items.length === 1 ? 'item encontrado' : 'itens encontrados'}
+            {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && ' (filtrado)'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setCurrentView('management')}>
-            <Settings className="h-4 w-4 mr-2" />
-            Ferramentas
-          </Button>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Item
-          </Button>
-        </div>
+        <Button variant="outline" onClick={() => setCurrentView('management')}>
+          <Settings className="h-4 w-4 mr-2" />
+          Ferramentas
+        </Button>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Item
+        </Button>
       </div>
 
       <Card>
@@ -461,7 +532,7 @@ export default function ItemCatalog() {
                 </SelectContent>
               </Select>
 
-              <Button 
+              <Button
                 variant={isBulkMode ? "default" : "outline"}
                 onClick={() => setIsBulkMode(!isBulkMode)}
               >
@@ -475,17 +546,23 @@ export default function ItemCatalog() {
 
       <Card>
         <CardContent className="p-0">
-          {isLoadingItems ? (
-            <div className="p-8 text-center">Carregando itens...</div>
-          ) : paginatedItems.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum item encontrado</h3>
-              <p className="text-gray-500 mb-4">Ajuste os filtros ou crie um novo item.</p>
-              <Button onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Primeiro Item
-              </Button>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2">Carregando itens...</span>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-gray-500 mb-4">
+                {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
+                  ? 'Nenhum item encontrado com os filtros aplicados'
+                  : 'Nenhum item cadastrado no catálogo'}
+              </div>
+              {(!searchTerm && typeFilter === 'all' && statusFilter === 'all') && (
+                <Button onClick={() => window.location.reload()} variant="outline">
+                  Recarregar página
+                </Button>
+              )}
             </div>
           ) : (
             <>
@@ -513,8 +590,8 @@ export default function ItemCatalog() {
                 </TableHeader>
                 <TableBody>
                   {paginatedItems.map((item) => (
-                    <TableRow 
-                      key={item.id} 
+                    <TableRow
+                      key={item.id}
                       className={`hover:bg-gray-50 transition-colors ${
                         selectedItems.has(item.id) ? 'bg-blue-50' : ''
                       }`}
@@ -528,13 +605,13 @@ export default function ItemCatalog() {
                         </TableCell>
                       )}
 
-                      <TableCell 
+                      <TableCell
                         className="font-medium cursor-pointer hover:text-blue-600"
                         onClick={() => handleItemClick(item)}
                       >
                         <div className="flex items-center gap-2">
-                          {item.type === 'material' ? 
-                            <Package className="h-4 w-4 text-blue-600" /> : 
+                          {item.type === 'material' ?
+                            <Package className="h-4 w-4 text-blue-600" /> :
                             <Wrench className="h-4 w-4 text-green-600" />
                           }
                           <div>
@@ -612,8 +689,8 @@ export default function ItemCatalog() {
 
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -622,8 +699,8 @@ export default function ItemCatalog() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -634,8 +711,8 @@ export default function ItemCatalog() {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="sm"
                                 onClick={(e) => e.stopPropagation()}
                                 className="text-red-600 hover:text-red-700"
@@ -710,8 +787,8 @@ export default function ItemCatalog() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setCurrentView('catalog')}
             >
@@ -746,7 +823,7 @@ export default function ItemCatalog() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button 
+            <Button
               variant="outline"
               onClick={() => handleEditItem(selectedItem)}
             >
@@ -882,8 +959,8 @@ export default function ItemCatalog() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setCurrentView('item-details')}
             >
@@ -1050,7 +1127,7 @@ export default function ItemCatalog() {
                   <div>
                     <label className="text-sm font-medium">Itens Filhos</label>
                     <div className="mt-2">
-                      <Select 
+                      <Select
                         value=""
                         onValueChange={(value) => {
                           if (value && value !== "none") {
@@ -1067,9 +1144,9 @@ export default function ItemCatalog() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecionar item...</SelectItem>
-                          {items.filter(item => 
-                            item.id !== selectedItem?.id && 
-                            !item.parentId && 
+                          {items.filter(item =>
+                            item.id !== selectedItem?.id &&
+                            !item.parentId &&
                             !(itemForm.watch("childrenIds") || []).includes(item.id)
                           ).map((item) => (
                             <SelectItem key={item.id} value={item.id}>
@@ -1120,7 +1197,7 @@ export default function ItemCatalog() {
                 </div>
               </CardContent>
             </Card>
-          
+
             <Card>
               <CardHeader>
                 <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
@@ -1170,7 +1247,7 @@ export default function ItemCatalog() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecione uma empresa...</SelectItem>
-                          {companies.filter(company => 
+                          {companies.filter(company =>
                             !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
                           ).map((company) => (
                             <SelectItem key={company.id} value={company.id}>
@@ -1186,7 +1263,7 @@ export default function ItemCatalog() {
                         <div key={company.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
                           <span>{company.name}</span>
                           <Button
-                            variant="outline" 
+                            variant="outline"
                             size="sm"
                             onClick={async () => {
                               if (!selectedItem?.id) return;
@@ -1265,7 +1342,7 @@ export default function ItemCatalog() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecione um fornecedor...</SelectItem>
-                          {suppliers.filter(supplier => 
+                          {suppliers.filter(supplier =>
                             !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
                           ).map((supplier) => (
                             <SelectItem key={supplier.id} value={supplier.id}>
@@ -1475,9 +1552,9 @@ export default function ItemCatalog() {
               />
 
               <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => {
                     setIsCreateModalOpen(false);
                     itemForm.reset();
@@ -1485,7 +1562,7 @@ export default function ItemCatalog() {
                 >
                   Cancelar
                 </Button>
-                <Button 
+                <Button
                   type="submit"
                   disabled={createItemMutation.isPending}
                 >

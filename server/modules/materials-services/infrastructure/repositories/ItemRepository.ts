@@ -1,4 +1,4 @@
-import { eq, and, like, desc, or, sql, inArray, asc } from 'drizzle-orm';
+import { eq, and, like, desc, or, sql, inArray, asc, isNotNull } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '@shared/schema';
 import { companies as companyTable } from '@shared/schema';
 import { suppliers as supplierTable } from '@shared/schema';

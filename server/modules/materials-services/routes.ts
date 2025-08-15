@@ -17,7 +17,7 @@ import { ImportController } from './application/controllers/ImportController';
 import { AuditController } from './application/controllers/AuditController';
 import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import crypto from 'crypto';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
@@ -77,10 +77,32 @@ router.post('/items', async (req: AuthenticatedRequest, res) => {
   return itemController.createItem(req, res);
 });
 
-router.get('/items', async (req: AuthenticatedRequest, res) => {
-  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
-  const { itemController } = await getControllers(req.user.tenantId);
-  return itemController.getItems(req, res);
+// GET /api/materials-services/items
+router.get('/items', async (req: Request, res: Response) => {
+  console.log(`🔍 [MATERIALS-SERVICES-ROUTE] GET /items called`);
+  console.log(`🔍 [MATERIALS-SERVICES-ROUTE] Query params:`, req.query);
+  console.log(`🔍 [MATERIALS-SERVICES-ROUTE] User:`, {
+    id: req.user?.id,
+    tenantId: req.user?.tenantId,
+    email: req.user?.email
+  });
+
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      console.log('❌ [MATERIALS-SERVICES-ROUTE] Missing tenant ID');
+      return res.status(401).json({ message: 'Tenant ID required' });
+    }
+    const { itemController } = await getControllers(tenantId);
+    await itemController.getItems(req, res);
+  } catch (error) {
+    console.error(`❌ [MATERIALS-SERVICES-ROUTE] Error in /items route:`, error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error in items route',
+      error: error.message
+    });
+  }
 });
 
 // Route for frontend compatibility
@@ -1237,7 +1259,7 @@ router.get('/compliance/stats', async (req, res) => {
 
     // Get real compliance stats from database
     const { db } = await schemaManager.getTenantDb(tenantId);
-    
+
     // Query real audit data
     const auditsResult = await db.query(`
       SELECT 
@@ -1248,10 +1270,10 @@ router.get('/compliance/stats', async (req, res) => {
       FROM "${db.schema}".compliance_audits 
       WHERE tenant_id = $1
     `, [tenantId]);
-    
+
     const auditStats = auditsResult.rows[0] || { total: 0, completed: 0, planning: 0, inProgress: 0 };
     const completionRate = auditStats.total > 0 ? Math.round((auditStats.completed / auditStats.total) * 100) : 0;
-    
+
     const stats = {
       audits: {
         total: parseInt(auditStats.total),
