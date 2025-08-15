@@ -159,7 +159,7 @@ export class TicketMaterialsController {
       // Import pool for direct SQL queries - seguindo padrão dos outros métodos
       const { pool } = await import('../../../../db');
 
-      // Use raw SQL to get planned items with complete item details - mesmo padrão do getPlannedItems
+      // Use raw SQL to get planned items with complete item details - corrigindo colunas
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
         SELECT 
@@ -168,7 +168,7 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          i.part_number as item_code,
+          i.integration_code as item_code,
           i.brand as item_brand,
           i.model as item_model,
           i.category as item_category,
@@ -249,7 +249,7 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          i.part_number as item_code,
+          i.integration_code as item_code,
           i.brand as item_brand,
           i.model as item_model,
           i.category as item_category,
@@ -357,7 +357,7 @@ export class TicketMaterialsController {
           } else {
             // Fallback to item catalog price using correct column names
             const itemQuery = await this.db.execute(sql`
-              SELECT unit_cost, price
+              SELECT price
               FROM items
               WHERE id = ${itemId} AND tenant_id = ${tenantId}
               LIMIT 1
@@ -365,7 +365,7 @@ export class TicketMaterialsController {
 
             if (itemQuery.rows && itemQuery.rows.length > 0) {
               const itemRow = itemQuery.rows[0];
-              finalUnitPrice = parseFloat(itemRow.unit_cost || itemRow.price || 0);
+              finalUnitPrice = parseFloat(itemRow.price || 0);
               console.log('💰 [BACKEND-PRICE-LOOKUP] Found item catalog price:', finalUnitPrice);
             }
           }
@@ -736,7 +736,7 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          i.part_number as item_code,
+          i.integration_code as item_code,
           i.brand as item_brand,
           i.model as item_model,
           i.category as item_category,
