@@ -14,7 +14,7 @@ import { CreateTicketUseCase } from './application/use-cases/CreateTicketUseCase
 import { UpdateTicketUseCase } from './application/use-cases/UpdateTicketUseCase';
 import { FindTicketUseCase } from './application/use-cases/FindTicketUseCase';
 import { DeleteTicketUseCase } from './application/use-cases/DeleteTicketUseCase';
-import { DrizzleTicketRepository } from './infrastructure/repositories/DrizzleTicketRepository';
+import { DrizzleTicketRepositoryClean } from './infrastructure/repositories/DrizzleTicketRepositoryClean';
 
 // Simple logger implementation for Clean Architecture
 class SimpleLogger {
@@ -365,9 +365,9 @@ async function createCompleteAuditEntry(
 
 const ticketsRouter = Router();
 
-// Initialize Clean Architecture dependencies
+// Initialize Clean Architecture dependencies with JOIN support for company/customer data
 const logger = new SimpleLogger();
-const ticketRepository = new DrizzleTicketRepository();
+const ticketRepository = new DrizzleTicketRepositoryClean(logger);
 const createTicketUseCase = new CreateTicketUseCase(ticketRepository, logger);
 const updateTicketUseCase = new UpdateTicketUseCase(ticketRepository, logger);
 const findTicketUseCase = new FindTicketUseCase(ticketRepository, logger);
