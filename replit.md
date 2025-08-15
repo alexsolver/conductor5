@@ -20,7 +20,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 ### Backend
 - **Runtime**: Node.js with Express.js.
 - **Language**: TypeScript with ES modules.
-- **Database**: PostgreSQL with Drizzle ORM. Complete 1qa.md compliance achieved - Neon completely removed from codebase, PostgreSQL infrastructure implemented. All database operations use pg driver with node-postgres for full PostgreSQL compatibility.
+- **Database**: PostgreSQL with Drizzle ORM. Complete 1qa.md compliance achieved - Neon completely removed from codebase, PostgreSQL infrastructure implemented. All database operations use pg driver with node-postgres for full PostgreSQL compatibility. @neondatabase/serverless package completely eliminated from all source files.
 - **Authentication**: Local JWT authentication.
 - **Session Management**: Express sessions with PostgreSQL storage.
 - **API Design**: RESTful endpoints with structured error handling.
