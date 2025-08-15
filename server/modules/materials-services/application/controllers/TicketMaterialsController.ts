@@ -159,7 +159,7 @@ export class TicketMaterialsController {
       // Import pool for direct SQL queries - seguindo padrão dos outros métodos
       const { pool } = await import('../../../../db');
 
-      // Use raw SQL to get planned items with complete item details - corrigindo colunas
+      // Use raw SQL to get planned items with complete item details - apenas colunas existentes
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
         SELECT
@@ -169,8 +169,6 @@ export class TicketMaterialsController {
           i.measurement_unit,
           i.type as item_type,
           i.integration_code as item_code,
-          i.brand as item_brand,
-          i.model as item_model,
           i.category as item_category
         FROM "${schemaName}".ticket_planned_items tpi
         LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
@@ -191,6 +189,7 @@ export class TicketMaterialsController {
         itemCode: row.item_code,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
+        itemCategory: row.item_category,
         lpuId: row.lpu_id,
         plannedQuantity: parseFloat(row.planned_quantity || 0),
         availableQuantity: parseFloat(row.planned_quantity || 0), // Quantidade disponível para consumo
@@ -202,8 +201,6 @@ export class TicketMaterialsController {
         priority: row.priority,
         notes: row.notes,
         isActive: row.is_active,
-        hasChildren: row.has_children,
-        childrenCount: parseInt(row.children_count || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }));
@@ -235,7 +232,7 @@ export class TicketMaterialsController {
       // Import pool for direct SQL queries
       const { pool } = await import('../../../../db');
 
-      // Use raw SQL to get consumed items with item details - corrigindo colunas
+      // Use raw SQL to get consumed items with item details - apenas colunas existentes
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
         SELECT
@@ -245,8 +242,6 @@ export class TicketMaterialsController {
           i.measurement_unit,
           i.type as item_type,
           i.integration_code as item_code,
-          i.brand as item_brand,
-          i.model as item_model,
           i.category as item_category
         FROM "${schemaName}".ticket_consumed_items tci
         LEFT JOIN "${schemaName}".items i ON tci.item_id = i.id
@@ -345,19 +340,7 @@ export class TicketMaterialsController {
             finalUnitPrice = parseFloat(priceRow.special_price || priceRow.unit_price || 0);
             console.log('💰 [BACKEND-PRICE-LOOKUP] Found LPU price:', finalUnitPrice);
           } else {
-            // Fallback to item catalog price using correct column names
-            const itemQuery = await this.db.execute(sql`
-              SELECT price
-              FROM items
-              WHERE id = ${itemId} AND tenant_id = ${tenantId}
-              LIMIT 1
-            `);
-
-            if (itemQuery.rows && itemQuery.rows.length > 0) {
-              const itemRow = itemQuery.rows[0];
-              finalUnitPrice = parseFloat(itemRow.price || 0);
-              console.log('💰 [BACKEND-PRICE-LOOKUP] Found item catalog price:', finalUnitPrice);
-            }
+            console.log('💰 [BACKEND-PRICE-LOOKUP] No LPU price found, using default unit price 0');
           }
         } catch (priceError) {
           console.error('❌ [BACKEND-PRICE-LOOKUP] Error:', priceError);
@@ -717,7 +700,7 @@ export class TicketMaterialsController {
       // Import pool for direct SQL queries
       const { pool } = await import('../../../../db');
 
-      // Use raw SQL to get planned items with complete item details
+      // Use raw SQL to get planned items with complete item details - apenas colunas existentes
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
         SELECT
@@ -727,8 +710,6 @@ export class TicketMaterialsController {
           i.measurement_unit,
           i.type as item_type,
           i.integration_code as item_code,
-          i.brand as item_brand,
-          i.model as item_model,
           i.category as item_category
         FROM "${schemaName}".ticket_planned_items tpi
         LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
@@ -748,6 +729,7 @@ export class TicketMaterialsController {
         itemCode: row.item_code,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
+        itemCategory: row.item_category,
         lpuId: row.lpu_id,
         plannedQuantity: parseFloat(row.planned_quantity || 0),
         unitPrice: parseFloat(row.unit_price_at_planning || 0),
@@ -758,8 +740,6 @@ export class TicketMaterialsController {
         priority: row.priority,
         notes: row.notes,
         isActive: row.is_active,
-        hasChildren: row.has_children,
-        childrenCount: parseInt(row.children_count || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }));
