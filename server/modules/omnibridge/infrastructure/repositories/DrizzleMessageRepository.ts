@@ -1,6 +1,6 @@
 
 import { db } from '../../../../db';
-import { schema } from '../../../../shared/schema';
+import { schema } from '../../../../../shared/schema';
 import { MessageEntity } from '../../domain/entities/Message';
 import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
 import { eq, and, desc, asc } from 'drizzle-orm';
