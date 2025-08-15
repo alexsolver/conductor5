@@ -241,13 +241,26 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
       const finalDataQuery = sql`
         SELECT 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
-          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
-        FROM ${sql.identifier(schemaName)}.tickets
+          t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
+          t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
+          t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
+          t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.is_active as "isActive",
+          
+          -- Company data for display
+          c.name as "company_name",
+          c.display_name as "company_display_name",
+          
+          -- Customer/Caller data for display  
+          caller.first_name as "caller_first_name",
+          caller.last_name as "caller_last_name",
+          caller.email as "caller_email",
+          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_full_name"
+          
+        FROM ${sql.identifier(schemaName)}.tickets t
+        LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON t.caller_id = caller.id
         WHERE ${sql.join(dataConditions, sql` AND `)}
-        ORDER BY created_at DESC
+        ORDER BY t.created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
       `;
 
