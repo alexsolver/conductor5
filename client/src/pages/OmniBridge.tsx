@@ -58,12 +58,40 @@ function AutomationRulesContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [createRuleOpen, setCreateRuleOpen] = useState(false);
+  const [editRuleOpen, setEditRuleOpen] = useState(false);
+  const [selectedRule, setSelectedRule] = useState(null);
+  
+  // Estados para criação de regra
+  const [ruleName, setRuleName] = useState('');
+  const [ruleDescription, setRuleDescription] = useState('');
+  const [triggerType, setTriggerType] = useState('');
+  const [triggerChannel, setTriggerChannel] = useState('');
+  const [triggerCondition, setTriggerCondition] = useState('');
+  const [triggerValue, setTriggerValue] = useState('');
+  const [actionType, setActionType] = useState('');
+  const [actionTemplate, setActionTemplate] = useState('');
+  const [actionTicketData, setActionTicketData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium',
+    category: ''
+  });
 
   // Fetch automation rules
   const { data: rulesData, isLoading: rulesLoading, refetch: refetchRules } = useQuery({
     queryKey: ['/api/automation-rules'],
     staleTime: 30000,
   });
+
+  // Fetch integrations para opções de canal
+  const { data: integrationsData } = useQuery({
+    queryKey: ['/api/tenant-admin/integrations'],
+    staleTime: 60000,
+  });
+
+  const communicationChannels = (integrationsData as any)?.integrations?.filter((integration: any) => 
+    integration.category === 'Comunicação'
+  ) || [];
 
   useEffect(() => {
     if (rulesData) {
@@ -72,6 +100,23 @@ function AutomationRulesContent() {
       setError(null);
     }
   }, [rulesData]);
+
+  const resetForm = () => {
+    setRuleName('');
+    setRuleDescription('');
+    setTriggerType('');
+    setTriggerChannel('');
+    setTriggerCondition('');
+    setTriggerValue('');
+    setActionType('');
+    setActionTemplate('');
+    setActionTicketData({
+      title: '',
+      description: '',
+      priority: 'medium',
+      category: ''
+    });
+  };
 
   const createRuleMutation = useMutation({
     mutationFn: async (ruleData: any) => {
@@ -84,6 +129,7 @@ function AutomationRulesContent() {
       });
       refetchRules();
       setCreateRuleOpen(false);
+      resetForm();
     },
     onError: (error: Error) => {
       toast({
@@ -113,6 +159,101 @@ function AutomationRulesContent() {
       });
     }
   });
+
+  const deleteRuleMutation = useMutation({
+    mutationFn: async (ruleId: string) => {
+      return await apiRequest('DELETE', `/api/automation-rules/${ruleId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Regra Removida",
+        description: "A regra de automação foi removida com sucesso."
+      });
+      refetchRules();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao Remover Regra",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const testRuleMutation = useMutation({
+    mutationFn: async ({ ruleId, testData }: { ruleId: string, testData: any }) => {
+      return await apiRequest('POST', `/api/automation-rules/${ruleId}/test`, { testData });
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: data.test?.matches ? "✅ Regra Ativa" : "❌ Regra Não Ativada",
+        description: data.test?.matches 
+          ? "A regra seria executada com os dados de teste." 
+          : "A regra não seria executada com os dados de teste."
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro no Teste",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleCreateRule = () => {
+    if (!ruleName || !triggerType || !triggerChannel || !actionType) {
+      toast({
+        title: "Campos Obrigatórios",
+        description: "Preencha nome, trigger, canal e ação.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const conditions = [{
+      type: triggerType,
+      channel: triggerChannel,
+      condition: triggerCondition,
+      value: triggerValue
+    }];
+
+    const actions = [];
+    
+    if (actionType === 'auto_reply' && actionTemplate) {
+      actions.push({
+        type: 'auto_reply',
+        template: actionTemplate
+      });
+    }
+    
+    if (actionType === 'create_ticket' && actionTicketData.title) {
+      actions.push({
+        type: 'create_ticket',
+        ticket_data: actionTicketData
+      });
+    }
+
+    if (actionType === 'both' && actionTemplate && actionTicketData.title) {
+      actions.push({
+        type: 'auto_reply',
+        template: actionTemplate
+      });
+      actions.push({
+        type: 'create_ticket',
+        ticket_data: actionTicketData
+      });
+    }
+
+    createRuleMutation.mutate({
+      name: ruleName,
+      description: ruleDescription,
+      conditions,
+      actions,
+      enabled: true,
+      priority: 1
+    });
+  };
 
   if (rulesLoading) {
     return (
@@ -145,26 +286,57 @@ function AutomationRulesContent() {
       {rules.length > 0 ? (
         <div className="space-y-4">
           {rules.map((rule: any) => (
-            <Card key={rule.id} className="border-l-4 border-l-blue-500">
+            <Card key={rule.id} className={`border-l-4 ${rule.enabled ? 'border-l-green-500' : 'border-l-gray-400'}`}>
               <CardContent className="p-4">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-medium">{rule.name}</h4>
                       <Badge variant={rule.enabled ? "default" : "secondary"}>
                         {rule.enabled ? 'Ativa' : 'Inativa'}
                       </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Prioridade: {rule.priority || 1}
+                      </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{rule.description}</p>
+                    <p className="text-sm text-gray-600 mb-3">{rule.description}</p>
+                    
+                    {/* If This Then That Visual */}
+                    <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="font-medium text-blue-700">IF:</span>
+                          <span>{rule.conditionsCount || 0} condição(ões)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                          <span className="font-medium text-orange-700">THEN:</span>
+                          <span>{rule.actionsCount || 0} ação(ões)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3 h-3 text-gray-500" />
+                          <span>Criada: {new Date(rule.createdAt).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
                     <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>Trigger: {rule.trigger_type}</span>
+                      <span className="flex items-center gap-1">
+                        <Activity className="w-3 h-3" />
+                        Execuções: 0
+                      </span>
                       <Separator orientation="vertical" className="h-3" />
-                      <span>Ações: {rule.actions?.length || 0}</span>
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Sucessos: 0
+                      </span>
                       <Separator orientation="vertical" className="h-3" />
-                      <span>Criada: {new Date(rule.created_at).toLocaleDateString('pt-BR')}</span>
+                      <span>Última exec: Nunca</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  <div className="flex items-center gap-1">
                     <Switch
                       checked={rule.enabled}
                       onCheckedChange={(enabled) => 
@@ -172,8 +344,39 @@ function AutomationRulesContent() {
                       }
                       disabled={toggleRuleMutation.isPending}
                     />
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => testRuleMutation.mutate({ 
+                        ruleId: rule.id, 
+                        testData: { message: 'teste', from: 'test@example.com' }
+                      })}
+                      disabled={testRuleMutation.isPending}
+                    >
+                      <Play className="h-3 w-3" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedRule(rule);
+                        setEditRuleOpen(true);
+                      }}
+                    >
                       <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        if (confirm('Deseja realmente excluir esta regra?')) {
+                          deleteRuleMutation.mutate(rule.id);
+                        }
+                      }}
+                      disabled={deleteRuleMutation.isPending}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
@@ -198,63 +401,231 @@ function AutomationRulesContent() {
 
       {/* Dialog para criar nova regra */}
       <Dialog open={createRuleOpen} onOpenChange={setCreateRuleOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Regra de Automação</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Workflow className="h-5 w-5" />
+              Nova Regra de Automação
+            </DialogTitle>
             <DialogDescription>
-              Configure uma nova regra para automatizar o processamento de mensagens
+              Configure uma regra "If This Then That" para automatizar ações baseadas em eventos de comunicação
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="ruleName">Nome da Regra</Label>
-              <Input
-                id="ruleName"
-                placeholder="Ex: Resposta automática para FAQ"
-              />
+          <div className="grid gap-6 py-4">
+            {/* Informações Básicas */}
+            <div className="grid gap-4">
+              <h4 className="font-medium flex items-center gap-2">
+                <Hash className="h-4 w-4" />
+                Informações Básicas
+              </h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="ruleName">Nome da Regra *</Label>
+                  <Input
+                    id="ruleName"
+                    value={ruleName}
+                    onChange={(e) => setRuleName(e.target.value)}
+                    placeholder="Ex: Resposta automática para FAQ"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label>Canal de Comunicação *</Label>
+                  <Select value={triggerChannel} onValueChange={setTriggerChannel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o canal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {communicationChannels.map((channel: any) => (
+                        <SelectItem key={channel.id} value={channel.id}>
+                          {channel.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="ruleDescription">Descrição</Label>
+                <Textarea
+                  id="ruleDescription"
+                  value={ruleDescription}
+                  onChange={(e) => setRuleDescription(e.target.value)}
+                  placeholder="Descreva o que esta regra faz..."
+                  rows={2}
+                />
+              </div>
             </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="ruleDescription">Descrição</Label>
-              <Textarea
-                id="ruleDescription"
-                placeholder="Descreva o que esta regra faz..."
-                rows={3}
-              />
+
+            <Separator />
+
+            {/* IF THIS - Trigger Configuration */}
+            <div className="grid gap-4">
+              <h4 className="font-medium flex items-center gap-2 text-blue-600">
+                <Play className="h-4 w-4" />
+                IF THIS - Condições de Ativação
+              </h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Tipo de Trigger *</Label>
+                  <Select value={triggerType} onValueChange={setTriggerType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Quando isso acontecer..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="message_received">Mensagem Recebida</SelectItem>
+                      <SelectItem value="keyword_match">Palavra-chave Encontrada</SelectItem>
+                      <SelectItem value="email_subject">Assunto do Email</SelectItem>
+                      <SelectItem value="sender_email">Email do Remetente</SelectItem>
+                      <SelectItem value="message_contains">Mensagem Contém</SelectItem>
+                      <SelectItem value="time_based">Baseado em Horário</SelectItem>
+                      <SelectItem value="priority_high">Prioridade Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label>Condição</Label>
+                  <Select value={triggerCondition} onValueChange={setTriggerCondition}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Como verificar..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="equals">É igual a</SelectItem>
+                      <SelectItem value="contains">Contém</SelectItem>
+                      <SelectItem value="starts_with">Começa com</SelectItem>
+                      <SelectItem value="ends_with">Termina com</SelectItem>
+                      <SelectItem value="regex">Expressão Regular</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label>Valor da Condição</Label>
+                <Input
+                  value={triggerValue}
+                  onChange={(e) => setTriggerValue(e.target.value)}
+                  placeholder="Ex: suporte, urgente, problema..."
+                />
+              </div>
             </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="triggerType">Tipo de Trigger</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o trigger" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="email_received">Email Recebido</SelectItem>
-                  <SelectItem value="keyword_match">Palavra-chave Encontrada</SelectItem>
-                  <SelectItem value="time_based">Baseado em Tempo</SelectItem>
-                  <SelectItem value="status_change">Mudança de Status</SelectItem>
-                </SelectContent>
-              </Select>
+
+            <Separator />
+
+            {/* THEN THAT - Action Configuration */}
+            <div className="grid gap-4">
+              <h4 className="font-medium flex items-center gap-2 text-green-600">
+                <Send className="h-4 w-4" />
+                THEN THAT - Ações Automáticas
+              </h4>
+              
+              <div className="grid gap-2">
+                <Label>Tipo de Ação *</Label>
+                <Select value={actionType} onValueChange={setActionType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="O que fazer quando ativado..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto_reply">Resposta Automática</SelectItem>
+                    <SelectItem value="create_ticket">Criar Ticket</SelectItem>
+                    <SelectItem value="both">Responder + Criar Ticket</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Template de Resposta */}
+              {(actionType === 'auto_reply' || actionType === 'both') && (
+                <div className="grid gap-2 p-4 border rounded-lg bg-blue-50">
+                  <Label className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Template de Resposta Automática
+                  </Label>
+                  <Textarea
+                    value={actionTemplate}
+                    onChange={(e) => setActionTemplate(e.target.value)}
+                    placeholder="Olá! Recebemos sua mensagem e entraremos em contato em breve..."
+                    rows={3}
+                  />
+                  <div className="text-xs text-gray-600">
+                    Variáveis disponíveis: {'{nome}'}, {'{email}'}, {'{mensagem}'}
+                  </div>
+                </div>
+              )}
+
+              {/* Dados do Ticket */}
+              {(actionType === 'create_ticket' || actionType === 'both') && (
+                <div className="grid gap-4 p-4 border rounded-lg bg-green-50">
+                  <Label className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Configuração do Ticket Automático
+                  </Label>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label>Título do Ticket</Label>
+                      <Input
+                        value={actionTicketData.title}
+                        onChange={(e) => setActionTicketData({...actionTicketData, title: e.target.value})}
+                        placeholder="Ex: Novo contato via {canal}"
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label>Prioridade</Label>
+                      <Select 
+                        value={actionTicketData.priority} 
+                        onValueChange={(value) => setActionTicketData({...actionTicketData, priority: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="urgent">Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label>Descrição do Ticket</Label>
+                    <Textarea
+                      value={actionTicketData.description}
+                      onChange={(e) => setActionTicketData({...actionTicketData, description: e.target.value})}
+                      placeholder="Ticket criado automaticamente a partir de {canal}..."
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateRuleOpen(false)}>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => {
+              setCreateRuleOpen(false);
+              resetForm();
+            }}>
               Cancelar
             </Button>
             <Button 
-              onClick={() => {
-                // Implementar criação da regra
-                toast({
-                  title: "Funcionalidade em Desenvolvimento",
-                  description: "A criação de regras será implementada na próxima versão."
-                });
-                setCreateRuleOpen(false);
-              }}
+              onClick={handleCreateRule}
+              disabled={createRuleMutation.isPending}
+              className="flex items-center gap-2"
             >
-              Criar Regra
+              {createRuleMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+              {createRuleMutation.isPending ? 'Criando...' : 'Criar Regra'}
             </Button>
           </DialogFooter>
         </DialogContent>

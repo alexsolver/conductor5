@@ -1,9 +1,11 @@
-
 export interface AutomationCondition {
   field: string;
   operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'regex' | 'greaterThan' | 'lessThan';
   value: string | number;
   logicalOperator?: 'AND' | 'OR';
+  type?: string; // Adicionado para compatibilidade com a nova lógica de avaliação
+  condition?: string; // Adicionado para compatibilidade com a nova lógica de avaliação
+  channel?: string; // Adicionado para compatibilidade com a nova lógica de avaliação
 }
 
 export interface AutomationAction {
@@ -26,56 +28,103 @@ export class AutomationRule {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  public evaluate(data: Record<string, any>): boolean {
-    if (!this.enabled || this.conditions.length === 0) {
+  public evaluate(data: any): boolean {
+    if (!this.enabled) {
       return false;
     }
 
-    let result = true;
-    let currentLogical: 'AND' | 'OR' = 'AND';
+    console.log(`🔍 [AutomationRule] Evaluating rule "${this.name}" with data:`, JSON.stringify(data, null, 2));
 
-    for (const condition of this.conditions) {
-      const fieldValue = data[condition.field];
-      const conditionResult = this.evaluateCondition(condition, fieldValue);
-
-      if (currentLogical === 'AND') {
-        result = result && conditionResult;
-      } else {
-        result = result || conditionResult;
-      }
-
-      currentLogical = condition.logicalOperator || 'AND';
-    }
-
-    return result;
+    // Avaliar todas as condições (AND logic - todas devem ser verdadeiras)
+    return this.conditions.every(condition => {
+      const result = this.evaluateCondition(condition, data);
+      console.log(`🔍 [AutomationRule] Condition "${condition.type}" result: ${result}`);
+      return result;
+    });
   }
 
-  private evaluateCondition(condition: AutomationCondition, fieldValue: any): boolean {
-    const { operator, value } = condition;
+  private evaluateCondition(condition: AutomationCondition, data: any): boolean {
+    const conditionType = condition.type;
+    const conditionValue = condition.value?.toLowerCase() || '';
+    const conditionOperator = condition.condition || 'equals';
 
-    switch (operator) {
-      case 'equals':
-        return fieldValue === value;
-      case 'contains':
-        return String(fieldValue).toLowerCase().includes(String(value).toLowerCase());
-      case 'startsWith':
-        return String(fieldValue).toLowerCase().startsWith(String(value).toLowerCase());
-      case 'endsWith':
-        return String(fieldValue).toLowerCase().endsWith(String(value).toLowerCase());
-      case 'regex':
-        try {
-          const regex = new RegExp(String(value), 'i');
-          return regex.test(String(fieldValue));
-        } catch {
-          return false;
-        }
-      case 'greaterThan':
-        return Number(fieldValue) > Number(value);
-      case 'lessThan':
-        return Number(fieldValue) < Number(value);
+    switch (conditionType) {
+      case 'message_received':
+        return data.type === 'message' || data.body || data.content;
+
+      case 'email_received':
+        return data.type === 'email' || data.subject || data.from_email;
+
+      case 'keyword_match':
+        const content = (data.content || data.body || data.subject || '').toLowerCase();
+        return this.matchText(content, conditionValue, conditionOperator);
+
+      case 'email_subject':
+        const subject = (data.subject || '').toLowerCase();
+        return this.matchText(subject, conditionValue, conditionOperator);
+
+      case 'sender_email':
+        const senderEmail = (data.sender || data.from_email || data.senderEmail || '').toLowerCase();
+        return this.matchText(senderEmail, conditionValue, conditionOperator);
+
+      case 'message_contains':
+        const messageBody = (data.body || data.content || data.bodyText || '').toLowerCase();
+        return this.matchText(messageBody, conditionValue, conditionOperator);
+
+      case 'time_based':
+        return this.evaluateTimeCondition(condition, data);
+
+      case 'priority_high':
+        return (data.priority || '').toLowerCase() === 'high' ||
+               (data.priority || '').toLowerCase() === 'urgent';
+
+      case 'channel_match':
+        return data.channel === condition.channel || data.source === condition.channel;
+
       default:
+        console.warn(`⚠️ [AutomationRule] Unknown condition type: ${conditionType}`);
         return false;
     }
+  }
+
+  private matchText(text: string, value: string, operator: string): boolean {
+    switch (operator) {
+      case 'equals':
+        return text === value;
+      case 'contains':
+        return text.includes(value);
+      case 'starts_with':
+        return text.startsWith(value);
+      case 'ends_with':
+        return text.endsWith(value);
+      case 'regex':
+        try {
+          const regex = new RegExp(value, 'i');
+          return regex.test(text);
+        } catch (error) {
+          console.error(`❌ [AutomationRule] Invalid regex: ${value}`, error);
+          return false;
+        }
+      default:
+        return text.includes(value);
+    }
+  }
+
+  private evaluateTimeCondition(condition: AutomationCondition, data: any): boolean {
+    const now = new Date();
+    const hour = now.getHours();
+
+    // Exemplo: horário comercial (9h às 18h)
+    if (condition.value === 'business_hours') {
+      return hour >= 9 && hour < 18;
+    }
+
+    // Exemplo: fora do horário comercial
+    if (condition.value === 'after_hours') {
+      return hour < 9 || hour >= 18;
+    }
+
+    return true;
   }
 
   public execute(data: Record<string, any>): Promise<void[]> {
@@ -85,7 +134,7 @@ export class AutomationRule {
 
   private async executeAction(action: AutomationAction, data: Record<string, any>): Promise<void> {
     console.log(`🤖 [AUTOMATION] Executing action: ${action.type} for rule: ${this.name}`);
-    
+
     switch (action.type) {
       case 'send_message':
         await this.sendMessage(action, data);

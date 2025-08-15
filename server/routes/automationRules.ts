@@ -260,6 +260,49 @@ router.post('/', async (req: any, res) => {
 });
 
 /**
+ * Atualizar regra de automação
+ */
+router.patch('/:ruleId', async (req: any, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { ruleId } = req.params;
+    const updateData = req.body;
+
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant ID not found'
+      });
+    }
+
+    const automationManager = GlobalAutomationManager.getInstance();
+    const engine = automationManager.getEngine(tenantId);
+    const updated = engine.updateRule(ruleId, updateData);
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: 'Automation rule not found'
+      });
+    }
+
+    console.log(`✏️ [AUTOMATION-RULES] Updated rule: ${ruleId} for tenant: ${tenantId}`);
+
+    res.json({
+      success: true,
+      message: 'Automation rule updated successfully',
+      rule: updated
+    });
+  } catch (error) {
+    console.error('❌ [AUTOMATION-RULES] Error updating rule:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update automation rule'
+    });
+  }
+});
+
+/**
  * Deletar regra de automação
  */
 router.delete('/:ruleId', async (req: any, res) => {
