@@ -384,6 +384,16 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       <div className="flex items-center gap-2">
         <Package className="h-5 w-5 text-blue-600" />
         <h2 className="text-xl font-semibold">Materiais e Serviços</h2>
+        <div className="flex items-center gap-4 ml-4">
+          <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-lg">
+            <span className="text-sm font-medium text-blue-700">Planejados:</span>
+            <span className="text-sm font-bold text-blue-800">{plannedMaterials.length}</span>
+          </div>
+          <div className="flex items-center gap-1 px-3 py-1 bg-green-50 rounded-lg">
+            <span className="text-sm font-medium text-green-700">Consumidos:</span>
+            <span className="text-sm font-bold text-green-800">{consumedMaterials.length}</span>
+          </div>
+        </div>
       </div>
 
       {/* Cost Overview Cards */}
@@ -560,9 +570,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           <h4 className="font-semibold text-blue-900">{item.itemName}</h4>
                           <Badge variant="outline" className="text-xs bg-blue-200 text-blue-800">
                             {item.itemType === 'material' ? 'Material' : 'Serviço'}
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            {item.priority}
                           </Badge>
                         </div>
                         {item.itemDescription && (
