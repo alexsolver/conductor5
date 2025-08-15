@@ -781,14 +781,35 @@ export default function OmniBridge() {
     }
   });
 
-  // Transform real data for display - ONLY communication integrations
+  // Transform real data for display - Show all integrations that can be used as communication channels
   const allChannels = (integrationsData as any)?.integrations || [];
-  const channels = allChannels.filter((integration: any) => 
-    integration.category === 'Comunicação'
-  );
+  let channels = allChannels.filter((integration: any) => {
+    // Include communication category and other relevant integrations
+    const category = integration.category?.toLowerCase() || '';
+    const name = integration.name?.toLowerCase() || '';
+    
+    return category === 'comunicação' || 
+           category === 'communication' ||
+           category === 'comunicacao' ||
+           name.includes('email') ||
+           name.includes('gmail') ||
+           name.includes('whatsapp') ||
+           name.includes('telegram') ||
+           name.includes('sms') ||
+           name.includes('webhook') ||
+           integration.type === 'communication' ||
+           integration.type === 'messaging';
+  });
+  
+  // Fallback: se nenhum canal de comunicação for encontrado, mostrar todas as integrações
+  if (channels.length === 0 && allChannels.length > 0) {
+    channels = allChannels;
+    console.log('🔄 [OmniBridge] No communication channels found, showing all integrations:', allChannels.length);
+  }
+  
   const inbox = (inboxData as any)?.messages || [];
   
-  // Debug log for inbox data
+  // Debug logs for data monitoring
   useEffect(() => {
     if (inbox.length > 0) {
       console.log('📧 Inbox data received:', inbox.length, 'messages');
@@ -797,6 +818,18 @@ export default function OmniBridge() {
       console.log('📪 No inbox messages available');
     }
   }, [inbox]);
+
+  // Debug log for channels data
+  useEffect(() => {
+    console.log('🔍 [OmniBridge] Raw integrations data:', allChannels.length, 'total');
+    console.log('🔍 [OmniBridge] Filtered channels:', channels.length, 'communication channels');
+    if (allChannels.length > 0) {
+      console.log('🔍 [OmniBridge] First integration structure:', allChannels[0]);
+    }
+    if (channels.length === 0 && allChannels.length > 0) {
+      console.warn('⚠️ [OmniBridge] No channels found despite having integrations - check filter criteria');
+    }
+  }, [allChannels, channels]);
 
   // Auto-refresh data every 30 seconds
   useEffect(() => {
