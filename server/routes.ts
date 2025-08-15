@@ -341,16 +341,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('✅ [MATERIALS-SERVICES-CLEAN-ARCH] Materials-Services Clean Architecture routes configured successfully');
 
   // OmniBridge Routes - Communication Hub
-  try {
-    const omniBridgeRoutes = await import('./modules/omnibridge/routes');
-    if (omniBridgeRoutes.default) {
-      app.use('/api/omnibridge', omniBridgeRoutes.default);
-    } else {
-      console.warn('⚠️ [OMNIBRIDGE] Routes module not properly exported, skipping registration');
-    }
-  } catch (error) {
-    console.warn('⚠️ [OMNIBRIDGE] Routes module failed to load:', error.message);
-  }
+  const omniBridgeRoutes = await import('./modules/omnibridge/routes');
+  app.use('/api/omnibridge', omniBridgeRoutes.default);
 
   // ✅ Priority 8: Locations routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [LOCATIONS-CLEAN-ARCH] Locations routes temporarily disabled for Clean Architecture fix');
