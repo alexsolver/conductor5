@@ -169,7 +169,7 @@ export default function OmniBridge() {
       try {
         setLoading(true);
 
-        // Fetch channels from integrations API (Workspace Admin → Integrações → Comunicação)
+        // Fetch channels from OmniBridge API which integrates with Workspace Admin
         const token = localStorage.getItem('token');
 
         if (!token) {
@@ -177,8 +177,17 @@ export default function OmniBridge() {
           throw new Error('Authentication token not found');
         }
 
-        console.log('🔍 [OmniBridge] Fetching integrations with token:', token?.substring(0, 20) + '...');
+        console.log('🔍 [OmniBridge] Fetching channels with token:', token?.substring(0, 20) + '...');
 
+        // First try the OmniBridge channels endpoint
+        const channelsResponse = await fetch('/api/omnibridge/channels', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // Fallback to integrations endpoint if channels endpoint fails
         const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -193,11 +202,19 @@ export default function OmniBridge() {
           }
         });
 
+        let channelsResult = null;
+        if (channelsResponse.ok) {
+          channelsResult = await channelsResponse.json();
+          console.log('🔍 [OmniBridge] Channels API Response:', channelsResult);
+        } else {
+          console.log('⚠️ [OmniBridge] Channels endpoint failed, trying integrations fallback');
+        }
+
         let integrationsResult = null;
-        if (integrationsResponse.ok) {
+        if (!channelsResult && integrationsResponse.ok) {
           integrationsResult = await integrationsResponse.json();
           console.log('🔍 [OmniBridge] API Response for integrations:', integrationsResult);
-        } else {
+        } else if (!channelsResult) {
           console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
           const errorText = await integrationsResponse.text();
           console.log('⚠️ [OmniBridge] Error details:', errorText);
@@ -212,19 +229,51 @@ export default function OmniBridge() {
         let channelsData: Channel[] = [];
         let messagesData: Message[] = [];
 
-        // Process integrations data - handle both direct array and wrapped response
+        // Process channels data - prioritize OmniBridge API response
         let communicationChannels: any[] = [];
 
-        if (integrationsResult?.success && integrationsResult?.data) {
-          // New wrapped response format
-          communicationChannels = integrationsResult.data;
-          console.log('📡 [OmniBridge] Using wrapped response format - Found', communicationChannels.length, 'communication channels');
+        if (channelsResult?.success && channelsResult?.data) {
+          // Use OmniBridge channels API response
+          communicationChannels = channelsResult.data;
+          console.log('📡 [OmniBridge] Using channels API - Found', communicationChannels.length, 'channels');
+        } else if (integrationsResult?.success && integrationsResult?.data) {
+          // Fallback: Process integrations data for communication channels
+          const integrations = integrationsResult.data;
+          communicationChannels = integrations.filter((integration: any) => {
+            const category = integration.category?.toLowerCase() || '';
+            return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+          }).map((integration: any) => ({
+            id: integration.id,
+            name: integration.name,
+            type: getChannelType(integration.id),
+            enabled: integration.enabled === true || integration.status === 'connected',
+            icon: getChannelIcon(integration.id),
+            description: integration.description || 'Canal de comunicação',
+            status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
+            messageCount: 0,
+            lastMessage: integration.status === 'connected' ? 'Ativo' : 'Aguardando configuração',
+            lastActivity: integration.status === 'connected' ? 'Recente' : 'Nunca',
+            features: integration.features || []
+          }));
+          console.log('📡 [OmniBridge] Using integrations fallback - Found', communicationChannels.length, 'communication channels');
         } else if (integrationsResult && Array.isArray(integrationsResult)) {
           // Legacy direct array response - filter for communication channels
           communicationChannels = integrationsResult.filter((integration: any) => {
             const category = integration.category?.toLowerCase() || '';
             return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
-          });
+          }).map((integration: any) => ({
+            id: integration.id,
+            name: integration.name,
+            type: getChannelType(integration.id),
+            enabled: integration.enabled === true || integration.status === 'connected',
+            icon: getChannelIcon(integration.id),
+            description: integration.description || 'Canal de comunicação',
+            status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
+            messageCount: 0,
+            lastMessage: integration.status === 'connected' ? 'Ativo' : 'Aguardando configuração',
+            lastActivity: integration.status === 'connected' : 'Recente' : 'Nunca',
+            features: integration.features || []
+          }));
           console.log('📡 [OmniBridge] Using direct array format - Found', communicationChannels.length, 'communication channels from', integrationsResult.length, 'total integrations');
         }
 

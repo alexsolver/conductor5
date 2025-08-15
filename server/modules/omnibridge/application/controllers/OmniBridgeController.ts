@@ -15,21 +15,103 @@ export class OmniBridgeController {
 
   async getChannels(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = (req as any).user?.tenantId;
       
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
       }
 
-      // OmniBridge should get channels from integrations system
-      // This is handled by tenant-admin-integration endpoint
-      res.json({
-        success: true,
-        message: 'Please use /api/tenant-admin-integration/integrations for channel configuration',
-        channels: [],
-        count: 0
-      });
+      console.log('🔍 [OmniBridge] Getting channels for tenant:', tenantId);
+
+      // Get communication channels from tenant integrations
+      const { storage } = await import('../../../storage-simple');
+      
+      try {
+        // Get all integrations for the tenant
+        const integrations = await storage.getTenantIntegrations(tenantId);
+        console.log('📡 [OmniBridge] Found integrations:', integrations.length);
+
+        // Filter for communication category
+        const communicationChannels = integrations.filter((integration: any) => {
+          const category = integration.category?.toLowerCase() || '';
+          return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+        });
+
+        console.log('📡 [OmniBridge] Communication channels found:', communicationChannels.length);
+
+        // Map to OmniBridge channel format
+        const channels = communicationChannels.map((integration: any) => ({
+          id: integration.id,
+          name: integration.name,
+          type: this.mapIntegrationType(integration.id),
+          enabled: integration.enabled === true || integration.status === 'connected',
+          icon: this.getChannelIcon(integration.id),
+          description: integration.description || 'Canal de comunicação',
+          status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
+          messageCount: 0,
+          lastMessage: integration.status === 'connected' ? 'Ativo' : 'Aguardando configuração',
+          lastActivity: integration.status === 'connected' ? 'Recente' : 'Nunca',
+          features: integration.features || []
+        }));
+
+        // If no channels found, provide default structure
+        if (channels.length === 0) {
+          const defaultChannels = [
+            {
+              id: 'email-imap-default',
+              name: 'Email IMAP',
+              type: 'email',
+              enabled: false,
+              icon: 'Mail',
+              description: 'Configure sua conexão de email IMAP no Workspace Admin → Integrações → Comunicação',
+              status: 'not_configured',
+              messageCount: 0,
+              lastMessage: 'Não configurado',
+              lastActivity: 'Nunca',
+              features: ['Auto-criação de tickets', 'Sincronização de emails']
+            },
+            {
+              id: 'whatsapp-default',
+              name: 'WhatsApp Business',
+              type: 'whatsapp',
+              enabled: false,
+              icon: 'MessageSquare',
+              description: 'Configure sua integração WhatsApp no Workspace Admin → Integrações → Comunicação',
+              status: 'not_configured',
+              messageCount: 0,
+              lastMessage: 'Não configurado',
+              lastActivity: 'Nunca',
+              features: ['Mensagens automáticas', 'Templates WhatsApp']
+            }
+          ];
+
+          console.log('📡 [OmniBridge] Using default channels structure');
+          
+          res.json({
+            success: true,
+            data: defaultChannels,
+            count: defaultChannels.length,
+            message: 'Configure canais de comunicação no Workspace Admin → Integrações → Comunicação'
+          });
+          return;
+        }
+
+        console.log('✅ [OmniBridge] Returning channels:', channels.length);
+
+        res.json({
+          success: true,
+          data: channels,
+          count: channels.length
+        });
+
+      } catch (storageError) {
+        console.error('❌ [OmniBridge] Storage error:', storageError);
+        res.status(500).json({
+          error: 'Failed to get channels from storage',
+          message: storageError instanceof Error ? storageError.message : 'Storage error'
+        });
+      }
     } catch (error) {
       console.error('[OmniBridge] Error getting channels:', error);
       res.status(500).json({
@@ -37,6 +119,40 @@ export class OmniBridgeController {
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
+  }
+
+  private mapIntegrationType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
+    const id = integrationId.toLowerCase();
+    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap')) {
+      return 'email';
+    }
+    if (id.includes('whatsapp')) {
+      return 'whatsapp';
+    }
+    if (id.includes('telegram')) {
+      return 'telegram';
+    }
+    if (id.includes('sms') || id.includes('twilio')) {
+      return 'sms';
+    }
+    return 'chat';
+  }
+
+  private getChannelIcon(integrationId: string): string {
+    const id = integrationId.toLowerCase();
+    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap')) {
+      return 'Mail';
+    }
+    if (id.includes('whatsapp')) {
+      return 'MessageSquare';
+    }
+    if (id.includes('telegram')) {
+      return 'MessageCircle';
+    }
+    if (id.includes('sms') || id.includes('twilio')) {
+      return 'Phone';
+    }
+    return 'MessageSquare';
   }
 
   async toggleChannel(req: Request, res: Response): Promise<void> {

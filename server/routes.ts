@@ -2392,7 +2392,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OmniBridge Module temporarily removed
+  // ✅ OmniBridge Module - Clean Architecture Implementation per 1qa.md
+  console.log('🏗️ [OMNIBRIDGE-CLEAN-ARCH] Initializing OmniBridge Clean Architecture routes...');
+  const omniBridgeRoutes = (await import('./modules/omnibridge/routes')).omniBridgeRoutes;
+  app.use('/api/omnibridge', omniBridgeRoutes);
+  console.log('✅ [OMNIBRIDGE-CLEAN-ARCH] OmniBridge Clean Architecture routes configured successfully');
 
   // Timecard Routes - Essential for CLT compliance
   app.use('/api/timecard', timecardRoutes);
