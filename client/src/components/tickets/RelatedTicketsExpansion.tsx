@@ -128,16 +128,19 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
             // Extract ticket data with improved fallbacks following 1qa.md patterns
             const relatedTicket = rel.targetTicket || rel;
             
-            // ✅ [1QA-COMPLIANCE] Ensure proper ID extraction for navigation
-            const ticketId = relatedTicket.id || rel.targetTicketId || rel.id;
+            // ✅ [1QA-COMPLIANCE] Critical fix: Use actual ticket data, not relationship ID
+            const ticketId = rel.relatedTicketId || rel.targetTicketId || relatedTicket.id;
             
-            const ticketNumber = relatedTicket.number || 
+            const ticketNumber = rel.relatedTicketNumber || 
+                               relatedTicket.number || 
                                rel.number ||
                                `T-${ticketId?.slice(0, 8) || 'UNKNOWN'}`;
-            const ticketSubject = relatedTicket.subject || 
+            const ticketSubject = rel.relatedTicketSubject || 
+                                relatedTicket.subject || 
                                 rel.subject || 
                                 'Ticket relacionado';
-            const ticketStatus = relatedTicket.status || 
+            const ticketStatus = rel.relatedTicketStatus || 
+                               relatedTicket.status || 
                                rel.status || 
                                'open';
             const ticketPriority = relatedTicket.priority || 
@@ -157,6 +160,8 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                 'duplicated_by': 'Duplicado por',
                 'depends_on': 'Depende de',
                 'dependency_of': 'Dependência de',
+                'parent_child': 'Pai de',
+                'child_parent': 'Filho de',
                 'parent_of': 'Pai de',
                 'child_of': 'Filho de',
                 'follows': 'Segue',
