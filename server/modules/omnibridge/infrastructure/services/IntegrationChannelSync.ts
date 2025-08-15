@@ -65,23 +65,12 @@ export class IntegrationChannelSync {
         tenantId,
         integrationId: integration.id,
         name: integration.name,
-        type: channelType,
+        category: channelType, // Use category instead of type for ChannelEntity
         status: integration.status === 'connected' || integration.enabled ? 'active' : 'inactive',
         config: integration.config || {},
-        features: integration.features || [],
-        description: integration.description || `Canal ${channelType}`,
-        icon: channelIcon,
-        lastSync: new Date(),
-        metrics: {
-          totalMessages: 0,
-          unreadMessages: 0,
-          lastActivity: null
-        },
-        metadata: {
-          originalIntegration: integration.id,
-          syncedAt: new Date().toISOString(),
-          category: integration.category
-        }
+        isEnabled: integration.status === 'connected' || integration.enabled,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       // Create or update channel

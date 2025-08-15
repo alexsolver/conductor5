@@ -10,11 +10,11 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
     const result = await db
       .select()
-      .from(schema.serviceIntegrations)
+      .from(schema.omnibridgeChannels)
       .where(
         and(
-          eq(schema.serviceIntegrations.id, id),
-          eq(schema.serviceIntegrations.tenantId, tenantId)
+          eq(schema.omnibridgeChannels.id, id),
+          eq(schema.omnibridgeChannels.tenantId, tenantId)
         )
       )
       .limit(1);
@@ -25,10 +25,10 @@ export class DrizzleChannelRepository implements IChannelRepository {
     return new ChannelEntity(
       row.id,
       row.name,
-      row.category.toLowerCase() as any,
+      row.type.toLowerCase() as any,
       row.status as any,
       row.config || {},
-      row.enabled,
+      row.status === 'active',
       row.tenantId,
       row.createdAt,
       row.updatedAt
@@ -40,16 +40,16 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
     const results = await db
       .select()
-      .from(schema.serviceIntegrations)
-      .where(eq(schema.serviceIntegrations.tenantId, tenantId));
+      .from(schema.omnibridgeChannels)
+      .where(eq(schema.omnibridgeChannels.tenantId, tenantId));
 
     return results.map(row => new ChannelEntity(
       row.id,
       row.name,
-      row.category.toLowerCase() as any,
+      row.type.toLowerCase() as any,
       row.status as any,
       row.config || {},
-      row.enabled,
+      row.status === 'active',
       row.tenantId,
       row.createdAt,
       row.updatedAt
@@ -61,11 +61,11 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
     const results = await db
       .select()
-      .from(schema.serviceIntegrations)
+      .from(schema.omnibridgeChannels)
       .where(
         and(
-          eq(schema.serviceIntegrations.tenantId, tenantId),
-          eq(schema.serviceIntegrations.enabled, true)
+          eq(schema.omnibridgeChannels.tenantId, tenantId),
+          eq(schema.omnibridgeChannels.status, 'active')
         )
       );
 
@@ -87,11 +87,11 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
     const results = await db
       .select()
-      .from(schema.serviceIntegrations)
+      .from(schema.omnibridgeChannels)
       .where(
         and(
-          eq(schema.serviceIntegrations.tenantId, tenantId),
-          eq(schema.serviceIntegrations.category, type)
+          eq(schema.omnibridgeChannels.tenantId, tenantId),
+          eq(schema.omnibridgeChannels.type, type)
         )
       );
 
@@ -113,27 +113,33 @@ export class DrizzleChannelRepository implements IChannelRepository {
     // throw new Error('Channels should be created via Workspace Admin');
 
     const result = await db
-      .insert(schema.serviceIntegrations)
+      .insert(schema.omnibridgeChannels)
       .values({
         id: channel.id,
-        name: channel.name,
-        category: channel.category,
-        status: channel.status,
-        config: channel.config,
-        enabled: channel.isEnabled,
         tenantId: channel.tenantId,
-        createdAt: channel.createdAt,
-        updatedAt: channel.updatedAt
+        integrationId: channel.id,
+        name: channel.name,
+        type: channel.category || 'chat',
+        status: channel.status || 'inactive',
+        config: channel.config || {},
+        features: [],
+        description: `Canal ${channel.category || 'chat'}`,
+        icon: 'MessageSquare',
+        lastSync: new Date(),
+        metrics: {},
+        metadata: {},
+        createdAt: channel.createdAt || new Date(),
+        updatedAt: channel.updatedAt || new Date()
       })
       .returning();
 
     return new ChannelEntity(
       result[0].id,
       result[0].name,
-      result[0].category.toLowerCase() as any,
+      result[0].type.toLowerCase() as any,
       result[0].status as any,
       result[0].config || {},
-      result[0].enabled,
+      result[0].status === 'active',
       result[0].tenantId,
       result[0].createdAt,
       result[0].updatedAt
@@ -142,24 +148,24 @@ export class DrizzleChannelRepository implements IChannelRepository {
 
   async update(id: string, data: Partial<ChannelEntity>, tenantId: string): Promise<ChannelEntity> {
     const [channel] = await db
-      .update(schema.serviceIntegrations)
+      .update(schema.omnibridgeChannels)
       .set({
         ...data,
         updatedAt: new Date()
       })
       .where(and(
-        eq(schema.serviceIntegrations.id, id),
-        eq(schema.serviceIntegrations.tenantId, tenantId)
+        eq(schema.omnibridgeChannels.id, id),
+        eq(schema.omnibridgeChannels.tenantId, tenantId)
       ))
       .returning();
 
     return new ChannelEntity(
       channel.id,
       channel.name,
-      channel.category.toLowerCase() as any,
+      channel.type.toLowerCase() as any,
       channel.status as any,
       channel.config || {},
-      channel.enabled,
+      channel.status === 'active',
       channel.tenantId,
       channel.createdAt,
       channel.updatedAt
@@ -175,16 +181,15 @@ export class DrizzleChannelRepository implements IChannelRepository {
     if (!tenantId) throw new Error('Tenant ID required');
 
     const result = await db
-      .update(schema.serviceIntegrations)
+      .update(schema.omnibridgeChannels)
       .set({
-        enabled: isEnabled,
-        status: isEnabled ? 'connected' : 'disconnected',
+        status: isEnabled ? 'active' : 'inactive',
         updatedAt: new Date()
       })
       .where(
         and(
-          eq(schema.serviceIntegrations.id, id),
-          eq(schema.serviceIntegrations.tenantId, tenantId)
+          eq(schema.omnibridgeChannels.id, id),
+          eq(schema.omnibridgeChannels.tenantId, tenantId)
         )
       );
 
