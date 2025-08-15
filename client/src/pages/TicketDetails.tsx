@@ -593,15 +593,25 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
   const materialsData = useMemo(() => {
-    const plannedItems = ticketPlannedMaterials?.success && Array.isArray(ticketPlannedMaterials.data)
-      ? ticketPlannedMaterials.data
-      : ticketPlannedMaterials?.data?.plannedItems || [];
+    // Verificar se os dados estão disponíveis e são arrays válidos
+    const plannedArray = Array.isArray(ticketPlannedMaterials?.data) ? ticketPlannedMaterials.data : [];
+    const consumedArray = Array.isArray(ticketConsumedMaterials?.data) ? ticketConsumedMaterials.data : [];
     
-    const consumedItems = ticketConsumedMaterials?.success && Array.isArray(ticketConsumedMaterials.data)
-      ? ticketConsumedMaterials.data
-      : ticketConsumedMaterials?.data?.consumedItems || [];
+    const result = [...plannedArray, ...consumedArray];
     
-    return [...(Array.isArray(plannedItems) ? plannedItems : []), ...(Array.isArray(consumedItems) ? consumedItems : [])];
+    console.log('🔧 [MATERIALS-USEMEMO-DEBUG] Estrutura corrigida:', {
+      plannedSuccess: ticketPlannedMaterials?.success,
+      plannedDataType: typeof ticketPlannedMaterials?.data,
+      plannedIsArray: Array.isArray(ticketPlannedMaterials?.data),
+      plannedLength: plannedArray.length,
+      consumedSuccess: ticketConsumedMaterials?.success,
+      consumedDataType: typeof ticketConsumedMaterials?.data,
+      consumedIsArray: Array.isArray(ticketConsumedMaterials?.data),
+      consumedLength: consumedArray.length,
+      totalLength: result.length
+    });
+    
+    return result;
   }, [ticketPlannedMaterials, ticketConsumedMaterials]);
 
   // ✅ [1QA-COMPLIANCE] Debug para validar dados de materiais
