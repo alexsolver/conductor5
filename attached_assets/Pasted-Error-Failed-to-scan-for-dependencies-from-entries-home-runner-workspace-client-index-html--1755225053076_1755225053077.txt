@@ -1,0 +1,50 @@
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] Multiple exports with the same name "default"
+
+    client/src/pages/OmniBridge.tsx:1610:7:
+      1610 │ export default function OmniBridge() {
+           ╵        ~~~~~~~
+
+  The name "default" was originally exported here:
+
+    client/src/pages/OmniBridge.tsx:647:7:
+      647 │ export default function OmniBridge() {
+          ╵        ~~~~~~~
+
+
+✘ [ERROR] The symbol "OmniBridge" has already been declared
+
+    client/src/pages/OmniBridge.tsx:1610:24:
+      1610 │ export default function OmniBridge() {
+           ╵                         ~~~~~~~~~~
+
+  The symbol "OmniBridge" was originally declared here:
+
+    client/src/pages/OmniBridge.tsx:647:24:
+      647 │ export default function OmniBridge() {
+          ╵                         ~~~~~~~~~~
+
+  Duplicate top-level function declarations are not allowed in an ECMAScript module. This file is considered to be an ECMAScript module because of the "export" keyword here:
+
+    client/src/pages/OmniBridge.tsx:1610:0:
+      1610 │ export default function OmniBridge() {
+           ╵ ~~~~~~
+
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/home/runner/workspace/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/home/runner/workspace/node_modules/esbuild/lib/main.js:924:7)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:936:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/home/runner/workspace/node_modules/esbuild/lib/main.js:935:54)
+    at handleRequest (/home/runner/workspace/node_modules/esbuild/lib/main.js:628:17)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:653:7)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:190:23)
