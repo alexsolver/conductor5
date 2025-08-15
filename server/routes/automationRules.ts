@@ -83,18 +83,30 @@ router.get('/', async (req: any, res) => {
     console.error(`❌ [AUTOMATION-RULES] Error fetching rules for tenant ${tenantId}:`, {
       error: error.message,
       stack: error.stack,
-      responseTime
+      responseTime,
+      url: req.url,
+      method: req.method
     });
 
-    res.status(500).json({
+    // Resposta consistente mesmo com erro
+    const errorResponse = {
       success: false,
+      rules: [],
+      total: 0,
       message: 'Failed to fetch automation rules',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        stack: error.stack
+      } : 'Internal server error',
       metadata: {
         responseTime,
-        tenantId
+        tenantId,
+        rulesCount: 0
       }
-    });
+    };
+
+    console.log(`📤 [AUTOMATION-RULES] Sending error response:`, JSON.stringify(errorResponse, null, 2));
+    res.status(500).json(errorResponse);
   }
 });
 

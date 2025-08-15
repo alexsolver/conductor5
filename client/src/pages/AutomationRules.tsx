@@ -90,16 +90,29 @@ export default function AutomationRules() {
       try {
         const result = await apiRequest('/api/automation-rules');
         console.log('✅ [AutomationRules] Rules fetched successfully:', result);
-        return result;
+        
+        // Garantir estrutura consistente
+        if (!result || typeof result !== 'object') {
+          console.warn('🚨 [AutomationRules] Invalid API response format');
+          return { success: false, rules: [], total: 0 };
+        }
+        
+        return {
+          success: result.success || false,
+          rules: Array.isArray(result.rules) ? result.rules : [],
+          total: result.total || 0,
+          metadata: result.metadata || {}
+        };
       } catch (error) {
         console.error('❌ [AutomationRules] API Request failed:', error);
-        throw error;
+        // Retornar estrutura segura mesmo com erro
+        return { success: false, rules: [], total: 0, error: error.message };
       }
     },
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
-    staleTime: 30000, // 30 segundos
-    cacheTime: 300000, // 5 minutos
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
+    staleTime: 30000,
+    cacheTime: 300000,
     refetchOnWindowFocus: false,
     onError: (error: any) => {
       console.error('❌ [AutomationRules] Final error after retries:', error);
@@ -258,21 +271,45 @@ export default function AutomationRules() {
 
   // Validação robusta para evitar erros de includes e undefined
   const safeRules = useMemo(() => {
+    console.log('🔍 [AutomationRules] Processing rules data:', { rules, type: typeof rules, isArray: Array.isArray(rules) });
+    
+    if (!rules) {
+      console.warn('🚨 [AutomationRules] Rules is null/undefined');
+      return [];
+    }
+    
     if (!Array.isArray(rules)) {
       console.warn('🚨 [AutomationRules] Rules is not an array:', rules);
       return [];
     }
     
-    return rules.filter(rule => rule && typeof rule === 'object').map(rule => ({
-      ...rule,
-      name: (rule?.name && typeof rule.name === 'string') ? rule.name : 'Nome não disponível',
-      description: (rule?.description && typeof rule.description === 'string') ? rule.description : 'Descrição não disponível',
-      enabled: Boolean(rule?.enabled),
-      priority: (typeof rule?.priority === 'number' && rule.priority > 0) ? rule.priority : 1,
-      conditionsCount: (typeof rule?.conditionsCount === 'number' && rule.conditionsCount >= 0) ? rule.conditionsCount : 0,
-      actionsCount: (typeof rule?.actionsCount === 'number' && rule.actionsCount >= 0) ? rule.actionsCount : 0,
-      id: (rule?.id && typeof rule.id === 'string') ? rule.id : `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    }));
+    const processedRules = rules
+      .filter(rule => {
+        const isValid = rule && typeof rule === 'object' && rule.id;
+        if (!isValid) {
+          console.warn('🚨 [AutomationRules] Invalid rule filtered out:', rule);
+        }
+        return isValid;
+      })
+      .map(rule => {
+        const safeRule = {
+          id: String(rule.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`),
+          name: String(rule.name || 'Nome não disponível'),
+          description: String(rule.description || 'Descrição não disponível'),
+          enabled: Boolean(rule.enabled),
+          priority: Number(rule.priority) || 1,
+          conditionsCount: Number(rule.conditionsCount) || 0,
+          actionsCount: Number(rule.actionsCount) || 0,
+          createdAt: rule.createdAt || new Date().toISOString(),
+          updatedAt: rule.updatedAt || new Date().toISOString()
+        };
+        
+        console.log('🔄 [AutomationRules] Processed rule:', safeRule.id, safeRule.name);
+        return safeRule;
+      });
+    
+    console.log('✅ [AutomationRules] Total processed rules:', processedRules.length);
+    return processedRules;
   }, [rules]);
 
   // Early return se houver erro crítico
@@ -661,78 +698,89 @@ export default function AutomationRules() {
             </div>
           ) : (
             <div className="space-y-4">
-              {safeRules.length > 0 && safeRules.map((rule: any) => {
-                // Validação robusta para cada regra
-                if (!rule || typeof rule !== 'object' || !rule.id) {
-                  console.warn('🚨 [AutomationRules] Invalid rule object:', rule);
-                  return null;
-                }
+              {Array.isArray(safeRules) && safeRules.length > 0 ? (
+                safeRules.map((rule: any, index: number) => {
+                  // Validação tripla para cada regra
+                  if (!rule || typeof rule !== 'object') {
+                    console.warn(`🚨 [AutomationRules] Invalid rule at index ${index}:`, rule);
+                    return null;
+                  }
 
-                // Validação adicional para propriedades críticas
-                const safeRule = {
-                  ...rule,
-                  name: (typeof rule.name === 'string') ? rule.name : 'Nome não disponível',
-                  description: (typeof rule.description === 'string') ? rule.description : 'Descrição não disponível',
-                  enabled: Boolean(rule.enabled),
-                  priority: (typeof rule.priority === 'number') ? rule.priority : 1,
-                  conditionsCount: (typeof rule.conditionsCount === 'number') ? rule.conditionsCount : 0,
-                  actionsCount: (typeof rule.actionsCount === 'number') ? rule.actionsCount : 0
-                };
-                
-                return (
-                  <div key={safeRule.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        {safeRule.enabled ? (
-                          <Play className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <Pause className="h-4 w-4 text-gray-400" />
-                        )}
-                        <div>
-                          <p className="font-medium">{safeRule.name}</p>
-                          <p className="text-sm text-muted-foreground">{safeRule.description}</p>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Badge variant="outline" className="text-xs">
-                              Prioridade {safeRule.priority}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {safeRule.conditionsCount} condições
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {safeRule.actionsCount} ações
-                            </Badge>
-                            <Badge variant={safeRule.enabled ? 'default' : 'secondary'} className="text-xs">
-                              {safeRule.enabled ? 'Ativa' : 'Inativa'}
-                            </Badge>
+                  if (!rule.id) {
+                    console.warn(`🚨 [AutomationRules] Rule without ID at index ${index}:`, rule);
+                    return null;
+                  }
+
+                  // Garantir que todas as propriedades sejam seguras
+                  const displayRule = {
+                    id: String(rule.id),
+                    name: String(rule.name || 'Nome não disponível'),
+                    description: String(rule.description || 'Descrição não disponível'),
+                    enabled: Boolean(rule.enabled),
+                    priority: Number(rule.priority) || 1,
+                    conditionsCount: Number(rule.conditionsCount) || 0,
+                    actionsCount: Number(rule.actionsCount) || 0
+                  };
+                  
+                  return (
+                    <div key={displayRule.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                          {displayRule.enabled ? (
+                            <Play className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Pause className="h-4 w-4 text-gray-400" />
+                          )}
+                          <div>
+                            <p className="font-medium">{displayRule.name}</p>
+                            <p className="text-sm text-muted-foreground">{displayRule.description}</p>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                Prioridade {displayRule.priority}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {displayRule.conditionsCount} condições
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {displayRule.actionsCount} ações
+                              </Badge>
+                              <Badge variant={displayRule.enabled ? 'default' : 'secondary'} className="text-xs">
+                                {displayRule.enabled ? 'Ativa' : 'Inativa'}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedRule(safeRule);
-                        setTestData('{"message": "teste suporte", "sender": "João", "hour": 14}');
-                      }}
-                    >
-                      <TestTube className="h-4 w-4" />
-                      Testar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteRuleMutation.mutate(safeRule.id)}
-                      disabled={deleteRuleMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  </div>
-                );
-              })}
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedRule(displayRule);
+                            setTestData('{"message": "teste suporte", "sender": "João", "hour": 14}');
+                          }}
+                        >
+                          <TestTube className="h-4 w-4" />
+                          Testar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteRuleMutation.mutate(displayRule.id)}
+                          disabled={deleteRuleMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground">Nenhuma regra processada com segurança</p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
