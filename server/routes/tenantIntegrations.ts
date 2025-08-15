@@ -12,6 +12,9 @@ console.log('🔧 [TENANT-INTEGRATIONS] Registrando rotas de integrações tenan
 // Aplicar middlewares de autenticação e autorização
 router.use(jwtAuth);
 
+// ✅ AUTHENTICATION: Log authentication middleware application
+console.log('🔧 [TENANT-INTEGRATIONS] JWT authentication middleware applied to all routes');
+
 
 // Função para mascarar dados sensíveis antes de enviar ao frontend
 function sanitizeConfigForFrontend(config: any): any {
@@ -145,7 +148,7 @@ router.get('/', async (req: any, res) => {
  * Obter configuração específica de uma integração
  */
 // ✅ GET /api/tenant-admin/integrations/:integrationId/config - Get integration configuration
-router.get('/:integrationId/config', async (req: any, res: any) => {
+router.get('/:integrationId/config', jwtAuth, async (req: any, res: any) => {
   try {
     console.log(`🔍 [GET-CONFIG] Route hit for integration: ${req.params.integrationId}`);
 
@@ -224,7 +227,7 @@ router.get('/:integrationId/config', async (req: any, res: any) => {
 /**
  * Configurar integração do tenant
  */
-router.post('/:integrationId/config', async (req: any, res) => {
+router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
@@ -243,10 +246,17 @@ router.post('/:integrationId/config', async (req: any, res) => {
     if (integrationId === 'telegram') {
       const { telegramBotToken, telegramChatId } = req.body;
 
-      if (!telegramBotToken || !telegramChatId) {
+      if (!telegramBotToken || telegramBotToken.trim() === '') {
         return res.status(400).json({
           success: false,
-          message: 'Bot Token e Chat ID são obrigatórios para o Telegram'
+          message: 'Bot Token é obrigatório para o Telegram'
+        });
+      }
+
+      if (!telegramChatId || telegramChatId.trim() === '') {
+        return res.status(400).json({
+          success: false,
+          message: 'Chat ID é obrigatório para o Telegram'
         });
       }
 
@@ -254,7 +264,15 @@ router.post('/:integrationId/config', async (req: any, res) => {
       if (!telegramBotToken.includes(':')) {
         return res.status(400).json({
           success: false,
-          message: 'Formato do Bot Token inválido'
+          message: 'Formato do Bot Token inválido. O token deve ter o formato "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"'
+        });
+      }
+
+      // Validate Chat ID format (should be numeric or start with -)
+      if (!/^-?\d+$/.test(telegramChatId.trim())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato do Chat ID inválido. O Chat ID deve ser numérico (ex: 123456789 ou -123456789)'
         });
       }
     }
@@ -368,7 +386,7 @@ router.post('/:integrationId/config', async (req: any, res) => {
 /**
  * Testar integração do tenant
  */
-router.post('/:integrationId/test', async (req: any, res) => {
+router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
   try {
     // ✅ CRITICAL FIX: Set JSON content type header immediately to prevent HTML error pages
     res.setHeader('Content-Type', 'application/json');
@@ -670,7 +688,7 @@ router.post('/:integrationId/test', async (req: any, res) => {
 /**
  * Iniciar fluxo OAuth2 para Gmail ou Outlook
  */
-router.post('/:integrationId/oauth/start', async (req: any, res) => {
+router.post('/:integrationId/oauth/start', jwtAuth, async (req: any, res) => {
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
@@ -720,7 +738,7 @@ router.post('/:integrationId/oauth/start', async (req: any, res) => {
 /**
  * Endpoint para forçar a criação de todas as 14 integrações
  */
-router.post('/populate-all-14', async (req: any, res) => {
+router.post('/populate-all-14', jwtAuth, async (req: any, res) => {
   try {
     const tenantId = req.user!.tenantId;
 
