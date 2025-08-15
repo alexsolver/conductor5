@@ -22,12 +22,13 @@ export class OmniBridgeController {
         return;
       }
 
-      const channels = await this.getChannelsUseCase.execute(tenantId);
-      
+      // OmniBridge should get channels from integrations system
+      // This is handled by tenant-admin-integration endpoint
       res.json({
         success: true,
-        channels,
-        count: channels.length
+        message: 'Please use /api/tenant-admin-integration/integrations for channel configuration',
+        channels: [],
+        count: 0
       });
     } catch (error) {
       console.error('[OmniBridge] Error getting channels:', error);

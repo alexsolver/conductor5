@@ -136,8 +136,8 @@ export default function OmniBridge() {
       try {
         setLoading(true);
         
-        // Fetch channels from integrations API
-        const integrationsResponse = await fetch('/api/omnibridge/channels', {
+        // Fetch channels from integrations API (Workspace Admin → Integrações → Comunicação)
+        const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
@@ -302,8 +302,9 @@ export default function OmniBridge() {
 
   const handleChannelToggle = async (channelId: string, enabled: boolean) => {
     try {
-      const response = await fetch(`/api/omnibridge/channels/${channelId}/toggle`, {
-        method: 'POST',
+      // Use the integrations endpoint to toggle channel status
+      const response = await fetch(`/api/tenant-admin-integration/integrations/${channelId}/toggle`, {
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -647,7 +648,9 @@ export default function OmniBridge() {
               <CardTitle>Canais de Comunicação</CardTitle>
               <CardDescription>
                 Configure e gerencie seus canais de comunicação. 
-                Note: As configurações detalhadas são feitas em Workspace Admin → Integrações → Comunicação.
+                <strong>Configuração:</strong> Workspace Admin → Integrações → Comunicação.
+                <br />
+                <em>Aqui você apenas ativa/desativa canais já configurados.</em>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -698,7 +701,12 @@ export default function OmniBridge() {
                       <Separator className="my-3" />
                       
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => window.location.href = '/tenant-admin/integrations'}
+                        >
                           <Settings className="h-4 w-4 mr-2" />
                           Configurar
                         </Button>
