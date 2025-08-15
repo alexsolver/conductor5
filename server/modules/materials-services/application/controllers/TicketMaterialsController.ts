@@ -154,26 +154,77 @@ export class TicketMaterialsController {
       const { ticketId } = req.params;
       const tenantId = req.user?.tenantId || req.query.tenantId as string;
 
-      const availableItems = await this.db
-        .select()
-        .from(ticketPlannedItems)
-        .where(and(
-          eq(ticketPlannedItems.ticketId, ticketId),
-          eq(ticketPlannedItems.tenantId, tenantId)
-        ));
+      console.log('🔍 [GET-AVAILABLE-FOR-CONSUMPTION] Fetching for ticket:', ticketId, 'tenant:', tenantId);
+
+      // Import pool for direct SQL queries - seguindo padrão dos outros métodos
+      const { pool } = await import('../../../../db');
+
+      // Use raw SQL to get planned items with complete item details - mesmo padrão do getPlannedItems
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const query = `
+        SELECT 
+          tpi.*,
+          i.name as item_name,
+          i.description as item_description,
+          i.measurement_unit,
+          i.type as item_type,
+          i.part_number as item_code,
+          i.brand as item_brand,
+          i.model as item_model,
+          i.category as item_category,
+          false as has_children,
+          0 as children_count
+        FROM "${schemaName}".ticket_planned_items tpi
+        LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
+        WHERE tpi.ticket_id = $1 AND tpi.tenant_id = $2 AND tpi.is_active = true
+        ORDER BY tpi.created_at DESC
+      `;
+
+      const result = await pool.query(query, [ticketId, tenantId]);
+
+      const availableItems = result.rows.map((row: any) => ({
+        id: row.id,
+        tenantId: row.tenant_id,
+        ticketId: row.ticket_id,
+        itemId: row.item_id,
+        plannedItemId: row.id, // Incluir o ID do item planejado para vincular ao consumo
+        itemName: row.item_name || 'Item não encontrado',
+        itemDescription: row.item_description,
+        itemCode: row.item_code,
+        itemBrand: row.item_brand,
+        itemModel: row.item_model,
+        itemCategory: row.item_category,
+        measurementUnit: row.measurement_unit,
+        itemType: row.item_type,
+        lpuId: row.lpu_id,
+        plannedQuantity: parseFloat(row.planned_quantity || 0),
+        availableQuantity: parseFloat(row.planned_quantity || 0), // Quantidade disponível para consumo
+        unitPrice: parseFloat(row.unit_price_at_planning || 0),
+        unitPriceAtPlanning: parseFloat(row.unit_price_at_planning || 0),
+        unitCost: parseFloat(row.unit_price_at_planning || 0), // Alias para compatibilidade
+        estimatedCost: parseFloat(row.estimated_cost || 0),
+        status: row.status,
+        priority: row.priority,
+        notes: row.notes,
+        isActive: row.is_active,
+        hasChildren: row.has_children,
+        childrenCount: parseInt(row.children_count || 0),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+
+      console.log('✅ [GET-AVAILABLE-FOR-CONSUMPTION] Found', availableItems.length, 'available items with complete details');
 
       return res.json({
         success: true,
-        data: availableItems.map((item: any) => ({
-          ...item,
-          availableQuantity: item.plannedQuantity
-        }))
+        data: availableItems
       });
     } catch (error) {
       console.error('❌ Get available items error:', error);
       return res.status(500).json({
         success: false,
-        error: 'Failed to retrieve available items'
+        error: 'Failed to retrieve available items',
+        data: []
       });
     }
   }
