@@ -187,6 +187,8 @@ export default function OmniBridge() {
           }
         });
 
+        console.log('🔍 [OmniBridge] Channels API response status:', channelsResponse.status);
+
         // Fallback to integrations endpoint if channels endpoint fails
         const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
           headers: {
@@ -194,6 +196,8 @@ export default function OmniBridge() {
             'Content-Type': 'application/json'
           }
         });
+
+        console.log('🔍 [OmniBridge] Integrations API response status:', integrationsResponse.status);
 
         const inboxResponse = await fetch('/api/omnibridge/messages', {
           headers: {
@@ -207,17 +211,28 @@ export default function OmniBridge() {
           channelsResult = await channelsResponse.json();
           console.log('🔍 [OmniBridge] Channels API Response:', channelsResult);
         } else {
-          console.log('⚠️ [OmniBridge] Channels endpoint failed, trying integrations fallback');
+          console.log('⚠️ [OmniBridge] Channels endpoint failed with status:', channelsResponse.status);
+          const channelsError = await channelsResponse.text();
+          console.log('⚠️ [OmniBridge] Channels error details:', channelsError);
         }
 
         let integrationsResult = null;
-        if (!channelsResult && integrationsResponse.ok) {
+        if (integrationsResponse.ok) {
           integrationsResult = await integrationsResponse.json();
-          console.log('🔍 [OmniBridge] API Response for integrations:', integrationsResult);
-        } else if (!channelsResult) {
+          console.log('🔍 [OmniBridge] Integrations API Response:', integrationsResult);
+          console.log('🔍 [OmniBridge] Available integrations:', integrationsResult?.data?.length || integrationsResult?.length || 0);
+          
+          // Debug: Log all integration categories
+          const integrations = integrationsResult?.data || integrationsResult || [];
+          console.log('🔍 [OmniBridge] Integration categories:', integrations.map((i: any) => ({ 
+            name: i.name, 
+            category: i.category,
+            id: i.id 
+          })));
+        } else {
           console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
           const errorText = await integrationsResponse.text();
-          console.log('⚠️ [OmniBridge] Error details:', errorText);
+          console.log('⚠️ [OmniBridge] Integrations error details:', errorText);
         }
 
         let messagesResult = null;
@@ -239,9 +254,37 @@ export default function OmniBridge() {
         } else if (integrationsResult?.success && integrationsResult?.data) {
           // Fallback: Process integrations data for communication channels
           const integrations = integrationsResult.data;
+          console.log('📡 [OmniBridge] Processing integrations fallback with', integrations.length, 'total integrations');
+          
           communicationChannels = integrations.filter((integration: any) => {
-            const category = integration.category?.toLowerCase() || '';
-            return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+            const category = (integration.category || '').toString().toLowerCase();
+            const name = (integration.name || '').toString().toLowerCase();
+            const description = (integration.description || '').toString().toLowerCase();
+            
+            // Enhanced filtering to match backend logic
+            const categoryMatches = [
+              'comunicação', 'comunicacao', 'communication',
+              'comunicación', 'comunicacion'
+            ].some(cat => category.includes(cat));
+            
+            const nameMatches = [
+              'email', 'mail', 'smtp', 'imap', 'pop3',
+              'whatsapp', 'telegram', 'sms', 'chat',
+              'messenger', 'discord', 'slack'
+            ].some(pattern => name.includes(pattern));
+            
+            const descriptionMatches = [
+              'comunicação', 'comunicacao', 'communication',
+              'email', 'mensagem', 'chat', 'bot'
+            ].some(pattern => description.includes(pattern));
+
+            const isMatch = categoryMatches || nameMatches || descriptionMatches;
+            
+            if (isMatch) {
+              console.log(`📡 [OmniBridge] Found communication integration: ${integration.name} (category: ${category})`);
+            }
+            
+            return isMatch;
           }).map((integration: any) => ({
             id: integration.id,
             name: integration.name,
@@ -258,9 +301,37 @@ export default function OmniBridge() {
           console.log('📡 [OmniBridge] Using integrations fallback - Found', communicationChannels.length, 'communication channels');
         } else if (integrationsResult && Array.isArray(integrationsResult)) {
           // Legacy direct array response - filter for communication channels
+          console.log('📡 [OmniBridge] Processing direct array with', integrationsResult.length, 'integrations');
+          
           communicationChannels = integrationsResult.filter((integration: any) => {
-            const category = integration.category?.toLowerCase() || '';
-            return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+            const category = (integration.category || '').toString().toLowerCase();
+            const name = (integration.name || '').toString().toLowerCase();
+            const description = (integration.description || '').toString().toLowerCase();
+            
+            // Enhanced filtering to match backend logic
+            const categoryMatches = [
+              'comunicação', 'comunicacao', 'communication',
+              'comunicación', 'comunicacion'
+            ].some(cat => category.includes(cat));
+            
+            const nameMatches = [
+              'email', 'mail', 'smtp', 'imap', 'pop3',
+              'whatsapp', 'telegram', 'sms', 'chat',
+              'messenger', 'discord', 'slack'
+            ].some(pattern => name.includes(pattern));
+            
+            const descriptionMatches = [
+              'comunicação', 'comunicacao', 'communication',
+              'email', 'mensagem', 'chat', 'bot'
+            ].some(pattern => description.includes(pattern));
+
+            const isMatch = categoryMatches || nameMatches || descriptionMatches;
+            
+            if (isMatch) {
+              console.log(`📡 [OmniBridge] Found communication integration: ${integration.name} (category: ${category})`);
+            }
+            
+            return isMatch;
           }).map((integration: any) => ({
             id: integration.id,
             name: integration.name,
@@ -275,6 +346,16 @@ export default function OmniBridge() {
             features: integration.features || []
           }));
           console.log('📡 [OmniBridge] Using direct array format - Found', communicationChannels.length, 'communication channels from', integrationsResult.length, 'total integrations');
+        }
+
+        // Debug: Log all available integrations if no communication channels found
+        if (communicationChannels.length === 0) {
+          console.log('⚠️ [OmniBridge] No communication channels found');
+          const allIntegrations = integrationsResult?.data || integrationsResult || [];
+          console.log('🔍 [OmniBridge] All available integrations:');
+          allIntegrations.forEach((integration: any, index: number) => {
+            console.log(`  ${index + 1}. ${integration.name} - Category: "${integration.category}" - ID: ${integration.id}`);
+          });
         }
 
         if (communicationChannels.length > 0) {

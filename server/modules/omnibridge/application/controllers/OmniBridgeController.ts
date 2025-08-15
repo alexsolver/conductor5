@@ -1,4 +1,3 @@
-
 import { Request, Response } from 'express';
 import { GetChannelsUseCase } from '../use-cases/GetChannelsUseCase';
 import { ToggleChannelUseCase } from '../use-cases/ToggleChannelUseCase';
@@ -16,7 +15,7 @@ export class OmniBridgeController {
   async getChannels(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = (req as any).user?.tenantId;
-      
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
@@ -24,39 +23,72 @@ export class OmniBridgeController {
 
       console.log('🔍 [OmniBridge] Getting channels for tenant:', tenantId);
 
-      // Get communication channels from tenant integrations
+      // Get communication channels from tenant integrations using the correct storage method
       const { storage } = await import('../../../storage-simple');
-      
+
       try {
         // Get all integrations for the tenant
         const integrations = await storage.getTenantIntegrations(tenantId);
-        console.log('📡 [OmniBridge] Found integrations:', integrations.length);
+        console.log('📡 [OmniBridge] Found total integrations:', integrations.length);
 
-        // Filter for communication category
+        // Enhanced filtering for communication category with multiple variations
         const communicationChannels = integrations.filter((integration: any) => {
-          const category = integration.category?.toLowerCase() || '';
-          return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+          const category = (integration.category || '').toString().toLowerCase().trim();
+          const name = (integration.name || '').toString().toLowerCase();
+          const description = (integration.description || '').toString().toLowerCase();
+
+          // Check category variations
+          const categoryMatches = [
+            'comunicação', 'comunicacao', 'communication',
+            'comunicación', 'comunicacion'
+          ].some(cat => category.includes(cat));
+
+          // Check name patterns for communication services
+          const nameMatches = [
+            'email', 'mail', 'smtp', 'imap', 'pop3',
+            'whatsapp', 'telegram', 'sms', 'chat',
+            'messenger', 'discord', 'slack'
+          ].some(pattern => name.includes(pattern));
+
+          // Check description patterns
+          const descriptionMatches = [
+            'comunicação', 'comunicacao', 'communication',
+            'email', 'mensagem', 'chat', 'bot'
+          ].some(pattern => description.includes(pattern));
+
+          const isMatch = categoryMatches || nameMatches || descriptionMatches;
+
+          if (isMatch) {
+            console.log(`📡 [OmniBridge] Found communication integration: ${integration.name} (category: ${category})`);
+          }
+
+          return isMatch;
         });
 
         console.log('📡 [OmniBridge] Communication channels found:', communicationChannels.length);
 
-        // Map to OmniBridge channel format
-        const channels = communicationChannels.map((integration: any) => ({
-          id: integration.id,
-          name: integration.name,
-          type: this.mapIntegrationType(integration.id),
-          enabled: integration.enabled === true || integration.status === 'connected',
-          icon: this.getChannelIcon(integration.id),
-          description: integration.description || 'Canal de comunicação',
-          status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
-          messageCount: 0,
-          lastMessage: integration.status === 'connected' ? 'Ativo' : 'Aguardando configuração',
-          lastActivity: integration.status === 'connected' ? 'Recente' : 'Nunca',
-          features: integration.features || []
-        }));
+        // Map to OmniBridge channel format with improved type detection
+        const channels = communicationChannels.map((integration: any) => {
+          const channelType = this.mapIntegrationType(integration.id, integration.name);
+          const channelIcon = this.getChannelIcon(integration.id, integration.name);
 
-        // If no channels found, provide default structure
+          return {
+            id: integration.id,
+            name: integration.name,
+            type: channelType,
+            enabled: integration.enabled === true || integration.status === 'connected',
+            icon: channelIcon,
+            description: integration.description || 'Canal de comunicação',
+            status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
+            messageCount: 0,
+            lastMessage: integration.status === 'connected' ? 'Ativo' : 'Aguardando configuração',
+            lastActivity: integration.status === 'connected' ? 'Recente' : 'Nunca',
+            features: integration.features || this.getDefaultFeatures(channelType)
+          };
+        });
+
         if (channels.length === 0) {
+          // Return default channels structure if no integrations found
           const defaultChannels = [
             {
               id: 'email-imap-default',
@@ -83,11 +115,25 @@ export class OmniBridgeController {
               lastMessage: 'Não configurado',
               lastActivity: 'Nunca',
               features: ['Mensagens automáticas', 'Templates WhatsApp']
+            },
+            {
+              id: 'telegram-default',
+              name: 'Telegram Bot',
+              type: 'telegram',
+              enabled: false,
+              icon: 'MessageCircle',
+              description: 'Configure seu bot Telegram no Workspace Admin → Integrações → Comunicação',
+              status: 'not_configured',
+              messageCount: 0,
+              lastMessage: 'Não configurado',
+              lastActivity: 'Nunca',
+              features: ['Bot automatizado', 'Notificações']
             }
           ];
 
-          console.log('📡 [OmniBridge] Using default channels structure');
-          
+          console.log('📡 [OmniBridge] No communication channels found, using default structure');
+          console.log('📡 [OmniBridge] Available integration categories:', integrations.map(i => i.category));
+
           res.json({
             success: true,
             data: defaultChannels,
@@ -98,6 +144,9 @@ export class OmniBridgeController {
         }
 
         console.log('✅ [OmniBridge] Returning channels:', channels.length);
+        channels.forEach(channel => {
+          console.log(`✅ [OmniBridge] Channel: ${channel.name} (${channel.type}) - Status: ${channel.status}`);
+        });
 
         res.json({
           success: true,
@@ -121,62 +170,105 @@ export class OmniBridgeController {
     }
   }
 
-  private mapIntegrationType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
+  private mapIntegrationType(integrationId: string, integrationName: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
     const id = integrationId.toLowerCase();
-    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap')) {
+    const name = integrationName.toLowerCase();
+
+    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap') || name.includes('email') || name.includes('mail')) {
       return 'email';
     }
-    if (id.includes('whatsapp')) {
+    if (id.includes('whatsapp') || name.includes('whatsapp')) {
       return 'whatsapp';
     }
-    if (id.includes('telegram')) {
+    if (id.includes('telegram') || name.includes('telegram')) {
       return 'telegram';
     }
-    if (id.includes('sms') || id.includes('twilio')) {
+    if (id.includes('sms') || id.includes('twilio') || name.includes('sms')) {
       return 'sms';
+    }
+    if (name.includes('chat') || name.includes('slack') || name.includes('discord') || name.includes('messenger')) {
+      return 'chat';
     }
     return 'chat';
   }
 
-  private getChannelIcon(integrationId: string): string {
+  private getChannelIcon(integrationId: string, integrationName: string): string {
     const id = integrationId.toLowerCase();
-    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap')) {
+    const name = integrationName.toLowerCase();
+
+    if (id.includes('email') || id.includes('gmail') || id.includes('outlook') || id.includes('imap') || name.includes('email') || name.includes('mail')) {
       return 'Mail';
     }
-    if (id.includes('whatsapp')) {
+    if (id.includes('whatsapp') || name.includes('whatsapp')) {
       return 'MessageSquare';
     }
-    if (id.includes('telegram')) {
+    if (id.includes('telegram') || name.includes('telegram')) {
       return 'MessageCircle';
     }
-    if (id.includes('sms') || id.includes('twilio')) {
+    if (id.includes('sms') || id.includes('twilio') || name.includes('sms')) {
       return 'Phone';
+    }
+    if (name.includes('chat') || name.includes('slack') || name.includes('discord') || name.includes('messenger')) {
+      return 'MessageSquare';
     }
     return 'MessageSquare';
   }
 
+  private getDefaultFeatures(channelType: string): string[] {
+    switch (channelType) {
+      case 'email':
+        return ['Auto-criação de tickets', 'Sincronização de emails'];
+      case 'whatsapp':
+        return ['Mensagens automáticas', 'Templates WhatsApp'];
+      case 'telegram':
+        return ['Bot automatizado', 'Notificações'];
+      case 'sms':
+        return ['Envio de SMS', 'Confirmação de entrega'];
+      case 'chat':
+        return ['Atendimento em tempo real', 'Histórico de conversas'];
+      default:
+        return [];
+    }
+  }
+
   async toggleChannel(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
       const { channelId } = req.params;
-      const { isEnabled } = req.body;
-      
+      const { enabled } = req.body;
+      const tenantId = (req as any).user?.tenantId;
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
       }
 
-      if (typeof isEnabled !== 'boolean') {
-        res.status(400).json({ error: 'isEnabled must be a boolean' });
-        return;
-      }
+      console.log(`🔄 [OmniBridge] Toggling channel ${channelId} to ${enabled ? 'enabled' : 'disabled'} for tenant ${tenantId}`);
 
-      const result = await this.toggleChannelUseCase.execute(channelId, tenantId, isEnabled);
-      
-      res.json({
-        success: result,
-        message: `Channel ${isEnabled ? 'enabled' : 'disabled'} successfully`
-      });
+      // Use the storage to update the integration status
+      const { storage } = await import('../../../storage-simple');
+
+      try {
+        // Update the integration status
+        await storage.updateIntegrationStatus(tenantId, channelId, enabled);
+
+        console.log(`✅ [OmniBridge] Channel ${channelId} successfully ${enabled ? 'enabled' : 'disabled'}`);
+
+        res.json({
+          success: true,
+          data: {
+            channelId,
+            enabled,
+            status: enabled ? 'connected' : 'disconnected'
+          },
+          message: `Canal ${enabled ? 'ativado' : 'desativado'} com sucesso`
+        });
+      } catch (storageError) {
+        console.error('❌ [OmniBridge] Storage error while toggling channel:', storageError);
+        res.status(500).json({
+          error: 'Failed to update channel status',
+          message: storageError instanceof Error ? storageError.message : 'Storage error'
+        });
+      }
     } catch (error) {
       console.error('[OmniBridge] Error toggling channel:', error);
       res.status(500).json({
@@ -190,7 +282,7 @@ export class OmniBridgeController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { limit, offset, channelId, status, priority } = req.query;
-      
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
@@ -204,7 +296,7 @@ export class OmniBridgeController {
         status: status as string,
         priority: priority as string
       });
-      
+
       res.json({
         success: true,
         messages,
@@ -224,7 +316,7 @@ export class OmniBridgeController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { messageId } = req.params;
       const { action } = req.body;
-      
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
@@ -236,7 +328,7 @@ export class OmniBridgeController {
       }
 
       const result = await this.processMessageUseCase.execute(messageId, tenantId, action);
-      
+
       res.json({
         success: result,
         message: `Message marked as ${action} successfully`
@@ -253,7 +345,7 @@ export class OmniBridgeController {
   async getInboxStats(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-      
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;

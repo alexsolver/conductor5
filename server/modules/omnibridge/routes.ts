@@ -35,7 +35,7 @@ router.get('/channels', async (req, res) => {
   return jwtAuth(req, res, () => omniBridgeController.getChannels(req, res));
 });
 
-router.post('/channels/:channelId/toggle', async (req, res) => {
+router.put('/channels/:channelId/toggle', async (req, res) => {
   const { jwtAuth } = await import('../../middleware/jwtAuth');
   return jwtAuth(req, res, () => omniBridgeController.toggleChannel(req, res));
 });
