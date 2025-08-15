@@ -563,36 +563,58 @@ const TicketDetails = React.memo(() => {
     return [];
   }, [processedHistoryData, ticketHistoryData]);
 
-  // Fetch planned materials data
-  const { data: plannedMaterials } = useQuery({
+  // ✅ [1QA-COMPLIANCE] Fetch planned materials seguindo Clean Architecture
+  const { data: ticketPlannedMaterials, isLoading: plannedMaterialsLoading } = useQuery({
     queryKey: [`/api/materials-services/tickets/${id}/planned-items`],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/materials-services/tickets/${id}/planned-items`);
-      if (!response.ok) return [];
+      if (!response.ok) return { success: false, data: [] };
       const data = await response.json();
-      return data?.data?.plannedItems || [];
+      return data;
     },
     enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  // Fetch consumed materials data
-  const { data: consumedMaterials } = useQuery({
+  // ✅ [1QA-COMPLIANCE] Fetch consumed materials seguindo Clean Architecture
+  const { data: ticketConsumedMaterials, isLoading: consumedMaterialsLoading } = useQuery({
     queryKey: [`/api/materials-services/tickets/${id}/consumed-items`],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/materials-services/tickets/${id}/consumed-items`);
-      if (!response.ok) return [];
+      if (!response.ok) return { success: false, data: [] };
       const data = await response.json();
-      return data?.data?.consumedItems || [];
+      return data;
     },
     enabled: !!id,
+    staleTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
   const materialsData = useMemo(() => {
-    const planned = Array.isArray(plannedMaterials) ? plannedMaterials : [];
-    const consumed = Array.isArray(consumedMaterials) ? consumedMaterials : [];
-    return [...planned, ...consumed];
-  }, [plannedMaterials, consumedMaterials]);
+    const plannedItems = ticketPlannedMaterials?.success && Array.isArray(ticketPlannedMaterials.data)
+      ? ticketPlannedMaterials.data
+      : ticketPlannedMaterials?.data?.plannedItems || [];
+    
+    const consumedItems = ticketConsumedMaterials?.success && Array.isArray(ticketConsumedMaterials.data)
+      ? ticketConsumedMaterials.data
+      : ticketConsumedMaterials?.data?.consumedItems || [];
+    
+    return [...(Array.isArray(plannedItems) ? plannedItems : []), ...(Array.isArray(consumedItems) ? consumedItems : [])];
+  }, [ticketPlannedMaterials, ticketConsumedMaterials]);
+
+  // ✅ [1QA-COMPLIANCE] Debug para validar dados de materiais
+  useEffect(() => {
+    if (ticketPlannedMaterials || ticketConsumedMaterials) {
+      console.log('🔧 [MATERIALS-DEBUG] Dados de materiais:', {
+        planned: ticketPlannedMaterials,
+        consumed: ticketConsumedMaterials,
+        materialsCount: materialsData.length,
+        materialsData
+      });
+    }
+  }, [ticketPlannedMaterials, ticketConsumedMaterials, materialsData]);
 
 
   // Special functionality tabs (with dynamic counters) - moved after data processing
