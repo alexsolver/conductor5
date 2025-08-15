@@ -2865,28 +2865,7 @@ const TicketDetails = React.memo(() => {
         );
 
       case "materials":
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Materiais e Serviços
-              </h2>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
-                  Planejados: {plannedMaterials?.length || 0}
-                </Badge>
-                <Badge variant="outline" className="text-xs bg-green-50 text-green-600">
-                  Consumidos: {consumedMaterials?.length || 0}
-                </Badge>
-                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
-                  Total: {(plannedMaterials?.length || 0) + (consumedMaterials?.length || 0)}
-                </Badge>
-              </div>
-            </div>
-            <MaterialsServicesMiniSystem ticketId={id} ticket={ticket} />
-          </div>
-        );
+        return <MaterialsServicesMiniSystem ticketId={id} ticket={ticket} />;
 
       default:
         return (
