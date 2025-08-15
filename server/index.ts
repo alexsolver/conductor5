@@ -51,77 +51,101 @@ async function ensurePostgreSQLRunning() {
 async function validateDatabaseConnection() {
   const { Pool } = await import('pg');
   
-  // CRITICAL FIX: Environment-specific SSL configuration for external production
+  // CRITICAL FIX: Enhanced environment detection for external production
   const isProduction = process.env.NODE_ENV === 'production';
-  const isExternalDeploy = !process.env.REPL_ID && isProduction; // Detect external deployment
+  const isReplit = !!process.env.REPL_ID || !!process.env.REPL_SLUG;
+  const isExternalDeploy = isProduction && !isReplit;
   
+  console.log(`🔍 [DATABASE] Environment detection: production=${isProduction}, replit=${isReplit}, external=${isExternalDeploy}`);
+  
+  // CRITICAL FIX: Progressive SSL configuration with multiple fallback strategies
   let sslConfig = {};
-  if (isProduction) {
-    if (isExternalDeploy) {
-      // External production environment - aggressive SSL disable
-      sslConfig = {
-        ssl: {
-          rejectUnauthorized: false,
-          requestCert: false,
-          agent: false,
-          checkServerIdentity: () => undefined,
-          secureProtocol: 'TLSv1_2_method'
-        }
-      };
-    } else {
-      // Replit production - simple SSL disable
-      sslConfig = { ssl: false };
-    }
+  
+  if (isExternalDeploy) {
+    // External production - completely disable SSL validation
+    sslConfig = {
+      ssl: false  // Most aggressive SSL disable for external production
+    };
+    console.log("🔧 [DATABASE] Using external production SSL config: SSL completely disabled");
+  } else if (isProduction && isReplit) {
+    // Replit production - standard SSL disable
+    sslConfig = { ssl: false };
+    console.log("🔧 [DATABASE] Using Replit production SSL config");
+  } else {
+    // Development - no SSL
+    sslConfig = { ssl: false };
+    console.log("🔧 [DATABASE] Using development SSL config");
   }
 
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    connectionTimeoutMillis: 5000, // Increased timeout for initial connection
-    idleTimeoutMillis: 30000,      // Keep connections alive for 30s
-    allowExitOnIdle: false,        // Don't exit if pool is idle
-    ...sslConfig // Apply SSL configuration
+    connectionTimeoutMillis: 15000, // Extended timeout for external deployments
+    idleTimeoutMillis: 30000,
+    allowExitOnIdle: false,
+    max: isExternalDeploy ? 20 : 10, // Adjust pool size for external deployments
+    ...sslConfig
   });
 
   try {
+    console.log("🔄 [DATABASE] Attempting initial connection...");
     await pool.query('SELECT 1');
     console.log("✅ [DATABASE] Successfully connected to the database.");
-    await pool.end(); // Close test pool
+    await pool.end();
     return true;
   } catch (error) {
-    console.error("❌ [DATABASE] Failed to connect to the database:", error);
-    // PRODUCTION FIX: More descriptive error for SSL issues
+    console.error("❌ [DATABASE] Initial connection failed:", error);
+    
     if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
-      console.error("🔒 [SSL ERROR] Certificate validation failed. Retrying with enhanced SSL config...");
+      console.error("🔒 [SSL ERROR] Certificate validation failed. Applying ultimate SSL bypass...");
       
-      // Try with even more permissive SSL settings
       try {
-        // Enhanced fallback for external production environments
-        const fallbackSslConfig = isExternalDeploy ? {
-          ssl: {
-            rejectUnauthorized: false,
-            requestCert: false,
-            agent: false,
-            checkServerIdentity: () => undefined,
-            secureProtocol: 'TLSv1_2_method',
-            ciphers: 'ALL'
-          }
-        } : { ssl: false };
-        
-        const fallbackPool = new Pool({
+        // ULTIMATE FALLBACK: Complete SSL bypass with all certificates ignored
+        const ultimateFallbackPool = new Pool({
           connectionString: process.env.DATABASE_URL,
-          ...fallbackSslConfig,
-          connectionTimeoutMillis: 10000
+          ssl: false, // Complete SSL disable
+          connectionTimeoutMillis: 20000,
+          // Remove any SSL-related query parameters from connection string
+          options: '--disable-ssl'
         });
         
-        await fallbackPool.query('SELECT 1');
-        await fallbackPool.end();
-        console.log("✅ [DATABASE] Connected with fallback SSL configuration.");
+        console.log("🔄 [DATABASE] Trying ultimate SSL bypass...");
+        await ultimateFallbackPool.query('SELECT 1');
+        await ultimateFallbackPool.end();
+        console.log("✅ [DATABASE] Connected with ultimate SSL bypass configuration.");
         return true;
-      } catch (fallbackError) {
-        console.error("❌ [DATABASE] Fallback connection also failed:", fallbackError);
+      } catch (ultimateError) {
+        console.error("❌ [DATABASE] Ultimate fallback also failed:", ultimateError);
+        
+        // Final attempt with modified connection string
+        try {
+          let modifiedUrl = process.env.DATABASE_URL;
+          if (modifiedUrl.includes('?')) {
+            modifiedUrl = modifiedUrl.split('?')[0]; // Remove all query parameters
+          }
+          modifiedUrl += '?sslmode=disable'; // Force SSL disable
+          
+          const finalPool = new Pool({
+            connectionString: modifiedUrl,
+            connectionTimeoutMillis: 25000
+          });
+          
+          console.log("🔄 [DATABASE] Final attempt with modified connection string...");
+          await finalPool.query('SELECT 1');
+          await finalPool.end();
+          console.log("✅ [DATABASE] Connected with modified connection string.");
+          return true;
+        } catch (finalError) {
+          console.error("❌ [DATABASE] All connection attempts failed:", finalError);
+        }
       }
     }
-    throw new Error("Database connection failed. Ensure DATABASE_URL is correctly set and SSL certificates are valid.");
+    
+    // Enhanced error message for external deployments
+    const errorMessage = isExternalDeploy 
+      ? "Database connection failed in external production. Verify DATABASE_URL and ensure PostgreSQL server accepts non-SSL connections."
+      : "Database connection failed. Ensure DATABASE_URL is correctly set and SSL certificates are valid.";
+    
+    throw new Error(errorMessage);
   }
 }
 

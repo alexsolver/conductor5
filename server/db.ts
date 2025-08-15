@@ -36,14 +36,7 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,
   acquireTimeoutMillis: 20000,
-  ssl: process.env.NODE_ENV === 'production' && !process.env.REPL_ID ? {
-    rejectUnauthorized: false,
-    requestCert: false,
-    agent: false,
-    checkServerIdentity: () => undefined,
-    secureProtocol: 'TLSv1_2_method',
-    ciphers: 'ALL'
-  } : false,  // Environment-specific SSL configuration
+  ssl: false,  // SSL completely disabled for all environments to ensure external compatibility
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000
 });
@@ -66,14 +59,7 @@ export const schemaManager = {
       connectionString: process.env.DATABASE_URL,
       // Set the schema search path to the tenant schema
       options: `-c search_path=${schemaName}`,
-      ssl: process.env.NODE_ENV === 'production' && !process.env.REPL_ID ? {
-        rejectUnauthorized: false,
-        requestCert: false,
-        agent: false,
-        checkServerIdentity: () => undefined,
-        secureProtocol: 'TLSv1_2_method',
-        ciphers: 'ALL'
-      } : false,  // Environment-specific SSL for tenant connections
+      ssl: false,  // SSL disabled for tenant connections to ensure external compatibility
     });
     const tenantDb = drizzle({ client: tenantPool, schema });
     return { db: tenantDb };

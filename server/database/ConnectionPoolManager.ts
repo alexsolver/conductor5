@@ -98,26 +98,21 @@ export class ConnectionPoolManager {
       const baseUrl = new URL(process.env.DATABASE_URL!);
       baseUrl.searchParams.set('schema', schemaName);
       
-      // CRITICAL FIX: Environment-specific SSL configuration for external deployments
+      // CRITICAL FIX: Enhanced SSL configuration for external deployments
       const isProduction = process.env.NODE_ENV === 'production';
-      const isExternalDeploy = !process.env.REPL_ID && isProduction;
+      const isReplit = !!process.env.REPL_ID || !!process.env.REPL_SLUG;
+      const isExternalDeploy = isProduction && !isReplit;
       
       let sslConfig = {};
-      if (isProduction) {
-        if (isExternalDeploy) {
-          sslConfig = {
-            ssl: {
-              rejectUnauthorized: false,
-              requestCert: false,
-              agent: false,
-              checkServerIdentity: () => undefined,
-              secureProtocol: 'TLSv1_2_method',
-              ciphers: 'ALL'
-            }
-          };
-        } else {
-          sslConfig = { ssl: false };
-        }
+      if (isExternalDeploy) {
+        // External production - complete SSL disable
+        sslConfig = { ssl: false };
+      } else if (isProduction && isReplit) {
+        // Replit production - standard SSL disable  
+        sslConfig = { ssl: false };
+      } else {
+        // Development - no SSL
+        sslConfig = { ssl: false };
       }
       
       const pool = new Pool({ 
