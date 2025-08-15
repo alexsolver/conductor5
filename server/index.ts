@@ -127,7 +127,7 @@ app.use((req, res, next) => {
   // ✅ Companies Clean Architecture routes registered at /api/companies-integration & /api/companies-integration/v2
 
   // 🤖 Automation Rules Routes
-  app.use('/api/automation-rules', require('./routes/automationRules').default);
+  app.use('/api/automation-rules', automationRulesRoutes);
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
