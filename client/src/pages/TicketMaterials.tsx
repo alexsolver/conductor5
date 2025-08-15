@@ -70,41 +70,130 @@ export default function TicketMaterials() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch planned items
+  // Fetch planned items with cache busting
   const { data: plannedItems, isLoading: loadingPlanned } = useQuery({
-    queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items'],
-    enabled: !!ticketId
+    queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items', Date.now()],
+    queryFn: async () => {
+      console.log('🔍 [PLANNED-ITEMS] Fetching planned items for ticket:', ticketId);
+      const response = await fetch(`/api/materials-services/tickets/${ticketId}/planned-items`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch planned items: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ [PLANNED-ITEMS] Data received:', data);
+      return data;
+    },
+    enabled: !!ticketId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
-  // Fetch consumed items
+  // Fetch consumed items with cache busting
   const { data: consumedItems, isLoading: loadingConsumed } = useQuery({
-    queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items'],
-    enabled: !!ticketId
+    queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items', Date.now()],
+    queryFn: async () => {
+      const response = await fetch(`/api/materials-services/tickets/${ticketId}/consumed-items`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch consumed items: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!ticketId,
+    refetchOnMount: true
   });
 
-  // Fetch costs summary
+  // Fetch costs summary with cache busting
   const { data: costsSummary, isLoading: loadingSummary } = useQuery({
-    queryKey: ['/api/materials-services/tickets', ticketId, 'costs-summary'],
-    enabled: !!ticketId
+    queryKey: ['/api/materials-services/tickets', ticketId, 'costs-summary', Date.now()],
+    queryFn: async () => {
+      const response = await fetch(`/api/materials-services/tickets/${ticketId}/costs-summary`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch costs summary: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!ticketId,
+    refetchOnMount: true
   });
 
-  // Fetch available items
+  // Fetch available items with cache busting
   const { data: availableItems } = useQuery({
-    queryKey: ['/api/materials-services/items']
+    queryKey: ['/api/materials-services/items', Date.now()],
+    queryFn: async () => {
+      const response = await fetch('/api/materials-services/items', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch items: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    refetchOnMount: true
   });
 
   // Add planned item mutation
   const addPlannedItemMutation = useMutation({
-    mutationFn: (data: any) => 
-      apiRequest(`/api/materials-services/tickets/${ticketId}/planned-items`, 'POST', data),
+    mutationFn: async (data: any) => {
+      const response = await fetch(`/api/materials-services/tickets/${ticketId}/planned-items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add planned item: ${response.status}`);
+      }
+
+      return response.json();
+    },
     onSuccess: () => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/tickets', ticketId] });
+      queryClient.refetchQueries({ queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items'] });
       toast({ title: 'Material planejado adicionado com sucesso' });
       setSelectedItem('');
       setQuantity('');
       setNotes('');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('❌ Add planned item error:', error);
       toast({ title: 'Erro ao adicionar material', variant: 'destructive' });
     }
   });
@@ -127,13 +216,29 @@ export default function TicketMaterials() {
 
   // Delete planned item mutation
   const deletePlannedItemMutation = useMutation({
-    mutationFn: (itemId: string) => 
-      apiRequest(`/api/materials-services/tickets/${ticketId}/planned-items/${itemId}`, 'DELETE'),
+    mutationFn: async (itemId: string) => {
+      const response = await fetch(`/api/materials-services/tickets/${ticketId}/planned-items/${itemId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete planned item: ${response.status}`);
+      }
+
+      return response.json();
+    },
     onSuccess: () => {
+      // Invalidate and refetch all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/tickets', ticketId] });
+      queryClient.refetchQueries({ queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items'] });
       toast({ title: 'Item planejado excluído com sucesso' });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('❌ Delete planned item error:', error);
       toast({ title: 'Erro ao excluir item planejado', variant: 'destructive' });
     }
   });
@@ -374,14 +479,21 @@ export default function TicketMaterials() {
                     <Clock className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
                     <p>Carregando itens planejados...</p>
                   </div>
-                ) : (plannedItems as any)?.data?.plannedItems?.length > 0 ? (
-                  <div className="space-y-3">
-                    {(plannedItems as any).data.plannedItems
-                      .filter((item: TicketMaterial) => {
-                        if (plannedSubTab === 'all') return true;
-                        return item.itemType === plannedSubTab;
-                      })
-                      .map((item: TicketMaterial) => (
+                ) : (
+                  (() => {
+                    console.log('🔍 [RENDER] Planned items data:', plannedItems);
+                    const items = (plannedItems as any)?.data?.plannedItems || [];
+                    const filteredItems = items.filter((item: TicketMaterial) => {
+                      if (plannedSubTab === 'all') return true;
+                      return item.itemType === plannedSubTab;
+                    });
+                    
+                    console.log('🔍 [RENDER] Filtered items:', filteredItems.length, 'items');
+                    
+                    if (filteredItems.length > 0) {
+                      return (
+                        <div className="space-y-3">
+                          {filteredItems.map((item: TicketMaterial) => (
                       <Card key={item.id} className={`border-l-4 ${item.itemType === 'material' ? 'border-l-blue-500' : 'border-l-green-500'}`}>
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
@@ -429,17 +541,22 @@ export default function TicketMaterials() {
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                    <p>
-                      {plannedSubTab === 'all' ? 'Nenhum item planejado' :
-                       plannedSubTab === 'material' ? 'Nenhum material planejado' :
-                       'Nenhum serviço planejado'}
-                    </p>
-                  </div>
+                          ))}
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div className="text-center py-8 text-gray-500">
+                          <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                          <p>
+                            {plannedSubTab === 'all' ? 'Nenhum item planejado' :
+                             plannedSubTab === 'material' ? 'Nenhum material planejado' :
+                             'Nenhum serviço planejado'}
+                          </p>
+                        </div>
+                      );
+                    }
+                  })()
                 )}
               </TabsContent>
 
