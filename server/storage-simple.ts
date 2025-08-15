@@ -1464,12 +1464,12 @@ export class DatabaseStorage implements IStorage {
       // ✅ VALIDATION: Input validation
       if (!tenantId || typeof tenantId !== 'string') {
         console.error(`❌ [GET-CONFIG] Invalid tenantId: ${tenantId}`);
-        return { configured: false, config: null };
+        return { configured: false, config: {} };
       }
 
       if (!integrationId || typeof integrationId !== 'string') {
         console.error(`❌ [GET-CONFIG] Invalid integrationId: ${integrationId}`);
-        return { configured: false, config: null };
+        return { configured: false, config: {} };
       }
 
       const validatedTenantId = await validateTenantAccess(tenantId);
@@ -1488,48 +1488,13 @@ export class DatabaseStorage implements IStorage {
         tableExists = tableExistsResult.rows?.[0]?.exists;
       } catch (tableCheckError) {
         console.error(`❌ [GET-CONFIG] Error checking table existence:`, tableCheckError);
-        return { configured: false, config: null };
+        return { configured: false, config: {} };
       }
 
       if (!tableExists) {
         console.log(`❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`);
         // ✅ CRITICAL FIX: Create default integrations if table doesn't exist
         await this.createDefaultIntegrations(validatedTenantId);
-
-        // After creating, check if the specific integration exists
-        const retryResult = await tenantDb.execute(sql`
-          SELECT id, name, description, category, icon, status, config, features, created_at, updated_at, configured
-          FROM ${sql.identifier(schemaName)}.integrations 
-          WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
-          LIMIT 1
-        `);
-
-        if (retryResult.rows && retryResult.rows.length > 0) {
-          const integration = retryResult.rows[0];
-          let parsedConfig = integration.config;
-          if (typeof integration.config === 'string') {
-            try {
-              parsedConfig = JSON.parse(integration.config);
-            } catch (parseError) {
-              parsedConfig = {};
-            }
-          }
-          return {
-            id: integration.id,
-            name: integration.name,
-            description: integration.description,
-            category: integration.category,
-            icon: integration.icon,
-            status: integration.status,
-            configured: integration.configured || false,
-            config: parsedConfig || {},
-            features: integration.features,
-            created_at: integration.created_at,
-            updated_at: integration.updated_at
-          };
-        }
-
-        return { configured: false, config: {} };
       }
 
       // ✅ SAFETY: Execute query with proper error handling
@@ -1543,7 +1508,7 @@ export class DatabaseStorage implements IStorage {
         `);
       } catch (queryError) {
         console.error(`❌ [GET-CONFIG] Database query error:`, queryError);
-        return { configured: false, config: null };
+        return { configured: false, config: {} };
       }
 
       console.log(`🔍 [GET-CONFIG] Query result:`, { rowsFound: result.rows?.length || 0 });
@@ -1559,7 +1524,13 @@ export class DatabaseStorage implements IStorage {
           icon: integrationId === 'telegram' ? 'Send' : 'Settings',
           features: integrationId === 'telegram' ? ['Notificações em tempo real', 'Mensagens personalizadas'] : []
         });
-        return { configured: false, config: {} };
+        return { 
+          id: integrationId,
+          name: integrationId === 'telegram' ? 'Telegram' : integrationId,
+          configured: false, 
+          config: {},
+          status: 'disconnected'
+        };
       }
 
       const integration = result.rows[0];
@@ -1618,7 +1589,7 @@ export class DatabaseStorage implements IStorage {
       return finalResult;
     } catch (error) {
       console.error('❌ [GET-CONFIG] Critical error in getTenantIntegrationConfig:', error);
-      return { configured: false, config: null };
+      return { configured: false, config: {} };
     }
   }
 

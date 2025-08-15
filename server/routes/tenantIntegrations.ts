@@ -148,8 +148,12 @@ router.get('/', async (req: any, res) => {
  * Obter configuração específica de uma integração
  */
 // ✅ GET /api/tenant-admin/integrations/:integrationId/config - Get integration configuration
-router.get('/:integrationId/config', jwtAuth, async (req: any, res: any) => {
+router.get('/:integrationId/config', async (req: any, res: any) => {
   try {
+    // ✅ CRITICAL FIX: Set JSON content type header immediately
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-cache');
+
     console.log(`🔍 [GET-CONFIG] Route hit for integration: ${req.params.integrationId}`);
 
     const { integrationId } = req.params;
@@ -172,7 +176,24 @@ router.get('/:integrationId/config', jwtAuth, async (req: any, res: any) => {
     }
 
     console.log(`[GET config route] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
-    const { storage } = await import('../storage-simple');
+    
+    // ✅ SAFETY: Import with comprehensive error handling
+    let storage;
+    try {
+      const importResult = await import('../storage-simple');
+      storage = importResult.storage;
+
+      if (!storage) {
+        throw new Error('Storage instance not available');
+      }
+    } catch (importError) {
+      console.error('❌ [GET-CONFIG] Storage import error:', importError);
+      return res.status(500).json({
+        success: false,
+        message: 'Sistema temporariamente indisponível'
+      });
+    }
+
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
     console.log(`[GET config route] Resultado recebido do storage:`, configResult);
 
@@ -207,6 +228,7 @@ router.get('/:integrationId/config', jwtAuth, async (req: any, res: any) => {
         clientId: configResult.config.clientId,
         redirectUri: configResult.config.redirectUri,
         webhookUrl: configResult.config.webhookUrl,
+        telegramWebhookUrl: configResult.config.telegramWebhookUrl,
         imapServer: configResult.config.imapServer,
         imapPort: configResult.config.imapPort,
         imapSecurity: configResult.config.imapSecurity,
@@ -219,8 +241,11 @@ router.get('/:integrationId/config', jwtAuth, async (req: any, res: any) => {
     console.log(`✅ [GET config route] Retornando config mascarada para ${integrationId}`);
     res.json(maskedConfig);
   } catch (error) {
-    console.error('Error fetching tenant integration config:', error);
-    res.status(500).json({ message: 'Failed to fetch integration configuration' });
+    console.error('❌ [GET-CONFIG] Error fetching tenant integration config:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch integration configuration' 
+    });
   }
 });
 
