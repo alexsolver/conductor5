@@ -17,6 +17,7 @@ import { ActivityTrackingService } from './services/ActivityTrackingService';
 import { userGroupsRouter } from './routes/userGroups';
 import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
+import automationRulesRoutes from './routes/automationRules';
 
 const app = express();
 
@@ -110,8 +111,8 @@ app.use((req, res, next) => {
   app.use('/api/productivity', productivityRoutes);
 
   // Employment type detection and terminology routes
-  const employmentRoutes = await import('./routes/employmentRoutes');
-  app.use('/api/employment', employmentRoutes.default);
+  const { default: employmentRoutes } = await import('./routes/employmentRoutes');
+  app.use('/api/employment', employmentRoutes);
 
   app.use('/api/user-groups', userGroupsRouter);
   app.use('/api', userGroupsByAgentRoutes);
@@ -120,6 +121,7 @@ app.use((req, res, next) => {
   // Import tenant integrations routes
   const { default: tenantIntegrationsRouter } = await import('./routes/tenantIntegrations');
   app.use('/api/tenant-admin/integrations', tenantIntegrationsRouter);
+  app.use('/api/automation-rules', automationRulesRoutes);
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();

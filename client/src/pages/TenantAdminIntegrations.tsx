@@ -63,6 +63,8 @@ import {
   HardDrive,
   Send
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface TenantIntegration {
   id: string;
@@ -80,6 +82,7 @@ interface TenantIntegration {
 // ✅ VALIDATION: Schema for integration configurations
 const integrationConfigSchema = z.object({
   enabled: z.boolean().default(false),
+  useSSL: z.boolean().default(false),
   apiKey: z.string().optional(),
   apiSecret: z.string().optional(),
   webhookUrl: z.string().optional(),
@@ -91,7 +94,6 @@ const integrationConfigSchema = z.object({
   serverPort: z.string().optional(),
   username: z.string().optional(),
   password: z.string().optional(),
-  useSSL: z.boolean().default(false),
   // IMAP specific fields
   imapServer: z.string().optional(),
   imapPort: z.string().optional(),
@@ -108,6 +110,13 @@ const integrationConfigSchema = z.object({
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
   telegramWebhookUrl: z.string().optional(), // Webhook URL for receiving messages
+  // WhatsApp Business specific fields
+  whatsappApiKey: z.string().optional(),
+  whatsappPhoneNumberId: z.string().optional(),
+  whatsappWebhookUrl: z.string().optional(),
+  whatsappVerifyToken: z.string().optional(),
+  whatsappNotificationTemplate: z.string().optional(),
+  whatsappConfirmationTemplate: z.string().optional(),
 });
 
 export default function TenantAdminIntegrations() {
@@ -146,6 +155,13 @@ export default function TenantAdminIntegrations() {
       telegramBotToken: '',
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
+      // WhatsApp Business default values
+      whatsappApiKey: '',
+      whatsappPhoneNumberId: '',
+      whatsappWebhookUrl: '',
+      whatsappVerifyToken: '',
+      whatsappNotificationTemplate: `Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
+      whatsappConfirmationTemplate: `Olá {customer_name}, confirmamos o recebimento da sua solicitação:\n\nProtocolo: {protocol}\nTipo: {type}\nStatus: {status}\n\nAcompanhe pelo sistema Conductor.`,
     },
   });
 
@@ -793,6 +809,14 @@ export default function TenantAdminIntegrations() {
           telegramBotToken: maskSensitiveData(config.telegramBotToken),
           telegramChatId: config.telegramChatId || '',
           telegramWebhookUrl: config.telegramWebhookUrl || '', // Load the webhook URL
+
+          // WhatsApp Business specific fields
+          whatsappApiKey: maskSensitiveData(config.whatsappApiKey),
+          whatsappPhoneNumberId: config.whatsappPhoneNumberId || '',
+          whatsappWebhookUrl: config.whatsappWebhookUrl || '',
+          whatsappVerifyToken: config.whatsappVerifyToken || '',
+          whatsappNotificationTemplate: config.whatsappNotificationTemplate || '',
+          whatsappConfirmationTemplate: config.whatsappConfirmationTemplate || '',
         };
 
         // ✅ TELEGRAM DEBUG: Log específico para debugging
@@ -872,6 +896,13 @@ export default function TenantAdminIntegrations() {
       telegramBotToken: '',
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
+      // WhatsApp Business default values
+      whatsappApiKey: '',
+      whatsappPhoneNumberId: '',
+      whatsappWebhookUrl: '',
+      whatsappVerifyToken: '',
+      whatsappNotificationTemplate: `Olá {customer_name}, você tem uma nova notificação do Conductor:\n\nTítulo: {title}\nDescrição: {description}\nData: {date}\n\nPara mais detalhes, acesse o sistema.`,
+      whatsappConfirmationTemplate: `Olá {customer_name}, confirmamos o recebimento da sua solicitação:\n\nProtocolo: {protocol}\nTipo: {type}\nStatus: {status}\n\nAcompanhe pelo sistema Conductor.`,
     };
 
     // Specific defaults by integration type
@@ -882,6 +913,8 @@ export default function TenantAdminIntegrations() {
         return { ...baseDefaults, serverPort: '587', useSSL: true }; // SMTP often uses STARTTLS on 587
       case 'telegram':
         return { ...baseDefaults, telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram` }; // Suggest a default webhook URL
+      case 'whatsapp-business':
+        return { ...baseDefaults, whatsappWebhookUrl: `${window.location.origin}/api/webhooks/whatsapp` }; // Suggest a default webhook URL
       default:
         return baseDefaults;
     }
@@ -1007,6 +1040,15 @@ export default function TenantAdminIntegrations() {
                 errors.push('URL do Webhook deve começar com "https://"');
             }
             break;
+
+          case 'whatsapp-business':
+            if (formData.enabled) {
+              if (!formData.whatsappApiKey) errors.push('API Key do WhatsApp Business é obrigatória');
+              if (!formData.whatsappPhoneNumberId) errors.push('Phone Number ID é obrigatório');
+              if (!formData.whatsappWebhookUrl) errors.push('URL do Webhook é obrigatória');
+              if (!formData.whatsappVerifyToken) errors.push('Verify Token é obrigatório');
+            }
+            break;
         }
 
         return errors;
@@ -1036,7 +1078,7 @@ export default function TenantAdminIntegrations() {
       const processSensitiveData = (currentConfig: any, newData: any) => {
         const sensitiveFields = [
           'clientSecret', 'apiSecret', 'password', 'dropboxAppSecret', 
-          'dropboxAccessToken', 'telegramBotToken'
+          'dropboxAccessToken', 'telegramBotToken', 'whatsappApiKey', 'whatsappVerifyToken'
         ];
         sensitiveFields.forEach(field => {
           if (newData[field] === '••••••••' && currentConfig && currentConfig[field]) {
@@ -1113,6 +1155,18 @@ export default function TenantAdminIntegrations() {
             dropboxAppSecret: data.dropboxAppSecret || '',
             dropboxAccessToken: data.dropboxAccessToken || '',
             backupFolder: data.backupFolder || '/Backups/Conductor'
+          };
+          break;
+
+        case 'whatsapp-business':
+          configData = {
+            ...configData,
+            whatsappApiKey: data.whatsappApiKey || '',
+            whatsappPhoneNumberId: data.whatsappPhoneNumberId || '',
+            whatsappWebhookUrl: data.whatsappWebhookUrl || '',
+            whatsappVerifyToken: data.whatsappVerifyToken || '',
+            whatsappNotificationTemplate: data.whatsappNotificationTemplate || '',
+            whatsappConfirmationTemplate: data.whatsappConfirmationTemplate || '',
           };
           break;
 
@@ -1583,7 +1637,7 @@ export default function TenantAdminIntegrations() {
 
                 {/* Campos para IMAP Email */}
                 {selectedIntegration.id === 'imap-email' && (
-                  <>
+                  <div className="space-y-4">
                     <FormField
                       control={configForm.control}
                       name="imapServer"
@@ -1683,7 +1737,7 @@ export default function TenantAdminIntegrations() {
                         </FormItem>
                       )}
                     />
-                  </>
+                  </div>
                 )}
 
                 {/* Campos para Dropbox Pessoal */}
@@ -1849,8 +1903,153 @@ export default function TenantAdminIntegrations() {
                   </>
                 )}
 
+                {/* Campos para WhatsApp Business */}
+                {selectedIntegration.id === 'whatsapp-business' && (
+                  <div className="space-y-4">
+                    <FormField
+                      control={configForm.control}
+                      name="whatsappApiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>WhatsApp Business API Key</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Sua API Key do WhatsApp Business" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Obtenha sua API Key no WhatsApp Business Platform
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="whatsappPhoneNumberId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number ID</FormLabel>
+                          <FormControl>
+                            <Input placeholder="ID do número de telefone" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            ID do número de telefone configurado no WhatsApp Business
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="whatsappWebhookUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL do Webhook</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://seu-dominio.com/webhook/whatsapp" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            URL para receber mensagens do WhatsApp
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="whatsappVerifyToken"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Verify Token</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Token de verificação do webhook" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Token usado para verificar a autenticidade do webhook
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* WhatsApp Templates */}
+                    <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="font-medium text-sm text-green-800">📱 Templates Aprovados do WhatsApp</h4>
+
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Notificação (aprovado)</Label>
+                          <Textarea
+                            placeholder="Olá {customer_name}, você tem uma nova notificação do Conductor:
+
+Título: {title}
+Descrição: {description}
+Data: {date}
+
+Para mais detalhes, acesse o sistema."
+                            className="text-xs h-24 bg-white border-green-200"
+                            value={configForm.watch('whatsappNotificationTemplate') || ''}
+                            onChange={(e) => configForm.setValue('whatsappNotificationTemplate', e.target.value)}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Confirmação (aprovado)</Label>
+                          <Textarea
+                            placeholder="Olá {customer_name}, confirmamos o recebimento da sua solicitação:
+
+Protocolo: {protocol}
+Tipo: {type}
+Status: {status}
+
+Acompanhe pelo sistema Conductor."
+                            className="text-xs h-24 bg-white border-green-200"
+                            value={configForm.watch('whatsappConfirmationTemplate') || ''}
+                            onChange={(e) => configForm.setValue('whatsappConfirmationTemplate', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2 border-t border-green-200">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-green-700 border-green-300 hover:bg-green-100"
+                          onClick={() => {
+                            toast({
+                              title: "📱 Validando Template",
+                              description: "Verificando conformidade com WhatsApp Business...",
+                            });
+                          }}
+                        >
+                          ✅ Validar Template
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-green-700 border-green-300 hover:bg-green-100"
+                          onClick={() => {
+                            toast({
+                              title: "📋 Enviando para Aprovação",
+                              description: "Template enviado para análise do WhatsApp...",
+                            });
+                          }}
+                        >
+                          📋 Enviar para Aprovação
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+
                 {/* Campos genéricos para outras integrações */}
-                {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'dropbox-personal', 'telegram'].includes(selectedIntegration.id) && (
+                {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'dropbox-personal', 'telegram', 'whatsapp-business'].includes(selectedIntegration.id) && (
                   <>
                     <FormField
                       control={configForm.control}

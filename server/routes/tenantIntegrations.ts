@@ -293,6 +293,18 @@ router.post('/:integrationId/config', async (req: any, res) => {
       telegramBotToken: req.body.telegramBotToken || '',
       telegramChatId: req.body.telegramChatId || '',
       telegramWebhookUrl: req.body.telegramWebhookUrl || '',
+      // Telegram templates
+      notificationTemplate: req.body.notificationTemplate || '',
+      alertTemplate: req.body.alertTemplate || '',
+      summaryTemplate: req.body.summaryTemplate || '',
+      customTemplate: req.body.customTemplate || '',
+      // WhatsApp Business specific fields
+      whatsappApiKey: req.body.whatsappApiKey || '',
+      whatsappPhoneNumberId: req.body.whatsappPhoneNumberId || '',
+      whatsappWebhookUrl: req.body.whatsappWebhookUrl || '',
+      whatsappVerifyToken: req.body.whatsappVerifyToken || '',
+      whatsappNotificationTemplate: req.body.whatsappNotificationTemplate || '',
+      whatsappConfirmationTemplate: req.body.whatsappConfirmationTemplate || '',
       enabled: req.body.enabled !== false,
       settings: req.body.settings || {},
       // Metadata
@@ -759,7 +771,9 @@ router.post('/populate-all-14', async (req: any, res) => {
         description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
         category: 'Comunicação',
         icon: 'MessageSquare',
-        features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
+        status: 'disconnected',
+        configured: false,
+        features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks', 'Métricas avançadas']
       },
       {
         id: 'slack',
@@ -1133,6 +1147,22 @@ async function processTelegramMessage(tenantId: string, message: any) {
     console.log(`📝 [TELEGRAM-MESSAGE] From: ${message.from.first_name} (@${message.from.username})`);
     console.log(`📝 [TELEGRAM-MESSAGE] Text: ${message.text}`);
 
+    // ✅ AUTOMATION: Process with automation engine
+    const { GlobalAutomationManager } = await import('../modules/omnibridge/infrastructure/services/AutomationEngine');
+    const automationManager = GlobalAutomationManager.getInstance();
+    
+    // Processar com engine de automação
+    await automationManager.processGlobalEvent(tenantId, 'telegram_message_received', {
+      message: message.text,
+      sender: message.from.first_name,
+      username: message.from.username,
+      chatId: message.chat.id,
+      timestamp: new Date(message.date * 1000),
+      platform: 'telegram',
+      priority: 'medium',
+      hour: new Date().getHours()
+    });
+
     // ✅ STORE MESSAGE: Save to inbox
     const messageData = {
       messageId: message.message_id,
@@ -1142,7 +1172,8 @@ async function processTelegramMessage(tenantId: string, message: any) {
       fromFirstName: message.from.first_name,
       text: message.text,
       timestamp: new Date(message.date * 1000).toISOString(),
-      tenantId: tenantId
+      tenantId: tenantId,
+      processed: true
     };
 
     // ✅ SAVE TO INBOX: Store in emails table for unified inbox
