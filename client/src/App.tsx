@@ -138,7 +138,6 @@ function AppRouter() {
         <Route path="/locations" component={LocationsNew} />
 
         <Route path="/analytics" component={Analytics} />
-        <Route path="/automation-rules" component={AutomationRules} />
         <Route path="/compliance" component={Compliance} />
         <Route path="/clt-compliance" component={CLTCompliance} />
         <Route path="/saas-admin" component={SaasAdmin} />

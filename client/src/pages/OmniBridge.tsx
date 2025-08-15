@@ -51,6 +51,218 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
+// Componente interno para as regras de automação
+function AutomationRulesContent() {
+  const { toast } = useToast();
+  const [rules, setRules] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [createRuleOpen, setCreateRuleOpen] = useState(false);
+
+  // Fetch automation rules
+  const { data: rulesData, isLoading: rulesLoading, refetch: refetchRules } = useQuery({
+    queryKey: ['/api/automation-rules'],
+    staleTime: 30000,
+  });
+
+  useEffect(() => {
+    if (rulesData) {
+      setRules(rulesData.rules || []);
+      setIsLoading(false);
+      setError(null);
+    }
+  }, [rulesData]);
+
+  const createRuleMutation = useMutation({
+    mutationFn: async (ruleData: any) => {
+      return await apiRequest('POST', '/api/automation-rules', ruleData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Regra Criada",
+        description: "A regra de automação foi criada com sucesso."
+      });
+      refetchRules();
+      setCreateRuleOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao Criar Regra",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const toggleRuleMutation = useMutation({
+    mutationFn: async ({ ruleId, enabled }: { ruleId: string, enabled: boolean }) => {
+      return await apiRequest('PATCH', `/api/automation-rules/${ruleId}`, { enabled });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Regra Atualizada",
+        description: "Status da regra atualizado com sucesso."
+      });
+      refetchRules();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao Atualizar Regra",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  if (rulesLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-pulse flex items-center gap-2">
+          <Activity className="h-4 w-4" />
+          <span>Carregando regras...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header com botão de criar regra */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Regras de Automação</h3>
+          <p className="text-sm text-gray-500">
+            {rules.length} regra{rules.length !== 1 ? 's' : ''} configurada{rules.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <Button onClick={() => setCreateRuleOpen(true)} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Nova Regra
+        </Button>
+      </div>
+
+      {/* Lista de regras */}
+      {rules.length > 0 ? (
+        <div className="space-y-4">
+          {rules.map((rule: any) => (
+            <Card key={rule.id} className="border-l-4 border-l-blue-500">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-medium">{rule.name}</h4>
+                      <Badge variant={rule.enabled ? "default" : "secondary"}>
+                        {rule.enabled ? 'Ativa' : 'Inativa'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{rule.description}</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Trigger: {rule.trigger_type}</span>
+                      <Separator orientation="vertical" className="h-3" />
+                      <span>Ações: {rule.actions?.length || 0}</span>
+                      <Separator orientation="vertical" className="h-3" />
+                      <span>Criada: {new Date(rule.created_at).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={rule.enabled}
+                      onCheckedChange={(enabled) => 
+                        toggleRuleMutation.mutate({ ruleId: rule.id, enabled })
+                      }
+                      disabled={toggleRuleMutation.isPending}
+                    />
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <Workflow className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">Nenhuma regra configurada</p>
+          <p className="text-sm text-gray-400 mt-2">Crie sua primeira regra de automação</p>
+          <Button 
+            onClick={() => setCreateRuleOpen(true)} 
+            className="mt-4 flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Criar Primeira Regra
+          </Button>
+        </div>
+      )}
+
+      {/* Dialog para criar nova regra */}
+      <Dialog open={createRuleOpen} onOpenChange={setCreateRuleOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Nova Regra de Automação</DialogTitle>
+            <DialogDescription>
+              Configure uma nova regra para automatizar o processamento de mensagens
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="ruleName">Nome da Regra</Label>
+              <Input
+                id="ruleName"
+                placeholder="Ex: Resposta automática para FAQ"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="ruleDescription">Descrição</Label>
+              <Textarea
+                id="ruleDescription"
+                placeholder="Descreva o que esta regra faz..."
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="triggerType">Tipo de Trigger</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o trigger" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email_received">Email Recebido</SelectItem>
+                  <SelectItem value="keyword_match">Palavra-chave Encontrada</SelectItem>
+                  <SelectItem value="time_based">Baseado em Tempo</SelectItem>
+                  <SelectItem value="status_change">Mudança de Status</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateRuleOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                // Implementar criação da regra
+                toast({
+                  title: "Funcionalidade em Desenvolvimento",
+                  description: "A criação de regras será implementada na próxima versão."
+                });
+                setCreateRuleOpen(false);
+              }}
+            >
+              Criar Regra
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export default function OmniBridge() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('channels');
@@ -572,18 +784,14 @@ export default function OmniBridge() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Workflow className="h-5 w-5" />
-                Regras de Processamento
+                Regras de Automação
               </CardTitle>
               <CardDescription>
-                Configure regras automáticas para processar mensagens recebidas
+                Configure regras automáticas para processar mensagens e automatizar fluxos de trabalho
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Workflow className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Sistema de regras não implementado</p>
-                <p className="text-sm text-gray-400 mt-2">Esta funcionalidade será implementada em breve</p>
-              </div>
+              <AutomationRulesContent />
             </CardContent>
           </Card>
         </TabsContent>

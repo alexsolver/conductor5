@@ -210,7 +210,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     if (item.name === "Tickets" && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
-    
+
     // Update timecard section based on employment type
     if (item.name === "Controle de Jornadas") {
       const timecardRoute = employmentType === 'autonomo' ? '/timecard-autonomous' : '/timecard';
@@ -246,7 +246,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         ]
       };
     }
-    
+
     return item;
   });
 
@@ -283,7 +283,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               </h1>
             )}
           </div>
-          
+
           {/* Toggle Button - Always visible and properly positioned */}
           {!collapsed && (
             <Button
@@ -373,10 +373,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                           <span className="text-xs font-bold text-white">{item.badge}</span>
                         </div>
                       )}
-                    </div>
-                    {/* Tooltip for collapsed state */}
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                      {item.name}
+                      {/* Tooltip for collapsed state */}
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        {item.name}
+                      </div>
                     </div>
                   </div>
                 );
