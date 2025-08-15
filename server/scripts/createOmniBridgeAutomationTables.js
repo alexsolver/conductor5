@@ -1,9 +1,19 @@
 
-import { db } from '../db.js';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-export async function createOmniBridgeAutomationTables() {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
+
+// Dynamic import for TypeScript modules
+async function createOmniBridgeAutomationTables() {
   try {
     console.log('🔧 [OMNIBRIDGE-AUTOMATION] Creating automation tables...');
+    
+    // Dynamic import of the db module
+    const { db } = await import('../db.ts');
 
     // Create omnibridge_rules table
     await db.execute(`
@@ -107,7 +117,7 @@ export async function createOmniBridgeAutomationTables() {
 }
 
 // Execute if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === new URL(process.argv[1], 'file:').href) {
   createOmniBridgeAutomationTables()
     .then(success => {
       console.log(success ? '✅ Tables created successfully' : '❌ Table creation failed');
@@ -118,3 +128,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(1);
     });
 }
+
+export { createOmniBridgeAutomationTables };
