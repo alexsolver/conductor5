@@ -602,12 +602,13 @@ const TicketDetails = React.memo(() => {
     
     const result = [...plannedArray, ...consumedArray];
     
-    console.log('🔧 [MATERIALS-STRUCTURE-FIX]:', {
-      plannedStructure: plannedMaterialsResponse?.data,
-      plannedCount: plannedArray.length,
-      consumedStructure: consumedMaterialsResponse?.data,
-      consumedCount: consumedArray.length,
-      finalCount: result.length
+    console.log('🔧 [MATERIALS-STRUCTURE-FIX] FINAL:', {
+      plannedResponse: plannedMaterialsResponse,
+      plannedArrayLength: plannedArray.length,
+      consumedResponse: consumedMaterialsResponse,
+      consumedArrayLength: consumedArray.length,
+      totalCombined: result.length,
+      resultSample: result.slice(0, 2)
     });
     
     return result;
