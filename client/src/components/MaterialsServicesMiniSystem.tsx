@@ -35,6 +35,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("planned");
   const [plannedSubTab, setPlannedSubTab] = useState('all'); // all, materials, services
+  const [consumedSubTab, setConsumedSubTab] = useState('all'); // all, materials, services
   const [selectedItem, setSelectedItem] = useState("");
   const [quantity, setQuantity] = useState("");
   const [consumeSelectedItem, setConsumeSelectedItem] = useState("");
@@ -539,7 +540,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   Carregando itens planejados...
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-3">
                   {(plannedData?.data?.plannedItems || [])
                     .filter((item: any) => {
                       if (plannedSubTab === 'all') return true;
@@ -548,63 +549,51 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       return true;
                     })
                     .map((item: any) => (
-                    <Card key={item.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            {item.itemType === 'material' ? (
-                              <Package className="h-4 w-4 text-blue-500" />
-                            ) : (
-                              <Wrench className="h-4 w-4 text-green-500" />
-                            )}
-                            <Badge variant="outline" className="text-xs">
-                              {item.itemType === 'material' ? 'Material' : 'Serviço'}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {item.priority}
-                            </Badge>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                              onClick={() => handleDeletePlannedItem(item.id, item.itemName)}
-                              title="Excluir item planejado"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h4 className="font-semibold text-sm">{item.itemName}</h4>
-                          {item.itemDescription && (
-                            <p className="text-xs text-muted-foreground">{item.itemDescription}</p>
+                    <div key={item.id} className="flex items-center justify-between p-4 border border-blue-200 rounded-lg bg-blue-50 hover:shadow-md transition-shadow">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {item.itemType === 'material' ? (
+                            <Package className="h-4 w-4 text-blue-500" />
+                          ) : (
+                            <Wrench className="h-4 w-4 text-green-500" />
                           )}
-
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                              <span className="text-muted-foreground">Quantidade:</span>
-                              <div className="font-medium">{item.plannedQuantity} {item.measurementUnit || 'UN'}</div>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Valor Unit.:</span>
-                              <div className="font-medium">R$ {item.unitPrice?.toFixed(2) || '0,00'}</div>
-                            </div>
+                          <h4 className="font-semibold text-blue-900">{item.itemName}</h4>
+                          <Badge variant="outline" className="text-xs bg-blue-200 text-blue-800">
+                            {item.itemType === 'material' ? 'Material' : 'Serviço'}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {item.priority}
+                          </Badge>
+                        </div>
+                        {item.itemDescription && (
+                          <p className="text-xs text-blue-700 mb-2">{item.itemDescription}</p>
+                        )}
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-blue-600">Quantidade: <span className="font-medium text-blue-800">{item.plannedQuantity} {item.measurementUnit || 'UN'}</span></span>
                           </div>
-
-                          <div className="pt-2 border-t">
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-muted-foreground">Total:</span>
-                              <span className="font-semibold text-primary">
-                                R$ {item.totalCost?.toFixed(2) || '0,00'}
-                              </span>
-                            </div>
+                          <div>
+                            <span className="text-blue-600">Valor Unit.: <span className="font-medium text-blue-800">R$ {item.unitPrice?.toFixed(2) || '0,00'}</span></span>
+                          </div>
+                          <div>
+                            <span className="text-blue-600 font-medium">
+                              Total: R$ {item.totalCost?.toFixed(2) || '0,00'}
+                            </span>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-red-50"
+                          onClick={() => handleDeletePlannedItem(item.id, item.itemName)}
+                          title="Excluir item planejado"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -754,53 +743,87 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
               {/* Lista de Itens Consumidos */}
               <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Calculator className="h-5 w-5 text-green-600" />
-                  Itens Consumidos
-                  <Badge variant="outline" className="text-xs">
-                    {consumedMaterials.length} itens
-                  </Badge>
-                </h3>
-                {consumedLoading ? (
-                  <div className="text-center py-4">
-                    <Clock className="w-6 h-6 animate-spin mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">Carregando itens consumidos...</p>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Calculator className="h-5 w-5 text-green-600" />
+                    Itens Consumidos ({consumedMaterials.length})
+                  </h3>
+
+                  {/* Sub-tabs para Materiais/Serviços Consumidos */}
+                  <div className="flex bg-muted rounded-lg p-1">
+                    <Button
+                      size="sm"
+                      variant={consumedSubTab === 'all' ? 'default' : 'ghost'}
+                      onClick={() => setConsumedSubTab('all')}
+                      className="h-8 px-3 text-xs"
+                    >
+                      Todos ({consumedMaterials.length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={consumedSubTab === 'materials' ? 'default' : 'ghost'}
+                      onClick={() => setConsumedSubTab('materials')}
+                      className="h-8 px-3 text-xs"
+                    >
+                      <Package className="h-3 w-3 mr-1" />
+                      Materiais ({consumedMaterials.filter((item: any) => item.itemType === 'material').length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={consumedSubTab === 'services' ? 'default' : 'ghost'}
+                      onClick={() => setConsumedSubTab('services')}
+                      className="h-8 px-3 text-xs"
+                    >
+                      <Wrench className="h-3 w-3 mr-1" />
+                      Serviços ({consumedMaterials.filter((item: any) => item.itemType === 'service').length})
+                    </Button>
                   </div>
-                ) : consumedMaterials.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Calculator className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum consumo registrado</p>
-                    {consumedData?.data && (
-                      <p className="text-xs mt-2">
-                        Dados brutos disponíveis: {JSON.stringify(consumedData.data).length} caracteres
-                      </p>
-                    )}
+                </div>
+
+                {consumedLoading ? (
+                  <div className="flex items-center justify-center p-8">
+                    <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                    Carregando itens consumidos...
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {consumedMaterials.map((material: any, index: number) => (
-                      <div key={`consumed-${material.consumedItemId || material.id}-${index}`} className="flex items-center justify-between p-4 border border-green-200 rounded-lg bg-green-50">
+                    {consumedMaterials
+                      .filter((item: any) => {
+                        if (consumedSubTab === 'all') return true;
+                        if (consumedSubTab === 'materials') return item.itemType === 'material';
+                        if (consumedSubTab === 'services') return item.itemType === 'service';
+                        return true;
+                      })
+                      .map((material: any, index: number) => (
+                      <div key={`consumed-${material.consumedItemId || material.id}-${index}`} className="flex items-center justify-between p-4 border border-green-200 rounded-lg bg-green-50 hover:shadow-md transition-shadow">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <p className="font-medium text-green-900">{material.itemName}</p>
-                            <Badge variant="secondary" className="text-xs bg-green-200 text-green-800">
-                              {material.itemType}
+                            {material.itemType === 'material' ? (
+                              <Package className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Wrench className="h-4 w-4 text-green-500" />
+                            )}
+                            <h4 className="font-semibold text-green-900">{material.itemName}</h4>
+                            <Badge variant="outline" className="text-xs bg-green-200 text-green-800">
+                              {material.itemType === 'material' ? 'Material' : 'Serviço'}
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="space-y-1">
-                              <span className="text-gray-600">Quantidade Usada: <span className="font-medium text-green-700">{material.quantityUsed || material.actualQuantity}</span></span>
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="text-green-600">Quantidade Usada: <span className="font-medium text-green-800">{material.quantityUsed || material.actualQuantity}</span></span>
                               {material.unitPrice && parseFloat(material.unitPrice) > 0 && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-green-700 mt-1">
                                   Preço Unitário: R$ {parseFloat(material.unitPrice).toFixed(2)}
                                 </div>
                               )}
                             </div>
-                            <div className="space-y-1">
+                            <div>
                               <span className="text-green-600 font-medium">
                                 Custo Total: R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}
                               </span>
-                              <div className="text-xs text-gray-500">
+                            </div>
+                            <div>
+                              <div className="text-xs text-green-700">
                                 Consumido em: {format(new Date(material.createdAt || material.consumedAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                               </div>
                             </div>
@@ -808,8 +831,9 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
-                            variant="ghost"
                             size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-red-50"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -818,14 +842,41 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                               deleteConsumedMutation.mutate(itemId);
                             }}
                             disabled={deleteConsumedMutation.isPending}
-                            className={`h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 ${deleteConsumedMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            style={{ isolation: 'isolate' }}
+                            title="Excluir item consumido"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {!consumedLoading && consumedMaterials
+                  .filter((item: any) => {
+                    if (consumedSubTab === 'all') return true;
+                    if (consumedSubTab === 'materials') return item.itemType === 'material';
+                    if (consumedSubTab === 'services') return item.itemType === 'service';
+                    return true;
+                  }).length === 0 && (
+                  <div className="text-center p-8 text-muted-foreground">
+                    {consumedSubTab === 'all' ? (
+                      <>
+                        <Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Nenhum item consumido encontrado</p>
+                        <p className="text-sm">Registre consumos usando o formulário acima</p>
+                      </>
+                    ) : consumedSubTab === 'materials' ? (
+                      <>
+                        <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Nenhum material consumido encontrado</p>
+                      </>
+                    ) : (
+                      <>
+                        <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Nenhum serviço consumido encontrado</p>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
