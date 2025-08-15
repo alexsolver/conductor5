@@ -1,4 +1,3 @@
-
 import { AutomationRule, AutomationCondition, AutomationAction } from '../../domain/entities/AutomationRule';
 
 export interface AutomationMetrics {
@@ -51,14 +50,14 @@ export class AutomationEngine {
     for (const rule of sortedRules) {
       try {
         const matches = rule.evaluate({ ...data, eventType });
-        
+
         if (matches) {
           console.log(`✅ [AUTOMATION-ENGINE] Rule "${rule.name}" matched, executing actions...`);
-          
+
           await rule.execute(data);
           executedRules++;
           triggeredActions += rule.actions.length;
-          
+
           console.log(`🎯 [AUTOMATION-ENGINE] Rule "${rule.name}" executed successfully`);
         }
       } catch (error) {
@@ -105,7 +104,7 @@ export class AutomationEngine {
       [
         {
           type: 'send_message',
-          target: 'sender',
+          target: 'telegram',
           params: {
             template: 'auto_response',
             message: 'Olá! Recebemos sua mensagem sobre suporte. Nossa equipe entrará em contato em breve.'
@@ -185,6 +184,61 @@ export class AutomationEngine {
     this.addRule(afterHoursRule);
 
     console.log(`✅ [AUTOMATION-ENGINE] Created ${this.rules.size} default rules for tenant: ${this.tenantId}`);
+  }
+
+  // Métodos para ação:
+  private async sendMessage(action: AutomationAction, data: Record<string, any>): Promise<void> {
+    try {
+      const template = action.params.template;
+      const message = this.processTemplate(action.params.message || '', data);
+
+      console.log(`📤 [AUTOMATION] Sending message to ${action.target}:`, { template, message });
+
+      if (action.target === 'telegram') {
+        const { GlobalTelegramMetricsManager } = await import('./TelegramMetricsService');
+        const metricsManager = GlobalTelegramMetricsManager.getInstance();
+        const metricsService = metricsManager.getService(this.tenantId);
+
+        metricsService.logEvent('automation_message_sent', {
+          level: 'info',
+          success: true,
+          metadata: {
+            template: template,
+            target: action.target,
+            ruleId: 'automation-rule'
+          }
+        });
+      }
+
+      if (action.target === 'whatsapp') {
+        const { GlobalWhatsAppManager } = await import('./WhatsAppBusinessService');
+        const whatsAppManager = GlobalWhatsAppManager.getInstance();
+        const whatsAppService = whatsAppManager.getService(this.tenantId);
+
+        // Implementar envio para WhatsApp quando configurado
+        console.log(`📱 [AUTOMATION] WhatsApp message prepared:`, { message, template });
+      }
+
+    } catch (error) {
+      console.error(`❌ [AUTOMATION] Error sending message:`, error);
+    }
+  }
+
+  private processTemplate(template: string, data: Record<string, any>): string {
+    let processedMessage = template;
+
+    // Substituir variáveis no template
+    Object.entries(data).forEach(([key, value]) => {
+      const placeholder = `{${key}}`;
+      processedMessage = processedMessage.replace(new RegExp(placeholder, 'g'), String(value));
+    });
+
+    // Substituir placeholders padrão
+    processedMessage = processedMessage.replace(/{date}/g, new Date().toLocaleDateString('pt-BR'));
+    processedMessage = processedMessage.replace(/{time}/g, new Date().toLocaleTimeString('pt-BR'));
+    processedMessage = processedMessage.replace(/{timestamp}/g, new Date().toISOString());
+
+    return processedMessage;
   }
 }
 

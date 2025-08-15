@@ -110,6 +110,9 @@ const integrationConfigSchema = z.object({
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
   telegramWebhookUrl: z.string().optional(), // Webhook URL for receiving messages
+  telegramNotificationTemplate: z.string().optional(),
+  telegramAlertTemplate: z.string().optional(),
+  telegramSummaryTemplate: z.string().optional(),
   // WhatsApp Business specific fields
   whatsappApiKey: z.string().optional(),
   whatsappPhoneNumberId: z.string().optional(),
@@ -155,6 +158,9 @@ export default function TenantAdminIntegrations() {
       telegramBotToken: '',
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
+      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
+      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
+      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
@@ -809,6 +815,10 @@ export default function TenantAdminIntegrations() {
           telegramBotToken: maskSensitiveData(config.telegramBotToken),
           telegramChatId: config.telegramChatId || '',
           telegramWebhookUrl: config.telegramWebhookUrl || '', // Load the webhook URL
+          telegramNotificationTemplate: config.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
+          telegramAlertTemplate: config.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
+          telegramSummaryTemplate: config.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+
 
           // WhatsApp Business specific fields
           whatsappApiKey: maskSensitiveData(config.whatsappApiKey),
@@ -896,6 +906,9 @@ export default function TenantAdminIntegrations() {
       telegramBotToken: '',
       telegramChatId: '',
       telegramWebhookUrl: '', // Default for webhook URL
+      telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
+      telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
+      telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
@@ -1145,6 +1158,9 @@ export default function TenantAdminIntegrations() {
             telegramBotToken: data.telegramBotToken || '',
             telegramChatId: data.telegramChatId || '',
             telegramWebhookUrl: data.telegramWebhookUrl || '', // Include the webhook URL
+            telegramNotificationTemplate: data.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
+            telegramAlertTemplate: data.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
+            telegramSummaryTemplate: data.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
           };
           break;
 
@@ -1804,102 +1820,101 @@ export default function TenantAdminIntegrations() {
                 {/* Campos para Telegram */}
                 {selectedIntegration.id === 'telegram' && (
                   <>
-                    <FormField
-                      control={configForm.control}
-                      name="telegramBotToken"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Bot Token</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Token do Bot Telegram" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={configForm.control}
-                      name="telegramChatId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Chat ID</FormLabel>
-                          <FormControl>
-                            <Input placeholder="ID do chat (ex: @meucanal ou 123456789)" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Original Telegram Fields */}
+                    <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="font-medium text-sm text-blue-800">🤖 Configuração do Bot Telegram</h4>
 
-                    <FormField
-                      control={configForm.control}
-                      name="telegramWebhookUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>URL do Webhook (Para receber mensagens)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="https://seu-dominio.com (opcional - use o botão 'Webhook Padrão' para configurar automaticamente)" 
-                              {...field} 
-                            />
-                          </FormControl>
+                      <FormField
+                        control={configForm.control}
+                        name="telegramBotToken"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Bot Token</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="Token do Bot Telegram" {...field} />
+                            </FormControl>
                             <FormDescription>
-                            Configure para receber mensagens do Telegram no sistema. Use o botão "Webhook Padrão" para configurar automaticamente com a URL atual.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                              Obtenha seu token conversando com @BotFather no Telegram
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    {/* Webhook Management Section */}
-                    {selectedIntegration.status === 'connected' && (
-                      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium text-sm">🔗 Gerenciamento de Webhook</h4>
+                      <FormField
+                        control={configForm.control}
+                        name="telegramChatId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Chat ID</FormLabel>
+                            <FormControl>
+                              <Input placeholder="ID do chat (ex: @meucanal ou 123456789)" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Para descobrir seu Chat ID, envie uma mensagem para @userinfobot
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleSetWebhook}
-                            disabled={isTestingIntegration}
-                          >
-                            📤 Configurar Webhook
-                          </Button>
+                      <FormField
+                        control={configForm.control}
+                        name="telegramWebhookUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>URL do Webhook (Para receber mensagens)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="https://seu-dominio.com (opcional - use o botão 'Webhook Padrão' para configurar automaticamente)" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Configure para receber mensagens do Telegram no sistema. Use o botão "Webhook Padrão" para configurar automaticamente com a URL atual.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                          <Button
-                            type="button"
-                            variant="outline" 
-                            size="sm"
-                            onClick={handleSetDefaultWebhook}
-                            disabled={isTestingIntegration}
-                          >
-                            🚀 Webhook Padrão
-                          </Button>
+                    {/* Templates de Mensagens Personalizáveis */}
+                    <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="font-medium text-sm text-green-800">📝 Templates de Mensagens</h4>
 
-                          <Button
-                            type="button"
-                            variant="outline" 
-                            size="sm"
-                            onClick={handleCheckWebhookStatus}
-                            disabled={isTestingIntegration}
-                          >
-                            📊 Status do Webhook
-                          </Button>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Notificação</Label>
+                          <Textarea
+                            placeholder="🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}"
+                            className="text-xs h-24 bg-white border-green-200"
+                            value={configForm.watch('telegramNotificationTemplate') || ''}
+                            onChange={(e) => configForm.setValue('telegramNotificationTemplate', e.target.value)}
+                          />
                         </div>
 
-                        <p className="text-xs text-gray-600">
-                          Configure o webhook para receber mensagens e comandos enviados para seu bot Telegram
-                        </p>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Alerta</Label>
+                          <Textarea
+                            placeholder="🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}"
+                            className="text-xs h-24 bg-white border-green-200"
+                            value={configForm.watch('telegramAlertTemplate') || ''}
+                            onChange={(e) => configForm.setValue('telegramAlertTemplate', e.target.value)}
+                          />
+                        </div>
 
-                        {testResult && (
-                          <pre className={`p-2 text-xs rounded-md ${testResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {testResult.message}
-                            {testResult.details && <code className="block mt-1">{JSON.stringify(testResult.details, null, 2)}</code>}
-                          </pre>
-                        )}
+                        <div className="space-y-2">
+                          <Label className="text-xs text-green-700">Template de Resumo</Label>
+                          <Textarea
+                            placeholder="📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}"
+                            className="text-xs h-24 bg-white border-green-200"
+                            value={configForm.watch('telegramSummaryTemplate') || ''}
+                            onChange={(e) => configForm.setValue('telegramSummaryTemplate', e.target.value)}
+                          />
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </>
                 )}
 
