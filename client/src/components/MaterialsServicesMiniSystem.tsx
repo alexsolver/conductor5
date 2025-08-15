@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, Trash2, Calculator, AlertTriangle, Wrench, Clock, AlertCircle, ArrowLeft } from "lucide-react";
+import { Package, Plus, Trash2, Calculator, AlertTriangle, Wrench, Clock, AlertCircle, ArrowLeft, Loader2, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
@@ -34,9 +34,11 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("planned");
+  const [plannedSubTab, setPlannedSubTab] = useState('all'); // all, materials, services
   const [selectedItem, setSelectedItem] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [consumedQuantity, setConsumedQuantity] = useState("");
+  const [consumeSelectedItem, setConsumeSelectedItem] = useState("");
+  const [consumeQuantity, setConsumeQuantity] = useState("");
 
   // Fetch items with customer-specific customizations
   const { data: itemsData, isLoading: itemsLoading, error: itemsError } = useQuery({
@@ -230,12 +232,20 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/tickets', ticketId] });
-      toast({ title: "Material removido com sucesso!" });
+      toast({ title: "Item planejado excluído com sucesso!" });
     },
-    onError: () => {
-      toast({ title: "Erro ao remover material", variant: "destructive" });
+    onError: (error) => {
+      console.error('Error deleting planned item:', error);
+      toast({ title: "Erro ao excluir item planejado", variant: "destructive" });
     }
   });
+
+  // Handle delete planned item
+  const handleDeletePlannedItem = (itemId: string, itemName: string) => {
+    if (confirm(`Tem certeza que deseja excluir o item "${itemName}"?`)) {
+      deletePlannedMutation.mutate(itemId);
+    }
+  };
 
   // Delete consumed material mutation
   const deleteConsumedMutation = useMutation({
@@ -411,177 +421,222 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
 
         <TabsContent value="planned" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Adicionar Item Planejado</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-2">
-                  <Label htmlFor="item-select">Item</Label>
-                  {itemsLoading ? (
-                    <div className="text-center py-2">Carregando itens...</div>
-                  ) : items.length === 0 ? (
-                    <div className="text-center py-4 text-gray-500">
-                      <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>Nenhum item disponível para esta empresa</p>
-                      <p className="text-sm">Vincule itens à empresa do ticket no catálogo</p>
-                    </div>
-                  ) : (
+          <div className="flex flex-col space-y-4">
+            {/* Add Planned Material/Service Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Adicionar Item Planejado
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Item</Label>
                     <Select value={selectedItem} onValueChange={setSelectedItem}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione um item" />
                       </SelectTrigger>
                       <SelectContent>
-                        {items.map((item: any, index: number) => (
-                          <SelectItem key={`item-${item.id}-${index}`} value={item.id}>
-                            <div className="flex flex-col text-left">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">
-                                  {item.display_name || item.custom_name || item.title || item.name}
-                                </span>
-                                {item.has_custom_mapping && (
-                                  <Badge variant="secondary" className="text-xs">Personalizado</Badge>
-                                )}
-                              </div>
-                              {(item.display_description || item.custom_description || item.description) && (
-                                <div className="text-xs text-gray-600 mb-1 line-clamp-1">
-                                  {item.display_description || item.custom_description || item.description}
-                                </div>
+                        {(itemsData?.data?.items || []).map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            <div className="flex items-center gap-2">
+                              {item.type === 'material' ? (
+                                <Package className="h-4 w-4 text-blue-500" />
+                              ) : (
+                                <Wrench className="h-4 w-4 text-green-500" />
                               )}
-                              <div className="flex items-center gap-3 text-xs text-gray-500">
-                                <span>SKU: {item.display_sku || item.custom_sku || item.sku || item.integration_code}</span>
-                                <span>Tipo: {item.type}</span>
-                                <span className="font-medium">R$ {parseFloat(item.price || item.unit_cost || 0).toFixed(2)}</span>
-                                {item.discount_percent && (
-                                  <span className="text-green-600">-{item.discount_percent}%</span>
-                                )}
+                              <div>
+                                <div className="font-medium">{item.name}</div>
+                                <div className="text-xs text-muted-foreground">{item.type} • {item.measurement_unit || 'UN'}</div>
                               </div>
-                              {item.customer_reference && (
-                                <span className="text-xs text-blue-600">Ref. Cliente: {item.customer_reference}</span>
-                              )}
                             </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantidade</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    placeholder="Qtd"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={async () => {
-                    // Show price preview if available
-                    const selectedItemData = itemsData?.data?.items?.find((item: any) => item.id === selectedItem);
-                    if (selectedItemData) {
-                      const itemName = selectedItemData.name || 'Item selecionado';
-                      const estimatedTotal = parseFloat(quantity) * (parseFloat(selectedItemData.unitCost || selectedItemData.price || 0));
-
-                      if (estimatedTotal > 0) {
-                        const confirmed = window.confirm(
-                          `Confirmar adição de:\n` +
-                          `Item: ${itemName}\n` +
-                          `Quantidade: ${quantity}\n` +
-                          `Preço estimado: R$ ${estimatedTotal.toFixed(2)}\n\n` +
-                          `Deseja continuar?`
-                        );
-                        if (!confirmed) return;
-                      }
-                    }
-
-                    addPlannedMutation.mutate({});
-                  }}
-                  disabled={!selectedItem || !quantity || addPlannedMutation.isPending}
-                  className="flex-1"
-                >
-                  {addPlannedMutation.isPending ? "Adicionando..." : "Adicionar Item"}
-                </Button>
-              </div>
-
-              {/* Lista de Itens Planejados */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Package className="h-5 w-5 text-blue-600" />
-                  Itens Planejados
-                </h3>
-                {plannedLoading ? (
-                  <div className="text-center py-4">
-                    <Clock className="w-6 h-6 animate-spin mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">Carregando materiais planejados...</p>
                   </div>
-                ) : plannedData?.data?.plannedItems?.length > 0 ? (
-                  plannedData.data.plannedItems.map((item: any) => {
-                    const hasChildren = item.hasChildren || false; // Assuming 'hasChildren' property indicates a group/kit
-                    return (
-                      <div key={item.id} className={`flex items-center justify-between p-3 rounded-lg border ${
-                        hasChildren
-                          ? 'bg-amber-50 border-amber-200 border-l-4 border-l-amber-500'
-                          : 'bg-blue-50 border-blue-200'
-                      }`}>
-                        <div className="flex-1">
+
+                  <div>
+                    <Label>Quantidade</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      placeholder="Digite a quantidade"
+                    />
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button 
+                      onClick={() => handleAddPlanned()}
+                      disabled={!selectedItem || !quantity || addPlannedMutation.isPending}
+                      className="w-full"
+                    >
+                      {addPlannedMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Adicionando...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Planned Items Sub-tabs */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Itens Planejados ({plannedData?.data?.plannedItems?.length || 0})
+                </h3>
+
+                {/* Sub-tabs for Materials/Services */}
+                <div className="flex bg-muted rounded-lg p-1">
+                  <Button
+                    size="sm"
+                    variant={plannedSubTab === 'all' ? 'default' : 'ghost'}
+                    onClick={() => setPlannedSubTab('all')}
+                    className="h-8 px-3 text-xs"
+                  >
+                    Todos ({plannedData?.data?.plannedItems?.length || 0})
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={plannedSubTab === 'materials' ? 'default' : 'ghost'}
+                    onClick={() => setPlannedSubTab('materials')}
+                    className="h-8 px-3 text-xs"
+                  >
+                    <Package className="h-3 w-3 mr-1" />
+                    Materiais ({(plannedData?.data?.plannedItems || []).filter((item: any) => item.itemType === 'material').length})
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={plannedSubTab === 'services' ? 'default' : 'ghost'}
+                    onClick={() => setPlannedSubTab('services')}
+                    className="h-8 px-3 text-xs"
+                  >
+                    <Wrench className="h-3 w-3 mr-1" />
+                    Serviços ({(plannedData?.data?.plannedItems || []).filter((item: any) => item.itemType === 'service').length})
+                  </Button>
+                </div>
+              </div>
+
+              {plannedLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  Carregando itens planejados...
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(plannedData?.data?.plannedItems || [])
+                    .filter((item: any) => {
+                      if (plannedSubTab === 'all') return true;
+                      if (plannedSubTab === 'materials') return item.itemType === 'material';
+                      if (plannedSubTab === 'services') return item.itemType === 'service';
+                      return true;
+                    })
+                    .map((item: any) => (
+                    <Card key={item.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            {hasChildren && (
-                              <div className="flex items-center gap-1">
-                                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                </svg>
-                                <span className="text-xs font-semibold text-amber-700 uppercase">Kit/Conjunto</span>
-                              </div>
+                            {item.itemType === 'material' ? (
+                              <Package className="h-4 w-4 text-blue-500" />
+                            ) : (
+                              <Wrench className="h-4 w-4 text-green-500" />
                             )}
-                            <Badge variant="outline" className={`text-white text-xs ${
-                              hasChildren ? 'bg-amber-500' : 'bg-blue-500'
-                            }`}>
-                              {item.itemType || 'Material'}
+                            <Badge variant="outline" className="text-xs">
+                              {item.itemType === 'material' ? 'Material' : 'Serviço'}
                             </Badge>
-                            <span className="font-medium text-sm">
-                              {item.itemName || 'Item sem nome'}
-                            </span>
-                            {item.measurementUnit && (
-                              <span className="text-xs text-gray-500">({item.measurementUnit})</span>
-                            )}
                           </div>
-                          <div className="text-xs text-gray-600 mt-1">
-                            Qtd: {item.plannedQuantity} |
-                            Preço Unit.: {formatCurrency(item.unitPriceAtPlanning || item.unitPrice)} |
-                            Total: {formatCurrency(item.estimatedCost || item.totalCost)}
+                          <div className="flex items-center gap-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {item.priority}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                              onClick={() => handleDeletePlannedItem(item.id, item.itemName)}
+                              title="Excluir item planejado"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleConsumeItem(item)}
-                          className={`text-white border ${
-                            hasChildren
-                              ? 'bg-amber-600 border-amber-600 hover:bg-amber-700'
-                              : 'bg-green-600 border-green-600 hover:bg-green-700'
-                          }`}
-                        >
-                          {hasChildren ? 'Consumir Kit' : 'Consumir'}
-                        </Button>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum material planejado</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">{item.itemName}</h4>
+                          {item.itemDescription && (
+                            <p className="text-xs text-muted-foreground">{item.itemDescription}</p>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="text-muted-foreground">Quantidade:</span>
+                              <div className="font-medium">{item.plannedQuantity} {item.measurementUnit || 'UN'}</div>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Valor Unit.:</span>
+                              <div className="font-medium">R$ {item.unitPrice?.toFixed(2) || '0,00'}</div>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-muted-foreground">Total:</span>
+                              <span className="font-semibold text-primary">
+                                R$ {item.totalCost?.toFixed(2) || '0,00'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {!plannedLoading && (plannedData?.data?.plannedItems || [])
+                .filter((item: any) => {
+                  if (plannedSubTab === 'all') return true;
+                  if (plannedSubTab === 'materials') return item.itemType === 'material';
+                  if (plannedSubTab === 'services') return item.itemType === 'service';
+                  return true;
+                }).length === 0 && (
+                <div className="text-center p-8 text-muted-foreground">
+                  {plannedSubTab === 'all' ? (
+                    <>
+                      <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Nenhum item planejado encontrado</p>
+                      <p className="text-sm">Adicione itens usando o formulário acima</p>
+                    </>
+                  ) : plannedSubTab === 'materials' ? (
+                    <>
+                      <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Nenhum material planejado encontrado</p>
+                    </>
+                  ) : (
+                    <>
+                      <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Nenhum serviço planejado encontrado</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="consumed" className="space-y-4">
@@ -639,7 +694,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           });
 
                           const itemType = itemData.itemType || itemData.type || item.itemType || item.type || 'Material';
-                          const itemDescription = itemData.itemDescription || itemData.description || itemData.display_description ||
+                          const itemDescription = itemData.itemDescription || item.description || itemData.display_description ||
                                                  item.itemDescription || item.description || item.display_description || '';
                           const itemSku = itemData.itemSku || itemData.sku || itemData.integrationCode || itemData.integration_code ||
                                          itemData.display_sku || item.itemSku || item.sku || item.integrationCode ||
