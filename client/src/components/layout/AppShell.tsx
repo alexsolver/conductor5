@@ -17,7 +17,7 @@ export function AppShell({ children }: AppShellProps) {
       />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <main className="flex-1 relative overflow-y-auto focus:outline-none">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none ml-[10px] mr-[10px]">
           {children}
         </main>
       </div>
