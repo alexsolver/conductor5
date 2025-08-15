@@ -31,38 +31,10 @@ export class OmniBridgeController {
         const integrations = await storage.getTenantIntegrations(tenantId);
         console.log('📡 [OmniBridge] Found total integrations:', integrations.length);
 
-        // Enhanced filtering for communication category with multiple variations
-        const communicationChannels = integrations.filter((integration: any) => {
-          const category = (integration.category || '').toString().toLowerCase().trim();
-          const name = (integration.name || '').toString().toLowerCase();
-          const description = (integration.description || '').toString().toLowerCase();
-
-          // Check category variations
-          const categoryMatches = [
-            'comunicação', 'comunicacao', 'communication',
-            'comunicación', 'comunicacion'
-          ].some(cat => category.includes(cat));
-
-          // Check name patterns for communication services
-          const nameMatches = [
-            'email', 'mail', 'smtp', 'imap', 'pop3',
-            'whatsapp', 'telegram', 'sms', 'chat',
-            'messenger', 'discord', 'slack'
-          ].some(pattern => name.includes(pattern));
-
-          // Check description patterns
-          const descriptionMatches = [
-            'comunicação', 'comunicacao', 'communication',
-            'email', 'mensagem', 'chat', 'bot'
-          ].some(pattern => description.includes(pattern));
-
-          const isMatch = categoryMatches || nameMatches || descriptionMatches;
-
-          if (isMatch) {
-            console.log(`📡 [OmniBridge] Found communication integration: ${integration.name} (category: ${category})`);
-          }
-
-          return isMatch;
+        // Return all integrations without filtering
+        const communicationChannels = integrations.map((integration: any) => {
+          console.log(`📡 [OmniBridge] Including integration: ${integration.name} (category: ${integration.category || 'N/A'})`);
+          return integration;
         });
 
         console.log('📡 [OmniBridge] Communication channels found:', communicationChannels.length);

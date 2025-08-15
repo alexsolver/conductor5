@@ -2086,70 +2086,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         integrations = [];
       }
 
-      // Filter for communication category
-      const communicationIntegrations = integrations.filter((integration: any) => {
-        const category = integration.category?.toLowerCase() || '';
-        return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
-      });
+      // Return all integrations without filtering
+      const communicationIntegrations = integrations;
 
-      console.log(`📡 [TENANT-INTEGRATIONS] Found ${communicationIntegrations.length} communication integrations`);
-
-      // Always ensure we have at least the basic communication channels
-      const ensureBasicChannels = (channels: any[]) => {
-        const basicChannels = [
-          {
-            id: 'email-imap',
-            name: 'Email IMAP',
-            category: 'Comunicação',
-            description: 'Conecte sua caixa de email via IMAP para sincronização de tickets',
-            enabled: false,
-            status: 'disconnected',
-            icon: 'Mail',
-            features: ['Auto-criação de tickets', 'Monitoramento de caixa de entrada', 'Sincronização bidirecional']
-          },
-          {
-            id: 'whatsapp-business',
-            name: 'WhatsApp Business',
-            category: 'Comunicação', 
-            description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
-            enabled: false,
-            status: 'disconnected',
-            icon: 'MessageSquare',
-            features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
-          },
-          {
-            id: 'telegram-bot',
-            name: 'Telegram Bot',
-            category: 'Comunicação',
-            description: 'Bot do Telegram para atendimento automatizado',
-            enabled: false,
-            status: 'disconnected', 
-            icon: 'MessageCircle',
-            features: ['Bot integrado', 'Notificações em tempo real', 'Mensagens personalizadas']
-          }
-        ];
-
-        // Merge existing channels with basic channels
-        const existingIds = channels.map(c => c.id);
-        const missingChannels = basicChannels.filter(bc => !existingIds.includes(bc.id));
-
-        return [...channels, ...missingChannels];
-      };
-
-      const resultIntegrations = ensureBasicChannels(communicationIntegrations);
-
-      console.log(`✅ [TENANT-INTEGRATIONS] Returning ${resultIntegrations.length} integrations`);
+      console.log(`✅ [TENANT-INTEGRATIONS] Returning ${communicationIntegrations.length} integrations`);
 
       // Log detailed channel information for debugging
-      resultIntegrations.forEach((integration: any, index: number) => {
+      communicationIntegrations.forEach((integration: any, index: number) => {
         console.log(`🔍 [TENANT-INTEGRATIONS] Channel ${index + 1}: ${integration.name} (${integration.category}) - Status: ${integration.status}`);
       });
 
       // Return in consistent format that OmniBridge expects
       res.json({
         success: true,
-        data: resultIntegrations,
-        count: resultIntegrations.length
+        data: communicationIntegrations,
+        count: communicationIntegrations.length
       });
 
     } catch (error) {
@@ -2210,19 +2161,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const integrations = await unifiedStorage.getTenantIntegrations(tenantId);
       console.log(`📊 [TENANT-INTEGRATIONS] Found ${integrations.length} total integrations`);
 
-      // Filter communication integrations but also include all if none found
-      const communicationIntegrations = integrations.filter((integration: any) => {
-        const category = integration.category?.toLowerCase() || '';
-        return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
-      });
+      // Return all integrations without filtering
+      const communicationIntegrations = integrations;
 
-      console.log(`📡 [TENANT-INTEGRATIONS] Found ${communicationIntegrations.length} communication integrations`);
-
-      // If no communication integrations found, return all integrations
-      const resultIntegrations = communicationIntegrations.length > 0 ? communicationIntegrations : integrations;
-
-      console.log(`✅ [TENANT-INTEGRATIONS] Returning ${resultIntegrations.length} integrations to client`);
-      res.json({ integrations: resultIntegrations });
+      console.log(`✅ [TENANT-INTEGRATIONS] Returning ${communicationIntegrations.length} integrations to client`);
+      res.json({ integrations: communicationIntegrations });
     } catch (error) {
       console.error('❌ [TENANT-INTEGRATIONS] Error fetching integrations:', error);
 
