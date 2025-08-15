@@ -170,16 +170,24 @@ export default function OmniBridge() {
 
         // Fetch channels from integrations API (Workspace Admin → Integrações → Comunicação)
         const token = localStorage.getItem('token');
+        
+        if (!token) {
+          console.error('❌ [OmniBridge] No authentication token found');
+          throw new Error('Authentication token not found');
+        }
+
+        console.log('🔍 [OmniBridge] Fetching integrations with token:', token?.substring(0, 20) + '...');
+        
         const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
           headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
 
         const inboxResponse = await fetch('/api/omnibridge/messages', {
           headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
@@ -306,7 +314,7 @@ export default function OmniBridge() {
       const response = await fetch(`/api/tenant-admin-integration/integrations/${channelId}/toggle`, {
         method: 'PUT',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ enabled })
