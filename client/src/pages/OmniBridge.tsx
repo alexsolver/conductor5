@@ -271,7 +271,7 @@ export default function OmniBridge() {
             status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
             messageCount: 0,
             lastMessage: integration.status === 'connected' ? 'Ativo' : 'Aguardando configuração',
-            lastActivity: integration.status === 'connected' : 'Recente' : 'Nunca',
+            lastActivity: integration.status === 'connected' ? 'Recente' : 'Nunca',
             features: integration.features || []
           }));
           console.log('📡 [OmniBridge] Using direct array format - Found', communicationChannels.length, 'communication channels from', integrationsResult.length, 'total integrations');
