@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -62,6 +62,13 @@ export default function AutomationRules() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<any>(null);
   const [testData, setTestData] = useState('{}');
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+
+  // Debug log para verificar se o componente está montando
+  useEffect(() => {
+    console.log('🤖 [AutomationRules] Component mounted');
+    return () => console.log('🤖 [AutomationRules] Component unmounted');
+  }, []);
 
   const form = useForm<AutomationRuleForm>({
     resolver: zodResolver(automationRuleSchema),
@@ -76,15 +83,22 @@ export default function AutomationRules() {
   });
 
   // Buscar regras de automação
-  const { data: rulesData, isLoading } = useQuery({
+  const { data: rulesData, isLoading, error: rulesError } = useQuery({
     queryKey: ['automation-rules'],
-    queryFn: () => apiRequest('/api/automation-rules')
+    queryFn: () => apiRequest('/api/automation-rules'),
+    onError: (error: any) => {
+      console.error('❌ [AutomationRules] Error loading rules:', error);
+      setLoadingError('Erro ao carregar regras de automação');
+    }
   });
 
   // Buscar métricas
-  const { data: metricsData } = useQuery({
+  const { data: metricsData, error: metricsError } = useQuery({
     queryKey: ['automation-metrics'],
-    queryFn: () => apiRequest('/api/automation-rules/metrics/overview')
+    queryFn: () => apiRequest('/api/automation-rules/metrics/overview'),
+    onError: (error: any) => {
+      console.error('❌ [AutomationRules] Error loading metrics:', error);
+    }
   });
 
   // Mutation para criar regra
@@ -178,6 +192,32 @@ export default function AutomationRules() {
 
   const rules = rulesData?.rules || [];
   const metrics = metricsData?.metrics || {};
+
+  // Early return se houver erro crítico
+  if (loadingError || rulesError) {
+    return (
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 mx-auto text-red-500 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Erro ao Carregar Página</h3>
+            <p className="text-muted-foreground mb-4">
+              {loadingError || 'Não foi possível carregar as regras de automação'}
+            </p>
+            <Button onClick={() => window.location.reload()}>
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('🤖 [AutomationRules] Rendering with data:', { 
+    rulesCount: rules.length, 
+    metricsLoaded: !!metricsData,
+    isLoading 
+  });
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
