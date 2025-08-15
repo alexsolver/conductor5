@@ -625,12 +625,13 @@ const TicketDetails = React.memo(() => {
     return baseLabel;
   };
 
-  // ✅ [1QA-COMPLIANCE] Debug específico para materiais
-  console.log('🔧 [MATERIALS-TAB-DEBUG] materialsData antes de criar specialTabs:', {
-    materialsData,
-    length: materialsData?.length,
-    isArray: Array.isArray(materialsData),
-    type: typeof materialsData
+  // ✅ [1QA-COMPLIANCE] Ensure materials count is correctly calculated
+  const materialsCount = materialsData?.length || 0;
+  
+  console.log('🔧 [MATERIALS-COUNT-FINAL] Final materials count for tab:', {
+    materialsData: materialsData?.length,
+    materialsCount,
+    willShowCounter: materialsCount > 0
   });
 
   const specialTabs = [
@@ -662,7 +663,7 @@ const TicketDetails = React.memo(() => {
     },
     { 
       id: "materials", 
-      label: getTabLabel("Materiais e Serviços", materialsData?.length), 
+      label: getTabLabel("Materiais e Serviços", materialsCount), 
       icon: Package 
     },
   ];
