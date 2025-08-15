@@ -546,14 +546,22 @@ const TicketDetails = React.memo(() => {
     return [];
   }, [ticketRelationships]);
 
+  // ✅ [1QA-COMPLIANCE] Estado para história processada com dados de sessão
+  const [processedHistoryData, setProcessedHistoryData] = useState<any[]>([]);
+
   const historyData = useMemo(() => {
+    // Se temos dados processados com sessão, usar esses
+    if (processedHistoryData && processedHistoryData.length > 0) {
+      return processedHistoryData;
+    }
+    // Fallback para dados brutos se processamento ainda não ocorreu
     if (ticketHistoryData?.success && Array.isArray(ticketHistoryData.data)) {
       return ticketHistoryData.data;
     } else if (ticketHistoryData?.data && Array.isArray(ticketHistoryData.data)) {
       return ticketHistoryData.data;
     }
     return [];
-  }, [ticketHistoryData]);
+  }, [processedHistoryData, ticketHistoryData]);
 
   // Special functionality tabs (with dynamic counters) - moved after data processing
   const getTabLabel = (baseLabel: string, count?: number) => {
@@ -724,8 +732,9 @@ const TicketDetails = React.memo(() => {
         }))
       });
 
-      // ✅ [1QA-COMPLIANCE] Dados mapeados processados - usados via useMemo abaixo
-      console.log('🔧 [STATE-UPDATE] História processada com dados de sessão mapeados');
+      // ✅ [1QA-COMPLIANCE] Atualizar estado com dados mapeados
+      setProcessedHistoryData(mappedHistory);
+      console.log('🔧 [STATE-UPDATE] História atualizada com dados de sessão mapeados');
     }
   }, [ticketHistoryData, historyError, historyLoading]);
 
