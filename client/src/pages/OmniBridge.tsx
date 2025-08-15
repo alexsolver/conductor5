@@ -171,19 +171,38 @@ export default function OmniBridge() {
 
         const token = localStorage.getItem('token');
 
-        // Fetch channels from a new endpoint if available, otherwise fallback to integrations
-        const channelsResponse = await fetch('/api/omnibridge/channels', { // New endpoint for synced channels
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
-            'Content-Type': 'application/json'
+        // ✅ TELEGRAM FIX: Garantir autenticação adequada com tenantId
+        const headers = {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        };
+
+        console.log('🔧 [OMNIBRIDGE-FIX] Using headers:', headers);
+
+        // Primeiro, sincronizar integrações para canais
+        try {
+          const syncResponse = await fetch('/api/omnibridge/sync-integrations', {
+            method: 'POST',
+            headers
+          });
+          
+          if (syncResponse.ok) {
+            console.log('✅ [OMNIBRIDGE-SYNC] Manual sync completed');
+          } else {
+            console.warn('⚠️ [OMNIBRIDGE-SYNC] Sync failed, continuing with existing channels');
           }
+        } catch (syncError) {
+          console.warn('⚠️ [OMNIBRIDGE-SYNC] Sync error:', syncError);
+        }
+
+        // Agora buscar canais sincronizados
+        const channelsResponse = await fetch('/api/omnibridge/channels', {
+          headers
         });
 
         const inboxResponse = await fetch('/api/omnibridge/messages', {
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
-            'Content-Type': 'application/json'
-          }
+          headers
         });
 
         let channelsData = [];

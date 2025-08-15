@@ -14,8 +14,10 @@ export class OmniBridgeController {
 
   async getChannels(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = (req as any).user?.tenantId;
+      // ✅ TELEGRAM FIX: Múltiplas fontes para tenantId
+      const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
       if (!tenantId) {
+        console.error('❌ [OMNIBRIDGE-CHANNELS] No tenant ID found in request');
         res.status(400).json({ success: false, error: 'Tenant ID required' });
         return;
       }
@@ -79,10 +81,12 @@ export class OmniBridgeController {
 
   async getMessages(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      // ✅ TELEGRAM FIX: Múltiplas fontes para tenantId
+      const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
       const { limit, offset, channelId, status, priority } = req.query;
 
       if (!tenantId) {
+        console.error('❌ [OMNIBRIDGE-MESSAGES] No tenant ID found in request');
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
       }

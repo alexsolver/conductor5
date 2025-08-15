@@ -15,6 +15,11 @@ export class IntegrationChannelSync {
       // Get all tenant integrations
       const integrations = await this.storage.getTenantIntegrations(tenantId);
       console.log(`📊 [INTEGRATION-SYNC] Found ${integrations.length} integrations`);
+      
+      // Log all integrations for debugging
+      integrations.forEach((integration: any) => {
+        console.log(`📋 [INTEGRATION-DEBUG] Integration: ${integration.id} - ${integration.name} - Category: ${integration.category} - Status: ${integration.status}`);
+      });
 
       // Filter communication integrations only
       const communicationIntegrations = integrations.filter((integration: any) => 
@@ -27,11 +32,18 @@ export class IntegrationChannelSync {
         await this.syncIntegrationToChannel(tenantId, integration);
       }
 
-      // ✅ TELEGRAM FIX: Force sync for Telegram specifically
-      const telegramIntegration = integrations.find((i: any) => i.id === 'telegram');
+      // ✅ TELEGRAM FIX: Force sync for Telegram specifically (múltiplas variações)
+      const telegramIntegration = integrations.find((i: any) => 
+        i.id === 'telegram' || 
+        i.id === 'telegram-bot' || 
+        i.name?.toLowerCase().includes('telegram')
+      );
+      
       if (telegramIntegration) {
-        console.log(`📱 [TELEGRAM-SYNC] Force syncing Telegram integration`);
+        console.log(`📱 [TELEGRAM-SYNC] Force syncing Telegram integration: ${telegramIntegration.id}`);
         await this.syncTelegramChannel(tenantId, telegramIntegration);
+      } else {
+        console.log(`📱 [TELEGRAM-SYNC] No Telegram integration found`);
       }
 
       console.log(`✅ [INTEGRATION-SYNC] Sync completed for tenant: ${tenantId}`);
@@ -154,7 +166,8 @@ export class IntegrationChannelSync {
       'gmail-oauth2': 'email',
       'outlook-oauth2': 'email',
       'whatsapp-business': 'whatsapp',
-      'telegram-bot': 'telegram',
+      'telegram-bot': 'social',
+      'telegram': 'social', // ✅ TELEGRAM FIX: Adicionar mapeamento para 'telegram'
       'twilio-sms': 'sms',
       'slack': 'slack'
     };
@@ -168,6 +181,7 @@ export class IntegrationChannelSync {
       'outlook-oauth2': 'Mail',
       'whatsapp-business': 'MessageSquare',
       'telegram-bot': 'MessageCircle',
+      'telegram': 'MessageCircle', // ✅ TELEGRAM FIX: Adicionar mapeamento para 'telegram'
       'twilio-sms': 'Phone',
       'slack': 'MessageCircle'
     };

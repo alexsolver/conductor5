@@ -66,8 +66,10 @@ router.post('/chatbots', (req, res) => {
 // Integration sync endpoint
 router.post('/sync-integrations', async (req, res) => {
   try {
-    const tenantId = (req as any).user?.tenantId;
+    // ✅ TELEGRAM FIX: Múltiplas fontes para tenantId
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
     if (!tenantId) {
+      console.error('❌ [OMNIBRIDGE-SYNC] No tenant ID found in request');
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
 
@@ -93,8 +95,10 @@ router.post('/sync-integrations', async (req, res) => {
 // Get integration sync status
 router.get('/sync-status', async (req, res) => {
   try {
-    const tenantId = (req as any).user?.tenantId;
+    // ✅ TELEGRAM FIX: Múltiplas fontes para tenantId
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
     if (!tenantId) {
+      console.error('❌ [OMNIBRIDGE-STATUS] No tenant ID found in request');
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
 
