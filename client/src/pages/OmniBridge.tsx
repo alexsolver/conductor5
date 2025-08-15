@@ -730,7 +730,7 @@ export default function OmniBridge() {
                             </div>
                           ) : (
                             <div className="p-2 rounded-lg bg-primary/10">
-                              <getChannelIcon(channel.id) className="h-5 w-5 text-primary" />
+                              {React.createElement(getChannelIcon(channel.id), { className: "h-5 w-5 text-primary" })}
                             </div>
                           )}
                           <div>
