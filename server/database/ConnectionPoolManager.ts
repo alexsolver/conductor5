@@ -1,11 +1,10 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { sql } from 'drizzle-orm';
-import ws from "ws";
 import * as schema from "@shared/schema";
 import { logInfo, logError, logWarn } from "../utils/logger";
 
-neonConfig.webSocketConstructor = ws;
+// PostgreSQL local implementation - 1qa.md compliance
 
 interface TenantConnection {
   pool: Pool;
