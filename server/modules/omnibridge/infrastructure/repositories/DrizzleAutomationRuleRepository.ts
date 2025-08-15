@@ -1,38 +1,30 @@
-
 import { db } from '../../../../db';
 import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
 import { AutomationRule } from '../../domain/entities/AutomationRule';
 import { eq, and } from 'drizzle-orm';
 
 export class DrizzleAutomationRuleRepository implements IAutomationRuleRepository {
-  
+
   async create(rule: AutomationRule): Promise<AutomationRule> {
-    console.log(`💾 [DrizzleAutomationRuleRepository] Creating automation rule: ${rule.id}`);
-
     try {
-      // Insert into omnibridge_rules table (public schema)
-      await db.execute(`
-        INSERT INTO omnibridge_rules (
-          id, tenant_id, name, description, is_enabled, priority, 
-          triggers, actions, execution_stats, metadata, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      `, [
-        rule.id,
-        rule.tenantId,
-        rule.name,
-        rule.description,
-        rule.isEnabled,
-        rule.priority,
-        JSON.stringify(rule.triggers),
-        JSON.stringify(rule.actions),
-        JSON.stringify(rule.executionStats),
-        JSON.stringify(rule.metadata),
-        rule.createdAt,
-        rule.updatedAt
-      ]);
+      console.log(`🔍 [DrizzleAutomationRuleRepository] Creating rule: ${rule.name}`);
 
-      console.log(`✅ [DrizzleAutomationRuleRepository] Created automation rule: ${rule.id}`);
-      return rule;
+      const triggerType = rule.triggers[0]?.type || 'new_message';
+      const actionType = rule.actions[0]?.type || 'auto_reply';
+
+      const result = await db.execute(`
+        INSERT INTO omnibridge_rules (
+          id, tenant_id, name, description, is_enabled,
+          trigger_type, trigger_conditions, action_type, action_parameters,
+          priority, created_at, updated_at
+        ) VALUES (
+          '${rule.id}', '${rule.tenantId}', '${rule.name}', '${rule.description}', ${rule.isEnabled},
+          '${triggerType}', '${JSON.stringify(rule.triggers)}', '${actionType}', '${JSON.stringify(rule.actions)}',
+          ${rule.priority}, NOW(), NOW()
+        ) RETURNING *
+      `);
+
+      return this.mapRowToRule(result[0]);
     } catch (error) {
       console.error(`❌ [DrizzleAutomationRuleRepository] Error creating rule: ${error.message}`);
       throw error;
@@ -64,39 +56,34 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
 
     try {
-      let query = `SELECT * FROM omnibridge_rules WHERE tenant_id = $1`;
+      let query = `SELECT * FROM omnibridge_rules WHERE tenant_id = '${tenantId}'`;
       const params = [tenantId];
       let paramIndex = 2;
 
       if (filters?.isEnabled !== undefined) {
-        query += ` AND is_enabled = $${paramIndex}`;
-        params.push(filters.isEnabled);
+        query += ` AND is_enabled = ${filters.isEnabled}`;
         paramIndex++;
       }
 
       if (filters?.priority) {
-        query += ` AND priority = $${paramIndex}`;
-        params.push(filters.priority);
+        query += ` AND priority = ${filters.priority}`;
         paramIndex++;
       }
 
       if (filters?.search) {
-        query += ` AND (name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
-        params.push(`%${filters.search}%`);
+        query += ` AND (name ILIKE '%${filters.search}%' OR description ILIKE '%${filters.search}%')`;
         paramIndex++;
       }
 
       query += ` ORDER BY priority ASC, created_at DESC`;
 
       if (filters?.limit) {
-        query += ` LIMIT $${paramIndex}`;
-        params.push(filters.limit);
+        query += ` LIMIT ${filters.limit}`;
         paramIndex++;
       }
 
       if (filters?.offset) {
-        query += ` OFFSET $${paramIndex}`;
-        params.push(filters.offset);
+        query += ` OFFSET ${filters.offset}`;
       }
 
       const result = await db.execute(query, params);

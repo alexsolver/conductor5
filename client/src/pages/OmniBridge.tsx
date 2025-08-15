@@ -166,6 +166,13 @@ export default function OmniBridge() {
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [showCreateRuleModal, setShowCreateRuleModal] = useState(false);
+  const [newRuleData, setNewRuleData] = useState({
+    name: '',
+    description: '',
+    triggerType: 'new_message',
+    actionType: 'auto_reply',
+    priority: 0
+  });
   const [replyContent, setReplyContent] = useState('');
   const [forwardContent, setForwardContent] = useState('');
   const [forwardRecipients, setForwardRecipients] = useState('');
@@ -221,6 +228,51 @@ export default function OmniBridge() {
       }
     } catch (error) {
       console.error('❌ [OmniBridge] Error toggling automation rule:', error);
+    }
+  };
+
+  const handleCreateAutomationRule = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/omnibridge/automation-rules', {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        body: JSON.stringify({
+          name: newRuleData.name || 'Nova Regra',
+          description: newRuleData.description || 'Regra criada pelo usuário',
+          isEnabled: true,
+          triggers: [{ type: newRuleData.triggerType, conditions: [] }],
+          actions: [{ type: newRuleData.actionType, parameters: {} }],
+          priority: newRuleData.priority || 0
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setAutomationRules(prev => [result.data, ...prev]);
+          setShowCreateRuleModal(false);
+          setNewRuleData({
+            name: '',
+            description: '',
+            triggerType: 'new_message',
+            actionType: 'auto_reply',
+            priority: 0
+          });
+          console.log('✅ [OmniBridge] Automation rule created successfully');
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [OmniBridge] Failed to create automation rule:', errorData);
+        alert(`Erro ao criar regra: ${errorData.error || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('❌ [OmniBridge] Error creating automation rule:', error);
+      alert('Erro ao criar regra. Verifique o console para mais detalhes.');
     }
   };
 
@@ -1487,6 +1539,101 @@ export default function OmniBridge() {
               >
                 <Forward className="h-4 w-4 mr-2" />
                 Encaminhar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Criar Regra de Automação */}
+      <Dialog open={showCreateRuleModal} onOpenChange={setShowCreateRuleModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Nova Regra de Automação</DialogTitle>
+            <DialogDescription>
+              Configure uma nova regra para automatizar o processamento de mensagens
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="rule-name">Nome da Regra</Label>
+              <Input
+                id="rule-name"
+                placeholder="Ex: Resposta automática para novos clientes"
+                value={newRuleData.name}
+                onChange={(e) => setNewRuleData(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="rule-description">Descrição</Label>
+              <Textarea
+                id="rule-description"
+                placeholder="Descreva o que esta regra faz..."
+                value={newRuleData.description}
+                onChange={(e) => setNewRuleData(prev => ({ ...prev, description: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="trigger-type">Gatilho</Label>
+                <Select 
+                  value={newRuleData.triggerType} 
+                  onValueChange={(value) => setNewRuleData(prev => ({ ...prev, triggerType: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o gatilho" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new_message">Nova mensagem</SelectItem>
+                    <SelectItem value="keyword">Palavra-chave</SelectItem>
+                    <SelectItem value="channel_specific">Canal específico</SelectItem>
+                    <SelectItem value="priority_based">Baseado em prioridade</SelectItem>
+                    <SelectItem value="time_based">Baseado em horário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="action-type">Ação</Label>
+                <Select 
+                  value={newRuleData.actionType} 
+                  onValueChange={(value) => setNewRuleData(prev => ({ ...prev, actionType: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a ação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto_reply">Resposta automática</SelectItem>
+                    <SelectItem value="forward_message">Encaminhar mensagem</SelectItem>
+                    <SelectItem value="create_ticket">Criar ticket</SelectItem>
+                    <SelectItem value="send_notification">Enviar notificação</SelectItem>
+                    <SelectItem value="add_tags">Adicionar tags</SelectItem>
+                    <SelectItem value="assign_agent">Atribuir agente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="priority">Prioridade (0-10)</Label>
+              <Input
+                id="priority"
+                type="number"
+                min="0"
+                max="10"
+                value={newRuleData.priority}
+                onChange={(e) => setNewRuleData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateRuleModal(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleCreateAutomationRule}
+                disabled={!newRuleData.name.trim()}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Regra
               </Button>
             </div>
           </div>

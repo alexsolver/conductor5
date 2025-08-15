@@ -1,7 +1,6 @@
-
-import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
-import { AutomationRule } from '../../domain/entities/AutomationRule';
 import { v4 as uuidv4 } from 'uuid';
+import { AutomationRule } from '../../domain/entities/AutomationRule';
+import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
 
 export interface CreateAutomationRuleDTO {
   name: string;

@@ -1,4 +1,3 @@
-
 import { Request, Response } from 'express';
 import { GetAutomationRulesUseCase } from '../use-cases/GetAutomationRulesUseCase';
 import { CreateAutomationRuleUseCase } from '../use-cases/CreateAutomationRuleUseCase';
@@ -56,29 +55,40 @@ export class AutomationController {
   async createRule(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
-      const userId = (req as any).user?.id || 'system';
-      
+
       if (!tenantId) {
         console.error('❌ [AutomationController] No tenant ID found in request');
         res.status(400).json({ success: false, error: 'Tenant ID required' });
         return;
       }
 
-      console.log(`🔧 [AutomationController] Creating automation rule for tenant: ${tenantId}`);
+      const ruleData = req.body;
+      console.log(`🔧 [AutomationController] Creating rule for tenant: ${tenantId}`, ruleData);
 
-      const rule = await this.createAutomationRuleUseCase.execute(tenantId, userId, req.body);
+      // Provide default values for required fields
+      const rulePayload = {
+        name: ruleData.name || 'Nova Regra',
+        description: ruleData.description || 'Regra criada automaticamente',
+        isEnabled: ruleData.isEnabled ?? true,
+        triggers: ruleData.triggers || [{ type: 'new_message', conditions: [] }],
+        actions: ruleData.actions || [{ type: 'auto_reply', parameters: {} }],
+        priority: ruleData.priority || 0,
+        tenantId
+      };
 
-      res.status(201).json({
+      const result = await this.createAutomationRuleUseCase.execute(rulePayload);
+
+      res.json({
         success: true,
-        data: rule,
+        data: result,
         message: 'Automation rule created successfully'
       });
     } catch (error) {
-      console.error('❌ [AutomationController] Error creating automation rule:', error);
+      console.error('❌ [AutomationController] Error creating rule:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to create automation rule',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        details: error.message
       });
     }
   }
@@ -88,7 +98,7 @@ export class AutomationController {
       const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
       const userId = (req as any).user?.id || 'system';
       const ruleId = req.params.ruleId;
-      
+
       if (!tenantId) {
         console.error('❌ [AutomationController] No tenant ID found in request');
         res.status(400).json({ success: false, error: 'Tenant ID required' });
@@ -118,7 +128,7 @@ export class AutomationController {
     try {
       const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
       const ruleId = req.params.ruleId;
-      
+
       if (!tenantId) {
         console.error('❌ [AutomationController] No tenant ID found in request');
         res.status(400).json({ success: false, error: 'Tenant ID required' });
@@ -156,7 +166,7 @@ export class AutomationController {
       const userId = (req as any).user?.id || 'system';
       const ruleId = req.params.ruleId;
       const { isEnabled } = req.body;
-      
+
       if (!tenantId) {
         console.error('❌ [AutomationController] No tenant ID found in request');
         res.status(400).json({ success: false, error: 'Tenant ID required' });
