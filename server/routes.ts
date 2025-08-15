@@ -1996,47 +1996,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        return res.status(401).json({ message: "Tenant ID required" });
-      }
-
-      console.log(`🔍 [TENANT-ADMIN-INTEGRATIONS] Fetching integrations for tenant: ${tenantId}`);
-
-      // Get all integrations from database using unifiedStorage
-      const integrations = await unifiedStorage.getTenantIntegrations(tenantId);
-      console.log(`📊 [TENANT-ADMIN-INTEGRATIONS] Found ${integrations.length} total integrations`);
-
-      if (integrations.length === 0) {
-        console.log(`⚠️ [TENANT-ADMIN-INTEGRATIONS] No integrations found, initializing default ones for tenant: ${tenantId}`);
-        
-        // Initialize default integrations for tenant if none exist
-        await unifiedStorage.initializeTenantIntegrations(tenantId);
-        
-        // Fetch again after initialization
-        const newIntegrations = await unifiedStorage.getTenantIntegrations(tenantId);
-        console.log(`✅ [TENANT-ADMIN-INTEGRATIONS] Initialized ${newIntegrations.length} default integrations`);
-        
-        return res.json({ 
-          integrations: newIntegrations,
-          initialized: true,
-          message: `Initialized ${newIntegrations.length} default integrations`
+        return res.status(400).json({ 
+          message: 'User not associated with a tenant',
+          integrations: [],
+          totalCount: 0
         });
       }
 
-      console.log(`✅ [TENANT-ADMIN-INTEGRATIONS] Returning ${integrations.length} integrations to client`);
-      res.json({ 
-        integrations: integrations,
-        total: integrations.length
-      });
+      // CORREÇÃO CRÍTICA: Usar importação direta do storage ao invés do container
+      const { unifiedStorage } = await import('./storage-simple');
 
+      console.log(`🔍 [TENANT-ADMIN-INTEGRATIONS] Fetching integrations for tenant: ${tenantId}`);
+
+      // Get integrations with retry mechanism
+      let integrations = await unifiedStorage.getTenantIntegrations(tenantId);
+      console.log(`📊 [TENANT-ADMIN-INTEGRATIONS] Found ${integrations.length} total integrations`);
+
+      // If no integrations found, force initialization
+      if (integrations.length === 0) {
+        console.log(`⚠️ [TENANT-ADMIN-INTEGRATIONS] No integrations found, initializing default ones for tenant: ${tenantId}`);
+        await unifiedStorage.initializeTenantIntegrations(tenantId);
+
+        // Retry after initialization
+        integrations = await unifiedStorage.getTenantIntegrations(tenantId);
+        console.log(`📊 [TENANT-ADMIN-INTEGRATIONS] After initialization: ${integrations.length} integrations`);
+      }
+
+      // Map integrations to ensure they have proper structure for OmniBridge
+      const processedIntegrations = integrations.map((integration: any) => ({
+        id: integration.id,
+        name: integration.name,
+        description: integration.description,
+        category: integration.category || 'Comunicação',
+        icon: integration.icon || 'Settings',
+        status: integration.status || 'disconnected',
+        enabled: integration.enabled || false,
+        config: integration.config || {},
+        features: integration.features || [],
+        is_currently_monitoring: integration.is_currently_monitoring || false,
+        created_at: integration.created_at,
+        updated_at: integration.updated_at,
+        type: 'communication' // Ensure all integrations are treated as communication channels
+      }));
+
+      // ✅ TELEGRAM FIX: Log específico para verificar se Telegram está nas integrações
+      const telegramIntegration = processedIntegrations.find(i => i.id === 'telegram-bot' || i.id === 'telegram');
+      if (telegramIntegration) {
+        console.log(`✅ TELEGRAM FOUND:`, {
+          id: telegramIntegration.id,
+          name: telegramIntegration.name,
+          status: telegramIntegration.status,
+          enabled: telegramIntegration.enabled
+        });
+      } else {
+        console.log(`❌ TELEGRAM NOT FOUND in ${processedIntegrations.length} integrations`);
+        console.log(`🔍 Available integrations:`, processedIntegrations.map(i => ({ id: i.id, name: i.name })));
+      }
+
+      res.json({
+        integrations: processedIntegrations,
+        totalCount: processedIntegrations.length,
+        initialized: integrations.length > 0
+      });
     } catch (error) {
       console.error('❌ [TENANT-ADMIN-INTEGRATIONS] Error fetching integrations:', error);
-
-      // Return fallback structure instead of error to prevent frontend breaks
-      res.json({ 
+      res.status(500).json({ 
+        message: 'Failed to fetch tenant integrations',
         integrations: [],
-        fallback: true,
-        error: true,
-        message: "Error fetching integrations, fallback data provided"
+        totalCount: 0,
+        error: true
       });
     }
   });
@@ -2094,7 +2122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         messages = await unifiedStorage.getEmailInboxMessages(tenantId);
         console.log(`📧 [EMAIL-INBOX] Successfully retrieved ${messages.length} messages from storage`);
-        
+
         if (messages.length > 0) {
           console.log(`📧 [EMAIL-INBOX] First message sample:`, {
             id: messages[0].id,

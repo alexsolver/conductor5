@@ -663,19 +663,24 @@ export default function OmniBridge() {
         const response = await apiRequest('GET', '/api/tenant-admin/integrations');
         console.log('🔍 [OmniBridge] API Response for integrations:', response);
         
-        // If API returned empty integrations but with initialization flag, refetch after short delay
-        if (response.initialized && response.integrations?.length > 0) {
-          console.log('🔄 [OmniBridge] Integrations were just initialized, data should be available');
+        // Force retry if we get empty integrations the first time
+        if (response.integrations?.length === 0 && !response.initialized) {
+          console.log('🔄 [OmniBridge] No integrations found, forcing retry in 2 seconds...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          const retryResponse = await apiRequest('GET', '/api/tenant-admin/integrations');
+          console.log('🔄 [OmniBridge] Retry response:', retryResponse);
+          return retryResponse;
         }
         
         return response;
       } catch (error) {
         console.error('❌ [OmniBridge] Failed to fetch integrations:', error);
-        // Return minimal fallback
+        // Return minimal fallback with error flag
         return {
           integrations: [],
           fallback: true,
-          error: true
+          error: true,
+          errorMessage: error.message
         };
       }
     },
@@ -683,8 +688,8 @@ export default function OmniBridge() {
     gcTime: 60000,
     refetchOnWindowFocus: false,
     retry: (failureCount, error) => {
-      // Retry up to 3 times for network errors
-      return failureCount < 3;
+      // Retry up to 5 times for this critical endpoint
+      return failureCount < 5;
     },
   });
 
@@ -694,16 +699,31 @@ export default function OmniBridge() {
       try {
         const response = await apiRequest('GET', '/api/email-config/inbox');
         console.log('🔍 [OmniBridge] API Response for inbox:', response);
+        
+        // Ensure we have a valid structure
+        if (!response || !Array.isArray(response.messages)) {
+          console.warn('⚠️ [OmniBridge] Invalid inbox response structure, using fallback');
+          return { messages: [] };
+        }
+        
         return response;
       } catch (error) {
         console.error('❌ [OmniBridge] Failed to fetch inbox:', error);
         // Return empty but valid structure to prevent UI breaks
-        return { messages: [] };
+        return { 
+          messages: [], 
+          error: true, 
+          errorMessage: error.message 
+        };
       }
     },
     staleTime: 15000,
     gcTime: 30000,
     refetchOnWindowFocus: false,
+    retry: (failureCount, error) => {
+      // Retry up to 3 times for inbox
+      return failureCount < 3;
+    },
   });
 
   // Monitoring status query - Using email-config API that works
@@ -836,23 +856,46 @@ export default function OmniBridge() {
            integration.type === 'messaging';
   });
   
-  // Fallback robust: se nenhum canal de comunicação for encontrado, mostrar todas as integrações
+  // Se temos integrações mas nenhuma de comunicação, mostrar todas como canais potenciais
   if (channels.length === 0 && allChannels.length > 0) {
-    channels = allChannels;
-    console.log('🔄 [OmniBridge] No communication channels found, showing all integrations:', allChannels.length);
+    channels = allChannels.map((integration: any) => ({
+      ...integration,
+      category: integration.category || 'Comunicação',
+      type: integration.type || 'communication'
+    }));
+    console.log('🔄 [OmniBridge] No communication channels found, showing all integrations as potential channels:', allChannels.length);
   }
   
-  // Se ainda não há canais, garantir que temos pelo menos dados de exemplo para o usuário ver a interface
+  // Se ainda não há canais, mostrar canais padrão de comunicação
   if (channels.length === 0) {
-    console.log('⚠️ [OmniBridge] No integrations data available, using fallback channels');
+    console.log('⚠️ [OmniBridge] No integrations data available, showing default communication channels');
     channels = [
       {
-        id: 'fallback-email',
-        name: 'Email (Configurar)',
+        id: 'imap-email',
+        name: 'Email IMAP',
         category: 'Comunicação',
         status: 'disconnected',
-        description: 'Configure uma integração de email em Tenant Admin > Integrações',
-        type: 'communication'
+        description: 'Configure email IMAP em Tenant Admin > Integrações > Comunicação',
+        type: 'communication',
+        icon: 'Mail'
+      },
+      {
+        id: 'whatsapp-business',
+        name: 'WhatsApp Business',
+        category: 'Comunicação', 
+        status: 'disconnected',
+        description: 'Configure WhatsApp Business em Tenant Admin > Integrações > Comunicação',
+        type: 'communication',
+        icon: 'MessageCircle'
+      },
+      {
+        id: 'telegram-bot',
+        name: 'Telegram',
+        category: 'Comunicação',
+        status: 'disconnected', 
+        description: 'Configure Telegram Bot em Tenant Admin > Integrações > Comunicação',
+        type: 'communication',
+        icon: 'Send'
       }
     ];
   }
@@ -1238,6 +1281,33 @@ export default function OmniBridge() {
                     >
                       <RefreshCw className="h-4 w-4" />
                       Atualizar Agora
+                    </Button>
+
+                    <Button 
+                      onClick={async () => {
+                        console.log('🔧 [OmniBridge] Force initialization triggered');
+                        try {
+                          // Force initialization by making multiple requests
+                          await apiRequest('GET', '/api/tenant-admin/integrations');
+                          await new Promise(resolve => setTimeout(resolve, 1000));
+                          await refetchIntegrations();
+                          toast({ 
+                            title: "Inicialização forçada", 
+                            description: "Tentando criar integrações padrão"
+                          });
+                        } catch (error) {
+                          toast({ 
+                            title: "Erro na inicialização", 
+                            description: "Não foi possível inicializar as integrações",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <Zap className="h-4 w-4" />
+                      Inicializar Canais
                     </Button>
                     
                     <Button 

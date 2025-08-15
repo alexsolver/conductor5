@@ -1395,6 +1395,29 @@ export class DatabaseStorage implements IStorage {
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
+      // First ensure the table exists
+      try {
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS "${schemaName}".service_integrations (
+            id TEXT PRIMARY KEY,
+            tenant_id UUID NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT,
+            category TEXT DEFAULT 'Comunicação',
+            icon TEXT DEFAULT 'Settings',
+            status TEXT DEFAULT 'disconnected',
+            enabled BOOLEAN DEFAULT FALSE,
+            config JSONB DEFAULT '{}',
+            features TEXT[] DEFAULT ARRAY[]::TEXT[],
+            is_currently_monitoring BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+          )
+        `);
+      } catch (tableError) {
+        console.error(`❌ [STORAGE] Error creating integrations table:`, tableError);
+      }
+
       const result = await pool.query(
         `SELECT * FROM "${schemaName}"."service_integrations" 
          WHERE tenant_id = $1 
@@ -1421,7 +1444,23 @@ export class DatabaseStorage implements IStorage {
       return result.rows;
     } catch (error) {
       console.error(`❌ [STORAGE] Error getting tenant integrations:`, error);
-      return [];
+      // Initialize default integrations if any error occurs
+      try {
+        await this.initializeTenantIntegrations(tenantId);
+        // Try to fetch again after initialization
+        const { pool } = await import('./db');
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+        const retryResult = await pool.query(
+          `SELECT * FROM "${schemaName}"."service_integrations" 
+           WHERE tenant_id = $1 
+           ORDER BY created_at DESC`,
+          [tenantId]
+        );
+        return retryResult.rows || [];
+      } catch (retryError) {
+        console.error(`❌ [STORAGE] Failed to initialize integrations on retry:`, retryError);
+        return [];
+      }
     }
   }
 
@@ -1432,6 +1471,25 @@ export class DatabaseStorage implements IStorage {
 
       const { pool } = await import('./db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // First ensure the table exists
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "${schemaName}".service_integrations (
+          id TEXT PRIMARY KEY,
+          tenant_id UUID NOT NULL,
+          name TEXT NOT NULL,
+          description TEXT,
+          category TEXT DEFAULT 'Comunicação',
+          icon TEXT DEFAULT 'Settings',
+          status TEXT DEFAULT 'disconnected',
+          enabled BOOLEAN DEFAULT FALSE,
+          config JSONB DEFAULT '{}',
+          features TEXT[] DEFAULT ARRAY[]::TEXT[],
+          is_currently_monitoring BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
 
       // Check if integrations already exist
       const existing = await pool.query(
