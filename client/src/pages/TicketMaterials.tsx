@@ -437,59 +437,63 @@ export default function TicketMaterials() {
                   </Badge>
                 </div>
 
-                {/* Sub-tabs for Material/Service - Enhanced Visual Design */}
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-3 rounded-xl border border-gray-200 shadow-sm">
-                  <div className="flex justify-center space-x-2">
-                    <button
-                      onClick={() => setPlannedSubTab('all')}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
-                        plannedSubTab === 'all'
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
-                          : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm'
-                      }`}
-                    >
-                      <Package className="w-5 h-5" />
-                      <span>Todos os Itens</span>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        plannedSubTab === 'all' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'
-                      }`}>
-                        {(plannedItems as any)?.data?.plannedItems?.length || 0}
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setPlannedSubTab('material')}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
-                        plannedSubTab === 'material'
-                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25'
-                          : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm'
-                      }`}
-                    >
-                      <Box className="w-5 h-5" />
-                      <span>Materiais</span>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        plannedSubTab === 'material' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-600'
-                      }`}>
-                        {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'material').length || 0}
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setPlannedSubTab('service')}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
-                        plannedSubTab === 'service'
-                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
-                          : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm'
-                      }`}
-                    >
-                      <Wrench className="w-5 h-5" />
-                      <span>Serviços</span>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        plannedSubTab === 'service' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-600'
-                      }`}>
-                        {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'service').length || 0}
-                      </span>
-                    </button>
-                  </div>
-                </div>
+                {/* Sub-tabs for Material/Service Separation */}
+                <Card className="mb-6">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-center space-x-4">
+                      <button
+                        onClick={() => setPlannedSubTab('all')}
+                        className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                          plannedSubTab === 'all'
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-500/30'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <Package className="w-6 h-6" />
+                        <div className="text-left">
+                          <div>Todos os Itens</div>
+                          <div className="text-xs opacity-75">
+                            {(plannedItems as any)?.data?.plannedItems?.length || 0} total
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setPlannedSubTab('material')}
+                        className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                          plannedSubTab === 'material'
+                            ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-green-500/30'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <Box className="w-6 h-6" />
+                        <div className="text-left">
+                          <div>Materiais</div>
+                          <div className="text-xs opacity-75">
+                            {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'material').length || 0} materiais
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setPlannedSubTab('service')}
+                        className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                          plannedSubTab === 'service'
+                            ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-purple-500/30'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <Wrench className="w-6 h-6" />
+                        <div className="text-left">
+                          <div>Serviços</div>
+                          <div className="text-xs opacity-75">
+                            {(plannedItems as any)?.data?.plannedItems?.filter((item: any) => item.itemType === 'service').length || 0} serviços
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {loadingPlanned ? (
                   <div className="text-center py-8">
