@@ -29,14 +29,18 @@ console.log("🔥 [1QA-FINAL] NEON COMPLETAMENTE REMOVIDO DA CODEBASE - PostgreS
 console.log("✅ [1QA-SUCCESS] @neondatabase/serverless eliminado, node-postgres implementado");
 
 // Configuração otimizada para AWS RDS PostgreSQL
-export const pool = new Pool({ 
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: process.env.NODE_ENV === 'production' ? 50 : 20,
   min: process.env.NODE_ENV === 'production' ? 5 : 2,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,
   acquireTimeoutMillis: 20000,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false,
+    requestCert: false,
+    agent: false
+  } : false,
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000
 });
@@ -55,11 +59,15 @@ export const schemaManager = {
   async getTenantDb(tenantId: string) {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     // Create a new database connection with the tenant schema as search path
-    const tenantPool = new Pool({ 
+    const tenantPool = new Pool({
       connectionString: process.env.DATABASE_URL,
       // Set the schema search path to the tenant schema
       options: `-c search_path=${schemaName}`,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: process.env.NODE_ENV === 'production' ? {
+        rejectUnauthorized: false,
+        requestCert: false,
+        agent: false
+      } : false,
     });
     const tenantDb = drizzle({ client: tenantPool, schema });
     return { db: tenantDb };
@@ -72,8 +80,8 @@ export const schemaManager = {
 
       // Validate schema exists
       const schemaExists = await pool.query(`
-        SELECT schema_name 
-        FROM information_schema.schemata 
+        SELECT schema_name
+        FROM information_schema.schemata
         WHERE schema_name = $1
       `, [schemaName]);
 
@@ -84,8 +92,8 @@ export const schemaManager = {
 
       // Get table count
       const result = await pool.query(`
-        SELECT COUNT(*) as table_count 
-        FROM information_schema.tables 
+        SELECT COUNT(*) as table_count
+        FROM information_schema.tables
         WHERE table_schema = $1
       `, [schemaName]);
 
@@ -93,8 +101,8 @@ export const schemaManager = {
 
       // ✅ CUSTOMER MODULE SPECIFIC VALIDATION - COMPREHENSIVE TABLE CHECK
       const customerModuleTables = await pool.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
+        SELECT table_name
+        FROM information_schema.tables
         WHERE table_schema = $1
         AND table_name IN (
           'customers', 'beneficiaries', 'companies', 'customer_company_memberships',
@@ -108,7 +116,7 @@ export const schemaManager = {
       // ✅ VALIDATE CUSTOMER TABLE STRUCTURE - ENHANCED
       const customerStructure = await pool.query(`
         SELECT column_name, data_type, is_nullable, column_default
-        FROM information_schema.columns 
+        FROM information_schema.columns
         WHERE table_schema = $1 AND table_name = 'customers'
         AND column_name IN ('tenant_id', 'customer_type', 'first_name', 'last_name', 'email', 'is_active', 'created_at', 'updated_at')
         ORDER BY ordinal_position
@@ -119,7 +127,7 @@ export const schemaManager = {
       // ✅ VALIDATE BENEFICIARIES TABLE STRUCTURE - ENHANCED
       const beneficiariesStructure = await pool.query(`
         SELECT column_name, data_type
-        FROM information_schema.columns 
+        FROM information_schema.columns
         WHERE table_schema = $1 AND table_name = 'beneficiaries'
         AND column_name IN ('tenant_id', 'name', 'cpf', 'cnpj', 'is_active', 'created_at', 'updated_at')
       `, [schemaName]);
@@ -128,7 +136,7 @@ export const schemaManager = {
 
       // ✅ VALIDATE FOREIGN KEYS FOR CUSTOMER MODULE
       const foreignKeyCheck = await pool.query(`
-        SELECT 
+        SELECT
           tc.table_name,
           kcu.column_name,
           ccu.table_name AS foreign_table_name,
@@ -149,19 +157,19 @@ export const schemaManager = {
 
       // Check for required soft delete columns on customer tables
       const customerSoftDeleteCheck = await pool.query(`
-        SELECT 
+        SELECT
           t.table_name,
           CASE WHEN c.column_name IS NOT NULL THEN true ELSE false END as has_is_active
         FROM (
           SELECT 'customers' as table_name UNION ALL
-          SELECT 'beneficiaries' UNION ALL  
+          SELECT 'beneficiaries' UNION ALL
           SELECT 'companies' UNION ALL
           SELECT 'tickets' UNION ALL
           SELECT 'activity_logs'
         ) t
-        LEFT JOIN information_schema.columns c 
-          ON c.table_schema = $1 
-          AND c.table_name = t.table_name 
+        LEFT JOIN information_schema.columns c
+          ON c.table_schema = $1
+          AND c.table_name = t.table_name
           AND c.column_name = 'is_active'
       `, [schemaName]);
 

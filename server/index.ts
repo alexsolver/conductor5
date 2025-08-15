@@ -51,11 +51,13 @@ async function ensurePostgreSQLRunning() {
 async function validateDatabaseConnection() {
   const { Pool } = await import('pg');
   
-  // CRITICAL FIX: SSL configuration for production deployment
+  // CRITICAL FIX: SSL configuration for production deployment (Replit optimized)
   const isProduction = process.env.NODE_ENV === 'production';
   const sslConfig = isProduction ? {
     ssl: {
       rejectUnauthorized: false, // Accept self-signed certificates in production
+      requestCert: false,        // Don't request client certificates
+      agent: false               // Disable connection pooling for SSL
     }
   } : {};
 
@@ -70,16 +72,36 @@ async function validateDatabaseConnection() {
   try {
     await pool.query('SELECT 1');
     console.log("✅ [DATABASE] Successfully connected to the database.");
-    // Keep the pool alive for the application's lifetime
-    // pool.on('error', (err, client) => { /* handle errors */ });
+    await pool.end(); // Close test pool
     return true;
   } catch (error) {
     console.error("❌ [DATABASE] Failed to connect to the database:", error);
     // PRODUCTION FIX: More descriptive error for SSL issues
     if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
-      console.error("🔒 [SSL ERROR] Certificate validation failed. Check SSL configuration.");
+      console.error("🔒 [SSL ERROR] Certificate validation failed. Retrying with enhanced SSL config...");
+      
+      // Try with even more permissive SSL settings
+      try {
+        const fallbackPool = new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: process.env.NODE_ENV === 'production' ? { 
+            rejectUnauthorized: false,
+            requestCert: false,
+            agent: false,
+            checkServerIdentity: () => undefined
+          } : false,
+          connectionTimeoutMillis: 10000
+        });
+        
+        await fallbackPool.query('SELECT 1');
+        await fallbackPool.end();
+        console.log("✅ [DATABASE] Connected with fallback SSL configuration.");
+        return true;
+      } catch (fallbackError) {
+        console.error("❌ [DATABASE] Fallback connection also failed:", fallbackError);
+      }
     }
-    throw new Error("Database connection failed. Ensure DATABASE_URL is correctly set.");
+    throw new Error("Database connection failed. Ensure DATABASE_URL is correctly set and SSL certificates are valid.");
   }
 }
 
