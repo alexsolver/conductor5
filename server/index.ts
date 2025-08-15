@@ -120,7 +120,9 @@ app.use((req, res, next) => {
 
   // Import tenant integrations routes
   const { default: tenantIntegrationsRouter } = await import('./routes/tenantIntegrations');
-  app.use('/api/tenant-admin/integrations', tenantIntegrationsRouter);
+  app.use('/api/tenant-admin-integration', tenantIntegrationsRouter);
+
+  // Automation rules routes
   app.use('/api/automation-rules', automationRulesRoutes);
 
   app.get('/health', async (req, res) => {
