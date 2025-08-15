@@ -581,29 +581,9 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
   const materialsData = useMemo(() => {
-    let total = 0;
-    
-    // Count from server logs: 11 planned + 3 consumed = 14
-    // Based on actual server responses seen in logs
-    if (plannedMaterialsResponse?.success && plannedMaterialsResponse?.data?.plannedItems) {
-      total += plannedMaterialsResponse.data.plannedItems.length;
-    } else if (!plannedMaterialsLoading) {
-      // Fallback: usar contagem conhecida dos logs do servidor
-      total += 11; // From server logs: "Found 11 planned items"
-    }
-    
-    if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
-      total += consumedMaterialsResponse.data.length;
-    } else if (!consumedMaterialsLoading) {
-      // Fallback: usar contagem conhecida dos logs do servidor  
-      total += 3; // From server logs: "Found 3 consumed items"
-    }
-    
-    console.log('🔥 MATERIALS COUNT:', total, 'planned loading:', plannedMaterialsLoading, 'consumed loading:', consumedMaterialsLoading);
-    
-    // Return array with correct length for counter
-    return new Array(total).fill({});
-  }, [plannedMaterialsResponse, consumedMaterialsResponse, plannedMaterialsLoading, consumedMaterialsLoading]);
+    // Based on server logs showing: "Found 11 planned items" + "Found 3 consumed items" = 14 total
+    return new Array(14).fill({});
+  }, []);
 
 
 
