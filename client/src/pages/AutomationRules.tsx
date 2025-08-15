@@ -269,8 +269,6 @@ export default function AutomationRules() {
         </div>
       </div>
     );
-  }</div>
-    );
   }
 
   console.log('🤖 [AutomationRules] Rendering with data:', { 
