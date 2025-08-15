@@ -29,7 +29,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 - **Employment Type System**: Supports dual employment types (CLT/Autonomous) with automatic detection, terminology mapping, and route redirection.
 - **Key Features**:
     - **Authentication & Authorization**: Local JWT with access/refresh tokens, bcrypt hashing, and a four-tier RBAC system with granular permissions and tenant isolation.
-    - **Ticket Management**: Comprehensive system with ServiceNow-style fields, hierarchical configurations, dynamic metadata, full audit trails, and a rich text editor. Includes ticket templates with dynamic fields, automation, workflow engine, and analytics.
+    - **Ticket Management**: Comprehensive system with ServiceNow-style fields, hierarchical configurations, dynamic metadata, full audit trails, and a rich text editor. Includes ticket templates with dynamic fields, automation, workflow engine, and analytics. Ticket relationships system fixed to use real-time data lookup for accurate related ticket information display.
     - **Customer & Beneficiary Management**: Flexible person management system for callers and beneficiaries, including sensitive data protection and compliance.
     - **Location Management**: Comprehensive system supporting various location record types with advanced UX features like address auto-fill and interactive map coordinate collection.
     - **User & Team Management**: Consolidated system for user and team management with HR database schema expansion, user group memberships, and list-based views.

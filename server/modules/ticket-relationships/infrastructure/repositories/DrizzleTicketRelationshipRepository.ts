@@ -28,6 +28,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
 
     try {
       // Get relationships with related ticket details following 1qa.md patterns
+      // FIXED: Use direct ticket lookup for accurate, real-time data
       const result = await pool.query(`
         SELECT 
           tr.*,
@@ -38,29 +39,57 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
           CASE 
             WHEN tr.source_ticket_id = $1 THEN tr.target_ticket_id
             ELSE tr.source_ticket_id
-          END as related_ticket_id,
-          CASE 
-            WHEN tr.source_ticket_id = $1 THEN target_ticket.number
-            ELSE source_ticket.number
-          END as related_ticket_number,
-          CASE 
-            WHEN tr.source_ticket_id = $1 THEN target_ticket.subject
-            ELSE source_ticket.subject
-          END as related_ticket_subject,
-          CASE 
-            WHEN tr.source_ticket_id = $1 THEN target_ticket.status
-            ELSE source_ticket.status
-          END as related_ticket_status
+          END as related_ticket_id
         FROM "${schemaName}".ticket_relationships tr
-        LEFT JOIN "${schemaName}".tickets source_ticket ON source_ticket.id = tr.source_ticket_id
-        LEFT JOIN "${schemaName}".tickets target_ticket ON target_ticket.id = tr.target_ticket_id
-        WHERE tr.source_ticket_id = $1 OR tr.target_ticket_id = $1
+        WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1)
+          AND tr.is_active = true
         ORDER BY tr.created_at DESC
       `, [ticketId]);
 
-      console.log('✅ [DrizzleTicketRelationshipRepository] Found relationships:', result.rows.length);
+      // For each relationship, get current ticket data to ensure accuracy
+      const relationshipsWithDetails = await Promise.all(
+        result.rows.map(async (row) => {
+          const relatedTicketId = row.direction === 'outgoing' ? row.target_ticket_id : row.source_ticket_id;
+          
+          try {
+            // Get fresh ticket data to avoid stale information
+            const ticketResult = await pool.query(`
+              SELECT id, number, subject, status, priority, category, updated_at
+              FROM "${schemaName}".tickets 
+              WHERE id = $1 AND is_active = true
+            `, [relatedTicketId]);
+
+            const relatedTicket = ticketResult.rows[0];
+            
+            return {
+              ...row,
+              related_ticket_id: relatedTicketId,
+              related_ticket_number: relatedTicket?.number || 'N/A',
+              related_ticket_subject: relatedTicket?.subject || 'Ticket não encontrado',
+              related_ticket_status: relatedTicket?.status || 'unknown',
+              related_ticket_priority: relatedTicket?.priority || null,
+              related_ticket_category: relatedTicket?.category || null,
+              related_ticket_updated_at: relatedTicket?.updated_at || null
+            };
+          } catch (ticketError: any) {
+            console.warn('⚠️ [DrizzleTicketRelationshipRepository] Could not fetch related ticket:', relatedTicketId, ticketError.message);
+            return {
+              ...row,
+              related_ticket_id: relatedTicketId,
+              related_ticket_number: 'ERR-' + relatedTicketId.slice(-8),
+              related_ticket_subject: 'Erro ao carregar ticket',
+              related_ticket_status: 'error',
+              related_ticket_priority: null,
+              related_ticket_category: null,
+              related_ticket_updated_at: null
+            };
+          }
+        })
+      );
+
+      console.log('✅ [DrizzleTicketRelationshipRepository] Found relationships:', relationshipsWithDetails.length);
       
-      return result.rows.map(row => ({
+      return relationshipsWithDetails.map(row => ({
         id: row.id,
         tenantId: row.tenant_id,
         sourceTicketId: row.source_ticket_id,
