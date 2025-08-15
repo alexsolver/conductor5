@@ -647,7 +647,7 @@ const TicketDetails = React.memo(() => {
     },
     {
       id: "materials",
-      label: `Materiais e Serviços (${plannedMaterialsData?.length || 0})`, // CORREÇÃO: Apenas contador de planejados
+      label: getTabLabel("Materiais e Serviços", plannedMaterialsData?.length),
       icon: Package
     },
   ];
