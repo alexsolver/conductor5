@@ -448,8 +448,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
-                  } : {}}
-                  title={item.name}>
+                  } : {}}>
                     <item.icon className="h-6 w-6 flex-shrink-0" />
                     {item.badge && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
