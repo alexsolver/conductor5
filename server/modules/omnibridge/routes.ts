@@ -34,6 +34,14 @@ router.post('/channels/:channelId/toggle', (req, res) => omniBridgeController.to
 router.get('/messages', (req, res) => omniBridgeController.getMessages(req, res));
 router.post('/messages/:messageId/process', (req, res) => omniBridgeController.processMessage(req, res));
 
+// Message interaction routes
+router.post('/messages/send', (req, res) => omniBridgeController.sendMessage(req, res));
+router.post('/messages/reply', (req, res) => omniBridgeController.replyMessage(req, res));
+router.post('/messages/forward', (req, res) => omniBridgeController.forwardMessage(req, res));
+router.put('/messages/:messageId/archive', (req, res) => omniBridgeController.archiveMessage(req, res));
+router.put('/messages/:messageId/read', (req, res) => omniBridgeController.markAsRead(req, res));
+router.put('/messages/:messageId/star', (req, res) => omniBridgeController.starMessage(req, res));
+
 router.get('/inbox/stats', (req, res) => omniBridgeController.getInboxStats(req, res));
 
 // Automation Rules (para implementação futura)

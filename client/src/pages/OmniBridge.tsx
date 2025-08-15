@@ -72,6 +72,7 @@ interface Message {
   priority: 'low' | 'medium' | 'high' | 'urgent';
   tags?: string[];
   attachments?: number;
+  starred?: boolean;
 }
 
 interface AutomationRule {
@@ -162,6 +163,11 @@ export default function OmniBridge() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterChannel, setFilterChannel] = useState('all');
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [forwardContent, setForwardContent] = useState('');
+  const [forwardRecipients, setForwardRecipients] = useState('');
 
   // Fetch data from API
   useEffect(() => {
@@ -438,11 +444,13 @@ export default function OmniBridge() {
 
   const handleSendMessage = async (content: string, channelId: string, recipient: string) => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/omnibridge/messages/send', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
         },
         body: JSON.stringify({
           channelId,
@@ -452,15 +460,195 @@ export default function OmniBridge() {
       });
 
       if (response.ok) {
+        console.log('✅ [OMNIBRIDGE] Message sent successfully');
         // Refresh messages
-        const messagesResponse = await fetch('/api/omnibridge/messages');
-        if (messagesResponse.ok) {
-          const result = await messagesResponse.json();
-          setMessages(result.data || []);
+        await refreshMessages();
+      } else {
+        console.error('❌ [OMNIBRIDGE] Failed to send message:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE] Error sending message:', error);
+    }
+  };
+
+  const refreshMessages = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const messagesResponse = await fetch('/api/omnibridge/messages', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        }
+      });
+
+      if (messagesResponse.ok) {
+        const result = await messagesResponse.json();
+        if (result.success) {
+          const messagesData = result.messages.map((msg: any) => ({
+            id: msg.id,
+            channelId: msg.channelId,
+            channelType: msg.channelType,
+            from: msg.from,
+            to: msg.to,
+            subject: msg.subject,
+            content: msg.body || msg.content,
+            timestamp: new Date(msg.receivedAt || msg.timestamp || msg.createdAt).toLocaleString(),
+            status: msg.status,
+            priority: msg.priority,
+            tags: msg.tags,
+            attachments: msg.attachments
+          }));
+          setMessages(messagesData);
+          console.log('✅ [OMNIBRIDGE] Messages refreshed successfully');
         }
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ [OMNIBRIDGE] Error refreshing messages:', error);
+    }
+  };
+
+  const handleReplyMessage = async (messageId: string, content: string) => {
+    try {
+      const message = messages.find(m => m.id === messageId);
+      if (!message) return;
+
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/omnibridge/messages/reply', {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        body: JSON.stringify({
+          originalMessageId: messageId,
+          channelId: message.channelId,
+          recipient: message.from,
+          content
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ [OMNIBRIDGE] Reply sent successfully');
+        await refreshMessages();
+        // Update message status to replied
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId ? { ...msg, status: 'replied' } : msg
+        ));
+      } else {
+        console.error('❌ [OMNIBRIDGE] Failed to send reply:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE] Error sending reply:', error);
+    }
+  };
+
+  const handleForwardMessage = async (messageId: string, recipients: string[], content: string) => {
+    try {
+      const message = messages.find(m => m.id === messageId);
+      if (!message) return;
+
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/omnibridge/messages/forward', {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        body: JSON.stringify({
+          originalMessageId: messageId,
+          channelId: message.channelId,
+          recipients,
+          content,
+          originalContent: message.content
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ [OMNIBRIDGE] Message forwarded successfully');
+        await refreshMessages();
+      } else {
+        console.error('❌ [OMNIBRIDGE] Failed to forward message:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE] Error forwarding message:', error);
+    }
+  };
+
+  const handleArchiveMessage = async (messageId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/omnibridge/messages/${messageId}/archive`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        }
+      });
+
+      if (response.ok) {
+        console.log('✅ [OMNIBRIDGE] Message archived successfully');
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId ? { ...msg, status: 'archived' } : msg
+        ));
+      } else {
+        console.error('❌ [OMNIBRIDGE] Failed to archive message:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE] Error archiving message:', error);
+    }
+  };
+
+  const handleMarkAsRead = async (messageId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/omnibridge/messages/${messageId}/read`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        }
+      });
+
+      if (response.ok) {
+        console.log('✅ [OMNIBRIDGE] Message marked as read');
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId ? { ...msg, status: 'read' } : msg
+        ));
+      } else {
+        console.error('❌ [OMNIBRIDGE] Failed to mark message as read:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE] Error marking message as read:', error);
+    }
+  };
+
+  const handleStarMessage = async (messageId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/omnibridge/messages/${messageId}/star`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        }
+      });
+
+      if (response.ok) {
+        console.log('✅ [OMNIBRIDGE] Message starred');
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId ? { ...msg, starred: !msg.starred } : msg
+        ));
+      } else {
+        console.error('❌ [OMNIBRIDGE] Failed to star message:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE] Error starring message:', error);
     }
   };
 
@@ -604,10 +792,30 @@ export default function OmniBridge() {
                   <CardTitle className="flex items-center justify-between">
                     <span>Mensagens ({filteredMessages.length})</span>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const selectedMessages = filteredMessages.filter(msg => msg.status !== 'archived');
+                          selectedMessages.forEach(msg => handleArchiveMessage(msg.id));
+                        }}
+                        title="Arquivar mensagens visíveis"
+                      >
                         <Archive className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => refreshMessages()}
+                        title="Atualizar mensagens"
+                      >
+                        <Activity className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        title="Filtros aplicados"
+                      >
                         <Filter className="h-4 w-4" />
                       </Button>
                     </div>
@@ -639,6 +847,9 @@ export default function OmniBridge() {
                                   {message.channelType === 'telegram' && <MessageCircle className="h-4 w-4" />}
                                   {message.channelType === 'sms' && <Phone className="h-4 w-4" />}
                                   <span className="font-medium">{message.from}</span>
+                                  {message.starred && (
+                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                  )}
                                 </div>
                                 <Badge variant="secondary" className={getPriorityColor(message.priority)}>
                                   {message.priority}
@@ -649,6 +860,17 @@ export default function OmniBridge() {
                                 {message.attachments && message.attachments > 0 && (
                                   <Badge variant="outline">{message.attachments} anexos</Badge>
                                 )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStarMessage(message.id);
+                                  }}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Star className={`h-3 w-3 ${message.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                                </Button>
                               </div>
                             </div>
                             {message.subject && (
@@ -734,20 +956,70 @@ export default function OmniBridge() {
                       <Separator />
 
                       <div className="space-y-2">
-                        <Button className="w-full" size="sm">
+                        <Button 
+                          className="w-full" 
+                          size="sm"
+                          onClick={() => {
+                            setShowReplyModal(true);
+                            setReplyContent('');
+                          }}
+                        >
                           <Reply className="h-4 w-4 mr-2" />
                           Responder
                         </Button>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => {
+                              setShowForwardModal(true);
+                              setForwardContent('');
+                              setForwardRecipients('');
+                            }}
+                          >
                             <Forward className="h-4 w-4 mr-2" />
                             Encaminhar
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => selectedMessage && handleArchiveMessage(selectedMessage.id)}
+                          >
                             <Archive className="h-4 w-4 mr-2" />
                             Arquivar
                           </Button>
                         </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => selectedMessage && handleMarkAsRead(selectedMessage.id)}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Marcar como Lida
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => selectedMessage && handleStarMessage(selectedMessage.id)}
+                          >
+                            <Star className={`h-4 w-4 mr-2 ${selectedMessage?.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                            {selectedMessage?.starred ? 'Remover Estrela' : 'Marcar'}
+                          </Button>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => refreshMessages()}
+                        >
+                          <Activity className="h-4 w-4 mr-2" />
+                          Atualizar
+                        </Button>
                       </div>
                     </div>
                   ) : (
@@ -957,6 +1229,106 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Resposta */}
+      <Dialog open={showReplyModal} onOpenChange={setShowReplyModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Responder Mensagem</DialogTitle>
+            <DialogDescription>
+              Respondendo para: {selectedMessage?.from}
+              {selectedMessage?.subject && ` - ${selectedMessage.subject}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="border rounded p-3 bg-muted">
+              <p className="text-sm text-muted-foreground">Mensagem original:</p>
+              <p className="text-sm mt-1">{selectedMessage?.content}</p>
+            </div>
+            <Textarea
+              placeholder="Digite sua resposta..."
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              rows={6}
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowReplyModal(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={async () => {
+                  if (selectedMessage && replyContent.trim()) {
+                    await handleReplyMessage(selectedMessage.id, replyContent);
+                    setShowReplyModal(false);
+                    setReplyContent('');
+                  }
+                }}
+                disabled={!replyContent.trim()}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Enviar Resposta
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Encaminhamento */}
+      <Dialog open={showForwardModal} onOpenChange={setShowForwardModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Encaminhar Mensagem</DialogTitle>
+            <DialogDescription>
+              Encaminhando mensagem de: {selectedMessage?.from}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="border rounded p-3 bg-muted">
+              <p className="text-sm text-muted-foreground">Mensagem original:</p>
+              <p className="text-sm mt-1">{selectedMessage?.content}</p>
+            </div>
+            <div>
+              <Label htmlFor="recipients">Destinatários (separados por vírgula)</Label>
+              <Input
+                id="recipients"
+                placeholder="email1@exemplo.com, email2@exemplo.com"
+                value={forwardRecipients}
+                onChange={(e) => setForwardRecipients(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="forward-message">Mensagem adicional (opcional)</Label>
+              <Textarea
+                id="forward-message"
+                placeholder="Adicione uma mensagem..."
+                value={forwardContent}
+                onChange={(e) => setForwardContent(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowForwardModal(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={async () => {
+                  if (selectedMessage && forwardRecipients.trim()) {
+                    const recipients = forwardRecipients.split(',').map(r => r.trim()).filter(r => r);
+                    await handleForwardMessage(selectedMessage.id, recipients, forwardContent);
+                    setShowForwardModal(false);
+                    setForwardContent('');
+                    setForwardRecipients('');
+                  }
+                }}
+                disabled={!forwardRecipients.trim()}
+              >
+                <Forward className="h-4 w-4 mr-2" />
+                Encaminhar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
