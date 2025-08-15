@@ -587,6 +587,13 @@ const TicketDetails = React.memo(() => {
     enabled: !!id,
   });
 
+  // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
+  const materialsData = useMemo(() => {
+    const planned = Array.isArray(plannedMaterials) ? plannedMaterials : [];
+    const consumed = Array.isArray(consumedMaterials) ? consumedMaterials : [];
+    return [...planned, ...consumed];
+  }, [plannedMaterials, consumedMaterials]);
+
 
   // Special functionality tabs (with dynamic counters) - moved after data processing
   const getTabLabel = (baseLabel: string, count?: number) => {
@@ -602,12 +609,32 @@ const TicketDetails = React.memo(() => {
       label: getTabLabel("Anexos", attachmentsData?.length),
       icon: Paperclip
     },
-    { id: "notes", label: "Notas", icon: FileText },
-    { id: "communications", label: "Comunicação", icon: MessageSquare },
+    { 
+      id: "notes", 
+      label: getTabLabel("Notas", notesData?.length), 
+      icon: FileText 
+    },
+    { 
+      id: "communications", 
+      label: getTabLabel("Comunicação", communicationsData?.length), 
+      icon: MessageSquare 
+    },
     { id: "history", label: "Histórico", icon: History },
-    { id: "internal-actions", label: "Ações Internas", icon: Settings },
-    { id: "links", label: "Vínculos", icon: Link },
-    { id: "materials", label: "Materiais e Serviços", icon: Package },
+    { 
+      id: "internal-actions", 
+      label: getTabLabel("Ações Internas", internalActionsData?.length), 
+      icon: Settings 
+    },
+    { 
+      id: "links", 
+      label: getTabLabel("Vínculos", relatedTicketsData?.length), 
+      icon: Link 
+    },
+    { 
+      id: "materials", 
+      label: getTabLabel("Materiais e Serviços", materialsData?.length), 
+      icon: Package 
+    },
   ];
 
   // 🔧 [1QA-COMPLIANCE] Direct computation for followers and tags
