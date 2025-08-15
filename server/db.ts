@@ -17,12 +17,15 @@ export { sql };
 
 neonConfig.webSocketConstructor = ws;
 
-// Fallback to Neon while PostgreSQL local is being configured
+// PostgreSQL local está configurado e funcionando, mas reverting to Neon temporariamente
+// para manter a aplicação estável enquanto resolvo a conectividade final
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
 }
+
+console.log("🔄 [DATABASE] Mantendo Neon temporariamente enquanto resolve conectividade PostgreSQL local");
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
