@@ -1,6 +1,6 @@
 
 import { db } from '../../../../db';
-import * as schema from '../../../../../shared/schema';
+import { schema } from '../../../../shared/schema';
 import { ChannelEntity } from '../../domain/entities/Channel';
 import { IChannelRepository } from '../../domain/repositories/IChannelRepository';
 import { eq, and } from 'drizzle-orm';

@@ -113,34 +113,23 @@ router.get('/', async (req: any, res) => {
 
     console.log(`🔧 Found ${integrations.length} integrations for tenant ${tenantId}`);
 
-    // Log communication integrations
-    const communicationIntegrations = integrations.filter(integration => {
-      const category = (integration.category || '').toString().toLowerCase();
-      return category.includes('comunicação') || category.includes('comunicacao') || category.includes('communication');
-    });
-
-    console.log(`📡 Found ${communicationIntegrations.length} communication integrations:`, 
-      communicationIntegrations.map(i => `${i.name} (${i.category})`));
-
     // ✅ TELEGRAM FIX: Log específico para verificar se Telegram está nas integrações
     const telegramIntegration = integrations.find(i => i.id === 'telegram');
     if (telegramIntegration) {
       console.log(`✅ TELEGRAM FOUND in tenantIntegrations.ts:`, {
         id: telegramIntegration.id,
         name: telegramIntegration.name,
-        category: telegramIntegration.category,
         status: telegramIntegration.status,
         configured: telegramIntegration.configured
       });
     } else {
       console.log(`❌ TELEGRAM NOT FOUND in ${integrations.length} integrations`);
-      console.log(`🔍 Available integrations:`, integrations.map(i => `${i.id}(${i.category})`).join(', '));
+      console.log(`🔍 Available integrations:`, integrations.map(i => i.id).join(', '));
     }
 
     res.json({ 
       integrations,
-      total: integrations.length,
-      communicationCount: communicationIntegrations.length
+      total: integrations.length
     });
   } catch (error) {
     console.error('Error fetching tenant integrations:', error);
