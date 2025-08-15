@@ -12,185 +12,152 @@ export class IntegrationChannelSync {
     try {
       console.log(`🔄 [INTEGRATION-SYNC] Starting sync for tenant: ${tenantId}`);
 
-      // Get all tenant integrations
+      // Get integrations from storage
       const integrations = await this.storage.getTenantIntegrations(tenantId);
-      console.log(`📊 [INTEGRATION-SYNC] Found ${integrations.length} integrations`);
-      
-      // Log all integrations for debugging
-      integrations.forEach((integration: any) => {
-        console.log(`📋 [INTEGRATION-DEBUG] Integration: ${integration.id} - ${integration.name} - Category: ${integration.category} - Status: ${integration.status}`);
-      });
 
-      // Filter communication integrations only
-      const communicationIntegrations = integrations.filter((integration: any) => 
-        integration.category === 'Comunicação'
-      );
+      // Filter communication integrations with broader criteria
+      const communicationIntegrations = integrations.filter((integration: any) => {
+        const category = integration.category?.toLowerCase() || '';
+        const name = integration.name?.toLowerCase() || '';
+
+        // Check category or name for communication-related terms
+        return category.includes('comunicaç') || category.includes('communication') || 
+               name.includes('email') || name.includes('whatsapp') || name.includes('telegram') ||
+               name.includes('sms') || name.includes('chat') || name.includes('imap') ||
+               name.includes('smtp') || name.includes('gmail') || name.includes('outlook');
+      });
 
       console.log(`📡 [INTEGRATION-SYNC] Found ${communicationIntegrations.length} communication integrations`);
 
-      for (const integration of communicationIntegrations) {
-        await this.syncIntegrationToChannel(tenantId, integration);
-      }
+      // Get existing channels to avoid duplicates
+      const existingChannels = await this.channelRepository.findByTenant(tenantId);
+      console.log(`📋 [INTEGRATION-SYNC] Found ${existingChannels.length} existing channels`);
 
-      // ✅ TELEGRAM FIX: Force sync for Telegram specifically (múltiplas variações)
-      const telegramIntegration = integrations.find((i: any) => 
-        i.id === 'telegram' || 
-        i.id === 'telegram-bot' || 
-        i.name?.toLowerCase().includes('telegram')
-      );
-      
-      if (telegramIntegration) {
-        console.log(`📱 [TELEGRAM-SYNC] Force syncing Telegram integration: ${telegramIntegration.id}`);
-        await this.syncTelegramChannel(tenantId, telegramIntegration);
-      } else {
-        console.log(`📱 [TELEGRAM-SYNC] No Telegram integration found`);
+      // Sync each integration to a channel
+      for (const integration of communicationIntegrations) {
+        // Check if channel already exists
+        const existingChannel = existingChannels.find(ch => ch.integrationId === integration.id);
+
+        if (!existingChannel) {
+          await this.syncIntegrationToChannel(tenantId, integration);
+        } else {
+          // Update existing channel status
+          await this.updateExistingChannel(tenantId, integration, existingChannel);
+        }
       }
 
       console.log(`✅ [INTEGRATION-SYNC] Sync completed for tenant: ${tenantId}`);
     } catch (error) {
-      console.error(`❌ [INTEGRATION-SYNC] Error syncing integrations:`, error);
+      console.error('[INTEGRATION-SYNC] Error syncing integrations:', error);
       throw error;
     }
   }
 
   private async syncIntegrationToChannel(tenantId: string, integration: any): Promise<void> {
     try {
-      console.log(`🔄 [INTEGRATION-SYNC] Syncing integration: ${integration.name}`);
-      const channel = await this.mapIntegrationToChannel(integration, tenantId);
-      await this.channelRepository.save(channel);
-      console.log(`✅ [INTEGRATION-SYNC] Synced channel: ${channel.name} (${channel.type})`);
+      console.log(`🔗 [CHANNEL-SYNC] Syncing integration: ${integration.name} (${integration.id})`);
+
+      const channelType = this.mapIntegrationToChannelType(integration);
+      const channelIcon = this.mapIntegrationToIcon(integration);
+
+      const channelData = {
+        id: integration.id,
+        tenantId,
+        integrationId: integration.id,
+        name: integration.name,
+        type: channelType,
+        status: integration.status === 'connected' || integration.enabled ? 'active' : 'inactive',
+        config: integration.config || {},
+        features: integration.features || [],
+        description: integration.description || `Canal ${channelType}`,
+        icon: channelIcon,
+        lastSync: new Date(),
+        metrics: {
+          totalMessages: 0,
+          unreadMessages: 0,
+          lastActivity: null
+        },
+        metadata: {
+          originalIntegration: integration.id,
+          syncedAt: new Date().toISOString(),
+          category: integration.category
+        }
+      };
+
+      // Create or update channel
+      await this.channelRepository.createOrUpdate(channelData);
+
+      console.log(`✅ [CHANNEL-SYNC] Channel synced: ${integration.name}`);
     } catch (error) {
-      console.error(`❌ [INTEGRATION-SYNC] Failed to sync integration ${integration.name}:`, error);
-      throw error;
+      console.error(`❌ [CHANNEL-SYNC] Error syncing ${integration.name}:`, error);
     }
   }
 
-  private async syncTelegramChannel(tenantId: string, telegramIntegration: any): Promise<void> {
+  private async updateExistingChannel(tenantId: string, integration: any, existingChannel: any): Promise<void> {
     try {
-      console.log(`📱 [TELEGRAM-SYNC] Processing Telegram integration`);
+      console.log(`🔄 [CHANNEL-UPDATE] Updating existing channel: ${integration.name}`);
 
-      // Check if channel already exists
-      const existingChannels = await this.channelRepository.findByTenant(tenantId);
-      const existingTelegram = existingChannels.find(c => c.integrationId === 'telegram');
+      const updatedData = {
+        ...existingChannel,
+        status: integration.status === 'connected' || integration.enabled ? 'active' : 'inactive',
+        name: integration.name,
+        config: integration.config || existingChannel.config,
+        features: integration.features || existingChannel.features,
+        description: integration.description || existingChannel.description,
+        lastSync: new Date(),
+        metadata: {
+          ...existingChannel.metadata,
+          syncedAt: new Date().toISOString(),
+          category: integration.category
+        }
+      };
 
-      if (existingTelegram) {
-        console.log(`📱 [TELEGRAM-SYNC] Updating existing Telegram channel`);
+      await this.channelRepository.update(existingChannel.id, updatedData, tenantId);
 
-        // Update existing channel with current status
-        const updatedChannel = Channel.create({
-          id: existingTelegram.id,
-          tenantId,
-          integrationId: 'telegram',
-          name: 'Telegram',
-          type: 'social',
-          status: telegramIntegration.configured && telegramIntegration.status === 'connected' ? 'active' : 'inactive',
-          config: {
-            botToken: '***',
-            chatId: telegramIntegration.config?.telegramChatId || '',
-            webhookUrl: telegramIntegration.config?.telegramWebhookUrl || '',
-            webhookConfigured: telegramIntegration.config?.webhookConfigured || false
-          },
-          metadata: {
-            category: 'Comunicação',
-            features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API'],
-            lastSync: new Date().toISOString(),
-            configured: telegramIntegration.configured
-          }
-        });
-
-        await this.channelRepository.update(updatedChannel);
-      } else {
-        console.log(`📱 [TELEGRAM-SYNC] Creating new Telegram channel`);
-
-        // Create new Telegram channel
-        const { Channel } = await import('../../domain/entities/Channel');
-        const newChannel = Channel.create({
-          id: crypto.randomUUID(),
-          tenantId,
-          integrationId: 'telegram',
-          name: 'Telegram',
-          type: 'social',
-          status: telegramIntegration.configured && telegramIntegration.status === 'connected' ? 'active' : 'inactive',
-          config: {
-            botToken: '***',
-            chatId: telegramIntegration.config?.telegramChatId || '',
-            webhookUrl: telegramIntegration.config?.telegramWebhookUrl || '',
-            webhookConfigured: telegramIntegration.config?.webhookConfigured || false
-          },
-          metadata: {
-            category: 'Comunicação',
-            features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API'],
-            lastSync: new Date().toISOString(),
-            configured: telegramIntegration.configured
-          }
-        });
-
-        await this.channelRepository.save(newChannel);
-      }
-
-      console.log(`✅ [TELEGRAM-SYNC] Telegram channel synchronized successfully`);
+      console.log(`✅ [CHANNEL-UPDATE] Channel updated: ${integration.name}`);
     } catch (error) {
-      console.error(`❌ [TELEGRAM-SYNC] Error syncing Telegram channel:`, error);
-      throw error;
+      console.error(`❌ [CHANNEL-UPDATE] Error updating ${integration.name}:`, error);
     }
   }
 
-  private async mapIntegrationToChannel(integration: any, tenantId: string): Promise<Channel> {
-    const channelType = this.getChannelType(integration.id);
-    const icon = this.getChannelIcon(integration.id);
+  private mapIntegrationToChannelType(integration: any): string {
+    const name = integration.name?.toLowerCase() || '';
+    const id = integration.id?.toLowerCase() || '';
+    const description = integration.description?.toLowerCase() || '';
 
-    const { Channel } = await import('../../domain/entities/Channel');
-    
-    return Channel.create({
-      id: integration.id,
-      tenantId,
-      integrationId: integration.id,
-      name: integration.name,
-      type: channelType,
-      status: integration.status === 'connected' ? 'active' : 'inactive',
-      config: integration.config || {},
-      features: integration.features || [],
-      description: integration.description || `Canal de comunicação ${integration.name}`,
-      icon,
-      lastSync: new Date(),
-      metrics: {
-        totalMessages: 0,
-        unreadMessages: 0,
-        errorRate: 0,
-        uptime: 100
-      },
-      metadata: {
-        category: integration.category,
-        integrationId: integration.id
-      }
-    });
+    // Check in name, id, and description
+    const text = `${name} ${id} ${description}`;
+
+    if (text.includes('email') || text.includes('imap') || text.includes('smtp') || 
+        text.includes('gmail') || text.includes('outlook') || text.includes('mail')) {
+      return 'email';
+    }
+    if (text.includes('whatsapp') || text.includes('whats')) {
+      return 'whatsapp';
+    }
+    if (text.includes('telegram')) {
+      return 'telegram';
+    }
+    if (text.includes('sms') || text.includes('twilio') || text.includes('texto')) {
+      return 'sms';
+    }
+    if (text.includes('chat') || text.includes('messaging')) {
+      return 'chat';
+    }
+
+    return 'chat';
   }
 
-  private getChannelType(integrationId: string): string {
-    const typeMap: Record<string, string> = {
-      'email-imap': 'email',
-      'gmail-oauth2': 'email',
-      'outlook-oauth2': 'email',
-      'whatsapp-business': 'whatsapp',
-      'telegram-bot': 'social',
-      'telegram': 'social', // ✅ TELEGRAM FIX: Adicionar mapeamento para 'telegram'
-      'twilio-sms': 'sms',
-      'slack': 'slack'
-    };
-    return typeMap[integrationId] || 'generic';
-  }
+  private mapIntegrationToIcon(integration: any): string {
+    const type = this.mapIntegrationToChannelType(integration);
 
-  private getChannelIcon(integrationId: string): string {
-    const iconMap: Record<string, string> = {
-      'email-imap': 'Mail',
-      'gmail-oauth2': 'Mail',
-      'outlook-oauth2': 'Mail',
-      'whatsapp-business': 'MessageSquare',
-      'telegram-bot': 'MessageCircle',
-      'telegram': 'MessageCircle', // ✅ TELEGRAM FIX: Adicionar mapeamento para 'telegram'
-      'twilio-sms': 'Phone',
-      'slack': 'MessageCircle'
-    };
-    return iconMap[integrationId] || 'Settings';
+    switch (type) {
+      case 'email': return 'Mail';
+      case 'whatsapp': return 'MessageSquare';
+      case 'telegram': return 'MessageCircle';
+      case 'sms': return 'Phone';
+      case 'chat': return 'MessageSquare';
+      default: return 'MessageSquare';
+    }
   }
 }

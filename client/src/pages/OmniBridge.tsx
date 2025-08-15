@@ -367,23 +367,34 @@ export default function OmniBridge() {
       setLoading(true);
 
       const token = localStorage.getItem('token');
+      
+      console.log('🔄 [OMNIBRIDGE-MANUAL-SYNC] Starting manual sync...');
+      
       const response = await fetch('/api/omnibridge/sync-integrations', {
         method: 'POST',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
         }
       });
 
       if (response.ok) {
         console.log('✅ [OmniBridge] Integrations synced successfully');
-        // Reload data after sync
-        await fetchData();
+        
+        // Wait a moment for sync to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Force reload data after sync
+        window.location.reload();
       } else {
-        console.error('❌ [OmniBridge] Sync failed:', response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [OmniBridge] Sync failed:', response.statusText, errorData);
+        alert(`Erro na sincronização: ${errorData.error || response.statusText}`);
       }
     } catch (error) {
       console.error('❌ [OmniBridge] Sync error:', error);
+      alert('Erro na sincronização. Verifique o console para mais detalhes.');
     } finally {
       setLoading(false);
     }

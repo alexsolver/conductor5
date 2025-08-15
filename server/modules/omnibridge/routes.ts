@@ -82,13 +82,42 @@ router.post('/sync-integrations', async (req, res) => {
     const channelRepository = new DrizzleChannelRepository();
     const syncService = new IntegrationChannelSync(channelRepository, storage);
 
+    // Get integrations count before sync
+    const integrations = await storage.getTenantIntegrations(tenantId);
+    const communicationIntegrations = integrations.filter((integration: any) => {
+      const category = integration.category?.toLowerCase() || '';
+      const name = integration.name?.toLowerCase() || '';
+      
+      return category.includes('comunicaç') || category.includes('communication') || 
+             name.includes('email') || name.includes('whatsapp') || name.includes('telegram') ||
+             name.includes('sms') || name.includes('chat') || name.includes('imap') ||
+             name.includes('smtp') || name.includes('gmail') || name.includes('outlook');
+    });
+
+    console.log(`📡 [OMNIBRIDGE-SYNC] Found ${communicationIntegrations.length} communication integrations to sync`);
+
     await syncService.syncIntegrationsToChannels(tenantId);
 
-    console.log(`✅ [OMNIBRIDGE] Manual integration sync completed for tenant: ${tenantId}`);
-    res.json({ success: true, message: 'Integrations synced successfully' });
+    // Get channels count after sync
+    const channels = await channelRepository.findByTenant(tenantId);
+    console.log(`✅ [OMNIBRIDGE-SYNC] Manual integration sync completed for tenant: ${tenantId}`);
+    console.log(`📊 [OMNIBRIDGE-SYNC] Result: ${channels.length} channels after sync`);
+
+    res.json({ 
+      success: true, 
+      message: 'Integrations synced successfully',
+      data: {
+        integrationsFound: communicationIntegrations.length,
+        channelsAfterSync: channels.length
+      }
+    });
   } catch (error) {
     console.error('[OmniBridge] Sync error:', error);
-    res.status(500).json({ success: false, error: 'Failed to sync integrations' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to sync integrations',
+      details: error.message 
+    });
   }
 });
 
