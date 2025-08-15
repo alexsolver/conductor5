@@ -55,7 +55,7 @@ import { TicketViewsController } from './controllers/TicketViewsController';
 import { v4 as uuidv4 } from 'uuid';
 
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
-// Legacy imports removed per analysis
+// Legacy imports removed per 1qa.md
 import ticketRelationshipsRoutes from './modules/ticket-relationships/routes';
 
 // 🎯 IMPORT HISTORY SYSTEM FOR COMPREHENSIVE LOGGING per 1qa.md
@@ -2066,6 +2066,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
         return res.status(400).json({ 
+          success: false,
           message: "Tenant ID required for integrations" 
         });
       }
@@ -2081,13 +2082,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`📡 [TENANT-INTEGRATIONS] Found ${integrations.length} total integrations`);
       } catch (storageError) {
         console.warn('⚠️ [TENANT-INTEGRATIONS] Storage error, initializing integrations:', storageError);
-        // Initialize integrations if they don't exist
-        await storage.initializeTenantIntegrations(tenantId);
-        integrations = await storage.getTenantIntegrations(tenantId);
-        console.log(`📡 [TENANT-INTEGRATIONS] After initialization: ${integrations.length} integrations`);
+        // Initialize with basic communication channels if storage fails
+        integrations = [];
       }
 
-      // Filter communication integrations - be flexible with category names
+      // Filter for communication category
       const communicationIntegrations = integrations.filter((integration: any) => {
         const category = integration.category?.toLowerCase() || '';
         return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
@@ -2139,13 +2138,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const resultIntegrations = ensureBasicChannels(communicationIntegrations);
 
-      console.log(`✅ [TENANT-INTEGRATIONS] Returning ${resultIntegrations.length} integrations to OmniBridge`);
+      console.log(`✅ [TENANT-INTEGRATIONS] Returning ${resultIntegrations.length} integrations`);
 
-      // Return in the format expected by OmniBridge
-      res.json({ 
-        data: resultIntegrations,
+      // Log detailed channel information for debugging
+      resultIntegrations.forEach((integration: any, index: number) => {
+        console.log(`🔍 [TENANT-INTEGRATIONS] Channel ${index + 1}: ${integration.name} (${integration.category}) - Status: ${integration.status}`);
+      });
+
+      // Return in consistent format that OmniBridge expects
+      res.json({
         success: true,
-        total: resultIntegrations.length 
+        data: resultIntegrations,
+        count: resultIntegrations.length
       });
 
     } catch (error) {
@@ -2186,7 +2190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         ],
         success: false,
-        total: 3,
+        count: 3,
         message: 'Erro ao carregar integrações - usando fallback'
       });
     }
