@@ -50,16 +50,13 @@ import {
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useLocation } from 'wouter';
-import AutomationRules from "./AutomationRules";
 
 export default function OmniBridge() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('channels');
   const [refreshKey, setRefreshKey] = useState(0);
   const queryClient = useQueryClient();
-  const [showAutomationRules, setShowAutomationRules] = useState(false); // State to control visibility of automation rules
-
+  
   // Channel configuration states
   const [selectedChannel, setSelectedChannel] = useState<any>(null);
   const [syncConfigOpen, setSyncConfigOpen] = useState(false);
@@ -191,7 +188,7 @@ export default function OmniBridge() {
     integration.category === 'Comunicação'
   );
   const inbox = (inboxData as any)?.messages || [];
-
+  
   // Debug log for inbox data
   useEffect(() => {
     if (inbox.length > 0) {
@@ -273,7 +270,7 @@ export default function OmniBridge() {
             <Activity className="h-4 w-4 text-green-600" />
             <span className="text-sm text-green-600 font-medium">Sistema Ativo</span>
           </div>
-
+          
 
 
           <Button 
@@ -353,14 +350,13 @@ export default function OmniBridge() {
         </Card>
       </div>
 
-      <Tabs value={showAutomationRules ? 'automation' : activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="channels">Canais</TabsTrigger>
           <TabsTrigger value="inbox">Inbox</TabsTrigger>
           <TabsTrigger value="rules">Regras</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="automation">Automação</TabsTrigger>
         </TabsList>
 
         {/* Canais Tab */}
@@ -394,7 +390,7 @@ export default function OmniBridge() {
                               </div>
                             </div>
                           </div>
-
+                          
                           <div className="flex items-center justify-between mb-3">
                             <Badge className={getStatusColor(channel.status)}>
                               {channel.status === 'connected' ? 'Conectado' : 
@@ -429,11 +425,11 @@ export default function OmniBridge() {
                                 const isImapChannel = channel.id === 'imap-email';
                                 const isStartPending = startMonitoringMutation.isPending && isImapChannel;
                                 const isStopPending = stopMonitoringMutation.isPending && isImapChannel;
-
+                                
                                 // For IMAP channel, use real monitoring status
                                 // For other channels, use connection status as proxy
                                 const shouldShowPause = isImapChannel ? isMonitoringActive : isChannelConnected;
-
+                                
                                 return shouldShowPause ? (
                                   <Button 
                                     variant="outline" 
@@ -475,7 +471,7 @@ export default function OmniBridge() {
                                   </Button>
                                 );
                               })()}
-
+                              
                               {/* Sync Configuration Button - For email channels */}
                               {(channel.id === 'imap-email' || channel.name.toLowerCase().includes('email')) && (
                                 <Button 
@@ -635,11 +631,6 @@ export default function OmniBridge() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Automation Rules Tab */}
-        <TabsContent value="automation" className="space-y-4">
-          <AutomationRules />
-        </TabsContent>
       </Tabs>
 
       {/* Sync Configuration Dialog */}
@@ -651,7 +642,7 @@ export default function OmniBridge() {
               Configure o intervalo de sincronização para o canal {selectedChannel?.name}
             </DialogDescription>
           </DialogHeader>
-
+          
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="syncInterval" className="text-right">
