@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { OmniBridgeController } from './application/controllers/OmniBridgeController';
 import { GetChannelsUseCase } from './application/use-cases/GetChannelsUseCase';
@@ -76,12 +75,13 @@ router.post('/sync-integrations', async (req, res) => {
 
     const { IntegrationChannelSync } = await import('./infrastructure/services/IntegrationChannelSync');
     const { storage } = await import('../../storage-simple');
-    
+    const { DrizzleChannelRepository } = await import('./infrastructure/repositories/DrizzleChannelRepository');
+
     const channelRepository = new DrizzleChannelRepository();
     const syncService = new IntegrationChannelSync(channelRepository, storage);
-    
+
     await syncService.syncIntegrationsToChannels(tenantId);
-    
+
     console.log(`✅ [OMNIBRIDGE] Manual integration sync completed for tenant: ${tenantId}`);
     res.json({ success: true, message: 'Integrations synced successfully' });
   } catch (error) {
@@ -100,10 +100,11 @@ router.get('/sync-status', async (req, res) => {
 
     const { storage } = await import('../../storage-simple');
     const integrations = await storage.getTenantIntegrations(tenantId);
-    
+
+    const { DrizzleChannelRepository } = await import('./infrastructure/repositories/DrizzleChannelRepository');
     const channelRepository = new DrizzleChannelRepository();
     const channels = await channelRepository.findByTenant(tenantId);
-    
+
     const status = {
       totalIntegrations: integrations.length,
       syncedChannels: channels.length,

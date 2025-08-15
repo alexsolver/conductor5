@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { IChannelRepository } from '../../domain/repositories/IChannelRepository';
 import { Channel } from '../../domain/entities/Channel';
 
@@ -11,39 +12,112 @@ export class IntegrationChannelSync {
     try {
       console.log(`🔄 [INTEGRATION-SYNC] Starting sync for tenant: ${tenantId}`);
 
-      // Get integrations from Workspace Admin
+      // Get all tenant integrations
       const integrations = await this.storage.getTenantIntegrations(tenantId);
-      console.log(`📊 [INTEGRATION-SYNC] Found ${integrations.length} total integrations`);
+      console.log(`📊 [INTEGRATION-SYNC] Found ${integrations.length} integrations`);
 
-      // Filter communication integrations
-      const communicationIntegrations = integrations.filter((integration: any) => {
-        const category = integration.category?.toLowerCase() || '';
-        const isComm = category === 'comunicação' || category === 'communication';
-        console.log(`🔍 [INTEGRATION-SYNC] Integration ${integration.name}: category=${category}, isComm=${isComm}`);
-        return isComm;
-      });
+      // Filter communication integrations only
+      const communicationIntegrations = integrations.filter((integration: any) => 
+        integration.category === 'Comunicação'
+      );
 
       console.log(`📡 [INTEGRATION-SYNC] Found ${communicationIntegrations.length} communication integrations`);
 
-      let syncedCount = 0;
-      let errorCount = 0;
-
-      // Convert integrations to channels
       for (const integration of communicationIntegrations) {
-        try {
-          const channel = await this.mapIntegrationToChannel(integration, tenantId);
-          await this.channelRepository.save(channel);
-          syncedCount++;
-          console.log(`✅ [INTEGRATION-SYNC] Synced channel: ${channel.name} (${channel.type})`);
-        } catch (error) {
-          errorCount++;
-          console.error(`❌ [INTEGRATION-SYNC] Failed to sync integration ${integration.name}:`, error);
-        }
+        await this.syncIntegrationToChannel(tenantId, integration);
       }
 
-      console.log(`✅ [INTEGRATION-SYNC] Sync completed for tenant: ${tenantId} - Synced: ${syncedCount}, Errors: ${errorCount}`);
+      // ✅ TELEGRAM FIX: Force sync for Telegram specifically
+      const telegramIntegration = integrations.find((i: any) => i.id === 'telegram');
+      if (telegramIntegration) {
+        console.log(`📱 [TELEGRAM-SYNC] Force syncing Telegram integration`);
+        await this.syncTelegramChannel(tenantId, telegramIntegration);
+      }
+
+      console.log(`✅ [INTEGRATION-SYNC] Sync completed for tenant: ${tenantId}`);
     } catch (error) {
-      console.error(`❌ [INTEGRATION-SYNC] Error syncing for tenant ${tenantId}:`, error);
+      console.error(`❌ [INTEGRATION-SYNC] Error syncing integrations:`, error);
+      throw error;
+    }
+  }
+
+  private async syncIntegrationToChannel(tenantId: string, integration: any): Promise<void> {
+    try {
+      console.log(`🔄 [INTEGRATION-SYNC] Syncing integration: ${integration.name}`);
+      const channel = await this.mapIntegrationToChannel(integration, tenantId);
+      await this.channelRepository.save(channel);
+      console.log(`✅ [INTEGRATION-SYNC] Synced channel: ${channel.name} (${channel.type})`);
+    } catch (error) {
+      console.error(`❌ [INTEGRATION-SYNC] Failed to sync integration ${integration.name}:`, error);
+      throw error;
+    }
+  }
+
+  private async syncTelegramChannel(tenantId: string, telegramIntegration: any): Promise<void> {
+    try {
+      console.log(`📱 [TELEGRAM-SYNC] Processing Telegram integration`);
+
+      // Check if channel already exists
+      const existingChannels = await this.channelRepository.findByTenant(tenantId);
+      const existingTelegram = existingChannels.find(c => c.integrationId === 'telegram');
+
+      if (existingTelegram) {
+        console.log(`📱 [TELEGRAM-SYNC] Updating existing Telegram channel`);
+
+        // Update existing channel with current status
+        const updatedChannel = Channel.create({
+          id: existingTelegram.id,
+          tenantId,
+          integrationId: 'telegram',
+          name: 'Telegram',
+          type: 'social',
+          status: telegramIntegration.configured && telegramIntegration.status === 'connected' ? 'active' : 'inactive',
+          config: {
+            botToken: '***',
+            chatId: telegramIntegration.config?.telegramChatId || '',
+            webhookUrl: telegramIntegration.config?.telegramWebhookUrl || '',
+            webhookConfigured: telegramIntegration.config?.webhookConfigured || false
+          },
+          metadata: {
+            category: 'Comunicação',
+            features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API'],
+            lastSync: new Date().toISOString(),
+            configured: telegramIntegration.configured
+          }
+        });
+
+        await this.channelRepository.update(updatedChannel);
+      } else {
+        console.log(`📱 [TELEGRAM-SYNC] Creating new Telegram channel`);
+
+        // Create new Telegram channel
+        const newChannel = Channel.create({
+          id: crypto.randomUUID(),
+          tenantId,
+          integrationId: 'telegram',
+          name: 'Telegram',
+          type: 'social',
+          status: telegramIntegration.configured && telegramIntegration.status === 'connected' ? 'active' : 'inactive',
+          config: {
+            botToken: '***',
+            chatId: telegramIntegration.config?.telegramChatId || '',
+            webhookUrl: telegramIntegration.config?.telegramWebhookUrl || '',
+            webhookConfigured: telegramIntegration.config?.webhookConfigured || false
+          },
+          metadata: {
+            category: 'Comunicação',
+            features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API'],
+            lastSync: new Date().toISOString(),
+            configured: telegramIntegration.configured
+          }
+        });
+
+        await this.channelRepository.save(newChannel);
+      }
+
+      console.log(`✅ [TELEGRAM-SYNC] Telegram channel synchronized successfully`);
+    } catch (error) {
+      console.error(`❌ [TELEGRAM-SYNC] Error syncing Telegram channel:`, error);
       throw error;
     }
   }

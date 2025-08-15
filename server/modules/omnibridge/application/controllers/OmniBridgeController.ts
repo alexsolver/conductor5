@@ -20,7 +20,9 @@ export class OmniBridgeController {
         return;
       }
 
-      // Sync integrations to channels first
+      console.log(`🔍 [OMNIBRIDGE-CHANNELS] Getting channels for tenant: ${tenantId}`);
+
+      // ✅ TELEGRAM FIX: Force sync integrations to channels first
       try {
         const { IntegrationChannelSync } = await import('../../../omnibridge/infrastructure/services/IntegrationChannelSync');
         const { storage } = await import('../../../../storage-simple');
