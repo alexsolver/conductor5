@@ -1129,38 +1129,7 @@ export class TimecardController {
     }
   }
 
-  async getHourBankSummary(req: AuthenticatedRequest, res: Response) {
-    try {
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(400).json({
-          success: false,
-          error: 'Tenant ID é obrigatório'
-        });
-      }
-
-      console.log('[HOUR-BANK-SUMMARY] Getting summary for tenant:', tenantId);
-
-      // Mock data for hour bank summary
-      const summary = {
-        totalEmployees: 4,
-        totalCreditHours: 120.5,
-        totalDebitHours: 80.0,
-        averageBalance: 10.125,
-        expiringHours: 15.5
-      };
-
-      res.json(summary);
-    } catch (error: any) {
-      console.error('[TIMECARD-CONTROLLER] Error fetching hour bank summary:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao buscar resumo do banco de horas',
-        details: error.message
-      });
-    }
-  }
+  
 
   async getHourBankMovements(req: AuthenticatedRequest, res: Response) {
     try {

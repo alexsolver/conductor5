@@ -211,7 +211,7 @@ export class WhatsAppBusinessService {
     this.metrics.messagesReceived++;
 
     // Salvar na inbox unificada
-    const { storage } = await import('../../../storage-simple');
+    const { storage } = await import('../../../../storage-simple');
     
     const inboxMessage = {
       id: `whatsapp-${message.id}-${Date.now()}`,
