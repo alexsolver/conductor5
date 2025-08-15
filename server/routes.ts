@@ -1371,6 +1371,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ LEGACY ADMIN ROUTES ELIMINATED - Clean Architecture only per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Legacy admin routes eliminated');
   
+  // Apply webhook routes BEFORE auth middleware 
+  const webhooksRoutes = await import('./routes/webhooks');
+  app.use('/api/webhooks', webhooksRoutes.default);
+
   // Mount tenant integrations routes
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
   app.use('/api/tenant-admin/integrations', tenantIntegrationsRoutes.default);

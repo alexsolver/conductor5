@@ -9,181 +9,175 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async findById(id: string, tenantId: string): Promise<MessageEntity | null> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const result = await db.query.emailMessages.findFirst({
-      where: and(
-        eq(schema.emailMessages.id, id),
-        eq(schema.emailMessages.tenantId, tenantId)
-      )
-    });
+    const result = await db.select().from(schema.omnibridgeMessages)
+      .where(and(
+        eq(schema.omnibridgeMessages.id, id),
+        eq(schema.omnibridgeMessages.tenantId, tenantId)
+      ))
+      .limit(1);
 
-    if (!result) return null;
+    if (result.length === 0) return null;
 
+    const message = result[0];
     return new MessageEntity(
-      result.id,
-      result.channelId || 'email',
-      'email',
-      result.fromEmail,
-      result.bodyText || result.bodyHtml || '',
-      result.tenantId,
-      result.toEmail,
-      result.subject,
-      result.metadata || {},
-      result.isRead ? 'read' : 'unread',
-      result.priority as any || 'medium',
-      result.category,
-      result.tags || [],
-      result.emailDate,
-      result.processedAt,
-      result.createdAt,
-      result.updatedAt
+      message.id,
+      message.channelId,
+      message.channelType,
+      message.fromAddress || '',
+      message.content || '',
+      message.tenantId,
+      message.toAddress,
+      message.subject,
+      message.metadata || {},
+      message.status as any || 'unread',
+      message.priority as any || 'medium',
+      undefined, // category
+      message.tags as string[] || [],
+      message.timestamp,
+      undefined, // processedAt
+      message.createdAt,
+      message.updatedAt
     );
   }
 
   async findByTenant(tenantId: string, limit: number = 50, offset: number = 0): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const results = await db.query.emailMessages.findMany({
-      where: eq(schema.emailMessages.tenantId, tenantId),
-      orderBy: desc(schema.emailMessages.createdAt),
-      limit,
-      offset
-    });
+    const results = await db.select().from(schema.omnibridgeMessages)
+      .where(eq(schema.omnibridgeMessages.tenantId, tenantId))
+      .orderBy(desc(schema.omnibridgeMessages.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-    return results.map(result => new MessageEntity(
-      result.id,
-      result.channelId || 'email',
-      'email',
-      result.fromEmail,
-      result.bodyText || result.bodyHtml || '',
-      result.tenantId,
-      result.toEmail,
-      result.subject,
-      result.metadata || {},
-      result.isRead ? 'read' : 'unread',
-      result.priority as any || 'medium',
-      result.category,
-      result.tags || [],
-      result.emailDate,
-      result.processedAt,
-      result.createdAt,
-      result.updatedAt
+    return results.map(message => new MessageEntity(
+      message.id,
+      message.channelId,
+      message.channelType,
+      message.fromAddress || '',
+      message.content || '',
+      message.tenantId,
+      message.toAddress,
+      message.subject,
+      message.metadata || {},
+      message.status as any || 'unread',
+      message.priority as any || 'medium',
+      undefined, // category
+      message.tags as string[] || [],
+      message.timestamp,
+      undefined, // processedAt
+      message.createdAt,
+      message.updatedAt
     ));
   }
 
   async findByChannel(channelId: string, tenantId: string): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const results = await db.query.emailMessages.findMany({
-      where: and(
-        eq(schema.emailMessages.tenantId, tenantId),
-        eq(schema.emailMessages.channelId, channelId)
-      ),
-      orderBy: desc(schema.emailMessages.createdAt)
-    });
+    const results = await db.select().from(schema.omnibridgeMessages)
+      .where(and(
+        eq(schema.omnibridgeMessages.tenantId, tenantId),
+        eq(schema.omnibridgeMessages.channelId, channelId)
+      ))
+      .orderBy(desc(schema.omnibridgeMessages.createdAt));
 
-    return results.map(result => new MessageEntity(
-      result.id,
-      result.channelId || 'email',
-      'email',
-      result.fromEmail,
-      result.bodyText || result.bodyHtml || '',
-      result.tenantId,
-      result.toEmail,
-      result.subject,
-      result.metadata || {},
-      result.isRead ? 'read' : 'unread',
-      result.priority as any || 'medium',
-      result.category,
-      result.tags || [],
-      result.emailDate,
-      result.processedAt,
-      result.createdAt,
-      result.updatedAt
+    return results.map(message => new MessageEntity(
+      message.id,
+      message.channelId,
+      message.channelType,
+      message.fromAddress || '',
+      message.content || '',
+      message.tenantId,
+      message.toAddress,
+      message.subject,
+      message.metadata || {},
+      message.status as any || 'unread',
+      message.priority as any || 'medium',
+      undefined, // category
+      message.tags as string[] || [],
+      message.timestamp,
+      undefined, // processedAt
+      message.createdAt,
+      message.updatedAt
     ));
   }
 
   async findByStatus(status: string, tenantId: string): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const isRead = status === 'read';
-    const results = await db.query.emailMessages.findMany({
-      where: and(
-        eq(schema.emailMessages.tenantId, tenantId),
-        eq(schema.emailMessages.isRead, isRead)
-      ),
-      orderBy: desc(schema.emailMessages.createdAt)
-    });
+    const results = await db.select().from(schema.omnibridgeMessages)
+      .where(and(
+        eq(schema.omnibridgeMessages.tenantId, tenantId),
+        eq(schema.omnibridgeMessages.status, status)
+      ))
+      .orderBy(desc(schema.omnibridgeMessages.createdAt));
 
-    return results.map(result => new MessageEntity(
-      result.id,
-      result.channelId || 'email',
-      'email',
-      result.fromEmail,
-      result.bodyText || result.bodyHtml || '',
-      result.tenantId,
-      result.toEmail,
-      result.subject,
-      result.metadata || {},
-      result.isRead ? 'read' : 'unread',
-      result.priority as any || 'medium',
-      result.category,
-      result.tags || [],
-      result.emailDate,
-      result.processedAt,
-      result.createdAt,
-      result.updatedAt
+    return results.map(message => new MessageEntity(
+      message.id,
+      message.channelId,
+      message.channelType,
+      message.fromAddress || '',
+      message.content || '',
+      message.tenantId,
+      message.toAddress,
+      message.subject,
+      message.metadata || {},
+      message.status as any || 'unread',
+      message.priority as any || 'medium',
+      undefined, // category
+      message.tags as string[] || [],
+      message.timestamp,
+      undefined, // processedAt
+      message.createdAt,
+      message.updatedAt
     ));
   }
 
   async findByPriority(priority: string, tenantId: string): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    const results = await db.query.emailMessages.findMany({
-      where: and(
-        eq(schema.emailMessages.tenantId, tenantId),
-        eq(schema.emailMessages.priority, priority)
-      ),
-      orderBy: desc(schema.emailMessages.createdAt)
-    });
+    const results = await db.select().from(schema.omnibridgeMessages)
+      .where(and(
+        eq(schema.omnibridgeMessages.tenantId, tenantId),
+        eq(schema.omnibridgeMessages.priority, priority)
+      ))
+      .orderBy(desc(schema.omnibridgeMessages.createdAt));
 
-    return results.map(result => new MessageEntity(
-      result.id,
-      result.channelId || 'email',
-      'email',
-      result.fromEmail,
-      result.bodyText || result.bodyHtml || '',
-      result.tenantId,
-      result.toEmail,
-      result.subject,
-      result.metadata || {},
-      result.isRead ? 'read' : 'unread',
-      result.priority as any || 'medium',
-      result.category,
-      result.tags || [],
-      result.emailDate,
-      result.processedAt,
-      result.createdAt,
-      result.updatedAt
+    return results.map(message => new MessageEntity(
+      message.id,
+      message.channelId,
+      message.channelType,
+      message.fromAddress || '',
+      message.content || '',
+      message.tenantId,
+      message.toAddress,
+      message.subject,
+      message.metadata || {},
+      message.status as any || 'unread',
+      message.priority as any || 'medium',
+      undefined, // category
+      message.tags as string[] || [],
+      message.timestamp,
+      undefined, // processedAt
+      message.createdAt,
+      message.updatedAt
     ));
   }
 
   async create(message: MessageEntity): Promise<MessageEntity> {
-    const result = await db.insert(schema.emailMessages).values({
+    const result = await db.insert(schema.omnibridgeMessages).values({
       id: message.id,
       tenantId: message.tenantId,
       channelId: message.channelId,
-      fromEmail: message.from,
-      toEmail: message.to,
+      channelType: message.channelType,
+      fromAddress: message.from,
+      toAddress: message.to,
       subject: message.subject,
-      bodyText: message.body,
-      bodyHtml: message.body,
+      content: message.body,
       metadata: message.metadata,
-      isRead: message.status === 'read',
+      status: message.status,
       priority: message.priority,
-      category: message.category,
       tags: message.tags,
-      emailDate: message.receivedAt,
-      processedAt: message.processedAt,
+      timestamp: message.receivedAt,
       createdAt: message.createdAt,
       updatedAt: message.updatedAt
     }).returning();
@@ -192,17 +186,15 @@ export class DrizzleMessageRepository implements IMessageRepository {
   }
 
   async update(message: MessageEntity): Promise<MessageEntity> {
-    await db.update(schema.emailMessages).set({
-      isRead: message.status === 'read',
+    await db.update(schema.omnibridgeMessages).set({
+      status: message.status,
       priority: message.priority,
-      category: message.category,
       tags: message.tags,
-      processedAt: message.processedAt,
       updatedAt: message.updatedAt
     }).where(
       and(
-        eq(schema.emailMessages.id, message.id),
-        eq(schema.emailMessages.tenantId, message.tenantId)
+        eq(schema.omnibridgeMessages.id, message.id),
+        eq(schema.omnibridgeMessages.tenantId, message.tenantId)
       )
     );
 
@@ -212,10 +204,10 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async delete(id: string, tenantId: string): Promise<boolean> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    await db.delete(schema.emailMessages).where(
+    await db.delete(schema.omnibridgeMessages).where(
       and(
-        eq(schema.emailMessages.id, id),
-        eq(schema.emailMessages.tenantId, tenantId)
+        eq(schema.omnibridgeMessages.id, id),
+        eq(schema.omnibridgeMessages.tenantId, tenantId)
       )
     );
 
@@ -225,13 +217,13 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async markAsRead(id: string, tenantId: string): Promise<boolean> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    await db.update(schema.emailMessages).set({
-      isRead: true,
+    await db.update(schema.omnibridgeMessages).set({
+      status: 'read',
       updatedAt: new Date()
     }).where(
       and(
-        eq(schema.emailMessages.id, id),
-        eq(schema.emailMessages.tenantId, tenantId)
+        eq(schema.omnibridgeMessages.id, id),
+        eq(schema.omnibridgeMessages.tenantId, tenantId)
       )
     );
 
@@ -241,50 +233,16 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async markAsProcessed(id: string, tenantId: string): Promise<boolean> {
     if (!tenantId) throw new Error('Tenant ID required');
 
-    await db.update(schema.emailMessages).set({
-      processedAt: new Date(),
+    await db.update(schema.omnibridgeMessages).set({
+      status: 'processed',
       updatedAt: new Date()
     }).where(
       and(
-        eq(schema.emailMessages.id, id),
-        eq(schema.emailMessages.tenantId, tenantId)
+        eq(schema.omnibridgeMessages.id, id),
+        eq(schema.omnibridgeMessages.tenantId, tenantId)
       )
     );
 
     return true;
-  }
-
-  async getUnreadCount(tenantId: string): Promise<number> {
-    if (!tenantId) throw new Error('Tenant ID required');
-
-    const result = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.emailMessages)
-      .where(
-        and(
-          eq(schema.emailMessages.tenantId, tenantId),
-          eq(schema.emailMessages.isRead, false)
-        )
-      );
-
-    return result[0]?.count || 0;
-  }
-
-  async getStatsByChannel(tenantId: string): Promise<Array<{ channelId: string; count: number }>> {
-    if (!tenantId) throw new Error('Tenant ID required');
-
-    const results = await db
-      .select({
-        channelId: schema.emailMessages.channelId,
-        count: sql<number>`count(*)`
-      })
-      .from(schema.emailMessages)
-      .where(eq(schema.emailMessages.tenantId, tenantId))
-      .groupBy(schema.emailMessages.channelId);
-
-    return results.map(r => ({
-      channelId: r.channelId || 'email',
-      count: r.count
-    }));
   }
 }

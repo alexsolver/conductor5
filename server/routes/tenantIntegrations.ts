@@ -9,7 +9,58 @@ const router = Router();
 // ✅ DEBUG: Log quando as rotas são carregadas
 console.log('🔧 [TENANT-INTEGRATIONS] Registrando rotas de integrações tenant...');
 
-// Aplicar middlewares de autenticação e autorização
+// WEBHOOK ROUTES (sem autenticação)
+/**
+ * Telegram Webhook Endpoint - Receive incoming messages
+ * POST /api/tenant-admin/integrations/telegram/webhook/:tenantId
+ */
+router.post('/telegram/webhook/:tenantId', async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    const webhookData = req.body;
+
+    console.log(`📨 [TELEGRAM-WEBHOOK] Received webhook for tenant: ${tenantId}`);
+
+    // ✅ VALIDATION: Check if it's a valid Telegram webhook
+    if (!webhookData.update_id) {
+      console.log(`❌ [TELEGRAM-WEBHOOK] Invalid webhook data - missing update_id`);
+      return res.status(200).json({
+        success: false,
+        message: 'Invalid Telegram webhook data'
+      });
+    }
+
+    // ✅ PROCESSING: Process with MessageIngestionService
+    const { MessageIngestionService } = await import('../modules/omnibridge/infrastructure/services/MessageIngestionService');
+    const { DrizzleMessageRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
+    
+    const messageRepository = new DrizzleMessageRepository();
+    const ingestionService = new MessageIngestionService(messageRepository);
+    
+    const result = await ingestionService.processTelegramWebhook(webhookData, tenantId);
+
+    // ✅ SUCCESS: Telegram expects 200 OK response
+    return res.status(200).json({
+      success: result.success,
+      message: 'Webhook processed successfully',
+      processed: result.processed,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error: any) {
+    console.error(`❌ [TELEGRAM-WEBHOOK] Error processing webhook:`, error);
+
+    // ✅ CRITICAL: Always return 200 to Telegram to avoid retries
+    return res.status(200).json({
+      success: false,
+      message: 'Webhook processing error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Aplicar middlewares de autenticação e autorização para rotas restantes
 router.use(jwtAuth);
 
 // ✅ AUTHENTICATION: Log authentication middleware application
@@ -930,80 +981,7 @@ router.post('/populate-all-14', jwtAuth, async (req: any, res) => {
   }
 });
 
-// ===== TELEGRAM WEBHOOK ROUTES - RECEIVE MESSAGES =====
-
-/**
- * Telegram Webhook Endpoint - Receive incoming messages
- * POST /api/tenant-admin/integrations/telegram/webhook/:tenantId
- */
-router.post('/telegram/webhook/:tenantId', async (req, res) => {
-  try {
-    const { tenantId } = req.params;
-    const webhookData = req.body;
-
-    console.log(`📨 [TELEGRAM-WEBHOOK] Received webhook for tenant: ${tenantId}`);
-    console.log(`📨 [TELEGRAM-WEBHOOK] Webhook data:`, JSON.stringify(webhookData, null, 2));
-
-    // ✅ VALIDATION: Check if it's a valid Telegram webhook
-    if (!webhookData.update_id) {
-      console.log(`❌ [TELEGRAM-WEBHOOK] Invalid webhook data - missing update_id`);
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid Telegram webhook data'
-      });
-    }
-
-    // ✅ SECURITY: Verify tenant exists
-    const { storage } = await import('../storage-simple');
-    const configResult = await storage.getTenantIntegrationConfig(tenantId, 'telegram');
-
-    if (!configResult.configured) {
-      console.log(`❌ [TELEGRAM-WEBHOOK] Telegram not configured for tenant: ${tenantId}`);
-      return res.status(404).json({
-        success: false,
-        message: 'Telegram integration not configured for this tenant'
-      });
-    }
-
-    // ✅ PROCESSING: Handle different types of updates
-    const update = webhookData;
-    let processedMessage = null;
-
-    // Handle text messages
-    if (update.message && update.message.text) {
-      processedMessage = await processTelegramMessage(tenantId, update.message);
-    }
-
-    // Handle callback queries (inline keyboard buttons)
-    else if (update.callback_query) {
-      processedMessage = await processTelegramCallback(tenantId, update.callback_query);
-    }
-
-    // Handle other types of updates
-    else {
-      console.log(`📝 [TELEGRAM-WEBHOOK] Unsupported update type for tenant: ${tenantId}`);
-    }
-
-    // ✅ SUCCESS: Telegram expects 200 OK response
-    return res.status(200).json({
-      success: true,
-      message: 'Webhook processed successfully',
-      processed: !!processedMessage,
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error: any) {
-    console.error(`❌ [TELEGRAM-WEBHOOK] Error processing webhook:`, error);
-
-    // ✅ CRITICAL: Always return 200 to Telegram to avoid retries
-    return res.status(200).json({
-      success: false,
-      message: 'Webhook processing error',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
+// Rota de webhook removida - agora está antes do middleware de autenticação
 
 /**
  * Set Telegram Webhook URL
@@ -1217,38 +1195,32 @@ async function processTelegramMessage(tenantId: string, message: any) {
       processed: true
     };
 
-    // ✅ SAVE TO INBOX: Store in emails table for unified inbox
-    const { storage } = await import('../storage-simple');
+    // ✅ SAVE TO OMNIBRIDGE INBOX: Using MessageIngestionService
+    const { MessageIngestionService } = await import('../modules/omnibridge/infrastructure/services/MessageIngestionService');
+    const { DrizzleMessageRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
     
-    const inboxMessage = {
-      id: `telegram-${message.message_id}-${Date.now()}`,
-      tenant_id: tenantId,
-      message_id: `telegram-${message.message_id}`,
-      from_email: `telegram:${message.from.id}`,
-      from_name: message.from.first_name + (message.from.last_name ? ` ${message.from.last_name}` : ''),
-      to_email: 'telegram-bot@conductor.com',
-      cc_emails: JSON.stringify([]),
-      bcc_emails: JSON.stringify([]),
-      subject: `Mensagem do Telegram - ${message.from.first_name}`,
-      body_text: message.text,
-      body_html: null,
-      has_attachments: false,
-      attachment_count: 0,
-      attachment_details: JSON.stringify([]),
-      email_headers: JSON.stringify({
-        'telegram-chat-id': message.chat.id.toString(),
-        'telegram-user-id': message.from.id.toString(),
-        'telegram-username': message.from.username || '',
-        'telegram-message-id': message.message_id.toString()
-      }),
-      priority: 'medium',
-      is_read: false,
-      is_processed: false,
-      email_date: new Date(message.date * 1000).toISOString(),
-      received_at: new Date().toISOString()
+    const messageRepository = new DrizzleMessageRepository();
+    const ingestionService = new MessageIngestionService(messageRepository);
+    
+    const incomingMessage = {
+      channelId: 'telegram',
+      channelType: 'telegram' as const,
+      from: `telegram:${message.from.id}`,
+      to: `bot:telegram`,
+      subject: `Telegram - ${message.from.first_name}`,
+      content: message.text,
+      metadata: {
+        telegramMessageId: message.message_id,
+        chatId: message.chat.id,
+        fromUser: message.from,
+        chatType: message.chat.type,
+        timestamp: message.date
+      },
+      priority: 'medium' as const,
+      tenantId
     };
 
-    await storage.saveEmailToInbox(tenantId, inboxMessage);
+    await ingestionService.ingestMessage(incomingMessage);
     
     console.log(`✅ [TELEGRAM-MESSAGE] Message saved to inbox successfully`);
     return messageData;
