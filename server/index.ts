@@ -51,14 +51,10 @@ async function ensurePostgreSQLRunning() {
 async function validateDatabaseConnection() {
   const { Pool } = await import('pg');
   
-  // CRITICAL FIX: SSL configuration for production deployment (Replit optimized)
+  // CRITICAL FIX: Aggressive SSL configuration for production deployment
   const isProduction = process.env.NODE_ENV === 'production';
   const sslConfig = isProduction ? {
-    ssl: {
-      rejectUnauthorized: false, // Accept self-signed certificates in production
-      requestCert: false,        // Don't request client certificates
-      agent: false               // Disable connection pooling for SSL
-    }
+    ssl: false  // Completely disable SSL verification in production
   } : {};
 
   const pool = new Pool({
@@ -84,12 +80,7 @@ async function validateDatabaseConnection() {
       try {
         const fallbackPool = new Pool({
           connectionString: process.env.DATABASE_URL,
-          ssl: process.env.NODE_ENV === 'production' ? { 
-            rejectUnauthorized: false,
-            requestCert: false,
-            agent: false,
-            checkServerIdentity: () => undefined
-          } : false,
+          ssl: false,  // Completely disable SSL in fallback
           connectionTimeoutMillis: 10000
         });
         

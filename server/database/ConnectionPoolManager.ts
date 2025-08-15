@@ -98,14 +98,10 @@ export class ConnectionPoolManager {
       const baseUrl = new URL(process.env.DATABASE_URL!);
       baseUrl.searchParams.set('schema', schemaName);
       
-      // CRITICAL FIX: SSL configuration for production deployment (Replit optimized)
+      // CRITICAL FIX: Disable SSL completely in production
       const isProduction = process.env.NODE_ENV === 'production';
       const sslConfig = isProduction ? {
-        ssl: {
-          rejectUnauthorized: false, // Accept self-signed certificates in production
-          requestCert: false,        // Don't request client certificates
-          agent: false               // Disable connection pooling for SSL
-        }
+        ssl: false  // Completely disable SSL verification in production
       } : {};
       
       const pool = new Pool({ 
