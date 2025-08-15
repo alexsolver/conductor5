@@ -41,9 +41,11 @@ import {
   User,
   Tag,
   Hash,
-  Activity
+  Activity,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Channel {
   id: string;
@@ -151,6 +153,7 @@ function getChannelIcon(integrationId: string) {
 
 export default function OmniBridge() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('inbox');
   const [channels, setChannels] = useState<Channel[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -162,6 +165,44 @@ export default function OmniBridge() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterChannel, setFilterChannel] = useState('all');
+  const [isTestingChannel, setIsTestingChannel] = useState<string | null>(null);
+  const [isTogglingChannel, setIsTogglingChannel] = useState<string | null>(null);
+
+  const [testResult, setTestResult] = useState<any>(null);
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState<any>(null);
+
+  // Function to load integrations from TenantAdmin
+  const loadIntegrations = async () => {
+    try {
+      // First try to get integrations from tenant admin
+      const response = await fetch('/api/tenant-admin/integrations', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // Filter only communication integrations
+      const communicationIntegrations = data.integrations?.filter(
+        (integration: any) => integration.category === 'Comunicação'
+      ) || [];
+
+      return { integrations: communicationIntegrations };
+    } catch (error) {
+      console.error('Error loading integrations:', error);
+      return { integrations: [] };
+    }
+  };
 
   // Fetch data from API
   useEffect(() => {
@@ -169,7 +210,6 @@ export default function OmniBridge() {
       try {
         setLoading(true);
 
-        // Fetch channels from OmniBridge API which integrates with Workspace Admin
         const token = localStorage.getItem('token');
 
         if (!token) {
@@ -179,7 +219,7 @@ export default function OmniBridge() {
 
         console.log('🔍 [OmniBridge] Fetching channels with token:', token?.substring(0, 20) + '...');
 
-        // First try the OmniBridge channels endpoint
+        // Fetch channels from OmniBridge API
         const channelsResponse = await fetch('/api/omnibridge/channels', {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -189,8 +229,8 @@ export default function OmniBridge() {
 
         console.log('🔍 [OmniBridge] Channels API response status:', channelsResponse.status);
 
-        // Fallback to integrations endpoint if channels endpoint fails
-        const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
+        // Fetch integrations from Tenant Admin
+        const integrationsResponse = await fetch('/api/tenant-admin/integrations', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -222,7 +262,6 @@ export default function OmniBridge() {
           console.log('🔍 [OmniBridge] Integrations API Response:', integrationsResult);
           console.log('🔍 [OmniBridge] Available integrations:', integrationsResult?.data?.length || integrationsResult?.length || 0);
 
-          // Debug: Log all integration categories
           const integrations = integrationsResult?.data || integrationsResult || [];
           console.log('🔍 [OmniBridge] Integration categories:', integrations.map((i: any) => ({ 
             name: i.name, 
@@ -389,9 +428,10 @@ export default function OmniBridge() {
   }, []);
 
   const handleChannelToggle = async (channelId: string, enabled: boolean) => {
+    setIsTogglingChannel(channelId);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/tenant-admin-integration/integrations/${channelId}/toggle`, {
+      const response = await fetch(`/api/tenant-admin/integrations/${channelId}/toggle`, { // Changed endpoint
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -418,6 +458,8 @@ export default function OmniBridge() {
       }
     } catch (error) {
       console.error('Error toggling channel:', error);
+    } finally {
+      setIsTogglingChannel(null);
     }
   };
 
@@ -489,6 +531,57 @@ export default function OmniBridge() {
       case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const handleTestChannel = async (channelId: string) => {
+    console.log('🧪 Testing channel:', channelId);
+    setIsTestingChannel(channelId);
+    setTestResult(null);
+
+    try {
+      const response = await fetch(`/api/tenant-admin/integrations/${channelId}/test`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Use the token fetched earlier
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        console.log('✅ Channel test successful:', result);
+        setTestResult({
+          success: true,
+          message: result.message || 'Canal testado com sucesso!',
+          details: result.details
+        });
+        // Invalidate queries to refresh channel status
+        queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] }); // Changed query key
+      } else {
+        console.warn('⚠️ Channel test failed:', result);
+        setTestResult({
+          success: false,
+          message: result.message || result.error || 'Falha no teste do canal',
+          details: result.details
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Channel test error:', error);
+      setTestResult({
+        success: false,
+        message: `Erro ao testar canal: ${error.message}`,
+        error: error
+      });
+    } finally {
+      setIsTestingChannel(null);
+    }
+  };
+
+  const handleConfigureChannel = async (integration: any) => {
+    console.log('🔧 Configuring integration:', integration.id);
+    setSelectedIntegration(integration);
+    setIsConfigDialogOpen(true);
   };
 
   if (loading) {
@@ -756,10 +849,7 @@ export default function OmniBridge() {
             <CardHeader>
               <CardTitle>Canais de Comunicação</CardTitle>
               <CardDescription>
-                Configure e gerencie seus canais de comunicação. 
-                <strong>Configuração:</strong> Workspace Admin → Integrações → Comunicação.
-                <br />
-                <em>Aqui você apenas ativa/desativa canais já configurados.</em>
+                Gerencie seus canais de comunicação integrados.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -782,21 +872,14 @@ export default function OmniBridge() {
                             <Switch
                               checked={channel.enabled}
                               onCheckedChange={(checked) => handleChannelToggle(channel.id, checked)}
+                              disabled={isTogglingChannel === channel.id}
                             />
                           </div>
                           <div className="mt-4">
                             <p className="text-sm text-gray-600 mb-2">{channel.description}</p>
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-gray-500">Status:</span>
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                channel.status === 'connected' 
-                                  ? 'bg-green-100 text-green-800'
-                                  : channel.status === 'error'
-                                    ? 'bg-red-100 text-red-800'
-                                    : channel.status === 'not_configured'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-gray-100 text-gray-800'
-                              }`}>
+                              <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(channel.status)}`}>
                                 {channel.status}
                               </span>
                             </div>
@@ -804,6 +887,34 @@ export default function OmniBridge() {
                               <span className="text-gray-500">Mensagens:</span>
                               <span className="font-medium">{channel.messageCount}</span>
                             </div>
+                          </div>
+                          <div className="mt-4 flex justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleConfigureChannel(channel)}
+                            >
+                              <Settings className="h-4 w-4 mr-2" />
+                              Configurar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleTestChannel(channel.id)}
+                              disabled={isTestingChannel === channel.id}
+                            >
+                              {isTestingChannel === channel.id ? (
+                                <>
+                                  <div className="h-4 w-4 mr-2 animate-spin border-2 border-current border-t-transparent rounded-full" />
+                                  Testando...
+                                </>
+                              ) : (
+                                <>
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Testar
+                                </>
+                              )}
+                            </Button>
                           </div>
                         </Card>
                       ))}
@@ -933,6 +1044,85 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Configuration Dialog */}
+      <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Configurar Canal: {selectedIntegration?.name}</DialogTitle>
+            <DialogDescription>
+              Ajuste as configurações para o canal {selectedIntegration?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {/* Placeholder for channel-specific configuration fields */}
+            <div className="text-center text-muted-foreground">
+              Campos de configuração específicos para este canal serão exibidos aqui.
+            </div>
+            {/* Example: API Key for an integration */}
+            {selectedIntegration?.type === 'whatsapp' && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="whatsapp-api-key" className="text-right">
+                  API Key
+                </Label>
+                <Input
+                  id="whatsapp-api-key"
+                  defaultValue="" // Placeholder for actual value
+                  className="col-span-3"
+                />
+              </div>
+            )}
+            {selectedIntegration?.type === 'email' && (
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email-host" className="text-right">
+                    Host
+                  </Label>
+                  <Input
+                    id="email-host"
+                    defaultValue=""
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email-port" className="text-right">
+                    Porta
+                  </Label>
+                  <Input
+                    id="email-port"
+                    defaultValue=""
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email-username" className="text-right">
+                    Usuário
+                  </Label>
+                  <Input
+                    id="email-username"
+                    defaultValue=""
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email-password" className="text-right">
+                    Senha
+                  </Label>
+                  <Input
+                    id="email-password"
+                    type="password"
+                    defaultValue=""
+                    className="col-span-3"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={() => setIsConfigDialogOpen(false)}>Salvar Configurações</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
