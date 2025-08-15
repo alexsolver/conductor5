@@ -15,14 +15,27 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       const result = await db.execute(`
         INSERT INTO omnibridge_rules (
           id, tenant_id, name, description, is_enabled,
-          trigger_type, trigger_conditions, action_type, action_parameters,
-          priority, created_at, updated_at
+          trigger_type, trigger_conditions, triggers, action_type, action_parameters, actions,
+          priority, execution_stats, metadata, created_at, updated_at
         ) VALUES (
-          '${rule.id}', '${rule.tenantId}', '${rule.name}', '${rule.description}', ${rule.isEnabled},
-          '${triggerType}', '${JSON.stringify(rule.triggers)}', '${actionType}', '${JSON.stringify(rule.actions)}',
-          ${rule.priority}, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW()
         ) RETURNING *
-      `);
+      `, [
+        rule.id,
+        rule.tenantId,
+        rule.name,
+        rule.description,
+        rule.isEnabled,
+        triggerType,
+        JSON.stringify(rule.triggers[0]?.conditions || {}),
+        JSON.stringify(rule.triggers),
+        actionType,
+        JSON.stringify(rule.actions[0]?.parameters || {}),
+        JSON.stringify(rule.actions),
+        rule.priority,
+        JSON.stringify(rule.executionStats),
+        JSON.stringify(rule.metadata)
+      ]);
 
       return this.mapRowToRule(result[0]);
     } catch (error) {
@@ -217,10 +230,10 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       description: row.description,
       isEnabled: row.is_enabled,
       priority: row.priority,
-      triggers: JSON.parse(row.triggers || '[]'),
-      actions: JSON.parse(row.actions || '[]'),
-      executionStats: JSON.parse(row.execution_stats || '{}'),
-      metadata: JSON.parse(row.metadata || '{}'),
+      triggers: JSON.parse(row.triggers || '[{"type": "new_message", "conditions": {}}]'),
+      actions: JSON.parse(row.actions || '[{"type": "auto_reply", "parameters": {}}]'),
+      executionStats: JSON.parse(row.execution_stats || '{"totalExecutions": 0, "successfulExecutions": 0, "failedExecutions": 0}'),
+      metadata: JSON.parse(row.metadata || '{"version": 1}'),
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at)
     };

@@ -76,7 +76,10 @@ export class AutomationController {
         tenantId
       };
 
-      const result = await this.createAutomationRuleUseCase.execute(rulePayload);
+      const result = await this.createAutomationRuleUseCase.execute({
+        ...rulePayload,
+        userId: (req as any).user?.id || 'system'
+      });
 
       res.json({
         success: true,

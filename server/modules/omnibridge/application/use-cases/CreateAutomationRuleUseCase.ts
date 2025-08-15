@@ -21,8 +21,8 @@ export interface CreateAutomationRuleDTO {
 export class CreateAutomationRuleUseCase {
   constructor(private automationRuleRepository: IAutomationRuleRepository) {}
 
-  async execute(tenantId: string, userId: string, data: CreateAutomationRuleDTO): Promise<AutomationRule> {
-    console.log(`🔧 [CreateAutomationRuleUseCase] Creating automation rule for tenant: ${tenantId}`);
+  async execute(data: any): Promise<AutomationRule> {
+    console.log(`🔧 [CreateAutomationRuleUseCase] Creating automation rule for tenant: ${data.tenantId}`);
 
     // Validate rule data
     this.validateRuleData(data);
@@ -32,7 +32,7 @@ export class CreateAutomationRuleUseCase {
 
     const automationRule: AutomationRule = {
       id: ruleId,
-      tenantId,
+      tenantId: data.tenantId,
       name: data.name,
       description: data.description,
       isEnabled: true,
@@ -62,7 +62,7 @@ export class CreateAutomationRuleUseCase {
         failedExecutions: 0
       },
       metadata: {
-        createdBy: userId,
+        createdBy: data.userId || 'system',
         version: 1,
         tags: data.tags || []
       },
@@ -77,7 +77,7 @@ export class CreateAutomationRuleUseCase {
     return createdRule;
   }
 
-  private validateRuleData(data: CreateAutomationRuleDTO): void {
+  private validateRuleData(data: any): void {
     if (!data.name || data.name.trim().length === 0) {
       throw new Error('Rule name is required');
     }
@@ -90,8 +90,8 @@ export class CreateAutomationRuleUseCase {
       throw new Error('At least one action is required');
     }
 
-    if (data.priority < 1 || data.priority > 10) {
-      throw new Error('Priority must be between 1 and 10');
+    if (data.priority < 0 || data.priority > 10) {
+      throw new Error('Priority must be between 0 and 10');
     }
   }
 }
