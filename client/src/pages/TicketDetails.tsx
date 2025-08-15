@@ -581,18 +581,33 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
   const materialsData = useMemo(() => {
-    // Estrutura correta das respostas das APIs: { success: true, data: [...] }
-    const plannedArray = Array.isArray(plannedMaterialsResponse?.data) ? plannedMaterialsResponse.data : [];
-    const consumedArray = Array.isArray(consumedMaterialsResponse?.data) ? consumedMaterialsResponse.data : [];
+    // Estrutura das APIs: planned retorna { success: true, data: { plannedItems: [...] } }
+    // consumed retorna { success: true, data: [...] }
+    let plannedArray = [];
+    let consumedArray = [];
+    
+    // Planned items - estrutura aninhada
+    if (plannedMaterialsResponse?.success && plannedMaterialsResponse?.data?.plannedItems) {
+      plannedArray = Array.isArray(plannedMaterialsResponse.data.plannedItems) 
+        ? plannedMaterialsResponse.data.plannedItems 
+        : [];
+    }
+    
+    // Consumed items - estrutura direta
+    if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
+      consumedArray = Array.isArray(consumedMaterialsResponse.data) 
+        ? consumedMaterialsResponse.data 
+        : [];
+    }
     
     const result = [...plannedArray, ...consumedArray];
     
-    console.log('🔧 [MATERIALS-FINAL-DEBUG] Corrigido com nomes corretos:', {
-      plannedResponse: plannedMaterialsResponse,
-      consumedResponse: consumedMaterialsResponse,
-      plannedArray: plannedArray.length,
-      consumedArray: consumedArray.length,
-      totalMaterials: result.length
+    console.log('🔧 [MATERIALS-STRUCTURE-FIX]:', {
+      plannedStructure: plannedMaterialsResponse?.data,
+      plannedCount: plannedArray.length,
+      consumedStructure: consumedMaterialsResponse?.data,
+      consumedCount: consumedArray.length,
+      finalCount: result.length
     });
     
     return result;
