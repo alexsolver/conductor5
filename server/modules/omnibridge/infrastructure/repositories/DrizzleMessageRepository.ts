@@ -245,4 +245,91 @@ export class DrizzleMessageRepository implements IMessageRepository {
 
     return true;
   }
+
+  async updateTags(messageId: string, tenantId: string, tags: string[]): Promise<void> {
+    console.log(`🏷️ [DrizzleMessageRepository] Updating tags for message: ${messageId}`);
+
+    try {
+      await db.execute(`
+        UPDATE omnibridge_messages SET
+          tags = $1, updated_at = $2
+        WHERE id = $3 AND tenant_id = $4
+      `, [
+        JSON.stringify(tags),
+        new Date(),
+        messageId,
+        tenantId
+      ]);
+
+      console.log(`✅ [DrizzleMessageRepository] Updated tags for message: ${messageId}`);
+    } catch (error) {
+      console.error(`❌ [DrizzleMessageRepository] Error updating tags: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async updatePriority(messageId: string, tenantId: string, priority: string): Promise<void> {
+    console.log(`⚡ [DrizzleMessageRepository] Updating priority for message: ${messageId}`);
+
+    try {
+      await db.execute(`
+        UPDATE omnibridge_messages SET
+          priority = $1, updated_at = $2
+        WHERE id = $3 AND tenant_id = $4
+      `, [
+        priority,
+        new Date(),
+        messageId,
+        tenantId
+      ]);
+
+      console.log(`✅ [DrizzleMessageRepository] Updated priority for message: ${messageId}`);
+    } catch (error) {
+      console.error(`❌ [DrizzleMessageRepository] Error updating priority: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async updateStatus(messageId: string, tenantId: string, status: string): Promise<void> {
+    console.log(`🔄 [DrizzleMessageRepository] Updating status for message: ${messageId}`);
+
+    try {
+      await db.execute(`
+        UPDATE omnibridge_messages SET
+          status = $1, updated_at = $2
+        WHERE id = $3 AND tenant_id = $4
+      `, [
+        status,
+        new Date(),
+        messageId,
+        tenantId
+      ]);
+
+      console.log(`✅ [DrizzleMessageRepository] Updated status for message: ${messageId}`);
+    } catch (error) {
+      console.error(`❌ [DrizzleMessageRepository] Error updating status: ${error.message}`);
+      throw error;
+    }
+  }
+
+  private mapRowToMessage(row: any): Message {
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      channelId: row.channel_id,
+      channelType: row.channel_type as any,
+      from: row.from_address,
+      to: row.to_address,
+      subject: row.subject,
+      content: row.content,
+      timestamp: new Date(row.timestamp),
+      status: row.status as any,
+      priority: row.priority as any,
+      tags: JSON.parse(row.tags || '[]'),
+      attachments: row.attachments || 0,
+      metadata: JSON.parse(row.metadata || '{}'),
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at)
+    };
+  }
 }

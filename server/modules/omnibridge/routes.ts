@@ -44,14 +44,39 @@ router.put('/messages/:messageId/star', (req, res) => omniBridgeController.starM
 
 router.get('/inbox/stats', (req, res) => omniBridgeController.getInboxStats(req, res));
 
-// Automation Rules (para implementação futura)
-router.get('/automation-rules', (req, res) => {
-  res.json({ success: true, rules: [], message: 'Automation rules not implemented yet' });
-});
+// Automation Rules - Full Implementation
+import { DrizzleAutomationRuleRepository } from './infrastructure/repositories/DrizzleAutomationRuleRepository';
+import { GetAutomationRulesUseCase } from './application/use-cases/GetAutomationRulesUseCase';
+import { CreateAutomationRuleUseCase } from './application/use-cases/CreateAutomationRuleUseCase';
+import { UpdateAutomationRuleUseCase } from './application/use-cases/UpdateAutomationRuleUseCase';
+import { DeleteAutomationRuleUseCase } from './application/use-cases/DeleteAutomationRuleUseCase';
+import { ExecuteAutomationRuleUseCase } from './application/use-cases/ExecuteAutomationRuleUseCase';
+import { AutomationController } from './application/controllers/AutomationController';
 
-router.post('/automation-rules', (req, res) => {
-  res.status(501).json({ error: 'Automation rules creation not implemented yet' });
-});
+// Initialize Automation repositories and use cases
+const automationRuleRepository = new DrizzleAutomationRuleRepository();
+const getAutomationRulesUseCase = new GetAutomationRulesUseCase(automationRuleRepository);
+const createAutomationRuleUseCase = new CreateAutomationRuleUseCase(automationRuleRepository);
+const updateAutomationRuleUseCase = new UpdateAutomationRuleUseCase(automationRuleRepository);
+const deleteAutomationRuleUseCase = new DeleteAutomationRuleUseCase(automationRuleRepository);
+const executeAutomationRuleUseCase = new ExecuteAutomationRuleUseCase(automationRuleRepository, messageRepository);
+
+// Initialize Automation controller
+const automationController = new AutomationController(
+  getAutomationRulesUseCase,
+  createAutomationRuleUseCase,
+  updateAutomationRuleUseCase,
+  deleteAutomationRuleUseCase,
+  executeAutomationRuleUseCase
+);
+
+// Automation Rules Routes
+router.get('/automation-rules', (req, res) => automationController.getRules(req, res));
+router.post('/automation-rules', (req, res) => automationController.createRule(req, res));
+router.put('/automation-rules/:ruleId', (req, res) => automationController.updateRule(req, res));
+router.delete('/automation-rules/:ruleId', (req, res) => automationController.deleteRule(req, res));
+router.post('/automation-rules/:ruleId/toggle', (req, res) => automationController.toggleRule(req, res));
+router.get('/automation-rules/templates', (req, res) => automationController.getTemplates(req, res));
 
 // Templates (para implementação futura)
 router.get('/templates', (req, res) => {

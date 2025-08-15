@@ -165,9 +165,64 @@ export default function OmniBridge() {
   const [filterChannel, setFilterChannel] = useState('all');
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
+  const [showCreateRuleModal, setShowCreateRuleModal] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [forwardContent, setForwardContent] = useState('');
   const [forwardRecipients, setForwardRecipients] = useState('');
+
+  // Add automation state
+  useEffect(() => {
+    const fetchAutomationRules = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        };
+
+        const response = await fetch('/api/omnibridge/automation-rules', { headers });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setAutomationRules(result.data);
+            console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length);
+          }
+        }
+      } catch (error) {
+        console.error('❌ [OmniBridge] Error fetching automation rules:', error);
+      }
+    };
+
+    if (activeTab === 'automation') {
+      fetchAutomationRules();
+    }
+  }, [activeTab, user?.tenantId]);
+
+  const handleToggleAutomationRule = async (ruleId: string, enabled: boolean) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/omnibridge/automation-rules/${ruleId}/toggle`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        body: JSON.stringify({ isEnabled: enabled })
+      });
+
+      if (response.ok) {
+        setAutomationRules(prev => prev.map(rule =>
+          rule.id === ruleId ? { ...rule, isEnabled: enabled } : rule
+        ));
+        console.log(`✅ [OmniBridge] Automation rule ${enabled ? 'enabled' : 'disabled'}: ${ruleId}`);
+      }
+    } catch (error) {
+      console.error('❌ [OmniBridge] Error toggling automation rule:', error);
+    }
+  };
 
   // Fetch data from API
   useEffect(() => {
@@ -1143,25 +1198,133 @@ export default function OmniBridge() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Regras de Automação</span>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Regra
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Templates
+                  </Button>
+                  <Button size="sm" onClick={() => setShowCreateRuleModal(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nova Regra
+                  </Button>
+                </div>
               </CardTitle>
               <CardDescription>
                 Configure regras automáticas para processar mensagens, criar tickets, enviar notificações e mais.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhuma regra de automação configurada</p>
-                <p className="text-sm">Crie sua primeira regra para automatizar o atendimento</p>
-                <Button className="mt-4" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Primeira Regra
-                </Button>
-              </div>
+              {automationRules.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhuma regra de automação configurada</p>
+                  <p className="text-sm">Crie sua primeira regra para automatizar o atendimento</p>
+                  <div className="mt-4 space-y-2">
+                    <Button onClick={() => setShowCreateRuleModal(true)} variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Primeira Regra
+                    </Button>
+                    <div className="text-xs text-muted-foreground">
+                      Use templates prontos para começar rapidamente
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Rules List */}
+                  <div className="grid grid-cols-1 gap-4">
+                    {automationRules.map((rule) => (
+                      <Card key={rule.id} className="relative">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${rule.isEnabled ? 'bg-green-100' : 'bg-gray-100'}`}>
+                                <Workflow className={`h-5 w-5 ${rule.isEnabled ? 'text-green-600' : 'text-gray-500'}`} />
+                              </div>
+                              <div>
+                                <h3 className="font-medium">{rule.name}</h3>
+                                <p className="text-sm text-muted-foreground">{rule.description}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={rule.isEnabled}
+                                onCheckedChange={(enabled) => handleToggleAutomationRule(rule.id, enabled)}
+                              />
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="space-y-3">
+                            {/* Triggers */}
+                            <div>
+                              <Label className="text-xs font-medium text-muted-foreground">GATILHOS</Label>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {rule.triggers.map((trigger, index) => (
+                                  <Badge key={index} variant="outline" className="text-xs">
+                                    {trigger.type === 'keyword' && 'Palavras-chave'}
+                                    {trigger.type === 'new_message' && 'Nova mensagem'}
+                                    {trigger.type === 'channel_specific' && 'Canal específico'}
+                                    {trigger.type === 'priority_based' && 'Prioridade'}
+                                    {trigger.type === 'time_based' && 'Horário'}
+                                    {trigger.type === 'sender_pattern' && 'Padrão do remetente'}
+                                    {trigger.type === 'content_pattern' && 'Padrão de conteúdo'}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div>
+                              <Label className="text-xs font-medium text-muted-foreground">AÇÕES</Label>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {rule.actions.map((action, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {action.type === 'auto_reply' && 'Resposta automática'}
+                                    {action.type === 'forward_message' && 'Encaminhar'}
+                                    {action.type === 'create_ticket' && 'Criar ticket'}
+                                    {action.type === 'send_notification' && 'Notificação'}
+                                    {action.type === 'add_tags' && 'Adicionar tags'}
+                                    {action.type === 'assign_agent' && 'Atribuir agente'}
+                                    {action.type === 'mark_priority' && 'Marcar prioridade'}
+                                    {action.type === 'archive' && 'Arquivar'}
+                                    {action.type === 'webhook_call' && 'Webhook'}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-4">
+                                <span className="text-muted-foreground">
+                                  Prioridade: <span className="font-medium">{rule.priority}</span>
+                                </span>
+                                <span className="text-muted-foreground">
+                                  Execuções: <span className="font-medium">{rule.executionStats?.totalExecutions || 0}</span>
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm">
+                                  <Settings className="h-4 w-4 mr-2" />
+                                  Editar
+                                </Button>
+                                <Button variant="outline" size="sm">
+                                  <Activity className="h-4 w-4 mr-2" />
+                                  Logs
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

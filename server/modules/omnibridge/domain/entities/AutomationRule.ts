@@ -1,11 +1,11 @@
+import { AutomationTrigger } from './AutomationTrigger';
+import { AutomationAction } from './AutomationAction';
+
 export interface AutomationCondition {
   field: string;
-  operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'regex' | 'greaterThan' | 'lessThan';
+  operator: 'equals' | 'contains' | 'starts_with' | 'ends_with' | 'regex' | 'greater_than' | 'less_than';
   value: string | number;
-  logicalOperator?: 'AND' | 'OR';
-  type?: string; // Adicionado para compatibilidade com a nova lógica de avaliação
-  condition?: string; // Adicionado para compatibilidade com a nova lógica de avaliação
-  channel?: string; // Adicionado para compatibilidade com a nova lógica de avaliação
+  caseSensitive?: boolean;
 }
 
 export interface AutomationAction {
