@@ -76,6 +76,9 @@ export const CSP_CONFIGS = {
       'https://unpkg.com',
       'https://cdn.jsdelivr.net',
       'https://cdnjs.cloudflare.com',
+      'https://replit.com',
+      'https://*.replit.com',
+      'https://*.replit.dev',
       'blob:',
       'data:'
     ],
@@ -128,7 +131,10 @@ export const CSP_CONFIGS = {
       "'self'",
       "'nonce-{NONCE}'",
       'https://unpkg.com',
-      'https://cdn.jsdelivr.net'
+      'https://cdn.jsdelivr.net',
+      'https://replit.com',
+      'https://*.replit.com',
+      'https://*.replit.dev'
     ],
     'style-src': [
       "'self'",

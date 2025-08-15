@@ -41,19 +41,12 @@ export class ItemController {
     }
   }
 
-  async getItems(req: AuthenticatedRequest, res: Response) {
-    try {
-      // ✅ CRITICAL FIX - Ensure JSON response headers per 1qa.md compliance
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      
-      console.log('🔍 [ItemController] Getting items for user:', req.user?.id, 'tenant:', req.user?.tenantId);
-      console.log('🔍 [ItemController] Request headers:', {
-        authorization: req.headers.authorization ? 'Bearer ***' : 'missing',
-        contentType: req.headers['content-type'],
-        userAgent: req.headers['user-agent']?.substring(0, 50)
-      });
+  async getItems(req: AuthenticatedRequest, res: Response): Promise<void> {
+    // ✅ CRITICAL FIX - Ensure JSON response headers per 1qa.md compliance
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
+    try {
       // ✅ Enhanced authentication validation per 1qa.md compliance
       if (!req.user) {
         console.error('❌ [ItemController] No user context found in request');
@@ -274,26 +267,19 @@ export class ItemController {
         }
       });
     } catch (error) {
-      console.error('[ItemController] Error fetching items:', error);
-      console.error('[ItemController] Error stack:', error.stack);
-      console.error('[ItemController] Request details:', {
-        method: req.method,
-        url: req.url,
-        query: req.query,
-        headers: req.headers,
-        userId: req.user?.id,
-        tenantId: req.user?.tenantId
-      });
+      console.error('❌ [ItemController] Error in getItems:', error);
 
       // ✅ CRITICAL FIX - Ensure JSON response even in error cases per 1qa.md
-      res.setHeader('Content-Type', 'application/json');
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch items',
-        error: error.message,
-        tenantId: req.user?.tenantId,
-        timestamp: new Date().toISOString()
-      });
+      if (!res.headersSent) {
+        res.setHeader('Content-Type', 'application/json');
+        res.status(500).json({
+          success: false,
+          message: 'Erro interno do servidor ao buscar itens',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString(),
+          code: 'CONTROLLER_ERROR'
+        });
+      }
     }
   }
 

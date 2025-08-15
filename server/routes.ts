@@ -156,10 +156,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Apply CSP middleware
+  // Apply CSP middleware early to prevent script blocking issues
   app.use(createCSPMiddleware({
     environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
-    nonce: true
+    nonce: true,
+    customDirectives: {
+      'script-src': [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        'https://unpkg.com',
+        'https://cdn.jsdelivr.net',
+        'https://cdnjs.cloudflare.com',
+        'https://replit.com',
+        'https://*.replit.com',
+        'https://*.replit.dev',
+        'blob:',
+        'data:'
+      ]
+    }
   }));
 
 

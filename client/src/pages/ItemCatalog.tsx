@@ -243,8 +243,13 @@ export default function ItemCatalog() {
         console.log('🔄 [ItemCatalog] Token expired, attempting refresh...');
         
         const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
+        if (!refreshToken || refreshToken === 'null' || refreshToken === 'undefined') {
           console.error('❌ [ItemCatalog] No refresh token available');
+          
+          // Clear invalid tokens
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          
           toast({
             title: "Sessão expirada",
             description: "Por favor, faça login novamente.",
@@ -304,7 +309,11 @@ export default function ItemCatalog() {
           description: "Por favor, faça login novamente.",
           variant: "destructive"
         });
-        window.location.href = '/auth';
+        
+        // Clear any CSP-related errors and redirect
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 1000);
         return;
       }
 

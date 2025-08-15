@@ -1,5 +1,6 @@
 // JWT Authentication Middleware - Clean Architecture
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken'; // Import jwt for error types
 import { DependencyContainer } from '../application/services/DependencyContainer';
 import { tokenManager } from '../utils/tokenManager';
 
@@ -15,49 +16,68 @@ export interface AuthenticatedRequest extends Request {
   tenant?: any; // Add tenant property for compatibility
 }
 
-export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // ✅ CRITICAL FIX - Ensure JSON response headers per 1qa.md compliance
-    res.setHeader('Content-Type', 'application/json');
-
     const authHeader = req.headers.authorization;
+    console.log('🔍 [JWT-AUTH] Processing request:', {
+      method: req.method,
+      path: req.path,
+      hasAuthHeader: !!authHeader,
+      authStart: authHeader?.substring(0, 20) || 'none'
+    });
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ [JWT-AUTH] No authorization header or invalid format');
-      return res.status(401).json({ 
-        success: false, 
-        message: 'No token provided',
-        needsRefresh: true,
+      console.log('❌ [JWT-AUTH] No valid authorization header found');
+
+      // ✅ CRITICAL FIX - Ensure JSON response for API routes per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      res.status(401).json({
+        success: false,
+        message: 'Access token required',
+        code: 'MISSING_TOKEN',
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     const token = authHeader.substring(7);
 
     if (!token || token === 'null' || token === 'undefined') {
       console.log('❌ [JWT-AUTH] Invalid token format:', token);
-      return res.status(401).json({ 
-        success: false, 
+      // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(401).json({
+        success: false,
         message: 'Invalid token format',
-        needsRefresh: true,
+        code: 'INVALID_TOKEN_FORMAT',
         timestamp: new Date().toISOString()
       });
     }
 
     // Verify JWT token using enhanced token manager
     const payload = tokenManager.verifyAccessToken(token);
-    if (!payload) {
-      console.log('Token verification failed - attempting refresh');
-      return res.status(401).json({ 
-        message: 'Invalid or expired token',
-        needsRefresh: true 
+    
+    // Check if payload is valid before proceeding
+    // The original code had a check for decoded, but it's more robust to check payload directly.
+    // Also, ensuring it's an object and has userId.
+    if (!payload || typeof payload !== 'object' || !payload.userId) {
+      console.log('❌ [JWT-AUTH] Invalid token structure or missing userId');
+
+      // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      res.status(401).json({
+        success: false,
+        message: 'Invalid token',
+        code: 'INVALID_TOKEN',
+        timestamp: new Date().toISOString()
       });
+      return;
     }
 
-    // console.log('✅ Token verified successfully:', { 
+    // console.log('✅ Token verified successfully:', {
     //   userId: payload.userId,
     //   email: payload.email,
-    //   tenantId: payload.tenantId 
+    //   tenantId: payload.tenantId
     // });
 
     // Verify user exists and is active
@@ -68,16 +88,24 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const userId = payload.userId || payload.sub || payload.id;
     if (!userId) {
       console.error('❌ [JWT-AUTH] No userId found in token payload:', payload);
-      return res.status(401).json({ 
+      // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(401).json({
         message: 'Invalid token payload',
-        needsRefresh: true 
+        needsRefresh: true,
+        timestamp: new Date().toISOString()
       });
     }
 
     const user = await userRepository.findById(userId);
 
     if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'User not found or inactive' });
+      // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(401).json({ 
+        message: 'User not found or inactive',
+        timestamp: new Date().toISOString()
+      });
     }
 
     // Add user context to request - with permissions and enhanced tenant validation
@@ -87,9 +115,12 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     // Enhanced tenant validation for customers module
     if (!user.tenantId && req.path.includes('/customers')) {
-      return res.status(403).json({ 
+      // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(403).json({
         message: 'Tenant access required for customer operations',
-        code: 'MISSING_TENANT_ACCESS'
+        code: 'MISSING_TENANT_ACCESS',
+        timestamp: new Date().toISOString()
       });
     }
 
@@ -119,7 +150,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     //   tokenPayload: payload,
     //   userFromDB: {
     //     id: user.id,
-    //     email: user.email, 
+    //     email: user.email,
     //     role: user.role,
     //     tenantId: user.tenantId
     //   },
@@ -139,32 +170,28 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // ✅ CRITICAL FIX - Ensure JSON response even in error cases per 1qa.md
     res.setHeader('Content-Type', 'application/json');
 
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
-        success: false, 
+    if (error instanceof jwt.TokenExpiredError) {
+      res.status(401).json({
+        success: false,
         message: 'Token expired',
-        needsRefresh: true,
-        timestamp: new Date().toISOString(),
-        code: 'TOKEN_EXPIRED'
+        code: 'TOKEN_EXPIRED',
+        timestamp: new Date().toISOString()
       });
-    }
-
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ 
-        success: false, 
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      res.status(401).json({
+        success: false,
         message: 'Invalid token',
-        needsRefresh: true,
-        timestamp: new Date().toISOString(),
-        code: 'INVALID_TOKEN'
+        code: 'INVALID_TOKEN',
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Authentication error',
+        code: 'AUTH_ERROR',
+        timestamp: new Date().toISOString()
       });
     }
-
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Authentication error',
-      timestamp: new Date().toISOString(),
-      code: 'AUTH_ERROR'
-    });
   }
 };
 
@@ -179,20 +206,23 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
 
     const token = authHeader.substring(7);
     const container = DependencyContainer.getInstance();
-    const tokenService = container.tokenService;
+    // Ensure tokenService is correctly typed or handled if missing
+    const tokenService = container.tokenService; 
 
-    const payload = tokenService.verifyAccessToken(token);
-    if (payload) {
+    // Use tokenManager which is already imported and used in jwtAuth
+    const payload = tokenManager.verifyAccessToken(token); 
+    
+    if (payload && typeof payload === 'object' && payload.userId) {
       const userRepository = container.userRepository;
       const user = await userRepository.findById(payload.userId);
 
-      if (user && user.active) {
+      if (user && user.isActive) {
         req.user = {
           id: user.id,
           email: user.email,
           role: user.role,
           tenantId: user.tenantId,
-          permissions: [],
+          permissions: [], // Permissions might need to be fetched here as well if required by optional auth
           attributes: {}
         };
       }
@@ -202,10 +232,10 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
   } catch (error) {
     // Log but don't fail the request
     const { logWarn } = await import('../utils/logger');
-    logWarn('Optional JWT authentication warning', { 
+    logWarn('Optional JWT authentication warning', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      method: req.method, 
-      url: req.url 
+      method: req.method,
+      url: req.url
     });
     next();
   }
@@ -215,11 +245,15 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
 export const requireRole = (...roles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+      // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(401).json({ message: 'Authentication required', timestamp: new Date().toISOString() });
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Insufficient permissions' });
+      // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(403).json({ message: 'Insufficient permissions', timestamp: new Date().toISOString() });
     }
 
     next();
@@ -229,7 +263,9 @@ export const requireRole = (...roles: string[]) => {
 // Tenant access middleware
 export const requireTenantAccess = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required' });
+    // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(401).json({ message: 'Authentication required', timestamp: new Date().toISOString() });
   }
 
   // Admin users can access all tenants
@@ -239,7 +275,9 @@ export const requireTenantAccess = (req: AuthenticatedRequest, res: Response, ne
 
   // Check if user has access to their tenant
   if (!req.user.tenantId) {
-    return res.status(403).json({ message: 'No tenant access' });
+    // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(403).json({ message: 'No tenant access', timestamp: new Date().toISOString() });
   }
 
   next();
