@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { jwtAuth } from '../middleware/jwtAuth';
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { enhancedTenantValidator } from '../middleware/tenantValidator';
 // ✅ LEGACY authorizationMiddleware eliminated per 1qa.md
 import { Permission } from '../domain/authorization/RolePermissions';
@@ -911,10 +911,8 @@ router.post('/populate-all-14', jwtAuth, async (req: any, res) => {
     // Primeiro, limpar todas as integrações existentes
     await storage.deleteTenantIntegrations(tenantId);
 
-    // Depois, inserir cada integração individualmente
-    for (const integration of allIntegrations) {
-      await storage.createTenantIntegration(tenantId, integration);
-    }
+    // Depois, criar integrações padrão
+    await storage.initializeTenantIntegrations(tenantId);
 
     res.json({ 
       totalCreated: allIntegrations.length,
@@ -1011,7 +1009,7 @@ router.post('/telegram/webhook/:tenantId', async (req, res) => {
  * Set Telegram Webhook URL
  * POST /api/tenant-admin/integrations/telegram/set-webhook
  */
-router.post('/telegram/set-webhook', jwtAuth, async (req, res) => {
+router.post('/telegram/set-webhook', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
     let { webhookUrl, useDefault } = req.body;
@@ -1129,7 +1127,7 @@ router.post('/telegram/set-webhook', jwtAuth, async (req, res) => {
  * Get Webhook Status
  * GET /api/tenant-admin/integrations/telegram/webhook-status
  */
-router.get('/telegram/webhook-status', jwtAuth, async (req, res) => {
+router.get('/telegram/webhook-status', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
 

@@ -262,9 +262,7 @@ app.use((req, res, next) => {
   app.use('/api', userGroupsByAgentRoutes);
   app.use('/api', userManagementRoutes);
 
-  // Import tenant integrations routes
-  const { default: tenantIntegrationsRouter } = await import('./routes/tenantIntegrations');
-  app.use('/api/tenant-admin-integration', tenantIntegrationsRouter);
+  // Tenant integrations routes are now registered in registerRoutes function
 
   // ✅ Auth Clean Architecture routes eliminated
   // ✅ Users Clean Architecture routes eliminated
