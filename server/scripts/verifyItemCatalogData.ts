@@ -144,7 +144,8 @@ export async function verifyAndRestoreItemCatalogData(tenantId: string) {
 }
 
 // Self-executing script when run directly
-if (require.main === module) {
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
   const tenantId = process.argv[2] || '3f99462f-3621-4b1b-bea8-782acc50d62e';
   
   verifyAndRestoreItemCatalogData(tenantId)
