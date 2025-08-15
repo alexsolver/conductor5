@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import { OmniBridgeController } from './application/controllers/OmniBridgeController';
 import { GetChannelsUseCase } from './application/use-cases/GetChannelsUseCase';
@@ -27,9 +28,17 @@ const omniBridgeController = new OmniBridgeController(
   processMessageUseCase
 );
 
-// Routes
-router.get('/channels', (req, res) => omniBridgeController.getChannels(req, res));
-router.post('/channels/:channelId/toggle', (req, res) => omniBridgeController.toggleChannel(req, res));
+// Routes with authentication
+router.get('/channels', async (req, res) => {
+  // Add tenant context from JWT
+  const { jwtAuth } = await import('../../middleware/jwtAuth');
+  return jwtAuth(req, res, () => omniBridgeController.getChannels(req, res));
+});
+
+router.put('/channels/:channelId/toggle', async (req, res) => {
+  const { jwtAuth } = await import('../../middleware/jwtAuth');
+  return jwtAuth(req, res, () => omniBridgeController.toggleChannel(req, res));
+});
 
 router.get('/messages', (req, res) => omniBridgeController.getMessages(req, res));
 router.post('/messages/:messageId/process', (req, res) => omniBridgeController.processMessage(req, res));
