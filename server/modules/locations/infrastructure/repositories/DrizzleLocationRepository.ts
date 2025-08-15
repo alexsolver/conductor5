@@ -13,12 +13,12 @@ import { eq, and, sql, ilike, desc, asc, count, inArray } from 'drizzle-orm';
 import { Location, LocationFilterCriteria, LocationStats, LocationType } from '../../domain/entities/Location';
 import { ILocationRepository } from '../../domain/repositories/ILocationRepository';
 import { schemaManager } from '../../../../db';
-import { locations } from '../../../../../shared/schema';
+import { locations } from '../../../../../shared/schema-master';
 
 export class DrizzleLocationRepository implements ILocationRepository {
   
   async create(locationData: Omit<Location, 'id' | 'createdAt' | 'updatedAt'>): Promise<Location> {
-    const db = schemaManager.getDb();
+    const { db } = await schemaManager.getTenantDb(locationData.tenantId);
     const [location] = await db
       .insert(locations)
       .values({
@@ -36,7 +36,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async findById(id: string, tenantId: string): Promise<Location | null> {
-    const db = schemaManager.getDb();
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const [location] = await db
       .select()
       .from(locations)
@@ -49,7 +49,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async update(id: string, updates: any, tenantId: string): Promise<Location> {
-    const db = schemaManager.getDb();
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const [location] = await db
       .update(locations)
       .set({
@@ -155,6 +155,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
     limit?: number,
     offset?: number
   ): Promise<Location[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const query = db
       .select()
       .from(locations)
@@ -172,6 +173,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async findByTenant(tenantId: string): Promise<Location[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const results = await db
       .select()
       .from(locations)
@@ -182,6 +184,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async findByType(type: LocationType, tenantId: string): Promise<Location[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     // Note: This will need schema update for type field
     const results = await db
       .select()
@@ -193,6 +196,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async findByCity(city: string, tenantId: string): Promise<Location[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     // Note: This will need schema update for city field
     const results = await db
       .select()
@@ -204,6 +208,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async findByState(state: string, tenantId: string): Promise<Location[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     // Similar implementation needed with schema updates
     const results = await db
       .select()
@@ -214,6 +219,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async findByCountry(country: string, tenantId: string): Promise<Location[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const results = await db
       .select()
       .from(locations)
@@ -248,6 +254,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async findByCoordinates(latitude: number, longitude: number, tenantId: string): Promise<Location | null> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const [location] = await db
       .select()
       .from(locations)
@@ -297,6 +304,8 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async bulkCreate(locationsData: Omit<Location, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<Location[]> {
+    if (locationsData.length === 0) return [];
+    const { db } = await schemaManager.getTenantDb(locationsData[0].tenantId);
     const results = await db
       .insert(locations)
       .values(locationsData.map(loc => ({
@@ -319,6 +328,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async bulkDelete(locationIds: string[], tenantId: string): Promise<boolean> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const result = await db
       .update(locations)
       .set({
@@ -334,6 +344,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async bulkChangeStatus(locationIds: string[], isActive: boolean, tenantId: string): Promise<boolean> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const result = await db
       .update(locations)
       .set({
@@ -349,6 +360,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async nameExists(name: string, tenantId: string, excludeId?: string): Promise<boolean> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const conditions = [
       eq(locations.tenantId, tenantId),
       ilike(locations.name, name)
@@ -367,6 +379,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async coordinatesExist(latitude: number, longitude: number, tenantId: string, excludeId?: string): Promise<boolean> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const conditions = [
       eq(locations.tenantId, tenantId),
       eq(locations.latitude, latitude.toString()),
@@ -386,6 +399,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async getLocationStats(tenantId: string): Promise<LocationStats> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const [totalResult, activeResult, inactiveResult] = await Promise.all([
       db.select({ count: count() }).from(locations).where(eq(locations.tenantId, tenantId)),
       db.select({ count: count() }).from(locations).where(and(eq(locations.tenantId, tenantId), eq(locations.isActive, true))),
@@ -405,6 +419,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async getRecentLocations(tenantId: string, days?: number, limit?: number): Promise<Location[]> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const dayCount = days || 30;
     const results = await db
       .select()
@@ -420,6 +435,7 @@ export class DrizzleLocationRepository implements ILocationRepository {
   }
 
   async count(tenantId: string, filters?: Partial<LocationFilterCriteria>): Promise<number> {
+    const { db } = await schemaManager.getTenantDb(tenantId);
     const conditions = [eq(locations.tenantId, tenantId)];
 
     if (filters?.isActive !== undefined) {

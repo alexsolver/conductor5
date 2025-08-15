@@ -79,8 +79,37 @@ export type {
 // Export all tables for migrations
 export * from './schema-master';
 export * from './schema-materials-services';
-export * from './schema-locations';
 export * from './schema-field-layout';
+
+// Selective exports from locations to avoid conflicts
+export {
+  locationTypeEnum,
+  geometryTypeEnum,
+  locationStatusEnum,
+  segmentTypeEnum,
+  areaTypeEnum,
+  routeTypeEnum,
+  difficultyLevelEnum,
+  serviceLevelEnum,
+  securityLevelEnum,
+  accessTypeEnum,
+  membershipTypeEnum,
+  groupTypeEnum,
+  locations as geoLocations,
+  locationSegments,
+  locationAreas,
+  locationRoutes,
+  areaGroups,
+  locationAreaMemberships,
+  insertLocationSchema as insertGeoLocationSchema,
+  insertLocationSegmentSchema,
+  insertLocationAreaSchema,
+  insertLocationRouteSchema,
+  insertAreaGroupSchema,
+  businessHoursSchema,
+  accessRequirementsSchema,
+  slaConfigSchema
+} from './schema-locations';
 
 // OmniBridge tables
 import { pgTable, varchar, timestamp, jsonb, text, integer } from 'drizzle-orm/pg-core';
