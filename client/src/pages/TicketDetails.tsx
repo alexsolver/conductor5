@@ -564,28 +564,16 @@ const TicketDetails = React.memo(() => {
   }, [processedHistoryData, ticketHistoryData]);
 
   // ✅ [1QA-COMPLIANCE] Fetch planned materials seguindo Clean Architecture
-  const { data: ticketPlannedMaterials, isLoading: plannedMaterialsLoading } = useQuery({
+  const { data: plannedMaterialsResponse, isLoading: plannedMaterialsLoading } = useQuery({
     queryKey: [`/api/materials-services/tickets/${id}/planned-items`],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/materials-services/tickets/${id}/planned-items`);
-      if (!response.ok) return { success: false, data: [] };
-      const data = await response.json();
-      return data;
-    },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
   // ✅ [1QA-COMPLIANCE] Fetch consumed materials seguindo Clean Architecture
-  const { data: ticketConsumedMaterials, isLoading: consumedMaterialsLoading } = useQuery({
+  const { data: consumedMaterialsResponse, isLoading: consumedMaterialsLoading } = useQuery({
     queryKey: [`/api/materials-services/tickets/${id}/consumed-items`],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/materials-services/tickets/${id}/consumed-items`);
-      if (!response.ok) return { success: false, data: [] };
-      const data = await response.json();
-      return data;
-    },
     enabled: !!id,
     staleTime: 3 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -593,42 +581,24 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
   const materialsData = useMemo(() => {
-    // Verificar se os dados estão disponíveis e são arrays válidos
-    const plannedArray = Array.isArray(ticketPlannedMaterials?.data) ? ticketPlannedMaterials.data : [];
-    const consumedArray = Array.isArray(ticketConsumedMaterials?.data) ? ticketConsumedMaterials.data : [];
+    // Estrutura correta das respostas das APIs: { success: true, data: [...] }
+    const plannedArray = Array.isArray(plannedMaterialsResponse?.data) ? plannedMaterialsResponse.data : [];
+    const consumedArray = Array.isArray(consumedMaterialsResponse?.data) ? consumedMaterialsResponse.data : [];
     
     const result = [...plannedArray, ...consumedArray];
     
-    console.log('🔧 [MATERIALS-USEMEMO-DEBUG] Estrutura corrigida:', {
-      plannedSuccess: ticketPlannedMaterials?.success,
-      plannedDataType: typeof ticketPlannedMaterials?.data,
-      plannedIsArray: Array.isArray(ticketPlannedMaterials?.data),
-      plannedLength: plannedArray.length,
-      consumedSuccess: ticketConsumedMaterials?.success,
-      consumedDataType: typeof ticketConsumedMaterials?.data,
-      consumedIsArray: Array.isArray(ticketConsumedMaterials?.data),
-      consumedLength: consumedArray.length,
-      totalLength: result.length
+    console.log('🔧 [MATERIALS-FINAL-DEBUG] Corrigido com nomes corretos:', {
+      plannedResponse: plannedMaterialsResponse,
+      consumedResponse: consumedMaterialsResponse,
+      plannedArray: plannedArray.length,
+      consumedArray: consumedArray.length,
+      totalMaterials: result.length
     });
     
     return result;
-  }, [ticketPlannedMaterials, ticketConsumedMaterials]);
+  }, [plannedMaterialsResponse, consumedMaterialsResponse]);
 
-  // ✅ [1QA-COMPLIANCE] Debug para validar dados de materiais
-  useEffect(() => {
-    console.log('🔧 [MATERIALS-DEBUG] SEMPRE executar - Dados de materiais:', {
-      planned: ticketPlannedMaterials,
-      plannedSuccess: ticketPlannedMaterials?.success,
-      plannedDataType: Array.isArray(ticketPlannedMaterials?.data) ? 'array' : typeof ticketPlannedMaterials?.data,
-      plannedLength: ticketPlannedMaterials?.data?.length || 0,
-      consumed: ticketConsumedMaterials,
-      consumedSuccess: ticketConsumedMaterials?.success,
-      consumedDataType: Array.isArray(ticketConsumedMaterials?.data) ? 'array' : typeof ticketConsumedMaterials?.data,
-      consumedLength: ticketConsumedMaterials?.data?.length || 0,
-      materialsCount: materialsData.length,
-      materialsData: materialsData.slice(0, 3) // Apenas primeiros 3 para não sobrecarregar logs
-    });
-  }, [ticketPlannedMaterials, ticketConsumedMaterials, materialsData]);
+
 
 
   // ✅ [1QA-COMPLIANCE] Special functionality tabs seguindo Clean Architecture
