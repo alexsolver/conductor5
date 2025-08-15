@@ -1116,6 +1116,32 @@ const TicketDetails = React.memo(() => {
     },
   });
 
+  // 🔧 [1QA-COMPLIANCE] Mutation para deletar relacionamento seguindo Clean Architecture
+  const deleteRelationshipMutation = useMutation({
+    mutationFn: async (relationshipId: string) => {
+      const response = await apiRequest('DELETE', `/api/ticket-relationships/${relationshipId}`);
+      if (!response.ok) {
+        throw new Error('Failed to delete relationship');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Vínculo removido",
+        description: "O vínculo entre tickets foi removido com sucesso.",
+      });
+      // Invalidate para atualizar a lista de relacionamentos
+      queryClient.invalidateQueries({ queryKey: ["/api/ticket-relationships", id, "relationships"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao remover vínculo",
+        description: "Não foi possível remover o vínculo entre tickets.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // ✅ SISTEMA DINÂMICO - Status são enviados diretamente como recebidos do form
   // Não há mais necessidade de mapeamento hard-coded
 
@@ -2460,9 +2486,21 @@ const TicketDetails = React.memo(() => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">🔗 Vínculos</h2>
-              <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
-                {relatedTicketsData.length} ticket(s) vinculado(s)
-              </Badge>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
+                  {relatedTicketsData.length} ticket(s) vinculado(s)
+                </Badge>
+                <Button
+                  onClick={() => setIsLinkingModalOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                  data-testid="button-link-ticket"
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Vincular Ticket
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -2610,8 +2648,28 @@ const TicketDetails = React.memo(() => {
                               onClick={() => window.open(`/tickets/${linkedTicket.targetTicket?.id || linkedTicket.id}`, '_blank')}
                               className="text-blue-600 hover:text-blue-700 p-2"
                               title="Abrir ticket em nova aba"
+                              data-testid={`button-open-ticket-${linkedTicket.id}`}
                             >
                               <ExternalLink className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm('Tem certeza que deseja remover este vínculo?')) {
+                                  deleteRelationshipMutation.mutate(linkedTicket.id);
+                                }
+                              }}
+                              className="text-red-600 hover:text-red-700 p-2"
+                              title="Remover vínculo"
+                              disabled={deleteRelationshipMutation.isPending}
+                              data-testid={`button-delete-relationship-${linkedTicket.id}`}
+                            >
+                              {deleteRelationshipMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Unlink className="h-4 w-4" />
+                              )}
                             </Button>
                           </div>
                         </div>
@@ -3395,18 +3453,7 @@ const TicketDetails = React.memo(() => {
                     <X className="h-4 w-4 mr-2" />
                     Cancelar
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setIsLinkingModalOpen(true);
-                    }}
-                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                    style={{ backgroundColor: '#dbeafe', borderColor: '#93c5fd', color: '#1d4ed8' }}
-                  >
-                    <Link2 className="h-4 w-4 mr-2" />
-                    Vincular
-                  </Button>
+
                   <Button
                     variant="default"
                     size="sm"
