@@ -1,23 +1,24 @@
 #!/bin/bash
-echo "🚀 [POSTGRESQL-AUTO] Iniciando PostgreSQL local..."
+# PostgreSQL Auto-Start Script - 1qa.md Compliance
 
 export PGDATA=$HOME/postgres_data
 
-# Verificar se PostgreSQL já está rodando
-if pgrep postgres > /dev/null; then
-    echo "✅ PostgreSQL já está rodando"
+# Check if PostgreSQL is already running
+if psql -h localhost -U postgres -d postgres -c "SELECT 1;" > /dev/null 2>&1; then
+    echo "✅ PostgreSQL already running"
     exit 0
 fi
 
-# Iniciar PostgreSQL
-postgres -D $PGDATA > $HOME/postgres.log 2>&1 &
-sleep 3
+# Start PostgreSQL
+echo "🚀 Starting PostgreSQL local..."
+/nix/store/yz718sizpgsnq2y8gfv8bba8l8r4494l-postgresql-16.3/bin/postgres -D $PGDATA > $HOME/postgres.log 2>&1 &
 
-# Verificar se iniciou
-if PGHOST=/tmp psql -U postgres -d postgres -c "SELECT 1;" > /dev/null 2>&1; then
-    echo "✅ PostgreSQL iniciado com sucesso"
-    echo "📝 DATABASE_URL: postgresql://postgres@localhost/conductor_local?host=/tmp"
+# Wait and verify
+sleep 5
+if psql -h localhost -U postgres -d postgres -c "SELECT 1;" > /dev/null 2>&1; then
+    echo "✅ PostgreSQL started successfully"
 else
-    echo "❌ Falha ao iniciar PostgreSQL"
+    echo "❌ PostgreSQL failed to start"
     cat $HOME/postgres.log
+    exit 1
 fi

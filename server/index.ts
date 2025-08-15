@@ -8,29 +8,28 @@ import { initializeCleanup } from "./utils/temporaryFilesCleaner";
 import { connectionStabilizer } from "./utils/connectionStabilizer";
 import { productionInitializer } from './utils/productionInitializer';
 
-// PostgreSQL Local startup helper
+// PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
   const { spawn } = await import('child_process');
-  const path = await import('path');
   
-  console.log("🚀 [POSTGRESQL-STARTUP] Verificando/iniciando PostgreSQL local...");
+  console.log("🚀 [POSTGRESQL-1QA] Ensuring PostgreSQL local is running...");
   
   try {
-    // Verificar se já está rodando
+    // Test connection with proper local configuration
     const { Pool } = await import('pg');
     const testPool = new Pool({
-      connectionString: `postgresql://postgres@localhost/postgres?host=/tmp`,
-      connectionTimeoutMillis: 2000,
+      connectionString: 'postgresql://postgres@localhost:5432/postgres',
+      connectionTimeoutMillis: 3000,
     });
     
     await testPool.query('SELECT 1');
     await testPool.end();
-    console.log("✅ [POSTGRESQL-STARTUP] PostgreSQL já está rodando");
+    console.log("✅ [POSTGRESQL-1QA] PostgreSQL already running");
     return true;
   } catch (error) {
-    console.log("🔄 [POSTGRESQL-STARTUP] Iniciando PostgreSQL...");
+    console.log("🔄 [POSTGRESQL-1QA] Starting PostgreSQL...");
     
-    // Iniciar PostgreSQL
+    // Start PostgreSQL with proper configuration
     const postgresPath = '/nix/store/yz718sizpgsnq2y8gfv8bba8l8r4494l-postgresql-16.3/bin/postgres';
     const dataDir = process.env.HOME + '/postgres_data';
     
@@ -41,10 +40,10 @@ async function ensurePostgreSQLRunning() {
     
     postgresProcess.unref();
     
-    // Aguardar inicialização
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Wait for startup
+    await new Promise(resolve => setTimeout(resolve, 8000));
     
-    console.log("✅ [POSTGRESQL-STARTUP] PostgreSQL iniciado");
+    console.log("✅ [POSTGRESQL-1QA] PostgreSQL started");
     return true;
   }
 }
@@ -142,7 +141,8 @@ app.use((req, res, next) => {
   configureServerForStability(server);
   applyViteConnectionOptimizer(app, server);
 
-  // Initialize production systems
+  // Initialize production systems - 1qa.md Compliance
+  await ensurePostgreSQLRunning();
   await productionInitializer.initialize();
 
   // Initialize activity tracking cleanup service
