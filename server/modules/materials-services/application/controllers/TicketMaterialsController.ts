@@ -12,9 +12,9 @@ interface AuthenticatedRequest extends Request {
   sessionID?: string;
 }
 import crypto from 'crypto';
-import { 
-  ticketPlannedItems, 
-  ticketConsumedItems, 
+import {
+  ticketPlannedItems,
+  ticketConsumedItems,
   items,
   priceLists,
   pricingRules
@@ -108,7 +108,7 @@ export class TicketMaterialsController {
         const lpuName = lpuQuery.rows[0]?.name || 'Lista de preços';
 
         await pool.query(`
-          INSERT INTO "${schemaName}".ticket_history 
+          INSERT INTO "${schemaName}".ticket_history
           (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
           VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
         `, [
@@ -162,7 +162,7 @@ export class TicketMaterialsController {
       // Use raw SQL to get planned items with complete item details - corrigindo colunas
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
-        SELECT 
+        SELECT
           tpi.*,
           i.name as item_name,
           i.description as item_description,
@@ -171,9 +171,7 @@ export class TicketMaterialsController {
           i.integration_code as item_code,
           i.brand as item_brand,
           i.model as item_model,
-          i.category as item_category,
-          false as has_children,
-          0 as children_count
+          i.category as item_category
         FROM "${schemaName}".ticket_planned_items tpi
         LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
         WHERE tpi.ticket_id = $1 AND tpi.tenant_id = $2 AND tpi.is_active = true
@@ -191,9 +189,9 @@ export class TicketMaterialsController {
         itemName: row.item_name || 'Item não encontrado',
         itemDescription: row.item_description,
         itemCode: row.item_code,
-        itemBrand: row.item_brand,
-        itemModel: row.item_model,
-        itemCategory: row.item_category,
+        itemBrand: null,
+        itemModel: null,
+        itemCategory: null,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
         lpuId: row.lpu_id,
@@ -243,7 +241,7 @@ export class TicketMaterialsController {
       // Use raw SQL to get consumed items with item details - corrigindo colunas
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
-        SELECT 
+        SELECT
           tci.*,
           i.name as item_name,
           i.description as item_description,
@@ -252,9 +250,7 @@ export class TicketMaterialsController {
           i.integration_code as item_code,
           i.brand as item_brand,
           i.model as item_model,
-          i.category as item_category,
-          false as has_children,
-          0 as children_count
+          i.category as item_category
         FROM "${schemaName}".ticket_consumed_items tci
         LEFT JOIN "${schemaName}".items i ON tci.item_id = i.id
         WHERE tci.ticket_id = $1 AND tci.tenant_id = $2
@@ -271,9 +267,9 @@ export class TicketMaterialsController {
         itemName: row.item_name || 'Item não encontrado',
         itemDescription: row.item_description,
         itemCode: row.item_code,
-        itemBrand: row.item_brand,
-        itemModel: row.item_model,
-        itemCategory: row.item_category,
+        itemBrand: null,
+        itemModel: null,
+        itemCategory: null,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
         lpuId: row.lpu_id,
@@ -342,7 +338,7 @@ export class TicketMaterialsController {
             SELECT pli.unit_price, pli.special_price
             FROM price_list_items pli
             JOIN price_lists pl ON pli.price_list_id = pl.id
-            WHERE pli.item_id = ${itemId} 
+            WHERE pli.item_id = ${itemId}
               AND pli.tenant_id = ${tenantId}
               AND pl.is_active = true
               AND pli.is_active = true
@@ -440,7 +436,7 @@ export class TicketMaterialsController {
         const itemName = itemQuery.rows[0]?.name || 'Item desconhecido';
 
         await pool.query(`
-          INSERT INTO "${schemaName}".ticket_history 
+          INSERT INTO "${schemaName}".ticket_history
           (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
           VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
         `, [
@@ -501,7 +497,7 @@ export class TicketMaterialsController {
       // Use direct SQL deletion to avoid Drizzle issues
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const deleteQuery = `
-        DELETE FROM "${schemaName}".ticket_planned_items 
+        DELETE FROM "${schemaName}".ticket_planned_items
         WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3
       `;
 
@@ -522,7 +518,7 @@ export class TicketMaterialsController {
         const sessionId = getSessionId(req);
 
         await pool.query(`
-          INSERT INTO "${schemaName}".ticket_history 
+          INSERT INTO "${schemaName}".ticket_history
           (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
           VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
         `, [
@@ -670,7 +666,7 @@ export class TicketMaterialsController {
         const itemName = itemQuery.rows[0]?.name || 'Item desconhecido';
 
         await pool.query(`
-          INSERT INTO "${schemaName}".ticket_history 
+          INSERT INTO "${schemaName}".ticket_history
           (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
           VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
         `, [
@@ -730,7 +726,7 @@ export class TicketMaterialsController {
       // Use raw SQL to get planned items with complete item details
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
-        SELECT 
+        SELECT
           tpi.*,
           i.name as item_name,
           i.description as item_description,
@@ -739,9 +735,7 @@ export class TicketMaterialsController {
           i.integration_code as item_code,
           i.brand as item_brand,
           i.model as item_model,
-          i.category as item_category,
-          false as has_children,
-          0 as children_count
+          i.category as item_category
         FROM "${schemaName}".ticket_planned_items tpi
         LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
         WHERE tpi.ticket_id = $1 AND tpi.tenant_id = $2
@@ -758,9 +752,9 @@ export class TicketMaterialsController {
         itemName: row.item_name || 'Item não encontrado',
         itemDescription: row.item_description,
         itemCode: row.item_code,
-        itemBrand: row.item_brand,
-        itemModel: row.item_model,
-        itemCategory: row.item_category,
+        itemBrand: null,
+        itemModel: null,
+        itemCategory: null,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
         lpuId: row.lpu_id,
