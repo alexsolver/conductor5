@@ -11,9 +11,9 @@ import { productionInitializer } from './utils/productionInitializer';
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
   const { spawn } = await import('child_process');
-  
+
   console.log("🚀 [POSTGRESQL-1QA] Ensuring PostgreSQL local is running...");
-  
+
   try {
     // Test connection with proper local configuration
     const { Pool } = await import('pg');
@@ -21,32 +21,57 @@ async function ensurePostgreSQLRunning() {
       connectionString: 'postgresql://postgres@localhost:5432/postgres',
       connectionTimeoutMillis: 3000,
     });
-    
+
     await testPool.query('SELECT 1');
     await testPool.end();
     console.log("✅ [POSTGRESQL-1QA] PostgreSQL already running");
     return true;
   } catch (error) {
     console.log("🔄 [POSTGRESQL-1QA] Starting PostgreSQL...");
-    
+
     // Start PostgreSQL with proper configuration
     const postgresPath = '/nix/store/yz718sizpgsnq2y8gfv8bba8l8r4494l-postgresql-16.3/bin/postgres';
     const dataDir = process.env.HOME + '/postgres_data';
-    
+
     const postgresProcess = spawn(postgresPath, ['-D', dataDir], {
       detached: true,
       stdio: 'ignore'
     });
-    
+
     postgresProcess.unref();
-    
+
     // Wait for startup
     await new Promise(resolve => setTimeout(resolve, 8000));
-    
+
     console.log("✅ [POSTGRESQL-1QA] PostgreSQL started");
     return true;
   }
 }
+
+async function validateDatabaseConnection() {
+  const { Pool } = await import('pg');
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    connectionTimeoutMillis: 5000, // Increased timeout for initial connection
+    idleTimeoutMillis: 30000,      // Keep connections alive for 30s
+    allowExitOnIdle: false,        // Don't exit if pool is idle
+  });
+
+  try {
+    await pool.query('SELECT 1');
+    console.log("✅ [DATABASE] Successfully connected to the database.");
+    // Keep the pool alive for the application's lifetime
+    // pool.on('error', (err, client) => { /* handle errors */ });
+    return true;
+  } catch (error) {
+    console.error("❌ [DATABASE] Failed to connect to the database:", error);
+    // In production, we might want to exit or retry differently.
+    // For now, we'll log and continue, assuming DATABASE_URL is correctly set.
+    // If this is critical, the application should likely fail fast.
+    throw new Error("Database connection failed. Ensure DATABASE_URL is correctly set.");
+  }
+}
+
 import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer';
 import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer';
 import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer';
@@ -142,7 +167,8 @@ app.use((req, res, next) => {
   applyViteConnectionOptimizer(app, server);
 
   // Initialize production systems - 1qa.md Compliance
-  await ensurePostgreSQLRunning();
+  // CRITICAL FIX: Database connection validation before server startup
+    await validateDatabaseConnection();
   await productionInitializer.initialize();
 
   // Initialize activity tracking cleanup service
