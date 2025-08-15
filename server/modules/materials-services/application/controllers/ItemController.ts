@@ -250,7 +250,9 @@ export class ItemController {
 
       console.log(`✅ [ITEMS-QUERY] Found ${result.rows.length} items`);
 
-      res.json({
+      // ✅ CRITICAL FIX - Ensure proper JSON response format per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).json({
         success: true,
         data: result.rows,
         total: result.rows.length,
@@ -264,12 +266,23 @@ export class ItemController {
     } catch (error) {
       console.error('[ItemController] Error fetching items:', error);
       console.error('[ItemController] Error stack:', error.stack);
+      console.error('[ItemController] Request details:', {
+        method: req.method,
+        url: req.url,
+        query: req.query,
+        headers: req.headers,
+        userId: req.user?.id,
+        tenantId: req.user?.tenantId
+      });
 
+      // ✅ CRITICAL FIX - Ensure JSON response even in error cases per 1qa.md
+      res.setHeader('Content-Type', 'application/json');
       res.status(500).json({
         success: false,
         message: 'Failed to fetch items',
         error: error.message,
-        tenantId: req.user?.tenantId
+        tenantId: req.user?.tenantId,
+        timestamp: new Date().toISOString()
       });
     }
   }

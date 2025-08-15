@@ -314,7 +314,24 @@ export default function ItemCatalog() {
         throw new Error(`Failed to fetch items: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      // ✅ CRITICAL FIX - Enhanced error handling per 1qa.md compliance
+      let data;
+      try {
+        const responseText = await response.text();
+        console.log('🔍 [ItemCatalog] Raw response:', responseText.substring(0, 200));
+        
+        // Check if response is HTML (error page)
+        if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+          console.error('❌ [ItemCatalog] Received HTML instead of JSON - likely server error');
+          throw new Error('Server returned HTML instead of JSON. Check server logs.');
+        }
+        
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ [ItemCatalog] JSON parsing error:', parseError);
+        throw new Error(`Failed to parse server response: ${parseError.message}`);
+      }
+
       console.log('🔍 [ItemCatalog] Response data:', {
         success: data.success,
         itemCount: data.data?.length || 0,
@@ -620,13 +637,20 @@ export default function ItemCatalog() {
                 </SelectContent>
               </Select>
 
-              <Button
-                variant={isBulkMode ? "default" : "outline"}
-                onClick={() => setIsBulkMode(!isBulkMode)}
-              >
-                <Checkbox className="h-4 w-4 mr-2" />
-                Lote ({selectedItems.size})
-              </Button>
+              <div className="flex items-center">
+                <Button
+                  variant={isBulkMode ? "default" : "outline"}
+                  onClick={() => setIsBulkMode(!isBulkMode)}
+                  className="flex items-center gap-2"
+                >
+                  <div className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
+                    isBulkMode ? 'bg-primary border-primary' : 'border-input'
+                  }`}>
+                    {isBulkMode && <div className="h-2 w-2 bg-primary-foreground rounded-sm" />}
+                  </div>
+                  Lote ({selectedItems.size})
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
