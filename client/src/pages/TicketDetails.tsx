@@ -563,6 +563,31 @@ const TicketDetails = React.memo(() => {
     return [];
   }, [processedHistoryData, ticketHistoryData]);
 
+  // Fetch planned materials data
+  const { data: plannedMaterials } = useQuery({
+    queryKey: [`/api/materials-services/tickets/${id}/planned-items`],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/materials-services/tickets/${id}/planned-items`);
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data?.data?.plannedItems || [];
+    },
+    enabled: !!id,
+  });
+
+  // Fetch consumed materials data
+  const { data: consumedMaterials } = useQuery({
+    queryKey: [`/api/materials-services/tickets/${id}/consumed-items`],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/materials-services/tickets/${id}/consumed-items`);
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data?.data?.consumedItems || [];
+    },
+    enabled: !!id,
+  });
+
+
   // Special functionality tabs (with dynamic counters) - moved after data processing
   const getTabLabel = (baseLabel: string, count?: number) => {
     if (count && count > 0) {
@@ -662,7 +687,7 @@ const TicketDetails = React.memo(() => {
           old_value: item.old_value || item.oldValue || null,
           new_value: item.new_value || item.newValue || null,
           metadata: parsedMetadata,
-          // ✅ [1QA-COMPLIANCE] Mapeamento direto dos dados de client_info do metadata  
+          // ✅ [1QA-COMPLIANCE] Mapeamento direto dos dados de client_info do metadata
           ip_address: (() => {
             const result = item.ip_address || parsedMetadata?.client_info?.ip_address || parsedMetadata?.ip_address || 'N/A';
             if (item.action_type === 'note_deleted') {
@@ -712,7 +737,7 @@ const TicketDetails = React.memo(() => {
           sampleData: noteDeletedItems.slice(0, 3).map(item => ({
             id: item.id,
             ip_address: item.ip_address,
-            user_agent: item.user_agent ? item.user_agent.substring(0, 30) + '...' : 'N/A',
+            user_agent: item.user_agent,
             session_id: item.session_id,
             action_type: item.action_type
           }))
@@ -2236,7 +2261,7 @@ const TicketDetails = React.memo(() => {
                             ` - ${historyItem.field_name}: "${historyItem.old_value}" → "${historyItem.new_value}"`
                           )}
                         </p>
-                        
+
                         {/* 🔧 [1QA-COMPLIANCE] Dados de sessão visíveis diretamente no card principal */}
                         {historyViewMode === 'advanced' && (
                           <div className="mt-2 p-3 bg-blue-50 rounded text-xs border-l-3 border-blue-500">
@@ -2264,7 +2289,7 @@ const TicketDetails = React.memo(() => {
                                 {historyItem.session_id || 'N/A'}
                               </span>
                             </div>
-                            
+
                             {/* Metadados técnicos detalhados */}
                             {historyItem.metadata && Object.keys(historyItem.metadata).length > 0 && (
                               <div className="border-t border-blue-200 pt-2 mt-2">
