@@ -7,6 +7,7 @@
 import { Request, Response } from 'express';
 import { FindTicketRelationshipsUseCase } from '../use-cases/FindTicketRelationshipsUseCase';
 import { DeleteTicketRelationshipUseCase } from '../use-cases/DeleteTicketRelationshipUseCase';
+import { CreateTicketRelationshipUseCase } from '../use-cases/CreateTicketRelationshipUseCase';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -19,9 +20,10 @@ interface AuthenticatedRequest extends Request {
 export class TicketRelationshipController {
   constructor(
     private findTicketRelationshipsUseCase: FindTicketRelationshipsUseCase,
-    private deleteTicketRelationshipUseCase: DeleteTicketRelationshipUseCase
+    private deleteTicketRelationshipUseCase: DeleteTicketRelationshipUseCase,
+    private createTicketRelationshipUseCase: CreateTicketRelationshipUseCase
   ) {
-    console.log('✅ [TicketRelationshipController] Initialized with dependencies');
+    console.log('✅ [TicketRelationshipController] Initialized with dependencies following 1qa.md');
   }
 
   async getRelationships(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -144,6 +146,69 @@ export class TicketRelationshipController {
       res.status(500).json({ 
         success: false, 
         message: 'Failed to delete relationship',
+        error: error.message 
+      });
+    }
+  }
+
+  async createRelationship(req: AuthenticatedRequest, res: Response): Promise<void> {
+    console.log('📝 [TicketRelationshipController] createRelationship called with:', { 
+      body: req.body,
+      tenantId: req.user?.tenantId 
+    });
+
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      if (!tenantId) {
+        res.status(401).json({ 
+          success: false, 
+          message: 'Tenant ID required' 
+        });
+        return;
+      }
+
+      if (!userId) {
+        res.status(401).json({ 
+          success: false, 
+          message: 'User ID required' 
+        });
+        return;
+      }
+
+      const { sourceTicketId, targetTicketId, relationshipType, description } = req.body;
+
+      if (!sourceTicketId || !targetTicketId || !relationshipType) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Source ticket ID, target ticket ID, and relationship type are required' 
+        });
+        return;
+      }
+
+      const relationship = await this.createTicketRelationshipUseCase.execute({
+        tenantId,
+        sourceTicketId,
+        targetTicketId,
+        relationshipType,
+        description,
+        createdBy: userId
+      });
+
+      console.log('✅ [TicketRelationshipController] Relationship created successfully:', relationship.id);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: 'Relationship created successfully',
+        data: relationship
+      });
+
+    } catch (error: any) {
+      console.error('❌ [TicketRelationshipController] Error creating relationship:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create relationship',
         error: error.message 
       });
     }

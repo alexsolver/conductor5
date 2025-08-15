@@ -8,6 +8,7 @@ import { Router } from 'express';
 import { DrizzleTicketRelationshipRepository } from './infrastructure/repositories/DrizzleTicketRelationshipRepository';
 import { FindTicketRelationshipsUseCase } from './application/use-cases/FindTicketRelationshipsUseCase';
 import { DeleteTicketRelationshipUseCase } from './application/use-cases/DeleteTicketRelationshipUseCase';
+import { CreateTicketRelationshipUseCase } from './application/use-cases/CreateTicketRelationshipUseCase';
 import { TicketRelationshipController } from './application/controllers/TicketRelationshipController';
 
 console.log('🏗️ [TICKET-RELATIONSHIPS-CLEAN-ARCH] Initializing Clean Architecture dependencies...');
@@ -18,11 +19,13 @@ const ticketRelationshipRepository = new DrizzleTicketRelationshipRepository();
 // Application Layer - Use Cases
 const findTicketRelationshipsUseCase = new FindTicketRelationshipsUseCase(ticketRelationshipRepository);
 const deleteTicketRelationshipUseCase = new DeleteTicketRelationshipUseCase(ticketRelationshipRepository);
+const createTicketRelationshipUseCase = new CreateTicketRelationshipUseCase(ticketRelationshipRepository);
 
 // Application Layer - Controllers
 const ticketRelationshipController = new TicketRelationshipController(
   findTicketRelationshipsUseCase,
-  deleteTicketRelationshipUseCase
+  deleteTicketRelationshipUseCase,
+  createTicketRelationshipUseCase
 );
 
 // Presentation Layer - Routes
@@ -44,6 +47,14 @@ router.get('/:ticketId/relationships',
  */
 router.get('/:ticketId/relationships-count', 
   ticketRelationshipController.getRelationshipsCount.bind(ticketRelationshipController)
+);
+
+/**
+ * POST /api/ticket-relationships
+ * Following 1qa.md Clean Architecture pattern
+ */
+router.post('/', 
+  ticketRelationshipController.createRelationship.bind(ticketRelationshipController)
 );
 
 /**
