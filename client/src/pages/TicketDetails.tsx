@@ -2461,19 +2461,19 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">🔗 Vínculos</h2>
               <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
-                {relatedTickets.length} ticket(s) vinculado(s)
+                {relatedTicketsData.length} ticket(s) vinculado(s)
               </Badge>
             </div>
 
             <div className="space-y-4">
-              {relatedTickets.length === 0 ? (
+              {relatedTicketsData.length === 0 ? (
                 <div className="text-center py-8">
                   <Link className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-500">Nenhum ticket vinculado</p>
                   <p className="text-xs text-gray-400">Use o botão "Vincular" para conectar tickets relacionados</p>
                 </div>
               ) : (
-                relatedTickets.map((linkedTicket) => {
+                relatedTicketsData.map((linkedTicket) => {
                   // Obter ícone e cor baseado no tipo de relacionamento
                   const getRelationshipIcon = (type: string) => {
                     switch (type) {
