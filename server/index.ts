@@ -51,11 +51,28 @@ async function ensurePostgreSQLRunning() {
 async function validateDatabaseConnection() {
   const { Pool } = await import('pg');
   
-  // CRITICAL FIX: Aggressive SSL configuration for production deployment
+  // CRITICAL FIX: Environment-specific SSL configuration for external production
   const isProduction = process.env.NODE_ENV === 'production';
-  const sslConfig = isProduction ? {
-    ssl: false  // Completely disable SSL verification in production
-  } : {};
+  const isExternalDeploy = !process.env.REPL_ID && isProduction; // Detect external deployment
+  
+  let sslConfig = {};
+  if (isProduction) {
+    if (isExternalDeploy) {
+      // External production environment - aggressive SSL disable
+      sslConfig = {
+        ssl: {
+          rejectUnauthorized: false,
+          requestCert: false,
+          agent: false,
+          checkServerIdentity: () => undefined,
+          secureProtocol: 'TLSv1_2_method'
+        }
+      };
+    } else {
+      // Replit production - simple SSL disable
+      sslConfig = { ssl: false };
+    }
+  }
 
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -78,9 +95,21 @@ async function validateDatabaseConnection() {
       
       // Try with even more permissive SSL settings
       try {
+        // Enhanced fallback for external production environments
+        const fallbackSslConfig = isExternalDeploy ? {
+          ssl: {
+            rejectUnauthorized: false,
+            requestCert: false,
+            agent: false,
+            checkServerIdentity: () => undefined,
+            secureProtocol: 'TLSv1_2_method',
+            ciphers: 'ALL'
+          }
+        } : { ssl: false };
+        
         const fallbackPool = new Pool({
           connectionString: process.env.DATABASE_URL,
-          ssl: false,  // Completely disable SSL in fallback
+          ...fallbackSslConfig,
           connectionTimeoutMillis: 10000
         });
         

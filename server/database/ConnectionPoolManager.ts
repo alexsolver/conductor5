@@ -98,11 +98,27 @@ export class ConnectionPoolManager {
       const baseUrl = new URL(process.env.DATABASE_URL!);
       baseUrl.searchParams.set('schema', schemaName);
       
-      // CRITICAL FIX: Disable SSL completely in production
+      // CRITICAL FIX: Environment-specific SSL configuration for external deployments
       const isProduction = process.env.NODE_ENV === 'production';
-      const sslConfig = isProduction ? {
-        ssl: false  // Completely disable SSL verification in production
-      } : {};
+      const isExternalDeploy = !process.env.REPL_ID && isProduction;
+      
+      let sslConfig = {};
+      if (isProduction) {
+        if (isExternalDeploy) {
+          sslConfig = {
+            ssl: {
+              rejectUnauthorized: false,
+              requestCert: false,
+              agent: false,
+              checkServerIdentity: () => undefined,
+              secureProtocol: 'TLSv1_2_method',
+              ciphers: 'ALL'
+            }
+          };
+        } else {
+          sslConfig = { ssl: false };
+        }
+      }
       
       const pool = new Pool({ 
         connectionString: baseUrl.toString(),
