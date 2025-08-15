@@ -24,14 +24,41 @@ export class DrizzleTicketRepository implements ITicketRepository {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const result = await db.execute(sql`
         SELECT 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
-          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
-        FROM ${sql.identifier(schemaName)}.tickets
-        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
+          t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
+          t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
+          t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
+          t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.is_active as "isActive",
+          -- Dados da empresa
+          COALESCE(comp.name, comp.display_name, comp.company_name) as "companyName",
+          comp.email as "companyEmail",
+          -- Dados do cliente/solicitante
+          COALESCE(
+            c.first_name || ' ' || c.last_name,
+            c.first_name,
+            c.last_name,
+            c.name,
+            c.full_name
+          ) as "callerName",
+          c.email as "callerEmail",
+          -- Dados do beneficiário
+          COALESCE(
+            b.first_name || ' ' || b.last_name,
+            b.first_name,
+            b.last_name,
+            b.name,
+            b.full_name
+          ) as "beneficiaryName",
+          b.email as "beneficiaryEmail",
+          -- Dados do usuário atribuído
+          COALESCE(u.first_name || ' ' || u.last_name, u.email) as "assignedToName"
+        FROM ${sql.identifier(schemaName)}.tickets t
+        LEFT JOIN ${sql.identifier(schemaName)}.companies comp ON t.company_id = comp.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers c ON t.caller_id = c.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers b ON t.beneficiary_id = b.id
+        LEFT JOIN public.users u ON t.assigned_to_id = u.id
+        WHERE t.id = ${id} AND t.tenant_id = ${tenantId} AND t.is_active = true
         LIMIT 1
-      `);
+      `);</old_str>
 
       return result.rows[0] ? this.mapToTicket(result.rows[0]) : null;
     } catch (error) {
@@ -241,15 +268,42 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
       const finalDataQuery = sql`
         SELECT 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
-          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
-        FROM ${sql.identifier(schemaName)}.tickets
+          t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
+          t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
+          t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
+          t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.is_active as "isActive",
+          -- Dados da empresa
+          COALESCE(comp.name, comp.display_name, comp.company_name) as "companyName",
+          comp.email as "companyEmail",
+          -- Dados do cliente/solicitante
+          COALESCE(
+            c.first_name || ' ' || c.last_name,
+            c.first_name,
+            c.last_name,
+            c.name,
+            c.full_name
+          ) as "callerName",
+          c.email as "callerEmail",
+          -- Dados do beneficiário (se diferente do solicitante)
+          COALESCE(
+            b.first_name || ' ' || b.last_name,
+            b.first_name,
+            b.last_name,
+            b.name,
+            b.full_name
+          ) as "beneficiaryName",
+          b.email as "beneficiaryEmail",
+          -- Dados do usuário atribuído
+          COALESCE(u.first_name || ' ' || u.last_name, u.email) as "assignedToName"
+        FROM ${sql.identifier(schemaName)}.tickets t
+        LEFT JOIN ${sql.identifier(schemaName)}.companies comp ON t.company_id = comp.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers c ON t.caller_id = c.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers b ON t.beneficiary_id = b.id
+        LEFT JOIN public.users u ON t.assigned_to_id = u.id
         WHERE ${sql.join(dataConditions, sql` AND `)}
-        ORDER BY created_at DESC
+        ORDER BY t.created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
-      `;
+      `;</old_str>
 
       const results = await db.execute(finalDataQuery);
 
@@ -293,14 +347,41 @@ export class DrizzleTicketRepository implements ITicketRepository {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const results = await db.execute(sql`
         SELECT 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
-          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId", is_active as "isActive"
-        FROM ${sql.identifier(schemaName)}.tickets
-        WHERE is_active = true
-        ORDER BY created_at DESC
-      `);
+          t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
+          t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
+          t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
+          t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.is_active as "isActive",
+          -- Dados da empresa
+          COALESCE(comp.name, comp.display_name, comp.company_name) as "companyName",
+          comp.email as "companyEmail",
+          -- Dados do cliente/solicitante
+          COALESCE(
+            c.first_name || ' ' || c.last_name,
+            c.first_name,
+            c.last_name,
+            c.name,
+            c.full_name
+          ) as "callerName",
+          c.email as "callerEmail",
+          -- Dados do beneficiário
+          COALESCE(
+            b.first_name || ' ' || b.last_name,
+            b.first_name,
+            b.last_name,
+            b.name,
+            b.full_name
+          ) as "beneficiaryName",
+          b.email as "beneficiaryEmail",
+          -- Dados do usuário atribuído
+          COALESCE(u.first_name || ' ' || u.last_name, u.email) as "assignedToName"
+        FROM ${sql.identifier(schemaName)}.tickets t
+        LEFT JOIN ${sql.identifier(schemaName)}.companies comp ON t.company_id = comp.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers c ON t.caller_id = c.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers b ON t.beneficiary_id = b.id
+        LEFT JOIN public.users u ON t.assigned_to_id = u.id
+        WHERE t.is_active = true
+        ORDER BY t.created_at DESC
+      `);</old_str>
 
       return results.rows.map(ticket => this.mapToTicket(ticket));
     } catch (error) {
@@ -487,7 +568,15 @@ export class DrizzleTicketRepository implements ITicketRepository {
       createdById: row.createdById || null,
       updatedById: row.updatedById || null,
       companyId: row.companyId || null,
-      isActive: row.isActive !== false
+      isActive: row.isActive !== false,
+      // Dados relacionais
+      companyName: row.companyName || null,
+      companyEmail: row.companyEmail || null,
+      callerName: row.callerName || null,
+      callerEmail: row.callerEmail || null,
+      beneficiaryName: row.beneficiaryName || null,
+      beneficiaryEmail: row.beneficiaryEmail || null,
+      assignedToName: row.assignedToName || null
     } as Ticket;
-  }
+  }</old_str>
 }

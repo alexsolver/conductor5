@@ -823,13 +823,41 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'company':
-          // Novo mapeamento corrigido para empresas
-          const companyName = (() => {
-            // Tentar diferentes campos possíveis do backend
-            if ((ticket as any).company_name) {
-              return (ticket as any).company_name;
-            }
-            if ((ticket as any).caller_company_name) {
+          // Usar campo relacional de empresa do backend
+          const companyName = (ticket as any).companyName || 
+            (ticket.companyId ? `Empresa ${ticket.companyId.substring(0, 8)}...` : 'Empresa não informada');</old_str>
+
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <div>
+                <div className="font-medium truncate" title={companyName}>
+                  {companyName}
+                </div>
+                <div className="text-sm text-gray-500 truncate" title={ticket.companyId || 'ID não disponível'}>
+                  ID: {ticket.companyId ? ticket.companyId.substring(0, 8) + '...' : 'N/A'}
+                </div>
+              </div>
+            </TableCell>
+          );
+        case 'customer':
+          // Usar campos relacionais do backend
+          const customerName = (ticket as any).callerName || 
+            (ticket.callerId ? `Cliente ${ticket.callerId.substring(0, 8)}...` : 'Cliente não informado');
+
+          const customerEmail = (ticket as any).callerEmail || 'Email não informado';</old_str>
+
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <div>
+                <div className="font-medium truncate" title={customerName}>
+                  {customerName}
+                </div>
+                <div className="text-sm text-gray-500 truncate" title={customerEmail}>
+                  {customerEmail}
+                </div>
+              </div>
+            </TableCell>
+          );</old_str> any).caller_company_name) {
               return (ticket as any).caller_company_name;
             }
             if ((ticket as any).company_name) {
