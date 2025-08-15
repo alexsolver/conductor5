@@ -1387,12 +1387,12 @@ export class DatabaseStorage implements IStorage {
   async initializeTenantIntegrations(tenantId: string): Promise<void> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-
+      
       console.log(`🔧 [INIT-INTEGRATIONS] Initializing integrations for tenant: ${validatedTenantId}`);
-
+      
       // Create default integrations if they don't exist
       await this.createDefaultIntegrations(validatedTenantId);
-
+      
       console.log(`✅ [INIT-INTEGRATIONS] Integrations initialized for tenant: ${validatedTenantId}`);
     } catch (error) {
       console.error(`❌ [INIT-INTEGRATIONS] Error initializing integrations:`, error);
@@ -1715,36 +1715,6 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error(`❌ [SAVE-CONFIG] Erro ao salvar configuração:`, error);
-      throw error;
-    }
-  }
-
-  // Update integration status
-  async updateIntegrationStatus(tenantId: string, integrationId: string, enabled: boolean): Promise<void> {
-    if (!tenantId || !integrationId) {
-      throw new Error('Tenant ID and Integration ID are required');
-    }
-
-    const client = getClient(); // Assuming getClient is defined elsewhere and provides a DB client
-
-    try {
-      console.log(`📝 [Storage] Updating integration ${integrationId} status to ${enabled} for tenant ${tenantId}`);
-
-      const result = await client.query(
-        `UPDATE tenant_integrations 
-         SET enabled = $1, status = $2, updated_at = NOW()
-         WHERE tenant_id = $3 AND id = $4
-         RETURNING *`,
-        [enabled, enabled ? 'connected' : 'disconnected', tenantId, integrationId]
-      );
-
-      if (result.rows.length === 0) {
-        throw new Error(`Integration ${integrationId} not found for tenant ${tenantId}`);
-      }
-
-      console.log(`✅ [Storage] Integration status updated successfully:`, result.rows[0]);
-    } catch (error) {
-      console.error('❌ [Storage] Error updating integration status:', error);
       throw error;
     }
   }
