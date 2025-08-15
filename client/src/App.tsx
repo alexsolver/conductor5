@@ -30,7 +30,6 @@ import TimecardReports from './pages/TimecardReports';
 import CertificateManager from './pages/CertificateManager';
 import TranslationManager from './pages/TranslationManager';
 import HourBank from "./pages/HourBank";
-import Compliance from "./pages/Compliance";
 import SaasAdmin from "./pages/SaasAdmin";
 import TenantAdmin from "./pages/TenantAdmin";
 import TenantProvisioning from "./pages/TenantProvisioning";
