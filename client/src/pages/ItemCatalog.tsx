@@ -318,17 +318,35 @@ export default function ItemCatalog() {
       let data;
       try {
         const responseText = await response.text();
-        console.log('🔍 [ItemCatalog] Raw response:', responseText.substring(0, 200));
+        console.log('🔍 [ItemCatalog] Raw response length:', responseText.length);
+        console.log('🔍 [ItemCatalog] Raw response start:', responseText.substring(0, 200));
+        console.log('🔍 [ItemCatalog] Response content-type:', response.headers.get('content-type'));
         
         // Check if response is HTML (error page)
-        if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
-          console.error('❌ [ItemCatalog] Received HTML instead of JSON - likely server error');
-          throw new Error('Server returned HTML instead of JSON. Check server logs.');
+        if (responseText.trim().startsWith('<!DOCTYPE') || 
+            responseText.trim().startsWith('<html') || 
+            responseText.includes('<script') ||
+            responseText.includes('import { createHotContext }')) {
+          console.error('❌ [ItemCatalog] Received HTML/JavaScript instead of JSON - server error detected');
+          console.error('❌ [ItemCatalog] This indicates a server-side error or routing issue');
+          throw new Error('Server returned HTML/JS instead of JSON. This suggests an authentication or routing problem.');
+        }
+        
+        // Check if response is empty
+        if (!responseText.trim()) {
+          console.error('❌ [ItemCatalog] Received empty response');
+          throw new Error('Server returned empty response');
         }
         
         data = JSON.parse(responseText);
+        console.log('✅ [ItemCatalog] Successfully parsed JSON response');
       } catch (parseError) {
         console.error('❌ [ItemCatalog] JSON parsing error:', parseError);
+        console.error('❌ [ItemCatalog] Parse error details:', {
+          name: parseError.name,
+          message: parseError.message,
+          position: parseError.position
+        });
         throw new Error(`Failed to parse server response: ${parseError.message}`);
       }
 

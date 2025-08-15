@@ -71,10 +71,22 @@ export class TokenManager {
 
   verifyAccessToken(token: string): { userId: string; email: string; role: string; tenantId: string | null } | null {
     try {
-      if (!token || token.length < 10) {
-        console.warn('Invalid token format provided');
+      // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        console.error('❌ [TOKEN-MANAGER] Invalid token provided:', { tokenType: typeof token, tokenLength: token?.length });
         return null;
       }
+
+      // Check for obvious invalid tokens
+      if (token === 'null' || token === 'undefined' || token === 'false') {
+        console.error('❌ [TOKEN-MANAGER] Token is literal string:', token);
+        return null;
+      }
+
+      console.log('🔍 [TOKEN-MANAGER] Verifying access token...', {
+        tokenStart: token.substring(0, 20),
+        tokenLength: token.length
+      });
 
       const decoded = jwt.verify(token, this.accessSecret, {
         issuer: 'conductor-platform',
@@ -112,10 +124,22 @@ export class TokenManager {
 
   verifyRefreshToken(token: string): { userId: string } | null {
     try {
-      if (!token || token.length < 10) {
-        console.warn('Invalid refresh token format provided');
+      // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        console.error('❌ [TOKEN-MANAGER] Invalid refresh token provided:', { tokenType: typeof token, tokenLength: token?.length });
         return null;
       }
+
+      // Check for obvious invalid tokens
+      if (token === 'null' || token === 'undefined' || token === 'false') {
+        console.error('❌ [TOKEN-MANAGER] Refresh token is literal string:', token);
+        return null;
+      }
+
+      console.log('🔍 [TOKEN-MANAGER] Verifying refresh token...', {
+        tokenStart: token.substring(0, 20),
+        tokenLength: token.length
+      });
 
       const decoded = jwt.verify(token, this.refreshSecret, {
         issuer: 'conductor-platform',

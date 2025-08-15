@@ -43,17 +43,27 @@ export class ItemController {
 
   async getItems(req: AuthenticatedRequest, res: Response) {
     try {
+      // ✅ CRITICAL FIX - Ensure JSON response headers per 1qa.md compliance
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      
       console.log('🔍 [ItemController] Getting items for user:', req.user?.id, 'tenant:', req.user?.tenantId);
+      console.log('🔍 [ItemController] Request headers:', {
+        authorization: req.headers.authorization ? 'Bearer ***' : 'missing',
+        contentType: req.headers['content-type'],
+        userAgent: req.headers['user-agent']?.substring(0, 50)
+      });
 
       // ✅ Enhanced authentication validation per 1qa.md compliance
       if (!req.user) {
         console.error('❌ [ItemController] No user context found in request');
-        res.status(401).json({
+        return res.status(401).json({
           success: false,
           message: 'Authentication required',
-          needsRefresh: true
+          needsRefresh: true,
+          timestamp: new Date().toISOString(),
+          code: 'NO_USER_CONTEXT'
         });
-        return;
       }
 
       if (!req.user.tenantId) {

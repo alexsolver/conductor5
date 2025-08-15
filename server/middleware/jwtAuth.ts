@@ -17,18 +17,31 @@ export interface AuthenticatedRequest extends Request {
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    // ✅ CRITICAL FIX - Ensure JSON response headers per 1qa.md compliance
+    res.setHeader('Content-Type', 'application/json');
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.error('No authorization header found');
-      return res.status(401).json({ message: 'Access token required' });
+      console.log('❌ [JWT-AUTH] No authorization header or invalid format');
+      return res.status(401).json({ 
+        success: false, 
+        message: 'No token provided',
+        needsRefresh: true,
+        timestamp: new Date().toISOString()
+      });
     }
 
     const token = authHeader.substring(7);
 
     if (!token || token === 'null' || token === 'undefined') {
-      console.error('Invalid token format:', token);
-      return res.status(401).json({ message: 'Invalid token format' });
+      console.log('❌ [JWT-AUTH] Invalid token format:', token);
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid token format',
+        needsRefresh: true,
+        timestamp: new Date().toISOString()
+      });
     }
 
     // Verify JWT token using enhanced token manager
@@ -50,7 +63,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // Verify user exists and is active
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
-    
+
     // ✅ CRITICAL FIX - Handle different payload structures per 1qa.md compliance
     const userId = payload.userId || payload.sub || payload.id;
     if (!userId) {
@@ -60,7 +73,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
         needsRefresh: true 
       });
     }
-    
+
     const user = await userRepository.findById(userId);
 
     if (!user || !user.isActive) {
@@ -95,7 +108,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     if (req.path.includes('/materials-services')) {
       console.log(`✅ [AUTH] Materials-Services access granted for user: ${req.user.id}, tenant: ${req.user.tenantId}`);
     }
-    
+
     // Log successful authentication for parts-services endpoints (legacy)
     if (req.path.includes('/parts-services')) {
       console.log(`✅ [AUTH] Parts-Services access granted for tenant: ${req.user.tenantId}`);
@@ -116,14 +129,42 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     next();
   } catch (error) {
-    const { logError } = await import('../utils/logger');
-    logError('JWT authentication failed', error, { 
-      method: req.method, 
-      url: req.url,
-      userAgent: req.get('User-Agent')
+    console.error('❌ [JWT-AUTH] Authentication error:', error);
+    console.error('❌ [JWT-AUTH] Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack?.substring(0, 200)
     });
-    console.error(`[AUTH ERROR] Token verification failed:`, error);
-    return res.status(401).json({ message: 'Authentication failed' });
+
+    // ✅ CRITICAL FIX - Ensure JSON response even in error cases per 1qa.md
+    res.setHeader('Content-Type', 'application/json');
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Token expired',
+        needsRefresh: true,
+        timestamp: new Date().toISOString(),
+        code: 'TOKEN_EXPIRED'
+      });
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid token',
+        needsRefresh: true,
+        timestamp: new Date().toISOString(),
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Authentication error',
+      timestamp: new Date().toISOString(),
+      code: 'AUTH_ERROR'
+    });
   }
 };
 

@@ -29,7 +29,17 @@ import { pool } from '../../db';
 // Create router
 const router = Router();
 
-// Use proper JWT authentication
+// ✅ CRITICAL FIX - Ensure proper JWT authentication per 1qa.md compliance
+console.log('🔍 [MATERIALS-SERVICES-ROUTES] Applying JWT authentication middleware');
+router.use((req, res, next) => {
+  console.log('🔍 [MATERIALS-SERVICES-ROUTES] Request intercepted:', {
+    method: req.method,
+    path: req.path,
+    hasAuth: !!req.headers.authorization
+  });
+  next();
+});
+
 router.use(jwtAuth);
 
 // Helper function to initialize controllers for each request
@@ -79,6 +89,10 @@ router.post('/items', async (req: AuthenticatedRequest, res) => {
 
 // GET /api/materials-services/items
 router.get('/items', async (req: Request, res: Response) => {
+  // ✅ CRITICAL FIX - Ensure JSON response headers per 1qa.md compliance
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  
   console.log(`🔍 [MATERIALS-SERVICES-ROUTE] GET /items called`);
   console.log(`🔍 [MATERIALS-SERVICES-ROUTE] Query params:`, req.query);
   console.log(`🔍 [MATERIALS-SERVICES-ROUTE] User:`, {
@@ -86,22 +100,51 @@ router.get('/items', async (req: Request, res: Response) => {
     tenantId: req.user?.tenantId,
     email: req.user?.email
   });
+  console.log(`🔍 [MATERIALS-SERVICES-ROUTE] Request method:`, req.method);
+  console.log(`🔍 [MATERIALS-SERVICES-ROUTE] Request path:`, req.path);
 
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
-      console.log('❌ [MATERIALS-SERVICES-ROUTE] Missing tenant ID');
-      return res.status(401).json({ message: 'Tenant ID required' });
+      console.error('❌ [MATERIALS-SERVICES-ROUTE] Missing tenant ID');
+      return res.status(401).json({ 
+        success: false,
+        message: 'Tenant ID required',
+        timestamp: new Date().toISOString(),
+        code: 'MISSING_TENANT_ID'
+      });
     }
+    
+    console.log('🔍 [MATERIALS-SERVICES-ROUTE] Getting controllers for tenant:', tenantId);
     const { itemController } = await getControllers(tenantId);
+    
+    if (!itemController) {
+      console.error('❌ [MATERIALS-SERVICES-ROUTE] ItemController not initialized');
+      return res.status(500).json({
+        success: false,
+        message: 'ItemController not available',
+        timestamp: new Date().toISOString(),
+        code: 'CONTROLLER_NOT_AVAILABLE'
+      });
+    }
+    
+    console.log('🔍 [MATERIALS-SERVICES-ROUTE] Calling itemController.getItems');
     await itemController.getItems(req, res);
   } catch (error) {
     console.error(`❌ [MATERIALS-SERVICES-ROUTE] Error in /items route:`, error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error in items route',
-      error: error.message
-    });
+    console.error(`❌ [MATERIALS-SERVICES-ROUTE] Error stack:`, error.stack);
+    
+    // ✅ Ensure JSON response even in error cases per 1qa.md
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error in items route',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        code: 'ROUTE_ERROR'
+      });
+    }
   }
 });
 
