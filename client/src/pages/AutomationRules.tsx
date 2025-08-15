@@ -226,7 +226,8 @@ export default function AutomationRules() {
   };
 
   // Verificações de segurança para evitar undefined errors
-  const rules = Array.isArray(rulesData?.rules) ? rulesData.rules : mockRules;
+  const rules = Array.isArray(rulesData?.rules) ? rulesData.rules : 
+                Array.isArray(rulesData) ? rulesData : mockRules;
   const metrics = (metricsData?.metrics && typeof metricsData.metrics === 'object') ? metricsData.metrics : mockMetrics;
 
   // Early return se houver erro crítico
@@ -615,35 +616,42 @@ export default function AutomationRules() {
             </div>
           ) : (
             <div className="space-y-4">
-              {Array.isArray(rules) && rules.map((rule: any) => (
-                <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      {rule.enabled ? (
-                        <Play className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Pause className="h-4 w-4 text-gray-400" />
-                      )}
-                      <div>
-                        <p className="font-medium">{rule?.name || 'Nome não disponível'}</p>
-                        <p className="text-sm text-muted-foreground">{rule?.description || 'Descrição não disponível'}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            Prioridade {rule?.priority || 1}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {rule?.conditionsCount || 0} condições
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {rule?.actionsCount || 0} ações
-                          </Badge>
-                          <Badge variant={rule?.enabled ? 'default' : 'secondary'} className="text-xs">
-                            {rule?.enabled ? 'Ativa' : 'Inativa'}
-                          </Badge>
+              {Array.isArray(rules) && rules.length > 0 && rules.map((rule: any) => {
+                // Validação robusta para cada regra
+                if (!rule || typeof rule !== 'object') {
+                  console.warn('🚨 [AutomationRules] Invalid rule object:', rule);
+                  return null;
+                }
+                
+                return (
+                  <div key={rule.id || Math.random()} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        {rule.enabled ? (
+                          <Play className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Pause className="h-4 w-4 text-gray-400" />
+                        )}
+                        <div>
+                          <p className="font-medium">{rule?.name || 'Nome não disponível'}</p>
+                          <p className="text-sm text-muted-foreground">{rule?.description || 'Descrição não disponível'}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              Prioridade {rule?.priority || 1}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {rule?.conditionsCount || 0} condições
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {rule?.actionsCount || 0} ações
+                            </Badge>
+                            <Badge variant={rule?.enabled ? 'default' : 'secondary'} className="text-xs">
+                              {rule?.enabled ? 'Ativa' : 'Inativa'}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
                   <div className="flex items-center space-x-2">
                     <Button
@@ -669,8 +677,9 @@ export default function AutomationRules() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>

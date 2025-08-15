@@ -86,10 +86,10 @@ export class AutomationEngine {
   public getRules(): AutomationRule[] {
     try {
       const rulesArray = Array.from(this.rules.values());
-      console.log(`📊 [AUTOMATION-ENGINE] Returning ${rulesArray.length} rules for tenant: ${this.tenantId}`);
-      return rulesArray;
+      console.log(`📋 [AutomationEngine] getRules returning ${rulesArray.length} rules for tenant ${this.tenantId}`);
+      return rulesArray || [];
     } catch (error) {
-      console.error(`❌ [AUTOMATION-ENGINE] Error getting rules for tenant ${this.tenantId}:`, error);
+      console.error(`❌ [AutomationEngine] Error getting rules for tenant ${this.tenantId}:`, error);
       return [];
     }
   }

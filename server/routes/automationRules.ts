@@ -53,15 +53,19 @@ router.get('/', async (req: any, res) => {
       updatedAt: rule.updatedAt
     }));
 
-    res.json({
+    const response = {
       success: true,
-      rules: mappedRules,
-      total: rules.length,
+      rules: mappedRules || [],
+      total: rules?.length || 0,
       metadata: {
         responseTime,
-        tenantId
+        tenantId,
+        rulesCount: mappedRules?.length || 0
       }
-    });
+    };
+
+    console.log(`📤 [AUTOMATION-RULES] Sending response:`, JSON.stringify(response, null, 2));
+    res.json(response);
   } catch (error: any) {
     const responseTime = Date.now() - startTime;
     console.error(`❌ [AUTOMATION-RULES] Error fetching rules for tenant ${tenantId}:`, {
