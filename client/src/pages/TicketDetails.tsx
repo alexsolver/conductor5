@@ -625,8 +625,12 @@ const TicketDetails = React.memo(() => {
   console.log('🔧 [PLANNED-MATERIALS-COUNT] Count for tab:', {
     plannedMaterialsData: plannedMaterialsData?.length,
     plannedMaterialsCount,
-    willShowCounter: plannedMaterialsCount > 0
+    willShowCounter: plannedMaterialsCount > 0,
+    plannedMaterialsLoading,
+    plannedMaterialsResponse: !!plannedMaterialsResponse
   });
+  
+  console.log('🔧 [DEBUG-TAB-GENERATION] Tab label will be:', getTabLabel("Materiais e Serviços", plannedMaterialsCount));
 
   const specialTabs = [
     {
