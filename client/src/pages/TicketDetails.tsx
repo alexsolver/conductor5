@@ -614,115 +614,62 @@ const TicketDetails = React.memo(() => {
   // Initialize real history data from API with comprehensive mapping
   useEffect(() => {
     if (ticketHistoryData?.success && Array.isArray(ticketHistoryData.data)) {
-      const mappedHistory = ticketHistoryData.data.map((item: any) => ({
-        ...item,
-        id: item.id || `history-${Date.now()}-${Math.random()}`,
-        action_type: item.action_type || item.actionType || item.type || 'activity',
-        performed_by_name: item.performed_by_name || item.performedByName || item.actor_name || item.createdBy || 'Sistema',
-        created_at: item.created_at || item.createdAt || new Date().toISOString(),
-        description: item.description || item.summary || item.content || 'Atividade registrada',
-        field_name: item.field_name || item.fieldName || null,
-        old_value: item.old_value || item.oldValue || null,
-        new_value: item.new_value || item.newValue || null,
-        metadata: item.metadata || {},
-        // ✅ MAPEAMENTO ROBUSTO DE DADOS DE SESSÃO - MÚLTIPLAS FONTES
-        ip_address: (() => {
-          // 1. Verificar campos diretos primeiro
-          if (item.ip_address && item.ip_address !== 'N/A' && item.ip_address !== null && item.ip_address !== '') {
-            return item.ip_address;
+      const mappedHistory = ticketHistoryData.data.map((item: any) => {
+        // 🔧 [1QA-COMPLIANCE] Parse metadata uma vez para otimização
+        let parsedMetadata = item.metadata;
+        if (typeof item.metadata === 'string') {
+          try {
+            parsedMetadata = JSON.parse(item.metadata);
+          } catch (e) {
+            parsedMetadata = {};
           }
-          if (item.ipAddress && item.ipAddress !== 'N/A' && item.ipAddress !== null && item.ipAddress !== '') {
-            return item.ipAddress;
-          }
-          
-          // 2. Parse metadata se for string
-          let parsedMetadata = item.metadata;
-          if (typeof item.metadata === 'string') {
-            try {
-              parsedMetadata = JSON.parse(item.metadata);
-            } catch (e) {
-              parsedMetadata = {};
-            }
-          }
-          
-          // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.ip_address && parsedMetadata.client_info.ip_address !== 'N/A') {
-            return parsedMetadata.client_info.ip_address;
-          }
-          if (parsedMetadata?.ip_address && parsedMetadata.ip_address !== 'N/A') {
-            return parsedMetadata.ip_address;
-          }
-          if (parsedMetadata?.session_backup?.ip_address && parsedMetadata.session_backup.ip_address !== 'N/A') {
-            return parsedMetadata.session_backup.ip_address;
-          }
-          
-          return 'N/A';
-        })(),
-        user_agent: (() => {
-          // 1. Verificar campos diretos primeiro
-          if (item.user_agent && item.user_agent !== 'N/A' && item.user_agent !== null && item.user_agent !== '') {
-            return item.user_agent;
-          }
-          if (item.userAgent && item.userAgent !== 'N/A' && item.userAgent !== null && item.userAgent !== '') {
-            return item.userAgent;
-          }
-          
-          // 2. Parse metadata se for string
-          let parsedMetadata = item.metadata;
-          if (typeof item.metadata === 'string') {
-            try {
-              parsedMetadata = JSON.parse(item.metadata);
-            } catch (e) {
-              parsedMetadata = {};
-            }
-          }
-          
-          // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.user_agent && parsedMetadata.client_info.user_agent !== 'N/A') {
-            return parsedMetadata.client_info.user_agent;
-          }
-          if (parsedMetadata?.user_agent && parsedMetadata.user_agent !== 'N/A') {
-            return parsedMetadata.user_agent;
-          }
-          if (parsedMetadata?.session_backup?.user_agent && parsedMetadata.session_backup.user_agent !== 'N/A') {
-            return parsedMetadata.session_backup.user_agent;
-          }
-          
-          return 'N/A';
-        })(),
-        session_id: (() => {
-          // 1. Verificar campos diretos primeiro
-          if (item.session_id && item.session_id !== 'N/A' && item.session_id !== null && item.session_id !== '') {
-            return item.session_id;
-          }
-          if (item.sessionId && item.sessionId !== 'N/A' && item.sessionId !== null && item.sessionId !== '') {
-            return item.sessionId;
-          }
-          
-          // 2. Parse metadata se for string
-          let parsedMetadata = item.metadata;
-          if (typeof item.metadata === 'string') {
-            try {
-              parsedMetadata = JSON.parse(item.metadata);
-            } catch (e) {
-              parsedMetadata = {};
-            }
-          }
-          
-          // 3. Verificar dentro do metadata
-          if (parsedMetadata?.client_info?.session_id && parsedMetadata.client_info.session_id !== 'N/A') {
-            return parsedMetadata.client_info.session_id;
-          }
-          if (parsedMetadata?.session_id && parsedMetadata.session_id !== 'N/A') {
-            return parsedMetadata.session_id;
-          }
-          if (parsedMetadata?.session_backup?.session_id && parsedMetadata.session_backup.session_id !== 'N/A') {
-            return parsedMetadata.session_backup.session_id;
-          }
-          
-          return 'N/A';
-        })()
-      }));
+        }
+
+        // 🔧 [1QA-COMPLIANCE] Debug específico para note_deleted
+        if (item.action_type === 'note_deleted') {
+          console.log('🔍 [HISTORY-DEBUG] Dados brutos da ação note_deleted:', {
+            id: item.id,
+            ip_address: item.ip_address,
+            user_agent: item.user_agent,
+            session_id: item.session_id,
+            metadata: parsedMetadata
+          });
+        }
+
+        return {
+          ...item,
+          id: item.id || `history-${Date.now()}-${Math.random()}`,
+          action_type: item.action_type || item.actionType || item.type || 'activity',
+          performed_by_name: item.performed_by_name || item.performedByName || item.actor_name || item.createdBy || 'Sistema',
+          created_at: item.created_at || item.createdAt || new Date().toISOString(),
+          description: item.description || item.summary || item.content || 'Atividade registrada',
+          field_name: item.field_name || item.fieldName || null,
+          old_value: item.old_value || item.oldValue || null,
+          new_value: item.new_value || item.newValue || null,
+          metadata: parsedMetadata,
+          // ✅ [1QA-COMPLIANCE] Dados de sessão com fallback em metadata
+          ip_address: item.ip_address || parsedMetadata?.ip_address || parsedMetadata?.client_info?.ip_address || parsedMetadata?.session_backup?.ip_address || 'N/A',
+          user_agent: item.user_agent || parsedMetadata?.user_agent || parsedMetadata?.client_info?.user_agent || parsedMetadata?.session_backup?.user_agent || 'N/A',
+          session_id: item.session_id || parsedMetadata?.session_id || parsedMetadata?.client_info?.session_id || parsedMetadata?.session_backup?.session_id || 'N/A'
+        };
+      });
+
+      // 🔧 [1QA-COMPLIANCE] Debug dos dados mapeados para note_deleted
+      const noteDeletedItems = mappedHistory.filter(item => item.action_type === 'note_deleted');
+      if (noteDeletedItems.length > 0) {
+        console.log('🔍 [TICKET-HISTORY] Dados de sessão mapeados:', {
+          totalItems: mappedHistory.length,
+          itemsWithIP: mappedHistory.filter(item => item.ip_address && item.ip_address !== 'N/A').length,
+          itemsWithSession: mappedHistory.filter(item => item.session_id && item.session_id !== 'N/A').length,
+          sampleData: noteDeletedItems.slice(0, 3).map(item => ({
+            id: item.id,
+            ip_address: item.ip_address,
+            user_agent: item.user_agent ? item.user_agent.substring(0, 30) + '...' : 'N/A',
+            session_id: item.session_id,
+            action_type: item.action_type
+          }))
+        });
+      }
 
       console.log('🔍 [TICKET-HISTORY] Dados de sessão mapeados:', {
         totalItems: mappedHistory.length,
