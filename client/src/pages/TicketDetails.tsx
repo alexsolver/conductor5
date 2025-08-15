@@ -602,12 +602,16 @@ const TicketDetails = React.memo(() => {
       label: getTabLabel("Anexos", attachmentsData?.length),
       icon: Paperclip
     },
-    { id: "notes", label: "Notas", icon: FileText },
-    { id: "communications", label: "Comunicação", icon: MessageSquare },
+    { id: "notes", label: getTabLabel("Notas", notesData.length), icon: FileText },
+    { id: "communications", label: getTabLabel("Comunicação", communicationsData.length), icon: MessageSquare },
     { id: "history", label: "Histórico", icon: History },
-    { id: "internal-actions", label: "Ações Internas", icon: Settings },
-    { id: "links", label: "Vínculos", icon: Link },
-    { id: "materials", label: "Materiais e Serviços", icon: Package },
+    { id: "internal-actions", label: getTabLabel("Ações Internas", internalActionsData.length), icon: Settings },
+    { id: "links", label: getTabLabel("Vínculos", relatedTicketsData.length), icon: Link },
+    { 
+      id: "materials", 
+      label: `Materiais e Serviços (${plannedMaterials?.length || 0}/${consumedMaterials?.length || 0})`, 
+      icon: Package 
+    },
   ];
 
   // 🔧 [1QA-COMPLIANCE] Direct computation for followers and tags
