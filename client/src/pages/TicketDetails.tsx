@@ -599,7 +599,13 @@ const TicketDetails = React.memo(() => {
     }
     
     const result = [...plannedArray, ...consumedArray];
-    console.log('MATERIAIS FINAL:', result.length, 'planned:', plannedArray.length, 'consumed:', consumedArray.length);
+    console.log('🔥 MATERIAIS COUNT DEBUG:', {
+      planned: plannedArray.length,
+      consumed: consumedArray.length, 
+      total: result.length,
+      plannedResponse: !!plannedMaterialsResponse,
+      consumedResponse: !!consumedMaterialsResponse
+    });
     return result;
   }, [plannedMaterialsResponse, consumedMaterialsResponse]);
 
