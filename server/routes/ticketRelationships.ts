@@ -118,7 +118,7 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
         const targetTicket = isSourceRelationship ? {
           id: row.target_ticket_id,
           number: row.target_ticket_number || `T-${row.target_ticket_id?.slice(0, 8)}`,
-          subject: row.target_ticket_subject || 'Sem assunto',
+          subject: row.target_ticket_subject || 'Ticket relacionado',
           status: row.target_ticket_status || 'unknown',
           priority: row.target_ticket_priority || 'medium',
           createdAt: row.target_ticket_created_at,
@@ -126,7 +126,7 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
         } : {
           id: row.source_ticket_id,
           number: row.source_ticket_number || `T-${row.source_ticket_id?.slice(0, 8)}`,
-          subject: row.source_ticket_subject || 'Sem assunto',
+          subject: row.source_ticket_subject || 'Ticket relacionado',
           status: row.source_ticket_status || 'unknown',
           priority: row.source_ticket_priority || 'medium',
           createdAt: row.source_ticket_created_at,

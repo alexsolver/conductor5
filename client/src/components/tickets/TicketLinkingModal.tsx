@@ -499,7 +499,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                               )}
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
-                              {ticket.subject || "Sem assunto"}
+                              {ticket.subject || "Ticket sem assunto definido"}
                             </div>
                           </div>
                         </div>
@@ -585,7 +585,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                           )}
                         </div>
                         <div className="text-sm text-gray-600 truncate">
-                          {ticket.subject || "Sem assunto"}
+                          {ticket.subject || "Ticket sem assunto definido"}
                         </div>
                       </div>
                     ))}

@@ -532,10 +532,10 @@ const TicketDetails = React.memo(() => {
   const relatedTicketsData = useMemo(() => {
     if (ticketRelationships?.success && Array.isArray(ticketRelationships.data)) {
       return ticketRelationships.data.map((relationship: any) => ({
-        id: relationship.targetTicket?.id || relationship.id,
-        number: relationship.targetTicket?.number || relationship.number || 'N/A',
-        subject: relationship.targetTicket?.subject || relationship.subject || 'Sem assunto',
-        status: relationship.targetTicket?.status || relationship.status || 'unknown',
+        id: relationship.relatedTicketId || relationship.targetTicketId || relationship.targetTicket?.id || relationship.id,
+        number: relationship.relatedTicketNumber || relationship.targetTicket?.number || relationship.number || 'N/A',
+        subject: relationship.relatedTicketSubject || relationship.targetTicket?.subject || relationship.subject || 'Ticket relacionado',
+        status: relationship.relatedTicketStatus || relationship.targetTicket?.status || relationship.status || 'unknown',
         priority: relationship.targetTicket?.priority || relationship.priority || 'medium',
         relationshipType: relationship.relationshipType || relationship.relationship_type || 'related',
         description: relationship.description || '',
@@ -2639,7 +2639,7 @@ const TicketDetails = React.memo(() => {
                             </div>
 
                             <h4 className="font-medium text-gray-800 mb-2">
-                              {linkedTicket.targetTicket?.subject || linkedTicket.subject || 'Sem assunto definido'}
+                              {linkedTicket.subject || linkedTicket.targetTicket?.subject || 'Ticket relacionado'}
                             </h4>
 
                             {(linkedTicket.targetTicket?.description || linkedTicket.description) && (
