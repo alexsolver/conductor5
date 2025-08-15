@@ -56,7 +56,7 @@ import TicketTemplates from "./pages/TicketTemplates";
 
 // Removed: ExternalContactsManagement - functionality eliminated
 // Removed: Projects and ProjectActions - module completely eliminated
-import OmniBridge from "./pages/OmniBridge";
+// Removed: OmniBridge import
 // Removed: JourneyControl - functionality eliminated from system
 import Timecard from "./pages/Timecard";
 import TimecardAutonomous from "./pages/TimecardAutonomous";
@@ -190,7 +190,7 @@ function AppRouter() {
         <Route path="/absence-management" component={AbsenceManagement} />
         <Route path="/holiday-calendar" component={HolidayCalendar} />
         <Route path="/agenda-manager" component={AgendaManager} />
-        <Route path="/omnibridge" component={OmniBridge} />
+        {/* Removed: OmniBridge route */}
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />

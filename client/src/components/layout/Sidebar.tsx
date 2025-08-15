@@ -164,7 +164,6 @@ const adminNavigation = [
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
 
       { name: "Empresas", href: "/companies", icon: Building2 },
-      { name: "OmniBridge", href: "/omnibridge", icon: Mail },
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
     ]
@@ -582,7 +581,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
                 location === "/layouts"
                   ? "text-white shadow-lg"
-                  : "text-white hover:bg-white hover:bg-opacity-20"
+                  : "text-white hover:bg-white hover:bg-opacity-10"
               )} style={location === "/layouts" ? {
                 backgroundColor: 'var(--accent)',
                 color: 'white'
@@ -608,7 +607,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
                     isActive
                       ? "text-white shadow-lg"
-                      : "text-white hover:bg-white hover:bg-opacity-20"
+                      : "text-white hover:bg-white hover:bg-opacity-10"
                   )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'

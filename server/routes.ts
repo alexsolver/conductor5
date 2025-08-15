@@ -24,7 +24,7 @@ import beneficiariesRoutes from './modules/beneficiaries/routes';
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
 // ✅ LEGACY LOCATIONS ROUTES REMOVED - Clean Architecture only per 1qa.md
-// ✅ LEGACY ROUTES REMOVED - Clean Architecture only per 1qa.md
+// ✅ LEGACYROUTES REMOVED - Clean Architecture only per 1qa.md
 // import { omniBridgeRoutes } from './modules/omni-bridge/routes'; // Temporarily removed
 // ✅ LEGACY MODULE ROUTES REMOVED - Using Clean Architecture exclusively
 // Removed old multilocation routes - replaced with new locations module
@@ -2103,7 +2103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         integrations: [],
         fallback: true,
-        message: "Error fetching integrations, fallback data provided"
+        message: "Error fetching integrations, empty structure provided"
       });
     }
   });
@@ -2270,70 +2270,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Timecard Routes - Essential for CLT compliance
   app.use('/api/timecard', timecardRoutes);
 
-  // OmniBridge Auto-Start Routes - Simplified without requireTenantAccess
-  app.post('/api/omnibridge/start-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(400).json({ message: "Tenant ID required" });
-      }
-
-      console.log(`🚀 Starting OmniBridge monitoring for tenant: ${tenantId}`);
-      await omniBridgeAutoStart.detectAndStartCommunicationChannels(tenantId);
-
-      res.json({ 
-        message: "OmniBridge monitoring started successfully",
-        activeMonitoring: omniBridgeAutoStart.getActiveMonitoring(),
-        isActive: true
-      });
-    } catch (error) {
-      console.error('Error starting OmniBridge monitoring:', error);
-      res.status(500).json({ message: "Failed to start monitoring" });
-    }
-  });
-
-  app.post('/api/omnibridge/stop-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(400).json({ message: "Tenant ID required" });
-      }
-
-      console.log(`🛑 Stopping OmniBridge monitoring for tenant: ${tenantId}`);
-      await omniBridgeAutoStart.stopAllMonitoring(tenantId);
-
-      res.json({ 
-        message: "OmniBridge monitoring stopped successfully",
-        isActive: false
-      });
-    } catch (error) {
-      console.error('Error stopping OmniBridge monitoring:', error);
-      res.status(500).json({ message: "Failed to stop monitoring" });
-    }
-  });
-
-  app.get('/api/omnibridge/monitoring-status', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
-
-      const activeMonitoring = omniBridgeAutoStart.getActiveMonitoring();
-      res.json({ 
-        activeMonitoring,
-        isActive: activeMonitoring.length > 0
-      });
-    } catch (error) {
-      console.error('Error getting monitoring status:', error);
-      res.status(500).json({ message: "Failed to get status" });
-    }
-  });
-
-  // Timecard routes - Registro de Ponto  
-  app.use('/api/timecard', jwtAuth, timecardRoutes);
-
   // Timecard Approval Routes
   const timecardApprovalController = new TimecardApprovalController();
 
@@ -2361,7 +2297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Utility Routes
   app.get('/api/timecard/approval/users', jwtAuth, timecardApprovalController.getAvailableUsers);
 
-  // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
+  // 🔴 CLT COMPLIANCEROUTES - OBRIGATÓRIAS POR LEI
   // Verificação de integridade da cadeia CLT
   app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
 
