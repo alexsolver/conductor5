@@ -3621,7 +3621,7 @@ const TicketDetails = React.memo(() => {
 
           <button
             onClick={() => setActiveTab("links")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "links"
                 ? 'bg-cyan-100 text-cyan-900 border-2 border-cyan-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
@@ -3629,9 +3629,15 @@ const TicketDetails = React.memo(() => {
             role="tab"
             aria-selected={activeTab === "links"}
             aria-controls="tab-content"
+            aria-label={`Vínculos - ${relatedTicketsData?.length || 0} itens`}
           >
-            <Link className="h-4 w-4" />
-            <span className="text-sm font-medium">Vínculos</span>
+            <div className="flex items-center gap-3">
+              <Link className="h-4 w-4" />
+              <span className="text-sm font-medium">Vínculos</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-600 border-cyan-300">
+              {relatedTicketsData?.length || 0}
+            </Badge>
           </button>
 
           <button
