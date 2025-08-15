@@ -825,7 +825,7 @@ const TicketsTable = React.memo(() => {
         case 'company':
           // Usar campo relacional de empresa do backend
           const companyName = (ticket as any).companyName || 
-            (ticket.companyId ? `Empresa ${ticket.companyId.substring(0, 8)}...` : 'Empresa não informada');</old_str>
+            ((ticket as any).companyId ? `Empresa ${(ticket as any).companyId.substring(0, 8)}...` : 'Empresa não informada');
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
@@ -833,56 +833,37 @@ const TicketsTable = React.memo(() => {
                 <div className="font-medium truncate" title={companyName}>
                   {companyName}
                 </div>
-                <div className="text-sm text-gray-500 truncate" title={ticket.companyId || 'ID não disponível'}>
-                  ID: {ticket.companyId ? ticket.companyId.substring(0, 8) + '...' : 'N/A'}
+                <div className="text-sm text-gray-500 truncate" title={(ticket as any).companyId || 'ID não disponível'}>
+                  ID: {(ticket as any).companyId ? (ticket as any).companyId.substring(0, 8) + '...' : 'N/A'}
                 </div>
               </div>
             </TableCell>
           );
         case 'customer':
           // Usar campos relacionais do backend
-          const customerName = (ticket as any).callerName || 
-            (ticket.callerId ? `Cliente ${ticket.callerId.substring(0, 8)}...` : 'Cliente não informado');
+          const customerName2 = (ticket as any).callerName || 
+            ((ticket as any).callerId ? `Cliente ${(ticket as any).callerId.substring(0, 8)}...` : 'Cliente não informado');
 
-          const customerEmail = (ticket as any).callerEmail || 'Email não informado';</old_str>
+          const customerEmail2 = (ticket as any).callerEmail || 'Email não informado';
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <div>
-                <div className="font-medium truncate" title={customerName}>
-                  {customerName}
+                <div className="font-medium truncate" title={customerName2}>
+                  {customerName2}
                 </div>
-                <div className="text-sm text-gray-500 truncate" title={customerEmail}>
-                  {customerEmail}
+                <div className="text-sm text-gray-500 truncate" title={customerEmail2}>
+                  {customerEmail2}
                 </div>
               </div>
             </TableCell>
-          );</old_str> any).caller_company_name) {
-              return (ticket as any).caller_company_name;
-            }
-            if ((ticket as any).company_name) {
-              return (ticket as any).company_name;
-            }
-
-            // Se temos um ID da empresa, resolver o nome
-            const companyId = (ticket as any).company_id;
-            if (companyId) {
-              const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(companyId);
-              if (isUuid) {
-                const resolvedName = getCompanyName(companyId);
-                if (resolvedName && resolvedName !== 'Empresa não encontrada') {
-                  return resolvedName;
-                }
-              }
-            }
-
-            return 'Empresa não informada';
-          })();
-
+          );
+        case 'beneficiary':
+          const beneficiaryName = (ticket as any).beneficiaryName || 'Beneficiário não informado';
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <div className="font-medium truncate" title={companyName}>
-                {companyName}
+              <div className="font-medium truncate" title={beneficiaryName}>
+                {beneficiaryName}
               </div>
             </TableCell>
           );
