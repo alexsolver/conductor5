@@ -581,37 +581,24 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
   const materialsData = useMemo(() => {
-    // Estrutura das APIs: planned retorna { success: true, data: { plannedItems: [...] } }
-    // consumed retorna { success: true, data: [...] }
-    let plannedArray = [];
-    let consumedArray = [];
+    let total = 0;
     
-    // Planned items - estrutura aninhada
+    // Count planned items
     if (plannedMaterialsResponse?.success && plannedMaterialsResponse?.data?.plannedItems) {
-      plannedArray = Array.isArray(plannedMaterialsResponse.data.plannedItems) 
-        ? plannedMaterialsResponse.data.plannedItems 
-        : [];
+      total += Array.isArray(plannedMaterialsResponse.data.plannedItems) 
+        ? plannedMaterialsResponse.data.plannedItems.length 
+        : 0;
     }
     
-    // Consumed items - estrutura direta
+    // Count consumed items
     if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
-      consumedArray = Array.isArray(consumedMaterialsResponse.data) 
-        ? consumedMaterialsResponse.data 
-        : [];
+      total += Array.isArray(consumedMaterialsResponse.data) 
+        ? consumedMaterialsResponse.data.length 
+        : 0;
     }
     
-    const result = [...plannedArray, ...consumedArray];
-    
-    console.log('🔧 [MATERIALS-STRUCTURE-FIX] FINAL:', {
-      plannedResponse: plannedMaterialsResponse,
-      plannedArrayLength: plannedArray.length,
-      consumedResponse: consumedMaterialsResponse,
-      consumedArrayLength: consumedArray.length,
-      totalCombined: result.length,
-      resultSample: result.slice(0, 2)
-    });
-    
-    return result;
+    // Return array with length equal to total count for counter display
+    return new Array(total).fill({});
   }, [plannedMaterialsResponse, consumedMaterialsResponse]);
 
 
