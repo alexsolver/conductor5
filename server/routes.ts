@@ -326,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ TICKET RELATIONSHIPS - Clean Architecture Implementation per 1qa.md
   const ticketRelationshipsRoutes = (await import('./modules/ticket-relationships/routes')).default;
-  app.use('/api/ticket-relationships', jwtAuth, ticketRelationshipsRoutes);
+  app.use('/api/ticket-relationships', ticketRelationshipsRoutes);
 
   // ✅ LEGACY TICKET RELATIONSHIPS ENDPOINTS REMOVED - Clean Architecture only per 1qa.md
   console.log('✅ [CLEAN-ARCHITECTURE] All modules using Clean Architecture pattern');

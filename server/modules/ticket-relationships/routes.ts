@@ -5,6 +5,7 @@
  */
 
 import { Router } from 'express';
+import { jwtAuth } from '../../middleware/jwtAuth';
 import { DrizzleTicketRelationshipRepository } from './infrastructure/repositories/DrizzleTicketRelationshipRepository';
 import { FindTicketRelationshipsUseCase } from './application/use-cases/FindTicketRelationshipsUseCase';
 import { DeleteTicketRelationshipUseCase } from './application/use-cases/DeleteTicketRelationshipUseCase';
@@ -38,6 +39,7 @@ console.log('🏗️ [TICKET-RELATIONSHIPS-CLEAN-ARCH] Setting up Clean Architec
  * Following 1qa.md Clean Architecture pattern
  */
 router.get('/:ticketId/relationships', 
+  jwtAuth,
   ticketRelationshipController.getRelationships.bind(ticketRelationshipController)
 );
 
@@ -46,6 +48,7 @@ router.get('/:ticketId/relationships',
  * Following 1qa.md Clean Architecture pattern
  */
 router.get('/:ticketId/relationships-count', 
+  jwtAuth,
   ticketRelationshipController.getRelationshipsCount.bind(ticketRelationshipController)
 );
 
@@ -54,6 +57,7 @@ router.get('/:ticketId/relationships-count',
  * Following 1qa.md Clean Architecture pattern
  */
 router.post('/', 
+  jwtAuth,
   ticketRelationshipController.createRelationship.bind(ticketRelationshipController)
 );
 
@@ -62,6 +66,7 @@ router.post('/',
  * Following 1qa.md Clean Architecture pattern
  */
 router.delete('/:relationshipId', 
+  jwtAuth,
   ticketRelationshipController.deleteRelationship.bind(ticketRelationshipController)
 );
 
