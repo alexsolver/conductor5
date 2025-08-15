@@ -724,9 +724,8 @@ const TicketDetails = React.memo(() => {
         }))
       });
 
-      // ✅ [1QA-COMPLIANCE] Atualizar estado com dados mapeados
-      setTicketHistory(mappedHistory);
-      console.log('🔧 [STATE-UPDATE] História atualizada com dados de sessão mapeados');
+      // ✅ [1QA-COMPLIANCE] Dados mapeados processados - usados via useMemo abaixo
+      console.log('🔧 [STATE-UPDATE] História processada com dados de sessão mapeados');
     }
   }, [ticketHistoryData, historyError, historyLoading]);
 
