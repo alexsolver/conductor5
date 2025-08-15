@@ -581,24 +581,26 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
   const materialsData = useMemo(() => {
-    let total = 0;
+    let plannedArray = [];
+    let consumedArray = [];
     
-    // Count planned items
+    // Planned items from API
     if (plannedMaterialsResponse?.success && plannedMaterialsResponse?.data?.plannedItems) {
-      total += Array.isArray(plannedMaterialsResponse.data.plannedItems) 
-        ? plannedMaterialsResponse.data.plannedItems.length 
-        : 0;
+      plannedArray = Array.isArray(plannedMaterialsResponse.data.plannedItems) 
+        ? plannedMaterialsResponse.data.plannedItems 
+        : [];
     }
     
-    // Count consumed items
+    // Consumed items from API  
     if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
-      total += Array.isArray(consumedMaterialsResponse.data) 
-        ? consumedMaterialsResponse.data.length 
-        : 0;
+      consumedArray = Array.isArray(consumedMaterialsResponse.data) 
+        ? consumedMaterialsResponse.data 
+        : [];
     }
     
-    // Return array with length equal to total count for counter display
-    return new Array(total).fill({});
+    const result = [...plannedArray, ...consumedArray];
+    console.log('MATERIAIS FINAL:', result.length, 'planned:', plannedArray.length, 'consumed:', consumedArray.length);
+    return result;
   }, [plannedMaterialsResponse, consumedMaterialsResponse]);
 
 
