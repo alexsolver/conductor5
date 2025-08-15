@@ -85,10 +85,26 @@ export default function AutomationRules() {
   // Buscar regras de automação
   const { data: rulesData, isLoading, error: rulesError } = useQuery({
     queryKey: ['automation-rules'],
-    queryFn: () => apiRequest('/api/automation-rules'),
+    queryFn: async () => {
+      console.log('🔄 [AutomationRules] Attempting to fetch rules...');
+      try {
+        const result = await apiRequest('/api/automation-rules');
+        console.log('✅ [AutomationRules] Rules fetched successfully:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ [AutomationRules] API Request failed:', error);
+        throw error;
+      }
+    },
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     onError: (error: any) => {
-      console.error('❌ [AutomationRules] Error loading rules:', error);
-      setLoadingError('Erro ao carregar regras de automação');
+      console.error('❌ [AutomationRules] Final error after retries:', error);
+      setLoadingError(`Erro ao carregar regras de automação: ${error?.message || 'Erro desconhecido'}`);
+    },
+    onSuccess: (data) => {
+      console.log('✅ [AutomationRules] Rules query successful');
+      setLoadingError(null);
     }
   });
 
@@ -96,8 +112,13 @@ export default function AutomationRules() {
   const { data: metricsData, error: metricsError } = useQuery({
     queryKey: ['automation-metrics'],
     queryFn: () => apiRequest('/api/automation-rules/metrics/overview'),
+    retry: 1,
+    retryDelay: 1000,
     onError: (error: any) => {
       console.error('❌ [AutomationRules] Error loading metrics:', error);
+    },
+    onSuccess: (data) => {
+      console.log('✅ [AutomationRules] Metrics loaded successfully:', data);
     }
   });
 
@@ -190,8 +211,19 @@ export default function AutomationRules() {
     ]);
   };
 
-  const rules = rulesData?.rules || [];
-  const metrics = metricsData?.metrics || {};
+  // Fallback de dados para desenvolvimento se API falhar
+  const mockRules = [];
+  const mockMetrics = {
+    rulesCount: 0,
+    enabledRulesCount: 0,
+    rulesExecuted: 0,
+    actionsTriggered: 0,
+    successRate: 100,
+    avgExecutionTime: 0
+  };
+
+  const rules = rulesData?.rules || mockRules;
+  const metrics = metricsData?.metrics || mockMetrics;
 
   // Early return se houver erro crítico
   if (loadingError || rulesError) {
@@ -541,7 +573,10 @@ export default function AutomationRules() {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Carregando regras...</p>
+              <p className="mt-4 text-muted-foreground">Carregando regras de automação...</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Conectando com o serviço de automação...
+              </p>
             </div>
           ) : rules.length === 0 ? (
             <div className="text-center py-8">

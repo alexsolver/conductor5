@@ -54,6 +54,41 @@ router.get('/', async (req: any, res) => {
 });
 
 /**
+ * Obter métricas de automação (deve vir antes da rota /:ruleId)
+ */
+router.get('/metrics/overview', async (req: any, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant ID not found'
+      });
+    }
+
+    const automationManager = GlobalAutomationManager.getInstance();
+    const engine = automationManager.getEngine(tenantId);
+    const metrics = engine.getMetrics();
+
+    res.json({
+      success: true,
+      metrics: {
+        ...metrics,
+        rulesCount: engine.getRules().length,
+        enabledRulesCount: engine.getRules().filter(r => r.enabled).length
+      }
+    });
+  } catch (error) {
+    console.error('❌ [AUTOMATION-RULES] Error fetching metrics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch automation metrics'
+    });
+  }
+});
+
+/**
  * Obter regra específica com detalhes completos
  */
 router.get('/:ruleId', async (req: any, res) => {
@@ -208,40 +243,7 @@ router.delete('/:ruleId', async (req: any, res) => {
   }
 });
 
-/**
- * Obter métricas de automação
- */
-router.get('/metrics/overview', async (req: any, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
 
-    if (!tenantId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Tenant ID not found'
-      });
-    }
-
-    const automationManager = GlobalAutomationManager.getInstance();
-    const engine = automationManager.getEngine(tenantId);
-    const metrics = engine.getMetrics();
-
-    res.json({
-      success: true,
-      metrics: {
-        ...metrics,
-        rulesCount: engine.getRules().length,
-        enabledRulesCount: engine.getRules().filter(r => r.enabled).length
-      }
-    });
-  } catch (error) {
-    console.error('❌ [AUTOMATION-RULES] Error fetching metrics:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch automation metrics'
-    });
-  }
-});
 
 /**
  * Testar regra com dados simulados
