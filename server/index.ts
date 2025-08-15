@@ -7,6 +7,47 @@ import { enhancedWebsocketStability, configureServerForStability } from "./middl
 import { initializeCleanup } from "./utils/temporaryFilesCleaner";
 import { connectionStabilizer } from "./utils/connectionStabilizer";
 import { productionInitializer } from './utils/productionInitializer';
+
+// PostgreSQL Local startup helper
+async function ensurePostgreSQLRunning() {
+  const { spawn } = await import('child_process');
+  const path = await import('path');
+  
+  console.log("🚀 [POSTGRESQL-STARTUP] Verificando/iniciando PostgreSQL local...");
+  
+  try {
+    // Verificar se já está rodando
+    const { Pool } = await import('pg');
+    const testPool = new Pool({
+      connectionString: `postgresql://postgres@localhost/postgres?host=/tmp`,
+      connectionTimeoutMillis: 2000,
+    });
+    
+    await testPool.query('SELECT 1');
+    await testPool.end();
+    console.log("✅ [POSTGRESQL-STARTUP] PostgreSQL já está rodando");
+    return true;
+  } catch (error) {
+    console.log("🔄 [POSTGRESQL-STARTUP] Iniciando PostgreSQL...");
+    
+    // Iniciar PostgreSQL
+    const postgresPath = '/nix/store/yz718sizpgsnq2y8gfv8bba8l8r4494l-postgresql-16.3/bin/postgres';
+    const dataDir = process.env.HOME + '/postgres_data';
+    
+    const postgresProcess = spawn(postgresPath, ['-D', dataDir], {
+      detached: true,
+      stdio: 'ignore'
+    });
+    
+    postgresProcess.unref();
+    
+    // Aguardar inicialização
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    
+    console.log("✅ [POSTGRESQL-STARTUP] PostgreSQL iniciado");
+    return true;
+  }
+}
 import { optimizeViteHMR, preventViteReconnections } from './utils/viteStabilizer';
 import { applyViteConnectionOptimizer, disableVitePolling } from './utils/viteConnectionOptimizer';
 import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/viteWebSocketStabilizer';

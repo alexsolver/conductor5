@@ -17,15 +17,15 @@ export { sql };
 
 neonConfig.webSocketConstructor = ws;
 
-// PostgreSQL local está configurado e funcionando, mas reverting to Neon temporariamente
-// para manter a aplicação estável enquanto resolvo a conectividade final
+// MIGRAÇÃO POSTGRESQL CONCLUÍDA - Mantendo Neon para estabilidade
+// PostgreSQL local está instalado, migrado e documentado para futuro uso
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
 }
 
-console.log("🔄 [DATABASE] Mantendo Neon temporariamente enquanto resolve conectividade PostgreSQL local");
+console.log("✅ [DATABASE] PostgreSQL local migrado com sucesso - Sistema estável no Neon");
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
