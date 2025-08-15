@@ -189,7 +189,7 @@ export default function OmniBridge() {
             method: 'POST',
             headers
           });
-          
+
           if (syncResponse.ok) {
             console.log('✅ [OMNIBRIDGE-SYNC] Manual sync completed');
           } else {
@@ -367,9 +367,9 @@ export default function OmniBridge() {
       setLoading(true);
 
       const token = localStorage.getItem('token');
-      
+
       console.log('🔄 [OMNIBRIDGE-MANUAL-SYNC] Starting manual sync...');
-      
+
       const response = await fetch('/api/omnibridge/sync-integrations', {
         method: 'POST',
         headers: {
@@ -381,10 +381,10 @@ export default function OmniBridge() {
 
       if (response.ok) {
         console.log('✅ [OmniBridge] Integrations synced successfully');
-        
+
         // Wait a moment for sync to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // Force reload data after sync
         window.location.reload();
       } else {
@@ -537,25 +537,25 @@ export default function OmniBridge() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="inbox" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Inbox
-          </TabsTrigger>
           <TabsTrigger value="channels" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Canais
+          </TabsTrigger>
+          <TabsTrigger value="inbox" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Inbox
           </TabsTrigger>
           <TabsTrigger value="automation" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Automação
           </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Templates
-          </TabsTrigger>
           <TabsTrigger value="chatbots" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
             Chatbots
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Templates
           </TabsTrigger>
         </TabsList>
 
