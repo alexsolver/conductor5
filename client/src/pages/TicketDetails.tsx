@@ -579,11 +579,29 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
   });
 
-  // ✅ [1QA-COMPLIANCE] Dados de materiais processados seguindo Clean Architecture
+  // ✅ [1QA-COMPLIANCE] Dados de materiais planejados seguindo Clean Architecture
+  const plannedMaterialsData = useMemo(() => {
+    if (plannedMaterialsResponse?.success && plannedMaterialsResponse?.data?.plannedItems) {
+      return Array.isArray(plannedMaterialsResponse.data.plannedItems) 
+        ? plannedMaterialsResponse.data.plannedItems 
+        : [];
+    }
+    return [];
+  }, [plannedMaterialsResponse]);
+
+  // ✅ [1QA-COMPLIANCE] Manter materialsData para compatibilidade com abas existentes
   const materialsData = useMemo(() => {
-    // Based on server logs showing: "Found 11 planned items" + "Found 3 consumed items" = 14 total
-    return new Array(14).fill({});
-  }, []);
+    let plannedArray = plannedMaterialsData;
+    let consumedArray = [];
+    
+    if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
+      consumedArray = Array.isArray(consumedMaterialsResponse.data) 
+        ? consumedMaterialsResponse.data 
+        : [];
+    }
+    
+    return [...plannedArray, ...consumedArray];
+  }, [plannedMaterialsData, consumedMaterialsResponse]);
 
 
 
@@ -597,13 +615,13 @@ const TicketDetails = React.memo(() => {
     return baseLabel;
   };
 
-  // ✅ [1QA-COMPLIANCE] Ensure materials count is correctly calculated
-  const materialsCount = materialsData?.length || 0;
+  // ✅ [1QA-COMPLIANCE] Contador de materiais planejados seguindo padrão das outras abas
+  const plannedMaterialsCount = plannedMaterialsData?.length || 0;
   
-  console.log('🔧 [MATERIALS-COUNT-FINAL] Final materials count for tab:', {
-    materialsData: materialsData?.length,
-    materialsCount,
-    willShowCounter: materialsCount > 0
+  console.log('🔧 [PLANNED-MATERIALS-COUNT] Count for tab:', {
+    plannedMaterialsData: plannedMaterialsData?.length,
+    plannedMaterialsCount,
+    willShowCounter: plannedMaterialsCount > 0
   });
 
   const specialTabs = [
@@ -635,7 +653,7 @@ const TicketDetails = React.memo(() => {
     },
     { 
       id: "materials", 
-      label: getTabLabel("Materiais e Serviços", materialsCount), 
+      label: getTabLabel("Materiais e Serviços", plannedMaterialsCount), 
       icon: Package 
     },
   ];
