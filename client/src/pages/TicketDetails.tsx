@@ -606,24 +606,37 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Debug para validar dados de materiais
   useEffect(() => {
-    if (ticketPlannedMaterials || ticketConsumedMaterials) {
-      console.log('🔧 [MATERIALS-DEBUG] Dados de materiais:', {
-        planned: ticketPlannedMaterials,
-        consumed: ticketConsumedMaterials,
-        materialsCount: materialsData.length,
-        materialsData
-      });
-    }
+    console.log('🔧 [MATERIALS-DEBUG] SEMPRE executar - Dados de materiais:', {
+      planned: ticketPlannedMaterials,
+      plannedSuccess: ticketPlannedMaterials?.success,
+      plannedDataType: Array.isArray(ticketPlannedMaterials?.data) ? 'array' : typeof ticketPlannedMaterials?.data,
+      plannedLength: ticketPlannedMaterials?.data?.length || 0,
+      consumed: ticketConsumedMaterials,
+      consumedSuccess: ticketConsumedMaterials?.success,
+      consumedDataType: Array.isArray(ticketConsumedMaterials?.data) ? 'array' : typeof ticketConsumedMaterials?.data,
+      consumedLength: ticketConsumedMaterials?.data?.length || 0,
+      materialsCount: materialsData.length,
+      materialsData: materialsData.slice(0, 3) // Apenas primeiros 3 para não sobrecarregar logs
+    });
   }, [ticketPlannedMaterials, ticketConsumedMaterials, materialsData]);
 
 
-  // Special functionality tabs (with dynamic counters) - moved after data processing
+  // ✅ [1QA-COMPLIANCE] Special functionality tabs seguindo Clean Architecture
   const getTabLabel = (baseLabel: string, count?: number) => {
+    console.log(`🔧 [TAB-LABEL-DEBUG] ${baseLabel}: count=${count}, tipo=${typeof count}`);
     if (count && count > 0) {
       return `${baseLabel} (${count})`;
     }
     return baseLabel;
   };
+
+  // ✅ [1QA-COMPLIANCE] Debug específico para materiais
+  console.log('🔧 [MATERIALS-TAB-DEBUG] materialsData antes de criar specialTabs:', {
+    materialsData,
+    length: materialsData?.length,
+    isArray: Array.isArray(materialsData),
+    type: typeof materialsData
+  });
 
   const specialTabs = [
     {
