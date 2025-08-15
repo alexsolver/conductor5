@@ -2,8 +2,7 @@ import { db } from '../../../../db';
 import { 
   assets, 
   assetMaintenance, 
-  assetMeters, 
-  assetLocations,
+  assetMeters,
   type Asset,
   type InsertAsset,
   type AssetMaintenance,
@@ -149,30 +148,30 @@ export class AssetManagementRepository {
     locationName?: string;
     recordedBy?: string;
   }) {
-    const [location] = await db
-      .insert(assetLocations)
-      .values({
-        assetId,
-        tenantId,
-        ...locationData,
-        recordedAt: new Date()
+    // Update asset's currentLocationId and coordinates directly
+    const [updatedAsset] = await db
+      .update(assets)
+      .set({
+        coordinates: locationData.latitude && locationData.longitude 
+          ? { lat: locationData.latitude, lng: locationData.longitude, address: locationData.address }
+          : undefined,
+        updatedAt: new Date()
       })
+      .where(and(eq(assets.id, assetId), eq(assets.tenantId, tenantId)))
       .returning();
-    return location;
+    return updatedAsset;
   }
 
   async getAssetLocation(assetId: string, tenantId: string) {
-    const [location] = await db
-      .select()
-      .from(assetLocations)
-      .where(and(
-        eq(assetLocations.assetId, assetId), 
-        eq(assetLocations.tenantId, tenantId),
-        eq(assetLocations.isActive, true)
-      ))
-      .orderBy(desc(assetLocations.recordedAt))
+    const [asset] = await db
+      .select({
+        coordinates: assets.coordinates,
+        currentLocationId: assets.currentLocationId
+      })
+      .from(assets)
+      .where(and(eq(assets.id, assetId), eq(assets.tenantId, tenantId)))
       .limit(1);
-    return location;
+    return asset;
   }
 
   // ESTATÍSTICAS DE ATIVOS
@@ -212,12 +211,12 @@ export class AssetManagementRepository {
   async generateQRCode(assetId: string, tenantId: string) {
     // Gerar QR Code único para o ativo
     const qrCode = `ASSET_${tenantId}_${assetId}_${Date.now()}`;
-    
+
     await db
       .update(assets)
       .set({ qrCode, updatedAt: new Date() })
       .where(and(eq(assets.id, assetId), eq(assets.tenantId, tenantId)));
-    
+
     return qrCode;
   }
 

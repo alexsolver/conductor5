@@ -549,20 +549,8 @@ export const assetMeters = pgTable('asset_meters', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-export const assetLocations = pgTable('asset_locations', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  assetId: uuid('asset_id').notNull(),
-
-  latitude: decimal('latitude', { precision: 10, scale: 8 }),
-  longitude: decimal('longitude', { precision: 11, scale: 8 }),
-  address: text('address'),
-  locationName: varchar('location_name', { length: 200 }),
-
-  isActive: boolean('is_active').default(true),
-  recordedAt: timestamp('recorded_at').defaultNow(),
-  recordedBy: uuid('recorded_by'),
-});
+// Asset locations are now handled through the main locations schema
+// and assets.coordinates field for direct geolocation
 
 // LPU - LISTA DE PREÇOS UNIFICADA - Sistema completo com workflow de aprovação
 export const pricingRules = pgTable('pricing_rules', {
