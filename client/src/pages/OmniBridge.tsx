@@ -46,7 +46,8 @@ import {
   Workflow,
   Hash,
   MessageSquare,
-  RefreshCw
+  RefreshCw,
+  Bot
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -273,17 +274,30 @@ export default function OmniBridge() {
           
 
 
-          <Button 
-            variant="outline"
-            onClick={() => {
-              refetchIntegrations();
-              refetchInbox();
-              toast({ title: "Dados atualizados com sucesso" });
-            }}
-            size="sm"
-          >
-            Atualizar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => window.location.href = '/automation-rules'}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Bot className="h-4 w-4" />
+              Regras
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={() => {
+                refetchIntegrations();
+                refetchInbox();
+                toast({ title: "Dados atualizados com sucesso" });
+              }}
+              size="sm"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Atualizar
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -324,12 +338,14 @@ export default function OmniBridge() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Regras Ativas</p>
-                <p className="text-2xl font-bold">0</p>
+                <p className="text-2xl font-bold">
+                  <span className="animate-pulse">🤖</span> Sistema Pronto
+                </p>
               </div>
               <Workflow className="h-8 w-8 text-purple-600" />
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              processamento automático
+              automação inteligente
             </p>
           </CardContent>
         </Card>
@@ -572,17 +588,86 @@ export default function OmniBridge() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Workflow className="h-5 w-5" />
-                Regras de Processamento
+                Regras de Processamento Automático
               </CardTitle>
               <CardDescription>
-                Configure regras automáticas para processar mensagens recebidas
+                Configure regras automáticas para processar mensagens recebidas de todos os canais
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Workflow className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Sistema de regras não implementado</p>
-                <p className="text-sm text-gray-400 mt-2">Esta funcionalidade será implementada em breve</p>
+              <div className="text-center py-12">
+                <div className="mx-auto w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
+                  <Workflow className="h-12 w-12 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Sistema de Automação Inteligente</h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Configure regras poderosas para automatizar o processamento de mensagens de email, WhatsApp, Telegram e outros canais
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                      <Filter className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h4 className="font-medium">Condições Flexíveis</h4>
+                    <p className="text-sm text-gray-500">Configure múltiplas condições por regra</p>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                      <Zap className="h-6 w-6 text-green-600" />
+                    </div>
+                    <h4 className="font-medium">Ações Automáticas</h4>
+                    <p className="text-sm text-gray-500">Execute ações quando condições forem atendidas</p>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                      <BarChart3 className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <h4 className="font-medium">Analytics Avançado</h4>
+                    <p className="text-sm text-gray-500">Monitore performance e eficácia</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button 
+                    onClick={() => window.location.href = '/automation-rules'}
+                    size="lg"
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="h-5 w-5" />
+                    Configurar Regras de Automação
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="flex items-center gap-2"
+                  >
+                    <FileText className="h-5 w-5" />
+                    Ver Templates
+                  </Button>
+                </div>
+
+                <div className="mt-8 text-left max-w-2xl mx-auto">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Funcionalidades Disponíveis:
+                    </h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• Processamento automático de mensagens de todos os canais</li>
+                      <li>• Criação automática de tickets baseada em critérios</li>
+                      <li>• Respostas automáticas personalizadas por canal</li>
+                      <li>• Atribuição inteligente de usuários</li>
+                      <li>• Notificações em tempo real</li>
+                      <li>• Integração com webhooks externos</li>
+                      <li>• Sistema de prioridades e templates</li>
+                      <li>• Analytics e métricas detalhadas</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

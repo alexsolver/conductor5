@@ -2203,6 +2203,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Timecard routes - Registro de Ponto  
   app.use('/api/timecard', jwtAuth, timecardRoutes);
 
+  // Automation Rules Routes
+  const automationRulesRoutes = await import('./routes/automationRules');
+  app.use('/api/automation-rules', automationRulesRoutes.default);
+
   // Timecard Approval Routes
   const timecardApprovalController = new TimecardApprovalController();
 
