@@ -91,20 +91,48 @@ export class TicketMaterialsController {
       // For now, we'll just log the application
       console.log('📋 LPU Application:', applicationData);
 
-      // Audit log
-      await this.logAuditEntry(
-        tenantId,
-        'ticket_materials',
-        'create',
-        'apply_lpu',
-        'Applied LPU to ticket',
-        userId,
-        req.user?.email || 'unknown',
-        (req.headers['x-forwarded-for']?.toString() || req.connection.remoteAddress || 'unknown').split(',')[0].trim(),
-        req.headers['user-agent'] || 'unknown',
-        req.sessionID || 'unknown',
-        JSON.stringify({ ticketId, lpuId })
-      );
+      // Registrar no histórico do ticket - seguindo padrão 1qa.md
+      try {
+        const { pool } = await import('../../../../db');
+        const { getClientIP, getUserAgent, getSessionId } = await import('../../../utils/ipCapture');
+        const ipAddress = getClientIP(req);
+        const userAgent = getUserAgent(req);
+        const sessionId = getSessionId(req);
+
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+        // Buscar nome da LPU
+        const lpuQuery = await pool.query(`
+          SELECT name FROM "${schemaName}".price_lists WHERE id = $1
+        `, [lpuId]);
+        const lpuName = lpuQuery.rows[0]?.name || 'Lista de preços';
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_history 
+          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+          VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
+        `, [
+          tenantId,
+          ticketId,
+          'lpu_applied',
+          `LPU aplicada: ${lpuName}`,
+          userId,
+          req.user?.name || 'Sistema',
+          ipAddress,
+          userAgent,
+          sessionId,
+          JSON.stringify({
+            lpu_id: lpuId,
+            lpu_name: lpuName,
+            notes: notes || '',
+            applied_by: appliedBy || userId
+          })
+        ]);
+
+        console.log('✅ [APPLY-LPU] History entry created for LPU application');
+      } catch (historyError) {
+        console.error('⚠️ [APPLY-LPU] Failed to create history entry:', historyError);
+      }
 
       return res.json({
         success: true,
@@ -161,7 +189,7 @@ export class TicketMaterialsController {
       // Import pool for direct SQL queries
       const { pool } = await import('../../../../db');
 
-      // Use raw SQL to get consumed items with item details - mesma estrutura dos planejados
+      // Use raw SQL to get consumed items with item details - corrigindo colunas
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
         SELECT 
@@ -170,7 +198,7 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          i.code as item_code,
+          i.part_number as item_code,
           i.brand as item_brand,
           i.model as item_model,
           i.category as item_category,
@@ -347,6 +375,49 @@ export class TicketMaterialsController {
         newPlannedItem.plannedById
       ]);
 
+      // Registrar no histórico do ticket - seguindo padrão 1qa.md
+      try {
+        const { getClientIP, getUserAgent, getSessionId } = await import('../../../utils/ipCapture');
+        const ipAddress = getClientIP(req);
+        const userAgent = getUserAgent(req);
+        const sessionId = getSessionId(req);
+
+        // Buscar nome do item
+        const itemQuery = await pool.query(`
+          SELECT name FROM "${schemaName}".items WHERE id = $1
+        `, [itemId]);
+        const itemName = itemQuery.rows[0]?.name || 'Item desconhecido';
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_history 
+          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+          VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
+        `, [
+          tenantId,
+          ticketId,
+          'material_planned_added',
+          `Material planejado adicionado: ${itemName} (Qtd: ${plannedQuantity})`,
+          req.user?.id,
+          req.user?.name || 'Sistema',
+          ipAddress,
+          userAgent,
+          sessionId,
+          JSON.stringify({
+            item_id: itemId,
+            item_name: itemName,
+            planned_quantity: plannedQuantity,
+            unit_price: finalUnitPrice,
+            estimated_cost: estimatedCost,
+            lpu_id: lpuId,
+            priority
+          })
+        ]);
+
+        console.log('✅ [ADD-PLANNED-ITEM] History entry created for planned item');
+      } catch (historyError) {
+        console.error('⚠️ [ADD-PLANNED-ITEM] Failed to create history entry:', historyError);
+      }
+
       return res.json({
         success: true,
         message: 'Planned item added successfully',
@@ -390,6 +461,38 @@ export class TicketMaterialsController {
           success: false,
           error: 'Item planejado não encontrado'
         });
+      }
+
+      // Registrar no histórico do ticket - seguindo padrão 1qa.md
+      try {
+        const { getClientIP, getUserAgent, getSessionId } = await import('../../../utils/ipCapture');
+        const ipAddress = getClientIP(req);
+        const userAgent = getUserAgent(req);
+        const sessionId = getSessionId(req);
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_history 
+          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+          VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
+        `, [
+          tenantId,
+          ticketId,
+          'material_planned_removed',
+          `Item planejado removido (ID: ${itemId})`,
+          req.user?.id,
+          req.user?.name || 'Sistema',
+          ipAddress,
+          userAgent,
+          sessionId,
+          JSON.stringify({
+            removed_planned_item_id: itemId,
+            removal_reason: 'user_action'
+          })
+        ]);
+
+        console.log('✅ [DELETE-PLANNED-ITEM] History entry created for deleted item');
+      } catch (historyError) {
+        console.error('⚠️ [DELETE-PLANNED-ITEM] Failed to create history entry:', historyError);
       }
 
       console.log('✅ [DELETE-PLANNED-ITEM] Successfully deleted item:', itemId);
@@ -502,6 +605,50 @@ export class TicketMaterialsController {
         newConsumedItem.status
       ]);
 
+      // Registrar no histórico do ticket - seguindo padrão 1qa.md
+      try {
+        const { getClientIP, getUserAgent, getSessionId } = await import('../../../utils/ipCapture');
+        const ipAddress = getClientIP(req);
+        const userAgent = getUserAgent(req);
+        const sessionId = getSessionId(req);
+
+        // Buscar nome do item
+        const itemQuery = await pool.query(`
+          SELECT name FROM "${schemaName}".items WHERE id = $1
+        `, [itemId]);
+        const itemName = itemQuery.rows[0]?.name || 'Item desconhecido';
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_history 
+          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+          VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
+        `, [
+          tenantId,
+          ticketId,
+          'material_consumed_added',
+          `Material consumido registrado: ${itemName} (Qtd: ${quantity})`,
+          userId,
+          req.user?.name || 'Sistema',
+          ipAddress,
+          userAgent,
+          sessionId,
+          JSON.stringify({
+            item_id: itemId,
+            item_name: itemName,
+            actual_quantity: quantity,
+            unit_price: unitPrice,
+            total_cost: totalCost,
+            consumption_type: consumptionType,
+            lpu_id: newConsumedItem.lpuId,
+            planned_item_id: plannedItemId
+          })
+        ]);
+
+        console.log('✅ [ADD-CONSUMED-ITEM] History entry created for consumed item');
+      } catch (historyError) {
+        console.error('⚠️ [ADD-CONSUMED-ITEM] Failed to create history entry:', historyError);
+      }
+
       console.log('✅ [ADD-CONSUMED-ITEM] Successfully added consumed item:', newConsumedItem.id);
 
       return res.json({
@@ -538,7 +685,7 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
-          i.code as item_code,
+          i.part_number as item_code,
           i.brand as item_brand,
           i.model as item_model,
           i.category as item_category,
