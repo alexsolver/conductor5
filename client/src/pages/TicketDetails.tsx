@@ -2240,70 +2240,42 @@ const TicketDetails = React.memo(() => {
                           )}
                         </p>
                         
-                        {/* 🔧 [1QA-COMPLIANCE] Dados de sessão visíveis diretamente no card (IP, User-Agent, Session ID) */}
+                        {/* 🔧 [1QA-COMPLIANCE] Dados de sessão visíveis diretamente no card principal */}
                         {historyViewMode === 'advanced' && (
-                          <div className="mt-2 p-2 bg-blue-50 rounded text-xs border-l-2 border-blue-200">
-                            <div className="grid grid-cols-2 gap-2 mb-1">
+                          <div className="mt-2 p-3 bg-blue-50 rounded text-xs border-l-3 border-blue-500">
+                            <div className="grid grid-cols-2 gap-3 mb-2">
                               <div>
-                                <span className="text-blue-700 font-medium">Usuário:</span>
-                                <span className="ml-1 text-gray-800">{historyItem.performed_by_name || historyItem.metadata?.user_name || 'Sistema'}</span>
+                                <span className="text-blue-700 font-semibold">Usuário:</span>
+                                <span className="ml-1 text-gray-800 font-medium">{historyItem.performed_by_name || historyItem.metadata?.user_name || 'Sistema'}</span>
                               </div>
                               <div>
-                                <span className="text-blue-700 font-medium">IP:</span>
-                                <span className={`ml-1 font-mono text-xs ${historyItem.ip_address && historyItem.ip_address !== 'N/A' ? 'text-gray-800' : 'text-gray-400'}`}>
+                                <span className="text-blue-700 font-semibold">IP:</span>
+                                <span className={`ml-1 font-mono text-xs ${(historyItem.ip_address || historyItem.metadata?.ip_address) && (historyItem.ip_address || historyItem.metadata?.ip_address) !== 'N/A' ? 'text-blue-800 bg-blue-100 px-1 rounded' : 'text-gray-400'}`}>
                                   {historyItem.ip_address || historyItem.metadata?.ip_address || 'N/A'}
                                 </span>
                               </div>
                             </div>
-                            <div className="mb-1">
-                              <span className="text-blue-700 font-medium">User-Agent:</span>
-                              <p className={`text-xs break-all mt-1 ${(historyItem.user_agent || historyItem.metadata?.user_agent) && (historyItem.user_agent || historyItem.metadata?.user_agent) !== 'N/A' ? 'text-gray-700' : 'text-gray-400'}`}>
+                            <div className="mb-2">
+                              <span className="text-blue-700 font-semibold">User-Agent:</span>
+                              <p className={`text-xs break-all mt-1 p-1 rounded ${(historyItem.user_agent || historyItem.metadata?.user_agent) && (historyItem.user_agent || historyItem.metadata?.user_agent) !== 'N/A' ? 'text-gray-700 bg-gray-100' : 'text-gray-400'}`}>
                                 {historyItem.user_agent || historyItem.metadata?.user_agent || 'N/A'}
                               </p>
                             </div>
-                            <div>
-                              <span className="text-blue-700 font-medium">Session ID:</span>
-                              <span className={`ml-1 font-mono text-xs ${(historyItem.session_id || historyItem.metadata?.session_id) && (historyItem.session_id || historyItem.metadata?.session_id) !== 'N/A' ? 'text-gray-700' : 'text-gray-400'}`}>
+                            <div className="mb-2">
+                              <span className="text-blue-700 font-semibold">Session ID:</span>
+                              <span className={`ml-1 font-mono text-xs ${(historyItem.session_id || historyItem.metadata?.session_id) && (historyItem.session_id || historyItem.metadata?.session_id) !== 'N/A' ? 'text-gray-700 bg-gray-100 px-1 rounded' : 'text-gray-400'}`}>
                                 {historyItem.session_id || historyItem.metadata?.session_id || 'N/A'}
                               </span>
                             </div>
-                          </div>
-                        )}
-
-                        {historyViewMode === 'advanced' && (
-                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs font-mono">
-                            <div className="grid grid-cols-2 gap-2 mb-2">
-                              <div>
-                                <span className="text-gray-500">Usuário:</span>
-                                <span className="ml-1 font-medium">{historyItem.performed_by_name || 'Sistema'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500">IP:</span>
-                                <span className={`ml-1 font-medium ${historyItem.ip_address && historyItem.ip_address !== 'N/A' ? 'text-blue-600' : 'text-gray-400'}`}>
-                                  {historyItem.ip_address || 'N/A'}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="mb-2">
-                              <span className="text-gray-500">User-Agent:</span>
-                              <p className={`text-xs break-all mt-1 ${historyItem.user_agent && historyItem.user_agent !== 'N/A' ? 'text-gray-700' : 'text-gray-400'}`}>
-                                {historyItem.user_agent || 'N/A'}
-                              </p>
-                            </div>
-                            <div className="mb-2">
-                              <span className="text-gray-500">Session ID:</span>
-                              <span className={`ml-1 font-mono text-xs ${historyItem.session_id && historyItem.session_id !== 'N/A' ? 'text-gray-700' : 'text-gray-400'}`}>
-                                {historyItem.session_id || 'N/A'}
-                              </span>
-                            </div>
+                            
+                            {/* Metadados técnicos detalhados */}
                             {historyItem.metadata && Object.keys(historyItem.metadata).length > 0 && (
-                              <div className="border-t pt-2 mt-2">
-                                <span className="text-gray-500">Metadados:</span>
-                                <details className="cursor-pointer text-blue-600 hover:text-blue-800">
-                                  <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
+                              <div className="border-t border-blue-200 pt-2 mt-2">
+                                <details className="cursor-pointer">
+                                  <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">
                                     Ver detalhes técnicos
                                   </summary>
-                                  <pre className="text-xs mt-2 p-2 bg-white border rounded overflow-x-auto">
+                                  <pre className="text-xs mt-2 p-2 bg-white border rounded overflow-x-auto max-h-32">
                                     {JSON.stringify(historyItem.metadata, null, 2)}
                                   </pre>
                                 </details>
