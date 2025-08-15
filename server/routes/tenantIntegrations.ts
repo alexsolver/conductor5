@@ -1133,7 +1133,7 @@ async function processTelegramMessage(tenantId: string, message: any) {
     console.log(`📝 [TELEGRAM-MESSAGE] From: ${message.from.first_name} (@${message.from.username})`);
     console.log(`📝 [TELEGRAM-MESSAGE] Text: ${message.text}`);
 
-    // ✅ STORE MESSAGE: Save to database or trigger workflows
+    // ✅ STORE MESSAGE: Save to inbox
     const messageData = {
       messageId: message.message_id,
       chatId: message.chat.id,
@@ -1145,10 +1145,40 @@ async function processTelegramMessage(tenantId: string, message: any) {
       tenantId: tenantId
     };
 
-    // TODO: Implement message storage or workflow triggers here
-    // Example: Create ticket, send to support team, trigger automation, etc.
+    // ✅ SAVE TO INBOX: Store in emails table for unified inbox
+    const { storage } = await import('../storage-simple');
+    
+    const inboxMessage = {
+      id: `telegram-${message.message_id}-${Date.now()}`,
+      tenant_id: tenantId,
+      message_id: `telegram-${message.message_id}`,
+      from_email: `telegram:${message.from.id}`,
+      from_name: message.from.first_name + (message.from.last_name ? ` ${message.from.last_name}` : ''),
+      to_email: 'telegram-bot@conductor.com',
+      cc_emails: JSON.stringify([]),
+      bcc_emails: JSON.stringify([]),
+      subject: `Mensagem do Telegram - ${message.from.first_name}`,
+      body_text: message.text,
+      body_html: null,
+      has_attachments: false,
+      attachment_count: 0,
+      attachment_details: JSON.stringify([]),
+      email_headers: JSON.stringify({
+        'telegram-chat-id': message.chat.id.toString(),
+        'telegram-user-id': message.from.id.toString(),
+        'telegram-username': message.from.username || '',
+        'telegram-message-id': message.message_id.toString()
+      }),
+      priority: 'medium',
+      is_read: false,
+      is_processed: false,
+      email_date: new Date(message.date * 1000).toISOString(),
+      received_at: new Date().toISOString()
+    };
 
-    console.log(`✅ [TELEGRAM-MESSAGE] Message processed successfully`);
+    await storage.saveEmailToInbox(tenantId, inboxMessage);
+    
+    console.log(`✅ [TELEGRAM-MESSAGE] Message saved to inbox successfully`);
     return messageData;
 
   } catch (error: any) {
@@ -1179,10 +1209,41 @@ async function processTelegramCallback(tenantId: string, callbackQuery: any) {
       tenantId: tenantId
     };
 
-    // TODO: Implement callback handling logic here
-    // Example: Update ticket status, confirm actions, etc.
+    // ✅ SAVE TO INBOX: Store callback as interaction in inbox
+    const { storage } = await import('../storage-simple');
+    
+    const inboxMessage = {
+      id: `telegram-callback-${callbackQuery.id}-${Date.now()}`,
+      tenant_id: tenantId,
+      message_id: `telegram-callback-${callbackQuery.id}`,
+      from_email: `telegram:${callbackQuery.from.id}`,
+      from_name: callbackQuery.from.first_name + (callbackQuery.from.last_name ? ` ${callbackQuery.from.last_name}` : ''),
+      to_email: 'telegram-bot@conductor.com',
+      cc_emails: JSON.stringify([]),
+      bcc_emails: JSON.stringify([]),
+      subject: `Interação do Telegram - ${callbackQuery.from.first_name}`,
+      body_text: `Botão clicado: ${callbackQuery.data}`,
+      body_html: null,
+      has_attachments: false,
+      attachment_count: 0,
+      attachment_details: JSON.stringify([]),
+      email_headers: JSON.stringify({
+        'telegram-chat-id': callbackQuery.message?.chat?.id?.toString(),
+        'telegram-user-id': callbackQuery.from.id.toString(),
+        'telegram-username': callbackQuery.from.username || '',
+        'telegram-callback-id': callbackQuery.id,
+        'telegram-callback-data': callbackQuery.data
+      }),
+      priority: 'low',
+      is_read: false,
+      is_processed: false,
+      email_date: new Date().toISOString(),
+      received_at: new Date().toISOString()
+    };
 
-    console.log(`✅ [TELEGRAM-CALLBACK] Callback processed successfully`);
+    await storage.saveEmailToInbox(tenantId, inboxMessage);
+
+    console.log(`✅ [TELEGRAM-CALLBACK] Callback saved to inbox successfully`);
     return callbackData;
 
   } catch (error: any) {

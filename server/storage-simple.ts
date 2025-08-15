@@ -2355,6 +2355,110 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async saveEmailToInbox(tenantId: string, messageData: any): Promise<void> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      // Check if emails table exists, if not create it
+      const tableExists = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} 
+          AND table_name = 'emails'
+        );
+      `);
+
+      if (!tableExists.rows?.[0]?.exists) {
+        // Create emails table if it doesn't exist
+        await tenantDb.execute(sql`
+          CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.emails (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id UUID NOT NULL,
+            message_id TEXT UNIQUE NOT NULL,
+            thread_id TEXT,
+            from_email TEXT NOT NULL,
+            from_name TEXT,
+            to_email TEXT NOT NULL,
+            cc_emails TEXT DEFAULT '[]',
+            bcc_emails TEXT DEFAULT '[]',
+            subject TEXT,
+            body_text TEXT,
+            body_html TEXT,
+            has_attachments BOOLEAN DEFAULT false,
+            attachment_count INTEGER DEFAULT 0,
+            attachment_details TEXT DEFAULT '[]',
+            email_headers TEXT DEFAULT '{}',
+            priority VARCHAR(20) DEFAULT 'medium',
+            is_read BOOLEAN DEFAULT false,
+            is_processed BOOLEAN DEFAULT false,
+            rule_matched TEXT,
+            ticket_created UUID,
+            email_date TIMESTAMP,
+            received_at TIMESTAMP DEFAULT NOW(),
+            processed_at TIMESTAMP
+          )
+        `);
+
+        // Add indexes
+        await tenantDb.execute(sql`
+          CREATE INDEX IF NOT EXISTS emails_tenant_received_idx 
+          ON ${sql.identifier(schemaName)}.emails (tenant_id, received_at DESC)
+        `);
+
+        await tenantDb.execute(sql`
+          CREATE INDEX IF NOT EXISTS emails_message_id_idx 
+          ON ${sql.identifier(schemaName)}.emails (message_id)
+        `);
+
+        logInfo('Emails table created for tenant', { tenantId: validatedTenantId });
+      }
+
+      // Insert message into emails table
+      await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.emails (
+          id, tenant_id, message_id, from_email, from_name, to_email, 
+          cc_emails, bcc_emails, subject, body_text, body_html, 
+          has_attachments, attachment_count, attachment_details, 
+          email_headers, priority, is_read, is_processed, 
+          email_date, received_at
+        ) VALUES (
+          ${messageData.id || randomUUID()},
+          ${validatedTenantId},
+          ${messageData.message_id},
+          ${messageData.from_email},
+          ${messageData.from_name || null},
+          ${messageData.to_email},
+          ${messageData.cc_emails || '[]'},
+          ${messageData.bcc_emails || '[]'},
+          ${messageData.subject || null},
+          ${messageData.body_text || null},
+          ${messageData.body_html || null},
+          ${messageData.has_attachments || false},
+          ${messageData.attachment_count || 0},
+          ${messageData.attachment_details || '[]'},
+          ${messageData.email_headers || '{}'},
+          ${messageData.priority || 'medium'},
+          ${messageData.is_read || false},
+          ${messageData.is_processed || false},
+          ${messageData.email_date || new Date().toISOString()},
+          ${messageData.received_at || new Date().toISOString()}
+        )
+        ON CONFLICT (message_id) DO NOTHING
+      `);
+
+      logInfo('Message saved to inbox', { 
+        tenantId: validatedTenantId, 
+        messageId: messageData.message_id,
+        source: messageData.from_email.includes('telegram:') ? 'Telegram' : 'Email'
+      });
+    } catch (error) {
+      logError('Error saving message to inbox', error, { tenantId, messageData });
+      throw error;
+    }
+  }
+
   async getClientesCount(tenantId: string): Promise<number> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
