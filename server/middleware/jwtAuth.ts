@@ -18,6 +18,13 @@ export interface AuthenticatedRequest extends Request {
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // ✅ CRITICAL FIX - Force API response headers per 1qa.md compliance
+    if (req.path.includes('/api/')) {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('X-API-Route', 'authenticated');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+
     const authHeader = req.headers.authorization;
     console.log('🔍 [JWT-AUTH] Processing request:', {
       method: req.method,

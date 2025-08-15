@@ -334,7 +334,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Priority 6: Companies routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [COMPANIES-CLEAN-ARCH] Companies routes temporarily disabled for Clean Architecture fix');
 
-  // ✅ Priority 7: Locations routes - CLEAN ARCHITECTURE per 1qa.md
+  // ✅ Priority 7: Materials-Services routes - CLEAN ARCHITECTURE per 1qa.md
+  console.log('🏗️ [MATERIALS-SERVICES-CLEAN-ARCH] Initializing Materials-Services Clean Architecture routes...');
+  const materialsServicesRoutes = (await import('./modules/materials-services/routes')).default;
+  app.use('/api/materials-services', materialsServicesRoutes);
+  console.log('✅ [MATERIALS-SERVICES-CLEAN-ARCH] Materials-Services Clean Architecture routes configured successfully');
+
+  // ✅ Priority 8: Locations routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [LOCATIONS-CLEAN-ARCH] Locations routes temporarily disabled for Clean Architecture fix');
 
   console.log('✅ [CLEAN-ARCHITECTURE] Essential routes loaded - All Clean Architecture modules operational');

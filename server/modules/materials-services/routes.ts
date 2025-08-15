@@ -92,7 +92,7 @@ router.get('/items', async (req: Request, res: Response) => {
   // ✅ CRITICAL FIX - Ensure JSON response headers per 1qa.md compliance
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  
+
   console.log(`🔍 [MATERIALS-SERVICES-ROUTE] GET /items called`);
   console.log(`🔍 [MATERIALS-SERVICES-ROUTE] Query params:`, req.query);
   console.log(`🔍 [MATERIALS-SERVICES-ROUTE] User:`, {
@@ -114,10 +114,10 @@ router.get('/items', async (req: Request, res: Response) => {
         code: 'MISSING_TENANT_ID'
       });
     }
-    
+
     console.log('🔍 [MATERIALS-SERVICES-ROUTE] Getting controllers for tenant:', tenantId);
     const { itemController } = await getControllers(tenantId);
-    
+
     if (!itemController) {
       console.error('❌ [MATERIALS-SERVICES-ROUTE] ItemController not initialized');
       return res.status(500).json({
@@ -127,13 +127,13 @@ router.get('/items', async (req: Request, res: Response) => {
         code: 'CONTROLLER_NOT_AVAILABLE'
       });
     }
-    
+
     console.log('🔍 [MATERIALS-SERVICES-ROUTE] Calling itemController.getItems');
     await itemController.getItems(req, res);
   } catch (error) {
     console.error(`❌ [MATERIALS-SERVICES-ROUTE] Error in /items route:`, error);
     console.error(`❌ [MATERIALS-SERVICES-ROUTE] Error stack:`, error.stack);
-    
+
     // ✅ Ensure JSON response even in error cases per 1qa.md
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'application/json');

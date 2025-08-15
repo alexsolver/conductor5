@@ -215,28 +215,37 @@ export default function ItemCatalog() {
       const url = `/api/materials-services/items${params.toString() ? `?${params}` : ''}`;
       console.log('🔍 [ItemCatalog] Fetching from URL:', url);
 
-      // ✅ CRITICAL FIX - Use correct token key per 1qa.md compliance
+      // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
       const token = localStorage.getItem('accessToken');
-      if (!token || token === 'null' || token === 'undefined') {
+      if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
         console.error('❌ [ItemCatalog] No valid authentication token found');
         toast({
           title: "Sessão expirada",
           description: "Por favor, faça login novamente.",
           variant: "destructive"
         });
-        // Redirect to login
-        window.location.href = '/auth';
+        // Clear invalid tokens and redirect
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 1000);
         return;
       }
 
       const response = await fetch(url, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
       });
 
       console.log('🔍 [ItemCatalog] Response status:', response.status);
+      console.log('🔍 [ItemCatalog] Response headers:', Object.fromEntries(response.headers.entries()));
 
       // ✅ CRITICAL FIX - Handle 401/403 responses with token refresh per 1qa.md
       if (response.status === 401 || response.status === 403) {
@@ -331,14 +340,29 @@ export default function ItemCatalog() {
         console.log('🔍 [ItemCatalog] Raw response start:', responseText.substring(0, 200));
         console.log('🔍 [ItemCatalog] Response content-type:', response.headers.get('content-type'));
         
+        // ✅ CRITICAL FIX - Enhanced HTML response detection per 1qa.md compliance
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          console.error('❌ [ItemCatalog] Non-JSON content-type:', contentType);
+          console.error('❌ [ItemCatalog] This indicates Vite is intercepting the API route');
+          throw new Error('API route intercepted by Vite - authentication required');
+        }
+
         // Check if response is HTML (error page)
         if (responseText.trim().startsWith('<!DOCTYPE') || 
             responseText.trim().startsWith('<html') || 
             responseText.includes('<script') ||
-            responseText.includes('import { createHotContext }')) {
-          console.error('❌ [ItemCatalog] Received HTML/JavaScript instead of JSON - server error detected');
-          console.error('❌ [ItemCatalog] This indicates a server-side error or routing issue');
-          throw new Error('Server returned HTML/JS instead of JSON. This suggests an authentication or routing problem.');
+            responseText.includes('import { createHotContext }') ||
+            responseText.includes('vite') ||
+            responseText.includes('@vite/client')) {
+          console.error('❌ [ItemCatalog] Received HTML/JavaScript instead of JSON - Vite interception detected');
+          console.error('❌ [ItemCatalog] This indicates API routing is not working properly');
+          
+          // Clear tokens and force re-authentication
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          
+          throw new Error('Vite intercepted API route - forcing re-authentication');
         }
         
         // Check if response is empty
