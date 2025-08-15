@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { IChannelRepository } from '../../domain/repositories/IChannelRepository';
-import { Channel } from '../../domain/entities/Channel';
+import type { Channel } from '../../domain/entities/Channel';
 
 export class IntegrationChannelSync {
   constructor(
@@ -103,6 +103,7 @@ export class IntegrationChannelSync {
         console.log(`📱 [TELEGRAM-SYNC] Creating new Telegram channel`);
 
         // Create new Telegram channel
+        const { Channel } = await import('../../domain/entities/Channel');
         const newChannel = Channel.create({
           id: crypto.randomUUID(),
           tenantId,
@@ -138,15 +139,18 @@ export class IntegrationChannelSync {
     const channelType = this.getChannelType(integration.id);
     const icon = this.getChannelIcon(integration.id);
 
-    return {
+    const { Channel } = await import('../../domain/entities/Channel');
+    
+    return Channel.create({
       id: integration.id,
       tenantId,
+      integrationId: integration.id,
       name: integration.name,
       type: channelType,
       status: integration.status === 'connected' ? 'active' : 'inactive',
       config: integration.config || {},
       features: integration.features || [],
-      description: integration.description,
+      description: integration.description || `Canal de comunicação ${integration.name}`,
       icon,
       lastSync: new Date(),
       metrics: {
@@ -155,9 +159,11 @@ export class IntegrationChannelSync {
         errorRate: 0,
         uptime: 100
       },
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+      metadata: {
+        category: integration.category,
+        integrationId: integration.id
+      }
+    });
   }
 
   private getChannelType(integrationId: string): string {

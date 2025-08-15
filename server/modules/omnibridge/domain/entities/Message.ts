@@ -63,3 +63,21 @@ export class MessageEntity implements Message {
     this.updatedAt = new Date();
   }
 }
+export interface Message {
+  id: string;
+  tenantId: string;
+  channelId: string;
+  channelType: string;
+  from: string;
+  to: string;
+  subject?: string;
+  content: string;
+  timestamp: Date;
+  status: 'unread' | 'read' | 'replied' | 'archived';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  tags?: string[];
+  attachments?: number;
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}

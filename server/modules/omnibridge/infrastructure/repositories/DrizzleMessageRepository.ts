@@ -1,4 +1,3 @@
-
 import { db } from '../../../../db';
 import * as schema from '../../../../../shared/schema';
 import { MessageEntity } from '../../domain/entities/Message';

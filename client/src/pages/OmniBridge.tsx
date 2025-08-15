@@ -179,6 +179,9 @@ export default function OmniBridge() {
         };
 
         console.log('🔧 [OMNIBRIDGE-FIX] Using headers:', headers);
+        console.log('🔧 [OMNIBRIDGE-FIX] User tenantId:', user?.tenantId);
+
+        console.log('🔧 [OMNIBRIDGE-FIX] Using headers:', headers);
 
         // Primeiro, sincronizar integrações para canais
         try {
@@ -232,7 +235,8 @@ export default function OmniBridge() {
           const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
             headers: {
               'Authorization': token ? `Bearer ${token}` : '',
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'x-tenant-id': user?.tenantId || ''
             }
           });
 
