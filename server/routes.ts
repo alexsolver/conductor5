@@ -55,7 +55,7 @@ import { TicketViewsController } from './controllers/TicketViewsController';
 import { v4 as uuidv4 } from 'uuid';
 
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
-// Legacy routes-integration files eliminated per analysis
+// Legacy imports removed per analysis
 import ticketRelationshipsRoutes from './modules/ticket-relationships/routes';
 
 // 🎯 IMPORT HISTORY SYSTEM FOR COMPREHENSIVE LOGGING per 1qa.md
@@ -3050,7 +3050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Note: Hierarchical routes are now registered above with proper error handling
 
   // ========================================
-  // SLA SYSTEM ROUTES - INTEGRATED WITH TICKET METADATA
+  // SLA SYSTEMROUTES - INTEGRATED WITH TICKET METADATA
   // ========================================
 
   // Ticket SLA management routes

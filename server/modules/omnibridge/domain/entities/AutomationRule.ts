@@ -189,3 +189,114 @@ export class AutomationRule {
     console.log(`🎫 [AUTOMATION] Creating ticket:`, action.params);
   }
 }
+export interface AutomationCondition {
+  type: 'channel' | 'content' | 'sender' | 'subject' | 'priority' | 'keyword';
+  operator: 'equals' | 'contains' | 'starts_with' | 'ends_with' | 'regex';
+  value: string;
+  field?: string;
+}
+
+export interface AutomationAction {
+  type: 'send_notification' | 'auto_reply' | 'create_ticket' | 'forward_email' | 'webhook' | 'assign_tag';
+  config: Record<string, any>;
+  templateId?: string;
+}
+
+export interface AutomationRule {
+  id: string;
+  name: string;
+  description?: string;
+  conditions: AutomationCondition[];
+  actions: AutomationAction[];
+  isActive: boolean;
+  priority: number;
+  tenantId: string;
+  executionCount: number;
+  successCount: number;
+  lastExecuted?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class AutomationRuleEntity implements AutomationRule {
+  constructor(
+    public id: string,
+    public name: string,
+    public conditions: AutomationCondition[],
+    public actions: AutomationAction[],
+    public tenantId: string,
+    public description?: string,
+    public isActive: boolean = true,
+    public priority: number = 1,
+    public executionCount: number = 0,
+    public successCount: number = 0,
+    public lastExecuted?: Date,
+    public createdAt: Date = new Date(),
+    public updatedAt: Date = new Date()
+  ) {}
+
+  public activate(): void {
+    this.isActive = true;
+    this.updatedAt = new Date();
+  }
+
+  public deactivate(): void {
+    this.isActive = false;
+    this.updatedAt = new Date();
+  }
+
+  public recordExecution(success: boolean): void {
+    this.executionCount++;
+    if (success) {
+      this.successCount++;
+    }
+    this.lastExecuted = new Date();
+    this.updatedAt = new Date();
+  }
+
+  public matchesMessage(message: MessageEntity): boolean {
+    return this.conditions.every(condition => {
+      switch (condition.type) {
+        case 'channel':
+          return this.evaluateCondition(message.channelType, condition);
+        case 'content':
+          return this.evaluateCondition(message.body, condition);
+        case 'sender':
+          return this.evaluateCondition(message.from, condition);
+        case 'subject':
+          return this.evaluateCondition(message.subject || '', condition);
+        case 'priority':
+          return this.evaluateCondition(message.priority, condition);
+        case 'keyword':
+          return this.evaluateCondition(message.body, condition);
+        default:
+          return false;
+      }
+    });
+  }
+
+  private evaluateCondition(value: string, condition: AutomationCondition): boolean {
+    const compareValue = condition.value.toLowerCase();
+    const targetValue = value.toLowerCase();
+
+    switch (condition.operator) {
+      case 'equals':
+        return targetValue === compareValue;
+      case 'contains':
+        return targetValue.includes(compareValue);
+      case 'starts_with':
+        return targetValue.startsWith(compareValue);
+      case 'ends_with':
+        return targetValue.endsWith(compareValue);
+      case 'regex':
+        try {
+          const regex = new RegExp(condition.value, 'i');
+          return regex.test(targetValue);
+        } catch {
+          return false;
+        }
+      default:
+        return false;
+    }
+  }
+}

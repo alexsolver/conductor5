@@ -52,7 +52,8 @@ import {
   Globe2,
   Wrench,
   Bell,
-  CheckCircle
+  CheckCircle,
+  MessageCircle // Import MessageCircle for OmniBridge
 } from "lucide-react";
 
 interface SidebarProps {

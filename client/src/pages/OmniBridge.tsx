@@ -1551,3 +1551,543 @@ export default function OmniBridge() {
     </div>
   );
 }
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import {
+  Settings,
+  Zap,
+  MessageCircle,
+  Mail,
+  Phone,
+  Globe,
+  Activity,
+  Inbox,
+  Send,
+  Plus,
+  Edit,
+  Trash2,
+  Play,
+  Pause,
+  BarChart3,
+  FileText,
+  Workflow,
+  Bot,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+
+interface Channel {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  isEnabled: boolean;
+  config: Record<string, any>;
+}
+
+interface Message {
+  id: string;
+  channelId: string;
+  channelType: string;
+  from: string;
+  to?: string;
+  subject?: string;
+  body: string;
+  status: string;
+  priority: string;
+  receivedAt: string;
+  createdAt: string;
+}
+
+export default function OmniBridge() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('channels');
+
+  // Fetch channels
+  const { data: channelsData, isLoading: channelsLoading, refetch: refetchChannels } = useQuery({
+    queryKey: ['omnibridge-channels'],
+    queryFn: () => apiRequest('GET', '/api/omnibridge/channels'),
+    staleTime: 30000,
+  });
+
+  // Fetch messages
+  const { data: messagesData, isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
+    queryKey: ['omnibridge-messages'],
+    queryFn: () => apiRequest('GET', '/api/omnibridge/messages'),
+    staleTime: 15000,
+  });
+
+  // Toggle channel mutation
+  const toggleChannelMutation = useMutation({
+    mutationFn: async ({ channelId, isEnabled }: { channelId: string, isEnabled: boolean }) => {
+      return await apiRequest('POST', `/api/omnibridge/channels/${channelId}/toggle`, { isEnabled });
+    },
+    onSuccess: (_, { isEnabled }) => {
+      toast({
+        title: `Canal ${isEnabled ? 'Ativado' : 'Desativado'}`,
+        description: `O canal foi ${isEnabled ? 'ativado' : 'desativado'} com sucesso.`
+      });
+      refetchChannels();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao alterar canal",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Process message mutation
+  const processMessageMutation = useMutation({
+    mutationFn: async ({ messageId, action }: { messageId: string, action: 'read' | 'processed' }) => {
+      return await apiRequest('POST', `/api/omnibridge/messages/${messageId}/process`, { action });
+    },
+    onSuccess: () => {
+      refetchMessages();
+    }
+  });
+
+  const channels = (channelsData as any)?.channels || [];
+  const messages = (messagesData as any)?.messages || [];
+
+  const getChannelIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'email': return Mail;
+      case 'whatsapp': return MessageCircle;
+      case 'telegram': return Send;
+      case 'sms': return Phone;
+      case 'webhook': return Globe;
+      default: return Settings;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'connected':
+      case 'active': 
+        return 'bg-green-100 text-green-800';
+      case 'disconnected':
+      case 'inactive': 
+        return 'bg-red-100 text-red-800';
+      case 'error': 
+        return 'bg-red-100 text-red-800';
+      default: 
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800';
+      case 'high': return 'bg-orange-100 text-orange-800';
+      case 'medium': return 'bg-blue-100 text-blue-800';
+      case 'low': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (channelsLoading && messagesLoading) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">OmniBridge - Central de Comunicação</h1>
+          <Activity className="h-6 w-6 animate-spin" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-8 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">OmniBridge - Central de Comunicação</h1>
+          <p className="text-gray-600 mt-1">Central unificada para gestão de canais de comunicação</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-green-600" />
+            <span className="text-sm text-green-600 font-medium">Sistema Ativo</span>
+          </div>
+          
+          <Button 
+            variant="outline"
+            onClick={() => {
+              refetchChannels();
+              refetchMessages();
+            }}
+            size="sm"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
+      </div>
+
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Canais Ativos</p>
+                <p className="text-2xl font-bold">
+                  {channels.filter((c: Channel) => c.isEnabled).length}
+                </p>
+              </div>
+              <Zap className="h-8 w-8 text-blue-600" />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              de {channels.length} canais configurados
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Mensagens</p>
+                <p className="text-2xl font-bold">{messages.length}</p>
+              </div>
+              <Inbox className="h-8 w-8 text-green-600" />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              mensagens recebidas
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Regras</p>
+                <p className="text-2xl font-bold">0</p>
+              </div>
+              <Workflow className="h-8 w-8 text-purple-600" />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              regras de automação
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Templates</p>
+                <p className="text-2xl font-bold">0</p>
+              </div>
+              <FileText className="h-8 w-8 text-orange-600" />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              templates disponíveis
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="channels">Canais</TabsTrigger>
+          <TabsTrigger value="inbox">Inbox</TabsTrigger>
+          <TabsTrigger value="rules">Regras</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="chatbots">Chatbots</TabsTrigger>
+        </TabsList>
+
+        {/* Canais Tab */}
+        <TabsContent value="channels" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Canais de Comunicação
+              </CardTitle>
+              <CardDescription>
+                Ative ou desative canais configurados no Workspace Admin
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {channels.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {channels.map((channel: Channel) => {
+                    const IconComponent = getChannelIcon(channel.type);
+                    return (
+                      <Card key={channel.id} className="relative">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-blue-100 rounded-lg">
+                                <IconComponent className="h-5 w-5 text-blue-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium">{channel.name}</h4>
+                                <p className="text-sm text-gray-500 capitalize">{channel.type}</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mb-3">
+                            <Badge className={getStatusColor(channel.status)}>
+                              {channel.status === 'connected' ? 'Conectado' : 
+                               channel.status === 'disconnected' ? 'Desconectado' : 
+                               'Erro'}
+                            </Badge>
+                            <Switch
+                              checked={channel.isEnabled}
+                              onCheckedChange={(enabled) => 
+                                toggleChannelMutation.mutate({ 
+                                  channelId: channel.id, 
+                                  isEnabled: enabled 
+                                })
+                              }
+                              disabled={toggleChannelMutation.isPending}
+                            />
+                          </div>
+
+                          <div className="text-xs text-gray-500">
+                            {channel.isEnabled ? 'Canal ativo' : 'Canal inativo'}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Nenhum canal configurado</p>
+                  <p className="text-sm text-gray-400 mt-2 mb-4">
+                    Configure canais de comunicação em:
+                    <br />
+                    <strong>Workspace Admin → Integrações → Comunicação</strong>
+                  </p>
+                  <Button variant="outline">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Ir para Configurações
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Inbox Tab */}
+        <TabsContent value="inbox" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Inbox className="h-5 w-5" />
+                Inbox Centralizada
+              </CardTitle>
+              <CardDescription>
+                Todas as mensagens recebidas de todos os canais
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {messages.length > 0 ? (
+                <div className="space-y-4">
+                  {messages.map((message: Message) => {
+                    const IconComponent = getChannelIcon(message.channelType);
+                    return (
+                      <Card key={message.id} className="border-l-4 border-l-blue-500">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <IconComponent className="h-4 w-4 text-gray-500" />
+                              <div>
+                                <h4 className="font-medium">
+                                  {message.subject || 'Sem assunto'}
+                                </h4>
+                                <p className="text-sm text-gray-500">
+                                  De: {message.from}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <Badge variant="outline" className={getPriorityColor(message.priority)}>
+                                {message.priority}
+                              </Badge>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {new Date(message.receivedAt).toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                            {message.body}
+                          </p>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span>Canal: {message.channelType}</span>
+                              <span>•</span>
+                              <span>Status: {message.status}</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-1">
+                              {message.status === 'unread' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    processMessageMutation.mutate({
+                                      messageId: message.id,
+                                      action: 'read'
+                                    })
+                                  }
+                                >
+                                  <CheckCircle className="h-3 w-3" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  processMessageMutation.mutate({
+                                    messageId: message.id,
+                                    action: 'processed'
+                                  })
+                                }
+                              >
+                                <Play className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Inbox className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Nenhuma mensagem recebida</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    As mensagens dos canais ativos aparecerão aqui
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Regras Tab */}
+        <TabsContent value="rules" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Workflow className="h-5 w-5" />
+                Regras de Automação
+              </CardTitle>
+              <CardDescription>
+                Configure regras automáticas para processar mensagens
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Workflow className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Funcionalidade em desenvolvimento</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Em breve você poderá criar regras para:
+                </p>
+                <ul className="text-sm text-gray-600 mt-4 space-y-1">
+                  <li>• Notificações automáticas</li>
+                  <li>• Respostas por email</li>
+                  <li>• Abertura de tickets</li>
+                  <li>• Encaminhamento de mensagens</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Templates Tab */}
+        <TabsContent value="templates" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Templates de Resposta
+              </CardTitle>
+              <CardDescription>
+                Crie e gerencie templates para respostas automáticas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Funcionalidade em desenvolvimento</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Em breve você poderá criar templates com:
+                </p>
+                <ul className="text-sm text-gray-600 mt-4 space-y-1">
+                  <li>• Variáveis dinâmicas</li>
+                  <li>• Múltiplos formatos</li>
+                  <li>• Categorização</li>
+                  <li>• Histórico de uso</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Chatbots Tab */}
+        <TabsContent value="chatbots" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                Chatbots e IA
+              </CardTitle>
+              <CardDescription>
+                Configure chatbots com workflows customizáveis e agentes de IA
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Funcionalidade em desenvolvimento</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Em breve você poderá criar chatbots com:
+                </p>
+                <ul className="text-sm text-gray-600 mt-4 space-y-1">
+                  <li>• Workflows customizáveis</li>
+                  <li>• Integração com IA</li>
+                  <li>• Múltiplos canais</li>
+                  <li>• Fallback para humanos</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

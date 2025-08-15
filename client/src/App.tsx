@@ -90,6 +90,8 @@ import TimecardApprovals from './pages/TimecardApprovals';
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Customers from "./pages/Customers";
 
+// OmniBridge Module - New Import
+import OmniBridge from "./pages/OmniBridge";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -190,7 +192,8 @@ function AppRouter() {
         <Route path="/absence-management" component={AbsenceManagement} />
         <Route path="/holiday-calendar" component={HolidayCalendar} />
         <Route path="/agenda-manager" component={AgendaManager} />
-        {/* Removed: OmniBridge route */}
+        {/* OmniBridge Route */}
+        <Route path="/omnibridge" component={OmniBridge} />
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
