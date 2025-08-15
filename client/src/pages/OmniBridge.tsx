@@ -162,10 +162,11 @@ export default function OmniBridge() {
           console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data?.length || 0, 'total');
           
           if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
-            // Filter only communication channels
-            const communicationChannels = integrationsResult.data.filter((integration: any) => 
-              integration.category === 'communication'
-            );
+            // All data from integrations endpoint should be communication channels
+            const communicationChannels = integrationsResult.data.filter((integration: any) => {
+              const category = integration.category?.toLowerCase() || '';
+              return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+            });
             console.log('🔍 [OmniBridge] Filtered channels:', communicationChannels.length, 'communication channels');
             
             channelsData = communicationChannels.map((integration: any) => ({
@@ -179,12 +180,17 @@ export default function OmniBridge() {
                     integration.id.includes('whatsapp') ? MessageSquare : 
                     integration.id.includes('telegram') ? MessageCircle : Phone,
               description: integration.description,
-              status: integration.enabled ? 'connected' : 'disconnected',
+              status: integration.status || (integration.enabled ? 'connected' : 'disconnected'),
               messageCount: 0,
-              lastMessage: 'No messages',
-              lastActivity: 'Never'
+              lastMessage: integration.enabled ? 'Configurado' : 'Não configurado',
+              lastActivity: integration.enabled ? 'Ativo' : 'Nunca'
             }));
+          } else if (integrationsResult?.fallback) {
+            console.log('⚠️ [OmniBridge] Using fallback integration structure');
+            channelsData = integrationsResult.data || [];
           }
+        } else {
+          console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
         }
 
         if (inboxResponse.ok) {
