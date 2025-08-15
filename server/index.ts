@@ -50,11 +50,21 @@ async function ensurePostgreSQLRunning() {
 
 async function validateDatabaseConnection() {
   const { Pool } = await import('pg');
+  
+  // CRITICAL FIX: SSL configuration for production deployment
+  const isProduction = process.env.NODE_ENV === 'production';
+  const sslConfig = isProduction ? {
+    ssl: {
+      rejectUnauthorized: false, // Accept self-signed certificates in production
+    }
+  } : {};
+
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     connectionTimeoutMillis: 5000, // Increased timeout for initial connection
     idleTimeoutMillis: 30000,      // Keep connections alive for 30s
     allowExitOnIdle: false,        // Don't exit if pool is idle
+    ...sslConfig // Apply SSL configuration
   });
 
   try {
@@ -65,9 +75,10 @@ async function validateDatabaseConnection() {
     return true;
   } catch (error) {
     console.error("❌ [DATABASE] Failed to connect to the database:", error);
-    // In production, we might want to exit or retry differently.
-    // For now, we'll log and continue, assuming DATABASE_URL is correctly set.
-    // If this is critical, the application should likely fail fast.
+    // PRODUCTION FIX: More descriptive error for SSL issues
+    if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
+      console.error("🔒 [SSL ERROR] Certificate validation failed. Check SSL configuration.");
+    }
     throw new Error("Database connection failed. Ensure DATABASE_URL is correctly set.");
   }
 }

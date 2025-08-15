@@ -98,6 +98,14 @@ export class ConnectionPoolManager {
       const baseUrl = new URL(process.env.DATABASE_URL!);
       baseUrl.searchParams.set('schema', schemaName);
       
+      // CRITICAL FIX: SSL configuration for production deployment
+      const isProduction = process.env.NODE_ENV === 'production';
+      const sslConfig = isProduction ? {
+        ssl: {
+          rejectUnauthorized: false, // Accept self-signed certificates in production
+        }
+      } : {};
+      
       const pool = new Pool({ 
         connectionString: baseUrl.toString(),
         max: 8, // ENTERPRISE: Aumentado para concurrent operations
@@ -109,7 +117,8 @@ export class ConnectionPoolManager {
         keepAlive: true,
         keepAliveInitialDelayMillis: 10000, // ANTI-HIBERNATION
         allowExitOnIdle: false,
-        maxLifetimeSeconds: 3600 // ENTERPRISE: 1 hora lifecycle
+        maxLifetimeSeconds: 3600, // ENTERPRISE: 1 hora lifecycle
+        ...sslConfig // Apply SSL configuration
       });
 
       const db = drizzle({ client: pool, schema });

@@ -58,7 +58,8 @@ export const schemaManager = {
     const tenantPool = new Pool({ 
       connectionString: process.env.DATABASE_URL,
       // Set the schema search path to the tenant schema
-      options: `-c search_path=${schemaName}`
+      options: `-c search_path=${schemaName}`,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     });
     const tenantDb = drizzle({ client: tenantPool, schema });
     return { db: tenantDb };
