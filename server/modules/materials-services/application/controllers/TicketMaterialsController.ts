@@ -161,7 +161,7 @@ export class TicketMaterialsController {
       // Import pool for direct SQL queries
       const { pool } = await import('../../../../db');
 
-      // Use raw SQL to get consumed items with item details
+      // Use raw SQL to get consumed items with item details - mesma estrutura dos planejados
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
         SELECT 
@@ -169,7 +169,13 @@ export class TicketMaterialsController {
           i.name as item_name,
           i.description as item_description,
           i.measurement_unit,
-          i.type as item_type
+          i.type as item_type,
+          i.code as item_code,
+          i.brand as item_brand,
+          i.model as item_model,
+          i.category as item_category,
+          false as has_children,
+          0 as children_count
         FROM "${schemaName}".ticket_consumed_items tci
         LEFT JOIN "${schemaName}".items i ON tci.item_id = i.id
         WHERE tci.ticket_id = $1 AND tci.tenant_id = $2
@@ -185,14 +191,24 @@ export class TicketMaterialsController {
         itemId: row.item_id,
         itemName: row.item_name || 'Item não encontrado',
         itemDescription: row.item_description,
+        itemCode: row.item_code,
+        itemBrand: row.item_brand,
+        itemModel: row.item_model,
+        itemCategory: row.item_category,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
+        lpuId: row.lpu_id,
+        plannedQuantity: parseFloat(row.planned_quantity || 0),
         actualQuantity: parseFloat(row.actual_quantity || 0),
+        unitPrice: parseFloat(row.unit_price_at_consumption || 0),
         unitPriceAtConsumption: parseFloat(row.unit_price_at_consumption || 0),
         totalCost: parseFloat(row.total_cost || 0),
         consumptionType: row.consumption_type,
+        status: row.status || 'consumed',
         notes: row.notes,
         isActive: row.is_active,
+        hasChildren: row.has_children,
+        childrenCount: parseInt(row.children_count || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }));
@@ -406,15 +422,22 @@ export class TicketMaterialsController {
       } = req.body;
 
       const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      
       if (!tenantId) {
         return res.status(400).json({ success: false, error: 'Tenant ID é obrigatório' });
+      }
+
+      if (!userId) {
+        return res.status(400).json({ success: false, error: 'User ID é obrigatório' });
       }
 
       console.log('🔍 [ADD-CONSUMED-ITEM] Adding consumed item:', {
         ticketId,
         itemId,
         actualQuantity,
-        unitPriceAtConsumption
+        unitPriceAtConsumption,
+        userId
       });
 
       // Calculate total cost ensuring it's never null
@@ -428,10 +451,14 @@ export class TicketMaterialsController {
         ticketId,
         itemId,
         plannedItemId: plannedItemId || null,
+        plannedQuantity: 0,
         actualQuantity: quantity,
+        lpuId: lpuId || '00000000-0000-0000-0000-000000000001',
         unitPriceAtConsumption: unitPrice,
         totalCost: totalCost,
-        lpuId: lpuId || '00000000-0000-0000-0000-000000000001',
+        technicianId: userId, // Campo obrigatório adicionado
+        stockLocationId: null,
+        consumedAt: new Date(),
         consumptionType,
         notes,
         isActive: true,
@@ -447,10 +474,10 @@ export class TicketMaterialsController {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const insertQuery = `
         INSERT INTO "${schemaName}".ticket_consumed_items (
-          id, tenant_id, ticket_id, item_id, planned_item_id, actual_quantity,
-          unit_price_at_consumption, total_cost, lpu_id, consumption_type, notes,
-          is_active, created_at, updated_at, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+          id, tenant_id, ticket_id, item_id, planned_item_id, planned_quantity, actual_quantity,
+          lpu_id, unit_price_at_consumption, total_cost, technician_id, stock_location_id,
+          consumed_at, consumption_type, notes, is_active, created_at, updated_at, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
       `;
 
       await pool.query(insertQuery, [
@@ -459,10 +486,14 @@ export class TicketMaterialsController {
         newConsumedItem.ticketId,
         newConsumedItem.itemId,
         newConsumedItem.plannedItemId,
+        newConsumedItem.plannedQuantity,
         newConsumedItem.actualQuantity,
+        newConsumedItem.lpuId,
         newConsumedItem.unitPriceAtConsumption,
         newConsumedItem.totalCost,
-        newConsumedItem.lpuId,
+        newConsumedItem.technicianId,
+        newConsumedItem.stockLocationId,
+        newConsumedItem.consumedAt,
         newConsumedItem.consumptionType,
         newConsumedItem.notes,
         newConsumedItem.isActive,
@@ -498,7 +529,7 @@ export class TicketMaterialsController {
       // Import pool for direct SQL queries
       const { pool } = await import('../../../../db');
 
-      // Use raw SQL to get planned items with item details
+      // Use raw SQL to get planned items with complete item details
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
         SELECT 
@@ -507,6 +538,10 @@ export class TicketMaterialsController {
           i.description as item_description,
           i.measurement_unit,
           i.type as item_type,
+          i.code as item_code,
+          i.brand as item_brand,
+          i.model as item_model,
+          i.category as item_category,
           false as has_children,
           0 as children_count
         FROM "${schemaName}".ticket_planned_items tpi
@@ -524,13 +559,20 @@ export class TicketMaterialsController {
         itemId: row.item_id,
         itemName: row.item_name || 'Item não encontrado',
         itemDescription: row.item_description,
+        itemCode: row.item_code,
+        itemBrand: row.item_brand,
+        itemModel: row.item_model,
+        itemCategory: row.item_category,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
         lpuId: row.lpu_id,
         plannedQuantity: parseFloat(row.planned_quantity || 0),
-        unitPrice: parseFloat(row.unit_price || 0),
-        totalCost: parseFloat(row.total_cost || 0),
+        unitPrice: parseFloat(row.unit_price_at_planning || 0),
+        unitPriceAtPlanning: parseFloat(row.unit_price_at_planning || 0),
+        estimatedCost: parseFloat(row.estimated_cost || 0),
+        totalCost: parseFloat(row.estimated_cost || 0),
         status: row.status,
+        priority: row.priority,
         notes: row.notes,
         isActive: row.is_active,
         hasChildren: row.has_children,
