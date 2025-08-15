@@ -64,4 +64,27 @@ router.post('/chatbots', (req, res) => {
   res.status(501).json({ error: 'Chatbot creation not implemented yet' });
 });
 
+// Integration sync endpoint
+router.post('/sync-integrations', async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const { IntegrationChannelSync } = await import('./infrastructure/services/IntegrationChannelSync');
+    const { storage } = await import('../../storage-simple');
+    
+    const channelRepository = new DrizzleChannelRepository();
+    const syncService = new IntegrationChannelSync(channelRepository, storage);
+    
+    await syncService.syncIntegrationsToChannels(tenantId);
+    
+    res.json({ success: true, message: 'Integrations synced successfully' });
+  } catch (error) {
+    console.error('[OmniBridge] Sync error:', error);
+    res.status(500).json({ success: false, error: 'Failed to sync integrations' });
+  }
+});
+
 export { router as omniBridgeRoutes };

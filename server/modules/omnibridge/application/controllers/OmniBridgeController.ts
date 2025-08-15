@@ -1,4 +1,3 @@
-
 import { Request, Response } from 'express';
 import { GetChannelsUseCase } from '../use-cases/GetChannelsUseCase';
 import { ToggleChannelUseCase } from '../use-cases/ToggleChannelUseCase';
@@ -15,27 +14,36 @@ export class OmniBridgeController {
 
   async getChannels(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
+      const tenantId = (req as any).user?.tenantId;
       if (!tenantId) {
-        res.status(400).json({ error: 'Tenant ID is required' });
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
         return;
       }
 
-      // OmniBridge should get channels from integrations system
-      // This is handled by tenant-admin-integration endpoint
-      res.json({
-        success: true,
-        message: 'Please use /api/tenant-admin-integration/integrations for channel configuration',
-        channels: [],
-        count: 0
-      });
+      // Sync integrations to channels first
+      try {
+        const { IntegrationChannelSync } = await import('../../../omnibridge/infrastructure/services/IntegrationChannelSync');
+        const { storage } = await import('../../../../storage-simple');
+        const { DrizzleChannelRepository } = await import('../../../omnibridge/infrastructure/repositories/DrizzleChannelRepository');
+
+        const channelRepository = new DrizzleChannelRepository();
+        const syncService = new IntegrationChannelSync(channelRepository, storage);
+        await syncService.syncIntegrationsToChannels(tenantId);
+      } catch (syncError) {
+        console.warn('[OmniBridge] Sync warning:', syncError);
+        // Continue with normal flow even if sync fails
+      }
+
+      const result = await this.getChannelsUseCase.execute({ tenantId });
+
+      if (result.success) {
+        res.json({ success: true, data: result.channels });
+      } else {
+        res.status(500).json({ success: false, error: result.error });
+      }
     } catch (error) {
       console.error('[OmniBridge] Error getting channels:', error);
-      res.status(500).json({
-        error: 'Failed to get channels',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
+      res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
@@ -44,7 +52,7 @@ export class OmniBridgeController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { channelId } = req.params;
       const { isEnabled } = req.body;
-      
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
@@ -56,7 +64,7 @@ export class OmniBridgeController {
       }
 
       const result = await this.toggleChannelUseCase.execute(channelId, tenantId, isEnabled);
-      
+
       res.json({
         success: result,
         message: `Channel ${isEnabled ? 'enabled' : 'disabled'} successfully`
@@ -74,7 +82,7 @@ export class OmniBridgeController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { limit, offset, channelId, status, priority } = req.query;
-      
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
@@ -88,7 +96,7 @@ export class OmniBridgeController {
         status: status as string,
         priority: priority as string
       });
-      
+
       res.json({
         success: true,
         messages,
@@ -108,7 +116,7 @@ export class OmniBridgeController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { messageId } = req.params;
       const { action } = req.body;
-      
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;
@@ -120,7 +128,7 @@ export class OmniBridgeController {
       }
 
       const result = await this.processMessageUseCase.execute(messageId, tenantId, action);
-      
+
       res.json({
         success: result,
         message: `Message marked as ${action} successfully`
@@ -137,7 +145,7 @@ export class OmniBridgeController {
   async getInboxStats(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-      
+
       if (!tenantId) {
         res.status(400).json({ error: 'Tenant ID is required' });
         return;

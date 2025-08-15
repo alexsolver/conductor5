@@ -11,13 +11,13 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { 
-  MessageSquare, 
-  Mail, 
-  Phone, 
-  Settings, 
-  Plus, 
-  Search, 
+import {
+  MessageSquare,
+  Mail,
+  Phone,
+  Settings,
+  Plus,
+  Search,
   Filter,
   Send,
   Archive,
@@ -56,6 +56,7 @@ interface Channel {
   messageCount: number;
   lastMessage?: string;
   lastActivity?: string;
+  features?: string[];
 }
 
 interface Message {
@@ -168,9 +169,10 @@ export default function OmniBridge() {
       try {
         setLoading(true);
 
-        // Fetch channels from integrations API (Workspace Admin → Integrações → Comunicação)
         const token = localStorage.getItem('token');
-        const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
+
+        // Fetch channels from a new endpoint if available, otherwise fallback to integrations
+        const channelsResponse = await fetch('/api/omnibridge/channels', { // New endpoint for synced channels
           headers: {
             'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
@@ -184,54 +186,92 @@ export default function OmniBridge() {
           }
         });
 
-        let integrationsResult = null;
-      if (integrationsResponse.ok) {
-        integrationsResult = await integrationsResponse.json();
-        console.log('🔍 [OmniBridge] API Response for integrations:', integrationsResult);
-      } else {
-        console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
-      }
+        let channelsData = [];
+        let messagesData = [];
 
-      let inboxResult = null;
-      if (inboxResponse.ok) {
-        inboxResult = await inboxResponse.json();
-        console.log('🔍 [OmniBridge] API Response for inbox:', inboxResult);
-      } else {
-        console.log('⚠️ [OmniBridge] Failed to fetch inbox, status:', inboxResponse.status);
-      }
+        if (channelsResponse.ok) {
+          const channelsResult = await channelsResponse.json();
+          console.log('🔍 [OmniBridge] Channels data:', channelsResult);
 
-      let channelsData = [];
-      let messagesData = [];
-
-      if (integrationsResult && integrationsResult.success) {
-        console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data?.length || 0, 'total');
-
-        if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
-          // Filter only communication category integrations
-          const communicationChannels = integrationsResult.data.filter((integration: any) => {
-            const category = integration.category?.toLowerCase() || '';
-            return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+          if (channelsResult.success) {
+            channelsData = channelsResult.data.map((channel: any) => ({
+              id: channel.id,
+              name: channel.name,
+              type: channel.type,
+              status: channel.status === 'active' ? 'connected' : 'disconnected',
+              enabled: channel.status === 'active',
+              icon: channel.icon,
+              description: channel.description,
+              features: channel.features || [],
+              messageCount: channel.metrics?.totalMessages || 0,
+              lastMessage: null
+            }));
+          }
+        } else {
+          console.log('⚠️ [OmniBridge] Failed to fetch channels, status:', channelsResponse.status);
+          // Fallback to fetching from integrations if /api/omnibridge/channels fails
+          const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : '',
+              'Content-Type': 'application/json'
+            }
           });
-          
-          console.log('🔍 [OmniBridge] Filtered communication channels:', communicationChannels.length, 'channels');
 
-          channelsData = communicationChannels.map((integration: any) => ({
-            id: integration.id,
-            name: integration.name,
-            type: getChannelType(integration.id),
-            enabled: integration.status === 'connected' || integration.enabled === true,
-            icon: getChannelIcon(integration.id),
-            description: integration.description || 'Canal de comunicação',
-            status: integration.status || 'disconnected',
-            messageCount: 0,
-            lastMessage: integration.status === 'connected' ? 'Configurado' : 'Aguardando configuração',
-            lastActivity: integration.status === 'connected' ? 'Ativo' : 'Nunca',
-            features: integration.features || []
+          if (integrationsResponse.ok) {
+            const integrationsResult = await integrationsResponse.json();
+            console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data || integrationsResult);
+
+            if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
+              const communicationChannels = integrationsResult.data.filter((integration: any) => {
+                const category = integration.category?.toLowerCase() || '';
+                return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
+              });
+
+              console.log('🔍 [OmniBridge] Filtered communication channels:', communicationChannels.length, 'channels');
+
+              channelsData = communicationChannels.map((integration: any) => ({
+                id: integration.id,
+                name: integration.name,
+                type: getChannelType(integration.id),
+                enabled: integration.status === 'connected' || integration.enabled === true,
+                icon: getChannelIcon(integration.id),
+                description: integration.description || 'Canal de comunicação',
+                status: integration.status || 'disconnected',
+                messageCount: 0,
+                lastMessage: integration.status === 'connected' ? 'Configurado' : 'Aguardando configuração',
+                lastActivity: integration.status === 'connected' ? 'Ativo' : 'Nunca',
+                features: integration.features || []
+              }));
+            }
+          } else {
+            console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
+          }
+        }
+
+        let inboxResult = null;
+        if (inboxResponse.ok) {
+          inboxResult = await inboxResponse.json();
+          console.log('🔍 [OmniBridge] API Response for inbox:', inboxResult);
+        } else {
+          console.log('⚠️ [OmniBridge] Failed to fetch inbox, status:', inboxResponse.status);
+        }
+
+        if (inboxResult && inboxResult.success) {
+          messagesData = inboxResult.data.map((msg: any) => ({
+            id: msg.id,
+            channelId: msg.channelId,
+            channelType: msg.channelType,
+            from: msg.from,
+            to: msg.to,
+            subject: msg.subject,
+            content: msg.content,
+            timestamp: new Date(msg.timestamp).toLocaleString(),
+            status: msg.status,
+            priority: msg.priority,
+            tags: msg.tags,
+            attachments: msg.attachments
           }));
         }
-      } else {
-        console.log('⚠️ [OmniBridge] No valid integrations response, using fallback');
-      }
 
         if (channelsData.length === 0) {
           console.log('⚠️ [OmniBridge] No integrations data available, showing message to configure in Workspace Admin');
@@ -251,7 +291,7 @@ export default function OmniBridge() {
       } catch (error) {
         console.error('❌ [OmniBridge] Error fetching data:', error);
 
-        // Fallback data
+        // Fallback data if both endpoints fail
         setChannels([
           {
             id: 'email-imap',
@@ -301,9 +341,9 @@ export default function OmniBridge() {
 
   const handleChannelToggle = async (channelId: string, enabled: boolean) => {
     try {
-      // Use the integrations endpoint to toggle channel status
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/tenant-admin-integration/integrations/${channelId}/toggle`, {
+      // Assuming a new endpoint for toggling channels or using the integrations endpoint
+      const response = await fetch(`/api/omnibridge/channels/${channelId}/toggle`, {
         method: 'PUT',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
@@ -313,19 +353,18 @@ export default function OmniBridge() {
       });
 
       if (response.ok) {
-        setChannels(prev => prev.map(channel => 
-          channel.id === channelId 
-            ? { 
-                ...channel, 
-                enabled, 
+        setChannels(prev => prev.map(channel =>
+          channel.id === channelId
+            ? {
+                ...channel,
+                enabled,
                 status: enabled ? 'connected' : 'disconnected',
                 lastMessage: enabled ? 'Ativo' : 'Desativado',
                 lastActivity: enabled ? 'Agora' : 'Desabilitado'
               }
             : channel
         ));
-        
-        // Show success message
+
         console.log(`✅ Canal ${channelId} ${enabled ? 'ativado' : 'desativado'} com sucesso`);
       } else {
         console.error('Erro ao alterar status do canal:', response.status);
@@ -556,7 +595,7 @@ export default function OmniBridge() {
                                   </Badge>
                                 ))}
                               </div>
-                              <Badge 
+                              <Badge
                                 variant="outline"
                                 className={
                                   message.status === 'unread' ? 'border-primary text-primary' :
@@ -658,10 +697,7 @@ export default function OmniBridge() {
             <CardHeader>
               <CardTitle>Canais de Comunicação</CardTitle>
               <CardDescription>
-                Configure e gerencie seus canais de comunicação. 
-                <strong>Configuração:</strong> Workspace Admin → Integrações → Comunicação.
-                <br />
-                <em>Aqui você apenas ativa/desativa canais já configurados.</em>
+                Gerencie seus canais de comunicação. Integrações configuradas no Workspace Admin aparecerão aqui.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -670,10 +706,10 @@ export default function OmniBridge() {
                   <Settings className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <h3 className="text-lg font-medium mb-2">Nenhum canal configurado</h3>
                   <p className="text-muted-foreground mb-4">
-                    Configure seus canais de comunicação no Workspace Admin
+                    Configure seus canais de comunicação no Workspace Admin para que eles apareçam aqui.
                   </p>
-                  <Button 
-                    onClick={() => window.location.href = '/tenant-admin/integrations'}
+                  <Button
+                    onClick={() => window.open('/tenant-admin/integrations', '_blank')}
                     className="gap-2"
                   >
                     <ExternalLink className="h-4 w-4" />
@@ -687,9 +723,16 @@ export default function OmniBridge() {
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10">
-                            <channel.icon className="h-5 w-5 text-primary" />
-                          </div>
+                          {/* Use the actual icon if available, otherwise fallback */}
+                          {channel.icon ? (
+                            <div className="p-2 rounded-lg bg-primary/10">
+                              <img src={channel.icon} alt={channel.name} className="h-5 w-5 text-primary" />
+                            </div>
+                          ) : (
+                            <div className="p-2 rounded-lg bg-primary/10">
+                              <getChannelIcon(channel.id) className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
                           <div>
                             <h3 className="font-medium">{channel.name}</h3>
                             <p className="text-sm text-muted-foreground">{channel.type}</p>
@@ -721,18 +764,18 @@ export default function OmniBridge() {
 
                         <div className="flex items-center justify-between text-sm">
                           <span>Última atividade:</span>
-                          <span className="text-muted-foreground">{channel.lastActivity}</span>
+                          <span className="text-muted-foreground">{channel.lastActivity || 'Nenhuma'}</span>
                         </div>
                       </div>
 
                       <Separator className="my-3" />
 
                       <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="flex-1"
-                          onClick={() => window.location.href = '/tenant-admin/integrations'}
+                          onClick={() => window.open('/tenant-admin/integrations', '_blank')}
                         >
                           <Settings className="h-4 w-4 mr-2" />
                           Configurar

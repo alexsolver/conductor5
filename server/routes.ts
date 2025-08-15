@@ -1438,6 +1438,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Hierarchical ticket metadata routes
   try {
+    // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
+    // ✅ LEGACY technical-skills eliminated per 1qa.md
+    // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
+    // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
+    // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
+    // ✅ LEGACY ticketHistoryRoutes eliminated per 1qa.md
+    app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
+
     const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController'); // Re-import for clarity within this block
     const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');    
     const { TicketTemplateController } = await import('./modules/ticket-templates/TicketTemplateController');
@@ -3441,6 +3449,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to create user group' });
     }
   });
+
+  // OmniBridge Routes - Communication Hub
+  try {
+    const { omniBridgeRoutes } = await import('./modules/omnibridge/routes');
+    if (omniBridgeRoutes) {
+      app.use('/api/omnibridge', omniBridgeRoutes);
+      console.log('✅ [OMNIBRIDGE] Routes registered successfully');
+    } else {
+      console.warn('⚠️ [OMNIBRIDGE] Routes module not properly exported, skipping registration');
+    }
+  } catch (error) {
+    console.warn('⚠️ [OMNIBRIDGE] Routes module failed to load:', error.message);
+  }
 
   const httpServer = createServer(app);
   return httpServer;
