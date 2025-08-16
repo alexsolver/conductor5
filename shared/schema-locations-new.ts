@@ -271,7 +271,14 @@ export const rotaDinamicaSchema = createInsertSchema(rotasDinamicas, {
   clientesVinculados: z.array(z.string().uuid()).optional(),
   regioesAtendidas: z.array(z.string().uuid()).optional(),
   diasSemana: z.array(z.enum(['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'])).optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true });
+}).omit({ id: true, createdAt: true, updatedAt: true, tenantId: true }).extend({
+  // Aceitar campos do frontend seguindo padrão 1qa.md
+  nome: z.string().min(1, "Nome é obrigatório").max(200).optional(), // Alias para nomeRota
+  descricao: z.string().optional(),
+  codigoIntegracao: z.string().optional(),
+  clientesFavorecidos: z.array(z.string().uuid()).optional(), // Alias para clientesVinculados
+  tecnicosPrincipais: z.array(z.string().uuid()).optional(),
+});
 
 export const trechoSchema = createInsertSchema(trechos, {
   codigoIntegracao: z.string().optional(),

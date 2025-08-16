@@ -294,26 +294,83 @@ export class LocationsNewController {
         return;
       }
 
-      // Fetch records with tenant validation per 1qa.md
-      // Handle different column naming for different tables
-      let orderByColumn = 'nome';
-      
-      // Check if this table uses different column naming
-      const columnCheck = await pool.query(`
-        SELECT column_name FROM information_schema.columns 
-        WHERE table_schema = $1 AND table_name = $2 AND column_name IN ('nome', 'name')
-      `, [schemaName, tableName]);
+      // Fetch records with Clean Architecture column mapping per 1qa.md
+      let selectQuery;
+      let orderByColumn = 'created_at';
 
-      if (columnCheck.rows.length > 0) {
-        orderByColumn = columnCheck.rows[0].column_name;
+      // Define table-specific queries following schema structure
+      switch (recordType) {
+        case 'rota-dinamica':
+          selectQuery = `
+            SELECT 
+              id, 
+              nome_rota as nome, 
+              id_rota as codigo_integracao,
+              ativo,
+              previsao_dias,
+              created_at, 
+              updated_at
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 AND ativo = true
+            ORDER BY created_at DESC
+            LIMIT 100
+          `;
+          break;
+        
+        case 'trecho':
+          selectQuery = `
+            SELECT 
+              id, 
+              CONCAT('Trecho ', id::text) as nome,
+              codigo_integracao,
+              ativo,
+              local_a_id,
+              local_b_id,
+              created_at, 
+              updated_at
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 AND ativo = true
+            ORDER BY created_at DESC
+            LIMIT 100
+          `;
+          break;
+
+        case 'rota-trecho':
+          selectQuery = `
+            SELECT 
+              id, 
+              id_rota as nome,
+              ativo,
+              local_a_id,
+              local_b_id,
+              created_at, 
+              updated_at
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 AND ativo = true
+            ORDER BY created_at DESC
+            LIMIT 100
+          `;
+          break;
+
+        default:
+          // For tables with standard 'nome' column
+          selectQuery = `
+            SELECT 
+              id, 
+              nome,
+              descricao,
+              codigo_integracao,
+              ativo,
+              created_at, 
+              updated_at
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 AND ativo = true
+            ORDER BY nome ASC
+            LIMIT 100
+          `;
       }
 
-      const result = await pool.query(`
-        SELECT * FROM "${schemaName}"."${tableName}" 
-        WHERE tenant_id = $1 AND ativo = true
-        ORDER BY ${orderByColumn} ASC
-        LIMIT 100
-      `, [req.user.tenantId]);
+      const result = await pool.query(selectQuery, [req.user.tenantId]);
 
       console.log(`✅ [GET-RECORDS] Found ${result.rows.length} records of type ${recordType}`);
 

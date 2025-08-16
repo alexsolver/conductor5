@@ -568,22 +568,111 @@ router.post('/regiao', async (req: LocationsRequest, res: Response) => {
 });
 
 router.post('/rota-dinamica', async (req: AuthenticatedRequest, res: Response) => {
+  console.log('🔄 [CREATE-ROTA-DINAMICA] Starting creation process');
+  console.log('📝 [CREATE-ROTA-DINAMICA] Request body received:', JSON.stringify(req.body, null, 2));
+  
   try {
     const user = (req as any).user;
-    if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
-    const validatedData = rotaDinamicaSchema.parse({ ...req.body, tenantId: user.tenantId });
+    if (!user) {
+      console.log('❌ [CREATE-ROTA-DINAMICA] No user found in request');
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    console.log('✅ [CREATE-ROTA-DINAMICA] User authenticated:', { 
+      userId: user.id, 
+      tenantId: user.tenantId,
+      email: user.email 
+    });
+
+    // Validar dados com schema apropriado per 1qa.md
+    let validatedData;
+    try {
+      console.log('🔍 [CREATE-ROTA-DINAMICA] Validating data with Zod...');
+      validatedData = rotaDinamicaSchema.parse({ ...req.body, tenantId: user.tenantId });
+      console.log('✅ [CREATE-ROTA-DINAMICA] Data validated successfully');
+    } catch (validationError) {
+      console.log('❌ [CREATE-ROTA-DINAMICA] Validation error:', validationError);
+      if (validationError instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Invalid input data', 
+          details: validationError.errors 
+        });
+      }
+      throw validationError;
+    }
+
     const tenantId = user.tenantId;
     const schemaName = getSchemaName(tenantId);
-    await ensureSchemaAndTables(schemaName);
-    const result = await pool.query(
-      `INSERT INTO "${schemaName}".rotas_dinamicas (tenant_id, ativo, nome, descricao) VALUES ($1, $2, $3, $4) RETURNING *`,
-      [validatedData.tenantId, validatedData.ativo || true, validatedData.nome, validatedData.descricao]
-    );
-    res.status(201).json({ success: true, message: 'Rota dinâmica criada com sucesso', data: result.rows[0] });
+    console.log('🔍 [CREATE-ROTA-DINAMICA] Using schema:', schemaName);
+
+    // Ensure schema exists per 1qa.md pattern
+    try {
+      await ensureSchemaAndTables(schemaName);
+      console.log('✅ [CREATE-ROTA-DINAMICA] Schema setup completed');
+    } catch (schemaError) {
+      console.error('❌ [CREATE-ROTA-DINAMICA] Schema setup error:', schemaError);
+      return res.status(503).json({
+        success: false,
+        error: 'Infrastructure error',
+        message: 'Database configuration failed'
+      });
+    }
+
+    console.log('💾 [CREATE-ROTA-DINAMICA] Inserting into database...');
+
+    // Insert with enhanced fields per Clean Architecture
+    const insertQuery = `
+      INSERT INTO "${schemaName}".rotas_dinamicas (
+        tenant_id, ativo, nome_rota, id_rota, 
+        clientes_vinculados, regioes_atendidas, previsao_dias,
+        created_at, updated_at
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, NOW(), NOW()
+      ) RETURNING id, nome_rota as nome, tenant_id
+    `;
+
+    const insertParams = [
+      validatedData.tenantId,
+      validatedData.ativo || true,
+      validatedData.nome || validatedData.nomeRota,
+      validatedData.codigoIntegracao || validatedData.idRota || 'AUTO_' + Date.now(),
+      validatedData.clientesFavorecidos || validatedData.clientesVinculados ? 
+        JSON.stringify(validatedData.clientesFavorecidos || validatedData.clientesVinculados) : null,
+      validatedData.regioesAtendidas ? JSON.stringify(validatedData.regioesAtendidas) : null,
+      validatedData.previsaoDias || 1
+    ];
+
+    const result = await pool.query(insertQuery, insertParams);
+    const createdRecord = result.rows[0];
+
+    console.log('✅ [CREATE-ROTA-DINAMICA] Rota dinâmica created successfully:', { 
+      id: createdRecord.id, 
+      nome: createdRecord.nome,
+      tenantId: createdRecord.tenant_id 
+    });
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Rota dinâmica criada com sucesso', 
+      data: createdRecord 
+    });
+
   } catch (error) {
     console.error('❌ [CREATE-ROTA-DINAMICA] Error creating rota dinamica:', error);
-    if (error instanceof z.ZodError) return res.status(400).json({ success: false, error: 'Invalid input data', details: error.errors });
-    res.status(500).json({ success: false, error: 'Internal server error', message: error.message || 'Unknown error' });
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid input data', 
+        details: error.errors 
+      });
+    }
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error', 
+      message: error.message || 'Unknown error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
