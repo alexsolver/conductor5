@@ -267,7 +267,10 @@ export const regiaoSchema = createInsertSchema(regioes, {
 export const rotaDinamicaSchema = createInsertSchema(rotasDinamicas, {
   nomeRota: z.string().min(1, "Nome da rota é obrigatório").max(100),
   idRota: z.string().min(1, "ID da rota é obrigatório").max(100),
-  previsaoDias: z.number().min(1, "Previsão deve ser entre 1 e 30 dias").max(30, "Previsão deve ser entre 1 e 30 dias"),
+  previsaoDias: z.union([
+    z.number().min(1, "Previsão deve ser entre 1 e 30 dias").max(30, "Previsão deve ser entre 1 e 30 dias"),
+    z.string().transform((val) => parseInt(val, 10)).pipe(z.number().min(1, "Previsão deve ser entre 1 e 30 dias").max(30, "Previsão deve ser entre 1 e 30 dias"))
+  ]),
   clientesVinculados: z.array(z.string().uuid()).optional(),
   regioesAtendidas: z.array(z.string().uuid()).optional(),
   diasSemana: z.array(z.enum(['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'])).optional(),

@@ -1238,7 +1238,7 @@ function LocationsNewContent() {
                           
                           <FormField
                             control={form.control}
-                            name="nome"
+                            name="nomeRota"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Nome da Rota *</FormLabel>
@@ -1252,7 +1252,7 @@ function LocationsNewContent() {
                           
                           <FormField
                             control={form.control}
-                            name="codigoIntegracao"
+                            name="idRota"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>ID da Rota *</FormLabel>
@@ -1289,7 +1289,13 @@ function LocationsNewContent() {
                             <FormItem>
                               <FormLabel>Previsão de Dias (1-30)</FormLabel>
                               <FormControl>
-                                <Input type="number" min={1} max={30} {...field} />
+                                <Input 
+                                  type="number" 
+                                  min={1} 
+                                  max={30} 
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
