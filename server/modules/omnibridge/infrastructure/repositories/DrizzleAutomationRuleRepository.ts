@@ -1,79 +1,53 @@
 import { db } from '../../../../db';
 import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
-import { AutomationRule } from '../../domain/entities/AutomationRule';
-import { eq, and } from 'drizzle-orm';
+import { AutomationRuleEntity } from '../../domain/entities/AutomationRule';
 
 export class DrizzleAutomationRuleRepository implements IAutomationRuleRepository {
 
-  async create(rule: AutomationRule): Promise<AutomationRule> {
+  async create(rule: AutomationRuleEntity): Promise<AutomationRuleEntity> {
     try {
       console.log(`🔍 [DrizzleAutomationRuleRepository] Creating rule: ${rule.name}`);
-
-      const triggerType = rule.triggers[0]?.type || 'new_message';
-      const actionType = rule.actions[0]?.type || 'auto_reply';
 
       const result = await db.execute({
         sql: `
           INSERT INTO omnibridge_rules (
-            id, tenant_id, name, description, is_enabled,
-            trigger_type, trigger_conditions, triggers, action_type, action_parameters, actions,
-            priority, execution_stats, metadata, created_at, updated_at
+            id, tenant_id, name, description, is_enabled, priority,
+            trigger_conditions, action_parameters, created_at, updated_at
           ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW()
+            $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()
           ) RETURNING *
         `,
         args: [
           rule.id,
           rule.tenantId,
           rule.name,
-          rule.description,
-          rule.isEnabled,
-          triggerType,
-          JSON.stringify(rule.triggers[0]?.conditions || {}),
-          JSON.stringify(rule.triggers),
-          actionType,
-          JSON.stringify(rule.actions[0]?.parameters || {}),
-          JSON.stringify(rule.actions),
+          rule.description || '',
+          rule.isActive,
           rule.priority,
-          JSON.stringify(rule.executionStats),
-          JSON.stringify(rule.metadata)
+          JSON.stringify(rule.conditions),
+          JSON.stringify(rule.actions)
         ]
       });
 
-      // Handle the result correctly
       if (result.rows && result.rows.length > 0) {
-        return this.mapRowToRule(result.rows[0]);
-      } else {
-        // If no rows returned, create a basic rule object
-        return {
-          id: rule.id,
-          tenantId: rule.tenantId,
-          name: rule.name,
-          description: rule.description,
-          isEnabled: rule.isEnabled,
-          priority: rule.priority,
-          triggers: rule.triggers,
-          actions: rule.actions,
-          executionStats: rule.executionStats,
-          metadata: rule.metadata,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
+        return this.mapRowToEntity(result.rows[0]);
       }
+      
+      return rule;
     } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error creating rule: ${error.message}`);
+      console.error(`❌ [DrizzleAutomationRuleRepository] Error creating rule: ${(error as Error).message}`);
       throw error;
     }
   }
 
-  async findById(id: string, tenantId: string): Promise<AutomationRule | null> {
+  async findById(id: string, tenantId: string): Promise<AutomationRuleEntity | null> {
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rule: ${id} for tenant: ${tenantId}`);
 
     try {
       const result = await db.execute({
         sql: `
           SELECT * FROM omnibridge_rules 
-          WHERE id = ? AND tenant_id = ?
+          WHERE id = $1 AND tenant_id = $2
         `,
         args: [id, tenantId]
       });
@@ -83,238 +57,95 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       }
 
       const row = result.rows[0];
-      return this.mapRowToRule(row);
+      return this.mapRowToEntity(row);
     } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error finding rule: ${error.message}`);
+      console.error(`❌ [DrizzleAutomationRuleRepository] Error finding rule: ${(error as Error).message}`);
       throw error;
     }
   }
 
-  async findByTenant(tenantId: string, filters?: any): Promise<AutomationRule[]> {
+  async findByTenant(tenantId: string): Promise<AutomationRuleEntity[]> {
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
 
     try {
-      let query = `SELECT * FROM omnibridge_rules WHERE tenant_id = $1`;
-      const params: any[] = [tenantId];
-      let paramIndex = 2;
-
-      if (filters?.isEnabled !== undefined) {
-        query += ` AND is_enabled = $${paramIndex}`;
-        params.push(filters.isEnabled);
-        paramIndex++;
-      }
-
-      if (filters?.priority) {
-        query += ` AND priority = $${paramIndex}`;
-        params.push(filters.priority);
-        paramIndex++;
-      }
-
-      if (filters?.search) {
-        query += ` AND (name ILIKE $${paramIndex} OR description ILIKE $${paramIndex + 1})`;
-        params.push(`%${filters.search}%`, `%${filters.search}%`);
-        paramIndex += 2;
-      }
-
-      query += ` ORDER BY priority ASC, created_at DESC`;
-
-      if (filters?.limit) {
-        query += ` LIMIT $${paramIndex}`;
-        params.push(filters.limit);
-        paramIndex++;
-      }
-
-      if (filters?.offset) {
-        query += ` OFFSET $${paramIndex}`;
-        params.push(filters.offset);
-      }
-
       const result = await db.execute({
-        sql: query,
-        args: params
-      });
-      return result.rows.map(row => this.mapRowToRule(row));
-    } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error finding rules: ${error.message}`);
-      throw error;
-    }
-  }
-
-  async findActiveRules(tenantId: string): Promise<AutomationRule[]> {
-    console.log(`🔍 [DrizzleAutomationRuleRepository] Finding active rules for tenant: ${tenantId}`);
-
-    try {
-      const result = await db.execute({
-        sql: `
-          SELECT * FROM omnibridge_rules 
-          WHERE tenant_id = ? AND is_enabled = true
-          ORDER BY priority ASC
-        `,
+        sql: `SELECT * FROM omnibridge_rules WHERE tenant_id = $1 ORDER BY priority ASC, created_at DESC`,
         args: [tenantId]
       });
 
-      return result.rows.map(row => this.mapRowToRule(row));
+      return result.rows.map(row => this.mapRowToEntity(row));
     } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error finding active rules: ${error.message}`);
+      console.error(`❌ [DrizzleAutomationRuleRepository] Error finding rules: ${(error as Error).message}`);
       throw error;
     }
   }
 
-  async update(rule: AutomationRule): Promise<AutomationRule> {
-    console.log(`💾 [DrizzleAutomationRuleRepository] Updating automation rule: ${rule.id}`);
-
+  async update(rule: AutomationRuleEntity): Promise<AutomationRuleEntity> {
     try {
-      await db.execute({
+      console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${rule.id}`);
+
+      const result = await db.execute({
         sql: `
           UPDATE omnibridge_rules SET
-            name = ?, description = ?, is_enabled = ?, priority = ?,
-            triggers = ?, actions = ?, execution_stats = ?, metadata = ?, updated_at = ?
-          WHERE id = ? AND tenant_id = ?
+            name = $1, description = $2, is_enabled = $3, priority = $4,
+            trigger_conditions = $5, action_parameters = $6, updated_at = NOW()
+          WHERE id = $7 AND tenant_id = $8
+          RETURNING *
         `,
         args: [
           rule.name,
-          rule.description,
-          rule.isEnabled,
+          rule.description || '',
+          rule.isActive,
           rule.priority,
-          JSON.stringify(rule.triggers),
+          JSON.stringify(rule.conditions),
           JSON.stringify(rule.actions),
-          JSON.stringify(rule.executionStats),
-          JSON.stringify(rule.metadata),
-          rule.updatedAt,
           rule.id,
           rule.tenantId
         ]
       });
 
-      console.log(`✅ [DrizzleAutomationRuleRepository] Updated automation rule: ${rule.id}`);
+      if (result.rows && result.rows.length > 0) {
+        return this.mapRowToEntity(result.rows[0]);
+      }
+      
       return rule;
     } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error updating rule: ${error.message}`);
+      console.error(`❌ [DrizzleAutomationRuleRepository] Error updating rule: ${(error as Error).message}`);
       throw error;
     }
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
-    console.log(`🗑️ [DrizzleAutomationRuleRepository] Deleting automation rule: ${id}`);
-
     try {
-      const result = await db.execute({
-        sql: `
-          DELETE FROM omnibridge_rules 
-          WHERE id = ? AND tenant_id = ?
-        `,
+      console.log(`🗑️ [DrizzleAutomationRuleRepository] Deleting rule: ${id}`);
+
+      await db.execute({
+        sql: `DELETE FROM omnibridge_rules WHERE id = $1 AND tenant_id = $2`,
         args: [id, tenantId]
       });
 
-      const success = result.rowCount > 0;
-      console.log(`✅ [DrizzleAutomationRuleRepository] Deleted automation rule: ${id}, success: ${success}`);
-      return success;
+      return true;
     } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error deleting rule: ${error.message}`);
+      console.error(`❌ [DrizzleAutomationRuleRepository] Error deleting rule: ${(error as Error).message}`);
       throw error;
     }
   }
 
-  async getStats(tenantId: string): Promise<any> {
-    console.log(`📊 [DrizzleAutomationRuleRepository] Getting stats for tenant: ${tenantId}`);
-
-    try {
-      // First check if table exists and has the expected structure
-      const tableCheck = await db.execute({
-        sql: `
-          SELECT column_name 
-          FROM information_schema.columns 
-          WHERE table_name = 'omnibridge_rules' 
-          AND column_name IN ('execution_stats', 'is_enabled')
-        `,
-        args: []
-      });
-
-      if (tableCheck.rows.length === 0) {
-        // Table doesn't exist or columns missing, return default stats
-        return {
-          totalRules: 0,
-          enabledRules: 0,
-          disabledRules: 0,
-          totalExecutions: 0
-        };
-      }
-
-      const result = await db.execute({
-        sql: `
-          SELECT 
-            COUNT(*) as total_rules,
-            COUNT(*) FILTER (WHERE is_enabled = true) as enabled_rules,
-            COUNT(*) FILTER (WHERE is_enabled = false) as disabled_rules,
-            COALESCE(SUM(CASE 
-              WHEN execution_stats ? 'totalExecutions' 
-              THEN (execution_stats->>'totalExecutions')::int 
-              ELSE 0 
-            END), 0) as total_executions
-          FROM omnibridge_rules 
-          WHERE tenant_id = ?
-        `,
-        args: [tenantId]
-      });
-
-      const row = result.rows[0];
-      return {
-        totalRules: parseInt(row.total_rules || '0'),
-        enabledRules: parseInt(row.enabled_rules || '0'),
-        disabledRules: parseInt(row.disabled_rules || '0'),
-        totalExecutions: parseInt(row.total_executions || '0')
-      };
-    } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error getting stats: ${error.message}`);
-      // Return default stats if there's any error
-      return {
-        totalRules: 0,
-        enabledRules: 0,
-        disabledRules: 0,
-        totalExecutions: 0
-      };
-    }
-  }
-
-  async updateStats(ruleId: string, tenantId: string, stats: any): Promise<void> {
-    console.log(`📊 [DrizzleAutomationRuleRepository] Updating stats for rule: ${ruleId}`);
-
-    try {
-      await db.execute({
-        sql: `
-          UPDATE omnibridge_rules SET
-            execution_stats = ?, updated_at = ?
-          WHERE id = ? AND tenant_id = ?
-        `,
-        args: [
-          JSON.stringify(stats),
-          new Date(),
-          ruleId,
-          tenantId
-        ]
-      });
-
-      console.log(`✅ [DrizzleAutomationRuleRepository] Updated stats for rule: ${ruleId}`);
-    } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error updating stats: ${error.message}`);
-      throw error;
-    }
-  }
-
-  private mapRowToRule(row: any): AutomationRule {
-    return {
-      id: row.id,
-      tenantId: row.tenant_id,
-      name: row.name,
-      description: row.description,
-      isEnabled: row.is_enabled,
-      priority: row.priority,
-      triggers: JSON.parse(row.triggers || '[{"type": "new_message", "conditions": {}}]'),
-      actions: JSON.parse(row.actions || '[{"type": "auto_reply", "parameters": {}}]'),
-      executionStats: JSON.parse(row.execution_stats || '{"totalExecutions": 0, "successfulExecutions": 0, "failedExecutions": 0}'),
-      metadata: JSON.parse(row.metadata || '{"version": 1}'),
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at)
-    };
+  private mapRowToEntity(row: any): AutomationRuleEntity {
+    return new AutomationRuleEntity(
+      row.id,
+      row.name,
+      JSON.parse(row.trigger_conditions || '[]'),
+      JSON.parse(row.action_parameters || '[]'),
+      row.tenant_id,
+      row.description,
+      row.is_enabled,
+      row.priority,
+      0, // executionCount - não armazenado na tabela atual
+      0, // successCount - não armazenado na tabela atual
+      row.last_executed,
+      row.created_at,
+      row.updated_at
+    );
   }
 }

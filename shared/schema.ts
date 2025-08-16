@@ -150,3 +150,4 @@ export const omnibridgeMessages = pgTable('omnibridge_messages', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
