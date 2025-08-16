@@ -21,6 +21,8 @@ interface LocalFormProps {
   onSubmit: (data: NewLocal) => void;
   initialData?: Partial<NewLocal>;
   isLoading?: boolean;
+  onSuccess?: () => void; // Added for success callback
+  onClose?: () => void; // Added for close callback
 }
 
 interface TeamMember {
@@ -70,7 +72,7 @@ const FUSOS_HORARIO = [
   'America/Noronha'
 ];
 
-export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFormProps) {
+export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess, onClose }: LocalFormProps) {
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
@@ -117,7 +119,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
   const loadTeamMembers = async () => {
     try {
       const validToken = await validateAndRefreshToken();
-      
+
       if (!validToken) {
         console.error('No valid token for team members fetch');
         setTeamMembers([]);
@@ -130,11 +132,11 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         const members = await response.json();
         console.log('LocalForm: Raw team members response:', members);
-        
+
         if (Array.isArray(members)) {
           const formattedMembers = members
             .filter(member => member.id && (member.name || member.firstName || member.lastName))
@@ -144,7 +146,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
               email: member.email || 'Sem email',
               role: member.position || member.role || 'Membro da Equipe'
             }));
-          
+
           console.log('LocalForm: Formatted team members:', formattedMembers);
           setTeamMembers(formattedMembers);
         } else {
@@ -165,7 +167,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
     // Token validation and refresh
     const validateAndRefreshToken = async () => {
       const currentToken = localStorage.getItem('accessToken');
-  
+
       if (!currentToken) {
         console.log('No token found, attempting refresh');
         try {
@@ -176,7 +178,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
               'Content-Type': 'application/json'
             }
           });
-  
+
           if (response.ok) {
             const data = await response.json();
             localStorage.setItem('accessToken', data.accessToken);
@@ -188,12 +190,12 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
         }
         return null;
       }
-  
+
       // Check if token is expired
       try {
         const payload = JSON.parse(atob(currentToken.split('.')[1]));
         const isExpired = payload.exp * 1000 < Date.now();
-  
+
         if (isExpired) {
           console.log('Token expired, refreshing');
           const response = await fetch('/api/auth/refresh', {
@@ -203,7 +205,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
               'Content-Type': 'application/json'
             }
           });
-  
+
           if (response.ok) {
             const data = await response.json();
             localStorage.setItem('accessToken', data.accessToken);
@@ -214,10 +216,10 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
       } catch (error) {
         console.error('Token validation error:', error);
       }
-  
+
       return currentToken;
     };
-  
+
     useEffect(() => {
       validateAndRefreshToken();
     }, []);
@@ -324,7 +326,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
           'Content-Type': 'application/json'
         }
       });
-      
+
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -389,91 +391,87 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
   const handleSubmit = async (data: any) => {
     try {
-      console.log('LocalForm.handleSubmit - Starting submission with data:', data);
+      // setIsLoading(true); // isLoading is managed by the parent component now
+      console.log('🔄 [LOCAL-FORM] Submitting data:', data);
 
-      // Ensure we have a valid token before submitting
-      const validToken = await validateAndRefreshToken();
-
-      if (!validToken) {
-        console.error('LocalForm.handleSubmit - No valid token available');
+      const token = localStorage.getItem('accessToken'); // Use accessToken consistently
+      if (!token) {
+        console.error('❌ [LOCAL-FORM] Token de autenticação não encontrado');
         toast({
           title: "Erro de autenticação",
-          description: "Token de acesso inválido. Faça login novamente.",
+          description: "Token de acesso não encontrado. Faça login novamente.",
           variant: "destructive"
         });
         return;
       }
 
-      console.log('LocalForm.handleSubmit - Valid token obtained');
-
-      // Extract tenant ID from token payload
-      let tenantId = null;
-      try {
-        const payload = JSON.parse(atob(validToken.split('.')[1]));
-        tenantId = payload.tenantId;
-        console.log('LocalForm.handleSubmit - Tenant ID from token:', tenantId);
-      } catch (e) {
-        console.error('LocalForm.handleSubmit - Error parsing token:', e);
-      }
-
-      // Fallback: Try to get tenant ID from localStorage
-      if (!tenantId) {
-        const userDataStr = localStorage.getItem('user');
-        if (userDataStr) {
-          try {
-            const userData = JSON.parse(userDataStr);
-            tenantId = userData.tenantId;
-            console.log('LocalForm.handleSubmit - Tenant ID from localStorage user:', tenantId);
-          } catch (e) {
-            console.error('LocalForm.handleSubmit - Error parsing user data:', e);
-          }
-        }
-      }
-
-      // Another fallback: Check authData
-      if (!tenantId) {
-        const authDataStr = localStorage.getItem('authData');
-        if (authDataStr) {
-          try {
-            const authData = JSON.parse(authDataStr);
-            tenantId = authData.tenantId || authData.user?.tenantId;
-            console.log('LocalForm.handleSubmit - Tenant ID from authData:', tenantId);
-          } catch (e) {
-            console.error('LocalForm.handleSubmit - Error parsing auth data:', e);
-          }
-        }
-      }
-
-      if (!tenantId) {
-        console.error('LocalForm.handleSubmit - No tenant ID found anywhere');
-        toast({
-          title: "Erro de autenticação",
-          description: "Não foi possível identificar o tenant. Faça login novamente.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('LocalForm.handleSubmit - Preparing form data with tenant:', tenantId);
-
-      // Prepare the complete form data
-      const formDataWithTenant = {
-        ...data,
-        tenantId
-      };
-
-      console.log('LocalForm.handleSubmit - Calling onSubmit with data:', formDataWithTenant);
-
-      // Call the parent onSubmit function
-      await onSubmit(formDataWithTenant);
-
-    } catch (error) {
-      console.error('LocalForm.handleSubmit - Error during submission:', error);
-      toast({
-        title: "Erro ao salvar local",
-        description: error.message || "Ocorreu um erro ao salvar o local. Tente novamente.",
-        variant: "destructive"
+      const response = await fetch('/api/locations-new/local', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
       });
+
+      console.log('📡 [LOCAL-FORM] Response status:', response.status);
+      console.log('📡 [LOCAL-FORM] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('❌ [LOCAL-FORM] Response is not JSON:', contentType);
+        const textResponse = await response.text();
+        console.error('❌ [LOCAL-FORM] Response text:', textResponse);
+        toast({
+          title: "Erro de Resposta",
+          description: "O servidor retornou uma resposta inesperada. Verifique o console para mais detalhes.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const result = await response.json();
+      console.log('📡 [LOCAL-FORM] Response data:', result);
+
+      if (result.success) {
+        toast({
+          title: "Sucesso",
+          description: "Local criado com sucesso!"
+        });
+        if (onSuccess) onSuccess();
+        if (onClose) onClose();
+      } else {
+        console.error('❌ [LOCAL-FORM] Server error:', result);
+        toast({
+          title: "Erro ao criar local",
+          description: result.error || 'O servidor retornou um erro. Verifique os dados enviados.',
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('❌ [LOCAL-FORM] Error creating record:', error);
+
+      if (error instanceof SyntaxError && error.message.includes('JSON')) {
+        toast({
+          title: "Erro de Parseamento JSON",
+          description: "O servidor retornou um JSON inválido.",
+          variant: "destructive"
+        });
+      } else if (error instanceof Error && error.message.includes('Failed to fetch')) {
+        toast({
+          title: "Erro de Rede",
+          description: "Não foi possível conectar ao servidor. Verifique sua conexão com a internet.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro ao criar local",
+          description: error.message || 'Ocorreu um erro inesperado. Tente novamente.',
+          variant: "destructive"
+        });
+      }
+    } finally {
+      // setIsLoading(false); // isLoading is managed by the parent component now
     }
   };
 
