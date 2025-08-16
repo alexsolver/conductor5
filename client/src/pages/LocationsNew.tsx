@@ -183,10 +183,11 @@ function LocationsNewContent() {
     agrupamentoStats: agrupamentoStatsQuery
   };
 
-  // Get current data safely
+  // Get current data safely - ✅ 1qa.md compliant: fix data path
   const getCurrentData = useCallback(() => {
     const currentQuery = queries[activeRecordType as keyof typeof queries];
-    return (currentQuery?.data as any)?.data?.records || [];
+    // Backend returns data directly, not nested in records
+    return (currentQuery?.data as any)?.data || [];
   }, [queries, activeRecordType]);
 
   // Get current stats safely

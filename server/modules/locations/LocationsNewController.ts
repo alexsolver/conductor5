@@ -240,21 +240,84 @@ export class LocationsNewController {
   }
 
   /**
-   * Get records by type
+   * Get records by type - ✅ 1qa.md compliant implementation
    */
-  async getRecordsByType(req: Request, res: Response): Promise<void> {
+  async getRecordsByType(req: any, res: Response): Promise<void> {
     try {
       const { recordType } = req.params;
       
+      if (!req.user?.tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID required' });
+        return;
+      }
+
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      console.log(`🔍 [GET-RECORDS] Fetching ${recordType} for tenant: ${req.user.tenantId}`);
+      console.log(`🔍 [GET-RECORDS] Using schema: ${schemaName}`);
+
+      // Map record types to table names following Clean Architecture
+      const tableMap: Record<string, string> = {
+        'local': 'locais',
+        'regiao': 'regioes', 
+        'rota-dinamica': 'rotas_dinamicas',
+        'trecho': 'trechos',
+        'rota-trecho': 'rotas_trechos',
+        'area': 'areas',
+        'agrupamento': 'agrupamentos'
+      };
+
+      const tableName = tableMap[recordType];
+      if (!tableName) {
+        res.status(400).json({ 
+          success: false, 
+          message: `Invalid record type: ${recordType}` 
+        });
+        return;
+      }
+
+      // Check if table exists first per 1qa.md validation pattern
+      const tableExists = await pool.query(`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_schema = $1 AND table_name = $2
+        ) as exists
+      `, [schemaName, tableName]);
+
+      if (!tableExists.rows[0]?.exists) {
+        console.log(`⚠️ [GET-RECORDS] Table ${tableName} does not exist in schema ${schemaName}`);
+        res.json({
+          success: true,
+          data: [],
+          total: 0,
+          message: `Table ${tableName} not yet created for this tenant`
+        });
+        return;
+      }
+
+      // Fetch records with tenant validation per 1qa.md
+      const result = await pool.query(`
+        SELECT * FROM "${schemaName}"."${tableName}" 
+        WHERE tenant_id = $1 AND ativo = true
+        ORDER BY nome ASC
+        LIMIT 100
+      `, [req.user.tenantId]);
+
+      console.log(`✅ [GET-RECORDS] Found ${result.rows.length} records of type ${recordType}`);
+
       res.json({
         success: true,
-        data: [],
-        total: 0,
-        message: `Records for type ${recordType} (placeholder)`
+        data: result.rows,
+        total: result.rows.length,
+        recordType: recordType,
+        tableName: tableName
       });
     } catch (error) {
-      console.error('Error fetching records by type:', error);
-      res.status(500).json({ success: false, message: 'Error fetching records' });
+      console.error(`❌ [GET-RECORDS] Error fetching ${req.params?.recordType}:`, error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error fetching records',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 
