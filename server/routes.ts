@@ -1859,6 +1859,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('Locations module not available:', error);
   }
 
+  // ✅ LOCATIONS NEW MODULE per 1qa.md Clean Architecture
+  try {
+    const { default: locationsNewRouter } = await import('./modules/locations/routes-new');
+    console.log('✅ [LOCATIONS-NEW-MODULE] Successfully imported locations-new module');
+    app.use('/api/locations-new', locationsNewRouter);
+    console.log('✅ [LOCATIONS-NEW-MODULE] Locations-new routes registered at /api/locations-new');
+  } catch (error) {
+    console.error('❌ [LOCATIONS-NEW-MODULE] Failed to load locations-new module:', error);
+    console.error('❌ [LOCATIONS-NEW-MODULE] Error details:', error.message);
+  }
+
   // Removed OmniBridge routes - now defined earlier before middleware
 
   // Helper functions for channel transformation

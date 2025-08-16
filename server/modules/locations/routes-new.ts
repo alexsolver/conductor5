@@ -262,18 +262,22 @@ router.get("/locais-atendimento", async (req: AuthenticatedRequest, res: Respons
   }
 });
 
-// Services endpoints
-router.get('/services/cep/:cep', async (req: LocationsRequest, res: Response) => {
+// Services endpoints - No authentication required for public services
+const servicesRouter = Router();
+servicesRouter.get('/cep/:cep', async (req: Request, res: Response) => {
   return controller.lookupCep(req, res);
 });
 
-router.get('/services/holidays', async (req: LocationsRequest, res: Response) => {
+servicesRouter.get('/holidays', async (req: Request, res: Response) => {
   return controller.lookupHolidays(req, res);
 });
 
-router.post('/services/geocode', async (req: LocationsRequest, res: Response) => {
+servicesRouter.post('/geocode', async (req: Request, res: Response) => {
   return controller.geocodeAddress(req, res);
 });
+
+// Mount services without JWT auth
+router.use('/services', servicesRouter);
 
 // Get statistics by type
 router.get('/:recordType/stats', async (req: LocationsRequest, res: Response) => {
