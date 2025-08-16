@@ -76,6 +76,18 @@ export type {
 // The tickets table is properly defined in schema-master.ts
 // This redundant definition was causing schema conflicts
 
+// User Notification Preferences Table
+import { pgTable, varchar, jsonb, timestamp, uuid } from 'drizzle-orm/pg-core';
+
+export const userNotificationPreferences = pgTable('user_notification_preferences', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: varchar('user_id', { length: 36 }).notNull(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  preferences: jsonb('preferences').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
 // Export all tables for migrations
 export * from './schema-master';
 export * from './schema-materials-services';

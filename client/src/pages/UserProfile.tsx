@@ -37,6 +37,7 @@ import {
   Save,
   X
 } from "lucide-react";
+import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -193,7 +194,7 @@ export default function UserProfile() {
 
       {/* Tabs Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="personal" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span>Pessoal</span>
@@ -201,6 +202,10 @@ export default function UserProfile() {
           <TabsTrigger value="skills" className="flex items-center space-x-2">
             <Award className="h-4 w-4" />
             <span>Habilidades</span>
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center space-x-2">
+            <Bell className="h-4 w-4" />
+            <span>Notificações</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center space-x-2">
             <Shield className="h-4 w-4" />
@@ -425,6 +430,11 @@ export default function UserProfile() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications">
+          <NotificationPreferencesTab />
         </TabsContent>
 
         {/* Security Tab */}
