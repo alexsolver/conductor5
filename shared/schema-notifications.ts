@@ -204,32 +204,16 @@ export const notificationTemplates = pgTable("notification_templates", {
   index("notification_templates_tenant_active_idx").on(table.tenantId, table.isActive),
 ]);
 
-// User notification preferences
+// User notification preferences - Simple schema compatible with existing Clean Architecture
 export const userNotificationPreferences = pgTable("user_notification_preferences", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull(),
   
-  // Channel preferences
-  channelPreferences: jsonb("channel_preferences").default({}), // Per notification type
-  globalChannels: text("global_channels").array(), // Default channels for all notifications
-  
-  // Frequency preferences
-  frequencySettings: jsonb("frequency_settings").default({}), // Digest, immediate, etc.
-  quietHours: jsonb("quiet_hours").default({}), // Do not disturb times
-  
-  // Content preferences
-  severityFilter: varchar("severity_filter", { length: 20 }), // Minimum severity to receive
-  typeFilters: text("type_filters").array(), // Notification types to receive
-  categoryFilters: text("category_filters").array(), // Categories to receive
-  
-  // Business context preferences
-  departmentNotifications: boolean("department_notifications").default(true),
-  teamNotifications: boolean("team_notifications").default(true),
-  systemNotifications: boolean("system_notifications").default(true),
+  // Simplified preferences structure following 1qa.md patterns
+  preferences: jsonb("preferences").notNull(),
   
   // System fields
-  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
