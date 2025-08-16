@@ -88,34 +88,39 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
 
     try {
-      let query = `SELECT * FROM omnibridge_rules WHERE tenant_id = '${tenantId}'`;
-      const params = [tenantId];
+      let query = `SELECT * FROM omnibridge_rules WHERE tenant_id = $1`;
+      const params: any[] = [tenantId];
       let paramIndex = 2;
 
       if (filters?.isEnabled !== undefined) {
-        query += ` AND is_enabled = ${filters.isEnabled}`;
+        query += ` AND is_enabled = $${paramIndex}`;
+        params.push(filters.isEnabled);
         paramIndex++;
       }
 
       if (filters?.priority) {
-        query += ` AND priority = ${filters.priority}`;
+        query += ` AND priority = $${paramIndex}`;
+        params.push(filters.priority);
         paramIndex++;
       }
 
       if (filters?.search) {
-        query += ` AND (name ILIKE '%${filters.search}%' OR description ILIKE '%${filters.search}%')`;
-        paramIndex++;
+        query += ` AND (name ILIKE $${paramIndex} OR description ILIKE $${paramIndex + 1})`;
+        params.push(`%${filters.search}%`, `%${filters.search}%`);
+        paramIndex += 2;
       }
 
       query += ` ORDER BY priority ASC, created_at DESC`;
 
       if (filters?.limit) {
-        query += ` LIMIT ${filters.limit}`;
+        query += ` LIMIT $${paramIndex}`;
+        params.push(filters.limit);
         paramIndex++;
       }
 
       if (filters?.offset) {
-        query += ` OFFSET ${filters.offset}`;
+        query += ` OFFSET $${paramIndex}`;
+        params.push(filters.offset);
       }
 
       const result = await db.execute(query, params);
