@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { GlobalAutomationManager } from '../modules/omnibridge/infrastructure/services/AutomationEngine';
 
 const router = Router();
 
@@ -24,20 +25,56 @@ router.post('/telegram/:tenantId', async (req, res) => {
       });
     }
 
-    // ✅ PROCESSING: Process with MessageIngestionService
-    const { MessageIngestionService } = await import('../modules/omnibridge/infrastructure/services/MessageIngestionService');
-    const { DrizzleMessageRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
-    
-    const messageRepository = new DrizzleMessageRepository();
-    const ingestionService = new MessageIngestionService(messageRepository);
-    
-    const result = await ingestionService.processTelegramWebhook(webhookData, tenantId);
+    // ✅ PROCESSING: First try MessageIngestionService
+    try {
+      const { MessageIngestionService } = await import('../modules/omnibridge/infrastructure/services/MessageIngestionService');
+      const { DrizzleMessageRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
+
+      const messageRepository = new DrizzleMessageRepository();
+      const ingestionService = new MessageIngestionService(messageRepository);
+
+      const result = await ingestionService.processTelegramWebhook(webhookData, tenantId);
+
+      if (result.success) {
+        return res.status(200).json({
+          success: true,
+          message: 'Webhook processed successfully via MessageIngestionService',
+          processed: result.processed,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (ingestionError) {
+      console.warn(`⚠️ [TELEGRAM-WEBHOOK] MessageIngestionService failed, trying AutomationEngine:`, ingestionError);
+    }
+
+    // ✅ FALLBACK: Try AutomationEngine if message contains text
+    if (webhookData.message && webhookData.message.text) {
+      console.log(`📨 [TELEGRAM-WEBHOOK] Processing through AutomationEngine`);
+
+      const automationManager = GlobalAutomationManager.getInstance();
+      const engine = automationManager.getEngine(tenantId);
+
+      await engine.processMessage({
+        type: 'telegram_message',
+        content: webhookData.message.text,
+        sender: webhookData.message.from?.username || webhookData.message.from?.first_name || 'telegram_user',
+        channel: 'telegram',
+        timestamp: new Date(webhookData.message.date * 1000).toISOString(),
+        metadata: {
+          chatId: webhookData.message.chat.id,
+          messageId: webhookData.message.message_id,
+          from: webhookData.message.from,
+          chat: webhookData.message.chat
+        }
+      });
+
+      console.log(`✅ [TELEGRAM-WEBHOOK] Message processed successfully via AutomationEngine`);
+    }
 
     // ✅ SUCCESS: Telegram expects 200 OK response
     return res.status(200).json({
-      success: result.success,
+      success: true,
       message: 'Webhook processed successfully',
-      processed: result.processed,
       timestamp: new Date().toISOString()
     });
 
@@ -50,59 +87,6 @@ router.post('/telegram/:tenantId', async (req, res) => {
       message: 'Webhook processing error',
       error: error.message,
       timestamp: new Date().toISOString()
-    });
-  }
-});
-
-export default router;
-import { Router } from 'express';
-import { GlobalAutomationManager } from '../modules/omnibridge/infrastructure/services/AutomationEngine';
-
-const router = Router();
-
-/**
- * Webhook do Telegram para processar mensagens automaticamente
- */
-router.post('/telegram/:tenantId', async (req, res) => {
-  try {
-    const { tenantId } = req.params;
-    const telegramData = req.body;
-
-    console.log(`📨 [TELEGRAM-WEBHOOK] Received message for tenant: ${tenantId}`);
-    console.log(`📨 [TELEGRAM-WEBHOOK] Data:`, JSON.stringify(telegramData, null, 2));
-
-    // Verificar se é uma mensagem válida
-    if (!telegramData.message || !telegramData.message.text) {
-      console.log(`⏭️ [TELEGRAM-WEBHOOK] Ignoring non-text message`);
-      return res.status(200).json({ ok: true });
-    }
-
-    // Processar através do sistema de automação
-    const automationManager = GlobalAutomationManager.getInstance();
-    const engine = automationManager.getEngine(tenantId);
-    
-    await engine.processMessage({
-      type: 'telegram_message',
-      content: telegramData.message.text,
-      sender: telegramData.message.from?.username || telegramData.message.from?.first_name || 'telegram_user',
-      channel: 'telegram',
-      timestamp: new Date(telegramData.message.date * 1000).toISOString(),
-      metadata: {
-        chatId: telegramData.message.chat.id,
-        messageId: telegramData.message.message_id,
-        from: telegramData.message.from,
-        chat: telegramData.message.chat
-      }
-    });
-
-    console.log(`✅ [TELEGRAM-WEBHOOK] Message processed successfully`);
-
-    res.status(200).json({ ok: true });
-  } catch (error) {
-    console.error('❌ [TELEGRAM-WEBHOOK] Error processing Telegram message:', error);
-    res.status(500).json({ 
-      ok: false, 
-      error: 'Internal server error' 
     });
   }
 });
