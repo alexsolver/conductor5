@@ -449,17 +449,42 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
         console.log('📄 [LOCAL-FORM] Raw response text:', responseText.substring(0, 500));
 
         if (!responseText) {
-          throw new Error('Empty response from server');
+          console.error('❌ [LOCAL-FORM] Empty response from server');
+          toast({
+            title: "Erro de Comunicação",
+            description: "O servidor não retornou dados. Tente novamente.",
+            variant: "destructive"
+          });
+          return;
         }
 
         // Verificar se é HTML (página de erro)
-        if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+        if (responseText.trim().startsWith('<!DOCTYPE') || 
+            responseText.trim().startsWith('<html') ||
+            responseText.includes('<title>') ||
+            responseText.includes('<body>')) {
           console.error('❌ [LOCAL-FORM] Received HTML instead of JSON');
-          console.error('🔍 [LOCAL-FORM] HTML content:', responseText.substring(0, 1000));
+          console.error('🔍 [LOCAL-FORM] HTML content preview:', responseText.substring(0, 1000));
+          
+          // Tentar extrair informação de erro do HTML se possível
+          const titleMatch = responseText.match(/<title>(.*?)<\/title>/i);
+          const errorTitle = titleMatch ? titleMatch[1] : 'Erro do Servidor';
           
           toast({
-            title: "Erro do Servidor",
-            description: "O servidor retornou uma página de erro. Verifique os logs do servidor.",
+            title: errorTitle,
+            description: "O servidor encontrou um erro interno. Verifique os dados e tente novamente.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Verificar se parece com JSON antes de parsear
+        const trimmed = responseText.trim();
+        if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+          console.error('❌ [LOCAL-FORM] Response is not JSON format:', trimmed);
+          toast({
+            title: "Formato de Resposta Inválido",
+            description: "O servidor retornou dados em formato inválido.",
             variant: "destructive"
           });
           return;
@@ -471,11 +496,14 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
 
       } catch (parseError) {
         console.error('❌ [LOCAL-FORM] JSON parsing error:', parseError);
-        console.error('❌ [LOCAL-FORM] Response was not valid JSON');
+        console.error('❌ [LOCAL-FORM] Parse error details:', {
+          name: parseError.name,
+          message: parseError.message
+        });
         
         toast({
-          title: "Erro de Comunicação",
-          description: "O servidor retornou uma resposta inválida. Verifique os logs do servidor.",
+          title: "Erro de Parsing",
+          description: `Não foi possível interpretar a resposta do servidor: ${parseError.message}`,
           variant: "destructive"
         });
         return;

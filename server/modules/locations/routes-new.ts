@@ -26,6 +26,30 @@ router.use(jwtAuth);
 // Middleware para garantir que sempre retornamos JSON
 router.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json');
+  
+  // Override res.status para sempre garantir JSON
+  const originalStatus = res.status;
+  res.status = function(code) {
+    res.setHeader('Content-Type', 'application/json');
+    return originalStatus.call(this, code);
+  };
+  
+  // Override res.send para garantir JSON válido
+  const originalSend = res.send;
+  res.send = function(body) {
+    res.setHeader('Content-Type', 'application/json');
+    if (typeof body === 'string' && !body.startsWith('{') && !body.startsWith('[')) {
+      // Se não é JSON, envolver em uma resposta JSON válida
+      return originalSend.call(this, JSON.stringify({
+        success: false,
+        error: 'Internal server error',
+        message: body,
+        timestamp: new Date().toISOString()
+      }));
+    }
+    return originalSend.call(this, body);
+  };
+  
   next();
 });
 
@@ -81,16 +105,49 @@ function getSchemaName(tenantId: string): string {
 // Helper function to ensure schema and tables exist
 async function ensureSchemaAndTables(schemaName: string): Promise<void> {
   try {
+    // Validar nome do schema
+    if (!schemaName || typeof schemaName !== 'string') {
+      throw new Error(`Invalid schema name: ${schemaName}`);
+    }
+
     console.log('🔧 [SCHEMA-SETUP] Creating schema if not exists:', schemaName);
-    await pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
+    
+    // Criar schema com timeout
+    await Promise.race([
+      pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Schema creation timeout')), 5000)
+      )
+    ]);
 
     console.log('🔧 [SCHEMA-SETUP] Creating tables for schema:', schemaName);
-    await pool.query(`SELECT create_locations_new_tables_for_tenant('${schemaName}')`);
+    
+    // Verificar se a função existe primeiro
+    const functionExists = await pool.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM pg_proc 
+        WHERE proname = 'create_locations_new_tables_for_tenant'
+      ) as exists
+    `);
+
+    if (!functionExists.rows[0].exists) {
+      console.error('❌ [SCHEMA-SETUP] Function create_locations_new_tables_for_tenant does not exist');
+      throw new Error('Database function not available');
+    }
+
+    // Executar função com timeout
+    await Promise.race([
+      pool.query(`SELECT create_locations_new_tables_for_tenant('${schemaName}')`),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Table creation timeout')), 10000)
+      )
+    ]);
 
     console.log('✅ [SCHEMA-SETUP] Schema and tables ready for:', schemaName);
   } catch (error) {
     console.error('❌ [SCHEMA-SETUP] Error setting up schema:', error);
-    throw error;
+    console.error('❌ [SCHEMA-SETUP] Schema name was:', schemaName);
+    throw new Error(`Schema setup failed: ${error.message}`);
   }
 }
 
@@ -178,33 +235,66 @@ router.get('/:recordType', async (req: LocationsRequest, res: Response) => {
 // Create operations
 // POST /api/locations-new/local - Create new local
 router.post('/local', async (req: LocationsRequest, res: Response) => {
-  // Garantir que sempre retorna JSON desde o início
-  res.setHeader('Content-Type', 'application/json');
-  
   console.log('🔄 [CREATE-LOCAL] Starting creation process');
   console.log('📝 [CREATE-LOCAL] Request body received:', JSON.stringify(req.body, null, 2));
   
-  // Capturar qualquer erro não tratado
-  const handleError = (error: any, context: string) => {
+  // Função de tratamento de erro melhorada
+  const handleError = (error: any, context: string, statusCode: number = 500) => {
     console.error(`❌ [CREATE-LOCAL] ${context}:`, error);
-    console.error(`❌ [CREATE-LOCAL] Error stack:`, error?.stack);
+    console.error(`❌ [CREATE-LOCAL] Error details:`, {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+      stack: error?.stack?.split('\n').slice(0, 3).join('\n')
+    });
     
     if (res.headersSent) {
       console.error('❌ [CREATE-LOCAL] Headers already sent, cannot respond');
       return;
     }
     
-    return res.status(500).json({
+    // Garantir sempre resposta JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    let errorMessage = 'Erro interno do servidor';
+    let userMessage = `Falha durante ${context}. Tente novamente.`;
+    
+    // Tratar diferentes tipos de erro
+    if (error?.code === '23505') {
+      statusCode = 409;
+      errorMessage = 'Conflito de dados';
+      userMessage = 'Já existe um local com este nome ou código';
+    } else if (error?.code === '23503') {
+      statusCode = 400;
+      errorMessage = 'Referência inválida';
+      userMessage = 'Dados relacionados não encontrados';
+    } else if (error?.code === '42P01') {
+      statusCode = 503;
+      errorMessage = 'Estrutura não configurada';
+      userMessage = 'Sistema temporariamente indisponível';
+    } else if (error?.name === 'ZodError') {
+      statusCode = 400;
+      errorMessage = 'Dados inválidos';
+      userMessage = 'Verifique os dados informados';
+    }
+    
+    const response = {
       success: false,
-      error: 'Erro interno do servidor',
-      message: `Falha durante ${context}. Tente novamente.`,
+      error: errorMessage,
+      message: userMessage,
+      timestamp: new Date().toISOString(),
       debug: process.env.NODE_ENV === 'development' ? {
-        message: error?.message,
-        stack: error?.stack?.split('\n').slice(0, 5).join('\n')
+        context,
+        originalMessage: error?.message,
+        errorCode: error?.code,
+        errorName: error?.name
       } : undefined
-    });
+    };
+    
+    return res.status(statusCode).json(response);
   };
 
+  // Wrap everything in try-catch
   try {
     // Verificar usuário autenticado
     const user = (req as any).user;
@@ -282,17 +372,19 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
     const schemaName = getSchemaName(tenantId);
     console.log('🔍 [CREATE-LOCAL] Using schema:', schemaName);
 
+    // Validar se o schemaName é válido
+    if (!schemaName || typeof schemaName !== 'string' || schemaName.length === 0) {
+      console.error('❌ [CREATE-LOCAL] Invalid schema name:', schemaName);
+      return handleError(new Error('Invalid schema name'), 'schema validation', 400);
+    }
+
     try {
       console.log('🔧 [CREATE-LOCAL] Ensuring schema and tables exist...');
       await ensureSchemaAndTables(schemaName);
       console.log('✅ [CREATE-LOCAL] Schema setup completed');
     } catch (schemaError) {
       console.error('❌ [CREATE-LOCAL] Schema setup error:', schemaError);
-      return res.status(500).json({
-        success: false,
-        error: 'Erro de configuração do banco de dados',
-        message: 'Falha ao configurar estrutura do tenant'
-      });
+      return handleError(schemaError, 'configuração do schema', 503);
     }
 
     // Preparar campos JSON
@@ -305,51 +397,64 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
 
     console.log('💾 [CREATE-LOCAL] Inserting into database...');
     
-    // Executar inserção no banco
-    const result = await pool.query(
-      `INSERT INTO "${schemaName}".locais (
-        tenant_id, ativo, nome, descricao, codigo_integracao, tipo_cliente_favorecido,
-        tecnico_principal_id, email, ddd, telefone, cep, pais, estado, municipio,
-        bairro, tipo_logradouro, logradouro, numero, complemento, latitude, longitude,
-        geo_coordenadas, fuso_horario, feriados_incluidos, indisponibilidades
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
-      RETURNING *`,
-      [
-        validatedData.tenantId, 
-        validatedData.ativo ?? true, 
-        validatedData.nome.trim(),
-        validatedData.descricao || null, 
-        validatedData.codigoIntegracao || null, 
-        validatedData.tipoClienteFavorecido || null,
-        validatedData.tecnicoPrincipalId || null, 
-        validatedData.email || null, 
-        validatedData.ddd || null,
-        validatedData.telefone || null, 
-        validatedData.cep || null, 
-        validatedData.pais || 'Brasil',
-        validatedData.estado || null, 
-        validatedData.municipio || null, 
-        validatedData.bairro || null,
-        validatedData.tipoLogradouro || null, 
-        validatedData.logradouro || null, 
-        validatedData.numero || null,
-        validatedData.complemento || null, 
-        validatedData.latitude ? parseFloat(validatedData.latitude.toString()) : null, 
-        validatedData.longitude ? parseFloat(validatedData.longitude.toString()) : null,
-        geoCoordenadasJson, 
-        validatedData.fusoHorario || 'America/Sao_Paulo',
-        feriadosIncluidosJson, 
-        indisponibilidadesJson
-      ]
-    );
+    // Preparar parâmetros com validação extra
+    const insertParams = [
+      validatedData.tenantId, 
+      validatedData.ativo ?? true, 
+      validatedData.nome.trim(),
+      validatedData.descricao || null, 
+      validatedData.codigoIntegracao || null, 
+      validatedData.tipoClienteFavorecido || null,
+      validatedData.tecnicoPrincipalId || null, 
+      validatedData.email || null, 
+      validatedData.ddd || null,
+      validatedData.telefone || null, 
+      validatedData.cep || null, 
+      validatedData.pais || 'Brasil',
+      validatedData.estado || null, 
+      validatedData.municipio || null, 
+      validatedData.bairro || null,
+      validatedData.tipoLogradouro || null, 
+      validatedData.logradouro || null, 
+      validatedData.numero || null,
+      validatedData.complemento || null, 
+      validatedData.latitude ? parseFloat(validatedData.latitude.toString()) : null, 
+      validatedData.longitude ? parseFloat(validatedData.longitude.toString()) : null,
+      geoCoordenadasJson, 
+      validatedData.fusoHorario || 'America/Sao_Paulo',
+      feriadosIncluidosJson, 
+      indisponibilidadesJson
+    ];
+
+    console.log('🔍 [CREATE-LOCAL] Insert parameters count:', insertParams.length);
+    console.log('🔍 [CREATE-LOCAL] Schema name for query:', schemaName);
+    
+    let result;
+    try {
+      // Executar inserção no banco com timeout
+      result = await Promise.race([
+        pool.query(
+          `INSERT INTO "${schemaName}".locais (
+            tenant_id, ativo, nome, descricao, codigo_integracao, tipo_cliente_favorecido,
+            tecnico_principal_id, email, ddd, telefone, cep, pais, estado, municipio,
+            bairro, tipo_logradouro, logradouro, numero, complemento, latitude, longitude,
+            geo_coordenadas, fuso_horario, feriados_incluidos, indisponibilidades
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+          RETURNING *`,
+          insertParams
+        ),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout')), 10000)
+        )
+      ]);
+    } catch (dbError) {
+      console.error('❌ [CREATE-LOCAL] Database insert error:', dbError);
+      return handleError(dbError, 'inserção no banco de dados', 500);
+    }
 
     if (!result || !result.rows || result.rows.length === 0) {
       console.error('❌ [CREATE-LOCAL] No data returned from database insert');
-      return res.status(500).json({
-        success: false,
-        error: 'Erro na inserção dos dados',
-        message: 'Nenhum registro foi criado no banco de dados'
-      });
+      return handleError(new Error('No data returned from insert'), 'validação do resultado', 500);
     }
 
     const createdLocal = result.rows[0];
@@ -359,13 +464,17 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
       tenantId: createdLocal.tenant_id
     });
 
+    // Garantir que a resposta é JSON válido
+    res.setHeader('Content-Type', 'application/json');
     return res.status(201).json({
       success: true,
       message: 'Local criado com sucesso',
-      data: createdLocal
+      data: createdLocal,
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
+    console.error('❌ [CREATE-LOCAL] Unexpected error in main try-catch:', error);
     return handleError(error, 'criação do local');
   }
 });
@@ -561,16 +670,49 @@ router.delete('/:recordType/:id', async (req: AuthenticatedRequest, res: Respons
 // Middleware de tratamento de erro no final - captura qualquer erro não tratado
 router.use((error: any, req: any, res: any, next: any) => {
   console.error('❌ [LOCATIONS-ERROR-HANDLER] Unhandled error:', error);
+  console.error('❌ [LOCATIONS-ERROR-HANDLER] Error stack:', error?.stack);
+  console.error('❌ [LOCATIONS-ERROR-HANDLER] Request details:', {
+    method: req.method,
+    path: req.path,
+    body: req.body,
+    user: req.user?.id
+  });
   
   // Garantir resposta JSON sempre
   if (!res.headersSent) {
     res.setHeader('Content-Type', 'application/json');
-    res.status(500).json({
+    
+    // Determinar se é erro de validação ou erro interno
+    let statusCode = 500;
+    let errorMessage = 'Erro interno do servidor';
+    
+    if (error.name === 'ValidationError' || error.name === 'ZodError') {
+      statusCode = 400;
+      errorMessage = 'Dados de entrada inválidos';
+    } else if (error.code === '23505') { // PostgreSQL unique violation
+      statusCode = 409;
+      errorMessage = 'Conflito: registro já existe';
+    } else if (error.code === '23503') { // PostgreSQL foreign key violation
+      statusCode = 400;
+      errorMessage = 'Referência inválida';
+    } else if (error.code === '42P01') { // PostgreSQL table does not exist
+      statusCode = 503;
+      errorMessage = 'Estrutura do banco não configurada';
+    }
+    
+    const response = {
       success: false,
-      error: 'Erro interno do servidor',
-      message: 'Erro não tratado no módulo de locations',
-      debug: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+      error: errorMessage,
+      message: 'Erro no processamento da requisição',
+      timestamp: new Date().toISOString(),
+      debug: process.env.NODE_ENV === 'development' ? {
+        originalError: error.message,
+        errorCode: error.code,
+        stack: error.stack?.split('\n').slice(0, 5).join('\n')
+      } : undefined
+    };
+    
+    res.status(statusCode).json(response);
   }
 });
 
