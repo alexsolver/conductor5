@@ -17,7 +17,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { localSchema } from "../../../shared/schema-locations-new";
+import { 
+  localSchema, 
+  regiaoSchema, 
+  rotaDinamicaSchema, 
+  trechoSchema, 
+  rotaTrechoSchema, 
+  areaSchema, 
+  agrupamentoSchema 
+} from "../../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -76,33 +84,76 @@ function LocationsNewContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // Form setup
-  const form = useForm({
-    resolver: zodResolver(localSchema),
-    defaultValues: {
+  // Dynamic schema selection per 1qa.md Clean Architecture
+  const getSchemaForType = useCallback((recordType: string) => {
+    switch (recordType) {
+      case 'local': return localSchema;
+      case 'regiao': return regiaoSchema;
+      case 'rota-dinamica': return rotaDinamicaSchema;
+      case 'trecho': return trechoSchema;
+      case 'rota-trecho': return rotaTrechoSchema;
+      case 'area': return areaSchema;
+      case 'agrupamento': return agrupamentoSchema;
+      default: return localSchema;
+    }
+  }, []);
+
+  // Dynamic default values per record type following 1qa.md
+  const getDefaultValues = useCallback((recordType: string) => {
+    const baseDefaults = {
       ativo: true,
       nome: "",
       descricao: "",
-      codigoIntegracao: "",
-      clienteFavorecido: "",
-      tecnicoPrincipal: "",
-      email: "",
-      ddd: "",
-      telefone: "",
-      cep: "",
-      pais: "Brasil",
-      estado: "",
-      municipio: "",
-      bairro: "",
-      tipoLogradouro: "",
-      logradouro: "",
-      numero: "",
-      complemento: "",
-      latitude: "",
-      longitude: "",
-      fusoHorario: "America/Sao_Paulo"
+      codigoIntegracao: ""
+    };
+
+    switch (recordType) {
+      case 'rota-dinamica':
+        return {
+          ...baseDefaults,
+          nomeRota: "",
+          idRota: "",
+          previsaoDias: 1,
+          clientesFavorecidos: [],
+          tecnicosPrincipais: [],
+          diasSemana: []
+        };
+      case 'local':
+        return {
+          ...baseDefaults,
+          clienteFavorecido: "",
+          tecnicoPrincipal: "",
+          email: "",
+          ddd: "",
+          telefone: "",
+          cep: "",
+          pais: "Brasil",
+          estado: "",
+          municipio: "",
+          bairro: "",
+          tipoLogradouro: "",
+          logradouro: "",
+          numero: "",
+          complemento: "",
+          latitude: "",
+          longitude: "",
+          fusoHorario: "America/Sao_Paulo"
+        };
+      default:
+        return baseDefaults;
     }
+  }, []);
+
+  // Form setup with dynamic schema per 1qa.md
+  const form = useForm({
+    resolver: zodResolver(getSchemaForType(activeRecordType)),
+    defaultValues: getDefaultValues(activeRecordType)
   });
+
+  // Reset form when record type changes following 1qa.md pattern
+  React.useEffect(() => {
+    form.reset(getDefaultValues(activeRecordType));
+  }, [activeRecordType, form, getDefaultValues]);
 
   // Data queries for each record type - using proper authentication from queryClient
   const localQuery = useQuery({
