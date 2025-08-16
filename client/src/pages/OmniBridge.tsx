@@ -1315,7 +1315,7 @@ export default function OmniBridge() {
                             <div>
                               <Label className="text-xs font-medium text-muted-foreground">GATILHOS</Label>
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {rule.triggers.map((trigger, index) => (
+                                {rule.triggers && rule.triggers.map((trigger, index) => (
                                   <Badge key={index} variant="outline" className="text-xs">
                                     {trigger.type === 'keyword' && 'Palavras-chave'}
                                     {trigger.type === 'new_message' && 'Nova mensagem'}
@@ -1333,7 +1333,7 @@ export default function OmniBridge() {
                             <div>
                               <Label className="text-xs font-medium text-muted-foreground">AÇÕES</Label>
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {rule.actions.map((action, index) => (
+                                {rule.actions && rule.actions.map((action, index) => (
                                   <Badge key={index} variant="secondary" className="text-xs">
                                     {action.type === 'auto_reply' && 'Resposta automática'}
                                     {action.type === 'forward_message' && 'Encaminhar'}

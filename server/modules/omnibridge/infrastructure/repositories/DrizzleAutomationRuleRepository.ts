@@ -55,7 +55,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
-  async findByTenant(tenantId: string): Promise<AutomationRuleEntity[]> {
+  async findByTenant(tenantId: string, filters?: any): Promise<AutomationRuleEntity[]> {
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
 
     try {
@@ -68,6 +68,41 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     } catch (error) {
       console.error(`❌ [DrizzleAutomationRuleRepository] Error finding rules: ${(error as Error).message}`);
       throw error;
+    }
+  }
+
+  async getStats(tenantId: string): Promise<{
+    totalRules: number;
+    enabledRules: number;
+    disabledRules: number;
+    totalExecutions: number;
+  }> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          COUNT(*) as total_rules,
+          COUNT(CASE WHEN is_enabled = true THEN 1 END) as enabled_rules,
+          COUNT(CASE WHEN is_enabled = false THEN 1 END) as disabled_rules,
+          COALESCE(SUM((execution_stats->>'totalExecutions')::int), 0) as total_executions
+        FROM omnibridge_rules 
+        WHERE tenant_id = ${tenantId}
+      `);
+
+      const row = result.rows[0];
+      return {
+        totalRules: parseInt(row.total_rules || '0'),
+        enabledRules: parseInt(row.enabled_rules || '0'),
+        disabledRules: parseInt(row.disabled_rules || '0'),
+        totalExecutions: parseInt(row.total_executions || '0')
+      };
+    } catch (error) {
+      console.error(`❌ [DrizzleAutomationRuleRepository] Error getting stats: ${(error as Error).message}`);
+      return {
+        totalRules: 0,
+        enabledRules: 0,
+        disabledRules: 0,
+        totalExecutions: 0
+      };
     }
   }
 
