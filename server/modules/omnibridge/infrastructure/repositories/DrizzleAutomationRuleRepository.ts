@@ -12,30 +12,33 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       const triggerType = rule.triggers[0]?.type || 'new_message';
       const actionType = rule.actions[0]?.type || 'auto_reply';
 
-      const result = await db.execute(`
-        INSERT INTO omnibridge_rules (
-          id, tenant_id, name, description, is_enabled,
-          trigger_type, trigger_conditions, triggers, action_type, action_parameters, actions,
-          priority, execution_stats, metadata, created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW()
-        ) RETURNING *
-      `, [
-        rule.id,
-        rule.tenantId,
-        rule.name,
-        rule.description,
-        rule.isEnabled,
-        triggerType,
-        JSON.stringify(rule.triggers[0]?.conditions || {}),
-        JSON.stringify(rule.triggers),
-        actionType,
-        JSON.stringify(rule.actions[0]?.parameters || {}),
-        JSON.stringify(rule.actions),
-        rule.priority,
-        JSON.stringify(rule.executionStats),
-        JSON.stringify(rule.metadata)
-      ]);
+      const result = await db.execute({
+        sql: `
+          INSERT INTO omnibridge_rules (
+            id, tenant_id, name, description, is_enabled,
+            trigger_type, trigger_conditions, triggers, action_type, action_parameters, actions,
+            priority, execution_stats, metadata, created_at, updated_at
+          ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW()
+          ) RETURNING *
+        `,
+        args: [
+          rule.id,
+          rule.tenantId,
+          rule.name,
+          rule.description,
+          rule.isEnabled,
+          triggerType,
+          JSON.stringify(rule.triggers[0]?.conditions || {}),
+          JSON.stringify(rule.triggers),
+          actionType,
+          JSON.stringify(rule.actions[0]?.parameters || {}),
+          JSON.stringify(rule.actions),
+          rule.priority,
+          JSON.stringify(rule.executionStats),
+          JSON.stringify(rule.metadata)
+        ]
+      });
 
       // Handle the result correctly
       if (result.rows && result.rows.length > 0) {
@@ -67,10 +70,13 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rule: ${id} for tenant: ${tenantId}`);
 
     try {
-      const result = await db.execute(`
-        SELECT * FROM omnibridge_rules 
-        WHERE id = $1 AND tenant_id = $2
-      `, [id, tenantId]);
+      const result = await db.execute({
+        sql: `
+          SELECT * FROM omnibridge_rules 
+          WHERE id = ? AND tenant_id = ?
+        `,
+        args: [id, tenantId]
+      });
 
       if (result.rows.length === 0) {
         return null;
@@ -123,7 +129,10 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         params.push(filters.offset);
       }
 
-      const result = await db.execute(query, params);
+      const result = await db.execute({
+        sql: query,
+        args: params
+      });
       return result.rows.map(row => this.mapRowToRule(row));
     } catch (error) {
       console.error(`❌ [DrizzleAutomationRuleRepository] Error finding rules: ${error.message}`);
@@ -135,11 +144,14 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding active rules for tenant: ${tenantId}`);
 
     try {
-      const result = await db.execute(`
-        SELECT * FROM omnibridge_rules 
-        WHERE tenant_id = $1 AND is_enabled = true
-        ORDER BY priority ASC
-      `, [tenantId]);
+      const result = await db.execute({
+        sql: `
+          SELECT * FROM omnibridge_rules 
+          WHERE tenant_id = ? AND is_enabled = true
+          ORDER BY priority ASC
+        `,
+        args: [tenantId]
+      });
 
       return result.rows.map(row => this.mapRowToRule(row));
     } catch (error) {
@@ -152,24 +164,27 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`💾 [DrizzleAutomationRuleRepository] Updating automation rule: ${rule.id}`);
 
     try {
-      await db.execute(`
-        UPDATE omnibridge_rules SET
-          name = $1, description = $2, is_enabled = $3, priority = $4,
-          triggers = $5, actions = $6, execution_stats = $7, metadata = $8, updated_at = $9
-        WHERE id = $10 AND tenant_id = $11
-      `, [
-        rule.name,
-        rule.description,
-        rule.isEnabled,
-        rule.priority,
-        JSON.stringify(rule.triggers),
-        JSON.stringify(rule.actions),
-        JSON.stringify(rule.executionStats),
-        JSON.stringify(rule.metadata),
-        rule.updatedAt,
-        rule.id,
-        rule.tenantId
-      ]);
+      await db.execute({
+        sql: `
+          UPDATE omnibridge_rules SET
+            name = ?, description = ?, is_enabled = ?, priority = ?,
+            triggers = ?, actions = ?, execution_stats = ?, metadata = ?, updated_at = ?
+          WHERE id = ? AND tenant_id = ?
+        `,
+        args: [
+          rule.name,
+          rule.description,
+          rule.isEnabled,
+          rule.priority,
+          JSON.stringify(rule.triggers),
+          JSON.stringify(rule.actions),
+          JSON.stringify(rule.executionStats),
+          JSON.stringify(rule.metadata),
+          rule.updatedAt,
+          rule.id,
+          rule.tenantId
+        ]
+      });
 
       console.log(`✅ [DrizzleAutomationRuleRepository] Updated automation rule: ${rule.id}`);
       return rule;
@@ -183,10 +198,13 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🗑️ [DrizzleAutomationRuleRepository] Deleting automation rule: ${id}`);
 
     try {
-      const result = await db.execute(`
-        DELETE FROM omnibridge_rules 
-        WHERE id = $1 AND tenant_id = $2
-      `, [id, tenantId]);
+      const result = await db.execute({
+        sql: `
+          DELETE FROM omnibridge_rules 
+          WHERE id = ? AND tenant_id = ?
+        `,
+        args: [id, tenantId]
+      });
 
       const success = result.rowCount > 0;
       console.log(`✅ [DrizzleAutomationRuleRepository] Deleted automation rule: ${id}, success: ${success}`);
@@ -202,12 +220,15 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
     try {
       // First check if table exists and has the expected structure
-      const tableCheck = await db.execute(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'omnibridge_rules' 
-        AND column_name IN ('execution_stats', 'is_enabled')
-      `);
+      const tableCheck = await db.execute({
+        sql: `
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'omnibridge_rules' 
+          AND column_name IN ('execution_stats', 'is_enabled')
+        `,
+        args: []
+      });
 
       if (tableCheck.rows.length === 0) {
         // Table doesn't exist or columns missing, return default stats
@@ -219,19 +240,22 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         };
       }
 
-      const result = await db.execute(`
-        SELECT 
-          COUNT(*) as total_rules,
-          COUNT(*) FILTER (WHERE is_enabled = true) as enabled_rules,
-          COUNT(*) FILTER (WHERE is_enabled = false) as disabled_rules,
-          COALESCE(SUM(CASE 
-            WHEN execution_stats ? 'totalExecutions' 
-            THEN (execution_stats->>'totalExecutions')::int 
-            ELSE 0 
-          END), 0) as total_executions
-        FROM omnibridge_rules 
-        WHERE tenant_id = $1
-      `, [tenantId]);
+      const result = await db.execute({
+        sql: `
+          SELECT 
+            COUNT(*) as total_rules,
+            COUNT(*) FILTER (WHERE is_enabled = true) as enabled_rules,
+            COUNT(*) FILTER (WHERE is_enabled = false) as disabled_rules,
+            COALESCE(SUM(CASE 
+              WHEN execution_stats ? 'totalExecutions' 
+              THEN (execution_stats->>'totalExecutions')::int 
+              ELSE 0 
+            END), 0) as total_executions
+          FROM omnibridge_rules 
+          WHERE tenant_id = ?
+        `,
+        args: [tenantId]
+      });
 
       const row = result.rows[0];
       return {
@@ -256,16 +280,19 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`📊 [DrizzleAutomationRuleRepository] Updating stats for rule: ${ruleId}`);
 
     try {
-      await db.execute(`
-        UPDATE omnibridge_rules SET
-          execution_stats = $1, updated_at = $2
-        WHERE id = $3 AND tenant_id = $4
-      `, [
-        JSON.stringify(stats),
-        new Date(),
-        ruleId,
-        tenantId
-      ]);
+      await db.execute({
+        sql: `
+          UPDATE omnibridge_rules SET
+            execution_stats = ?, updated_at = ?
+          WHERE id = ? AND tenant_id = ?
+        `,
+        args: [
+          JSON.stringify(stats),
+          new Date(),
+          ruleId,
+          tenantId
+        ]
+      });
 
       console.log(`✅ [DrizzleAutomationRuleRepository] Updated stats for rule: ${ruleId}`);
     } catch (error) {
