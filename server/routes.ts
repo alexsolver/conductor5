@@ -54,6 +54,9 @@ import { TicketViewsController } from './controllers/TicketViewsController';
 // Import uuid for note ID generation
 import { v4 as uuidv4 } from 'uuid';
 
+// Clean Architecture Modules
+import { notificationsModule } from './modules/notifications-alerts';
+
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
 // Legacy imports removed per analysis
 import ticketRelationshipsRoutes from './modules/ticket-relationships/routes';
@@ -316,6 +319,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const ticketsRoutes = (await import('./modules/tickets/routes')).default;
   app.use('/api/tickets', ticketsRoutes);
   console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
+
+  // ✅ NOTIFICATIONS & ALERTS CLEAN ARCHITECTURE MODULE per 1qa.md
+  console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
+  app.use('/api', notificationsModule.getRouter());
+  console.log('✅ [NOTIFICATIONS-ALERTS] Clean Architecture module registered at /api/notifications');
 
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');

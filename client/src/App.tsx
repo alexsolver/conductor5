@@ -81,11 +81,12 @@ import AssetManagement from "./pages/AssetManagement";
 import ComplianceManagement from "./pages/ComplianceManagement";
 import CLTCompliance from "./pages/CLTCompliance";
 import TimecardApprovalSettings from "./pages/TimecardApprovalSettings";
-import NotificationManagement from './pages/NotificationManagement';
+
 import CustomFieldsAdministrator from './pages/CustomFieldsAdministrator';
 import DragDropDemo from './pages/DragDropDemo';
 import ProductivityReports from './pages/ProductivityReports';
 import TimecardApprovals from './pages/TimecardApprovals';
+import NotificationsPage from './pages/NotificationsPage';
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Customers from "./pages/Customers";
@@ -140,6 +141,7 @@ function AppRouter() {
         <Route path="/locations" component={LocationsNew} />
 
         <Route path="/analytics" component={Analytics} />
+        <Route path="/notifications" component={NotificationsPage} />
         <Route path="/compliance" component={Compliance} />
         <Route path="/clt-compliance" component={CLTCompliance} />
         <Route path="/saas-admin" component={SaasAdmin} />
@@ -208,7 +210,7 @@ function AppRouter() {
 
         <Route path="/asset-management" component={AssetManagement} />
         <Route path="/compliance-management" component={ComplianceManagement} />
-        <Route path="/notifications" component={NotificationManagement} />
+
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
         <Route path="/drag-drop-demo" component={DragDropDemo} />
         <Route path="/productivity-reports" component={ProductivityReports} />

@@ -80,6 +80,7 @@ export type {
 export * from './schema-master';
 export * from './schema-materials-services';
 export * from './schema-field-layout';
+export * from './schema-notifications';
 
 // Selective exports from locations to avoid conflicts
 export {
