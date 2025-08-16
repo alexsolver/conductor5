@@ -391,113 +391,149 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
 
   const handleSubmit = async (data: any) => {
     try {
-      console.log('🔄 [LOCAL-FORM] Submitting data:', data);
+      console.log('🔄 [LOCAL-FORM] Starting form submission...');
+      console.log('📝 [LOCAL-FORM] Form data:', JSON.stringify(data, null, 2));
 
+      // Validar token de acesso
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        console.error('❌ [LOCAL-FORM] Token de autenticação não encontrado');
+        console.error('❌ [LOCAL-FORM] No access token found');
         toast({
-          title: "Erro de autenticação",
+          title: "Erro de Autenticação",
           description: "Token de acesso não encontrado. Faça login novamente.",
           variant: "destructive"
         });
         return;
       }
 
+      // Validar dados básicos antes de enviar
+      if (!data.nome || typeof data.nome !== 'string' || data.nome.trim().length === 0) {
+        console.error('❌ [LOCAL-FORM] Nome field validation failed');
+        toast({
+          title: "Erro de Validação",
+          description: "O campo 'Nome' é obrigatório e deve ser preenchido.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('🌐 [LOCAL-FORM] Making API request to /api/locations-new/local');
+
+      // Fazer requisição
       const response = await fetch('/api/locations-new/local', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         },
         body: JSON.stringify(data)
       });
 
-      console.log('📡 [LOCAL-FORM] Response status:', response.status);
-      console.log('📡 [LOCAL-FORM] Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('📡 [LOCAL-FORM] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
 
-      // Verificar se a resposta é JSON
+      // Verificar content-type da resposta
       const contentType = response.headers.get('content-type');
+      console.log('📋 [LOCAL-FORM] Content-Type:', contentType);
+
       let result: any;
-      
-      if (contentType && contentType.includes('application/json')) {
-        try {
-          result = await response.json();
-          console.log('📡 [LOCAL-FORM] Response data:', result);
-        } catch (jsonError) {
-          console.error('❌ [LOCAL-FORM] Failed to parse JSON:', jsonError);
-          const textResponse = await response.text();
-          console.error('❌ [LOCAL-FORM] Raw response:', textResponse);
+
+      // Tentar ler resposta como JSON
+      try {
+        const responseText = await response.text();
+        console.log('📄 [LOCAL-FORM] Raw response text:', responseText.substring(0, 500));
+
+        if (!responseText) {
+          throw new Error('Empty response from server');
+        }
+
+        // Verificar se é HTML (página de erro)
+        if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+          console.error('❌ [LOCAL-FORM] Received HTML instead of JSON');
+          console.error('🔍 [LOCAL-FORM] HTML content:', responseText.substring(0, 1000));
           
           toast({
-            title: "Erro de Resposta",
-            description: "O servidor retornou dados inválidos. Verifique o console para detalhes.",
+            title: "Erro do Servidor",
+            description: "O servidor retornou uma página de erro. Verifique os logs do servidor.",
             variant: "destructive"
           });
           return;
         }
-      } else {
-        // Se não é JSON, tratar como erro
-        const textResponse = await response.text();
-        console.error('❌ [LOCAL-FORM] Non-JSON response:', textResponse);
+
+        // Tentar parsear JSON
+        result = JSON.parse(responseText);
+        console.log('✅ [LOCAL-FORM] Successfully parsed JSON:', result);
+
+      } catch (parseError) {
+        console.error('❌ [LOCAL-FORM] JSON parsing error:', parseError);
+        console.error('❌ [LOCAL-FORM] Response was not valid JSON');
         
-        // Verificar se é uma página de erro HTML
-        if (textResponse.includes('<!DOCTYPE') || textResponse.includes('<html>')) {
-          toast({
-            title: "Erro do Servidor",
-            description: "O servidor encontrou um erro interno. O endpoint pode estar indisponível.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Erro de Resposta",
-            description: "Formato de resposta inválido do servidor.",
-            variant: "destructive"
-          });
-        }
+        toast({
+          title: "Erro de Comunicação",
+          description: "O servidor retornou uma resposta inválida. Verifique os logs do servidor.",
+          variant: "destructive"
+        });
         return;
       }
 
-      // Processar resposta JSON
-      if (response.ok && result.success) {
+      // Processar resposta baseada no status HTTP
+      if (response.ok && result?.success) {
+        console.log('✅ [LOCAL-FORM] Local created successfully');
+        
         toast({
-          title: "Sucesso",
-          description: result.message || "Local criado com sucesso!"
+          title: "Sucesso!",
+          description: result.message || "Local criado com sucesso!",
+          variant: "default"
         });
-        if (onSuccess) onSuccess();
-        if (onClose) onClose();
+
+        // Callbacks de sucesso
+        if (onSuccess) {
+          console.log('🔄 [LOCAL-FORM] Calling onSuccess callback');
+          onSuccess();
+        }
+        if (onClose) {
+          console.log('🔄 [LOCAL-FORM] Calling onClose callback');  
+          onClose();
+        }
+
       } else {
-        console.error('❌ [LOCAL-FORM] Server error:', result);
-        
-        const errorMessage = result.message || result.error || 'Erro desconhecido no servidor';
-        const errorDetails = result.details ? 
-          result.details.map((d: any) => `${d.field}: ${d.message}`).join(', ') : '';
-        
+        // Erro do servidor ou validação
+        console.error('❌ [LOCAL-FORM] Server returned error:', {
+          status: response.status,
+          result: result
+        });
+
+        const errorMessage = result?.message || result?.error || 'Erro desconhecido do servidor';
+        const errorDetails = result?.details ? 
+          result.details.map((d: any) => `${d.field}: ${d.message}`).join('\n') : '';
+
         toast({
-          title: "Erro ao criar local",
-          description: errorDetails ? `${errorMessage}. ${errorDetails}` : errorMessage,
+          title: "Erro ao Criar Local",
+          description: errorDetails ? 
+            `${errorMessage}\n\nDetalhes:\n${errorDetails}` : 
+            errorMessage,
           variant: "destructive"
         });
       }
-    } catch (error) {
-      console.error('❌ [LOCAL-FORM] Error creating record:', error);
 
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+    } catch (networkError) {
+      console.error('❌ [LOCAL-FORM] Network or unexpected error:', networkError);
+      
+      if (networkError instanceof TypeError && networkError.message.includes('Failed to fetch')) {
         toast({
-          title: "Erro de Rede",
-          description: "Não foi possível conectar ao servidor. Verifique sua conexão.",
-          variant: "destructive"
-        });
-      } else if (error instanceof SyntaxError && error.message.includes('JSON')) {
-        toast({
-          title: "Erro de Parseamento",
-          description: "O servidor retornou dados em formato inválido.",
+          title: "Erro de Conexão",
+          description: "Não foi possível conectar ao servidor. Verifique sua conexão de internet.",
           variant: "destructive"
         });
       } else {
         toast({
           title: "Erro Inesperado",
-          description: error instanceof Error ? error.message : 'Ocorreu um erro inesperado. Tente novamente.',
+          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : 'Erro desconhecido'}`,
           variant: "destructive"
         });
       }

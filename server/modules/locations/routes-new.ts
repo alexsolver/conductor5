@@ -178,12 +178,35 @@ router.get('/:recordType', async (req: LocationsRequest, res: Response) => {
 // Create operations
 // POST /api/locations-new/local - Create new local
 router.post('/local', async (req: LocationsRequest, res: Response) => {
-  // Garantir que sempre retorna JSON
+  // Garantir que sempre retorna JSON desde o início
   res.setHeader('Content-Type', 'application/json');
   
-  try {
-    console.log('🔄 [CREATE-LOCAL] Starting creation process');
+  console.log('🔄 [CREATE-LOCAL] Starting creation process');
+  console.log('📝 [CREATE-LOCAL] Request body received:', JSON.stringify(req.body, null, 2));
+  
+  // Capturar qualquer erro não tratado
+  const handleError = (error: any, context: string) => {
+    console.error(`❌ [CREATE-LOCAL] ${context}:`, error);
+    console.error(`❌ [CREATE-LOCAL] Error stack:`, error?.stack);
+    
+    if (res.headersSent) {
+      console.error('❌ [CREATE-LOCAL] Headers already sent, cannot respond');
+      return;
+    }
+    
+    return res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor',
+      message: `Falha durante ${context}. Tente novamente.`,
+      debug: process.env.NODE_ENV === 'development' ? {
+        message: error?.message,
+        stack: error?.stack?.split('\n').slice(0, 5).join('\n')
+      } : undefined
+    });
+  };
 
+  try {
+    // Verificar usuário autenticado
     const user = (req as any).user;
     if (!user) {
       console.log('❌ [CREATE-LOCAL] Unauthorized access attempt');
@@ -203,21 +226,35 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
       });
     }
 
-    console.log('✅ [CREATE-LOCAL] User authenticated:', { userId: user.id, tenantId: user.tenantId });
-    console.log('📝 [CREATE-LOCAL] Request body:', req.body);
+    console.log('✅ [CREATE-LOCAL] User authenticated:', { 
+      userId: user.id, 
+      tenantId: user.tenantId,
+      email: user.email 
+    });
 
-    // Validate required fields
-    if (!req.body.nome) {
+    // Validar campos obrigatórios básicos
+    if (!req.body || typeof req.body !== 'object') {
+      console.log('❌ [CREATE-LOCAL] Invalid request body');
       return res.status(400).json({
         success: false,
-        error: 'Campo obrigatório ausente',
-        message: 'O campo "nome" é obrigatório'
+        error: 'Dados de entrada inválidos',
+        message: 'O corpo da requisição deve ser um objeto válido'
       });
     }
 
-    // Validate input data with proper error handling
+    if (!req.body.nome || typeof req.body.nome !== 'string' || req.body.nome.trim().length === 0) {
+      console.log('❌ [CREATE-LOCAL] Nome field missing or invalid');
+      return res.status(400).json({
+        success: false,
+        error: 'Campo obrigatório ausente',
+        message: 'O campo "nome" é obrigatório e deve ser uma string não vazia'
+      });
+    }
+
+    // Validar dados com Zod
     let validatedData;
     try {
+      console.log('🔍 [CREATE-LOCAL] Validating data with Zod...');
       validatedData = localSchema.parse({
         ...req.body,
         tenantId: user.tenantId
@@ -232,29 +269,33 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
           message: 'Verifique os campos obrigatórios',
           details: validationError.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
+            message: err.message,
+            received: err.input
           }))
         });
       }
-      throw validationError;
+      return handleError(validationError, 'validação dos dados');
     }
 
-    // Ensure schema exists for tenant
+    // Configurar schema do tenant
     const tenantId = user.tenantId;
     const schemaName = getSchemaName(tenantId);
+    console.log('🔍 [CREATE-LOCAL] Using schema:', schemaName);
 
     try {
+      console.log('🔧 [CREATE-LOCAL] Ensuring schema and tables exist...');
       await ensureSchemaAndTables(schemaName);
+      console.log('✅ [CREATE-LOCAL] Schema setup completed');
     } catch (schemaError) {
       console.error('❌ [CREATE-LOCAL] Schema setup error:', schemaError);
       return res.status(500).json({
         success: false,
-        error: 'Erro de configuração do banco',
-        message: 'Falha ao configurar schema do tenant'
+        error: 'Erro de configuração do banco de dados',
+        message: 'Falha ao configurar estrutura do tenant'
       });
     }
 
-    // Prepare JSON fields properly
+    // Preparar campos JSON
     const geoCoordenadasJson = validatedData.geoCoordenadas ? 
       JSON.stringify(validatedData.geoCoordenadas) : null;
     const feriadosIncluidosJson = validatedData.feriadosIncluidos ? 
@@ -262,6 +303,9 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
     const indisponibilidadesJson = validatedData.indisponibilidades ? 
       JSON.stringify(validatedData.indisponibilidades) : null;
 
+    console.log('💾 [CREATE-LOCAL] Inserting into database...');
+    
+    // Executar inserção no banco
     const result = await pool.query(
       `INSERT INTO "${schemaName}".locais (
         tenant_id, ativo, nome, descricao, codigo_integracao, tipo_cliente_favorecido,
@@ -273,7 +317,7 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
       [
         validatedData.tenantId, 
         validatedData.ativo ?? true, 
-        validatedData.nome,
+        validatedData.nome.trim(),
         validatedData.descricao || null, 
         validatedData.codigoIntegracao || null, 
         validatedData.tipoClienteFavorecido || null,
@@ -290,8 +334,8 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
         validatedData.logradouro || null, 
         validatedData.numero || null,
         validatedData.complemento || null, 
-        validatedData.latitude || null, 
-        validatedData.longitude || null,
+        validatedData.latitude ? parseFloat(validatedData.latitude.toString()) : null, 
+        validatedData.longitude ? parseFloat(validatedData.longitude.toString()) : null,
         geoCoordenadasJson, 
         validatedData.fusoHorario || 'America/Sao_Paulo',
         feriadosIncluidosJson, 
@@ -299,27 +343,30 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
       ]
     );
 
-    console.log('✅ [CREATE-LOCAL] Local created successfully:', result.rows[0].id);
+    if (!result || !result.rows || result.rows.length === 0) {
+      console.error('❌ [CREATE-LOCAL] No data returned from database insert');
+      return res.status(500).json({
+        success: false,
+        error: 'Erro na inserção dos dados',
+        message: 'Nenhum registro foi criado no banco de dados'
+      });
+    }
+
+    const createdLocal = result.rows[0];
+    console.log('✅ [CREATE-LOCAL] Local created successfully:', {
+      id: createdLocal.id,
+      nome: createdLocal.nome,
+      tenantId: createdLocal.tenant_id
+    });
 
     return res.status(201).json({
       success: true,
       message: 'Local criado com sucesso',
-      data: result.rows[0]
+      data: createdLocal
     });
 
   } catch (error) {
-    console.error('❌ [CREATE-LOCAL] Error creating local:', error);
-    console.error('❌ [CREATE-LOCAL] Error stack:', error.stack);
-
-    // Garantir que sempre retorna JSON, mesmo em caso de erro
-    if (!res.headersSent) {
-      return res.status(500).json({
-        success: false,
-        error: 'Erro interno do servidor',
-        message: 'Falha ao criar local. Tente novamente.',
-        debug: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
+    return handleError(error, 'criação do local');
   }
 });
 
