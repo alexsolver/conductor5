@@ -1,4 +1,4 @@
-import { db } from '../../../../db';
+import { db, sql } from '../../../../db';
 import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
 import { AutomationRuleEntity } from '../../domain/entities/AutomationRule';
 
@@ -8,26 +8,20 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     try {
       console.log(`🔍 [DrizzleAutomationRuleRepository] Creating rule: ${rule.name}`);
 
-      const result = await db.execute({
-        sql: `
-          INSERT INTO omnibridge_rules (
-            id, tenant_id, name, description, is_enabled, priority,
-            trigger_conditions, action_parameters, created_at, updated_at
-          ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()
-          ) RETURNING *
-        `,
-        args: [
-          rule.id,
-          rule.tenantId,
-          rule.name,
-          rule.description || '',
-          rule.isActive,
-          rule.priority,
-          JSON.stringify(rule.conditions),
-          JSON.stringify(rule.actions)
-        ]
-      });
+      const result = await db.execute(sql`
+        INSERT INTO omnibridge_rules (
+          id, tenant_id, name, description, is_enabled, trigger_type, action_type,
+          trigger_conditions, action_parameters, triggers, actions, priority,
+          execution_stats, metadata, created_at, updated_at, created_by
+        ) VALUES (
+          ${rule.id}, ${rule.tenantId}, ${rule.name}, ${rule.description || ''}, 
+          ${rule.isActive}, 'general', 'general',
+          ${JSON.stringify(rule.conditions)}, ${JSON.stringify(rule.actions)},
+          ${JSON.stringify(rule.conditions)}, ${JSON.stringify(rule.actions)}, 
+          ${rule.priority}, '{"totalExecutions": 0, "successfulExecutions": 0, "failedExecutions": 0}',
+          '{"version": 1}', NOW(), NOW(), 'system'
+        ) RETURNING *
+      `);
 
       if (result.rows && result.rows.length > 0) {
         return this.mapRowToEntity(result.rows[0]);
@@ -44,13 +38,10 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rule: ${id} for tenant: ${tenantId}`);
 
     try {
-      const result = await db.execute({
-        sql: `
-          SELECT * FROM omnibridge_rules 
-          WHERE id = $1 AND tenant_id = $2
-        `,
-        args: [id, tenantId]
-      });
+      const result = await db.execute(sql`
+        SELECT * FROM omnibridge_rules 
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
 
       if (result.rows.length === 0) {
         return null;
@@ -68,10 +59,10 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
 
     try {
-      const result = await db.execute({
-        sql: `SELECT * FROM omnibridge_rules WHERE tenant_id = $1 ORDER BY priority ASC, created_at DESC`,
-        args: [tenantId]
-      });
+      const result = await db.execute(sql`
+        SELECT * FROM omnibridge_rules WHERE tenant_id = ${tenantId} 
+        ORDER BY priority ASC, created_at DESC
+      `);
 
       return result.rows.map(row => this.mapRowToEntity(row));
     } catch (error) {
@@ -84,25 +75,18 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     try {
       console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${rule.id}`);
 
-      const result = await db.execute({
-        sql: `
-          UPDATE omnibridge_rules SET
-            name = $1, description = $2, is_enabled = $3, priority = $4,
-            trigger_conditions = $5, action_parameters = $6, updated_at = NOW()
-          WHERE id = $7 AND tenant_id = $8
-          RETURNING *
-        `,
-        args: [
-          rule.name,
-          rule.description || '',
-          rule.isActive,
-          rule.priority,
-          JSON.stringify(rule.conditions),
-          JSON.stringify(rule.actions),
-          rule.id,
-          rule.tenantId
-        ]
-      });
+      const result = await db.execute(sql`
+        UPDATE omnibridge_rules SET
+          name = ${rule.name}, description = ${rule.description || ''}, 
+          is_enabled = ${rule.isActive}, priority = ${rule.priority},
+          trigger_conditions = ${JSON.stringify(rule.conditions)}, 
+          action_parameters = ${JSON.stringify(rule.actions)}, 
+          triggers = ${JSON.stringify(rule.conditions)},
+          actions = ${JSON.stringify(rule.actions)},
+          updated_at = NOW(), updated_by = 'system'
+        WHERE id = ${rule.id} AND tenant_id = ${rule.tenantId}
+        RETURNING *
+      `);
 
       if (result.rows && result.rows.length > 0) {
         return this.mapRowToEntity(result.rows[0]);
@@ -119,10 +103,9 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     try {
       console.log(`🗑️ [DrizzleAutomationRuleRepository] Deleting rule: ${id}`);
 
-      await db.execute({
-        sql: `DELETE FROM omnibridge_rules WHERE id = $1 AND tenant_id = $2`,
-        args: [id, tenantId]
-      });
+      await db.execute(sql`
+        DELETE FROM omnibridge_rules WHERE id = ${id} AND tenant_id = ${tenantId}
+      `);
 
       return true;
     } catch (error) {
@@ -132,11 +115,24 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
   }
 
   private mapRowToEntity(row: any): AutomationRuleEntity {
+    // Parse JSON fields safely
+    const parseJsonField = (field: any, defaultValue: any = []) => {
+      if (typeof field === 'string') {
+        try {
+          return JSON.parse(field);
+        } catch (e) {
+          console.warn(`Failed to parse JSON field: ${field}`);
+          return defaultValue;
+        }
+      }
+      return field || defaultValue;
+    };
+
     return new AutomationRuleEntity(
       row.id,
       row.name,
-      JSON.parse(row.trigger_conditions || '[]'),
-      JSON.parse(row.action_parameters || '[]'),
+      parseJsonField(row.trigger_conditions, []),
+      parseJsonField(row.action_parameters, []),
       row.tenant_id,
       row.description,
       row.is_enabled,
