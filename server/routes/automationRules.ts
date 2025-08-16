@@ -2,8 +2,7 @@ import { Router } from 'express';
 import { jwtAuth } from '../middleware/jwtAuth';
 import { GlobalAutomationManager } from '../modules/omnibridge/infrastructure/services/AutomationEngine';
 import { AutomationRule, AutomationCondition, AutomationAction } from '../modules/omnibridge/domain/entities/AutomationRule';
-import { getRepository } from 'typeorm'; // Importar getRepository para acessar o repositório
-import { AutomationRuleRepository } from '../modules/omnibridge/infrastructure/repositories/AutomationRuleRepository'; // Importar o repositório
+import { DrizzleAutomationRuleRepository } from '../modules/omnibridge/infrastructure/repositories/DrizzleAutomationRuleRepository';
 
 const router = Router();
 
@@ -233,7 +232,7 @@ router.post('/', async (req: any, res) => {
     );
 
     const automationManager = GlobalAutomationManager.getInstance();
-    const repository = getRepository(AutomationRuleRepository); // Obter instância do repositório
+    const repository = new DrizzleAutomationRuleRepository();
 
     // Salvar regra no repositório
     const savedRule = await repository.create(automationRuleEntity);
@@ -279,7 +278,7 @@ router.patch('/:ruleId', async (req: any, res) => {
     }
 
     const automationManager = GlobalAutomationManager.getInstance();
-    const repository = getRepository(AutomationRuleRepository); // Obter instância do repositório
+    const repository = new DrizzleAutomationRuleRepository();
 
     const updatedRule = await repository.update(ruleId, updateData);
 
@@ -323,10 +322,10 @@ router.delete('/:ruleId', async (req: any, res) => {
     }
 
     const automationManager = GlobalAutomationManager.getInstance();
-    const repository = getRepository(AutomationRuleRepository); // Obter instância do repositório
+    const repository = new DrizzleAutomationRuleRepository();
 
     // Remover regra do repositório
-    const deleted = await repository.delete(ruleId); // Assumindo que o método delete retorna o status ou o item deletado
+    const deleted = await repository.delete(ruleId);
 
     if (!deleted) {
       return res.status(404).json({
@@ -384,9 +383,9 @@ router.patch('/:ruleId/toggle', async (req: any, res) => {
     }
 
     const automationManager = GlobalAutomationManager.getInstance();
-    const repository = getRepository(AutomationRuleRepository); // Obter instância do repositório
+    const repository = new DrizzleAutomationRuleRepository();
 
-    const updatedRule = await repository.update(ruleId, { isEnabled }); // Atualiza apenas o status isEnabled
+    const updatedRule = await repository.update(ruleId, { enabled: isEnabled });
 
     console.log(`✅ [AUTOMATION-RULES] Rule ${isEnabled ? 'enabled' : 'disabled'}: ${updatedRule.name} (${updatedRule.id})`);
 
