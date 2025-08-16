@@ -4,17 +4,8 @@ import { db } from '../../../../db';
 import { IUserNotificationPreferencesRepository } from '../../domain/repositories/IUserNotificationPreferencesRepository';
 import { UserNotificationPreferences, NotificationPreferencesData } from '../../domain/entities/UserNotificationPreferences';
 
-// Database schema
-import { pgTable, varchar, jsonb, timestamp, uuid } from 'drizzle-orm/pg-core';
-
-export const userNotificationPreferences = pgTable('user_notification_preferences', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: varchar('user_id', { length: 36 }).notNull(),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
-  preferences: jsonb('preferences').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+// Import database schema from shared schema
+import { userNotificationPreferences } from '@shared/schema';
 
 export class DrizzleUserNotificationPreferencesRepository implements IUserNotificationPreferencesRepository {
   
