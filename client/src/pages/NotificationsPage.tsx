@@ -110,9 +110,9 @@ export default function NotificationsPage() {
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState('notifications');
   const [filters, setFilters] = useState({
-    status: '',
-    type: '',
-    severity: '',
+    status: 'all',
+    type: 'all',
+    severity: 'all',
     page: 1
   });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -132,9 +132,9 @@ export default function NotificationsPage() {
     queryKey: ['/api/notifications', filters],
     queryFn: async () => {
       const response = await fetch(`/api/notifications?${new URLSearchParams({
-        ...(filters.status && { status: filters.status }),
-        ...(filters.type && { type: filters.type }),
-        ...(filters.severity && { severity: filters.severity }),
+        ...(filters.status && filters.status !== 'all' && { status: filters.status }),
+        ...(filters.type && filters.type !== 'all' && { type: filters.type }),
+        ...(filters.severity && filters.severity !== 'all' && { severity: filters.severity }),
         page: filters.page.toString(),
         pageSize: '50'
       }).toString()}`, {
@@ -498,7 +498,7 @@ export default function NotificationsPage() {
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
+                      <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="sent">Sent</SelectItem>
                       <SelectItem value="delivered">Delivered</SelectItem>
@@ -517,7 +517,7 @@ export default function NotificationsPage() {
                       <SelectValue placeholder="All severities" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Severities</SelectItem>
+                      <SelectItem value="all">All Severities</SelectItem>
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -535,7 +535,7 @@ export default function NotificationsPage() {
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="system_maintenance">System Maintenance</SelectItem>
                       <SelectItem value="system_alert">System Alert</SelectItem>
                       <SelectItem value="ticket_created">Ticket Created</SelectItem>
