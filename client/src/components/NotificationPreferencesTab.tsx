@@ -164,9 +164,31 @@ export default function NotificationPreferencesTab() {
     },
   });
 
+  // Load preferences when data is fetched - following 1qa.md safety patterns
   useEffect(() => {
-    if (userPreferences) {
-      setPreferences(userPreferences);
+    if (userPreferences && userPreferences.preferences) {
+      // Ensure all required properties exist following 1qa.md patterns
+      const safePreferences = {
+        ...userPreferences,
+        preferences: {
+          types: userPreferences.preferences.types || {},
+          deliveryWindow: userPreferences.preferences.deliveryWindow || {
+            startTime: '08:00',
+            endTime: '20:00',
+            timezone: 'America/Sao_Paulo',
+            daysOfWeek: [1, 2, 3, 4, 5]
+          },
+          globalSettings: userPreferences.preferences.globalSettings || {
+            doNotDisturb: false,
+            soundEnabled: true,
+            vibrationEnabled: true,
+            emailDigest: false,
+            digestFrequency: 'daily'
+          }
+        }
+      };
+      setPreferences(safePreferences);
+      setIsModified(false);
     }
   }, [userPreferences]);
 
@@ -218,7 +240,7 @@ export default function NotificationPreferencesTab() {
   };
 
   const handleGlobalSettingToggle = (setting: string) => {
-    if (!preferences) return;
+    if (!preferences?.preferences?.globalSettings) return;
     
     const updatedPreferences = {
       ...preferences,
@@ -328,7 +350,7 @@ export default function NotificationPreferencesTab() {
               <p className="text-sm text-gray-600">Suspender todas as notificações temporariamente</p>
             </div>
             <Switch
-              checked={preferences.preferences.globalSettings.doNotDisturb}
+              checked={preferences?.preferences?.globalSettings?.doNotDisturb || false}
               onCheckedChange={() => handleGlobalSettingToggle('doNotDisturb')}
               data-testid="switch-do-not-disturb"
             />
@@ -345,7 +367,7 @@ export default function NotificationPreferencesTab() {
               </div>
             </div>
             <Switch
-              checked={preferences.preferences.globalSettings.soundEnabled}
+              checked={preferences?.preferences?.globalSettings?.soundEnabled || false}
               onCheckedChange={() => handleGlobalSettingToggle('soundEnabled')}
               data-testid="switch-sound-enabled"
             />
@@ -360,7 +382,7 @@ export default function NotificationPreferencesTab() {
               </div>
             </div>
             <Switch
-              checked={preferences.preferences.globalSettings.vibrationEnabled}
+              checked={preferences?.preferences?.globalSettings?.vibrationEnabled || false}
               onCheckedChange={() => handleGlobalSettingToggle('vibrationEnabled')}
               data-testid="switch-vibration-enabled"
             />
@@ -374,18 +396,19 @@ export default function NotificationPreferencesTab() {
               <p className="text-sm text-gray-600">Receber resumo das notificações por email</p>
             </div>
             <Switch
-              checked={preferences.preferences.globalSettings.emailDigest}
+              checked={preferences?.preferences?.globalSettings?.emailDigest || false}
               onCheckedChange={() => handleGlobalSettingToggle('emailDigest')}
               data-testid="switch-email-digest"
             />
           </div>
 
-          {preferences.preferences.globalSettings.emailDigest && (
+          {preferences?.preferences?.globalSettings?.emailDigest && (
             <div className="flex items-center justify-between pl-4">
               <Label>Frequência do Resumo</Label>
               <Select
-                value={preferences.preferences.globalSettings.digestFrequency}
+                value={preferences?.preferences?.globalSettings?.digestFrequency || 'daily'}
                 onValueChange={(value) => {
+                  if (!preferences?.preferences?.globalSettings) return;
                   const updatedPreferences = {
                     ...preferences,
                     preferences: {
@@ -431,7 +454,7 @@ export default function NotificationPreferencesTab() {
               <Label>Horário Inicial</Label>
               <Input
                 type="time"
-                value={preferences.preferences.deliveryWindow?.startTime || '08:00'}
+                value={preferences?.preferences?.deliveryWindow?.startTime || '08:00'}
                 onChange={(e) => handleTimeChange('startTime', e.target.value)}
                 data-testid="input-start-time"
               />
@@ -440,7 +463,7 @@ export default function NotificationPreferencesTab() {
               <Label>Horário Final</Label>
               <Input
                 type="time"
-                value={preferences.preferences.deliveryWindow?.endTime || '20:00'}
+                value={preferences?.preferences?.deliveryWindow?.endTime || '20:00'}
                 onChange={(e) => handleTimeChange('endTime', e.target.value)}
                 data-testid="input-end-time"
               />
@@ -454,7 +477,7 @@ export default function NotificationPreferencesTab() {
         <h3 className="text-lg font-semibold">Tipos de Notificação</h3>
         
         {NOTIFICATION_TYPES.map((type) => {
-          const typePrefs = preferences.preferences.types[type.id];
+          const typePrefs = preferences?.preferences?.types?.[type.id];
           const isEnabled = typePrefs?.enabled || false;
           const selectedChannels = typePrefs?.channels || [];
 
