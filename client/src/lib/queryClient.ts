@@ -104,7 +104,7 @@ export const apiRequest = async (method: string, url: string, data?: any): Promi
 
   const response = await fetch(url, options);
 
-  // ✅ 1QA.MD: Auto-refresh automático em caso de 401
+  // ✅ 1QA.MD: Auto-refresh automático em caso de 401 - menos agressivo
   if (response.status === 401 && url !== '/api/auth/refresh') {
     console.log('🔄 [API-INTERCEPTOR] 401 detected, attempting token refresh...');
 
@@ -141,16 +141,13 @@ export const apiRequest = async (method: string, url: string, data?: any): Promi
           }
         }
       } catch (error) {
-        console.error('❌ [API-INTERCEPTOR] Refresh failed:', error);
+        console.warn('⚠️ [API-INTERCEPTOR] Refresh failed:', error.message);
       }
     }
 
-    // Se refresh falhou, limpar tokens e forçar relogin
-    console.error('❌ [API-INTERCEPTOR] Token refresh failed, redirecting to auth');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('tenantId');
-    window.location.href = '/auth';
+    // ✅ CRITICAL FIX: Não redirecionar automaticamente, deixar o componente tratar
+    console.warn('⚠️ [API-INTERCEPTOR] Token refresh failed for request:', url);
+    // Apenas retornar a resposta 401 original para que o componente possa decidir o que fazer
   }
 
   return response;

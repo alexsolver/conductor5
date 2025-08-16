@@ -50,24 +50,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
-      // ✅ 1QA.MD: Validação rigorosa de token antes de usar
+      // ✅ 1QA.MD: Validação menos restritiva para evitar logout automático
       const token = localStorage.getItem('accessToken');
       
       // ✅ CRITICAL FIX: Se não há token, retornar null sem fazer request
       if (!token || 
           token === 'null' || 
           token === 'undefined' || 
-          token.trim() === '' ||
-          token === 'false') {
-        return null;
-      }
-
-      // ✅ Validar formato JWT básico - mas permitir continuar se inválido
-      const tokenParts = token.split('.');
-      if (tokenParts.length !== 3) {
-        console.warn('⚠️ [AUTH-QUERY] Invalid JWT format, clearing tokens');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+          token.trim() === '') {
+        console.log('🚫 [AUTH-QUERY] No valid token found, skipping auth check');
         return null;
       }
 
@@ -108,11 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
             }
             
-            console.log('❌ [AUTH-QUERY] Refresh failed, clearing tokens');
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('tenantId');
-            return null;
+            console.log('⚠️ [AUTH-QUERY] Refresh failed, returning null without clearing tokens');
+            return null; // ✅ Não limpar tokens aqui
           }
           console.warn(`❌ [AUTH-QUERY] Auth check failed: ${response.status}`);
           return null;
@@ -122,11 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('✅ [AUTH-QUERY] Auth check successful');
         return userData || null;
       } catch (error) {
-        console.error('❌ [AUTH-QUERY] Auth query error:', error);
-        // Clear invalid tokens on any error
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('tenantId');
+        console.warn('⚠️ [AUTH-QUERY] Auth query error:', error.message);
+        // ✅ CRITICAL FIX: Não limpar tokens em caso de erro de rede
         return null;
       }
     },
@@ -433,37 +418,24 @@ export function useAuth() {
 
   const [token, setToken] = React.useState(localStorage.getItem('accessToken'));
   
-  // ✅ 1QA.MD: Auto refresh automático para evitar logout
+  // ✅ 1QA.MD: Auto refresh automático para evitar logout - versão menos agressiva
   React.useEffect(() => {
+    // ✅ CRITICAL FIX: Não executar verificações automáticas logo após login
+    if (!context.user) {
+      return; // Não fazer nada se não há usuário autenticado
+    }
+
     const checkTokenExpiry = async () => {
       const currentToken = localStorage.getItem('accessToken');
       
-      // ✅ CRITICAL FIX: Validação rigorosa de token - mais restritiva
+      // ✅ CRITICAL FIX: Validação menos restritiva para evitar logout automático
       if (!currentToken || 
           currentToken === 'null' || 
           currentToken === 'undefined' || 
-          currentToken.trim() === '' ||
-          currentToken === 'false' ||
-          currentToken.length < 10) { // JWT mínimo tem mais de 10 chars
+          currentToken.trim() === '') {
         
-        console.warn('⚠️ [AUTO-REFRESH] Invalid token detected:', {
-          hasToken: !!currentToken,
-          tokenValue: currentToken?.substring(0, 10) + '...',
-          tokenLength: currentToken?.length,
-          hasUser: !!context.user
-        });
-        
-        // Se temos user mas token inválido, forçar logout
-        if (context.user) {
-          console.log('🚨 [AUTO-REFRESH] User exists but token invalid, forcing logout');
-          context.logoutMutation.mutate();
-        }
-        return;
-      }
-      
-      // ✅ Se não temos usuário, não fazer verificação
-      if (!context.user) {
-        console.log('🚫 [AUTO-REFRESH] No user context, skipping expiry check');
+        console.warn('⚠️ [AUTO-REFRESH] No valid token found');
+        // ✅ Não forçar logout imediatamente, aguardar próxima verificação
         return;
       }
       
@@ -471,9 +443,8 @@ export function useAuth() {
         // ✅ Validar formato JWT antes de decodificar
         const tokenParts = currentToken.split('.');
         if (tokenParts.length !== 3) {
-          console.error('❌ [AUTO-REFRESH] Invalid JWT format');
-          await refreshToken();
-          return;
+          console.warn('⚠️ [AUTO-REFRESH] Invalid JWT format, will refresh on next API call');
+          return; // Deixar o refresh ser tratado pelo interceptor de API
         }
 
         // Decodificar token para verificar expiração
@@ -487,45 +458,44 @@ export function useAuth() {
         const now = Date.now();
         const timeToExpiry = expiresAt - now;
         
-        // ✅ 1QA.MD: Se expira em menos de 4 horas (para token de 24h), renovar automaticamente
-        if (timeToExpiry < 4 * 60 * 60 * 1000 && timeToExpiry > 0) {
-          console.log('🔄 [AUTO-REFRESH] Token expiring soon, refreshing automatically...', {
+        // ✅ 1QA.MD: Só renovar se expira em menos de 2 horas (menos agressivo)
+        if (timeToExpiry < 2 * 60 * 60 * 1000 && timeToExpiry > 5 * 60 * 1000) {
+          console.log('🔄 [AUTO-REFRESH] Token expiring soon, refreshing...', {
             timeToExpiry: Math.round(timeToExpiry / 1000 / 60), // minutos
             expiresAt: new Date(expiresAt).toISOString()
           });
-          const refreshed = await refreshToken();
-          if (refreshed) {
-            console.log('✅ [AUTO-REFRESH] Token renewed successfully');
-          }
-        } else if (timeToExpiry <= 0) {
-          console.error('❌ [AUTO-REFRESH] Token already expired, forcing refresh');
           await refreshToken();
+        } else if (timeToExpiry <= 0) {
+          console.log('⏰ [AUTO-REFRESH] Token expired, will refresh on next API call');
+          // Não forçar logout, deixar o interceptor tratar
         }
       } catch (error) {
-        console.error('❌ [AUTO-REFRESH] Error checking token expiry:', error);
-        // Se não conseguimos decodificar, tentar refresh
-        await refreshToken();
+        console.warn('⚠️ [AUTO-REFRESH] Error checking token expiry:', error.message);
+        // Não fazer nada, deixar o sistema continuar funcionando
       }
     };
 
-    // Verificar a cada 15 minutos (mais frequente para evitar logout)
-    const interval = setInterval(checkTokenExpiry, 15 * 60 * 1000);
+    // ✅ CRITICAL FIX: Aguardar 30 segundos antes de começar verificações automáticas
+    const initialDelay = setTimeout(() => {
+      checkTokenExpiry();
+      
+      // Verificar a cada 30 minutos (menos frequente para evitar interferências)
+      const interval = setInterval(checkTokenExpiry, 30 * 60 * 1000);
+      
+      return () => clearInterval(interval);
+    }, 30000); // 30 segundos de delay inicial
     
-    // Verificar imediatamente
-    checkTokenExpiry();
-    
-    return () => clearInterval(interval);
+    return () => clearTimeout(initialDelay);
   }, [context.user]);
 
   const refreshToken = async () => {
     try {
       const refresh = localStorage.getItem('refreshToken');
       
-      // ✅ CRITICAL FIX: Validação rigorosa do refresh token
+      // ✅ CRITICAL FIX: Validação menos agressiva
       if (!refresh || refresh === 'null' || refresh === 'undefined' || refresh.trim() === '') {
         console.warn('❌ [REFRESH-TOKEN] No valid refresh token available');
-        context.logoutMutation.mutate();
-        return false;
+        return false; // Não forçar logout, apenas retornar false
       }
 
       console.log('🔄 [REFRESH-TOKEN] Attempting token refresh...');
@@ -567,19 +537,16 @@ export function useAuth() {
           return true;
         } else {
           console.error('❌ [REFRESH-TOKEN] Invalid token received from server');
-          context.logoutMutation.mutate();
-          return false;
+          return false; // Não forçar logout
         }
       } else {
         const errorText = await response.text().catch(() => 'Unknown error');
-        console.error('❌ [REFRESH-TOKEN] Failed to refresh token:', response.status, errorText);
-        context.logoutMutation.mutate();
-        return false;
+        console.warn('⚠️ [REFRESH-TOKEN] Failed to refresh token:', response.status, errorText);
+        return false; // Não forçar logout, apenas retornar false
       }
     } catch (error) {
-      console.error('❌ [REFRESH-TOKEN] Error refreshing token:', error);
-      context.logoutMutation.mutate();
-      return false;
+      console.warn('⚠️ [REFRESH-TOKEN] Error refreshing token:', error.message);
+      return false; // Não forçar logout em caso de erro
     }
   };
 
