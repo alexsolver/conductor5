@@ -274,10 +274,20 @@ function LocationsNewContent() {
     }
   });
 
-  // Submit handler
+  // Submit handler with debug logging per 1qa.md
   const onSubmit = useCallback((data: any) => {
+    console.log('🔍 [FORM-SUBMIT] Form data:', data);
+    console.log('🔍 [FORM-SUBMIT] Record type:', activeRecordType);
+    console.log('🔍 [FORM-SUBMIT] Form errors:', form.formState.errors);
+    
+    // Validate form before submission
+    if (!form.formState.isValid) {
+      console.error('❌ [FORM-SUBMIT] Form validation failed:', form.formState.errors);
+      return;
+    }
+    
     createMutation.mutate(data);
-  }, [createMutation]);
+  }, [createMutation, activeRecordType, form]);
 
   // Filtered data
   const filteredData = useMemo(() => {
