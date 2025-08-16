@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { IUserNotificationPreferencesRepository } from '../../domain/repositories/IUserNotificationPreferencesRepository';
 import { UserNotificationPreferences, NotificationPreferencesData } from '../../domain/entities/UserNotificationPreferences';
-import { userNotificationPreferences } from '@shared/schema';
+import { userNotificationPreferences } from '../../../../../shared/schema-notifications';
 
 export class DrizzleUserNotificationPreferencesRepository implements IUserNotificationPreferencesRepository {
   
