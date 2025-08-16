@@ -1,6 +1,6 @@
 {
   "selectedTemplate": "corporate-blue",
-  "appliedAt": "2025-07-27T01:19:51.174Z",
+  "appliedAt": "2025-08-16T01:39:00.498Z",
   "template": {
     "id": "corporate-blue",
     "name": "Corporate Professional",
@@ -10,7 +10,7 @@
       "key": null,
       "ref": null,
       "props": {
-        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:36:8",
+        "data-replit-metadata": "client/src/pages/TemplateSelector.tsx:55:8",
         "data-component-name": "Building2",
         "className": "w-6 h-6"
       },
