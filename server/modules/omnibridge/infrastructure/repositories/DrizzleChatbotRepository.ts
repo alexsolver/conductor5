@@ -1,7 +1,7 @@
 
-import { db } from '../../../db';
+import { db } from '../../../../db';
 import { eq, and } from 'drizzle-orm';
-import { omnibridgeChatbots } from '../../../../shared/schema';
+import { omnibridgeChatbots } from '../../../../../shared/schema';
 import { IChatbotRepository } from '../../domain/repositories/IChatbotRepository';
 import { Chatbot, ChatbotEntity, ChatbotWorkflowStep } from '../../domain/entities/Chatbot';
 
