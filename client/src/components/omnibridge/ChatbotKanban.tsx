@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,28 +42,80 @@ import {
   RefreshCw,
   Search,
   Filter,
-  MoreHorizontal
+  MoreHorizontal,
+  MousePointer2,
+  Layers,
+  Link,
+  Unlink,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Home,
+  Database,
+  Globe,
+  Mail,
+  Phone,
+  Calendar,
+  FileText,
+  Image,
+  Video,
+  Mic,
+  Camera,
+  Map,
+  ShoppingCart,
+  CreditCard,
+  UserCheck,
+  AlertCircle,
+  Info,
+  HelpCircle,
+  Webhook,
+  API,
+  Brain,
+  Cpu,
+  Network,
+  Timer,
+  Hash,
+  Tag,
+  Flag,
+  Repeat,
+  Shuffle,
+  SkipForward,
+  FastForward
 } from 'lucide-react';
 
-interface WorkflowStep {
+interface FlowNode {
   id: string;
-  type: 'trigger' | 'condition' | 'action' | 'response' | 'integration' | 'delay';
-  name: string;
-  config: Record<string, any>;
+  type: 'trigger' | 'condition' | 'action' | 'response' | 'integration' | 'delay' | 'ai' | 'webhook' | 'branch' | 'loop' | 'variable' | 'validation' | 'transfer' | 'form' | 'media' | 'location' | 'payment' | 'calendar' | 'menu';
+  title: string;
+  description?: string;
   position: { x: number; y: number };
+  config: Record<string, any>;
   connections: string[];
+  isStartNode?: boolean;
+  isEndNode?: boolean;
 }
 
-interface ChatbotWorkflow {
+interface FlowConnection {
+  id: string;
+  from: string;
+  to: string;
+  label?: string;
+  condition?: string;
+}
+
+interface ChatbotFlow {
   id: string;
   name: string;
   description: string;
-  steps: WorkflowStep[];
-  version: number;
-  isActive: boolean;
-  lastModified: string;
+  nodes: FlowNode[];
+  connections: FlowConnection[];
   variables: Record<string, any>;
-  fallbackActions: WorkflowStep[];
+  settings: {
+    timeout: number;
+    fallbackToHuman: boolean;
+    aiEnabled: boolean;
+    language: string;
+  };
 }
 
 interface Chatbot {
@@ -72,18 +123,7 @@ interface Chatbot {
   tenantId: string;
   name: string;
   description: string;
-  configuration: {
-    channels: string[];
-    languages: string[];
-    timezone: string;
-    fallbackToHuman: boolean;
-    aiEnabled: boolean;
-    maxSessionTime: number;
-    greeting: string;
-    errorMessage: string;
-  };
-  workflow: ChatbotWorkflow;
-  stage: 'planning' | 'designing' | 'testing' | 'reviewing' | 'deploying' | 'active' | 'maintenance';
+  flow: ChatbotFlow;
   isEnabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -93,116 +133,413 @@ interface Chatbot {
     avgResponseTime: number;
     userSatisfaction: number;
   };
-  testResults?: {
-    passedTests: number;
-    totalTests: number;
-    lastTestRun: string;
-    issues: string[];
-  };
 }
 
-// Workflow construction stages - representing the actual work phases
-const workflowStages = [
-  {
-    id: 'planning',
-    title: 'Planejamento',
-    description: 'Definição de objetivos e estratégia',
-    color: 'bg-blue-50 border-blue-200',
-    icon: Target,
-    activities: ['Definir objetivos', 'Mapear jornada do usuário', 'Identificar integrações']
+// Node types with comprehensive options
+const nodeTypes = [
+  // Triggers
+  { 
+    id: 'trigger-message', 
+    type: 'trigger', 
+    name: 'Mensagem', 
+    icon: MessageSquare, 
+    description: 'Detecta mensagens específicas',
+    color: 'bg-blue-500'
   },
-  {
-    id: 'designing',
-    title: 'Construção',
-    description: 'Desenvolvimento do fluxo conversacional',
-    color: 'bg-purple-50 border-purple-200',
-    icon: Workflow,
-    activities: ['Criar fluxos', 'Configurar respostas', 'Definir condições']
+  { 
+    id: 'trigger-keyword', 
+    type: 'trigger', 
+    name: 'Palavra-chave', 
+    icon: Hash, 
+    description: 'Ativado por palavras-chave',
+    color: 'bg-blue-500'
   },
-  {
-    id: 'testing',
-    title: 'Teste',
-    description: 'Validação e refinamento',
-    color: 'bg-orange-50 border-orange-200',
-    icon: Play,
-    activities: ['Executar testes', 'Validar cenários', 'Otimizar performance']
+  { 
+    id: 'trigger-intent', 
+    type: 'trigger', 
+    name: 'Intenção IA', 
+    icon: Brain, 
+    description: 'Detecta intenção com IA',
+    color: 'bg-blue-500'
   },
-  {
-    id: 'reviewing',
-    title: 'Revisão',
-    description: 'Análise e aprovação',
-    color: 'bg-yellow-50 border-yellow-200',
-    icon: Eye,
-    activities: ['Revisar qualidade', 'Validar compliance', 'Aprovar deploy']
+  { 
+    id: 'trigger-webhook', 
+    type: 'trigger', 
+    name: 'Webhook', 
+    icon: Webhook, 
+    description: 'Ativado por webhook externo',
+    color: 'bg-blue-500'
   },
-  {
-    id: 'deploying',
-    title: 'Deploy',
-    description: 'Implementação em produção',
-    color: 'bg-green-50 border-green-200',
-    icon: CheckCircle,
-    activities: ['Deploy gradual', 'Monitorar métricas', 'Ajustes finais']
+  { 
+    id: 'trigger-time', 
+    type: 'trigger', 
+    name: 'Agendamento', 
+    icon: Calendar, 
+    description: 'Ativado por horário/data',
+    color: 'bg-blue-500'
   },
-  {
-    id: 'active',
-    title: 'Ativo',
-    description: 'Em operação produtiva',
-    color: 'bg-emerald-50 border-emerald-200',
-    icon: Bot,
-    activities: ['Monitoramento', 'Análise de performance', 'Suporte contínuo']
+
+  // Conditions
+  { 
+    id: 'condition-text', 
+    type: 'condition', 
+    name: 'Condição Texto', 
+    icon: GitBranch, 
+    description: 'Verifica conteúdo de texto',
+    color: 'bg-yellow-500'
   },
-  {
-    id: 'maintenance',
-    title: 'Manutenção',
-    description: 'Atualizações e melhorias',
-    color: 'bg-gray-50 border-gray-200',
-    icon: Settings,
-    activities: ['Atualizações', 'Correções', 'Melhorias incrementais']
+  { 
+    id: 'condition-variable', 
+    type: 'condition', 
+    name: 'Condição Variável', 
+    icon: Database, 
+    description: 'Compara valores de variáveis',
+    color: 'bg-yellow-500'
+  },
+  { 
+    id: 'condition-user', 
+    type: 'condition', 
+    name: 'Condição Usuário', 
+    icon: UserCheck, 
+    description: 'Verifica dados do usuário',
+    color: 'bg-yellow-500'
+  },
+  { 
+    id: 'condition-time', 
+    type: 'condition', 
+    name: 'Condição Horário', 
+    icon: Clock, 
+    description: 'Verifica horário/data',
+    color: 'bg-yellow-500'
+  },
+
+  // Actions
+  { 
+    id: 'action-send-message', 
+    type: 'action', 
+    name: 'Enviar Mensagem', 
+    icon: MessageCircle, 
+    description: 'Envia mensagem de texto',
+    color: 'bg-green-500'
+  },
+  { 
+    id: 'action-send-image', 
+    type: 'action', 
+    name: 'Enviar Imagem', 
+    icon: Image, 
+    description: 'Envia imagem ou GIF',
+    color: 'bg-green-500'
+  },
+  { 
+    id: 'action-send-audio', 
+    type: 'action', 
+    name: 'Enviar Áudio', 
+    icon: Mic, 
+    description: 'Envia mensagem de áudio',
+    color: 'bg-green-500'
+  },
+  { 
+    id: 'action-send-video', 
+    type: 'action', 
+    name: 'Enviar Vídeo', 
+    icon: Video, 
+    description: 'Envia arquivo de vídeo',
+    color: 'bg-green-500'
+  },
+  { 
+    id: 'action-send-document', 
+    type: 'action', 
+    name: 'Enviar Documento', 
+    icon: FileText, 
+    description: 'Envia arquivo/documento',
+    color: 'bg-green-500'
+  },
+  { 
+    id: 'action-set-variable', 
+    type: 'action', 
+    name: 'Definir Variável', 
+    icon: Database, 
+    description: 'Define valor de variável',
+    color: 'bg-green-500'
+  },
+  { 
+    id: 'action-api-call', 
+    type: 'action', 
+    name: 'Chamada API', 
+    icon: API, 
+    description: 'Faz requisição HTTP',
+    color: 'bg-green-500'
+  },
+  { 
+    id: 'action-tag-user', 
+    type: 'action', 
+    name: 'Marcar Usuário', 
+    icon: Tag, 
+    description: 'Adiciona tag ao usuário',
+    color: 'bg-green-500'
+  },
+
+  // Response Types
+  { 
+    id: 'response-text', 
+    type: 'response', 
+    name: 'Resposta Texto', 
+    icon: MessageSquare, 
+    description: 'Resposta em texto simples',
+    color: 'bg-purple-500'
+  },
+  { 
+    id: 'response-quick-reply', 
+    type: 'response', 
+    name: 'Resposta Rápida', 
+    icon: Zap, 
+    description: 'Botões de resposta rápida',
+    color: 'bg-purple-500'
+  },
+  { 
+    id: 'response-menu', 
+    type: 'response', 
+    name: 'Menu Interativo', 
+    icon: Layers, 
+    description: 'Menu com opções',
+    color: 'bg-purple-500'
+  },
+  { 
+    id: 'response-carousel', 
+    type: 'response', 
+    name: 'Carrossel', 
+    icon: Shuffle, 
+    description: 'Carrossel de cards',
+    color: 'bg-purple-500'
+  },
+  { 
+    id: 'response-form', 
+    type: 'response', 
+    name: 'Formulário', 
+    icon: FileText, 
+    description: 'Coleta dados do usuário',
+    color: 'bg-purple-500'
+  },
+
+  // Integrations
+  { 
+    id: 'integration-whatsapp', 
+    type: 'integration', 
+    name: 'WhatsApp', 
+    icon: MessageCircle, 
+    description: 'Integração WhatsApp',
+    color: 'bg-indigo-500'
+  },
+  { 
+    id: 'integration-telegram', 
+    type: 'integration', 
+    name: 'Telegram', 
+    icon: MessageCircle, 
+    description: 'Integração Telegram',
+    color: 'bg-indigo-500'
+  },
+  { 
+    id: 'integration-email', 
+    type: 'integration', 
+    name: 'Email', 
+    icon: Mail, 
+    description: 'Envio de emails',
+    color: 'bg-indigo-500'
+  },
+  { 
+    id: 'integration-sms', 
+    type: 'integration', 
+    name: 'SMS', 
+    icon: Phone, 
+    description: 'Envio de SMS',
+    color: 'bg-indigo-500'
+  },
+  { 
+    id: 'integration-calendar', 
+    type: 'integration', 
+    name: 'Calendário', 
+    icon: Calendar, 
+    description: 'Agendamento de eventos',
+    color: 'bg-indigo-500'
+  },
+  { 
+    id: 'integration-payment', 
+    type: 'integration', 
+    name: 'Pagamento', 
+    icon: CreditCard, 
+    description: 'Processamento de pagamentos',
+    color: 'bg-indigo-500'
+  },
+  { 
+    id: 'integration-location', 
+    type: 'integration', 
+    name: 'Localização', 
+    icon: Map, 
+    description: 'Serviços de localização',
+    color: 'bg-indigo-500'
+  },
+  { 
+    id: 'integration-crm', 
+    type: 'integration', 
+    name: 'CRM', 
+    icon: Users, 
+    description: 'Integração com CRM',
+    color: 'bg-indigo-500'
+  },
+
+  // AI & Advanced
+  { 
+    id: 'ai-nlp', 
+    type: 'ai', 
+    name: 'Processamento IA', 
+    icon: Brain, 
+    description: 'Análise de linguagem natural',
+    color: 'bg-pink-500'
+  },
+  { 
+    id: 'ai-sentiment', 
+    type: 'ai', 
+    name: 'Análise Sentimento', 
+    icon: Brain, 
+    description: 'Detecta emoções do usuário',
+    color: 'bg-pink-500'
+  },
+  { 
+    id: 'ai-translation', 
+    type: 'ai', 
+    name: 'Tradução', 
+    icon: Globe, 
+    description: 'Tradução automática',
+    color: 'bg-pink-500'
+  },
+  { 
+    id: 'ai-recommendation', 
+    type: 'ai', 
+    name: 'Recomendação IA', 
+    icon: Target, 
+    description: 'Sistema de recomendações',
+    color: 'bg-pink-500'
+  },
+
+  // Flow Control
+  { 
+    id: 'flow-delay', 
+    type: 'delay', 
+    name: 'Aguardar', 
+    icon: Timer, 
+    description: 'Pausa no fluxo',
+    color: 'bg-gray-500'
+  },
+  { 
+    id: 'flow-loop', 
+    type: 'loop', 
+    name: 'Loop', 
+    icon: Repeat, 
+    description: 'Repetição de ações',
+    color: 'bg-gray-500'
+  },
+  { 
+    id: 'flow-branch', 
+    type: 'branch', 
+    name: 'Ramificação', 
+    icon: GitBranch, 
+    description: 'Divisão de fluxo',
+    color: 'bg-gray-500'
+  },
+  { 
+    id: 'flow-merge', 
+    type: 'branch', 
+    name: 'Fusão', 
+    icon: GitBranch, 
+    description: 'União de fluxos',
+    color: 'bg-gray-500'
+  },
+  { 
+    id: 'flow-jump', 
+    type: 'branch', 
+    name: 'Pular Para', 
+    icon: SkipForward, 
+    description: 'Salta para outro nó',
+    color: 'bg-gray-500'
+  },
+  { 
+    id: 'flow-end', 
+    type: 'branch', 
+    name: 'Finalizar', 
+    icon: Flag, 
+    description: 'Termina a conversa',
+    color: 'bg-red-500'
+  },
+  { 
+    id: 'flow-transfer-human', 
+    type: 'transfer', 
+    name: 'Transferir Humano', 
+    icon: Users, 
+    description: 'Transfere para atendente',
+    color: 'bg-orange-500'
+  },
+
+  // Validation
+  { 
+    id: 'validation-email', 
+    type: 'validation', 
+    name: 'Validar Email', 
+    icon: Mail, 
+    description: 'Valida formato de email',
+    color: 'bg-cyan-500'
+  },
+  { 
+    id: 'validation-phone', 
+    type: 'validation', 
+    name: 'Validar Telefone', 
+    icon: Phone, 
+    description: 'Valida número de telefone',
+    color: 'bg-cyan-500'
+  },
+  { 
+    id: 'validation-cpf', 
+    type: 'validation', 
+    name: 'Validar CPF', 
+    icon: FileText, 
+    description: 'Valida CPF brasileiro',
+    color: 'bg-cyan-500'
+  },
+  { 
+    id: 'validation-number', 
+    type: 'validation', 
+    name: 'Validar Número', 
+    icon: Hash, 
+    description: 'Valida entrada numérica',
+    color: 'bg-cyan-500'
   }
 ];
 
-const stepTypes = [
-  { id: 'trigger', name: 'Gatilho', icon: Zap, description: 'Eventos que iniciam o fluxo' },
-  { id: 'condition', name: 'Condição', icon: GitBranch, description: 'Lógica condicional' },
-  { id: 'action', name: 'Ação', icon: Play, description: 'Execução de tarefas' },
-  { id: 'response', name: 'Resposta', icon: MessageCircle, description: 'Mensagens ao usuário' },
-  { id: 'integration', name: 'Integração', icon: Code, description: 'Conexões externas' },
-  { id: 'delay', name: 'Aguardar', icon: Clock, description: 'Pausas no fluxo' }
-];
-
-export default function ChatbotKanban() {
+export default function ChatbotVisualEditor() {
   const { user } = useAuth();
+  const canvasRef = useRef<HTMLDivElement>(null);
   const [chatbots, setChatbots] = useState<Chatbot[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showWorkflowBuilder, setShowWorkflowBuilder] = useState(false);
   const [selectedChatbot, setSelectedChatbot] = useState<Chatbot | null>(null);
-  const [selectedStage, setSelectedStage] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showNodeConfig, setShowNodeConfig] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
+  const [draggedNodeType, setDraggedNodeType] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const [connectionStart, setConnectionStart] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [searchTerm, setSearchTerm] = useState('');
-  const [stageFilter, setStageFilter] = useState('all');
-  
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
   const [newChatbotData, setNewChatbotData] = useState({
     name: '',
     description: '',
-    channels: [] as string[],
-    languages: ['pt-BR'],
+    language: 'pt-BR',
+    timeout: 300,
     fallbackToHuman: true,
-    aiEnabled: false,
-    greeting: 'Olá! Como posso ajudá-lo hoje?',
-    errorMessage: 'Desculpe, não entendi. Pode reformular sua pergunta?'
+    aiEnabled: false
   });
-
-  const [newWorkflowStep, setNewWorkflowStep] = useState({
-    type: 'trigger' as WorkflowStep['type'],
-    name: '',
-    config: {}
-  });
-
-  // Organize chatbots by workflow construction stage
-  const organizedChatbots = workflowStages.reduce((acc, stage) => {
-    acc[stage.id] = chatbots.filter(bot => bot.stage === stage.id);
-    return acc;
-  }, {} as Record<string, Chatbot[]>);
 
   useEffect(() => {
     fetchChatbots();
@@ -210,7 +547,6 @@ export default function ChatbotKanban() {
 
   const fetchChatbots = async () => {
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
       const headers = {
         'Authorization': token ? `Bearer ${token}` : '',
@@ -224,10 +560,8 @@ export default function ChatbotKanban() {
         const result = await response.json();
         if (result.success) {
           setChatbots(result.data);
-          console.log('✅ [ChatbotKanban] Chatbots loaded:', result.data.length);
         }
       } else {
-        console.warn('⚠️ [ChatbotKanban] Failed to fetch chatbots:', response.status);
         // Mock data for development
         setChatbots([
           {
@@ -235,28 +569,40 @@ export default function ChatbotKanban() {
             tenantId: user?.tenantId || '',
             name: 'Atendimento Geral',
             description: 'Bot para atendimento inicial e direcionamento',
-            configuration: {
-              channels: ['whatsapp', 'telegram'],
-              languages: ['pt-BR'],
-              timezone: 'America/Sao_Paulo',
-              fallbackToHuman: true,
-              aiEnabled: true,
-              maxSessionTime: 3600,
-              greeting: 'Olá! Sou o assistente virtual. Como posso ajudá-lo?',
-              errorMessage: 'Desculpe, não consegui entender. Pode tentar de outra forma?'
-            },
-            workflow: {
-              id: 'wf1',
+            flow: {
+              id: 'flow1',
               name: 'Fluxo Principal',
               description: 'Fluxo de atendimento principal',
-              steps: [],
-              version: 1,
-              isActive: false,
-              lastModified: '2025-01-16T01:00:00Z',
+              nodes: [
+                {
+                  id: 'start',
+                  type: 'trigger',
+                  title: 'Início',
+                  position: { x: 100, y: 100 },
+                  config: { message: 'Olá! Como posso ajudar?' },
+                  connections: ['welcome'],
+                  isStartNode: true
+                },
+                {
+                  id: 'welcome',
+                  type: 'response',
+                  title: 'Mensagem de Boas-vindas',
+                  position: { x: 300, y: 100 },
+                  config: { text: 'Bem-vindo ao nosso atendimento!' },
+                  connections: []
+                }
+              ],
+              connections: [
+                { id: 'conn1', from: 'start', to: 'welcome', label: 'Início' }
+              ],
               variables: {},
-              fallbackActions: []
+              settings: {
+                timeout: 300,
+                fallbackToHuman: true,
+                aiEnabled: true,
+                language: 'pt-BR'
+              }
             },
-            stage: 'designing',
             isEnabled: false,
             createdAt: '2025-01-16T00:00:00Z',
             updatedAt: '2025-01-16T01:00:00Z',
@@ -266,218 +612,190 @@ export default function ChatbotKanban() {
               avgResponseTime: 0,
               userSatisfaction: 0
             }
-          },
-          {
-            id: '2',
-            tenantId: user?.tenantId || '',
-            name: 'Suporte Técnico',
-            description: 'Bot especializado em questões técnicas',
-            configuration: {
-              channels: ['telegram'],
-              languages: ['pt-BR', 'en'],
-              timezone: 'America/Sao_Paulo',
-              fallbackToHuman: true,
-              aiEnabled: true,
-              maxSessionTime: 7200,
-              greeting: 'Olá! Sou especialista em suporte técnico. Em que posso ajudar?',
-              errorMessage: 'Não consegui processar sua solicitação. Vou conectá-lo com um especialista.'
-            },
-            workflow: {
-              id: 'wf2',
-              name: 'Fluxo Suporte',
-              description: 'Fluxo para suporte técnico',
-              steps: [],
-              version: 1,
-              isActive: false,
-              lastModified: '2025-01-16T02:00:00Z',
-              variables: {},
-              fallbackActions: []
-            },
-            stage: 'testing',
-            isEnabled: false,
-            createdAt: '2025-01-16T00:30:00Z',
-            updatedAt: '2025-01-16T02:00:00Z',
-            metrics: {
-              totalConversations: 25,
-              successRate: 0.8,
-              avgResponseTime: 2.5,
-              userSatisfaction: 4.2
-            },
-            testResults: {
-              passedTests: 18,
-              totalTests: 25,
-              lastTestRun: '2025-01-16T02:00:00Z',
-              issues: ['Timeout em integração externa', 'Resposta incorreta no cenário X']
-            }
           }
         ]);
       }
     } catch (error) {
-      console.error('❌ [ChatbotKanban] Error fetching chatbots:', error);
+      console.error('❌ [ChatbotEditor] Error fetching chatbots:', error);
       setChatbots([]);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleCreateChatbot = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json',
-        'x-tenant-id': user?.tenantId || ''
-      };
-
-      const chatbotData = {
+      const newChatbot: Chatbot = {
+        id: Date.now().toString(),
+        tenantId: user?.tenantId || '',
         name: newChatbotData.name,
         description: newChatbotData.description,
-        configuration: {
-          channels: newChatbotData.channels,
-          languages: newChatbotData.languages,
-          timezone: 'America/Sao_Paulo',
-          fallbackToHuman: newChatbotData.fallbackToHuman,
-          aiEnabled: newChatbotData.aiEnabled,
-          maxSessionTime: 3600,
-          greeting: newChatbotData.greeting,
-          errorMessage: newChatbotData.errorMessage
+        flow: {
+          id: `flow_${Date.now()}`,
+          name: 'Novo Fluxo',
+          description: 'Fluxo inicial do chatbot',
+          nodes: [
+            {
+              id: 'start_node',
+              type: 'trigger',
+              title: 'Início',
+              position: { x: 200, y: 150 },
+              config: { trigger: 'any_message' },
+              connections: [],
+              isStartNode: true
+            }
+          ],
+          connections: [],
+          variables: {},
+          settings: {
+            timeout: newChatbotData.timeout,
+            fallbackToHuman: newChatbotData.fallbackToHuman,
+            aiEnabled: newChatbotData.aiEnabled,
+            language: newChatbotData.language
+          }
         },
-        stage: 'planning',
-        isEnabled: false
-      };
-
-      const response = await fetch('/api/omnibridge/chatbots', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(chatbotData)
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setChatbots(prev => [result.data, ...prev]);
-          setShowCreateModal(false);
-          setNewChatbotData({
-            name: '',
-            description: '',
-            channels: [],
-            languages: ['pt-BR'],
-            fallbackToHuman: true,
-            aiEnabled: false,
-            greeting: 'Olá! Como posso ajudá-lo hoje?',
-            errorMessage: 'Desculpe, não entendi. Pode reformular sua pergunta?'
-          });
-          console.log('✅ [ChatbotKanban] Chatbot created successfully');
+        isEnabled: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        metrics: {
+          totalConversations: 0,
+          successRate: 0,
+          avgResponseTime: 0,
+          userSatisfaction: 0
         }
-      } else {
-        console.error('❌ [ChatbotKanban] Failed to create chatbot:', response.statusText);
-      }
-    } catch (error) {
-      console.error('❌ [ChatbotKanban] Error creating chatbot:', error);
-    }
-  };
-
-  const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) return;
-
-    const { source, destination, draggableId } = result;
-    
-    if (source.droppableId === destination.droppableId) return;
-
-    const chatbotId = draggableId;
-    const newStage = destination.droppableId as Chatbot['stage'];
-
-    try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json',
-        'x-tenant-id': user?.tenantId || ''
       };
 
-      const response = await fetch(`/api/omnibridge/chatbots/${chatbotId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ stage: newStage })
+      setChatbots(prev => [newChatbot, ...prev]);
+      setSelectedChatbot(newChatbot);
+      setShowCreateModal(false);
+      setNewChatbotData({
+        name: '',
+        description: '',
+        language: 'pt-BR',
+        timeout: 300,
+        fallbackToHuman: true,
+        aiEnabled: false
       });
-
-      if (response.ok) {
-        setChatbots(prev => prev.map(bot =>
-          bot.id === chatbotId ? { ...bot, stage: newStage } : bot
-        ));
-        console.log(`✅ [ChatbotKanban] Chatbot ${chatbotId} moved to ${newStage}`);
-      }
     } catch (error) {
-      console.error('❌ [ChatbotKanban] Error updating chatbot stage:', error);
+      console.error('❌ [ChatbotEditor] Error creating chatbot:', error);
     }
   };
 
-  const handleToggleChatbot = async (chatbotId: string, enabled: boolean) => {
-    try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json',
-        'x-tenant-id': user?.tenantId || ''
-      };
-
-      const response = await fetch(`/api/omnibridge/chatbots/${chatbotId}/toggle`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ isEnabled: enabled })
-      });
-
-      if (response.ok) {
-        setChatbots(prev => prev.map(bot =>
-          bot.id === chatbotId ? { ...bot, isEnabled: enabled } : bot
-        ));
-        console.log(`✅ [ChatbotKanban] Chatbot ${enabled ? 'enabled' : 'disabled'}: ${chatbotId}`);
-      }
-    } catch (error) {
-      console.error('❌ [ChatbotKanban] Error toggling chatbot:', error);
-    }
+  const handleDragStart = (e: React.DragEvent, nodeTypeId: string) => {
+    setDraggedNodeType(nodeTypeId);
+    e.dataTransfer.effectAllowed = 'copy';
   };
 
-  const getStageStats = (stageId: string) => {
-    const botsInStage = organizedChatbots[stageId] || [];
-    return {
-      total: botsInStage.length,
-      active: botsInStage.filter(bot => bot.isEnabled).length,
-      withIssues: botsInStage.filter(bot => bot.testResults?.issues?.length).length
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!draggedNodeType || !selectedChatbot) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left - canvasOffset.x) / zoom;
+    const y = (e.clientY - rect.top - canvasOffset.y) / zoom;
+
+    const nodeType = nodeTypes.find(nt => nt.id === draggedNodeType);
+    if (!nodeType) return;
+
+    const newNode: FlowNode = {
+      id: `node_${Date.now()}`,
+      type: nodeType.type,
+      title: nodeType.name,
+      description: nodeType.description,
+      position: { x, y },
+      config: {},
+      connections: []
     };
+
+    const updatedChatbot = {
+      ...selectedChatbot,
+      flow: {
+        ...selectedChatbot.flow,
+        nodes: [...selectedChatbot.flow.nodes, newNode]
+      }
+    };
+
+    setSelectedChatbot(updatedChatbot);
+    setChatbots(prev => prev.map(bot => 
+      bot.id === selectedChatbot.id ? updatedChatbot : bot
+    ));
+
+    setDraggedNodeType(null);
   };
 
-  const getStageColor = (stageId: string) => {
-    const stage = workflowStages.find(s => s.id === stageId);
-    return stage?.color || 'bg-gray-50 border-gray-200';
+  const handleNodeClick = (node: FlowNode) => {
+    if (connecting && connectionStart && connectionStart !== node.id) {
+      // Create connection
+      const newConnection = {
+        id: `conn_${Date.now()}`,
+        from: connectionStart,
+        to: node.id,
+        label: 'Conectar'
+      };
+
+      if (selectedChatbot) {
+        const updatedChatbot = {
+          ...selectedChatbot,
+          flow: {
+            ...selectedChatbot.flow,
+            connections: [...selectedChatbot.flow.connections, newConnection],
+            nodes: selectedChatbot.flow.nodes.map(n =>
+              n.id === connectionStart 
+                ? { ...n, connections: [...n.connections, node.id] }
+                : n
+            )
+          }
+        };
+
+        setSelectedChatbot(updatedChatbot);
+        setChatbots(prev => prev.map(bot => 
+          bot.id === selectedChatbot.id ? updatedChatbot : bot
+        ));
+      }
+
+      setConnecting(false);
+      setConnectionStart(null);
+    } else if (connecting) {
+      setConnectionStart(node.id);
+    } else {
+      setSelectedNode(node);
+      setShowNodeConfig(true);
+    }
   };
 
-  const filteredChatbots = chatbots.filter(bot => {
-    const matchesSearch = bot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         bot.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStage = stageFilter === 'all' || bot.stage === stageFilter;
-    return matchesSearch && matchesStage;
+  const filteredNodeTypes = nodeTypes.filter(nodeType => {
+    const matchesSearch = nodeType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         nodeType.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || nodeType.type === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando chatbots...</p>
-        </div>
-      </div>
-    );
-  }
+  const nodeCategories = [
+    { id: 'all', name: 'Todos' },
+    { id: 'trigger', name: 'Gatilhos' },
+    { id: 'condition', name: 'Condições' },
+    { id: 'action', name: 'Ações' },
+    { id: 'response', name: 'Respostas' },
+    { id: 'integration', name: 'Integrações' },
+    { id: 'ai', name: 'Inteligência Artificial' },
+    { id: 'validation', name: 'Validação' },
+    { id: 'delay', name: 'Controle de Fluxo' }
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between p-4 border-b bg-white">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Construtor de Chatbots</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Editor Visual de Chatbots</h2>
           <p className="text-muted-foreground">
-            Gerencie o fluxo de desenvolvimento dos seus chatbots conversacionais
+            Construa fluxos conversacionais com interface visual intuitiva
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -496,245 +814,286 @@ export default function ChatbotKanban() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar chatbots..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={stageFilter} onValueChange={setStageFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por etapa" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as etapas</SelectItem>
-            {workflowStages.map(stage => (
-              <SelectItem key={stage.id} value={stage.id}>
-                {stage.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button variant="outline" size="sm" onClick={fetchChatbots}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Atualizar
-        </Button>
-      </div>
-
-      {/* Workflow Stages Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
-        {workflowStages.map(stage => {
-          const stats = getStageStats(stage.id);
-          const IconComponent = stage.icon;
-          
-          return (
-            <Card key={stage.id} className={`cursor-pointer transition-all hover:shadow-md ${getStageColor(stage.id)}`}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <IconComponent className="h-5 w-5 text-primary" />
-                  <Badge variant="secondary">{stats.total}</Badge>
-                </div>
-                <CardTitle className="text-sm">{stage.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-xs text-muted-foreground mb-2">{stage.description}</p>
-                <div className="flex items-center gap-2 text-xs">
-                  {stats.active > 0 && (
-                    <Badge variant="outline" className="text-green-600 border-green-200">
-                      {stats.active} ativo{stats.active !== 1 ? 's' : ''}
-                    </Badge>
-                  )}
-                  {stats.withIssues > 0 && (
-                    <Badge variant="outline" className="text-orange-600 border-orange-200">
-                      {stats.withIssues} c/ issues
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Kanban Board */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
-          {workflowStages.map(stage => {
-            const botsInStage = organizedChatbots[stage.id] || [];
-            const IconComponent = stage.icon;
-            
-            return (
-              <div key={stage.id} className="space-y-3">
-                <div className={`p-3 rounded-lg border ${getStageColor(stage.id)}`}>
-                  <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar - Node Palette */}
+        <div className="w-80 border-r bg-gray-50 flex flex-col">
+          {/* Chatbot Selector */}
+          <div className="p-4 border-b bg-white">
+            <Label className="text-sm font-medium mb-2 block">Chatbot Ativo</Label>
+            <Select value={selectedChatbot?.id || ''} onValueChange={(value) => {
+              const chatbot = chatbots.find(c => c.id === value);
+              setSelectedChatbot(chatbot || null);
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um chatbot" />
+              </SelectTrigger>
+              <SelectContent>
+                {chatbots.map(chatbot => (
+                  <SelectItem key={chatbot.id} value={chatbot.id}>
                     <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4 text-primary" />
-                      <h3 className="font-medium text-sm">{stage.title}</h3>
+                      <Bot className="h-4 w-4" />
+                      {chatbot.name}
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {botsInStage.length}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">{stage.description}</p>
-                  <div className="space-y-1">
-                    {stage.activities.map((activity, idx) => (
-                      <div key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
-                        <div className="w-1 h-1 bg-current rounded-full" />
-                        {activity}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Search and Filter */}
+          <div className="p-4 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar nós..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {nodeCategories.map(category => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Node Palette */}
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-2">
+              {filteredNodeTypes.map(nodeType => {
+                const IconComponent = nodeType.icon;
+                return (
+                  <Card
+                    key={nodeType.id}
+                    className="p-3 cursor-move hover:shadow-md transition-shadow"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, nodeType.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded ${nodeType.color} text-white`}>
+                        <IconComponent className="h-4 w-4" />
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Droppable droppableId={stage.id}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={`space-y-2 min-h-[200px] p-2 rounded-lg border-2 border-dashed transition-colors ${
-                        snapshot.isDraggingOver 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-gray-200 bg-gray-50/30'
-                      }`}
-                    >
-                      {botsInStage.map((bot, index) => (
-                        <Draggable key={bot.id} draggableId={bot.id} index={index}>
-                          {(provided, snapshot) => (
-                            <Card
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`cursor-move transition-all ${
-                                snapshot.isDragging ? 'shadow-lg rotate-2' : 'hover:shadow-md'
-                              }`}
-                            >
-                              <CardHeader className="pb-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Bot className="h-4 w-4 text-primary" />
-                                    <span className="font-medium text-sm">{bot.name}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    {bot.isEnabled && (
-                                      <div className="w-2 h-2 bg-green-500 rounded-full" title="Ativo" />
-                                    )}
-                                    {bot.testResults?.issues?.length && (
-                                      <AlertTriangle className="h-3 w-3 text-orange-500" title="Com issues" />
-                                    )}
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm" 
-                                      className="h-6 w-6 p-0"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedChatbot(bot);
-                                        setShowWorkflowBuilder(true);
-                                      }}
-                                    >
-                                      <MoreHorizontal className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pt-0">
-                                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                                  {bot.description}
-                                </p>
-                                
-                                <div className="space-y-2">
-                                  {/* Channels */}
-                                  <div className="flex flex-wrap gap-1">
-                                    {bot.configuration.channels.map(channel => (
-                                      <Badge key={channel} variant="outline" className="text-xs">
-                                        {channel}
-                                      </Badge>
-                                    ))}
-                                  </div>
-
-                                  {/* Metrics for active bots */}
-                                  {bot.stage === 'active' && bot.metrics.totalConversations > 0 && (
-                                    <div className="text-xs space-y-1">
-                                      <div className="flex justify-between">
-                                        <span>Conversas:</span>
-                                        <span className="font-medium">{bot.metrics.totalConversations}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span>Taxa sucesso:</span>
-                                        <span className="font-medium">{(bot.metrics.successRate * 100).toFixed(0)}%</span>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Test results */}
-                                  {bot.testResults && (
-                                    <div className="text-xs space-y-1">
-                                      <div className="flex justify-between">
-                                        <span>Testes:</span>
-                                        <span className="font-medium">
-                                          {bot.testResults.passedTests}/{bot.testResults.totalTests}
-                                        </span>
-                                      </div>
-                                      {bot.testResults.issues.length > 0 && (
-                                        <div className="text-orange-600">
-                                          {bot.testResults.issues.length} issue{bot.testResults.issues.length !== 1 ? 's' : ''}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-
-                                  {/* Actions */}
-                                  <div className="flex items-center gap-1 mt-2">
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
-                                      className="h-6 text-xs flex-1"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedChatbot(bot);
-                                        setShowWorkflowBuilder(true);
-                                      }}
-                                    >
-                                      <Edit className="h-3 w-3 mr-1" />
-                                      Editar
-                                    </Button>
-                                    {bot.stage === 'active' && (
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="h-6 text-xs"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleToggleChatbot(bot.id, !bot.isEnabled);
-                                        }}
-                                      >
-                                        {bot.isEnabled ? (
-                                          <Pause className="h-3 w-3" />
-                                        ) : (
-                                          <Play className="h-3 w-3" />
-                                        )}
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm text-gray-900">{nodeType.name}</h4>
+                        <p className="text-xs text-gray-500 truncate">{nodeType.description}</p>
+                      </div>
                     </div>
-                  )}
-                </Droppable>
-              </div>
-            );
-          })}
+                  </Card>
+                );
+              })}
+            </div>
+          </ScrollArea>
         </div>
-      </DragDropContext>
+
+        {/* Main Canvas Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Toolbar */}
+          <div className="flex items-center justify-between p-3 border-b bg-white">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant={connecting ? "default" : "outline"} 
+                size="sm"
+                onClick={() => {
+                  setConnecting(!connecting);
+                  setConnectionStart(null);
+                }}
+              >
+                <Link className="h-4 w-4 mr-2" />
+                {connecting ? 'Conectando...' : 'Conectar'}
+              </Button>
+              <Button variant="outline" size="sm">
+                <Eye className="h-4 w-4 mr-2" />
+                Visualizar
+              </Button>
+              <Button variant="outline" size="sm">
+                <Play className="h-4 w-4 mr-2" />
+                Testar
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}>
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground min-w-[4rem] text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <Button variant="outline" size="sm" onClick={() => setZoom(Math.min(2, zoom + 0.25))}>
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => {
+                setZoom(1);
+                setCanvasOffset({ x: 0, y: 0 });
+              }}>
+                <Home className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Desfazer
+              </Button>
+              <Button>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar
+              </Button>
+            </div>
+          </div>
+
+          {/* Canvas */}
+          <div className="flex-1 relative overflow-hidden bg-gray-100">
+            {selectedChatbot ? (
+              <div
+                ref={canvasRef}
+                className="w-full h-full relative"
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                style={{
+                  transform: `scale(${zoom}) translate(${canvasOffset.x}px, ${canvasOffset.y}px)`,
+                  transformOrigin: '0 0'
+                }}
+              >
+                {/* Grid Pattern */}
+                <div 
+                  className="absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`,
+                    backgroundSize: '20px 20px'
+                  }}
+                />
+
+                {/* Connection Lines */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  {selectedChatbot.flow.connections.map(connection => {
+                    const fromNode = selectedChatbot.flow.nodes.find(n => n.id === connection.from);
+                    const toNode = selectedChatbot.flow.nodes.find(n => n.id === connection.to);
+                    
+                    if (!fromNode || !toNode) return null;
+
+                    const x1 = fromNode.position.x + 100; // Center of node
+                    const y1 = fromNode.position.y + 25;
+                    const x2 = toNode.position.x + 100;
+                    const y2 = toNode.position.y + 25;
+
+                    return (
+                      <g key={connection.id}>
+                        <line
+                          x1={x1}
+                          y1={y1}
+                          x2={x2}
+                          y2={y2}
+                          stroke="#6b7280"
+                          strokeWidth="2"
+                          markerEnd="url(#arrowhead)"
+                        />
+                        {connection.label && (
+                          <text
+                            x={(x1 + x2) / 2}
+                            y={(y1 + y2) / 2 - 5}
+                            textAnchor="middle"
+                            className="text-xs fill-gray-600"
+                          >
+                            {connection.label}
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
+                  
+                  {/* Arrow marker definition */}
+                  <defs>
+                    <marker
+                      id="arrowhead"
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="9"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 10 3.5, 0 7"
+                        fill="#6b7280"
+                      />
+                    </marker>
+                  </defs>
+                </svg>
+
+                {/* Flow Nodes */}
+                {selectedChatbot.flow.nodes.map(node => {
+                  const nodeType = nodeTypes.find(nt => nt.type === node.type);
+                  const IconComponent = nodeType?.icon || Bot;
+                  
+                  return (
+                    <div
+                      key={node.id}
+                      className={`absolute cursor-pointer transition-all hover:shadow-lg ${
+                        node.isStartNode ? 'ring-2 ring-green-500' : ''
+                      } ${
+                        connecting && connectionStart === node.id ? 'ring-2 ring-blue-500' : ''
+                      }`}
+                      style={{
+                        left: node.position.x,
+                        top: node.position.y,
+                        width: '200px'
+                      }}
+                      onClick={() => handleNodeClick(node)}
+                    >
+                      <Card className="shadow-md">
+                        <CardHeader className="p-3 pb-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`p-1.5 rounded ${nodeType?.color || 'bg-gray-500'} text-white`}>
+                              <IconComponent className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm truncate">{node.title}</h4>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {nodeType?.name || node.type}
+                              </p>
+                            </div>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                              <MoreHorizontal className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        {node.description && (
+                          <CardContent className="p-3 pt-0">
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {node.description}
+                            </p>
+                          </CardContent>
+                        )}
+                      </Card>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">Nenhum chatbot selecionado</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Selecione um chatbot ou crie um novo para começar a editar
+                  </p>
+                  <Button onClick={() => setShowCreateModal(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Chatbot
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Create Chatbot Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
@@ -742,89 +1101,57 @@ export default function ChatbotKanban() {
           <DialogHeader>
             <DialogTitle>Criar Novo Chatbot</DialogTitle>
             <DialogDescription>
-              Configure um novo chatbot conversacional para automatizar atendimentos
+              Configure um novo chatbot conversacional
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue="basic" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="basic">Básico</TabsTrigger>
-              <TabsTrigger value="channels">Canais</TabsTrigger>
-              <TabsTrigger value="behavior">Comportamento</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="basic" className="space-y-4">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="bot-name">Nome do Chatbot</Label>
+              <Input
+                id="bot-name"
+                placeholder="Ex: Atendimento Geral"
+                value={newChatbotData.name}
+                onChange={(e) => setNewChatbotData(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="bot-description">Descrição</Label>
+              <Textarea
+                id="bot-description"
+                placeholder="Descreva o propósito e função do chatbot..."
+                value={newChatbotData.description}
+                onChange={(e) => setNewChatbotData(prev => ({ ...prev, description: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="bot-name">Nome do Chatbot</Label>
+                <Label htmlFor="language">Idioma</Label>
+                <Select value={newChatbotData.language} onValueChange={(value) => 
+                  setNewChatbotData(prev => ({ ...prev, language: value }))
+                }>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Español</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="timeout">Timeout (segundos)</Label>
                 <Input
-                  id="bot-name"
-                  placeholder="Ex: Atendimento Geral"
-                  value={newChatbotData.name}
-                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, name: e.target.value }))}
+                  id="timeout"
+                  type="number"
+                  value={newChatbotData.timeout}
+                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, timeout: parseInt(e.target.value) || 300 }))}
                 />
               </div>
-              <div>
-                <Label htmlFor="bot-description">Descrição</Label>
-                <Textarea
-                  id="bot-description"
-                  placeholder="Descreva o propósito e função do chatbot..."
-                  value={newChatbotData.description}
-                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="channels" className="space-y-4">
-              <div>
-                <Label>Canais de Atendimento</Label>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {['whatsapp', 'telegram', 'web', 'email'].map(channel => (
-                    <div key={channel} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={channel}
-                        checked={newChatbotData.channels.includes(channel)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setNewChatbotData(prev => ({
-                              ...prev,
-                              channels: [...prev.channels, channel]
-                            }));
-                          } else {
-                            setNewChatbotData(prev => ({
-                              ...prev,
-                              channels: prev.channels.filter(c => c !== channel)
-                            }));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={channel} className="capitalize">{channel}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="behavior" className="space-y-4">
-              <div>
-                <Label htmlFor="greeting">Mensagem de Boas-vindas</Label>
-                <Textarea
-                  id="greeting"
-                  value={newChatbotData.greeting}
-                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, greeting: e.target.value }))}
-                  rows={2}
-                />
-              </div>
-              <div>
-                <Label htmlFor="error-message">Mensagem de Erro</Label>
-                <Textarea
-                  id="error-message"
-                  value={newChatbotData.errorMessage}
-                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, errorMessage: e.target.value }))}
-                  rows={2}
-                />
-              </div>
+            </div>
+            <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Switch
                   id="fallback-human"
@@ -841,8 +1168,8 @@ export default function ChatbotKanban() {
                 />
                 <Label htmlFor="ai-enabled">Ativar processamento com IA</Label>
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setShowCreateModal(false)}>
@@ -859,182 +1186,72 @@ export default function ChatbotKanban() {
         </DialogContent>
       </Dialog>
 
-      {/* Workflow Builder Modal */}
-      <Dialog open={showWorkflowBuilder} onOpenChange={setShowWorkflowBuilder}>
-        <DialogContent className="max-w-6xl max-h-[90vh]">
+      {/* Node Configuration Modal */}
+      <Dialog open={showNodeConfig} onOpenChange={setShowNodeConfig}>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>
-              Construtor de Fluxo - {selectedChatbot?.name}
-            </DialogTitle>
+            <DialogTitle>Configurar Nó - {selectedNode?.title}</DialogTitle>
             <DialogDescription>
-              Desenvolva o fluxo conversacional do seu chatbot
+              Configure as propriedades e comportamento deste nó
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue="flow" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="flow">Fluxo</TabsTrigger>
-              <TabsTrigger value="steps">Etapas</TabsTrigger>
-              <TabsTrigger value="test">Teste</TabsTrigger>
-              <TabsTrigger value="deploy">Deploy</TabsTrigger>
-            </TabsList>
+          {selectedNode && (
+            <Tabs defaultValue="basic" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="basic">Básico</TabsTrigger>
+                <TabsTrigger value="config">Configuração</TabsTrigger>
+                <TabsTrigger value="connections">Conexões</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="flow" className="space-y-4">
-              <div className="border rounded-lg p-4 min-h-[400px] bg-gray-50">
-                <div className="text-center text-muted-foreground">
-                  <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="mb-2">Editor de Fluxo Visual</p>
-                  <p className="text-sm">Arraste e conecte elementos para criar o fluxo conversacional</p>
-                  <Button className="mt-4" variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Primeiro Elemento
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="steps" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TabsContent value="basic" className="space-y-4">
                 <div>
-                  <h4 className="font-medium mb-3">Tipos de Elementos</h4>
+                  <Label>Título do Nó</Label>
+                  <Input value={selectedNode.title} onChange={() => {}} />
+                </div>
+                <div>
+                  <Label>Descrição</Label>
+                  <Textarea value={selectedNode.description || ''} onChange={() => {}} rows={3} />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="config" className="space-y-4">
+                <div className="text-center py-8 text-muted-foreground">
+                  <Settings className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>Configurações específicas do tipo de nó</p>
+                  <p className="text-sm">Implementação em desenvolvimento</p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="connections" className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Conexões de Saída</Label>
                   <div className="space-y-2">
-                    {stepTypes.map(type => {
-                      const IconComponent = type.icon;
-                      return (
-                        <Card key={type.id} className="p-3 cursor-pointer hover:bg-gray-50">
-                          <div className="flex items-center gap-3">
-                            <IconComponent className="h-5 w-5 text-primary" />
-                            <div>
-                              <h5 className="font-medium text-sm">{type.name}</h5>
-                              <p className="text-xs text-muted-foreground">{type.description}</p>
-                            </div>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-3">Elementos Adicionados</h4>
-                  <div className="text-center text-muted-foreground py-8">
-                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nenhum elemento adicionado</p>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="test" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="p-4">
-                  <h4 className="font-medium mb-3">Simulador de Conversa</h4>
-                  <div className="border rounded-lg p-3 min-h-[300px] bg-gray-50">
-                    <div className="text-center text-muted-foreground py-12">
-                      <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Teste seu chatbot aqui</p>
-                      <Button className="mt-2" variant="outline" size="sm">
-                        <Play className="h-4 w-4 mr-2" />
-                        Iniciar Teste
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="p-4">
-                  <h4 className="font-medium mb-3">Resultados dos Testes</h4>
-                  {selectedChatbot?.testResults ? (
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Testes Aprovados:</span>
-                        <Badge variant={selectedChatbot.testResults.passedTests === selectedChatbot.testResults.totalTests ? 'default' : 'secondary'}>
-                          {selectedChatbot.testResults.passedTests}/{selectedChatbot.testResults.totalTests}
-                        </Badge>
+                    {selectedNode.connections.map((connId, index) => (
+                      <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{connId}</span>
+                        <Button variant="ghost" size="sm" className="ml-auto h-6 w-6 p-0">
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
-                      {selectedChatbot.testResults.issues.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium mb-2">Issues Encontradas:</p>
-                          <div className="space-y-1">
-                            {selectedChatbot.testResults.issues.map((issue, idx) => (
-                              <div key={idx} className="text-xs text-orange-600 flex items-center gap-1">
-                                <AlertTriangle className="h-3 w-3" />
-                                {issue}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center text-muted-foreground py-8">
-                      <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Nenhum teste executado</p>
-                    </div>
-                  )}
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="deploy" className="space-y-4">
-              <div className="space-y-4">
-                <Card className="p-4">
-                  <h4 className="font-medium mb-3">Status do Deploy</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Estágio Atual:</span>
-                      <Badge variant="outline">{workflowStages.find(s => s.id === selectedChatbot?.stage)?.title}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Status:</span>
-                      <Badge variant={selectedChatbot?.isEnabled ? 'default' : 'secondary'}>
-                        {selectedChatbot?.isEnabled ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </div>
-                    {selectedChatbot?.stage === 'active' && (
-                      <div className="space-y-2">
-                        <Separator />
-                        <h5 className="font-medium text-sm">Métricas de Produção</h5>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Conversas:</span>
-                            <span className="font-medium ml-2">{selectedChatbot.metrics.totalConversations}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Taxa de Sucesso:</span>
-                            <span className="font-medium ml-2">{(selectedChatbot.metrics.successRate * 100).toFixed(1)}%</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Tempo Médio:</span>
-                            <span className="font-medium ml-2">{selectedChatbot.metrics.avgResponseTime.toFixed(1)}s</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Satisfação:</span>
-                            <span className="font-medium ml-2">{selectedChatbot.metrics.userSatisfaction.toFixed(1)}/5</span>
-                          </div>
-                        </div>
-                      </div>
+                    ))}
+                    {selectedNode.connections.length === 0 && (
+                      <p className="text-sm text-muted-foreground">Nenhuma conexão de saída</p>
                     )}
                   </div>
-                </Card>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Pré-visualizar
-                  </Button>
-                  <Button className="flex-1">
-                    <ArrowRight className="h-4 w-4 mr-2" />
-                    Avançar Etapa
-                  </Button>
                 </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+            </Tabs>
+          )}
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowWorkflowBuilder(false)}>
-              Fechar
+            <Button variant="outline" onClick={() => setShowNodeConfig(false)}>
+              Cancelar
             </Button>
             <Button>
               <Save className="h-4 w-4 mr-2" />
-              Salvar Alterações
+              Salvar Configurações
             </Button>
           </div>
         </DialogContent>
