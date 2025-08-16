@@ -149,36 +149,46 @@ export class LocationsNewController {
     try {
       const { cep } = req.params;
       
+      console.log('🔍 [CEP-LOOKUP] Request received for CEP:', cep);
+      
       if (!cep || !/^\d{8}$/.test(cep.replace(/\D/g, ''))) {
+        console.error('❌ [CEP-LOOKUP] Invalid CEP format:', cep);
         res.status(400).json({ success: false, message: 'CEP inválido' });
         return;
       }
 
       const cleanCep = cep.replace(/\D/g, '');
+      console.log('🔍 [CEP-LOOKUP] Clean CEP:', cleanCep);
       
       // ViaCEP API call
       const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
       const data = await response.json();
 
+      console.log('📡 [CEP-LOOKUP] ViaCEP response:', data);
+
       if (data.erro) {
+        console.error('❌ [CEP-LOOKUP] CEP not found:', cleanCep);
         res.status(404).json({ success: false, message: 'CEP não encontrado' });
         return;
       }
 
-      res.json({
+      const result = {
         success: true,
         data: {
           cep: data.cep,
-          logradouro: data.logradouro,
-          bairro: data.bairro,
-          localidade: data.localidade,
-          uf: data.uf,
-          complemento: data.complemento
+          logradouro: data.logradouro || '',
+          bairro: data.bairro || '',
+          localidade: data.localidade || '',
+          uf: data.uf || '',
+          complemento: data.complemento || ''
         }
-      });
+      };
+
+      console.log('✅ [CEP-LOOKUP] Success response:', result);
+      res.json(result);
     } catch (error) {
-      console.error('Error looking up CEP:', error);
-      res.status(500).json({ success: false, message: 'Error looking up CEP' });
+      console.error('❌ [CEP-LOOKUP] Error:', error);
+      res.status(500).json({ success: false, message: 'Erro interno do servidor ao buscar CEP' });
     }
   }
 
@@ -218,24 +228,55 @@ export class LocationsNewController {
     try {
       const { address } = req.body;
       
+      console.log('🗺️ [GEOCODING] Request received for address:', address);
+      
       if (!address) {
         res.status(400).json({ success: false, message: 'Endereço é obrigatório' });
         return;
       }
 
-      // Mock geocoding response (in real implementation, use Google Maps API)
-      res.json({
+      try {
+        // Try Nominatim for geocoding
+        const nominatimResponse = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+        );
+        const nominatimData = await nominatimResponse.json();
+
+        if (nominatimData && nominatimData[0]) {
+          const result = {
+            success: true,
+            data: {
+              address,
+              latitude: parseFloat(nominatimData[0].lat),
+              longitude: parseFloat(nominatimData[0].lon),
+              formatted_address: nominatimData[0].display_name
+            }
+          };
+          
+          console.log('✅ [GEOCODING] Nominatim success:', result);
+          res.json(result);
+          return;
+        }
+      } catch (nominatimError) {
+        console.error('⚠️ [GEOCODING] Nominatim failed:', nominatimError);
+      }
+
+      // Fallback to default coordinates (Brasília center)
+      const fallbackResult = {
         success: true,
         data: {
           address,
-          latitude: -23.5505,
-          longitude: -46.6333,
+          latitude: -15.7942,
+          longitude: -47.8822,
           formatted_address: address
         }
-      });
+      };
+      
+      console.log('🔄 [GEOCODING] Using fallback coordinates:', fallbackResult);
+      res.json(fallbackResult);
     } catch (error) {
-      console.error('Error geocoding address:', error);
-      res.status(500).json({ success: false, message: 'Error geocoding address' });
+      console.error('❌ [GEOCODING] Error:', error);
+      res.status(500).json({ success: false, message: 'Erro interno do servidor ao buscar coordenadas' });
     }
   }
 

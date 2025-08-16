@@ -16,6 +16,8 @@ import { MapPin, Phone, Home, Globe, Clock, Search, Calendar, Plus, Trash2, Map,
 import { localSchema, type NewLocal } from "@/../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
 import LeafletMapSelector from "@/components/LeafletMapSelector";
+import MapSelector from '@/components/MapSelector';
+
 
 interface LocalFormProps {
   onSubmit: (data: NewLocal) => void;
@@ -92,8 +94,9 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
   const [indisponibilidades, setIndisponibilidades] = useState<Indisponibilidade[]>([]);
   const [showHolidaysDialog, setShowHolidaysDialog] = useState(false);
   const [showIndisponibilidadesDialog, setShowIndisponibilidadesDialog] = useState(false);
-  const [showMapDialog, setShowMapDialog] = useState(false);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([-15.77972, -47.92972]); // Brasília
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([-15.7942, -47.8822]); // Default to Brasília
+
 
   const form = useForm<NewLocal>({
     resolver: zodResolver(localSchema),
@@ -224,12 +227,11 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
       validateAndRefreshToken();
     }, []);
 
-  const buscarEnderecoPorCep = async () => {
-    const cep = form.getValues('cep');
+  const buscarCep = async (cep: string) => {
     if (!cep || cep.length < 8) {
       toast({
-        title: "CEP inválido",
-        description: "Digite um CEP válido para buscar o endereço",
+        title: "CEP Inválido",
+        description: "Digite um CEP válido com 8 dígitos",
         variant: "destructive"
       });
       return;
@@ -237,23 +239,63 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
 
     setLoadingAddress(true);
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cep.replace('-', '')}/json/`);
-      const data: AddressData = await response.json();
+      console.log('🔍 [CEP-LOOKUP] Searching for CEP:', cep);
 
-      if (data.cep) {
-        form.setValue('logradouro', data.logradouro);
-        form.setValue('bairro', data.bairro);
-        form.setValue('municipio', data.localidade);
-        form.setValue('estado', data.uf);
+      // First try the internal API endpoint
+      const token = localStorage.getItem('accessToken');
+      const cleanCep = cep.replace(/\D/g, '');
+
+      const response = await fetch(`/api/locations-new/services/cep/${cleanCep}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ [CEP-LOOKUP] Internal API success:', result);
+
+        if (result.success && result.data) {
+          const data = result.data;
+          form.setValue('logradouro', data.logradouro || '');
+          form.setValue('bairro', data.bairro || '');
+          form.setValue('municipio', data.localidade || '');
+          form.setValue('estado', data.uf || '');
+
+          // Buscar coordenadas do endereço
+          await buscarCoordenadas(data);
+
+          toast({
+            title: "CEP encontrado",
+            description: "Dados preenchidos automaticamente"
+          });
+          return;
+        }
+      }
+
+      // Fallback to ViaCEP direct API
+      console.log('🔄 [CEP-LOOKUP] Trying ViaCEP fallback');
+      const viaCepResponse = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const viaCepData = await viaCepResponse.json();
+
+      if (viaCepData && !viaCepData.erro) {
+        console.log('✅ [CEP-LOOKUP] ViaCEP success:', viaCepData);
+
+        form.setValue('logradouro', viaCepData.logradouro || '');
+        form.setValue('bairro', viaCepData.bairro || '');
+        form.setValue('municipio', viaCepData.localidade || '');
+        form.setValue('estado', viaCepData.uf || '');
 
         // Buscar coordenadas do endereço
-        await buscarCoordenadas(data);
+        await buscarCoordenadas(viaCepData);
 
         toast({
-          title: "Endereço encontrado",
+          title: "CEP encontrado",
           description: "Dados preenchidos automaticamente"
         });
       } else {
+        console.error('❌ [CEP-LOOKUP] CEP not found');
         toast({
           title: "CEP não encontrado",
           description: "Verifique o CEP digitado",
@@ -261,6 +303,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
         });
       }
     } catch (error) {
+      console.error('❌ [CEP-LOOKUP] Error:', error);
       toast({
         title: "Erro ao buscar CEP",
         description: "Tente novamente mais tarde",
@@ -297,8 +340,30 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
         });
       }
     } catch (error) {
-      console.error('Error fetching coordinates:', error);
+      console.error('❌ [GEOCODING] Error:', error);
+      toast({
+        title: "Erro ao buscar coordenadas",
+        description: "Não foi possível obter as coordenadas do endereço",
+        variant: "destructive"
+      });
     }
+  };
+
+  const handleMapCoordinateSelect = (lat: number, lng: number) => {
+    console.log('🗺️ [MAP-SELECT] Coordinates selected:', { lat, lng });
+    form.setValue('latitude', lat.toString());
+    form.setValue('longitude', lng.toString());
+    setMapCenter([lat, lng]);
+    setShowMapModal(false);
+    toast({
+      title: "Coordenadas selecionadas",
+      description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`,
+    });
+  };
+
+  const openMapSelector = () => {
+    console.log('🗺️ [MAP-MODAL] Opening map selector');
+    setShowMapModal(true);
   };
 
   const buscarFeriados = async () => {
@@ -748,21 +813,48 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
                 <Label htmlFor="cep">CEP</Label>
                 <Input
                   id="cep"
-                  placeholder="00000-000"
                   {...form.register('cep')}
-                  className="mt-1"
+                  placeholder="00000-000"
+                  maxLength={9}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    const formatted = value.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+                    e.target.value = formatted;
+                    register('cep').onChange(e);
+                  }}
+                  className={form.formState.errors.cep ? 'border-red-500' : ''}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const cepValue = form.getValues('cep');
+                      if (cepValue && cepValue.length >= 8) {
+                        buscarCep(cepValue);
+                      }
+                    }
+                  }}
                 />
               </div>
               <div className="flex items-end">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={buscarEnderecoPorCep}
+                  onClick={() => {
+                    const cepValue = form.getValues('cep');
+                    console.log('🔍 [CEP-BUTTON] CEP value:', cepValue);
+                    if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
+                      buscarCep(cepValue);
+                    } else {
+                      toast({
+                        title: "CEP Inválido",
+                        description: "Digite um CEP válido com 8 dígitos",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
                   disabled={loadingAddress}
                   className="mb-0"
                 >
-                  <Search className="h-4 w-4 mr-2" />
-                  {loadingAddress ? 'Buscando...' : 'Buscar'}
+                  {loadingAddress ? 'Buscando...' : 'Buscar CEP'}
                 </Button>
               </div>
             </div>
@@ -869,38 +961,49 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="latitude">Latitude</Label>
-                <Input
-                  id="latitude"
-                  placeholder="-23.550520"
-                  {...form.register('latitude')}
-                  className="mt-1"
-                  readOnly
-                />
-              </div>
-              <div>
-                <Label htmlFor="longitude">Longitude</Label>
-                <Input
-                  id="longitude"
-                  placeholder="-46.633308"
-                  {...form.register('longitude')}
-                  className="mt-1"
-                  readOnly
-                />
-              </div>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="latitude">Latitude</Label>
+                  <Input
+                    id="latitude"
+                    {...form.register('latitude')}
+                    placeholder="-15.7942"
+                    type="number"
+                    step="any"
+                    className={form.formState.errors.latitude ? 'border-red-500' : ''}
+                  />
+                  {form.formState.errors.latitude && (
+                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.latitude.message}</p>
+                  )}
+                </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowMapDialog(true)}
-              className="w-full"
-            >
-              <Map className="h-4 w-4 mr-2" />
-              Visualizar no Mapa
-            </Button>
+                <div>
+                  <Label htmlFor="longitude">Longitude</Label>
+                  <Input
+                    id="longitude"
+                    {...form.register('longitude')}
+                    placeholder="-47.8822"
+                    type="number"
+                    step="any"
+                    className={form.formState.errors.longitude ? 'border-red-500' : ''}
+                  />
+                  {form.formState.errors.longitude && (
+                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.longitude.message}</p>
+                  )}
+                </div>
+
+                <div className="flex items-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={openMapSelector}
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Abrir Mapa Interativo
+                  </Button>
+                </div>
+              </div>
 
             {form.watch('geoCoordenadas') && (
               <div className="p-3 bg-green-50 border border-green-200 rounded-md">
@@ -1122,60 +1225,26 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
       </Dialog>
 
       {/* Dialog do Mapa */}
-      <Dialog open={showMapDialog} onOpenChange={setShowMapDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh]">
+      <Dialog open={showMapModal} onOpenChange={setShowMapModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>Validação de Coordenadas</DialogTitle>
+            <DialogTitle>Selecionar Coordenadas no Mapa</DialogTitle>
             <DialogDescription>
-              Use o mapa interativo para selecionar e validar as coordenadas geográficas do local
+              Clique no mapa para definir a localização exata do local
             </DialogDescription>
           </DialogHeader>
-          <div className="h-96">
-            <LeafletMapSelector
-              initialLat={parseFloat(form.watch('latitude')) || mapCenter[0]}
-              initialLng={parseFloat(form.watch('longitude')) || mapCenter[1]}
+          <div className="h-[60vh]">
+            <MapSelector
+              initialLat={mapCenter[0]}
+              initialLng={mapCenter[1]}
+              onLocationSelect={handleMapCoordinateSelect}
               addressData={{
-                address: form.watch('logradouro'),
-                number: form.watch('numero'),
-                neighborhood: form.watch('bairro'),
-                city: form.watch('municipio'),
-                state: form.watch('estado'),
-                zipCode: form.watch('cep'),
-                country: form.watch('pais')
+                logradouro: form.getValues('logradouro') || '',
+                bairro: form.getValues('bairro') || '',
+                localidade: form.getValues('municipio') || '',
+                uf: form.getValues('estado') || ''
               }}
-              onLocationSelect={(lat, lng) => {
-                form.setValue('latitude', lat.toString());
-                form.setValue('longitude', lng.toString());
-                setMapCenter([lat, lon]);
-                            }}
             />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setShowMapDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => {
-              // Salvar as coordenadas selecionadas
-              const lat = parseFloat(form.watch('latitude')) || mapCenter[0];
-              const lng = parseFloat(form.watch('longitude')) || mapCenter[1];
-
-              form.setValue('geoCoordenadas', {
-                latitude: lat,
-                longitude: lng,
-                endereco: `${form.watch('logradouro') || ''}, ${form.watch('numero') || ''}, ${form.watch('bairro') || ''}, ${form.watch('municipio') || ''}, ${form.watch('estado') || ''}`.replace(/^,+|,+$/g, '').replace(/,+/g, ', '),
-                validado: true,
-                fonte: 'manual'
-              });
-
-              setShowMapDialog(false);
-
-              toast({
-                title: "Localização confirmada",
-                description: `Coordenadas salvas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
-              });
-            }}>
-              Confirmar e Salvar Localização
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
