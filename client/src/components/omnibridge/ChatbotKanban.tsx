@@ -1,169 +1,173 @@
 
 import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult
-} from 'react-beautiful-dnd';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Bot,
   Plus,
   Settings,
   Play,
   Pause,
+  Edit,
   Trash2,
   MessageSquare,
-  ArrowRight,
   Zap,
-  Users,
-  Brain,
-  Phone,
-  Edit,
-  Copy,
-  Download,
-  Upload,
-  TestTube,
-  MoreHorizontal,
-  Workflow,
   GitBranch,
   CheckCircle,
-  AlertCircle,
   Clock,
-  MessageCircle
+  AlertTriangle,
+  Save,
+  Eye,
+  Code,
+  Workflow,
+  Target,
+  MessageCircle,
+  Users,
+  BarChart3,
+  ArrowRight,
+  Copy,
+  Upload,
+  Download,
+  RefreshCw,
+  Search,
+  Filter,
+  MoreHorizontal
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 
-interface ChatbotWorkflowStep {
+interface WorkflowStep {
   id: string;
-  type: 'message' | 'condition' | 'action' | 'ai_agent' | 'human_handoff' | 'input' | 'api_call';
-  title: string;
-  config: {
-    message?: string;
-    condition?: {
-      field: string;
-      operator: string;
-      value: string;
-    };
-    action?: string;
-    aiPrompt?: string;
-    inputType?: string;
-    apiEndpoint?: string;
-    nextStep?: string;
-    branches?: { condition: string; nextStep: string }[];
-  };
+  type: 'trigger' | 'condition' | 'action' | 'response' | 'integration' | 'delay';
+  name: string;
+  config: Record<string, any>;
   position: { x: number; y: number };
-  status: 'draft' | 'active' | 'testing' | 'error';
+  connections: string[];
+}
+
+interface ChatbotWorkflow {
+  id: string;
+  name: string;
+  description: string;
+  steps: WorkflowStep[];
+  version: number;
+  isActive: boolean;
+  lastModified: string;
+  variables: Record<string, any>;
+  fallbackActions: WorkflowStep[];
 }
 
 interface Chatbot {
   id: string;
+  tenantId: string;
   name: string;
-  description?: string;
-  channels: string[];
-  workflow: ChatbotWorkflowStep[];
-  isActive: boolean;
-  aiConfig?: {
-    model: string;
-    instructions: string;
-    temperature: number;
-    maxTokens: number;
+  description: string;
+  configuration: {
+    channels: string[];
+    languages: string[];
+    timezone: string;
+    fallbackToHuman: boolean;
+    aiEnabled: boolean;
+    maxSessionTime: number;
+    greeting: string;
+    errorMessage: string;
   };
-  fallbackToHuman: boolean;
-  conversationCount: number;
-  successRate: number;
+  workflow: ChatbotWorkflow;
+  stage: 'planning' | 'designing' | 'testing' | 'reviewing' | 'deploying' | 'active' | 'maintenance';
+  isEnabled: boolean;
   createdAt: string;
   updatedAt: string;
+  metrics: {
+    totalConversations: number;
+    successRate: number;
+    avgResponseTime: number;
+    userSatisfaction: number;
+  };
+  testResults?: {
+    passedTests: number;
+    totalTests: number;
+    lastTestRun: string;
+    issues: string[];
+  };
 }
 
-const stepTypes = [
+// Workflow construction stages - representing the actual work phases
+const workflowStages = [
   {
-    type: 'message',
-    icon: MessageSquare,
-    title: 'Mensagem',
-    description: 'Enviar uma mensagem para o usuário',
-    color: 'bg-blue-100 border-blue-300'
+    id: 'planning',
+    title: 'Planejamento',
+    description: 'Definição de objetivos e estratégia',
+    color: 'bg-blue-50 border-blue-200',
+    icon: Target,
+    activities: ['Definir objetivos', 'Mapear jornada do usuário', 'Identificar integrações']
   },
   {
-    type: 'input',
-    icon: Edit,
-    title: 'Entrada do Usuário',
-    description: 'Aguardar entrada do usuário',
-    color: 'bg-green-100 border-green-300'
-  },
-  {
-    type: 'condition',
-    icon: GitBranch,
-    title: 'Condição',
-    description: 'Tomada de decisão baseada em condições',
-    color: 'bg-yellow-100 border-yellow-300'
-  },
-  {
-    type: 'ai_agent',
-    icon: Brain,
-    title: 'IA Agent',
-    description: 'Processamento com inteligência artificial',
-    color: 'bg-purple-100 border-purple-300'
-  },
-  {
-    type: 'action',
-    icon: Zap,
-    title: 'Ação',
-    description: 'Executar uma ação específica',
-    color: 'bg-orange-100 border-orange-300'
-  },
-  {
-    type: 'human_handoff',
-    icon: Users,
-    title: 'Transferir para Humano',
-    description: 'Transferir conversa para atendente',
-    color: 'bg-red-100 border-red-300'
-  },
-  {
-    type: 'api_call',
-    icon: TestTube,
-    title: 'Chamada de API',
-    description: 'Integração com sistemas externos',
-    color: 'bg-gray-100 border-gray-300'
-  }
-];
-
-const kanbanColumns = [
-  {
-    id: 'design',
-    title: 'Design',
-    description: 'Construção do fluxo',
-    color: 'bg-blue-50 border-blue-200'
+    id: 'designing',
+    title: 'Construção',
+    description: 'Desenvolvimento do fluxo conversacional',
+    color: 'bg-purple-50 border-purple-200',
+    icon: Workflow,
+    activities: ['Criar fluxos', 'Configurar respostas', 'Definir condições']
   },
   {
     id: 'testing',
     title: 'Teste',
-    description: 'Validação e testes',
-    color: 'bg-yellow-50 border-yellow-200'
+    description: 'Validação e refinamento',
+    color: 'bg-orange-50 border-orange-200',
+    icon: Play,
+    activities: ['Executar testes', 'Validar cenários', 'Otimizar performance']
+  },
+  {
+    id: 'reviewing',
+    title: 'Revisão',
+    description: 'Análise e aprovação',
+    color: 'bg-yellow-50 border-yellow-200',
+    icon: Eye,
+    activities: ['Revisar qualidade', 'Validar compliance', 'Aprovar deploy']
+  },
+  {
+    id: 'deploying',
+    title: 'Deploy',
+    description: 'Implementação em produção',
+    color: 'bg-green-50 border-green-200',
+    icon: CheckCircle,
+    activities: ['Deploy gradual', 'Monitorar métricas', 'Ajustes finais']
   },
   {
     id: 'active',
     title: 'Ativo',
-    description: 'Em produção',
-    color: 'bg-green-50 border-green-200'
+    description: 'Em operação produtiva',
+    color: 'bg-emerald-50 border-emerald-200',
+    icon: Bot,
+    activities: ['Monitoramento', 'Análise de performance', 'Suporte contínuo']
   },
   {
-    id: 'archived',
-    title: 'Arquivado',
-    description: 'Chatbots inativos',
-    color: 'bg-gray-50 border-gray-200'
+    id: 'maintenance',
+    title: 'Manutenção',
+    description: 'Atualizações e melhorias',
+    color: 'bg-gray-50 border-gray-200',
+    icon: Settings,
+    activities: ['Atualizações', 'Correções', 'Melhorias incrementais']
   }
+];
+
+const stepTypes = [
+  { id: 'trigger', name: 'Gatilho', icon: Zap, description: 'Eventos que iniciam o fluxo' },
+  { id: 'condition', name: 'Condição', icon: GitBranch, description: 'Lógica condicional' },
+  { id: 'action', name: 'Ação', icon: Play, description: 'Execução de tarefas' },
+  { id: 'response', name: 'Resposta', icon: MessageCircle, description: 'Mensagens ao usuário' },
+  { id: 'integration', name: 'Integração', icon: Code, description: 'Conexões externas' },
+  { id: 'delay', name: 'Aguardar', icon: Clock, description: 'Pausas no fluxo' }
 ];
 
 export default function ChatbotKanban() {
@@ -173,45 +177,144 @@ export default function ChatbotKanban() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showWorkflowBuilder, setShowWorkflowBuilder] = useState(false);
   const [selectedChatbot, setSelectedChatbot] = useState<Chatbot | null>(null);
+  const [selectedStage, setSelectedStage] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stageFilter, setStageFilter] = useState('all');
+  
   const [newChatbotData, setNewChatbotData] = useState({
     name: '',
     description: '',
     channels: [] as string[],
-    fallbackToHuman: true
+    languages: ['pt-BR'],
+    fallbackToHuman: true,
+    aiEnabled: false,
+    greeting: 'Olá! Como posso ajudá-lo hoje?',
+    errorMessage: 'Desculpe, não entendi. Pode reformular sua pergunta?'
   });
 
-  // Organize chatbots by status for Kanban
-  const organizedChatbots = {
-    design: chatbots.filter(bot => !bot.isActive && bot.workflow.length === 0),
-    testing: chatbots.filter(bot => !bot.isActive && bot.workflow.length > 0),
-    active: chatbots.filter(bot => bot.isActive),
-    archived: chatbots.filter(bot => !bot.isActive && bot.workflow.length > 0)
-  };
+  const [newWorkflowStep, setNewWorkflowStep] = useState({
+    type: 'trigger' as WorkflowStep['type'],
+    name: '',
+    config: {}
+  });
+
+  // Organize chatbots by workflow construction stage
+  const organizedChatbots = workflowStages.reduce((acc, stage) => {
+    acc[stage.id] = chatbots.filter(bot => bot.stage === stage.id);
+    return acc;
+  }, {} as Record<string, Chatbot[]>);
 
   useEffect(() => {
     fetchChatbots();
-  }, []);
+  }, [user?.tenantId]);
 
   const fetchChatbots = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/omnibridge/chatbots', {
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
-        }
-      });
+      const headers = {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json',
+        'x-tenant-id': user?.tenantId || ''
+      };
 
+      const response = await fetch('/api/omnibridge/chatbots', { headers });
+      
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
           setChatbots(result.data);
           console.log('✅ [ChatbotKanban] Chatbots loaded:', result.data.length);
         }
+      } else {
+        console.warn('⚠️ [ChatbotKanban] Failed to fetch chatbots:', response.status);
+        // Mock data for development
+        setChatbots([
+          {
+            id: '1',
+            tenantId: user?.tenantId || '',
+            name: 'Atendimento Geral',
+            description: 'Bot para atendimento inicial e direcionamento',
+            configuration: {
+              channels: ['whatsapp', 'telegram'],
+              languages: ['pt-BR'],
+              timezone: 'America/Sao_Paulo',
+              fallbackToHuman: true,
+              aiEnabled: true,
+              maxSessionTime: 3600,
+              greeting: 'Olá! Sou o assistente virtual. Como posso ajudá-lo?',
+              errorMessage: 'Desculpe, não consegui entender. Pode tentar de outra forma?'
+            },
+            workflow: {
+              id: 'wf1',
+              name: 'Fluxo Principal',
+              description: 'Fluxo de atendimento principal',
+              steps: [],
+              version: 1,
+              isActive: false,
+              lastModified: '2025-01-16T01:00:00Z',
+              variables: {},
+              fallbackActions: []
+            },
+            stage: 'designing',
+            isEnabled: false,
+            createdAt: '2025-01-16T00:00:00Z',
+            updatedAt: '2025-01-16T01:00:00Z',
+            metrics: {
+              totalConversations: 0,
+              successRate: 0,
+              avgResponseTime: 0,
+              userSatisfaction: 0
+            }
+          },
+          {
+            id: '2',
+            tenantId: user?.tenantId || '',
+            name: 'Suporte Técnico',
+            description: 'Bot especializado em questões técnicas',
+            configuration: {
+              channels: ['telegram'],
+              languages: ['pt-BR', 'en'],
+              timezone: 'America/Sao_Paulo',
+              fallbackToHuman: true,
+              aiEnabled: true,
+              maxSessionTime: 7200,
+              greeting: 'Olá! Sou especialista em suporte técnico. Em que posso ajudar?',
+              errorMessage: 'Não consegui processar sua solicitação. Vou conectá-lo com um especialista.'
+            },
+            workflow: {
+              id: 'wf2',
+              name: 'Fluxo Suporte',
+              description: 'Fluxo para suporte técnico',
+              steps: [],
+              version: 1,
+              isActive: false,
+              lastModified: '2025-01-16T02:00:00Z',
+              variables: {},
+              fallbackActions: []
+            },
+            stage: 'testing',
+            isEnabled: false,
+            createdAt: '2025-01-16T00:30:00Z',
+            updatedAt: '2025-01-16T02:00:00Z',
+            metrics: {
+              totalConversations: 25,
+              successRate: 0.8,
+              avgResponseTime: 2.5,
+              userSatisfaction: 4.2
+            },
+            testResults: {
+              passedTests: 18,
+              totalTests: 25,
+              lastTestRun: '2025-01-16T02:00:00Z',
+              issues: ['Timeout em integração externa', 'Resposta incorreta no cenário X']
+            }
+          }
+        ]);
       }
     } catch (error) {
       console.error('❌ [ChatbotKanban] Error fetching chatbots:', error);
+      setChatbots([]);
     } finally {
       setLoading(false);
     }
@@ -220,17 +323,33 @@ export default function ChatbotKanban() {
   const handleCreateChatbot = async () => {
     try {
       const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json',
+        'x-tenant-id': user?.tenantId || ''
+      };
+
+      const chatbotData = {
+        name: newChatbotData.name,
+        description: newChatbotData.description,
+        configuration: {
+          channels: newChatbotData.channels,
+          languages: newChatbotData.languages,
+          timezone: 'America/Sao_Paulo',
+          fallbackToHuman: newChatbotData.fallbackToHuman,
+          aiEnabled: newChatbotData.aiEnabled,
+          maxSessionTime: 3600,
+          greeting: newChatbotData.greeting,
+          errorMessage: newChatbotData.errorMessage
+        },
+        stage: 'planning',
+        isEnabled: false
+      };
+
       const response = await fetch('/api/omnibridge/chatbots', {
         method: 'POST',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
-        },
-        body: JSON.stringify({
-          ...newChatbotData,
-          workflow: []
-        })
+        headers,
+        body: JSON.stringify(chatbotData)
       });
 
       if (response.ok) {
@@ -242,99 +361,103 @@ export default function ChatbotKanban() {
             name: '',
             description: '',
             channels: [],
-            fallbackToHuman: true
+            languages: ['pt-BR'],
+            fallbackToHuman: true,
+            aiEnabled: false,
+            greeting: 'Olá! Como posso ajudá-lo hoje?',
+            errorMessage: 'Desculpe, não entendi. Pode reformular sua pergunta?'
           });
           console.log('✅ [ChatbotKanban] Chatbot created successfully');
         }
+      } else {
+        console.error('❌ [ChatbotKanban] Failed to create chatbot:', response.statusText);
       }
     } catch (error) {
       console.error('❌ [ChatbotKanban] Error creating chatbot:', error);
     }
   };
 
-  const handleToggleChatbot = async (chatbotId: string, isActive: boolean) => {
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const { source, destination, draggableId } = result;
+    
+    if (source.droppableId === destination.droppableId) return;
+
+    const chatbotId = draggableId;
+    const newStage = destination.droppableId as Chatbot['stage'];
+
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/omnibridge/chatbots/${chatbotId}/toggle`, {
-        method: 'POST',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
-        },
-        body: JSON.stringify({ isActive })
+      const headers = {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json',
+        'x-tenant-id': user?.tenantId || ''
+      };
+
+      const response = await fetch(`/api/omnibridge/chatbots/${chatbotId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ stage: newStage })
       });
 
       if (response.ok) {
         setChatbots(prev => prev.map(bot =>
-          bot.id === chatbotId ? { ...bot, isActive } : bot
+          bot.id === chatbotId ? { ...bot, stage: newStage } : bot
         ));
-        console.log(`✅ [ChatbotKanban] Chatbot ${isActive ? 'activated' : 'deactivated'}`);
+        console.log(`✅ [ChatbotKanban] Chatbot ${chatbotId} moved to ${newStage}`);
+      }
+    } catch (error) {
+      console.error('❌ [ChatbotKanban] Error updating chatbot stage:', error);
+    }
+  };
+
+  const handleToggleChatbot = async (chatbotId: string, enabled: boolean) => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json',
+        'x-tenant-id': user?.tenantId || ''
+      };
+
+      const response = await fetch(`/api/omnibridge/chatbots/${chatbotId}/toggle`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ isEnabled: enabled })
+      });
+
+      if (response.ok) {
+        setChatbots(prev => prev.map(bot =>
+          bot.id === chatbotId ? { ...bot, isEnabled: enabled } : bot
+        ));
+        console.log(`✅ [ChatbotKanban] Chatbot ${enabled ? 'enabled' : 'disabled'}: ${chatbotId}`);
       }
     } catch (error) {
       console.error('❌ [ChatbotKanban] Error toggling chatbot:', error);
     }
   };
 
-  const handleDeleteChatbot = async (chatbotId: string) => {
-    if (!confirm('Tem certeza que deseja deletar este chatbot?')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/omnibridge/chatbots/${chatbotId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
-        }
-      });
-
-      if (response.ok) {
-        setChatbots(prev => prev.filter(bot => bot.id !== chatbotId));
-        console.log('✅ [ChatbotKanban] Chatbot deleted successfully');
-      }
-    } catch (error) {
-      console.error('❌ [ChatbotKanban] Error deleting chatbot:', error);
-    }
+  const getStageStats = (stageId: string) => {
+    const botsInStage = organizedChatbots[stageId] || [];
+    return {
+      total: botsInStage.length,
+      active: botsInStage.filter(bot => bot.isEnabled).length,
+      withIssues: botsInStage.filter(bot => bot.testResults?.issues?.length).length
+    };
   };
 
-  const onDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result;
-
-    if (!destination) return;
-    if (destination.droppableId === source.droppableId) return;
-
-    // Handle status change based on column
-    const chatbot = chatbots.find(bot => bot.id === draggableId);
-    if (!chatbot) return;
-
-    let newStatus = false;
-    if (destination.droppableId === 'active') {
-      newStatus = true;
-    }
-
-    handleToggleChatbot(draggableId, newStatus);
+  const getStageColor = (stageId: string) => {
+    const stage = workflowStages.find(s => s.id === stageId);
+    return stage?.color || 'bg-gray-50 border-gray-200';
   };
 
-  const getStatusBadge = (bot: Chatbot) => {
-    if (bot.isActive) {
-      return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
-    }
-    if (bot.workflow.length > 0) {
-      return <Badge className="bg-yellow-100 text-yellow-800">Em Teste</Badge>;
-    }
-    return <Badge className="bg-gray-100 text-gray-800">Rascunho</Badge>;
-  };
-
-  const getChannelIcon = (channel: string) => {
-    switch (channel) {
-      case 'whatsapp': return <MessageSquare className="h-4 w-4" />;
-      case 'telegram': return <MessageCircle className="h-4 w-4" />;
-      case 'email': return <MessageSquare className="h-4 w-4" />;
-      default: return <MessageSquare className="h-4 w-4" />;
-    }
-  };
+  const filteredChatbots = chatbots.filter(bot => {
+    const matchesSearch = bot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         bot.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStage = stageFilter === 'all' || bot.stage === stageFilter;
+    return matchesSearch && matchesStage;
+  });
 
   if (loading) {
     return (
@@ -352,19 +475,19 @@ export default function ChatbotKanban() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Chatbots</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Construtor de Chatbots</h2>
           <p className="text-muted-foreground">
-            Construa e gerencie chatbots inteligentes para automação de atendimento
+            Gerencie o fluxo de desenvolvimento dos seus chatbots conversacionais
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <Button variant="outline" size="sm">
             <Upload className="h-4 w-4 mr-2" />
             Importar
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar
           </Button>
           <Button onClick={() => setShowCreateModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -373,134 +496,243 @@ export default function ChatbotKanban() {
         </div>
       </div>
 
-      {/* Kanban Board */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {kanbanColumns.map((column) => (
-            <div key={column.id} className="space-y-4">
-              <div className={`p-4 rounded-lg border-2 ${column.color}`}>
-                <h3 className="font-semibold text-lg">{column.title}</h3>
-                <p className="text-sm text-muted-foreground">{column.description}</p>
-                <div className="mt-2">
-                  <Badge variant="outline">
-                    {organizedChatbots[column.id as keyof typeof organizedChatbots].length}
-                  </Badge>
-                </div>
-              </div>
+      {/* Filters */}
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar chatbots..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={stageFilter} onValueChange={setStageFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filtrar por etapa" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as etapas</SelectItem>
+            {workflowStages.map(stage => (
+              <SelectItem key={stage.id} value={stage.id}>
+                {stage.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button variant="outline" size="sm" onClick={fetchChatbots}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Atualizar
+        </Button>
+      </div>
 
-              <Droppable droppableId={column.id}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`min-h-[400px] space-y-3 p-2 rounded-lg transition-colors ${
-                      snapshot.isDraggingOver ? 'bg-muted' : ''
-                    }`}
-                  >
-                    {organizedChatbots[column.id as keyof typeof organizedChatbots].map((bot, index) => (
-                      <Draggable key={bot.id} draggableId={bot.id} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`transition-shadow ${
-                              snapshot.isDragging ? 'shadow-lg' : ''
-                            }`}
-                          >
-                            <Card className="cursor-move hover:shadow-md transition-shadow">
-                              <CardHeader className="pb-3">
-                                <div className="flex items-start justify-between">
+      {/* Workflow Stages Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
+        {workflowStages.map(stage => {
+          const stats = getStageStats(stage.id);
+          const IconComponent = stage.icon;
+          
+          return (
+            <Card key={stage.id} className={`cursor-pointer transition-all hover:shadow-md ${getStageColor(stage.id)}`}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <IconComponent className="h-5 w-5 text-primary" />
+                  <Badge variant="secondary">{stats.total}</Badge>
+                </div>
+                <CardTitle className="text-sm">{stage.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <p className="text-xs text-muted-foreground mb-2">{stage.description}</p>
+                <div className="flex items-center gap-2 text-xs">
+                  {stats.active > 0 && (
+                    <Badge variant="outline" className="text-green-600 border-green-200">
+                      {stats.active} ativo{stats.active !== 1 ? 's' : ''}
+                    </Badge>
+                  )}
+                  {stats.withIssues > 0 && (
+                    <Badge variant="outline" className="text-orange-600 border-orange-200">
+                      {stats.withIssues} c/ issues
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Kanban Board */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
+          {workflowStages.map(stage => {
+            const botsInStage = organizedChatbots[stage.id] || [];
+            const IconComponent = stage.icon;
+            
+            return (
+              <div key={stage.id} className="space-y-3">
+                <div className={`p-3 rounded-lg border ${getStageColor(stage.id)}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="h-4 w-4 text-primary" />
+                      <h3 className="font-medium text-sm">{stage.title}</h3>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {botsInStage.length}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{stage.description}</p>
+                  <div className="space-y-1">
+                    {stage.activities.map((activity, idx) => (
+                      <div key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
+                        <div className="w-1 h-1 bg-current rounded-full" />
+                        {activity}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Droppable droppableId={stage.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`space-y-2 min-h-[200px] p-2 rounded-lg border-2 border-dashed transition-colors ${
+                        snapshot.isDraggingOver 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-gray-200 bg-gray-50/30'
+                      }`}
+                    >
+                      {botsInStage.map((bot, index) => (
+                        <Draggable key={bot.id} draggableId={bot.id} index={index}>
+                          {(provided, snapshot) => (
+                            <Card
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`cursor-move transition-all ${
+                                snapshot.isDragging ? 'shadow-lg rotate-2' : 'hover:shadow-md'
+                              }`}
+                            >
+                              <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <Bot className="h-5 w-5 text-primary" />
-                                    <div>
-                                      <CardTitle className="text-sm">{bot.name}</CardTitle>
-                                      {bot.description && (
-                                        <CardDescription className="text-xs">
-                                          {bot.description}
-                                        </CardDescription>
-                                      )}
-                                    </div>
+                                    <Bot className="h-4 w-4 text-primary" />
+                                    <span className="font-medium text-sm">{bot.name}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
+                                    {bot.isEnabled && (
+                                      <div className="w-2 h-2 bg-green-500 rounded-full" title="Ativo" />
+                                    )}
+                                    {bot.testResults?.issues?.length && (
+                                      <AlertTriangle className="h-3 w-3 text-orange-500" title="Com issues" />
+                                    )}
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-6 w-6 p-0"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
                                         setSelectedChatbot(bot);
                                         setShowWorkflowBuilder(true);
                                       }}
                                     >
-                                      <Settings className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleDeleteChatbot(bot.id)}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
+                                      <MoreHorizontal className="h-3 w-3" />
                                     </Button>
                                   </div>
                                 </div>
                               </CardHeader>
                               <CardContent className="pt-0">
-                                <div className="space-y-3">
-                                  {/* Status */}
-                                  <div className="flex items-center justify-between">
-                                    {getStatusBadge(bot)}
-                                    <Switch
-                                      checked={bot.isActive}
-                                      onCheckedChange={(checked) => handleToggleChatbot(bot.id, checked)}
-                                      size="sm"
-                                    />
-                                  </div>
-
+                                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                                  {bot.description}
+                                </p>
+                                
+                                <div className="space-y-2">
                                   {/* Channels */}
                                   <div className="flex flex-wrap gap-1">
-                                    {bot.channels.map((channel) => (
+                                    {bot.configuration.channels.map(channel => (
                                       <Badge key={channel} variant="outline" className="text-xs">
-                                        {getChannelIcon(channel)}
-                                        <span className="ml-1">{channel}</span>
+                                        {channel}
                                       </Badge>
                                     ))}
                                   </div>
 
-                                  {/* Stats */}
-                                  <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div className="text-center p-2 bg-muted rounded">
-                                      <div className="font-medium">{bot.workflow.length}</div>
-                                      <div className="text-muted-foreground">Etapas</div>
+                                  {/* Metrics for active bots */}
+                                  {bot.stage === 'active' && bot.metrics.totalConversations > 0 && (
+                                    <div className="text-xs space-y-1">
+                                      <div className="flex justify-between">
+                                        <span>Conversas:</span>
+                                        <span className="font-medium">{bot.metrics.totalConversations}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>Taxa sucesso:</span>
+                                        <span className="font-medium">{(bot.metrics.successRate * 100).toFixed(0)}%</span>
+                                      </div>
                                     </div>
-                                    <div className="text-center p-2 bg-muted rounded">
-                                      <div className="font-medium">{bot.conversationCount}</div>
-                                      <div className="text-muted-foreground">Conversas</div>
+                                  )}
+
+                                  {/* Test results */}
+                                  {bot.testResults && (
+                                    <div className="text-xs space-y-1">
+                                      <div className="flex justify-between">
+                                        <span>Testes:</span>
+                                        <span className="font-medium">
+                                          {bot.testResults.passedTests}/{bot.testResults.totalTests}
+                                        </span>
+                                      </div>
+                                      {bot.testResults.issues.length > 0 && (
+                                        <div className="text-orange-600">
+                                          {bot.testResults.issues.length} issue{bot.testResults.issues.length !== 1 ? 's' : ''}
+                                        </div>
+                                      )}
                                     </div>
-                                  </div>
+                                  )}
 
                                   {/* Actions */}
-                                  <div className="flex gap-1">
-                                    <Button variant="outline" size="sm" className="flex-1">
-                                      <TestTube className="h-3 w-3 mr-1" />
-                                      Testar
+                                  <div className="flex items-center gap-1 mt-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="h-6 text-xs flex-1"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedChatbot(bot);
+                                        setShowWorkflowBuilder(true);
+                                      }}
+                                    >
+                                      <Edit className="h-3 w-3 mr-1" />
+                                      Editar
                                     </Button>
-                                    <Button variant="outline" size="sm" className="flex-1">
-                                      <Copy className="h-3 w-3 mr-1" />
-                                      Clonar
-                                    </Button>
+                                    {bot.stage === 'active' && (
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-6 text-xs"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleToggleChatbot(bot.id, !bot.isEnabled);
+                                        }}
+                                      >
+                                        {bot.isEnabled ? (
+                                          <Pause className="h-3 w-3" />
+                                        ) : (
+                                          <Play className="h-3 w-3" />
+                                        )}
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
                               </CardContent>
                             </Card>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </div>
-          ))}
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+            );
+          })}
         </div>
       </DragDropContext>
 
@@ -508,125 +740,302 @@ export default function ChatbotKanban() {
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Novo Chatbot</DialogTitle>
+            <DialogTitle>Criar Novo Chatbot</DialogTitle>
             <DialogDescription>
-              Configure seu novo chatbot para automatizar atendimentos
+              Configure um novo chatbot conversacional para automatizar atendimentos
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="bot-name">Nome do Chatbot</Label>
-              <Input
-                id="bot-name"
-                placeholder="Ex: Atendimento Inicial"
-                value={newChatbotData.name}
-                onChange={(e) => setNewChatbotData(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="bot-description">Descrição</Label>
-              <Textarea
-                id="bot-description"
-                placeholder="Descreva o propósito deste chatbot..."
-                value={newChatbotData.description}
-                onChange={(e) => setNewChatbotData(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label>Canais de Comunicação</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {['whatsapp', 'telegram', 'email', 'chat'].map((channel) => (
-                  <div key={channel} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={channel}
-                      checked={newChatbotData.channels.includes(channel)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setNewChatbotData(prev => ({
-                            ...prev,
-                            channels: [...prev.channels, channel]
-                          }));
-                        } else {
-                          setNewChatbotData(prev => ({
-                            ...prev,
-                            channels: prev.channels.filter(c => c !== channel)
-                          }));
-                        }
-                      }}
-                    />
-                    <Label htmlFor={channel} className="text-sm capitalize">
-                      {channel}
-                    </Label>
-                  </div>
-                ))}
+          
+          <Tabs defaultValue="basic" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic">Básico</TabsTrigger>
+              <TabsTrigger value="channels">Canais</TabsTrigger>
+              <TabsTrigger value="behavior">Comportamento</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="basic" className="space-y-4">
+              <div>
+                <Label htmlFor="bot-name">Nome do Chatbot</Label>
+                <Input
+                  id="bot-name"
+                  placeholder="Ex: Atendimento Geral"
+                  value={newChatbotData.name}
+                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, name: e.target.value }))}
+                />
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={newChatbotData.fallbackToHuman}
-                onCheckedChange={(checked) => setNewChatbotData(prev => ({ ...prev, fallbackToHuman: checked }))}
-              />
-              <Label>Transferir para humano quando necessário</Label>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleCreateChatbot}
-                disabled={!newChatbotData.name.trim()}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Chatbot
-              </Button>
-            </div>
+              <div>
+                <Label htmlFor="bot-description">Descrição</Label>
+                <Textarea
+                  id="bot-description"
+                  placeholder="Descreva o propósito e função do chatbot..."
+                  value={newChatbotData.description}
+                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="channels" className="space-y-4">
+              <div>
+                <Label>Canais de Atendimento</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {['whatsapp', 'telegram', 'web', 'email'].map(channel => (
+                    <div key={channel} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={channel}
+                        checked={newChatbotData.channels.includes(channel)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setNewChatbotData(prev => ({
+                              ...prev,
+                              channels: [...prev.channels, channel]
+                            }));
+                          } else {
+                            setNewChatbotData(prev => ({
+                              ...prev,
+                              channels: prev.channels.filter(c => c !== channel)
+                            }));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={channel} className="capitalize">{channel}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="behavior" className="space-y-4">
+              <div>
+                <Label htmlFor="greeting">Mensagem de Boas-vindas</Label>
+                <Textarea
+                  id="greeting"
+                  value={newChatbotData.greeting}
+                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, greeting: e.target.value }))}
+                  rows={2}
+                />
+              </div>
+              <div>
+                <Label htmlFor="error-message">Mensagem de Erro</Label>
+                <Textarea
+                  id="error-message"
+                  value={newChatbotData.errorMessage}
+                  onChange={(e) => setNewChatbotData(prev => ({ ...prev, errorMessage: e.target.value }))}
+                  rows={2}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="fallback-human"
+                  checked={newChatbotData.fallbackToHuman}
+                  onCheckedChange={(checked) => setNewChatbotData(prev => ({ ...prev, fallbackToHuman: checked }))}
+                />
+                <Label htmlFor="fallback-human">Transferir para humano quando necessário</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="ai-enabled"
+                  checked={newChatbotData.aiEnabled}
+                  onCheckedChange={(checked) => setNewChatbotData(prev => ({ ...prev, aiEnabled: checked }))}
+                />
+                <Label htmlFor="ai-enabled">Ativar processamento com IA</Label>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCreateChatbot}
+              disabled={!newChatbotData.name.trim()}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Criar Chatbot
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Workflow Builder Modal (Placeholder) */}
+      {/* Workflow Builder Modal */}
       <Dialog open={showWorkflowBuilder} onOpenChange={setShowWorkflowBuilder}>
-        <DialogContent className="max-w-6xl max-h-[80vh]">
+        <DialogContent className="max-w-6xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>Construtor de Fluxo - {selectedChatbot?.name}</DialogTitle>
+            <DialogTitle>
+              Construtor de Fluxo - {selectedChatbot?.name}
+            </DialogTitle>
             <DialogDescription>
-              Arraste e solte elementos para construir o fluxo do seu chatbot
+              Desenvolva o fluxo conversacional do seu chatbot
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-4 gap-4 h-[60vh]">
-            {/* Palette */}
-            <div className="space-y-2">
-              <h4 className="font-medium">Elementos</h4>
-              <ScrollArea className="h-full">
-                <div className="space-y-2">
-                  {stepTypes.map((step) => {
-                    const Icon = step.icon;
-                    return (
-                      <Card key={step.type} className={`p-3 cursor-grab hover:shadow-md ${step.color}`}>
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          <div>
-                            <div className="font-medium text-sm">{step.title}</div>
-                            <div className="text-xs text-muted-foreground">{step.description}</div>
+          
+          <Tabs defaultValue="flow" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="flow">Fluxo</TabsTrigger>
+              <TabsTrigger value="steps">Etapas</TabsTrigger>
+              <TabsTrigger value="test">Teste</TabsTrigger>
+              <TabsTrigger value="deploy">Deploy</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="flow" className="space-y-4">
+              <div className="border rounded-lg p-4 min-h-[400px] bg-gray-50">
+                <div className="text-center text-muted-foreground">
+                  <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="mb-2">Editor de Fluxo Visual</p>
+                  <p className="text-sm">Arraste e conecte elementos para criar o fluxo conversacional</p>
+                  <Button className="mt-4" variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Primeiro Elemento
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="steps" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium mb-3">Tipos de Elementos</h4>
+                  <div className="space-y-2">
+                    {stepTypes.map(type => {
+                      const IconComponent = type.icon;
+                      return (
+                        <Card key={type.id} className="p-3 cursor-pointer hover:bg-gray-50">
+                          <div className="flex items-center gap-3">
+                            <IconComponent className="h-5 w-5 text-primary" />
+                            <div>
+                              <h5 className="font-medium text-sm">{type.name}</h5>
+                              <p className="text-xs text-muted-foreground">{type.description}</p>
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-3">Elementos Adicionados</h4>
+                  <div className="text-center text-muted-foreground py-8">
+                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhum elemento adicionado</p>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="test" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="p-4">
+                  <h4 className="font-medium mb-3">Simulador de Conversa</h4>
+                  <div className="border rounded-lg p-3 min-h-[300px] bg-gray-50">
+                    <div className="text-center text-muted-foreground py-12">
+                      <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Teste seu chatbot aqui</p>
+                      <Button className="mt-2" variant="outline" size="sm">
+                        <Play className="h-4 w-4 mr-2" />
+                        Iniciar Teste
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="p-4">
+                  <h4 className="font-medium mb-3">Resultados dos Testes</h4>
+                  {selectedChatbot?.testResults ? (
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Testes Aprovados:</span>
+                        <Badge variant={selectedChatbot.testResults.passedTests === selectedChatbot.testResults.totalTests ? 'default' : 'secondary'}>
+                          {selectedChatbot.testResults.passedTests}/{selectedChatbot.testResults.totalTests}
+                        </Badge>
+                      </div>
+                      {selectedChatbot.testResults.issues.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium mb-2">Issues Encontradas:</p>
+                          <div className="space-y-1">
+                            {selectedChatbot.testResults.issues.map((issue, idx) => (
+                              <div key={idx} className="text-xs text-orange-600 flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                {issue}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            </div>
-
-            {/* Canvas */}
-            <div className="col-span-3 bg-gray-50 rounded-lg p-4 relative">
-              <div className="text-center text-muted-foreground mt-20">
-                <Workflow className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <p>Arraste elementos da paleta para começar a construir seu fluxo</p>
-                <p className="text-sm mt-2">Funcionalidade completa será implementada na próxima iteração</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-8">
+                      <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Nenhum teste executado</p>
+                    </div>
+                  )}
+                </Card>
               </div>
-            </div>
+            </TabsContent>
+
+            <TabsContent value="deploy" className="space-y-4">
+              <div className="space-y-4">
+                <Card className="p-4">
+                  <h4 className="font-medium mb-3">Status do Deploy</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Estágio Atual:</span>
+                      <Badge variant="outline">{workflowStages.find(s => s.id === selectedChatbot?.stage)?.title}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Status:</span>
+                      <Badge variant={selectedChatbot?.isEnabled ? 'default' : 'secondary'}>
+                        {selectedChatbot?.isEnabled ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </div>
+                    {selectedChatbot?.stage === 'active' && (
+                      <div className="space-y-2">
+                        <Separator />
+                        <h5 className="font-medium text-sm">Métricas de Produção</h5>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Conversas:</span>
+                            <span className="font-medium ml-2">{selectedChatbot.metrics.totalConversations}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Taxa de Sucesso:</span>
+                            <span className="font-medium ml-2">{(selectedChatbot.metrics.successRate * 100).toFixed(1)}%</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Tempo Médio:</span>
+                            <span className="font-medium ml-2">{selectedChatbot.metrics.avgResponseTime.toFixed(1)}s</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Satisfação:</span>
+                            <span className="font-medium ml-2">{selectedChatbot.metrics.userSatisfaction.toFixed(1)}/5</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Pré-visualizar
+                  </Button>
+                  <Button className="flex-1">
+                    <ArrowRight className="h-4 w-4 mr-2" />
+                    Avançar Etapa
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowWorkflowBuilder(false)}>
+              Fechar
+            </Button>
+            <Button>
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Alterações
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
