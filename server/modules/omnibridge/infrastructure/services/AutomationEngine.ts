@@ -20,6 +20,8 @@ export class AutomationEngine {
 
   constructor(private tenantId: string) {
     console.log(`🤖 [AUTOMATION-ENGINE] Initialized for tenant: ${tenantId}`);
+    // Carregar regras do banco de dados ao inicializar
+    this.loadRulesFromDatabase();
   }
 
   public addRule(rule: AutomationRule): void {
@@ -133,6 +135,114 @@ export class AutomationEngine {
     } catch (error) {
       console.error(`❌ [AutomationEngine] Error processing message for tenant ${this.tenantId}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Carrega regras do banco de dados para a memória
+   */
+  public async loadRulesFromDatabase(): Promise<void> {
+    try {
+      console.log(`📋 [AUTOMATION-ENGINE] Loading rules from database for tenant: ${this.tenantId}`);
+      
+      const { DrizzleAutomationRuleRepository } = await import('../repositories/DrizzleAutomationRuleRepository');
+      const repository = new DrizzleAutomationRuleRepository();
+      
+      const savedRules = await repository.findByTenantId(this.tenantId);
+      console.log(`📋 [AUTOMATION-ENGINE] Found ${savedRules.length} saved rules in database`);
+      
+      // Converter regras do banco para entidades e adicionar ao engine
+      for (const savedRule of savedRules) {
+        const { AutomationRule, AutomationCondition, AutomationAction } = await import('../../domain/entities/AutomationRule');
+        
+        // Converter condições
+        const conditions: AutomationCondition[] = savedRule.triggers.map((trigger: any) => ({
+          type: trigger.type || 'message_received',
+          field: trigger.field || 'content',
+          operator: trigger.operator || 'contains',
+          value: trigger.value || '',
+          condition: trigger.condition || 'equals'
+        }));
+        
+        // Converter ações
+        const actions: AutomationAction[] = savedRule.actions.map((action: any) => ({
+          type: action.type || 'create_ticket',
+          target: action.target || 'system',
+          params: action.params || {}
+        }));
+        
+        // Criar regra em memória
+        const rule = new AutomationRule(
+          savedRule.id,
+          savedRule.tenantId,
+          savedRule.name,
+          savedRule.description || '',
+          conditions,
+          actions,
+          savedRule.isEnabled,
+          savedRule.priority || 1
+        );
+        
+        this.rules.set(rule.id, rule);
+        console.log(`✅ [AUTOMATION-ENGINE] Loaded rule from DB: ${rule.name} (${rule.id})`);
+      }
+      
+      console.log(`✅ [AUTOMATION-ENGINE] Successfully loaded ${savedRules.length} rules from database`);
+    } catch (error) {
+      console.error(`❌ [AUTOMATION-ENGINE] Error loading rules from database:`, error);
+    }
+  }
+
+  /**
+   * Sincroniza regra específica do banco para a memória
+   */
+  public async syncRuleFromDatabase(ruleId: string): Promise<void> {
+    try {
+      console.log(`🔄 [AUTOMATION-ENGINE] Syncing rule ${ruleId} from database`);
+      
+      const { DrizzleAutomationRuleRepository } = await import('../repositories/DrizzleAutomationRuleRepository');
+      const repository = new DrizzleAutomationRuleRepository();
+      
+      const savedRule = await repository.findById(ruleId);
+      if (!savedRule || savedRule.tenantId !== this.tenantId) {
+        console.log(`⚠️ [AUTOMATION-ENGINE] Rule ${ruleId} not found or not from this tenant`);
+        return;
+      }
+      
+      const { AutomationRule, AutomationCondition, AutomationAction } = await import('../../domain/entities/AutomationRule');
+      
+      // Converter condições
+      const conditions: AutomationCondition[] = savedRule.triggers.map((trigger: any) => ({
+        type: trigger.type || 'message_received',
+        field: trigger.field || 'content',
+        operator: trigger.operator || 'contains',
+        value: trigger.value || '',
+        condition: trigger.condition || 'equals'
+      }));
+      
+      // Converter ações
+      const actions: AutomationAction[] = savedRule.actions.map((action: any) => ({
+        type: action.type || 'create_ticket',
+        target: action.target || 'system',
+        params: action.params || {}
+      }));
+      
+      // Criar/atualizar regra em memória
+      const rule = new AutomationRule(
+        savedRule.id,
+        savedRule.tenantId,
+        savedRule.name,
+        savedRule.description || '',
+        conditions,
+        actions,
+        savedRule.isEnabled,
+        savedRule.priority || 1
+      );
+      
+      this.rules.set(rule.id, rule);
+      console.log(`✅ [AUTOMATION-ENGINE] Synced rule from DB: ${rule.name} (${rule.id})`);
+    } catch (error) {
+      console.error(`❌ [AUTOMATION-ENGINE] Error syncing rule from database:`, error);
     }
   }
 
@@ -312,6 +422,22 @@ export class GlobalAutomationManager {
       this.engines.set(tenantId, engine);
     }
     return this.engines.get(tenantId)!;
+  }
+
+  /**
+   * Força recarregamento das regras do banco de dados
+   */
+  public async reloadEngineRules(tenantId: string): Promise<void> {
+    const engine = this.getEngine(tenantId);
+    await engine.loadRulesFromDatabase();
+  }
+
+  /**
+   * Sincroniza regra específica
+   */
+  public async syncRule(tenantId: string, ruleId: string): Promise<void> {
+    const engine = this.getEngine(tenantId);
+    await engine.syncRuleFromDatabase(ruleId);
   }
 
   public processGlobalEvent(tenantId: string, eventType: string, data: Record<string, any>): Promise<void> {

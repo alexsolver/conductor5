@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { jwtAuth } from '../middleware/jwtAuth';
 import { GlobalAutomationManager } from '../modules/omnibridge/infrastructure/services/AutomationEngine';
 import { AutomationRule, AutomationCondition, AutomationAction } from '../modules/omnibridge/domain/entities/AutomationRule';
+import { getRepository } from 'typeorm'; // Importar getRepository para acessar o repositório
+import { AutomationRuleRepository } from '../modules/omnibridge/infrastructure/repositories/AutomationRuleRepository'; // Importar o repositório
 
 const router = Router();
 
@@ -219,7 +221,7 @@ router.post('/', async (req: any, res) => {
 
     const ruleId = `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    const rule = new AutomationRule(
+    const automationRuleEntity = new AutomationRule(
       ruleId,
       tenantId,
       name,
@@ -231,24 +233,25 @@ router.post('/', async (req: any, res) => {
     );
 
     const automationManager = GlobalAutomationManager.getInstance();
-    const engine = automationManager.getEngine(tenantId);
-    engine.addRule(rule);
+    const repository = getRepository(AutomationRuleRepository); // Obter instância do repositório
 
-    console.log(`✅ [AUTOMATION-RULES] Created rule: ${name} (${ruleId}) for tenant: ${tenantId}`);
+    // Salvar regra no repositório
+    const savedRule = await repository.create(automationRuleEntity);
+
+    console.log(`✅ [AUTOMATION-RULES] Rule created successfully: ${savedRule.name} (${savedRule.id})`);
+
+    // Sincronizar com o engine em memória
+    try {
+      await automationManager.syncRule(tenantId, savedRule.id);
+      console.log(`🔄 [AUTOMATION-RULES] Rule synced to engine: ${savedRule.id}`);
+    } catch (syncError) {
+      console.error(`⚠️ [AUTOMATION-RULES] Failed to sync rule to engine:`, syncError);
+    }
 
     res.status(201).json({
       success: true,
-      message: 'Automation rule created successfully',
-      rule: {
-        id: rule.id,
-        name: rule.name,
-        description: rule.description,
-        enabled: rule.enabled,
-        priority: rule.priority,
-        conditionsCount: rule.conditions.length,
-        actionsCount: rule.actions.length,
-        createdAt: rule.createdAt
-      }
+      data: savedRule,
+      message: 'Automation rule created successfully'
     });
   } catch (error) {
     console.error('❌ [AUTOMATION-RULES] Error creating rule:', error);
@@ -276,22 +279,24 @@ router.patch('/:ruleId', async (req: any, res) => {
     }
 
     const automationManager = GlobalAutomationManager.getInstance();
-    const engine = automationManager.getEngine(tenantId);
-    const updated = engine.updateRule(ruleId, updateData);
+    const repository = getRepository(AutomationRuleRepository); // Obter instância do repositório
 
-    if (!updated) {
-      return res.status(404).json({
-        success: false,
-        message: 'Automation rule not found'
-      });
+    const updatedRule = await repository.update(ruleId, updateData);
+
+    console.log(`✅ [AUTOMATION-RULES] Rule updated successfully: ${updatedRule.name} (${updatedRule.id})`);
+
+    // Sincronizar com o engine em memória
+    try {
+      await automationManager.syncRule(tenantId, updatedRule.id);
+      console.log(`🔄 [AUTOMATION-RULES] Rule synced to engine after update: ${updatedRule.id}`);
+    } catch (syncError) {
+      console.error(`⚠️ [AUTOMATION-RULES] Failed to sync updated rule to engine:`, syncError);
     }
-
-    console.log(`✏️ [AUTOMATION-RULES] Updated rule: ${ruleId} for tenant: ${tenantId}`);
 
     res.json({
       success: true,
-      message: 'Automation rule updated successfully',
-      rule: updated
+      data: updatedRule,
+      message: 'Automation rule updated successfully'
     });
   } catch (error) {
     console.error('❌ [AUTOMATION-RULES] Error updating rule:', error);
@@ -318,8 +323,10 @@ router.delete('/:ruleId', async (req: any, res) => {
     }
 
     const automationManager = GlobalAutomationManager.getInstance();
-    const engine = automationManager.getEngine(tenantId);
-    const deleted = engine.removeRule(ruleId);
+    const repository = getRepository(AutomationRuleRepository); // Obter instância do repositório
+
+    // Remover regra do repositório
+    const deleted = await repository.delete(ruleId); // Assumindo que o método delete retorna o status ou o item deletado
 
     if (!deleted) {
       return res.status(404).json({
@@ -327,6 +334,15 @@ router.delete('/:ruleId', async (req: any, res) => {
         message: 'Automation rule not found'
       });
     }
+
+    // Remover regra do engine em memória após a exclusão do repositório
+    try {
+      automationManager.removeRuleFromEngine(tenantId, ruleId);
+      console.log(`🗑️ [AUTOMATION-RULES] Rule removed from engine: ${ruleId}`);
+    } catch (removeError) {
+      console.error(`⚠️ [AUTOMATION-RULES] Failed to remove rule from engine:`, removeError);
+    }
+
 
     console.log(`🗑️ [AUTOMATION-RULES] Deleted rule: ${ruleId} for tenant: ${tenantId}`);
 
@@ -343,6 +359,58 @@ router.delete('/:ruleId', async (req: any, res) => {
   }
 });
 
+
+/**
+ * Toggle habilitar/desabilitar regra de automação
+ */
+router.patch('/:ruleId/toggle', async (req: any, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { ruleId } = req.params;
+    const { isEnabled } = req.body; // Espera um booleano para habilitar/desabilitar
+
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant ID not found'
+      });
+    }
+
+    if (typeof isEnabled !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'isEnabled property must be a boolean'
+      });
+    }
+
+    const automationManager = GlobalAutomationManager.getInstance();
+    const repository = getRepository(AutomationRuleRepository); // Obter instância do repositório
+
+    const updatedRule = await repository.update(ruleId, { isEnabled }); // Atualiza apenas o status isEnabled
+
+    console.log(`✅ [AUTOMATION-RULES] Rule ${isEnabled ? 'enabled' : 'disabled'}: ${updatedRule.name} (${updatedRule.id})`);
+
+    // Sincronizar com o engine em memória
+    try {
+      await automationManager.syncRule(tenantId, updatedRule.id);
+      console.log(`🔄 [AUTOMATION-RULES] Rule synced to engine after toggle: ${updatedRule.id}`);
+    } catch (syncError) {
+      console.error(`⚠️ [AUTOMATION-RULES] Failed to sync toggled rule to engine:`, syncError);
+    }
+
+    res.json({
+      success: true,
+      data: updatedRule,
+      message: `Automation rule ${isEnabled ? 'enabled' : 'disabled'} successfully`
+    });
+  } catch (error) {
+    console.error('❌ [AUTOMATION-RULES] Error toggling rule:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to toggle automation rule'
+    });
+  }
+});
 
 
 /**
@@ -415,7 +483,7 @@ router.post('/process-message', async (req: any, res) => {
 
     const automationManager = GlobalAutomationManager.getInstance();
     const engine = automationManager.getEngine(tenantId);
-    
+
     // Processar mensagem através do engine de automação
     await engine.processMessage({
       type: 'telegram_message',

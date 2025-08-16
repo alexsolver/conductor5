@@ -52,6 +52,15 @@ router.post('/telegram/:tenantId', async (req, res) => {
       console.log(`📨 [TELEGRAM-WEBHOOK] Processing through AutomationEngine`);
 
       const automationManager = GlobalAutomationManager.getInstance();
+      
+      // Garantir que as regras estejam atualizadas
+      try {
+        await automationManager.reloadEngineRules(tenantId);
+        console.log(`🔄 [TELEGRAM-WEBHOOK] Rules reloaded for tenant: ${tenantId}`);
+      } catch (reloadError) {
+        console.warn(`⚠️ [TELEGRAM-WEBHOOK] Failed to reload rules:`, reloadError);
+      }
+      
       const engine = automationManager.getEngine(tenantId);
 
       await engine.processMessage({
