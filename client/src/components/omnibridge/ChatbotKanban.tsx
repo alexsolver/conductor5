@@ -1215,11 +1215,432 @@ export default function ChatbotVisualEditor() {
               </TabsContent>
 
               <TabsContent value="config" className="space-y-4">
-                <div className="text-center py-8 text-muted-foreground">
-                  <Settings className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>Configurações específicas do tipo de nó</p>
-                  <p className="text-sm">Implementação em desenvolvimento</p>
-                </div>
+                {selectedNode && (
+                  <div className="space-y-4">
+                    {/* Trigger Node Configurations */}
+                    {selectedNode.type === 'trigger' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de Gatilho</h4>
+                        
+                        {nodeTypes.find(nt => nt.id.includes('trigger-message'))?.id === selectedNode.id && (
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Mensagem de Ativação</Label>
+                              <Input placeholder="Ex: olá, oi, bom dia" />
+                              <p className="text-xs text-muted-foreground mt-1">Palavras ou frases que ativam este gatilho</p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch id="case-sensitive" />
+                              <Label htmlFor="case-sensitive" className="text-sm">Sensível a maiúsculas/minúsculas</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch id="exact-match" />
+                              <Label htmlFor="exact-match" className="text-sm">Correspondência exata</Label>
+                            </div>
+                          </div>
+                        )}
+
+                        {nodeTypes.find(nt => nt.id.includes('trigger-keyword'))?.id === selectedNode.id && (
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Palavras-chave</Label>
+                              <Textarea placeholder="Digite as palavras-chave separadas por vírgula" rows={3} />
+                            </div>
+                            <div>
+                              <Label>Prioridade</Label>
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a prioridade" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="low">Baixa</SelectItem>
+                                  <SelectItem value="medium">Média</SelectItem>
+                                  <SelectItem value="high">Alta</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        )}
+
+                        {nodeTypes.find(nt => nt.id.includes('trigger-intent'))?.id === selectedNode.id && (
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Modelo de IA</Label>
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o modelo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
+                                  <SelectItem value="gpt-4">GPT-4</SelectItem>
+                                  <SelectItem value="claude">Claude</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Confiança Mínima (%)</Label>
+                              <Input type="number" min="0" max="100" defaultValue="70" />
+                            </div>
+                            <div>
+                              <Label>Prompt de Intenção</Label>
+                              <Textarea placeholder="Descreva a intenção que deve ser detectada..." rows={3} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Action Node Configurations */}
+                    {selectedNode.type === 'action' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de Ação</h4>
+                        
+                        {nodeTypes.find(nt => nt.id.includes('action-send-message'))?.id === selectedNode.id && (
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Conteúdo da Mensagem</Label>
+                              <Textarea placeholder="Digite a mensagem a ser enviada..." rows={4} />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch id="use-variables" />
+                              <Label htmlFor="use-variables" className="text-sm">Usar variáveis dinâmicas</Label>
+                            </div>
+                            <div>
+                              <Label>Delay (segundos)</Label>
+                              <Input type="number" min="0" defaultValue="0" />
+                            </div>
+                          </div>
+                        )}
+
+                        {nodeTypes.find(nt => nt.id.includes('action-api-call'))?.id === selectedNode.id && (
+                          <div className="space-y-3">
+                            <div>
+                              <Label>URL da API</Label>
+                              <Input placeholder="https://api.exemplo.com/endpoint" />
+                            </div>
+                            <div>
+                              <Label>Método HTTP</Label>
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o método" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="GET">GET</SelectItem>
+                                  <SelectItem value="POST">POST</SelectItem>
+                                  <SelectItem value="PUT">PUT</SelectItem>
+                                  <SelectItem value="DELETE">DELETE</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Headers</Label>
+                              <Textarea placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}' rows={3} />
+                            </div>
+                            <div>
+                              <Label>Body da Requisição</Label>
+                              <Textarea placeholder="JSON payload..." rows={3} />
+                            </div>
+                            <div>
+                              <Label>Timeout (segundos)</Label>
+                              <Input type="number" min="1" defaultValue="30" />
+                            </div>
+                          </div>
+                        )}
+
+                        {nodeTypes.find(nt => nt.id.includes('action-set-variable'))?.id === selectedNode.id && (
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Nome da Variável</Label>
+                              <Input placeholder="nome_usuario" />
+                            </div>
+                            <div>
+                              <Label>Valor</Label>
+                              <Input placeholder="Valor ou expressão" />
+                            </div>
+                            <div>
+                              <Label>Tipo de Valor</Label>
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="string">Texto</SelectItem>
+                                  <SelectItem value="number">Número</SelectItem>
+                                  <SelectItem value="boolean">Verdadeiro/Falso</SelectItem>
+                                  <SelectItem value="expression">Expressão</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Condition Node Configurations */}
+                    {selectedNode.type === 'condition' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de Condição</h4>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <Label>Tipo de Condição</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="equals">Igual a</SelectItem>
+                                <SelectItem value="not_equals">Diferente de</SelectItem>
+                                <SelectItem value="contains">Contém</SelectItem>
+                                <SelectItem value="starts_with">Começa com</SelectItem>
+                                <SelectItem value="ends_with">Termina com</SelectItem>
+                                <SelectItem value="greater_than">Maior que</SelectItem>
+                                <SelectItem value="less_than">Menor que</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Valor a Comparar</Label>
+                            <Input placeholder="Valor de comparação" />
+                          </div>
+                          <div>
+                            <Label>Variável ou Campo</Label>
+                            <Input placeholder="{{usuario.nome}} ou campo específico" />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch id="case-insensitive" />
+                            <Label htmlFor="case-insensitive" className="text-sm">Ignorar maiúsculas/minúsculas</Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Response Node Configurations */}
+                    {selectedNode.type === 'response' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de Resposta</h4>
+                        
+                        {nodeTypes.find(nt => nt.id.includes('response-quick-reply'))?.id === selectedNode.id && (
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Texto da Pergunta</Label>
+                              <Textarea placeholder="Como posso ajudar você hoje?" rows={2} />
+                            </div>
+                            <div>
+                              <Label>Opções de Resposta Rápida</Label>
+                              <div className="space-y-2">
+                                <Input placeholder="Opção 1" />
+                                <Input placeholder="Opção 2" />
+                                <Input placeholder="Opção 3" />
+                                <Button variant="outline" size="sm">
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Adicionar Opção
+                                </Button>
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Tempo Limite (segundos)</Label>
+                              <Input type="number" min="10" defaultValue="60" />
+                            </div>
+                          </div>
+                        )}
+
+                        {nodeTypes.find(nt => nt.id.includes('response-menu'))?.id === selectedNode.id && (
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Título do Menu</Label>
+                              <Input placeholder="Selecione uma opção" />
+                            </div>
+                            <div>
+                              <Label>Descrição</Label>
+                              <Textarea placeholder="Escolha uma das opções abaixo..." rows={2} />
+                            </div>
+                            <div>
+                              <Label>Itens do Menu</Label>
+                              <div className="space-y-2">
+                                <div className="flex gap-2">
+                                  <Input placeholder="Título do item" />
+                                  <Input placeholder="Descrição" />
+                                </div>
+                                <Button variant="outline" size="sm">
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Adicionar Item
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* AI Node Configurations */}
+                    {selectedNode.type === 'ai' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de IA</h4>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <Label>Modelo de IA</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o modelo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
+                                <SelectItem value="gpt-4">GPT-4</SelectItem>
+                                <SelectItem value="claude">Claude</SelectItem>
+                                <SelectItem value="gemini">Gemini</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Prompt do Sistema</Label>
+                            <Textarea placeholder="Você é um assistente útil e prestativo..." rows={4} />
+                          </div>
+                          <div>
+                            <Label>Temperatura</Label>
+                            <Input type="number" min="0" max="1" step="0.1" defaultValue="0.7" />
+                            <p className="text-xs text-muted-foreground mt-1">0 = Mais preciso, 1 = Mais criativo</p>
+                          </div>
+                          <div>
+                            <Label>Máximo de Tokens</Label>
+                            <Input type="number" min="1" max="4000" defaultValue="150" />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch id="context-memory" />
+                            <Label htmlFor="context-memory" className="text-sm">Manter contexto da conversa</Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Integration Node Configurations */}
+                    {selectedNode.type === 'integration' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de Integração</h4>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <Label>Tipo de Integração</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione a integração" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="whatsapp">WhatsApp Business</SelectItem>
+                                <SelectItem value="telegram">Telegram</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="sms">SMS</SelectItem>
+                                <SelectItem value="webhook">Webhook</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Configurações da API</Label>
+                            <Textarea placeholder="Chaves de API, tokens, etc..." rows={3} />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch id="retry-enabled" />
+                            <Label htmlFor="retry-enabled" className="text-sm">Retentar em caso de falha</Label>
+                          </div>
+                          <div>
+                            <Label>Tentativas Máximas</Label>
+                            <Input type="number" min="1" max="5" defaultValue="3" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Delay Node Configurations */}
+                    {selectedNode.type === 'delay' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de Delay</h4>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <Label>Tipo de Delay</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="fixed">Tempo Fixo</SelectItem>
+                                <SelectItem value="random">Tempo Aleatório</SelectItem>
+                                <SelectItem value="user_input">Aguardar Resposta do Usuário</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Duração (segundos)</Label>
+                            <Input type="number" min="1" defaultValue="5" />
+                          </div>
+                          <div>
+                            <Label>Mensagem de Aguardo</Label>
+                            <Input placeholder="Aguarde um momento..." />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch id="show-typing" />
+                            <Label htmlFor="show-typing" className="text-sm">Mostrar indicador de digitação</Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Validation Node Configurations */}
+                    {selectedNode.type === 'validation' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de Validação</h4>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <Label>Tipo de Validação</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="phone">Telefone</SelectItem>
+                                <SelectItem value="cpf">CPF</SelectItem>
+                                <SelectItem value="number">Número</SelectItem>
+                                <SelectItem value="regex">Expressão Regular</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Padrão de Validação</Label>
+                            <Input placeholder="Regex ou padrão específico" />
+                          </div>
+                          <div>
+                            <Label>Mensagem de Erro</Label>
+                            <Input placeholder="Formato inválido, tente novamente" />
+                          </div>
+                          <div>
+                            <Label>Tentativas Máximas</Label>
+                            <Input type="number" min="1" max="5" defaultValue="3" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Default Configuration for unhandled types */}
+                    {!['trigger', 'action', 'condition', 'response', 'ai', 'integration', 'delay', 'validation'].includes(selectedNode.type) && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações Gerais</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <Label>Configuração Personalizada</Label>
+                            <Textarea placeholder="Configurações específicas para este tipo de nó..." rows={4} />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch id="enabled" />
+                            <Label htmlFor="enabled" className="text-sm">Nó ativo</Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="connections" className="space-y-4">
