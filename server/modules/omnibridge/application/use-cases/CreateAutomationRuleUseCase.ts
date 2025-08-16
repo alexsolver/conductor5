@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { AutomationRule } from '../../domain/entities/AutomationRule';
+import { AutomationRuleEntity } from '../../domain/entities/AutomationRule';
 import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
 
 export interface CreateAutomationRuleDTO {
@@ -21,7 +21,7 @@ export interface CreateAutomationRuleDTO {
 export class CreateAutomationRuleUseCase {
   constructor(private automationRuleRepository: IAutomationRuleRepository) {}
 
-  async execute(data: any): Promise<AutomationRule> {
+  async execute(data: any): Promise<AutomationRuleEntity> {
     console.log(`🔧 [CreateAutomationRuleUseCase] Creating automation rule for tenant: ${data.tenantId}`);
 
     // Validate rule data
@@ -30,45 +30,33 @@ export class CreateAutomationRuleUseCase {
     const ruleId = uuidv4();
     const now = new Date();
 
-    const automationRule: AutomationRule = {
-      id: ruleId,
-      tenantId: data.tenantId,
-      name: data.name,
-      description: data.description,
-      isEnabled: true,
-      priority: data.priority,
-      triggers: data.triggers.map(trigger => ({
-        id: uuidv4(),
-        ruleId,
-        type: trigger.type,
-        conditions: trigger.conditions,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now
-      })),
-      actions: data.actions.map(action => ({
-        id: uuidv4(),
-        ruleId,
-        type: action.type,
-        parameters: action.parameters,
-        order: action.order,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now
-      })),
-      executionStats: {
-        totalExecutions: 0,
-        successfulExecutions: 0,
-        failedExecutions: 0
-      },
-      metadata: {
-        createdBy: data.userId || 'system',
-        version: 1,
-        tags: data.tags || []
-      },
-      createdAt: now,
-      updatedAt: now
-    };
+    // Map triggers and actions to the format expected by AutomationRuleEntity
+    const conditions = data.triggers.map(trigger => ({
+      type: trigger.type,
+      operator: 'equals',
+      value: JSON.stringify(trigger.conditions)
+    }));
+
+    const actions = data.actions.map(action => ({
+      type: action.type,
+      config: action.parameters
+    }));
+
+    const automationRule = new AutomationRuleEntity(
+      ruleId,
+      data.name,
+      conditions,
+      actions,
+      data.tenantId,
+      data.description,
+      true, // isActive
+      data.priority,
+      0, // executionCount
+      0, // successCount
+      null, // lastExecuted
+      now, // createdAt
+      now  // updatedAt
+    );
 
     const createdRule = await this.automationRuleRepository.create(automationRule);
 

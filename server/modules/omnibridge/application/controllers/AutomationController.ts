@@ -72,10 +72,10 @@ export class AutomationController {
         isEnabled: typeof ruleData.isEnabled === 'boolean' ? ruleData.isEnabled : true,
         triggers: Array.isArray(ruleData.triggers) && ruleData.triggers.length > 0 
           ? ruleData.triggers 
-          : [{ type: 'new_message', conditions: [] }],
+          : [{ type: 'message_received', conditions: {} }],
         actions: Array.isArray(ruleData.actions) && ruleData.actions.length > 0 
           ? ruleData.actions 
-          : [{ type: 'auto_reply', parameters: {} }],
+          : [{ type: 'send_message', parameters: { message: 'Auto-reply message' } }],
         priority: typeof ruleData.priority === 'number' ? ruleData.priority : 0,
         tenantId
       };
