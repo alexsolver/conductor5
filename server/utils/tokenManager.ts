@@ -45,7 +45,7 @@ export class TokenManager {
     };
 
     return jwt.sign(payload, this.accessSecret, {
-      expiresIn: '12h',
+      expiresIn: '24h', // ✅ 1QA.MD: Aumentado para 24 horas para reduzir logouts automáticos
       issuer: 'conductor-platform',
       audience: 'conductor-users',
       algorithm: 'HS256'
@@ -85,7 +85,8 @@ export class TokenManager {
 
       console.log('🔍 [TOKEN-MANAGER] Verifying access token...', {
         tokenStart: token.substring(0, 20),
-        tokenLength: token.length
+        tokenLength: token.length,
+        timestamp: new Date().toISOString()
       });
 
       const decoded = jwt.verify(token, this.accessSecret, {
@@ -99,9 +100,9 @@ export class TokenManager {
         return null;
       }
 
-      // Check if token is close to expiry (within 1 hour)
-      if (decoded.exp && (decoded.exp * 1000) < (Date.now() + 60 * 60 * 1000)) {
-        console.log('Token will expire soon, consider refreshing');
+      // Check if token is close to expiry (within 4 hours para 24h token)
+      if (decoded.exp && (decoded.exp * 1000) < (Date.now() + 4 * 60 * 60 * 1000)) {
+        console.log('🔄 [TOKEN-MANAGER] Token will expire in less than 4 hours, should refresh soon');
       }
 
       return {

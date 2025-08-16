@@ -60,9 +60,17 @@ authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) =
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 dias
     });
 
-    res.json({ 
-      accessToken,
-      refreshToken: newRefreshToken
+    // ✅ 1QA.MD: Resposta padronizada para refresh
+    res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: {
+        tokens: {
+          accessToken,
+          refreshToken: newRefreshToken
+        }
+      },
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('Token refresh error:', error);

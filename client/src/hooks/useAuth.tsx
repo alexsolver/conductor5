@@ -321,6 +321,41 @@ export function useAuth() {
   }
 
   const [token, setToken] = React.useState(localStorage.getItem('accessToken'));
+  
+  // ✅ 1QA.MD: Auto refresh automático para evitar logout
+  React.useEffect(() => {
+    const checkTokenExpiry = async () => {
+      const currentToken = localStorage.getItem('accessToken');
+      if (!currentToken || !context.user) return;
+      
+      try {
+        // Decodificar token para verificar expiração
+        const payload = JSON.parse(atob(currentToken.split('.')[1]));
+        const expiresAt = payload.exp * 1000;
+        const now = Date.now();
+        const timeToExpiry = expiresAt - now;
+        
+        // Se expira em menos de 2 horas, renovar automaticamente
+        if (timeToExpiry < 2 * 60 * 60 * 1000 && timeToExpiry > 0) {
+          console.log('🔄 [AUTO-REFRESH] Token expiring soon, refreshing automatically...');
+          const refreshed = await refreshToken();
+          if (refreshed) {
+            console.log('✅ [AUTO-REFRESH] Token renewed successfully');
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ [AUTO-REFRESH] Error checking token expiry:', error);
+      }
+    };
+
+    // Verificar a cada 30 minutos
+    const interval = setInterval(checkTokenExpiry, 30 * 60 * 1000);
+    
+    // Verificar imediatamente
+    checkTokenExpiry();
+    
+    return () => clearInterval(interval);
+  }, [context.user]);
 
   const refreshToken = async () => {
     try {

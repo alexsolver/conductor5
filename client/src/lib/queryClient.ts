@@ -4,7 +4,7 @@ async function refreshAccessToken(): Promise<string | null> {
   try {
     // Get refresh token from localStorage (if stored) or cookies
     const refreshToken = localStorage.getItem('refreshToken');
-    
+
     if (!refreshToken) {
       console.log('No refresh token available');
       return null;
@@ -54,84 +54,86 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const headers: Record<string, string> = {};
-  
-  if (data) {
-    headers["Content-Type"] = "application/json";
-  }
-  
-  // Add authorization header if token exists (but skip redirect for login/register endpoints)
-  let token = localStorage.getItem('accessToken');
-  const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
-  
-  // Check if token exists (skip for auth endpoints)
-  if (!token && !isAuthEndpoint) {
-    console.log('No token found, redirecting to login');
-    window.location.href = '/auth';
-    return new Response('Unauthorized', { status: 401 });
-  }
-  
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+export const apiRequest = async (method: string, endpoint: string, data?: any): Promise<Response> => {
+  const token = localStorage.getItem('accessToken');
+  const tenantId = localStorage.getItem('tenantId');
 
-  const fetchOptions: RequestInit = {
+  const options: RequestInit = {
     method,
-    headers,
-    credentials: "include",
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(tenantId && { 'X-Tenant-ID': tenantId }),
+    },
+    credentials: 'include',
   };
 
-  // Only add body for methods that support it
-  if (method !== 'GET' && method !== 'HEAD' && data) {
-    fetchOptions.body = JSON.stringify(data);
+  if (data && method !== 'GET') {
+    options.body = JSON.stringify(data);
   }
 
-  let res = await fetch(url, fetchOptions);
+  const response = await fetch(endpoint, options);
 
-  // If unauthorized, try to refresh token and retry
-  if (res.status === 401 && token) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      headers["Authorization"] = `Bearer ${newToken}`;
-      const retryOptions: RequestInit = {
-        method,
-        headers,
-        credentials: "include",
-      };
+  // ✅ 1QA.MD: Auto-refresh automático em caso de 401
+  if (response.status === 401 && endpoint !== '/api/auth/refresh') {
+    console.log('🔄 [API-INTERCEPTOR] 401 detected, attempting token refresh...');
 
-      if (method !== 'GET' && method !== 'HEAD' && data) {
-        retryOptions.body = JSON.stringify(data);
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      try {
+        const refreshResponse = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+          credentials: 'include',
+        });
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          if (refreshData.success && refreshData.data?.tokens) {
+            localStorage.setItem('accessToken', refreshData.data.tokens.accessToken);
+            if (refreshData.data.tokens.refreshToken) {
+              localStorage.setItem('refreshToken', refreshData.data.tokens.refreshToken);
+            }
+
+            // Retry original request com novo token
+            const newOptions = {
+              ...options,
+              headers: {
+                ...options.headers,
+                Authorization: `Bearer ${refreshData.data.tokens.accessToken}`
+              }
+            };
+
+            console.log('✅ [API-INTERCEPTOR] Token refreshed, retrying original request');
+            return await fetch(endpoint, newOptions);
+          }
+        }
+      } catch (error) {
+        console.error('❌ [API-INTERCEPTOR] Refresh failed:', error);
       }
-
-      res = await fetch(url, retryOptions);
-    } else {
-      // If refresh failed, redirect to login
-      console.log('Token refresh failed, redirecting to login');
-      window.location.href = '/auth';
-      return new Response('Unauthorized', { status: 401 });
     }
+
+    // Se refresh falhou, limpar tokens e forçar relogin
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('tenantId');
+    window.location.href = '/auth';
   }
 
-  await throwIfResNotOk(res);
-  return res;
-}
+  return response;
+};
 
-type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const headers: Record<string, string> = {};
-    
+
     // Add authorization header if token exists
     let token = localStorage.getItem('accessToken');
-    
+
     // Check if token exists
     if (!token) {
       console.log('🚫 [QUERY-CLIENT] No token found for query, returning null');
@@ -144,7 +146,7 @@ export const getQueryFn: <T>(options: {
       window.location.href = '/auth';
       return null;
     }
-    
+
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }

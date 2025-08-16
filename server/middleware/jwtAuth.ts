@@ -63,7 +63,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     // Verify JWT token using enhanced token manager
     const payload = tokenManager.verifyAccessToken(token);
-    
+
     // Check if payload is valid before proceeding
     // The original code had a check for decoded, but it's more robust to check payload directly.
     // Also, ensuring it's an object and has userId.
@@ -182,6 +182,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
         success: false,
         message: 'Token expired',
         code: 'TOKEN_EXPIRED',
+        needsRefresh: true, // ✅ 1QA.MD: Indicar que precisa fazer refresh
         timestamp: new Date().toISOString()
       });
     } else if (error instanceof jwt.JsonWebTokenError) {
@@ -189,10 +190,11 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
         success: false,
         message: 'Invalid token',
         code: 'INVALID_TOKEN',
+        needsRefresh: true, // ✅ 1QA.MD: Indicar que precisa fazer refresh
         timestamp: new Date().toISOString()
       });
     } else {
-      res.status(500).json({
+      res.status(401).json({
         success: false,
         message: 'Authentication error',
         code: 'AUTH_ERROR',
@@ -218,7 +220,7 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
 
     // Use tokenManager which is already imported and used in jwtAuth
     const payload = tokenManager.verifyAccessToken(token); 
-    
+
     if (payload && typeof payload === 'object' && payload.userId) {
       const userRepository = container.userRepository;
       const user = await userRepository.findById(payload.userId);
