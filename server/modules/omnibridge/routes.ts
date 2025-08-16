@@ -52,6 +52,8 @@ import { UpdateAutomationRuleUseCase } from './application/use-cases/UpdateAutom
 import { DeleteAutomationRuleUseCase } from './application/use-cases/DeleteAutomationRuleUseCase';
 import { ExecuteAutomationRuleUseCase } from './application/use-cases/ExecuteAutomationRuleUseCase';
 import { AutomationController } from './application/controllers/AutomationController';
+import { ChatbotController } from './application/controllers/ChatbotController';
+import { jwtAuth } from '../../middleware/jwtAuth';
 
 // Initialize Automation repositories and use cases
 const automationRuleRepository = new DrizzleAutomationRuleRepository();
@@ -70,31 +72,24 @@ const automationController = new AutomationController(
   executeAutomationRuleUseCase
 );
 
-// Automation Rules Routes
-router.get('/automation-rules', (req, res) => automationController.getRules(req, res));
-router.post('/automation-rules', (req, res) => automationController.createRule(req, res));
-router.put('/automation-rules/:ruleId', (req, res) => automationController.updateRule(req, res));
-router.delete('/automation-rules/:ruleId', (req, res) => automationController.deleteRule(req, res));
-router.post('/automation-rules/:ruleId/toggle', (req, res) => automationController.toggleRule(req, res));
-router.get('/automation-rules/templates', (req, res) => automationController.getTemplates(req, res));
+// Initialize Chatbot controller
+const chatbotController = new ChatbotController();
 
-// Templates (para implementação futura)
-router.get('/templates', (req, res) => {
-  res.json({ success: true, templates: [], message: 'Templates not implemented yet' });
-});
 
-router.post('/templates', (req, res) => {
-  res.status(501).json({ error: 'Template creation not implemented yet' });
-});
+// Automation rules routes
+router.get('/automation-rules', jwtAuth, (req, res) => automationController.getAutomationRules(req, res));
+router.post('/automation-rules', jwtAuth, (req, res) => automationController.createAutomationRule(req, res));
+router.put('/automation-rules/:id', jwtAuth, (req, res) => automationController.updateAutomationRule(req, res));
+router.delete('/automation-rules/:id', jwtAuth, (req, res) => automationController.deleteAutomationRule(req, res));
+router.post('/automation-rules/:id/toggle', jwtAuth, (req, res) => automationController.toggleRule(req, res));
 
-// Chatbots (para implementação futura)
-router.get('/chatbots', (req, res) => {
-  res.json({ success: true, chatbots: [], message: 'Chatbots not implemented yet' });
-});
+// Chatbot routes
+router.get('/chatbots', jwtAuth, (req, res) => chatbotController.getChatbots(req, res));
+router.post('/chatbots', jwtAuth, (req, res) => chatbotController.createChatbot(req, res));
+router.put('/chatbots/:id', jwtAuth, (req, res) => chatbotController.updateChatbot(req, res));
+router.delete('/chatbots/:id', jwtAuth, (req, res) => chatbotController.deleteChatbot(req, res));
+router.post('/chatbots/:id/toggle', jwtAuth, (req, res) => chatbotController.toggleChatbot(req, res));
 
-router.post('/chatbots', (req, res) => {
-  res.status(501).json({ error: 'Chatbot creation not implemented yet' });
-});
 
 // Integration sync endpoint
 router.post('/sync-integrations', async (req, res) => {
@@ -120,7 +115,7 @@ router.post('/sync-integrations', async (req, res) => {
     const communicationIntegrations = integrations.filter((integration: any) => {
       const category = integration.category?.toLowerCase() || '';
       const name = integration.name?.toLowerCase() || '';
-      
+
       return category.includes('comunicaç') || category.includes('communication') || 
              name.includes('email') || name.includes('whatsapp') || name.includes('telegram') ||
              name.includes('sms') || name.includes('chat') || name.includes('imap') ||

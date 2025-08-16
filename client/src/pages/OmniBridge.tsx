@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import ChatbotKanban from '@/components/omnibridge/ChatbotKanban';
 import {
   MessageSquare,
   Mail,
@@ -1412,36 +1413,7 @@ export default function OmniBridge() {
 
         {/* Chatbots Tab */}
         <TabsContent value="chatbots" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Chatbots e Agentes de IA</span>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Chatbot
-                </Button>
-              </CardTitle>
-              <CardDescription>
-                Configure chatbots com workflows customizáveis e recursos de IA para atendimento automatizado.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhum chatbot configurado</p>
-                <p className="text-sm">Configure chatbots para automatizar o primeiro atendimento</p>
-                <div className="mt-4 space-y-2">
-                  <Button variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Criar Chatbot Simples
-                  </Button>
-                  <div className="text-xs text-muted-foreground">
-                    Recursos de IA serão adicionados em atualizações futuras
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ChatbotKanban />
         </TabsContent>
       </Tabs>
 
