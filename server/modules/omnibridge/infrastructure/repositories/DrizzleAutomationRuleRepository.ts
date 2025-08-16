@@ -15,7 +15,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
           execution_stats, metadata, created_at, updated_at, created_by
         ) VALUES (
           ${rule.id}, ${rule.tenantId}, ${rule.name}, ${rule.description || ''}, 
-          ${rule.isActive}, 'general', 'general',
+          ${rule.isActive}, 'message_received', 'create_ticket',
           ${JSON.stringify(rule.conditions)}, ${JSON.stringify(rule.actions)},
           ${JSON.stringify(rule.conditions)}, ${JSON.stringify(rule.actions)}, 
           ${rule.priority}, '{"totalExecutions": 0, "successfulExecutions": 0, "failedExecutions": 0}',
@@ -24,7 +24,30 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       `);
 
       if (result.rows && result.rows.length > 0) {
-        return this.mapRowToEntity(result.rows[0]);
+        const createdRule = this.mapRowToEntity(result.rows[0]);
+        
+        // Registrar regra no engine de automação
+        const { GlobalAutomationManager } = await import('../services/AutomationEngine');
+        const automationManager = GlobalAutomationManager.getInstance();
+        const engine = automationManager.getEngine(rule.tenantId);
+        
+        // Criar AutomationRule para o engine
+        const { AutomationRule } = await import('../../domain/entities/AutomationRule');
+        const engineRule = new AutomationRule(
+          createdRule.id,
+          createdRule.tenantId,
+          createdRule.name,
+          createdRule.description || '',
+          createdRule.conditions,
+          createdRule.actions,
+          createdRule.isActive,
+          createdRule.priority
+        );
+        
+        engine.addRule(engineRule);
+        console.log(`✅ [DrizzleAutomationRuleRepository] Rule added to automation engine: ${createdRule.name}`);
+        
+        return createdRule;
       }
       
       return rule;

@@ -1370,7 +1370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ LEGACY ADMIN ROUTES ELIMINATED - Clean Architecture only per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Legacy admin routes eliminated');
-  
+
   // Apply webhook routes BEFORE auth middleware 
   const webhooksRoutes = await import('./routes/webhooks');
   app.use('/api/webhooks', webhooksRoutes.default);
@@ -1378,7 +1378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount tenant integrations routes
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
   app.use('/api/tenant-admin/integrations', tenantIntegrationsRoutes.default);
-  
+
   // Removed: journey API routes - functionality eliminated from system
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
 
@@ -1451,7 +1451,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
     // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
     // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
-    // ✅ LEGACY ticketHistoryRoutes eliminated per 1qa.md
     app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
 
     const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController'); // Re-import for clarity within this block
@@ -3283,7 +3282,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
   // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
   // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
-  // ✅ LEGACY ticketHistoryRoutes eliminated per 1qa.md
   app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
 
   // ========================================

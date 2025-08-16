@@ -94,6 +94,48 @@ export class AutomationEngine {
     }
   }
 
+  public async processMessage(messageData: any): Promise<void> {
+    try {
+      console.log(`📨 [AutomationEngine] Processing message for tenant ${this.tenantId}:`, {
+        type: messageData.type,
+        content: messageData.content?.substring(0, 100),
+        sender: messageData.sender,
+        channel: messageData.channel
+      });
+
+      const activeRules = Array.from(this.rules.values()).filter(rule => rule.enabled);
+      console.log(`🔍 [AutomationEngine] Found ${activeRules.length} active rules to evaluate`);
+
+      for (const rule of activeRules) {
+        try {
+          const matches = rule.evaluate(messageData);
+          
+          if (matches) {
+            console.log(`✅ [AutomationEngine] Rule "${rule.name}" matched message, executing actions...`);
+            
+            // Executar ações da regra
+            await rule.execute(messageData);
+            
+            // Atualizar métricas
+            this.updateMetrics('execution', true);
+            
+            console.log(`🎯 [AutomationEngine] Rule "${rule.name}" executed successfully`);
+          } else {
+            console.log(`⏭️ [AutomationEngine] Rule "${rule.name}" did not match message`);
+          }
+        } catch (error) {
+          console.error(`❌ [AutomationEngine] Error executing rule "${rule.name}":`, error);
+          this.updateMetrics('execution', false);
+        }
+      }
+
+      console.log(`✅ [AutomationEngine] Message processing completed for tenant ${this.tenantId}`);
+    } catch (error) {
+      console.error(`❌ [AutomationEngine] Error processing message for tenant ${this.tenantId}:`, error);
+      throw error;
+    }
+  }
+
   public createDefaultRules(): void {
     // Regra 1: Auto-resposta para mensagens específicas
     const autoResponseRule = new AutomationRule(

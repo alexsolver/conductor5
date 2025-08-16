@@ -185,8 +185,58 @@ export class AutomationRule {
   }
 
   private async createTicket(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    // Implementar criação de ticket
-    console.log(`🎫 [AUTOMATION] Creating ticket:`, action.params);
+    try {
+      console.log(`🎫 [AUTOMATION] Creating ticket from automation rule: ${this.name}`);
+      
+      // Preparar dados do ticket
+      const ticketData = {
+        subject: action.params?.subject || `Ticket criado automaticamente - ${data.channel || 'Telegram'}`,
+        description: action.params?.description || data.content || 'Ticket criado por regra de automação',
+        status: action.params?.status || 'open',
+        priority: action.params?.priority || 'medium',
+        urgency: 'medium',
+        impact: 'medium',
+        category: action.params?.category || 'Atendimento ao Cliente',
+        subcategory: action.params?.subcategory || 'Geral',
+        assignedToId: action.params?.assignedToId || null,
+        tenantId: this.tenantId,
+        source: data.channel || 'telegram',
+        metadata: {
+          automationRule: {
+            ruleId: this.id,
+            ruleName: this.name,
+            executedAt: new Date().toISOString()
+          },
+          originalMessage: {
+            content: data.content,
+            sender: data.sender,
+            channel: data.channel,
+            timestamp: data.timestamp,
+            metadata: data.metadata
+          }
+        }
+      };
+
+      // Fazer requisição para criar o ticket
+      const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/tickets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': this.tenantId
+        },
+        body: JSON.stringify(ticketData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`✅ [AUTOMATION] Ticket created successfully: ${result.data?.number || 'Unknown'}`);
+      } else {
+        const error = await response.text();
+        console.error(`❌ [AUTOMATION] Failed to create ticket:`, error);
+      }
+    } catch (error) {
+      console.error(`❌ [AUTOMATION] Error creating ticket:`, error);
+    }
   }
 }
 export interface AutomationCondition {

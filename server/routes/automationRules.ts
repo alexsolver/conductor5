@@ -395,4 +395,54 @@ router.post('/:ruleId/test', async (req: any, res) => {
   }
 });
 
+/**
+ * Processar mensagem do Telegram (webhook)
+ */
+router.post('/process-message', async (req: any, res) => {
+  try {
+    const tenantId = req.user?.tenantId || req.body.tenantId;
+    const messageData = req.body;
+
+    console.log(`📨 [AUTOMATION-RULES] Processing Telegram message for tenant: ${tenantId}`);
+    console.log(`📨 [AUTOMATION-RULES] Message data:`, JSON.stringify(messageData, null, 2));
+
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant ID not found'
+      });
+    }
+
+    const automationManager = GlobalAutomationManager.getInstance();
+    const engine = automationManager.getEngine(tenantId);
+    
+    // Processar mensagem através do engine de automação
+    await engine.processMessage({
+      type: 'telegram_message',
+      content: messageData.message?.text || '',
+      sender: messageData.message?.from?.username || 'telegram_user',
+      channel: 'telegram',
+      timestamp: new Date(messageData.message?.date * 1000).toISOString(),
+      metadata: {
+        chatId: messageData.message?.chat?.id,
+        messageId: messageData.message?.message_id,
+        from: messageData.message?.from
+      }
+    });
+
+    console.log(`✅ [AUTOMATION-RULES] Message processed successfully for tenant: ${tenantId}`);
+
+    res.json({
+      success: true,
+      message: 'Message processed successfully'
+    });
+  } catch (error) {
+    console.error('❌ [AUTOMATION-RULES] Error processing message:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process message'
+    });
+  }
+});
+
 export default router;
