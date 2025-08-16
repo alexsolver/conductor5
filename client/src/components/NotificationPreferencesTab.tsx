@@ -138,21 +138,6 @@ export default function NotificationPreferencesTab() {
   // Fetch user notification preferences
   const { data: userPreferences, isLoading, refetch } = useQuery({
     queryKey: ['/api/user/notification-preferences'],
-    queryFn: async () => {
-      const response = await fetch('/api/user/notification-preferences', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch notification preferences');
-      }
-      
-      const result = await response.json();
-      return result.success ? result.data : null;
-    },
     enabled: !!user
   });
 
