@@ -143,7 +143,7 @@ export class LocationsNewController {
   }
 
   /**
-   * CEP Lookup service
+   * CEP Lookup service - ✅ 1qa.md compliant implementation
    */
   async lookupCep(req: Request, res: Response): Promise<void> {
     try {
@@ -151,44 +151,96 @@ export class LocationsNewController {
       
       console.log('🔍 [CEP-LOOKUP] Request received for CEP:', cep);
       
-      if (!cep || !/^\d{8}$/.test(cep.replace(/\D/g, ''))) {
-        console.error('❌ [CEP-LOOKUP] Invalid CEP format:', cep);
-        res.status(400).json({ success: false, message: 'CEP inválido' });
+      // Validate CEP format
+      const cleanCep = cep.replace(/\D/g, '');
+      if (!cleanCep || cleanCep.length !== 8 || !/^\d{8}$/.test(cleanCep)) {
+        console.error('❌ [CEP-LOOKUP] Invalid CEP format:', cep, 'cleaned:', cleanCep);
+        res.status(400).json({ 
+          success: false, 
+          message: 'CEP deve conter exatamente 8 dígitos numéricos',
+          error: 'INVALID_CEP_FORMAT'
+        });
         return;
       }
 
-      const cleanCep = cep.replace(/\D/g, '');
       console.log('🔍 [CEP-LOOKUP] Clean CEP:', cleanCep);
       
-      // ViaCEP API call
-      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-      const data = await response.json();
+      // ViaCEP API call with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-      console.log('📡 [CEP-LOOKUP] ViaCEP response:', data);
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Conductor-Platform/1.0',
+            'Accept': 'application/json'
+          }
+        });
+        
+        clearTimeout(timeoutId);
 
-      if (data.erro) {
-        console.error('❌ [CEP-LOOKUP] CEP not found:', cleanCep);
-        res.status(404).json({ success: false, message: 'CEP não encontrado' });
-        return;
+        if (!response.ok) {
+          throw new Error(`ViaCEP API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('📡 [CEP-LOOKUP] ViaCEP response:', data);
+
+        // Check if CEP was found
+        if (data.erro || !data.cep) {
+          console.error('❌ [CEP-LOOKUP] CEP not found:', cleanCep);
+          res.status(404).json({ 
+            success: false, 
+            message: 'CEP não encontrado na base de dados dos Correios',
+            error: 'CEP_NOT_FOUND'
+          });
+          return;
+        }
+
+        // Return successful result following 1qa.md response pattern
+        const result = {
+          success: true,
+          message: 'CEP encontrado com sucesso',
+          data: {
+            cep: data.cep || cleanCep,
+            logradouro: data.logradouro || '',
+            bairro: data.bairro || '',
+            localidade: data.localidade || '',
+            uf: data.uf || '',
+            complemento: data.complemento || '',
+            ibge: data.ibge || null,
+            gia: data.gia || null,
+            ddd: data.ddd || null,
+            siafi: data.siafi || null
+          }
+        };
+
+        console.log('✅ [CEP-LOOKUP] Success response:', result);
+        res.json(result);
+
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        if (fetchError.name === 'AbortError') {
+          console.error('❌ [CEP-LOOKUP] Timeout error');
+          res.status(408).json({ 
+            success: false, 
+            message: 'Timeout ao consultar CEP. Tente novamente.',
+            error: 'REQUEST_TIMEOUT'
+          });
+        } else {
+          throw fetchError; // Re-throw to be handled by outer catch
+        }
       }
 
-      const result = {
-        success: true,
-        data: {
-          cep: data.cep,
-          logradouro: data.logradouro || '',
-          bairro: data.bairro || '',
-          localidade: data.localidade || '',
-          uf: data.uf || '',
-          complemento: data.complemento || ''
-        }
-      };
-
-      console.log('✅ [CEP-LOOKUP] Success response:', result);
-      res.json(result);
     } catch (error) {
-      console.error('❌ [CEP-LOOKUP] Error:', error);
-      res.status(500).json({ success: false, message: 'Erro interno do servidor ao buscar CEP' });
+      console.error('❌ [CEP-LOOKUP] Unexpected error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor ao buscar CEP',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'INTERNAL_ERROR'
+      });
     }
   }
 

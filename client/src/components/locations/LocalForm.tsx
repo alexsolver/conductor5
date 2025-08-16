@@ -228,7 +228,9 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
     }, []);
 
   const buscarCep = async (cep: string) => {
-    if (!cep || cep.length < 8) {
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    if (!cleanCep || cleanCep.length !== 8) {
       toast({
         title: "CEP Inválido",
         description: "Digite um CEP válido com 8 dígitos",
@@ -239,18 +241,28 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
 
     setLoadingAddress(true);
     try {
-      console.log('🔍 [CEP-LOOKUP] Searching for CEP:', cep);
+      console.log('🔍 [CEP-LOOKUP] Searching for CEP:', cleanCep);
 
-      // First try the internal API endpoint
-      const token = localStorage.getItem('accessToken');
-      const cleanCep = cep.replace(/\D/g, '');
+      // Get valid token
+      const validToken = await validateAndRefreshToken();
+      if (!validToken) {
+        toast({
+          title: "Erro de Autenticação",
+          description: "Não foi possível autenticar. Tente novamente.",
+          variant: "destructive"
+        });
+        return;
+      }
 
+      // Try internal API endpoint first
       const response = await fetch(`/api/locations-new/services/cep/${cleanCep}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${validToken}`,
           'Content-Type': 'application/json',
         },
       });
+
+      console.log('📡 [CEP-LOOKUP] Internal API response status:', response.status);
 
       if (response.ok) {
         const result = await response.json();
@@ -258,17 +270,19 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
 
         if (result.success && result.data) {
           const data = result.data;
+          
+          // Update form fields
           form.setValue('logradouro', data.logradouro || '');
           form.setValue('bairro', data.bairro || '');
           form.setValue('municipio', data.localidade || '');
           form.setValue('estado', data.uf || '');
 
-          // Buscar coordenadas do endereço
+          // Get coordinates for the address
           await buscarCoordenadas(data);
 
           toast({
             title: "CEP encontrado",
-            description: "Dados preenchidos automaticamente"
+            description: `Endereço preenchido: ${data.logradouro}, ${data.bairro}`,
           });
           return;
         }
@@ -277,28 +291,41 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
       // Fallback to ViaCEP direct API
       console.log('🔄 [CEP-LOOKUP] Trying ViaCEP fallback');
       const viaCepResponse = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      
+      if (!viaCepResponse.ok) {
+        throw new Error('ViaCEP service unavailable');
+      }
+
       const viaCepData = await viaCepResponse.json();
+      console.log('📡 [CEP-LOOKUP] ViaCEP response:', viaCepData);
 
       if (viaCepData && !viaCepData.erro) {
-        console.log('✅ [CEP-LOOKUP] ViaCEP success:', viaCepData);
+        console.log('✅ [CEP-LOOKUP] ViaCEP success');
 
+        // Update form fields
         form.setValue('logradouro', viaCepData.logradouro || '');
         form.setValue('bairro', viaCepData.bairro || '');
         form.setValue('municipio', viaCepData.localidade || '');
         form.setValue('estado', viaCepData.uf || '');
 
-        // Buscar coordenadas do endereço
-        await buscarCoordenadas(viaCepData);
+        // Get coordinates for the address
+        await buscarCoordenadas({
+          cep: viaCepData.cep,
+          logradouro: viaCepData.logradouro || '',
+          bairro: viaCepData.bairro || '',
+          localidade: viaCepData.localidade || '',
+          uf: viaCepData.uf || ''
+        });
 
         toast({
           title: "CEP encontrado",
-          description: "Dados preenchidos automaticamente"
+          description: `Endereço preenchido: ${viaCepData.logradouro}, ${viaCepData.bairro}`,
         });
       } else {
-        console.error('❌ [CEP-LOOKUP] CEP not found');
+        console.error('❌ [CEP-LOOKUP] CEP not found in ViaCEP');
         toast({
           title: "CEP não encontrado",
-          description: "Verifique o CEP digitado",
+          description: "Verifique se o CEP está correto",
           variant: "destructive"
         });
       }
@@ -306,7 +333,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
       console.error('❌ [CEP-LOOKUP] Error:', error);
       toast({
         title: "Erro ao buscar CEP",
-        description: "Tente novamente mais tarde",
+        description: "Serviço temporariamente indisponível. Tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -363,6 +390,29 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
 
   const openMapSelector = () => {
     console.log('🗺️ [MAP-MODAL] Opening map selector');
+    
+    // Get current coordinates or use defaults
+    const currentLat = form.getValues('latitude');
+    const currentLng = form.getValues('longitude');
+    
+    if (currentLat && currentLng) {
+      const lat = parseFloat(currentLat);
+      const lng = parseFloat(currentLng);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setMapCenter([lat, lng]);
+        console.log('🗺️ [MAP-MODAL] Using form coordinates:', { lat, lng });
+      }
+    } else {
+      // Try to geocode current address if available
+      const municipio = form.getValues('municipio');
+      const estado = form.getValues('estado');
+      
+      if (municipio && estado) {
+        console.log('🗺️ [MAP-MODAL] Will geocode address on map open');
+        // The map will handle this when opened
+      }
+    }
+    
     setShowMapModal(true);
   };
 
@@ -818,21 +868,28 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
                   maxLength={9}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '');
-                    const formatted = value.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+                    const formatted = value.length > 5 ? 
+                      value.replace(/^(\d{5})(\d{0,3})$/, '$1-$2') : 
+                      value;
                     e.target.value = formatted;
-                    register('cep').onChange(e);
+                    
+                    // Update form value
+                    form.setValue('cep', formatted);
                   }}
                   className={form.formState.errors.cep ? 'border-red-500' : ''}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       const cepValue = form.getValues('cep');
-                      if (cepValue && cepValue.length >= 8) {
+                      if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
                         buscarCep(cepValue);
                       }
                     }
                   }}
                 />
+                {form.formState.errors.cep && (
+                  <p className="text-sm text-red-500 mt-1">{form.formState.errors.cep.message}</p>
+                )}
               </div>
               <div className="flex items-end">
                 <Button
@@ -841,19 +898,22 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
                   onClick={() => {
                     const cepValue = form.getValues('cep');
                     console.log('🔍 [CEP-BUTTON] CEP value:', cepValue);
-                    if (cepValue && cepValue.replace(/\D/g, '').length === 8) {
+                    const cleanCep = cepValue?.replace(/\D/g, '');
+                    
+                    if (cleanCep && cleanCep.length === 8) {
                       buscarCep(cepValue);
                     } else {
                       toast({
-                        title: "CEP Inválido",
-                        description: "Digite um CEP válido com 8 dígitos",
+                        title: "CEP Incompleto",
+                        description: "Digite todos os 8 dígitos do CEP",
                         variant: "destructive"
                       });
                     }
                   }}
                   disabled={loadingAddress}
-                  className="mb-0"
+                  className="mb-0 flex items-center gap-2"
                 >
+                  <Search className="h-4 w-4" />
                   {loadingAddress ? 'Buscando...' : 'Buscar CEP'}
                 </Button>
               </div>
@@ -996,22 +1056,34 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="w-full flex items-center gap-2"
                     onClick={openMapSelector}
+                    disabled={showMapModal}
                   >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Abrir Mapa Interativo
+                    <Map className="h-4 w-4" />
+                    {showMapModal ? 'Mapa Aberto' : 'Abrir Mapa Interativo'}
                   </Button>
                 </div>
               </div>
 
-            {form.watch('geoCoordenadas') && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                <p className="text-sm text-green-700">
-                  ✓ Coordenadas validadas automaticamente pelo endereço
-                </p>
-              </div>
-            )}
+            <div className="space-y-2">
+              {(form.watch('latitude') && form.watch('longitude')) && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-700 flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Coordenadas: {parseFloat(form.watch('latitude')).toFixed(6)}, {parseFloat(form.watch('longitude')).toFixed(6)}
+                  </p>
+                </div>
+              )}
+              
+              {form.watch('geoCoordenadas') && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-700">
+                    ✓ Coordenadas validadas automaticamente pelo endereço
+                  </p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
