@@ -150,7 +150,7 @@ export default function UserProfile() {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={profile?.avatar || ""} />
+                <AvatarImage src={(profile as any)?.avatar || ""} />
                 <AvatarFallback className="text-lg">
                   {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
                 </AvatarFallback>
@@ -168,7 +168,7 @@ export default function UserProfile() {
               <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
               <div className="flex items-center space-x-2 mt-2">
                 <Badge variant="outline">{user?.role}</Badge>
-                {profile?.department && <Badge variant="secondary">{profile.department}</Badge>}
+                {(profile as any)?.department && <Badge variant="secondary">{(profile as any).department}</Badge>}
               </div>
             </div>
             <Button

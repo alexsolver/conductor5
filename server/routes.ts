@@ -1692,6 +1692,200 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log('✅ Tenant deployment template routes registered');
 
+  // 🔐 USER PROFILE ROUTES - Following 1qa.md Clean Architecture patterns
+  app.get('/api/user/profile', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const tenantId = req.user?.tenantId;
+
+      if (!userId || !tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'User authentication required'
+        });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      // Fetch user profile with extended information
+      const result = await pool.query(`
+        SELECT 
+          u.id,
+          u.first_name as "firstName",
+          u.last_name as "lastName", 
+          u.email,
+          u.phone,
+          u.role,
+          u.department,
+          u.position,
+          u.created_at as "createdAt",
+          u.updated_at as "updatedAt",
+          NULL as avatar,
+          NULL as bio,
+          NULL as location,
+          NULL as timezone,
+          NULL as "dateOfBirth",
+          NULL as address
+        FROM "${schemaName}".users u
+        WHERE u.id = $1 AND u.tenant_id = $2
+      `, [userId, tenantId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'User profile not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: result.rows[0]
+      });
+
+    } catch (error) {
+      console.error('[USER-PROFILE] Error fetching profile:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch user profile'
+      });
+    }
+  });
+
+  app.put('/api/user/profile', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const tenantId = req.user?.tenantId;
+      const { firstName, lastName, email, phone, department, position, bio, location, timezone, dateOfBirth, address } = req.body;
+
+      if (!userId || !tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'User authentication required'
+        });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      // Update user profile
+      const result = await pool.query(`
+        UPDATE "${schemaName}".users 
+        SET 
+          first_name = $1,
+          last_name = $2,
+          email = $3,
+          phone = $4,
+          department = $5,
+          position = $6,
+          updated_at = NOW()
+        WHERE id = $7 AND tenant_id = $8
+        RETURNING id, first_name as "firstName", last_name as "lastName", email, phone, department, position
+      `, [firstName, lastName, email, phone, department, position, userId, tenantId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'User profile not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: result.rows[0],
+        message: 'Profile updated successfully'
+      });
+
+    } catch (error) {
+      console.error('[USER-PROFILE] Error updating profile:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update user profile'
+      });
+    }
+  });
+
+  app.get('/api/user/activity', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const tenantId = req.user?.tenantId;
+
+      if (!userId || !tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'User authentication required'
+        });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      // Fetch recent user activity from tickets and other systems
+      const result = await pool.query(`
+        SELECT 
+          'ticket_created' as type,
+          'Ticket criado: ' || t.title as description,
+          t.created_at as timestamp
+        FROM "${schemaName}".tickets t
+        WHERE t.created_by = $1
+        UNION ALL
+        SELECT 
+          'ticket_updated' as type,
+          'Ticket atualizado: ' || t.title as description,
+          t.updated_at as timestamp
+        FROM "${schemaName}".tickets t
+        WHERE t.assigned_to = $1 AND t.updated_at != t.created_at
+        ORDER BY timestamp DESC
+        LIMIT 10
+      `, [userId]);
+
+      res.json({
+        success: true,
+        data: result.rows
+      });
+
+    } catch (error) {
+      console.error('[USER-ACTIVITY] Error fetching activity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch user activity'
+      });
+    }
+  });
+
+  app.get('/api/user/skills', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const tenantId = req.user?.tenantId;
+
+      if (!userId || !tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'User authentication required'
+        });
+      }
+
+      // Since skills system is not yet implemented, return empty array with success
+      res.json({
+        success: true,
+        data: [],
+        message: 'Skills system is being developed'
+      });
+
+    } catch (error) {
+      console.error('[USER-SKILLS] Error fetching skills:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch user skills'
+      });
+    }
+  });
+
+  console.log('✅ User profile routes registered');
+
   // ✅ LEGACY ROUTES ELIMINATED - Using Clean Architecture exclusively per 1qa.md
 
   // Customer-Location relationship routes
