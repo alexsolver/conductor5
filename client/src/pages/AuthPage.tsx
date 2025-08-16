@@ -7,14 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 
 export default function AuthPage() {
   const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   // ✅ 1QA.MD: Limpar tokens inválidos na inicialização
