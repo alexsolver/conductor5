@@ -69,7 +69,6 @@ import {
   Info,
   HelpCircle,
   Webhook,
-  API,
   Brain,
   Cpu,
   Network,
@@ -266,7 +265,7 @@ const nodeTypes = [
     id: 'action-api-call', 
     type: 'action', 
     name: 'Chamada API', 
-    icon: API, 
+    icon: Globe, 
     description: 'Faz requisição HTTP',
     color: 'bg-green-500'
   },
