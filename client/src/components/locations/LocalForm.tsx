@@ -465,14 +465,27 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
             responseText.includes('<body>')) {
           console.error('❌ [LOCAL-FORM] Received HTML instead of JSON');
           console.error('🔍 [LOCAL-FORM] HTML content preview:', responseText.substring(0, 1000));
-          
+          console.error('🔍 [LOCAL-FORM] Response status:', response.status);
+          console.error('🔍 [LOCAL-FORM] Response headers:', Object.fromEntries(response.headers.entries()));
+
           // Tentar extrair informação de erro do HTML se possível
           const titleMatch = responseText.match(/<title>(.*?)<\/title>/i);
           const errorTitle = titleMatch ? titleMatch[1] : 'Erro do Servidor';
-          
+
+          let errorMessage = "O servidor retornou uma página de erro em vez de dados JSON.";
+
+          // Verificar se é erro 500, 404, etc.
+          if (response.status >= 500) {
+            errorMessage = "Erro interno do servidor. Pode ser um problema de configuração do banco de dados ou schema.";
+          } else if (response.status === 404) {
+            errorMessage = "Endpoint não encontrado. Verifique se a API está configurada corretamente.";
+          } else if (response.status >= 400) {
+            errorMessage = "Erro de requisição. Verifique os dados enviados.";
+          }
+
           toast({
-            title: errorTitle,
-            description: "O servidor encontrou um erro interno. Verifique os dados e tente novamente.",
+            title: `${errorTitle} (${response.status})`,
+            description: errorMessage,
             variant: "destructive"
           });
           return;
@@ -500,7 +513,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
           name: parseError.name,
           message: parseError.message
         });
-        
+
         toast({
           title: "Erro de Parsing",
           description: `Não foi possível interpretar a resposta do servidor: ${parseError.message}`,
@@ -512,7 +525,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
       // Processar resposta baseada no status HTTP
       if (response.ok && result?.success) {
         console.log('✅ [LOCAL-FORM] Local created successfully');
-        
+
         toast({
           title: "Sucesso!",
           description: result.message || "Local criado com sucesso!",
@@ -551,7 +564,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
 
     } catch (networkError) {
       console.error('❌ [LOCAL-FORM] Network or unexpected error:', networkError);
-      
+
       if (networkError instanceof TypeError && networkError.message.includes('Failed to fetch')) {
         toast({
           title: "Erro de Conexão",
@@ -1133,7 +1146,7 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
               onLocationSelect={(lat, lng) => {
                 form.setValue('latitude', lat.toString());
                 form.setValue('longitude', lng.toString());
-                setMapCenter([lat, lng]);
+                setMapCenter([lat, lon]);
                             }}
             />
           </div>

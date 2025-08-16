@@ -38,8 +38,14 @@ router.use((req, res, next) => {
   const originalSend = res.send;
   res.send = function(body) {
     res.setHeader('Content-Type', 'application/json');
+    
+    // Se já é um objeto/array, serializar
+    if (typeof body === 'object' && body !== null) {
+      return originalSend.call(this, JSON.stringify(body));
+    }
+    
+    // Se é string mas não é JSON válido
     if (typeof body === 'string' && !body.startsWith('{') && !body.startsWith('[')) {
-      // Se não é JSON, envolver em uma resposta JSON válida
       return originalSend.call(this, JSON.stringify({
         success: false,
         error: 'Internal server error',
@@ -47,7 +53,23 @@ router.use((req, res, next) => {
         timestamp: new Date().toISOString()
       }));
     }
+    
     return originalSend.call(this, body);
+  };
+  
+  // Override res.end para garantir JSON em caso de erro
+  const originalEnd = res.end;
+  res.end = function(chunk, encoding) {
+    if (chunk && typeof chunk === 'string' && chunk.includes('<!DOCTYPE')) {
+      res.setHeader('Content-Type', 'application/json');
+      return originalEnd.call(this, JSON.stringify({
+        success: false,
+        error: 'Server error occurred',
+        message: 'HTML error page intercepted and converted to JSON',
+        timestamp: new Date().toISOString()
+      }));
+    }
+    return originalEnd.call(this, chunk, encoding);
   };
   
   next();
@@ -105,49 +127,91 @@ function getSchemaName(tenantId: string): string {
 // Helper function to ensure schema and tables exist
 async function ensureSchemaAndTables(schemaName: string): Promise<void> {
   try {
-    // Validar nome do schema
-    if (!schemaName || typeof schemaName !== 'string') {
+    // Validar nome do schema com sanitização
+    if (!schemaName || typeof schemaName !== 'string' || schemaName.trim().length === 0) {
       throw new Error(`Invalid schema name: ${schemaName}`);
     }
 
-    console.log('🔧 [SCHEMA-SETUP] Creating schema if not exists:', schemaName);
-    
-    // Criar schema com timeout
-    await Promise.race([
-      pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Schema creation timeout')), 5000)
-      )
-    ]);
-
-    console.log('🔧 [SCHEMA-SETUP] Creating tables for schema:', schemaName);
-    
-    // Verificar se a função existe primeiro
-    const functionExists = await pool.query(`
-      SELECT EXISTS (
-        SELECT 1 FROM pg_proc 
-        WHERE proname = 'create_locations_new_tables_for_tenant'
-      ) as exists
-    `);
-
-    if (!functionExists.rows[0].exists) {
-      console.error('❌ [SCHEMA-SETUP] Function create_locations_new_tables_for_tenant does not exist');
-      throw new Error('Database function not available');
+    // Sanitizar nome do schema para evitar SQL injection
+    const sanitizedSchemaName = schemaName.replace(/[^a-zA-Z0-9_]/g, '');
+    if (sanitizedSchemaName !== schemaName) {
+      console.warn('⚠️ [SCHEMA-SETUP] Schema name was sanitized:', { original: schemaName, sanitized: sanitizedSchemaName });
     }
 
-    // Executar função com timeout
-    await Promise.race([
-      pool.query(`SELECT create_locations_new_tables_for_tenant('${schemaName}')`),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Table creation timeout')), 10000)
-      )
-    ]);
+    console.log('🔧 [SCHEMA-SETUP] Creating schema if not exists:', sanitizedSchemaName);
+    
+    // Verificar se o schema já existe
+    const schemaExists = await pool.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.schemata 
+        WHERE schema_name = $1
+      ) as exists
+    `, [sanitizedSchemaName]);
 
-    console.log('✅ [SCHEMA-SETUP] Schema and tables ready for:', schemaName);
+    if (!schemaExists.rows[0].exists) {
+      // Criar schema com timeout apenas se não existe
+      await Promise.race([
+        pool.query(`CREATE SCHEMA "${sanitizedSchemaName}"`),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Schema creation timeout')), 5000)
+        )
+      ]);
+      console.log('✅ [SCHEMA-SETUP] Schema created:', sanitizedSchemaName);
+    } else {
+      console.log('✅ [SCHEMA-SETUP] Schema already exists:', sanitizedSchemaName);
+    }
+
+    // Verificar se a tabela locais já existe no schema
+    const tableExists = await pool.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = $1 AND table_name = 'locais'
+      ) as exists
+    `, [sanitizedSchemaName]);
+
+    if (!tableExists.rows[0].exists) {
+      console.log('🔧 [SCHEMA-SETUP] Creating tables for schema:', sanitizedSchemaName);
+      
+      // Verificar se a função existe primeiro
+      const functionExists = await pool.query(`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_proc 
+          WHERE proname = 'create_locations_new_tables_for_tenant'
+        ) as exists
+      `);
+
+      if (!functionExists.rows[0].exists) {
+        console.error('❌ [SCHEMA-SETUP] Function create_locations_new_tables_for_tenant does not exist');
+        throw new Error('Database function not available - please run table creation script');
+      }
+
+      // Executar função com timeout
+      await Promise.race([
+        pool.query(`SELECT create_locations_new_tables_for_tenant($1)`, [sanitizedSchemaName]),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Table creation timeout')), 15000)
+        )
+      ]);
+      console.log('✅ [SCHEMA-SETUP] Tables created for schema:', sanitizedSchemaName);
+    } else {
+      console.log('✅ [SCHEMA-SETUP] Tables already exist for schema:', sanitizedSchemaName);
+    }
+
+    console.log('✅ [SCHEMA-SETUP] Schema and tables ready for:', sanitizedSchemaName);
   } catch (error) {
     console.error('❌ [SCHEMA-SETUP] Error setting up schema:', error);
     console.error('❌ [SCHEMA-SETUP] Schema name was:', schemaName);
-    throw new Error(`Schema setup failed: ${error.message}`);
+    
+    // Criar erro mais específico baseado no tipo de falha
+    if (error.message?.includes('timeout')) {
+      throw new Error(`Database timeout during schema setup: ${error.message}`);
+    } else if (error.message?.includes('does not exist')) {
+      throw new Error(`Required database function missing: ${error.message}`);
+    } else if (error.code === '42P01') {
+      throw new Error(`Database table does not exist: ${error.message}`);
+    } else {
+      throw new Error(`Schema setup failed: ${error.message}`);
+    }
   }
 }
 
@@ -667,6 +731,20 @@ router.delete('/:recordType/:id', async (req: AuthenticatedRequest, res: Respons
 });
 
 
+// Middleware global de catch-all para qualquer erro não tratado
+router.use('*', (req: any, res: Response, next: NextFunction) => {
+  // Se chegou até aqui sem resposta, é erro 404
+  if (!res.headersSent) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(404).json({
+      success: false,
+      error: 'Endpoint não encontrado',
+      message: `A rota ${req.method} ${req.originalUrl} não existe`,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Middleware de tratamento de erro no final - captura qualquer erro não tratado
 router.use((error: any, req: any, res: any, next: any) => {
   console.error('❌ [LOCATIONS-ERROR-HANDLER] Unhandled error:', error);
@@ -674,45 +752,74 @@ router.use((error: any, req: any, res: any, next: any) => {
   console.error('❌ [LOCATIONS-ERROR-HANDLER] Request details:', {
     method: req.method,
     path: req.path,
+    originalUrl: req.originalUrl,
     body: req.body,
-    user: req.user?.id
+    user: req.user?.id,
+    tenantId: req.user?.tenantId
   });
   
   // Garantir resposta JSON sempre
   if (!res.headersSent) {
     res.setHeader('Content-Type', 'application/json');
     
-    // Determinar se é erro de validação ou erro interno
+    // Determinar tipo de erro e status code apropriado
     let statusCode = 500;
     let errorMessage = 'Erro interno do servidor';
+    let userMessage = 'Ocorreu um erro inesperado. Tente novamente.';
     
     if (error.name === 'ValidationError' || error.name === 'ZodError') {
       statusCode = 400;
       errorMessage = 'Dados de entrada inválidos';
+      userMessage = 'Verifique os dados informados e tente novamente.';
     } else if (error.code === '23505') { // PostgreSQL unique violation
       statusCode = 409;
       errorMessage = 'Conflito: registro já existe';
+      userMessage = 'Já existe um registro com essas informações.';
     } else if (error.code === '23503') { // PostgreSQL foreign key violation
       statusCode = 400;
       errorMessage = 'Referência inválida';
+      userMessage = 'Dados relacionados não encontrados ou inválidos.';
     } else if (error.code === '42P01') { // PostgreSQL table does not exist
       statusCode = 503;
       errorMessage = 'Estrutura do banco não configurada';
+      userMessage = 'Sistema temporariamente indisponível. Contate o administrador.';
+    } else if (error.code === '42P07') { // PostgreSQL already exists
+      statusCode = 409;
+      errorMessage = 'Conflito de estrutura';
+      userMessage = 'Estrutura já configurada.';
+    } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      statusCode = 503;
+      errorMessage = 'Erro de conexão com banco de dados';
+      userMessage = 'Serviço temporariamente indisponível.';
+    } else if (error.message?.includes('timeout')) {
+      statusCode = 408;
+      errorMessage = 'Timeout na operação';
+      userMessage = 'A operação demorou muito. Tente novamente.';
     }
     
     const response = {
       success: false,
       error: errorMessage,
-      message: 'Erro no processamento da requisição',
+      message: userMessage,
       timestamp: new Date().toISOString(),
+      requestId: req.headers['x-request-id'] || 'unknown',
       debug: process.env.NODE_ENV === 'development' ? {
         originalError: error.message,
         errorCode: error.code,
+        errorName: error.name,
         stack: error.stack?.split('\n').slice(0, 5).join('\n')
       } : undefined
     };
     
-    res.status(statusCode).json(response);
+    try {
+      res.status(statusCode).json(response);
+    } catch (sendError) {
+      console.error('❌ [LOCATIONS-ERROR-HANDLER] Error sending error response:', sendError);
+      // Last resort - send plain text
+      res.status(500).send(JSON.stringify(response));
+    }
+  } else {
+    console.error('❌ [LOCATIONS-ERROR-HANDLER] Headers already sent, cannot respond');
   }
 });
 
