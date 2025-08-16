@@ -99,6 +99,17 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: Authent
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
+    // ✅ CRITICAL FIX: Validar tokens antes de enviar resposta
+    if (!result.accessToken || !result.refreshToken) {
+      console.error('❌ [LOGIN-ROUTE] Invalid tokens generated:', {
+        hasAccessToken: !!result.accessToken,
+        hasRefreshToken: !!result.refreshToken
+      });
+      return res.status(500).json({ message: 'Failed to generate authentication tokens' });
+    }
+    
+    console.log('✅ [LOGIN-ROUTE] Login successful, sending tokens');
+    
     // ✅ 1QA.MD: Resposta padronizada para login
     res.json({
       success: true,

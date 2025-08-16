@@ -15,47 +15,9 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const { t } = useTranslation();
 
-  // ✅ 1QA.MD: Limpar tokens inválidos na inicialização
-  React.useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    // Verificar e limpar tokens inválidos
-    if (token && (
-        token === 'null' || 
-        token === 'undefined' || 
-        token === 'false' ||
-        token.trim() === '' ||
-        token.length < 20 ||
-        token.split('.').length !== 3)) {
-
-      console.log('🧹 [AUTH-PAGE] Cleaning invalid access token');
-      localStorage.removeItem('accessToken');
-    }
-
-    if (refreshToken && (
-        refreshToken === 'null' || 
-        refreshToken === 'undefined' || 
-        refreshToken === 'false' ||
-        refreshToken.trim() === '' ||
-        refreshToken.length < 20 ||
-        refreshToken.split('.').length !== 3)) {
-
-      console.log('🧹 [AUTH-PAGE] Cleaning invalid refresh token');
-      localStorage.removeItem('refreshToken');
-    }
-
-    // Limpar tenantId se inválido
-    const tenantId = localStorage.getItem('tenantId');
-    if (tenantId && (
-        tenantId === 'null' || 
-        tenantId === 'undefined' || 
-        tenantId.trim() === '')) {
-      console.log('🧹 [AUTH-PAGE] Cleaning invalid tenant ID');
-      localStorage.removeItem('tenantId');
-    }
-  }, []);
-
+  // ✅ CRITICAL FIX: Não limpar tokens automaticamente na página de auth
+  // Isso pode estar causando problemas durante o processo de login
+  
 
   // Redirect if already authenticated
   if (isAuthenticated) {

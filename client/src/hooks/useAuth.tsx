@@ -53,20 +53,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ✅ 1QA.MD: Validação rigorosa de token antes de usar
       const token = localStorage.getItem('accessToken');
       
-      // ✅ CRITICAL FIX: Verificar se token é válido antes de fazer request
+      // ✅ CRITICAL FIX: Se não há token, retornar null sem fazer request
       if (!token || 
           token === 'null' || 
           token === 'undefined' || 
           token.trim() === '' ||
           token === 'false') {
-        console.log('🚫 [AUTH-QUERY] No valid token found, skipping auth check');
         return null;
       }
 
-      // ✅ Validar formato JWT básico
+      // ✅ Validar formato JWT básico - mas permitir continuar se inválido
       const tokenParts = token.split('.');
       if (tokenParts.length !== 3) {
-        console.error('❌ [AUTH-QUERY] Invalid JWT format');
+        console.warn('⚠️ [AUTH-QUERY] Invalid JWT format, clearing tokens');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         return null;
@@ -232,49 +231,95 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
+      console.log('🔐 [LOGIN] Starting login process...');
+      
       try {
-        const res = await apiRequest('POST', '/api/auth/login', credentials);
+        // ✅ CRITICAL FIX: Fazer request direto sem usar apiRequest que pode ter problemas
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credentials),
+          credentials: 'include',
+        });
         
-        if (!res.ok) {
+        console.log('🔍 [LOGIN] Response status:', response.status);
+        
+        if (!response.ok) {
           let errorMessage = 'Login failed';
           try {
-            const errorData = await res.json();
+            const errorData = await response.json();
             errorMessage = errorData.message || errorMessage;
+            console.error('❌ [LOGIN] Error response:', errorData);
           } catch (e) {
-            errorMessage = res.statusText || errorMessage;
+            errorMessage = response.statusText || errorMessage;
           }
           throw new Error(errorMessage);
         }
         
-        const responseData = await res.json();
+        const responseData = await response.json();
+        console.log('🔍 [LOGIN] Response data structure:', Object.keys(responseData));
         
-        // ✅ CRITICAL FIX - Handle the backend response structure per 1qa.md compliance
+        // ✅ CRITICAL FIX - Handle multiple response formats
         if (responseData.success && responseData.data) {
-          // Backend returns: { success: true, data: { user, tokens, session } }
+          // Structured response
+          console.log('✅ [LOGIN] Using structured response format');
           return {
             user: responseData.data.user,
             accessToken: responseData.data.tokens.accessToken,
             refreshToken: responseData.data.tokens.refreshToken,
             session: responseData.data.session
           };
+        } else if (responseData.user && responseData.accessToken) {
+          // Direct response format
+          console.log('✅ [LOGIN] Using direct response format');
+          return {
+            user: responseData.user,
+            accessToken: responseData.accessToken,
+            refreshToken: responseData.refreshToken,
+            session: null
+          };
         }
         
-        throw new Error(responseData.message || 'Login failed');
+        console.error('❌ [LOGIN] Invalid response structure:', responseData);
+        throw new Error('Invalid login response format');
       } catch (error) {
-        // Login API error handled by UI
+        console.error('❌ [LOGIN] Login error:', error);
         throw error;
       }
     },
     onSuccess: (result: { user: User; accessToken: string; refreshToken?: string; session?: any }) => {
-      localStorage.setItem('accessToken', result.accessToken);
-      if (result.refreshToken) {
-        localStorage.setItem('refreshToken', result.refreshToken);
+      console.log('✅ [LOGIN-SUCCESS] Storing tokens and user data');
+      
+      // ✅ CRITICAL FIX: Validar tokens antes de armazenar
+      if (!result.accessToken || result.accessToken === 'null' || result.accessToken === 'undefined') {
+        console.error('❌ [LOGIN-SUCCESS] Invalid access token received');
+        toast({
+          title: 'Login failed',
+          description: 'Invalid token received from server',
+          variant: 'destructive',
+        });
+        return;
       }
+      
+      localStorage.setItem('accessToken', result.accessToken);
+      console.log('📦 [LOGIN-SUCCESS] Access token stored');
+      
+      if (result.refreshToken && result.refreshToken !== 'null' && result.refreshToken !== 'undefined') {
+        localStorage.setItem('refreshToken', result.refreshToken);
+        console.log('📦 [LOGIN-SUCCESS] Refresh token stored');
+      }
+      
       // Store tenantId for quick access by components
       if (result.user?.tenantId) {
         localStorage.setItem('tenantId', result.user.tenantId);
+        console.log('📦 [LOGIN-SUCCESS] Tenant ID stored:', result.user.tenantId);
       }
+      
       queryClient.setQueryData(['/api/auth/user'], result.user);
+      console.log('✅ [LOGIN-SUCCESS] Login completed successfully');
+      
       toast({
         title: 'Login successful',
         description: `Welcome back, ${result.user.firstName || result.user.email}!`,
