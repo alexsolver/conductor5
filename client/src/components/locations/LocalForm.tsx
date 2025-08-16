@@ -433,30 +433,66 @@ export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess,
     try {
       const currentYear = new Date().getFullYear();
 
-      // Call actual API endpoint using apiRequest for authentication
-      // Call real API endpoint for holidays
+      console.log('🔍 [HOLIDAYS-FETCH] Starting holidays fetch:', { municipio, estado, currentYear });
+
+      // Get valid token
+      const validToken = await validateAndRefreshToken();
+      if (!validToken) {
+        toast({
+          title: "Erro de Autenticação",
+          description: "Não foi possível autenticar. Tente novamente.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Call holidays API endpoint
       const response = await fetch(`/api/locations-new/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Authorization': `Bearer ${validToken}`,
           'Content-Type': 'application/json'
         }
       });
 
+      console.log('📡 [HOLIDAYS-FETCH] API response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [HOLIDAYS-FETCH] API error:', response.status, errorText);
+        throw new Error(`API returned ${response.status}: ${errorText}`);
+      }
+
       const result = await response.json();
+      console.log('✅ [HOLIDAYS-FETCH] API result:', result);
 
       if (result.success && result.data) {
-        setHolidays(result.data);
-        setSelectedHolidays(result.data); // Initialize selected holidays
+        // Ensure the data structure matches what the UI expects
+        const formattedData = {
+          federais: result.data.federais || [],
+          estaduais: result.data.estaduais || [],
+          municipais: result.data.municipais || []
+        };
+
+        console.log('✅ [HOLIDAYS-FETCH] Formatted data:', formattedData);
+
+        setHolidays(formattedData);
+        setSelectedHolidays(formattedData); // Initialize selected holidays
         setShowHolidaysDialog(true);
+
+        toast({
+          title: "Feriados encontrados",
+          description: `${result.total || 0} feriados carregados para ${municipio}, ${estado}`,
+        });
       } else {
+        console.error('❌ [HOLIDAYS-FETCH] Invalid API response:', result);
         throw new Error(result.message || 'Dados de feriados não encontrados');
       }
 
     } catch (error) {
-      console.error('Error fetching holidays:', error);
+      console.error('❌ [HOLIDAYS-FETCH] Error:', error);
       toast({
         title: "Erro ao buscar feriados",
-        description: "Tente novamente mais tarde",
+        description: error instanceof Error ? error.message : "Tente novamente mais tarde",
         variant: "destructive"
       });
     } finally {

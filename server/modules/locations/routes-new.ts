@@ -26,24 +26,24 @@ router.use(jwtAuth);
 // Middleware para garantir que sempre retornamos JSON
 router.use((req, res, next) => {
   res.setHeader('Content-Type', 'application/json');
-  
+
   // Override res.status para sempre garantir JSON
   const originalStatus = res.status;
   res.status = function(code) {
     res.setHeader('Content-Type', 'application/json');
     return originalStatus.call(this, code);
   };
-  
+
   // Override res.send para garantir JSON válido
   const originalSend = res.send;
   res.send = function(body) {
     res.setHeader('Content-Type', 'application/json');
-    
+
     // Se já é um objeto/array, serializar
     if (typeof body === 'object' && body !== null) {
       return originalSend.call(this, JSON.stringify(body));
     }
-    
+
     // Se é string mas não é JSON válido
     if (typeof body === 'string' && !body.startsWith('{') && !body.startsWith('[')) {
       return originalSend.call(this, JSON.stringify({
@@ -53,10 +53,10 @@ router.use((req, res, next) => {
         timestamp: new Date().toISOString()
       }));
     }
-    
+
     return originalSend.call(this, body);
   };
-  
+
   // Override res.end para garantir JSON em caso de erro
   const originalEnd = res.end;
   res.end = function(chunk, encoding) {
@@ -71,7 +71,7 @@ router.use((req, res, next) => {
     }
     return originalEnd.call(this, chunk, encoding);
   };
-  
+
   next();
 });
 
@@ -139,7 +139,7 @@ async function ensureSchemaAndTables(schemaName: string): Promise<void> {
     }
 
     console.log('🔧 [SCHEMA-SETUP] Creating schema if not exists:', sanitizedSchemaName);
-    
+
     // Verificar se o schema já existe
     const schemaExists = await pool.query(`
       SELECT EXISTS (
@@ -171,7 +171,7 @@ async function ensureSchemaAndTables(schemaName: string): Promise<void> {
 
     if (!tableExists.rows[0].exists) {
       console.log('🔧 [SCHEMA-SETUP] Creating tables for schema:', sanitizedSchemaName);
-      
+
       // Verificar se a função existe primeiro
       const functionExists = await pool.query(`
         SELECT EXISTS (
@@ -201,7 +201,7 @@ async function ensureSchemaAndTables(schemaName: string): Promise<void> {
   } catch (error) {
     console.error('❌ [SCHEMA-SETUP] Error setting up schema:', error);
     console.error('❌ [SCHEMA-SETUP] Schema name was:', schemaName);
-    
+
     // Criar erro mais específico baseado no tipo de falha
     if (error.message?.includes('timeout')) {
       throw new Error(`Database timeout during schema setup: ${error.message}`);
@@ -311,7 +311,7 @@ router.get('/:recordType', async (req: LocationsRequest, res: Response) => {
 router.post('/local', async (req: LocationsRequest, res: Response) => {
   console.log('🔄 [CREATE-LOCAL] Starting creation process');
   console.log('📝 [CREATE-LOCAL] Request body received:', JSON.stringify(req.body, null, 2));
-  
+
   // Função de tratamento de erro melhorada
   const handleError = (error: any, context: string, statusCode: number = 500) => {
     console.error(`❌ [CREATE-LOCAL] ${context}:`, error);
@@ -321,18 +321,18 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
       name: error?.name,
       stack: error?.stack?.split('\n').slice(0, 3).join('\n')
     });
-    
+
     if (res.headersSent) {
       console.error('❌ [CREATE-LOCAL] Headers already sent, cannot respond');
       return;
     }
-    
+
     // Garantir sempre resposta JSON
     res.setHeader('Content-Type', 'application/json');
-    
+
     let errorMessage = 'Erro interno do servidor';
     let userMessage = `Falha durante ${context}. Tente novamente.`;
-    
+
     // Tratar diferentes tipos de erro
     if (error?.code === '23505') {
       statusCode = 409;
@@ -351,7 +351,7 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
       errorMessage = 'Dados inválidos';
       userMessage = 'Verifique os dados informados';
     }
-    
+
     const response = {
       success: false,
       error: errorMessage,
@@ -364,7 +364,7 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
         errorName: error?.name
       } : undefined
     };
-    
+
     return res.status(statusCode).json(response);
   };
 
@@ -470,7 +470,7 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
       JSON.stringify(validatedData.indisponibilidades) : null;
 
     console.log('💾 [CREATE-LOCAL] Inserting into database...');
-    
+
     // Preparar parâmetros com validação extra
     const insertParams = [
       validatedData.tenantId, 
@@ -502,7 +502,7 @@ router.post('/local', async (req: LocationsRequest, res: Response) => {
 
     console.log('🔍 [CREATE-LOCAL] Insert parameters count:', insertParams.length);
     console.log('🔍 [CREATE-LOCAL] Schema name for query:', schemaName);
-    
+
     let result;
     try {
       // Executar inserção no banco com timeout
@@ -576,7 +576,7 @@ router.post('/regiao', async (req: LocationsRequest, res: Response) => {
 router.post('/rota-dinamica', async (req: AuthenticatedRequest, res: Response) => {
   console.log('🔄 [CREATE-ROTA-DINAMICA] Starting creation process');
   console.log('📝 [CREATE-ROTA-DINAMICA] Request body received:', JSON.stringify(req.body, null, 2));
-  
+
   try {
     const user = (req as any).user;
     if (!user) {
@@ -856,16 +856,16 @@ router.use((error: any, req: any, res: any, next: any) => {
     user: req.user?.id,
     tenantId: req.user?.tenantId
   });
-  
+
   // Garantir resposta JSON sempre
   if (!res.headersSent) {
     res.setHeader('Content-Type', 'application/json');
-    
+
     // Determinar tipo de erro e status code apropriado
     let statusCode = 500;
     let errorMessage = 'Erro interno do servidor';
     let userMessage = 'Ocorreu um erro inesperado. Tente novamente.';
-    
+
     if (error.name === 'ValidationError' || error.name === 'ZodError') {
       statusCode = 400;
       errorMessage = 'Dados de entrada inválidos';
@@ -895,7 +895,7 @@ router.use((error: any, req: any, res: any, next: any) => {
       errorMessage = 'Timeout na operação';
       userMessage = 'A operação demorou muito. Tente novamente.';
     }
-    
+
     const response = {
       success: false,
       error: errorMessage,
@@ -909,7 +909,7 @@ router.use((error: any, req: any, res: any, next: any) => {
         stack: error.stack?.split('\n').slice(0, 5).join('\n')
       } : undefined
     };
-    
+
     try {
       res.status(statusCode).json(response);
     } catch (sendError) {
