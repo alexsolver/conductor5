@@ -530,6 +530,9 @@ export default function ChatbotVisualEditor() {
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [draggedNode, setDraggedNode] = useState<FlowNode | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isNodeDragging, setIsNodeDragging] = useState(false);
 
   const [newChatbotData, setNewChatbotData] = useState({
     name: '',
@@ -767,6 +770,67 @@ export default function ChatbotVisualEditor() {
       setShowNodeConfig(true);
     }
   };
+
+  const handleNodeMouseDown = (e: React.MouseEvent, node: FlowNode) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (connecting) return;
+    
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const offsetX = e.clientX - rect.left - node.position.x * zoom - canvasOffset.x;
+    const offsetY = e.clientY - rect.top - node.position.y * zoom - canvasOffset.y;
+    
+    setDraggedNode(node);
+    setDragOffset({ x: offsetX, y: offsetY });
+    setIsNodeDragging(true);
+  };
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isNodeDragging || !draggedNode || !canvasRef.current) return;
+
+    e.preventDefault();
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / zoom;
+    const y = (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / zoom;
+
+    if (selectedChatbot) {
+      const updatedChatbot = {
+        ...selectedChatbot,
+        flow: {
+          ...selectedChatbot.flow,
+          nodes: selectedChatbot.flow.nodes.map(n =>
+            n.id === draggedNode.id ? { ...n, position: { x, y } } : n
+          )
+        }
+      };
+
+      setSelectedChatbot(updatedChatbot);
+    }
+  }, [isNodeDragging, draggedNode, canvasOffset, dragOffset, zoom, selectedChatbot]);
+
+  const handleMouseUp = useCallback(() => {
+    if (isNodeDragging && selectedChatbot && draggedNode) {
+      setChatbots(prev => prev.map(bot => 
+        bot.id === selectedChatbot.id ? selectedChatbot : bot
+      ));
+    }
+    setIsNodeDragging(false);
+    setDraggedNode(null);
+  }, [isNodeDragging, selectedChatbot, draggedNode]);
+
+  useEffect(() => {
+    if (isNodeDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isNodeDragging, handleMouseMove, handleMouseUp]);
 
   const filteredNodeTypes = nodeTypes.filter(nodeType => {
     const matchesSearch = nodeType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1034,17 +1098,23 @@ export default function ChatbotVisualEditor() {
                   return (
                     <div
                       key={node.id}
-                      className={`absolute cursor-pointer transition-all hover:shadow-lg ${
+                      className={`absolute transition-all hover:shadow-lg ${
                         node.isStartNode ? 'ring-2 ring-green-500' : ''
                       } ${
                         connecting && connectionStart === node.id ? 'ring-2 ring-blue-500' : ''
+                      } ${
+                        isNodeDragging && draggedNode?.id === node.id ? 'cursor-grabbing shadow-2xl scale-105' : 'cursor-grab'
+                      } ${
+                        connecting ? 'cursor-crosshair' : ''
                       }`}
                       style={{
                         left: node.position.x,
                         top: node.position.y,
-                        width: '200px'
+                        width: '200px',
+                        zIndex: isNodeDragging && draggedNode?.id === node.id ? 1000 : 1
                       }}
-                      onClick={() => handleNodeClick(node)}
+                      onMouseDown={(e) => handleNodeMouseDown(e, node)}
+                      onClick={() => !isNodeDragging && handleNodeClick(node)}
                     >
                       <Card className="shadow-md">
                         <CardHeader className="p-3 pb-2">
@@ -1223,41 +1293,124 @@ export default function ChatbotVisualEditor() {
                         <h4 className="font-medium text-sm">Configurações de Gatilho</h4>
                         
                         {nodeTypes.find(nt => nt.id.includes('trigger-message'))?.id === selectedNode.id && (
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                             <div>
-                              <Label>Mensagem de Ativação</Label>
-                              <Input placeholder="Ex: olá, oi, bom dia" />
-                              <p className="text-xs text-muted-foreground mt-1">Palavras ou frases que ativam este gatilho</p>
+                              <Label>Mensagens de Ativação</Label>
+                              <Textarea 
+                                placeholder="olá&#10;oi&#10;bom dia&#10;boa tarde&#10;preciso de ajuda"
+                                rows={4}
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">Uma mensagem por linha. Use quebras de linha para separar</p>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Switch id="case-sensitive" />
-                              <Label htmlFor="case-sensitive" className="text-sm">Sensível a maiúsculas/minúsculas</Label>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="flex items-center space-x-2">
+                                <Switch id="case-sensitive" />
+                                <Label htmlFor="case-sensitive" className="text-sm">Sensível a maiúsculas/minúsculas</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch id="exact-match" />
+                                <Label htmlFor="exact-match" className="text-sm">Correspondência exata</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch id="partial-match" />
+                                <Label htmlFor="partial-match" className="text-sm">Correspondência parcial</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch id="regex-enabled" />
+                                <Label htmlFor="regex-enabled" className="text-sm">Usar expressões regulares</Label>
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Switch id="exact-match" />
-                              <Label htmlFor="exact-match" className="text-sm">Correspondência exata</Label>
-                            </div>
-                          </div>
-                        )}
-
-                        {nodeTypes.find(nt => nt.id.includes('trigger-keyword'))?.id === selectedNode.id && (
-                          <div className="space-y-3">
                             <div>
-                              <Label>Palavras-chave</Label>
-                              <Textarea placeholder="Digite as palavras-chave separadas por vírgula" rows={3} />
-                            </div>
-                            <div>
-                              <Label>Prioridade</Label>
+                              <Label>Prioridade do Gatilho</Label>
                               <Select>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Selecione a prioridade" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="low">Baixa</SelectItem>
-                                  <SelectItem value="medium">Média</SelectItem>
-                                  <SelectItem value="high">Alta</SelectItem>
+                                  <SelectItem value="1">1 - Mais Alta</SelectItem>
+                                  <SelectItem value="5">5 - Alta</SelectItem>
+                                  <SelectItem value="10">10 - Normal</SelectItem>
+                                  <SelectItem value="15">15 - Baixa</SelectItem>
+                                  <SelectItem value="20">20 - Mais Baixa</SelectItem>
                                 </SelectContent>
                               </Select>
+                            </div>
+                            <div>
+                              <Label>Condições Adicionais</Label>
+                              <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                  <Switch id="first-message-only" />
+                                  <Label htmlFor="first-message-only" className="text-sm">Apenas primeira mensagem do usuário</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Switch id="business-hours-only" />
+                                  <Label htmlFor="business-hours-only" className="text-sm">Apenas em horário comercial</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Switch id="new-users-only" />
+                                  <Label htmlFor="new-users-only" className="text-sm">Apenas usuários novos</Label>
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Timeout do Gatilho (segundos)</Label>
+                              <Input type="number" min="0" defaultValue="0" placeholder="0 = sem timeout" />
+                              <p className="text-xs text-muted-foreground mt-1">Tempo limite para o gatilho ser ativado após a mensagem</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {nodeTypes.find(nt => nt.id.includes('trigger-keyword'))?.id === selectedNode.id && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Palavras-chave Principais</Label>
+                              <Textarea placeholder="suporte, ajuda, problema, dúvida" rows={3} />
+                              <p className="text-xs text-muted-foreground mt-1">Palavras-chave primárias separadas por vírgula</p>
+                            </div>
+                            <div>
+                              <Label>Palavras-chave Secundárias (Opcionais)</Label>
+                              <Textarea placeholder="auxílio, apoio, questão, pergunta" rows={2} />
+                              <p className="text-xs text-muted-foreground mt-1">Palavras-chave que aumentam a pontuação</p>
+                            </div>
+                            <div>
+                              <Label>Palavras Excludentes</Label>
+                              <Textarea placeholder="não, nunca, pare, cancele" rows={2} />
+                              <p className="text-xs text-muted-foreground mt-1">Palavras que impedem a ativação do gatilho</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Prioridade</Label>
+                                <Select>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione a prioridade" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="1">1 - Crítica</SelectItem>
+                                    <SelectItem value="5">5 - Alta</SelectItem>
+                                    <SelectItem value="10">10 - Normal</SelectItem>
+                                    <SelectItem value="15">15 - Baixa</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>Pontuação Mínima</Label>
+                                <Input type="number" min="1" max="100" defaultValue="70" />
+                                <p className="text-xs text-muted-foreground mt-1">0-100%</p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <Switch id="stemming" />
+                                <Label htmlFor="stemming" className="text-sm">Usar stemming (raiz das palavras)</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch id="synonyms" />
+                                <Label htmlFor="synonyms" className="text-sm">Incluir sinônimos automáticos</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch id="fuzzy-match" />
+                                <Label htmlFor="fuzzy-match" className="text-sm">Correspondência aproximada</Label>
+                              </div>
                             </div>
                           </div>
                         )}
@@ -1645,20 +1798,139 @@ export default function ChatbotVisualEditor() {
 
               <TabsContent value="connections" className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Conexões de Saída</Label>
-                  <div className="space-y-2">
-                    {selectedNode.connections.map((connId, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 border rounded">
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{connId}</span>
-                        <Button variant="ghost" size="sm" className="ml-auto h-6 w-6 p-0">
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
+                  <Label className="text-sm font-medium mb-3 block">Conexões de Saída</Label>
+                  <div className="space-y-3">
+                    {selectedNode.connections.map((connId, index) => {
+                      const targetNode = selectedChatbot?.flow.nodes.find(n => n.id === connId);
+                      const connection = selectedChatbot?.flow.connections.find(c => c.from === selectedNode.id && c.to === connId);
+                      return (
+                        <Card key={index} className="p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0">
+                              <ArrowRight className="h-4 w-4 text-blue-500" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{targetNode?.title || connId}</div>
+                              <div className="text-xs text-muted-foreground">{targetNode?.type || 'Nó desconhecido'}</div>
+                              {connection?.label && (
+                                <div className="text-xs text-blue-600 mt-1">"{connection.label}"</div>
+                              )}
+                            </div>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
                     {selectedNode.connections.length === 0 && (
-                      <p className="text-sm text-muted-foreground">Nenhuma conexão de saída</p>
+                      <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-lg">
+                        <Link className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Nenhuma conexão de saída</p>
+                        <p className="text-xs text-muted-foreground">Use o modo de conexão para criar links</p>
+                      </div>
                     )}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Conexões de Entrada</Label>
+                  <div className="space-y-3">
+                    {selectedChatbot?.flow.connections
+                      .filter(conn => conn.to === selectedNode.id)
+                      .map((connection, index) => {
+                        const sourceNode = selectedChatbot.flow.nodes.find(n => n.id === connection.from);
+                        return (
+                          <Card key={index} className="p-3 bg-gray-50">
+                            <div className="flex items-center gap-3">
+                              <div className="flex-shrink-0">
+                                <ArrowRight className="h-4 w-4 text-green-500 rotate-180" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">{sourceNode?.title || connection.from}</div>
+                                <div className="text-xs text-muted-foreground">{sourceNode?.type || 'Nó desconhecido'}</div>
+                                {connection.label && (
+                                  <div className="text-xs text-green-600 mt-1">"{connection.label}"</div>
+                                )}
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      })}
+                    {selectedChatbot?.flow.connections.filter(conn => conn.to === selectedNode.id).length === 0 && (
+                      <div className="text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <p className="text-sm text-muted-foreground">Nenhuma conexão de entrada</p>
+                        <p className="text-xs text-muted-foreground">Este nó não recebe dados de outros nós</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Configurações de Conexão</Label>
+                  <div className="space-y-3">
+                    <div>
+                      <Label>Comportamento de Falha</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o comportamento" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="stop">Parar fluxo</SelectItem>
+                          <SelectItem value="fallback">Usar nó de fallback</SelectItem>
+                          <SelectItem value="retry">Tentar novamente</SelectItem>
+                          <SelectItem value="continue">Continuar para próximo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Timeout de Conexão (segundos)</Label>
+                      <Input type="number" min="1" max="300" defaultValue="30" />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="log-connections" />
+                      <Label htmlFor="log-connections" className="text-sm">Registrar todas as conexões</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch id="parallel-connections" />
+                      <Label htmlFor="parallel-connections" className="text-sm">Permitir conexões paralelas</Label>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Condições de Conexão</Label>
+                  <div className="space-y-3">
+                    <div>
+                      <Label>Condições para Ativação</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a condição" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="always">Sempre</SelectItem>
+                          <SelectItem value="success">Apenas em caso de sucesso</SelectItem>
+                          <SelectItem value="error">Apenas em caso de erro</SelectItem>
+                          <SelectItem value="custom">Condição customizada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Expressão Condicional (Opcional)</Label>
+                      <Input placeholder="Ex: {{user.age}} > 18" />
+                      <p className="text-xs text-muted-foreground mt-1">Use variáveis entre chaves duplas</p>
+                    </div>
                   </div>
                 </div>
               </TabsContent>
