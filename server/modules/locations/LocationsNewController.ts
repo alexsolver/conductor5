@@ -295,10 +295,23 @@ export class LocationsNewController {
       }
 
       // Fetch records with tenant validation per 1qa.md
+      // Handle different column naming for different tables
+      let orderByColumn = 'nome';
+      
+      // Check if this table uses different column naming
+      const columnCheck = await pool.query(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_schema = $1 AND table_name = $2 AND column_name IN ('nome', 'name')
+      `, [schemaName, tableName]);
+
+      if (columnCheck.rows.length > 0) {
+        orderByColumn = columnCheck.rows[0].column_name;
+      }
+
       const result = await pool.query(`
         SELECT * FROM "${schemaName}"."${tableName}" 
         WHERE tenant_id = $1 AND ativo = true
-        ORDER BY nome ASC
+        ORDER BY ${orderByColumn} ASC
         LIMIT 100
       `, [req.user.tenantId]);
 

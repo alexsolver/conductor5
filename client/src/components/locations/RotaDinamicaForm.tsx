@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,12 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { X, MapPin, Users, Calendar, Route } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useToast } from "@/hooks/use-toast";
 
 // Multi-select components for relationships
 const ClientesMultiSelect = ({ value = [], onChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const { data: clientes = [] } = useQuery({
     queryKey: ['integration-customers'],
     queryFn: async () => {
@@ -118,7 +118,7 @@ const ClientesMultiSelect = ({ value = [], onChange }) => {
 const RegioesMultiSelect = ({ value = [], onChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const { data: regioes = [] } = useQuery({
     queryKey: ['/api/locations-new/regiao'],
     queryFn: async () => {
@@ -218,7 +218,16 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
   );
 };
 
-export default function RotaDinamicaForm({ onSubmit, isSubmitting, onCancel }) {
+interface RotaDinamicaFormProps {
+  onSubmit: (data: NewRotaDinamica) => void;
+  initialData?: Partial<NewRotaDinamica>;
+  isLoading?: boolean;
+  onSuccess?: () => void; // Added for success callback
+  onClose?: () => void; // Added for close callback
+}
+
+export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onSuccess, onClose }: RotaDinamicaFormProps) {
+  const { toast } = useToast();
   const form = useForm({
     resolver: zodResolver(rotaDinamicaSchema),
     defaultValues: {
@@ -232,7 +241,7 @@ export default function RotaDinamicaForm({ onSubmit, isSubmitting, onCancel }) {
     }
   });
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
+  const { register, handleSubmit: handleHookFormSubmit, formState: { errors }, setValue, watch } = form;
   const watchedValues = useWatch({ control: form.control });
 
   // Dias da semana options
@@ -254,38 +263,149 @@ export default function RotaDinamicaForm({ onSubmit, isSubmitting, onCancel }) {
     setValue('diasSemana', newDias);
   };
 
-  const handleFormSubmit = async (data) => {
+  const handleSubmit = async (data: NewRotaDinamica) => {
     try {
-      // Get current token and validate
+      console.log('🔄 [ROTA-DINAMICA-FORM] Starting form submission...');
+      console.log('📝 [ROTA-DINAMICA-FORM] Form data:', JSON.stringify(data, null, 2));
+
+      // Validar token de acesso
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        throw new Error('Token de autenticação não encontrado');
+        console.error('❌ [ROTA-DINAMICA-FORM] No access token found');
+        toast({
+          title: "Erro de Autenticação",
+          description: "Token de acesso não encontrado. Faça login novamente.",
+          variant: "destructive"
+        });
+        return;
       }
 
-      // Parse token to get tenant ID
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const tenantId = payload.tenantId;
-
-      if (!tenantId) {
-        throw new Error('Tenant ID não encontrado no token');
+      // Validar dados básicos antes de enviar
+      if (!data.nome || typeof data.nome !== 'string' || data.nome.trim().length === 0) {
+        console.error('❌ [ROTA-DINAMICA-FORM] Nome field validation failed');
+        toast({
+          title: "Erro de Validação",
+          description: "O campo 'Nome' é obrigatório e deve ser preenchido.",
+          variant: "destructive"
+        });
+        return;
       }
 
-      // Prepare form data with tenant
-      const formData = {
-        ...data,
-        tenantId
-      };
+      console.log('🌐 [ROTA-DINAMICA-FORM] Making API request to /api/locations-new/rota-dinamica');
 
-      console.log('RotaDinamicaForm - Submitting data:', formData);
-      await onSubmit(formData);
-    } catch (error) {
-      console.error('RotaDinamicaForm - Error submitting:', error);
-      throw error;
+      // Fazer requisição
+      const response = await fetch('/api/locations-new/rota-dinamica', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      console.log('📡 [ROTA-DINAMICA-FORM] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
+      let result: any;
+      try {
+        const responseText = await response.text();
+
+        if (!responseText) {
+          console.error('❌ [ROTA-DINAMICA-FORM] Empty response from server');
+          toast({
+            title: "Erro de Comunicação",
+            description: "O servidor não retornou dados. Tente novamente.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Verificar se é HTML (página de erro)
+        if (responseText.trim().startsWith('<!DOCTYPE') ||
+            responseText.trim().startsWith('<html')) {
+          console.error('❌ [ROTA-DINAMICA-FORM] Received HTML instead of JSON');
+          toast({
+            title: "Erro do Servidor",
+            description: "O servidor retornou uma página de erro. Verifique a configuração.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        result = JSON.parse(responseText);
+        console.log('✅ [ROTA-DINAMICA-FORM] Successfully parsed JSON:', result);
+
+      } catch (parseError) {
+        console.error('❌ [ROTA-DINAMICA-FORM] JSON parsing error:', parseError);
+        toast({
+          title: "Erro de Parsing",
+          description: `Não foi possível interpretar a resposta do servidor: ${parseError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Processar resposta baseada no status HTTP
+      if (response.ok && result?.success) {
+        console.log('✅ [ROTA-DINAMICA-FORM] Rota dinâmica created successfully');
+
+        toast({
+          title: "Sucesso!",
+          description: result.message || "Rota dinâmica criada com sucesso!",
+          variant: "default"
+        });
+
+        // Callbacks de sucesso
+        if (onSuccess) {
+          console.log('🔄 [ROTA-DINAMICA-FORM] Calling onSuccess callback');
+          onSuccess();
+        }
+        if (onClose) {
+          console.log('🔄 [ROTA-DINAMICA-FORM] Calling onClose callback');
+          onClose();
+        }
+
+      } else {
+        // Erro do servidor ou validação
+        console.error('❌ [ROTA-DINAMICA-FORM] Server returned error:', {
+          status: response.status,
+          result: result
+        });
+
+        const errorMessage = result?.message || result?.error || 'Erro desconhecido do servidor';
+
+        toast({
+          title: "Erro ao Criar Rota Dinâmica",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
+
+    } catch (networkError) {
+      console.error('❌ [ROTA-DINAMICA-FORM] Network or unexpected error:', networkError);
+
+      if (networkError instanceof TypeError && networkError.message.includes('Failed to fetch')) {
+        toast({
+          title: "Erro de Conexão",
+          description: "Não foi possível conectar ao servidor. Verifique sua conexão de internet.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro Inesperado",
+          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : 'Erro desconhecido'}`,
+          variant: "destructive"
+        });
+      }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleHookFormSubmit(handleSubmit)} className="space-y-6">
       {/* Identificação */}
       <Card>
         <CardHeader>
@@ -311,19 +431,19 @@ export default function RotaDinamicaForm({ onSubmit, isSubmitting, onCancel }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="nomeRota">Nome da Rota *</Label>
+              <Label htmlFor="nome">Nome da Rota *</Label>
               <Input
-                id="nomeRota"
-                {...register('nomeRota')}
+                id="nome"
+                {...register('nome')}
                 placeholder="Digite o nome da rota"
                 maxLength={100}
-                className={errors.nomeRota ? 'border-red-500' : ''}
+                className={errors.nome ? 'border-red-500' : ''}
               />
-              {errors.nomeRota && (
-                <p className="text-sm text-red-500 mt-1">{errors.nomeRota.message}</p>
+              {errors.nome && (
+                <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
               )}
               <div className="text-xs text-gray-500 mt-1">
-                {watchedValues.nomeRota?.length || 0}/100 caracteres
+                {watchedValues.nome?.length || 0}/100 caracteres
               </div>
             </div>
 
@@ -444,11 +564,11 @@ export default function RotaDinamicaForm({ onSubmit, isSubmitting, onCancel }) {
 
       {/* Actions */}
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Salvando...' : 'Salvar Rota Dinâmica'}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Salvando...' : 'Salvar Rota Dinâmica'}
         </Button>
       </div>
     </form>
