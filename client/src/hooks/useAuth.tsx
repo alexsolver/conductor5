@@ -50,12 +50,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
+      // ✅ 1QA.MD: Validação rigorosa de token antes de usar
       const token = localStorage.getItem('accessToken');
-      if (!token) {
+      
+      // ✅ CRITICAL FIX: Verificar se token é válido antes de fazer request
+      if (!token || 
+          token === 'null' || 
+          token === 'undefined' || 
+          token.trim() === '' ||
+          token === 'false') {
+        console.log('🚫 [AUTH-QUERY] No valid token found, skipping auth check');
+        return null;
+      }
+
+      // ✅ Validar formato JWT básico
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) {
+        console.error('❌ [AUTH-QUERY] Invalid JWT format');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         return null;
       }
 
       try {
+        console.log('🔍 [AUTH-QUERY] Making auth check request...');
+        
         const response = await fetch('/api/auth/user', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -66,38 +85,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
+            console.log('🔄 [AUTH-QUERY] Auth failed, attempting token refresh...');
+            
             // Try to refresh token before giving up
             const refreshed = await attemptTokenRefresh();
             if (refreshed) {
               // Retry with new token
               const newToken = localStorage.getItem('accessToken');
-              const retryResponse = await fetch('/api/auth/user', {
-                headers: {
-                  Authorization: `Bearer ${newToken}`,
-                  'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-              });
-              
-              if (retryResponse.ok) {
-                return await retryResponse.json();
+              if (newToken && newToken !== 'null' && newToken !== 'undefined') {
+                const retryResponse = await fetch('/api/auth/user', {
+                  headers: {
+                    Authorization: `Bearer ${newToken}`,
+                    'Content-Type': 'application/json',
+                  },
+                  credentials: 'include',
+                });
+                
+                if (retryResponse.ok) {
+                  const userData = await retryResponse.json();
+                  console.log('✅ [AUTH-QUERY] Auth successful after refresh');
+                  return userData || null;
+                }
               }
             }
             
+            console.log('❌ [AUTH-QUERY] Refresh failed, clearing tokens');
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
+            localStorage.removeItem('tenantId');
             return null;
           }
-          console.warn(`Auth check failed: ${response.status}`);
+          console.warn(`❌ [AUTH-QUERY] Auth check failed: ${response.status}`);
           return null;
         }
 
         const userData = await response.json();
+        console.log('✅ [AUTH-QUERY] Auth check successful');
         return userData || null;
       } catch (error) {
-        // Auth query error handled by UI
+        console.error('❌ [AUTH-QUERY] Auth query error:', error);
+        // Clear invalid tokens on any error
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('tenantId');
         return null;
       }
     },
@@ -106,14 +136,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     gcTime: 10 * 60 * 1000,
   });
 
-  // Token refresh mechanism
+  // Token refresh mechanism - ✅ 1QA.MD compliance
   const attemptTokenRefresh = async (): Promise<boolean> => {
     const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
+    
+    // ✅ CRITICAL FIX: Validação rigorosa do refresh token
+    if (!refreshToken || 
+        refreshToken === 'null' || 
+        refreshToken === 'undefined' || 
+        refreshToken.trim() === '' ||
+        refreshToken === 'false') {
+      console.log('❌ [REFRESH] No valid refresh token available');
+      return false;
+    }
+
+    // ✅ Validar formato JWT do refresh token
+    const tokenParts = refreshToken.split('.');
+    if (tokenParts.length !== 3) {
+      console.error('❌ [REFRESH] Invalid refresh token JWT format');
+      localStorage.removeItem('refreshToken');
       return false;
     }
 
     try {
+      console.log('🔄 [REFRESH] Attempting token refresh...');
+      
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
@@ -125,41 +172,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const responseData = await response.json();
+        console.log('🔍 [REFRESH] Response structure:', Object.keys(responseData));
         
-        // ✅ CRITICAL FIX - Handle backend response structure per 1qa.md compliance
+        // ✅ 1QA.MD: Handle backend response structure
         if (responseData.success && responseData.data?.tokens) {
           const { accessToken, refreshToken: newRefreshToken } = responseData.data.tokens;
-          localStorage.setItem('accessToken', accessToken);
-          if (newRefreshToken) {
-            localStorage.setItem('refreshToken', newRefreshToken);
+          
+          if (accessToken && 
+              accessToken !== 'null' && 
+              accessToken !== 'undefined' && 
+              accessToken.trim() !== '') {
+            
+            localStorage.setItem('accessToken', accessToken);
+            if (newRefreshToken && 
+                newRefreshToken !== 'null' && 
+                newRefreshToken !== 'undefined') {
+              localStorage.setItem('refreshToken', newRefreshToken);
+            }
+            console.log('✅ [REFRESH] Token refreshed successfully');
+            return true;
           }
-          return true;
         }
         
         // Fallback for direct token response
-        if (responseData.accessToken) {
+        if (responseData.accessToken && 
+            responseData.accessToken !== 'null' && 
+            responseData.accessToken !== 'undefined') {
           localStorage.setItem('accessToken', responseData.accessToken);
-          if (responseData.refreshToken) {
+          if (responseData.refreshToken && 
+              responseData.refreshToken !== 'null' && 
+              responseData.refreshToken !== 'undefined') {
             localStorage.setItem('refreshToken', responseData.refreshToken);
           }
+          console.log('✅ [REFRESH] Token refreshed (fallback)');
           return true;
         }
         
-        console.error('Invalid refresh response structure:', responseData);
+        console.error('❌ [REFRESH] Invalid refresh response structure:', responseData);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('tenantId');
         return false;
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Refresh failed:', errorData.message || response.statusText);
+        console.error('❌ [REFRESH] Refresh failed:', response.status, errorData.message || response.statusText);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('tenantId');
         return false;
       }
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error('❌ [REFRESH] Token refresh error:', error);
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('tenantId');
       return false;
     }
   };
@@ -327,13 +393,32 @@ export function useAuth() {
     const checkTokenExpiry = async () => {
       const currentToken = localStorage.getItem('accessToken');
       
-      // ✅ CRITICAL FIX: Validação rigorosa de token
+      // ✅ CRITICAL FIX: Validação rigorosa de token - mais restritiva
       if (!currentToken || 
           currentToken === 'null' || 
           currentToken === 'undefined' || 
-          currentToken.trim() === '' || 
-          !context.user) {
-        console.warn('⚠️ [AUTO-REFRESH] Invalid or missing token, skipping expiry check');
+          currentToken.trim() === '' ||
+          currentToken === 'false' ||
+          currentToken.length < 10) { // JWT mínimo tem mais de 10 chars
+        
+        console.warn('⚠️ [AUTO-REFRESH] Invalid token detected:', {
+          hasToken: !!currentToken,
+          tokenValue: currentToken?.substring(0, 10) + '...',
+          tokenLength: currentToken?.length,
+          hasUser: !!context.user
+        });
+        
+        // Se temos user mas token inválido, forçar logout
+        if (context.user) {
+          console.log('🚨 [AUTO-REFRESH] User exists but token invalid, forcing logout');
+          context.logoutMutation.mutate();
+        }
+        return;
+      }
+      
+      // ✅ Se não temos usuário, não fazer verificação
+      if (!context.user) {
+        console.log('🚫 [AUTO-REFRESH] No user context, skipping expiry check');
         return;
       }
       

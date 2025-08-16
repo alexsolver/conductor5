@@ -72,18 +72,30 @@ export class TokenManager {
   verifyAccessToken(token: string): { userId: string; email: string; role: string; tenantId: string | null } | null {
     try {
       // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
-      if (!token || typeof token !== 'string' || token.trim() === '') {
+      if (!token || 
+          typeof token !== 'string' || 
+          token.trim() === '' ||
+          token.length < 20) { // JWT básico tem muito mais de 20 caracteres
         console.error('❌ [TOKEN-MANAGER] Invalid token provided:', { 
           tokenType: typeof token, 
           tokenLength: token?.length,
-          tokenValue: token?.substring(0, 10) + '...'
+          tokenValue: token?.substring(0, 10) + '...',
+          isEmpty: token?.trim() === '',
+          isTooShort: token?.length < 20
         });
         return null;
       }
 
-      // Check for obvious invalid tokens
-      if (token === 'null' || token === 'undefined' || token === 'false') {
-        console.error('❌ [TOKEN-MANAGER] Token is literal string:', token);
+      // Check for obvious invalid tokens - mais restritivo
+      if (token === 'null' || 
+          token === 'undefined' || 
+          token === 'false' ||
+          token === 'true' ||
+          token === '{}' ||
+          token === '[]' ||
+          token.startsWith('{') ||
+          token.startsWith('[')) {
+        console.error('❌ [TOKEN-MANAGER] Token is literal/invalid string:', token.substring(0, 20));
         return null;
       }
 

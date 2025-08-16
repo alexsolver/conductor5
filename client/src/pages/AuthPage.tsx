@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,57 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 
 export default function AuthPage() {
   const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  // ✅ 1QA.MD: Limpar tokens inválidos na inicialização
+  React.useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    // Verificar e limpar tokens inválidos
+    if (token && (
+        token === 'null' || 
+        token === 'undefined' || 
+        token === 'false' ||
+        token.trim() === '' ||
+        token.length < 20 ||
+        token.split('.').length !== 3)) {
+
+      console.log('🧹 [AUTH-PAGE] Cleaning invalid access token');
+      localStorage.removeItem('accessToken');
+    }
+
+    if (refreshToken && (
+        refreshToken === 'null' || 
+        refreshToken === 'undefined' || 
+        refreshToken === 'false' ||
+        refreshToken.trim() === '' ||
+        refreshToken.length < 20 ||
+        refreshToken.split('.').length !== 3)) {
+
+      console.log('🧹 [AUTH-PAGE] Cleaning invalid refresh token');
+      localStorage.removeItem('refreshToken');
+    }
+
+    // Limpar tenantId se inválido
+    const tenantId = localStorage.getItem('tenantId');
+    if (tenantId && (
+        tenantId === 'null' || 
+        tenantId === 'undefined' || 
+        tenantId.trim() === '')) {
+      console.log('🧹 [AUTH-PAGE] Cleaning invalid tenant ID');
+      localStorage.removeItem('tenantId');
+    }
+  }, []);
+
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -226,11 +273,11 @@ export default function AuthPage() {
                   <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="login" className="space-y-4">
                   <LoginForm />
                 </TabsContent>
-                
+
                 <TabsContent value="register" className="space-y-4">
                   <RegisterForm />
                 </TabsContent>

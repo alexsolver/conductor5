@@ -50,20 +50,30 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     const token = authHeader.substring(7);
 
-    // ✅ CRITICAL FIX: Enhanced token validation
+    // ✅ CRITICAL FIX: Enhanced token validation - mais rigorosa
     if (!token || 
         token === 'null' || 
         token === 'undefined' || 
         token === 'false' ||
+        token === 'true' ||
         token.trim() === '' ||
-        token.split('.').length !== 3) {
+        token.length < 20 ||
+        token.split('.').length !== 3 ||
+        token.startsWith('{') ||
+        token.startsWith('[') ||
+        token === '{}' ||
+        token === '[]') {
       
-      console.log('❌ [JWT-AUTH] Invalid token format:', {
-        token: token?.substring(0, 20) + '...',
+      console.log('❌ [JWT-AUTH] Invalid token format detected:', {
+        hasToken: !!token,
+        tokenStart: token?.substring(0, 20) + '...',
         length: token?.length,
         parts: token?.split('.').length,
         isNull: token === 'null',
-        isUndefined: token === 'undefined'
+        isUndefined: token === 'undefined',
+        isFalse: token === 'false',
+        isObject: token?.startsWith('{') || token?.startsWith('['),
+        isTooShort: token?.length < 20
       });
       
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
@@ -72,6 +82,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
         success: false,
         message: 'Invalid token format',
         code: 'INVALID_TOKEN_FORMAT',
+        needsRefresh: true,
         timestamp: new Date().toISOString()
       });
     }

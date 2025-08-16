@@ -59,13 +59,31 @@ export const apiRequest = async (method: string, endpoint: string, data?: any): 
   let token = localStorage.getItem('accessToken');
   const tenantId = localStorage.getItem('tenantId');
 
-  // ✅ CRITICAL FIX: Validar se token não é null, undefined ou string vazia
-  if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
-    console.warn('⚠️ [API-REQUEST] Invalid token detected, attempting refresh before request');
+  // ✅ CRITICAL FIX: Validação mais rigorosa de token inválido
+  if (!token || 
+      token === 'null' || 
+      token === 'undefined' || 
+      token.trim() === '' ||
+      token === 'false' ||
+      token.length < 10) { // JWT tem muito mais que 10 caracteres
+    
+    console.warn('⚠️ [API-REQUEST] Invalid token detected:', {
+      hasToken: !!token,
+      tokenValue: token?.substring(0, 10) + '...',
+      tokenLength: token?.length
+    });
     
     // Tentar refresh imediatamente se token é inválido
     const refreshToken = localStorage.getItem('refreshToken');
-    if (refreshToken && refreshToken !== 'null' && refreshToken !== 'undefined') {
+    if (refreshToken && 
+        refreshToken !== 'null' && 
+        refreshToken !== 'undefined' &&
+        refreshToken.trim() !== '' &&
+        refreshToken !== 'false' &&
+        refreshToken.length > 10) {
+      
+      console.log('🔄 [API-REQUEST] Attempting pre-request refresh...');
+      
       try {
         const refreshResponse = await fetch('/api/auth/refresh', {
           method: 'POST',
@@ -83,22 +101,57 @@ export const apiRequest = async (method: string, endpoint: string, data?: any): 
               localStorage.setItem('refreshToken', refreshData.data.tokens.refreshToken);
             }
             console.log('✅ [API-REQUEST] Token refreshed successfully before request');
+          } else {
+            console.error('❌ [API-REQUEST] Invalid refresh response structure');
+            throw new Error('Invalid refresh response');
           }
+        } else {
+          console.error('❌ [API-REQUEST] Refresh request failed:', refreshResponse.status);
+          throw new Error('Refresh request failed');
         }
       } catch (error) {
         console.error('❌ [API-REQUEST] Pre-request refresh failed:', error);
+        // Limpar tokens inválidos
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('tenantId');
+        window.location.href = '/auth';
+        throw new Error('Pre-request refresh failed');
       }
-    }
-
-    // Se ainda não temos token válido após refresh
-    if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
-      console.error('❌ [API-REQUEST] No valid token available, redirecting to auth');
+    } else {
+      console.error('❌ [API-REQUEST] No valid refresh token available');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('tenantId');
       window.location.href = '/auth';
-      throw new Error('No valid token available');
+      throw new Error('No valid tokens available');
     }
+
+    // ✅ Validação final do token após refresh
+    if (!token || 
+        token === 'null' || 
+        token === 'undefined' || 
+        token.trim() === '' ||
+        token === 'false' ||
+        token.length < 10) {
+      console.error('❌ [API-REQUEST] Token still invalid after refresh');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('tenantId');
+      window.location.href = '/auth';
+      throw new Error('Token still invalid after refresh');
+    }
+  }
+
+  // ✅ Validar formato JWT básico
+  const tokenParts = token.split('.');
+  if (tokenParts.length !== 3) {
+    console.error('❌ [API-REQUEST] Invalid JWT format');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('tenantId');
+    window.location.href = '/auth';
+    throw new Error('Invalid JWT format');
   }
 
   const options: RequestInit = {
