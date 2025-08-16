@@ -166,19 +166,22 @@ export default function NotificationPreferencesTab() {
 
   // Load preferences when data is fetched - following 1qa.md safety patterns
   useEffect(() => {
-    if (userPreferences && userPreferences.preferences) {
+    if (userPreferences && typeof userPreferences === 'object' && 'data' in userPreferences) {
+      const data = (userPreferences as any).data;
       // Ensure all required properties exist following 1qa.md patterns
       const safePreferences = {
-        ...userPreferences,
+        userId: user?.id || '',
+        tenantId: user?.tenantId || '',
+        ...data,
         preferences: {
-          types: userPreferences.preferences.types || {},
-          deliveryWindow: userPreferences.preferences.deliveryWindow || {
+          types: data?.preferences?.types || {},
+          deliveryWindow: data?.preferences?.deliveryWindow || {
             startTime: '08:00',
             endTime: '20:00',
             timezone: 'America/Sao_Paulo',
             daysOfWeek: [1, 2, 3, 4, 5]
           },
-          globalSettings: userPreferences.preferences.globalSettings || {
+          globalSettings: data?.preferences?.globalSettings || {
             doNotDisturb: false,
             soundEnabled: true,
             vibrationEnabled: true,
@@ -190,7 +193,7 @@ export default function NotificationPreferencesTab() {
       setPreferences(safePreferences);
       setIsModified(false);
     }
-  }, [userPreferences]);
+  }, [userPreferences, user]);
 
   const handleTypeToggle = (typeId: string) => {
     if (!preferences) return;
