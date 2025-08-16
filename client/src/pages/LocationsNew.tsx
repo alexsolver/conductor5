@@ -145,7 +145,7 @@ function LocationsNewContent() {
   }, []);
 
   // Form setup with dynamic schema per 1qa.md
-  const form = useForm({
+  const form = useForm<any>({
     resolver: zodResolver(getSchemaForType(activeRecordType)),
     defaultValues: getDefaultValues(activeRecordType)
   });

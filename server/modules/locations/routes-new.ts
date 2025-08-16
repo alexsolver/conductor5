@@ -279,6 +279,12 @@ servicesRouter.post('/geocode', async (req: Request, res: Response) => {
 // Mount services without JWT auth
 router.use('/services', servicesRouter);
 
+// Create record by type
+router.post('/:recordType', async (req: AuthenticatedRequest, res: Response) => {
+  console.log('🏗️ [LOCATIONS-NEW-ROUTES] Create record route called for type:', req.params.recordType);
+  return controller.createRecord(req, res);
+});
+
 // Get statistics by type
 router.get('/:recordType/stats', async (req: LocationsRequest, res: Response) => {
   return controller.getStatsByType(req, res);

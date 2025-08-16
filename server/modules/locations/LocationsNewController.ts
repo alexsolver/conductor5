@@ -392,6 +392,118 @@ export class LocationsNewController {
   }
 
   /**
+   * Create record by type - ✅ 1qa.md compliant implementation
+   */
+  async createRecord(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { recordType } = req.params;
+      const data = req.body;
+
+      if (!req.user?.tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID required' });
+        return;
+      }
+
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      
+      // Table mapping following 1qa.md schema structure
+      const tableMap: Record<string, string> = {
+        'local': 'locais',
+        'regiao': 'regioes', 
+        'rota-dinamica': 'rotas_dinamicas',
+        'trecho': 'trechos',
+        'rota-trecho': 'rotas_trecho',
+        'area': 'areas',
+        'agrupamento': 'agrupamentos'
+      };
+
+      const tableName = tableMap[recordType];
+      if (!tableName) {
+        res.status(400).json({ 
+          success: false, 
+          message: `Invalid record type: ${recordType}` 
+        });
+        return;
+      }
+
+      let insertQuery;
+      let queryParams;
+
+      // Define table-specific insert queries following schema structure
+      switch (recordType) {
+        case 'rota-dinamica':
+          insertQuery = `
+            INSERT INTO "${schemaName}"."${tableName}" 
+            (tenant_id, nome_rota, id_rota, previsao_dias, ativo, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+            RETURNING id, nome_rota as nome, id_rota as codigo_integracao, previsao_dias, ativo, created_at, updated_at
+          `;
+          queryParams = [
+            req.user.tenantId,
+            data.nomeRota || data.nome || '',
+            data.idRota || data.codigoIntegracao || '',
+            data.previsaoDias || 1,
+            data.ativo !== false
+          ];
+          break;
+
+        case 'local':
+          insertQuery = `
+            INSERT INTO "${schemaName}"."${tableName}" 
+            (tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+            RETURNING id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
+          `;
+          queryParams = [
+            req.user.tenantId,
+            data.nome || '',
+            data.descricao || '',
+            data.codigoIntegracao || '',
+            data.ativo !== false
+          ];
+          break;
+
+        default:
+          // For tables with standard structure
+          insertQuery = `
+            INSERT INTO "${schemaName}"."${tableName}" 
+            (tenant_id, nome, descricao, codigo_integracao, ativo, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+            RETURNING id, nome, descricao, codigo_integracao, ativo, created_at, updated_at
+          `;
+          queryParams = [
+            req.user.tenantId,
+            data.nome || '',
+            data.descricao || '',
+            data.codigoIntegracao || '',
+            data.ativo !== false
+          ];
+          break;
+      }
+
+      console.log(`🔍 [CREATE-RECORD] Creating ${recordType} in table ${tableName}`);
+      console.log(`🔍 [CREATE-RECORD] Data:`, data);
+
+      const result = await pool.query(insertQuery, queryParams);
+
+      console.log(`✅ [CREATE-RECORD] Successfully created ${recordType} with ID: ${result.rows[0]?.id}`);
+
+      res.status(201).json({
+        success: true,
+        data: result.rows[0],
+        message: `${recordType} created successfully`
+      });
+    } catch (error) {
+      console.error(`❌ [CREATE-RECORD] Error creating ${req.params?.recordType}:`, error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error creating record',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+
+  /**
    * Get stats by type
    */
   async getStatsByType(req: Request, res: Response): Promise<void> {
