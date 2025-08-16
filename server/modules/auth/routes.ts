@@ -99,10 +99,22 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: Authent
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
+    // ✅ 1QA.MD: Resposta padronizada para login
     res.json({
-      user: result.user,
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: result.user,
+        tokens: {
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken
+        },
+        session: {
+          loginAt: new Date().toISOString(),
+          userAgent: req.headers['user-agent'] || 'unknown'
+        }
+      },
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     const { logError } = await import('../../utils/logger');

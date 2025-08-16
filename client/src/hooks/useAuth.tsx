@@ -326,30 +326,60 @@ export function useAuth() {
   React.useEffect(() => {
     const checkTokenExpiry = async () => {
       const currentToken = localStorage.getItem('accessToken');
-      if (!currentToken || !context.user) return;
+      
+      // ✅ CRITICAL FIX: Validação rigorosa de token
+      if (!currentToken || 
+          currentToken === 'null' || 
+          currentToken === 'undefined' || 
+          currentToken.trim() === '' || 
+          !context.user) {
+        console.warn('⚠️ [AUTO-REFRESH] Invalid or missing token, skipping expiry check');
+        return;
+      }
       
       try {
+        // ✅ Validar formato JWT antes de decodificar
+        const tokenParts = currentToken.split('.');
+        if (tokenParts.length !== 3) {
+          console.error('❌ [AUTO-REFRESH] Invalid JWT format');
+          await refreshToken();
+          return;
+        }
+
         // Decodificar token para verificar expiração
-        const payload = JSON.parse(atob(currentToken.split('.')[1]));
+        const payload = JSON.parse(atob(tokenParts[1]));
+        if (!payload.exp) {
+          console.warn('⚠️ [AUTO-REFRESH] Token without expiration');
+          return;
+        }
+
         const expiresAt = payload.exp * 1000;
         const now = Date.now();
         const timeToExpiry = expiresAt - now;
         
-        // Se expira em menos de 2 horas, renovar automaticamente
-        if (timeToExpiry < 2 * 60 * 60 * 1000 && timeToExpiry > 0) {
-          console.log('🔄 [AUTO-REFRESH] Token expiring soon, refreshing automatically...');
+        // ✅ 1QA.MD: Se expira em menos de 4 horas (para token de 24h), renovar automaticamente
+        if (timeToExpiry < 4 * 60 * 60 * 1000 && timeToExpiry > 0) {
+          console.log('🔄 [AUTO-REFRESH] Token expiring soon, refreshing automatically...', {
+            timeToExpiry: Math.round(timeToExpiry / 1000 / 60), // minutos
+            expiresAt: new Date(expiresAt).toISOString()
+          });
           const refreshed = await refreshToken();
           if (refreshed) {
             console.log('✅ [AUTO-REFRESH] Token renewed successfully');
           }
+        } else if (timeToExpiry <= 0) {
+          console.error('❌ [AUTO-REFRESH] Token already expired, forcing refresh');
+          await refreshToken();
         }
       } catch (error) {
-        console.warn('⚠️ [AUTO-REFRESH] Error checking token expiry:', error);
+        console.error('❌ [AUTO-REFRESH] Error checking token expiry:', error);
+        // Se não conseguimos decodificar, tentar refresh
+        await refreshToken();
       }
     };
 
-    // Verificar a cada 30 minutos
-    const interval = setInterval(checkTokenExpiry, 30 * 60 * 1000);
+    // Verificar a cada 15 minutos (mais frequente para evitar logout)
+    const interval = setInterval(checkTokenExpiry, 15 * 60 * 1000);
     
     // Verificar imediatamente
     checkTokenExpiry();
@@ -360,11 +390,15 @@ export function useAuth() {
   const refreshToken = async () => {
     try {
       const refresh = localStorage.getItem('refreshToken');
-      if (!refresh) {
-        console.warn('No refresh token available');
+      
+      // ✅ CRITICAL FIX: Validação rigorosa do refresh token
+      if (!refresh || refresh === 'null' || refresh === 'undefined' || refresh.trim() === '') {
+        console.warn('❌ [REFRESH-TOKEN] No valid refresh token available');
         context.logoutMutation.mutate();
         return false;
       }
+
+      console.log('🔄 [REFRESH-TOKEN] Attempting token refresh...');
 
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
@@ -372,23 +406,48 @@ export function useAuth() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ refreshToken: refresh }),
+        credentials: 'include',
       });
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('accessToken', data.accessToken);
-        if (data.refreshToken) {
-          localStorage.setItem('refreshToken', data.refreshToken);
+        console.log('🔍 [REFRESH-TOKEN] Response structure:', Object.keys(data));
+        
+        // ✅ 1QA.MD: Handle backend response structure
+        let newAccessToken = null;
+        let newRefreshToken = null;
+
+        if (data.success && data.data?.tokens) {
+          // Structured response from backend
+          newAccessToken = data.data.tokens.accessToken;
+          newRefreshToken = data.data.tokens.refreshToken;
+        } else if (data.accessToken) {
+          // Direct response fallback
+          newAccessToken = data.accessToken;
+          newRefreshToken = data.refreshToken;
         }
-        setToken(data.accessToken);
-        return true;
+
+        if (newAccessToken && newAccessToken !== 'null' && newAccessToken !== 'undefined') {
+          localStorage.setItem('accessToken', newAccessToken);
+          if (newRefreshToken && newRefreshToken !== 'null' && newRefreshToken !== 'undefined') {
+            localStorage.setItem('refreshToken', newRefreshToken);
+          }
+          setToken(newAccessToken);
+          console.log('✅ [REFRESH-TOKEN] Token refreshed successfully');
+          return true;
+        } else {
+          console.error('❌ [REFRESH-TOKEN] Invalid token received from server');
+          context.logoutMutation.mutate();
+          return false;
+        }
       } else {
-        console.error('Failed to refresh token:', response.status);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('❌ [REFRESH-TOKEN] Failed to refresh token:', response.status, errorText);
         context.logoutMutation.mutate();
         return false;
       }
     } catch (error) {
-      console.error('Error refreshing token:', error);
+      console.error('❌ [REFRESH-TOKEN] Error refreshing token:', error);
       context.logoutMutation.mutate();
       return false;
     }

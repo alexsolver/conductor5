@@ -30,7 +30,8 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       method: req.method,
       path: req.path,
       hasAuthHeader: !!authHeader,
-      authStart: authHeader?.substring(0, 20) || 'none'
+      authStart: authHeader?.substring(0, 20) || 'none',
+      authLength: authHeader?.length || 0
     });
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -49,8 +50,22 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     const token = authHeader.substring(7);
 
-    if (!token || token === 'null' || token === 'undefined') {
-      console.log('❌ [JWT-AUTH] Invalid token format:', token);
+    // ✅ CRITICAL FIX: Enhanced token validation
+    if (!token || 
+        token === 'null' || 
+        token === 'undefined' || 
+        token === 'false' ||
+        token.trim() === '' ||
+        token.split('.').length !== 3) {
+      
+      console.log('❌ [JWT-AUTH] Invalid token format:', {
+        token: token?.substring(0, 20) + '...',
+        length: token?.length,
+        parts: token?.split('.').length,
+        isNull: token === 'null',
+        isUndefined: token === 'undefined'
+      });
+      
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
       return res.status(401).json({

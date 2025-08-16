@@ -73,7 +73,11 @@ export class TokenManager {
     try {
       // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
       if (!token || typeof token !== 'string' || token.trim() === '') {
-        console.error('❌ [TOKEN-MANAGER] Invalid token provided:', { tokenType: typeof token, tokenLength: token?.length });
+        console.error('❌ [TOKEN-MANAGER] Invalid token provided:', { 
+          tokenType: typeof token, 
+          tokenLength: token?.length,
+          tokenValue: token?.substring(0, 10) + '...'
+        });
         return null;
       }
 
@@ -83,9 +87,17 @@ export class TokenManager {
         return null;
       }
 
+      // ✅ Validate JWT format before processing
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) {
+        console.error('❌ [TOKEN-MANAGER] Invalid JWT format - parts count:', tokenParts.length);
+        return null;
+      }
+
       console.log('🔍 [TOKEN-MANAGER] Verifying access token...', {
         tokenStart: token.substring(0, 20),
         tokenLength: token.length,
+        partsCount: tokenParts.length,
         timestamp: new Date().toISOString()
       });
 
@@ -96,28 +108,46 @@ export class TokenManager {
       }) as TokenPayload;
 
       if (decoded.type !== 'access') {
-        console.warn('Token type mismatch - expected access token');
+        console.warn('❌ [TOKEN-MANAGER] Token type mismatch - expected access token, got:', decoded.type);
+        return null;
+      }
+
+      // ✅ Validate required fields
+      if (!decoded.userId && !decoded.sub) {
+        console.error('❌ [TOKEN-MANAGER] Token missing userId/sub field');
         return null;
       }
 
       // Check if token is close to expiry (within 4 hours para 24h token)
       if (decoded.exp && (decoded.exp * 1000) < (Date.now() + 4 * 60 * 60 * 1000)) {
-        console.log('🔄 [TOKEN-MANAGER] Token will expire in less than 4 hours, should refresh soon');
+        const minutesToExpiry = Math.round(((decoded.exp * 1000) - Date.now()) / 1000 / 60);
+        console.log('🔄 [TOKEN-MANAGER] Token will expire soon:', {
+          minutesToExpiry,
+          expiresAt: new Date(decoded.exp * 1000).toISOString()
+        });
       }
 
-      return {
+      const result = {
         userId: decoded.userId || decoded.sub, // ✅ CRITICAL FIX - Handle both userId and sub per 1qa.md
         email: decoded.email,
         role: decoded.role,
         tenantId: decoded.tenantId
       };
+
+      console.log('✅ [TOKEN-MANAGER] Token verified successfully:', {
+        userId: result.userId,
+        email: result.email,
+        tenantId: result.tenantId
+      });
+
+      return result;
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
-        console.log('Access token expired - refresh needed');
+        console.log('⏰ [TOKEN-MANAGER] Access token expired - refresh needed');
       } else if (error instanceof jwt.JsonWebTokenError) {
-        console.warn('Token validation failed:', error.message);
+        console.warn('⚠️ [TOKEN-MANAGER] Token validation failed:', error.message);
       } else {
-        console.error('Token verification error:', error);
+        console.error('❌ [TOKEN-MANAGER] Token verification error:', error);
       }
       return null;
     }
