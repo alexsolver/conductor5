@@ -3523,11 +3523,11 @@ export const approvalRules = pgTable("approval_rules", {
   // Approval pipeline configuration
   approvalSteps: jsonb("approval_steps").notNull(),
   
-  // SLA settings
-  defaultSlaHours: integer("default_sla_hours").default(24),
-  escalationEnabled: boolean("escalation_enabled").default(true),
-  autoApprovalEnabled: boolean("auto_approval_enabled").default(false),
-  autoApprovalConditions: jsonb("auto_approval_conditions"),
+  // SLA settings - aligned with database reality
+  slaHours: integer("sla_hours").default(24),
+  businessHoursOnly: boolean("business_hours_only").default(true),
+  autoApprovalConditions: jsonb("auto_approval_conditions").default({}),
+  escalationSettings: jsonb("escalation_settings").default({}),
   
   // Configuration
   isActive: boolean("is_active").default(true),
@@ -3567,6 +3567,8 @@ export const approvalInstances = pgTable("approval_instances", {
   
   // SLA tracking
   slaDeadline: timestamp("sla_deadline"),
+  slaElapsedMinutes: integer("sla_elapsed_minutes"),
+  slaStatus: text("sla_status").default('active'),
   firstReminderSent: timestamp("first_reminder_sent"),
   secondReminderSent: timestamp("second_reminder_sent"),
   escalatedAt: timestamp("escalated_at"),

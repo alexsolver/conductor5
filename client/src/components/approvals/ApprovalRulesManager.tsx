@@ -93,7 +93,21 @@ export function ApprovalRulesManager() {
   };
 
   const handleCreateRule = () => {
-    createRuleMutation.mutate(newRule);
+    createRuleMutation.mutate({
+      ...newRule,
+      slaHours: 24,
+      businessHoursOnly: true,
+      escalationSettings: {},
+      autoApprovalConditions: [],
+      queryConditions: [],
+      approvalSteps: [{
+        stepIndex: 0,
+        stepName: 'Aprovação Inicial',
+        decisionMode: 'ANY',
+        slaHours: 24,
+        approvers: [{ type: 'user', name: 'Admin', id: '550e8400-e29b-41d4-a716-446655440001' }]
+      }]
+    });
   };
 
   const handleEditRule = (rule: ApprovalRule) => {

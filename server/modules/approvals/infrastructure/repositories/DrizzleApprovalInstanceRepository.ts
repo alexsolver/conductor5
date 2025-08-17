@@ -123,7 +123,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
     const [additionalInfo] = await db
       .select({
         ruleName: approvalRules.name,
-        requesterName: users.name,
+        requesterName: users.firstName,
       })
       .from(approvalInstances)
       .leftJoin(approvalRules, eq(approvalInstances.ruleId, approvalRules.id))

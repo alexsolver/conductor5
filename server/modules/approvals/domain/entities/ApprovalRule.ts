@@ -35,10 +35,10 @@ export interface ApprovalRuleValue {
   entityType: string;
   queryConditions: ApprovalCondition[];
   approvalSteps: ApprovalStepConfig[];
-  defaultSlaHours: number;
-  escalationEnabled: boolean;
-  autoApprovalEnabled: boolean;
+  slaHours: number;
+  businessHoursOnly: boolean;
   autoApprovalConditions?: ApprovalCondition[];
+  escalationSettings?: any;
   isActive: boolean;
   priority: number;
   createdById: string;
@@ -73,9 +73,9 @@ export class ApprovalRule {
   get entityType(): string { return this.data.entityType; }
   get queryConditions(): ApprovalCondition[] { return this.data.queryConditions; }
   get approvalSteps(): ApprovalStepConfig[] { return this.data.approvalSteps; }
-  get defaultSlaHours(): number { return this.data.defaultSlaHours; }
-  get escalationEnabled(): boolean { return this.data.escalationEnabled; }
-  get autoApprovalEnabled(): boolean { return this.data.autoApprovalEnabled; }
+  get slaHours(): number { return this.data.slaHours; }
+  get businessHoursOnly(): boolean { return this.data.businessHoursOnly; }
+  get escalationSettings(): any { return this.data.escalationSettings; }
   get autoApprovalConditions(): ApprovalCondition[] | undefined { return this.data.autoApprovalConditions; }
   get isActive(): boolean { return this.data.isActive; }
   get priority(): number { return this.data.priority; }
@@ -169,7 +169,7 @@ export class ApprovalRule {
 
   // Auto-approval evaluation
   shouldAutoApprove(entityData: Record<string, any>): boolean {
-    if (!this.autoApprovalEnabled || !this.autoApprovalConditions) {
+    if (!this.autoApprovalConditions || this.autoApprovalConditions.length === 0) {
       return false;
     }
     return this.evaluateConditionGroup(this.autoApprovalConditions, entityData);
@@ -222,7 +222,7 @@ export class ApprovalRule {
       }
     });
 
-    if (this.defaultSlaHours <= 0) {
+    if (this.slaHours <= 0) {
       errors.push('Default SLA hours must be positive');
     }
 

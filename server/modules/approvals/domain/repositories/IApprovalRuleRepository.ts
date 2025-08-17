@@ -11,9 +11,9 @@ export interface CreateApprovalRuleData {
   entityType: string;
   queryConditions: any[];
   approvalSteps: any[];
-  defaultSlaHours: number;
-  escalationEnabled: boolean;
-  autoApprovalEnabled: boolean;
+  slaHours: number;
+  businessHoursOnly?: boolean;
+  escalationSettings?: any;
   autoApprovalConditions?: any[];
   isActive?: boolean;
   priority?: number;
@@ -25,9 +25,9 @@ export interface UpdateApprovalRuleData {
   description?: string;
   queryConditions?: any[];
   approvalSteps?: any[];
-  defaultSlaHours?: number;
-  escalationEnabled?: boolean;
-  autoApprovalEnabled?: boolean;
+  slaHours?: number;
+  businessHoursOnly?: boolean;
+  escalationSettings?: any;
   autoApprovalConditions?: any[];
   isActive?: boolean;
   priority?: number;
