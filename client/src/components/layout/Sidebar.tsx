@@ -159,6 +159,7 @@ const adminNavigation = [
       { name: "Workflows", href: "/tenant-admin/workflows", icon: Workflow },
       { name: "SLAs", href: "/slas", icon: Target },
       { name: "Aprovações", href: "/approvals", icon: CheckCircle },
+      { name: "Planejador de Atividades", href: "/activity-planner", icon: Calendar },
       { name: "Integrações", href: "/tenant-admin/integrations", icon: Plug },
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
       { name: "Templates de Tickets", href: "/ticket-templates", icon: FileText },
