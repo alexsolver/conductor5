@@ -1755,6 +1755,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put('/api/user/profile', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    console.log('🔥 [PROFILE-UPDATE-DEBUG] PUT /api/user/profile endpoint HIT!');
+    console.log('🔥 [PROFILE-UPDATE-DEBUG] Request body:', req.body);
+    console.log('🔥 [PROFILE-UPDATE-DEBUG] User from token:', req.user);
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
