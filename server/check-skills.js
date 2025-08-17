@@ -1,5 +1,5 @@
 
-const { db } = require('./db');
+import { db } from './db.js';
 
 async function checkSkills() {
   try {
@@ -32,7 +32,7 @@ async function checkSkills() {
       const skillsData = await db.execute('SELECT * FROM skills LIMIT 10');
       console.log('📝 Amostra de skills:');
       skillsData.forEach((skill, index) => {
-        console.log(`  ${index + 1}. ${skill.name} (${skill.category}) - Nível: ${skill.level}`);
+        console.log(`  ${index + 1}. ${skill.name} (${skill.category}) - Nível: ${skill.level || 'N/A'}`);
       });
     } else {
       console.log('⚠️ Nenhuma habilidade encontrada na base de dados');
