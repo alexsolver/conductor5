@@ -74,6 +74,7 @@ import ContractManagement from "./pages/ContractManagement";
 import ItemCatalog from "./pages/ItemCatalog";
 import TicketMaterials from "./pages/TicketMaterials";
 import { ApprovalManagement } from "./pages/ApprovalManagement";
+import ActivityPlanner from "./pages/ActivityPlanner";
 import { StockManagement } from "./pages/StockManagement";
 import LPU from "./pages/LPU";
 import { SupplierManagement } from "./pages/SupplierManagement";
@@ -156,6 +157,7 @@ function AppRouter() {
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
         <Route path="/slas" component={SlaManagement} />
         <Route path="/approvals" component={ApprovalManagement} />
+        <Route path="/activity-planner" component={ActivityPlanner} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
 
