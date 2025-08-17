@@ -153,7 +153,7 @@ function AppRouter() {
         <Route path="/tenant-admin" component={TenantAdmin} />
         <Route path="/tenant-admin/geral" component={TenantAdminGeral} />
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
-        <Route path="/sla-management" component={SlaManagement} />
+        <Route path="/slas" component={SlaManagement} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
 
