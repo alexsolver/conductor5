@@ -127,27 +127,30 @@ export default function UserProfile() {
   // Update profile mutation following 1qa.md patterns
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
+      console.log('[PROFILE-UPDATE] Starting profile update mutation');
       const response = await apiRequest('PUT', '/api/user/profile', data);
+      if (!response.ok) {
+        throw new Error(`Profile update failed: ${response.status}`);
+      }
       return response.json();
     },
     onSuccess: () => {
+      console.log('[PROFILE-UPDATE] Success');
       toast({
         title: "Perfil atualizado",
         description: "Suas informações foram salvas com sucesso.",
       });
       setIsEditing(false);
-      // Invalidate all related queries to ensure name updates in avatar following 1qa.md
+      // Invalidate queries without triggering auth loops
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error: any) => {
-      console.error('[PROFILE-UPDATE] Error:', error);
+      console.error('[PROFILE-UPDATE] Error details:', error);
       toast({
         title: "Erro ao atualizar",
         description: "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
-      // Don't cause logout on profile update errors following 1qa.md
     },
   });
 
@@ -158,26 +161,29 @@ export default function UserProfile() {
   // Profile photo upload mutation following 1qa.md patterns
   const uploadPhotoMutation = useMutation({
     mutationFn: async (avatarURL: string) => {
+      console.log('[PHOTO-UPLOAD] Starting photo upload mutation');
       const response = await apiRequest('PUT', '/api/user/profile/photo', { avatarURL });
+      if (!response.ok) {
+        throw new Error(`Photo upload failed: ${response.status}`);
+      }
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('[PHOTO-UPLOAD] Success:', data);
       toast({
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-      // Invalidate all related queries to ensure UI updates
+      // Invalidate queries without causing auth refresh loops
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error: any) => {
-      console.error('[PHOTO-UPLOAD] Error:', error);
+      console.error('[PHOTO-UPLOAD] Error details:', error);
       toast({
         title: "Erro ao atualizar foto",
         description: "Não foi possível atualizar sua foto de perfil.",
         variant: "destructive",
       });
-      // Don't cause logout on photo upload errors following 1qa.md
     },
   });
 

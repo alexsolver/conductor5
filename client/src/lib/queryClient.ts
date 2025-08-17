@@ -74,7 +74,7 @@ export const apiRequest = async (method: string, url: string, data?: any): Promi
     });
   }
 
-  // ✅ Para outras rotas, verificar token mas sem redirects automáticos
+  // Check for valid token without throwing errors following 1qa.md
   if (!token || 
       token === 'null' || 
       token === 'undefined' || 
@@ -82,8 +82,12 @@ export const apiRequest = async (method: string, url: string, data?: any): Promi
       token.trim() === '' ||
       token.length < 20) {
 
-    console.warn('⚠️ [API-REQUEST] No valid token for protected route');
-    throw new Error('No valid token available');
+    console.warn('⚠️ [API-REQUEST] No valid token for protected route:', url);
+    // Return a rejected response instead of throwing
+    return new Response(JSON.stringify({ error: 'No valid token' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   const tenantId = localStorage.getItem('tenantId');

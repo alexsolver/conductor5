@@ -74,35 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (!response.ok) {
-          if (response.status === 401 || response.status === 403) {
-            console.log('🔄 [AUTH-QUERY] Auth failed, attempting token refresh...');
-            
-            // Try to refresh token before giving up
-            const refreshed = await attemptTokenRefresh();
-            if (refreshed) {
-              // Retry with new token
-              const newToken = localStorage.getItem('accessToken');
-              if (newToken && newToken !== 'null' && newToken !== 'undefined') {
-                const retryResponse = await fetch('/api/auth/user', {
-                  headers: {
-                    Authorization: `Bearer ${newToken}`,
-                    'Content-Type': 'application/json',
-                  },
-                  credentials: 'include',
-                });
-                
-                if (retryResponse.ok) {
-                  const userData = await retryResponse.json();
-                  console.log('✅ [AUTH-QUERY] Auth successful after refresh');
-                  return userData || null;
-                }
-              }
-            }
-            
-            console.log('⚠️ [AUTH-QUERY] Refresh failed, returning null without clearing tokens');
-            return null; // ✅ Não limpar tokens aqui
-          }
-          console.warn(`❌ [AUTH-QUERY] Auth check failed: ${response.status}`);
+          console.warn(`⚠️ [AUTH-QUERY] Auth check failed: ${response.status}`);
+          // Return null but don't clear tokens - let API interceptor handle refresh
           return null;
         }
 
@@ -111,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return userData || null;
       } catch (error) {
         console.warn('⚠️ [AUTH-QUERY] Auth query error:', error.message);
-        // ✅ CRITICAL FIX: Não limpar tokens em caso de erro de rede
+        // Don't clear tokens on network errors following 1qa.md patterns
         return null;
       }
     },
