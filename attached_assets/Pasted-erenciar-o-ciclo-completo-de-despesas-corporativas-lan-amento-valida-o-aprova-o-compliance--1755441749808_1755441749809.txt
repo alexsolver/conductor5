@@ -1,0 +1,57 @@
+erenciar o ciclo completo de despesas corporativas: lançamento → validação → aprovação → compliance/auditoria → pagamento → contabilização, com políticas configuráveis, anexos (notas/recibos), adiantamentos, multi-moeda e trilha de auditoria.
+
+⸻
+
+👤 Perfis & Permissões
+	•	Colaborador: cria e edita despesas/relatórios, anexa comprovantes, submete, acompanha status.
+	•	Gestor: aprova/rejeita/solicita ajustes; pode aprovar por valor.
+	•	Financeiro: valida compliance fiscal, reconcilia cartões, processa pagamento, lança contábil.
+	•	Auditoria/Compliance: revisa amostral/total; bloqueia reembolso fora de política.
+	•	Administrador: configura políticas, centros de custo, categorias, integrações e regras.
+
+⸻
+
+🔁 Fluxos Principais
+
+1) Lançamento de Despesa
+	•	Itens: categoria, data, moeda, valor bruto, impostos, centro de custo, projeto, cliente, local, forma de pagamento (pessoal/cartão corporativo/adiantamento), anexos (OCR), observações.
+	•	Validações iniciais: campos obrigatórios, duplicidade por OCR/hash, câmbio (D+0 BCB/ECB opcional).
+
+2) Relatório de Despesas (Expense Report)
+	•	Agrupa itens por período/viagem/projeto.
+	•	Checagem de política (ver § Políticas & Regras).
+	•	Submissão → dispara pipeline de aprovação (hierárquico/valor/centro de custo).
+
+3) Aprovação
+	•	Modos: SEQUENCIAL, PARALELO e CONDICIONAL.
+	•	Critérios usuais: gestor imediato, centro de custo, projeto, valor, cliente (se reembolsável ao cliente), compliance.
+	•	SLA por etapa + Idle Time SLA (alertas/escalonamento).
+
+4) Compliance & Auditoria
+	•	Regras fiscais (ex.: exigência de nota para certas categorias).
+	•	Detecção de fraudes/duplicidades (OCR, valor, data, fornecedor).
+	•	Amostragem inteligente (risk scoring).
+	•	Trava por documento ausente/inválido.
+
+5) Pagamento & Contabilização
+	•	Geração de lote de pagamento (PIX/ACH/SEPA/boletos), status: pending → paid → reconciled.
+	•	Integração contábil (ERP): centro de custo, conta contábil, impostos, provisões.
+	•	Reembolso em moeda do colaborador com conversão por taxa do dia da despesa ou submissão (configurável).
+
+6) Cartão Corporativo & Adiantamentos
+	•	Feed de cartão (arquivo/integração): matching com despesas (por data/valor/estabelecimento).
+	•	Marcação de “empresa” vs “pessoal”.
+	•	Adiantamento: solicitação → aprovação → prestação de contas → acerto (a pagar/ a receber).
+
+⸻
+
+🧠 Políticas & Regras (Query Builder)
+	•	Limites por categoria (ex.: alimentação R$120/dia; hotel R$500/noite).
+	•	Per diem (valor fixo por dia/país/cidade; sem nota ou com nota).
+	•	KM rodado (tabela de reembolso por km; upload de rota).
+	•	Exigência de comprovante por faixa de valor e categoria.
+	•	Blacklists/Whitelists de fornecedores/estabelecimentos.
+	•	Janela de submissão (ex.: 30 dias após a despesa).
+	•	Regras por local/cliente (clientes com políticas próprias).
+	•	Tax Compliance (campos fiscais obrigatórios por país/UF).
+	•	Auditoria amostral com score: alto valor, fora do horário, repetição, arredondamentos, split bills.
