@@ -2,8 +2,8 @@
 // Concrete Repository: DrizzleApprovalRuleRepository - Drizzle ORM implementation
 
 import { eq, and, like, desc, asc, inArray, sql, ilike } from 'drizzle-orm';
-import { db } from '../../../../db';
-import { approvalRules } from '@shared/schema-master';
+import { db } from '@shared/schema';
+import { approvalRules } from '@shared/schema';
 import { ApprovalRule } from '../../domain/entities/ApprovalRule';
 import { 
   IApprovalRuleRepository,
@@ -105,7 +105,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
     const conditions = [eq(approvalRules.tenantId, filters.tenantId)];
 
     if (filters.moduleType) {
-      conditions.push(sql`${approvalRules.moduleType} = ${filters.moduleType}`);
+      conditions.push(eq(approvalRules.moduleType, filters.moduleType));
     }
 
     // entityType is not a column in approval_rules table - removed this filter
@@ -136,7 +136,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   async findByModule(tenantId: string, moduleType: string, entityType?: string): Promise<ApprovalRule[]> {
     const conditions = [
       eq(approvalRules.tenantId, tenantId),
-      sql`${approvalRules.moduleType} = ${moduleType}`,
+      eq(approvalRules.moduleType, moduleType),
       eq(approvalRules.isActive, true)
     ];
 
@@ -172,7 +172,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       .from(approvalRules)
       .where(and(
         eq(approvalRules.tenantId, tenantId),
-        sql`${approvalRules.moduleType} = ${moduleType}`,
+        eq(approvalRules.moduleType, moduleType),
         eq(approvalRules.isActive, true)
       ))
       .orderBy(asc(approvalRules.priority));
