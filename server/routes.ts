@@ -1451,8 +1451,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User management routes
   app.use('/api/user-management', userManagementRoutes);
 
-  // User profile routes
-  app.use('/api/user', jwtAuth, userProfileRoutes);
+  // User profile routes - DISABLED MOCK ROUTES per 1qa.md
+  // app.use('/api/user', jwtAuth, userProfileRoutes);
 
   // Team management routes
   app.use('/api/team-management', jwtAuth, teamManagementRoutes);
@@ -1755,6 +1755,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put('/api/user/profile', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    console.log('🔥 [PROFILE-UPDATE] PUT /api/user/profile - REAL ENDPOINT HIT!');
+    console.log('🔥 [PROFILE-UPDATE] Request body:', req.body);
+    console.log('🔥 [PROFILE-UPDATE] User from token:', req.user);
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
