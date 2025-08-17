@@ -9,6 +9,7 @@ import { Pool } from 'pg';
 
 // Re-export all schema definitions
 export * from "./schema-master";
+export * from "./schema-activity-planner";
 
 // ✅ DRIZZLE ORM SETUP - 1QA.MD PATTERNS
 const pool = new Pool({

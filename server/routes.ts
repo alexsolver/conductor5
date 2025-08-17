@@ -273,6 +273,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ CLEAN ARCHITECTURE ONLY - Legacy imports removed per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] All legacy route imports eliminated');
+
+  // ✅ ACTIVITY PLANNER MODULE - Following Clean Architecture
+  try {
+    const activityPlannerRoutes = await import('./modules/activity-planner/routes');
+    app.use('/api/activity-planner', activityPlannerRoutes.default);
+    console.log('✅ [ACTIVITY-PLANNER] Routes registered successfully at /api/activity-planner');
+  } catch (error) {
+    console.error('❌ [ACTIVITY-PLANNER] Failed to load routes:', error);
+  }
   // Beneficiaries routes imported at top of file
 
   // Module Integrity Control System
