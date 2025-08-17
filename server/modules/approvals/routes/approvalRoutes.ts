@@ -1,9 +1,18 @@
 // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - ROUTES LAYER
 // API Routes: Approval Routes - Express route definitions for approval management
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { ApprovalController } from '../controllers/ApprovalController';
 import { jwtAuth as authenticateJWT } from '../../../middleware/jwtAuth';
+
+// Extend Request interface to include user property
+interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    tenantId: string;
+    email: string;
+  };
+}
 
 const router = Router();
 const approvalController = new ApprovalController();
@@ -125,7 +134,7 @@ router.get('/dashboard', approvalController.getApprovalDashboard.bind(approvalCo
  * @query {string} entityType - Entity type
  * @query {object} [entityData] - Entity data for rule evaluation
  */
-router.get('/rules/modules/:moduleType/applicable', async (req, res) => {
+router.get('/rules/modules/:moduleType/applicable', authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.user?.tenantId;
     const { moduleType } = req.params;
@@ -136,7 +145,7 @@ router.get('/rules/modules/:moduleType/applicable', async (req, res) => {
       return;
     }
 
-    const approvalRuleRepository = approvalController['approvalRuleRepository'];
+    const approvalRuleRepository = (approvalController as any).approvalRuleRepository;
     
     const rules = await approvalRuleRepository.findApplicableRules(
       tenantId,
@@ -157,10 +166,10 @@ router.get('/rules/modules/:moduleType/applicable', async (req, res) => {
  * @desc Get pending instances for current user
  * @access Private
  */
-router.get('/instances/pending/my', async (req, res) => {
+router.get('/instances/pending/my', authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.user?.tenantId;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     if (!tenantId || !userId) {
       res.status(401).json({ error: 'Usuário não autenticado' });
@@ -186,7 +195,7 @@ router.get('/instances/pending/my', async (req, res) => {
  * @desc Get overdue approval instances
  * @access Private
  */
-router.get('/instances/overdue', async (req, res) => {
+router.get('/instances/overdue', authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.user?.tenantId;
 
@@ -210,7 +219,7 @@ router.get('/instances/overdue', async (req, res) => {
  * @desc Expire overdue instances in bulk
  * @access Private
  */
-router.post('/instances/bulk-expire', async (req, res) => {
+router.post('/instances/bulk-expire', authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.user?.tenantId;
 
@@ -239,7 +248,7 @@ router.post('/instances/bulk-expire', async (req, res) => {
  * @query {string} startDate - Start date (ISO string)
  * @query {string} endDate - End date (ISO string)
  */
-router.get('/metrics/period', async (req, res) => {
+router.get('/metrics/period', authenticateJWT, async (req: AuthRequest, res: Response) => {
   try {
     const tenantId = req.user?.tenantId;
     const { startDate, endDate } = req.query;
