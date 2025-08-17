@@ -1,0 +1,256 @@
+
+Gere o **Módulo de Relatórios & Dashboards** do Conductor com integração completa aos 25 módulos existentes:
+
+## 🎯 **FUNCIONALIDADES PRINCIPAIS**
+
+### **📊 Dashboards Avançados**
+- **Dashboards múltiplos** por usuário/equipe/empresa com **tempo real** (WebSocket/SSE)
+- **Compartilhamento inteligente** por token (links públicos com/sem login, expiração automática)
+- **Widgets customizáveis** com drag-and-drop, redimensionamento e templates pré-configurados
+- **Dashboards responsivos** para desktop/mobile com layouts adaptativos
+
+### **📈 Sistema de Relatórios Completo**
+- **Criação intuitiva** com query builder visual e SQL avançado
+- **Execução/geração automática** (schedule avançado com timezone awareness)
+- **Gatilhos inteligentes** por resultado com ações automatizadas
+- **Fila de execução** (job queue) com priorização e retry automático
+- **Off-peak scheduling** com otimização de recursos e balanceamento de carga
+
+### **🎨 Designer WYSIWYG de PDF**
+- **Editor visual completo** para relatórios personalizados
+- **Customização total**: cores, textos, layouts, filtros, agrupamentos, componentes visuais
+- **Templates responsivos** com herança e versionamento
+- **Exportação multi-formato** (PDF, Excel, CSV) com renderização em fila
+- **Branding dinâmico** por cliente/empresa
+
+## 🔗 **INTEGRAÇÃO SISTÊMICA COMPLETA**
+
+### **📊 Fontes de Dados Unificadas**
+```typescript
+interface SystemDataSources {
+  // Módulos Core
+  tickets: TicketAnalytics & SLAMetrics & ResolutionTrends;
+  customers: CustomerBehavior & SatisfactionMetrics & LifecycleAnalysis;
+  users: UserActivity & ProductivityMetrics & AccessPatterns;
+  companies: CompanyPerformance & MultiTenantAnalytics;
+  
+  // Operações & Recursos
+  materials_services: InventoryTurnover & SupplierPerformance & LPUPricingEfficiency;
+  timecard: AttendanceAnalytics & OvertimeAnalysis & CLTCompliance;
+  locations: GeographicPerformance & RegionalComparison & RouteOptimization;
+  schedule_management: ScheduleEfficiency & ResourceUtilization & ConflictAnalysis;
+  
+  // Tecnologia & Comunicação
+  technical_skills: SkillsGapAnalysis & CertificationTracking & TrainingROI;
+  omnibridge: ChannelPerformance & AutomationEffectiveness & ChatbotMetrics;
+  notifications: DeliveryRates & UserEngagement & ChannelPreferences;
+  
+  // Gestão & Auditoria
+  custom_fields: FieldUsageAnalytics & AdoptionMetrics & DataQuality;
+  template_hierarchy: TemplateUsage & InheritanceEfficiency & VersioningMetrics;
+  final_integration: SystemHealthMetrics & ModulePerformance & ComplianceStatus;
+  
+  // Administração
+  saas_admin: TenantMetrics & SystemUtilization & BillingAnalytics;
+  dashboard: MetaDashboardMetrics & WidgetPerformance & UserInteraction;
+}
+```
+
+### **🎯 Templates Pré-configurados por Módulo**
+```typescript
+interface ModuleReportTemplates {
+  tickets: {
+    'SLA Performance Report': SLABreachAnalysis & ResponseTimeMetrics;
+    'Customer Satisfaction Dashboard': CSATTrends & FeedbackAnalysis;
+    'Agent Performance Review': ResolutionRates & WorkloadDistribution;
+    'Ticket Volume Forecasting': PredictiveAnalytics & SeasonalTrends;
+  };
+  
+  materials_services: {
+    'Inventory Management Report': StockLevels & TurnoverRates & ReorderPoints;
+    'Supplier Performance Dashboard': DeliveryMetrics & QualityScores & CostAnalysis;
+    'LPU Pricing Optimization': MarginAnalysis & CompetitivePositioning;
+    'Asset Lifecycle Report': DepreciationTracking & MaintenanceSchedules;
+  };
+  
+  timecard: {
+    'CLT Compliance Dashboard': OvertimeViolations & BreakCompliance & LegalAlerts;
+    'Productivity Analytics': EfficiencyMetrics & TaskCompletion & TimeAllocation;
+    'Attendance Overview': AbsenteeismRates & PunctualityTrends & PatternAnalysis;
+    'Payroll Preparation Report': HoursValidation & OvertimeCalculation & Adjustments;
+  };
+  
+  omnibridge: {
+    'Channel Performance Dashboard': ResponseTimes & ConversionRates & EngagementMetrics;
+    'Automation Effectiveness Report': BotInteractions & HandoffRates & UserSatisfaction;
+    'Communication Analytics': MessageVolume & ChannelPreferences & PeakHours;
+  };
+}
+```
+
+### **⚡ Integração com Sistemas Existentes**
+
+#### **Sistema de Notificações**
+```typescript
+interface NotificationIntegration {
+  alert_delivery: {
+    channels: ['email', 'in_app', 'sms', 'webhook', 'slack', 'telegram'];
+    preferences: UserNotificationPreferences; // Tabela existente
+    templates: NotificationTemplates; // Sistema existente
+    scheduling: OffPeakDelivery & TimezoneAwareness;
+  };
+  
+  smart_triggers: {
+    sla_breach: 'SLA violado - notificação automática para gestores';
+    stock_critical: 'Estoque crítico - alerta para compras';
+    budget_exceeded: 'Orçamento excedido - escalação financeira';
+    timecard_anomaly: 'Anomalia no ponto - RH alertado';
+    customer_satisfaction_drop: 'Queda CSAT - ação imediata requerida';
+  };
+}
+```
+
+#### **Sistema de Aprovações**
+```typescript
+interface ReportApprovalWorkflow {
+  sensitive_reports: {
+    financial: 'Relatórios financeiros → Aprovação CFO/Controller';
+    hr_data: 'Dados de RH → Aprovação do gestor direto';
+    customer_data: 'Dados de clientes → Aprovação LGPD/DPO';
+    strategic: 'Relatórios estratégicos → C-Level approval';
+  };
+  
+  approval_matrix: {
+    auto_approve: 'Relatórios operacionais básicos';
+    single_approval: 'Relatórios departamentais';
+    multi_approval: 'Relatórios executivos e financeiros';
+    board_approval: 'Relatórios de governança e compliance';
+  };
+}
+```
+
+#### **Campos Personalizados & Localização**
+```typescript
+interface AdvancedFeatures {
+  custom_fields_integration: {
+    dynamic_columns: 'Colunas baseadas em custom fields por módulo';
+    field_analytics: 'Análise de uso e adoção de campos personalizados';
+    conditional_visibility: 'Visibilidade condicional baseada em regras';
+    validation_reports: 'Relatórios de integridade de dados';
+  };
+  
+  multi_location_support: {
+    location_filters: 'Filtros automáticos por localização/filial';
+    regional_comparison: 'Comparação automática entre regiões';
+    timezone_scheduling: 'Agendamento considerando fuso horário local';
+    compliance_by_region: 'Relatórios de compliance por jurisdição';
+  };
+  
+  client_specific_features: {
+    customer_branding: 'Relatórios com identidade visual do cliente';
+    contract_kpis: 'KPIs específicos por contrato/SLA';
+    white_label: 'Relatórios completamente personalizados';
+    multi_tenant_isolation: 'Isolamento total de dados por tenant';
+  };
+}
+```
+
+## 🎨 **FUNCIONALIDADES AVANÇADAS**
+
+### **🤖 Inteligência Artificial & Analytics**
+- **Análise preditiva** para tendências e forecasting
+- **Detecção de anomalias** automática com alertas inteligentes
+- **Recomendações automáticas** baseadas em padrões históricos
+- **Natural Language Queries** para criação de relatórios por voz/texto
+
+### **🔄 Automação & Workflow**
+- **Pipelines de dados** com ETL automatizado
+- **Workflows condicionais** baseados em resultados
+- **Integração com APIs externas** para enriquecimento de dados
+- **Versionamento automático** de relatórios e dashboards
+
+### **🛡️ Segurança & Compliance**
+- **RBAC granular** integrado ao sistema de permissões existente
+- **Auditoria completa** de acesso e modificações
+- **Conformidade LGPD/GDPR** com anonimização automática
+- **Backup automático** e disaster recovery
+
+## 📊 **MODELO DE DADOS INTEGRADO**
+
+```sql
+-- Configurações por módulo
+CREATE TABLE report_module_configs (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  module_name VARCHAR(50) NOT NULL, -- 'tickets', 'materials_services', etc.
+  data_sources JSONB NOT NULL,
+  refresh_intervals JSONB DEFAULT '{}',
+  access_permissions JSONB DEFAULT '[]',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Templates específicos por entidade
+CREATE TABLE report_entity_templates (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  entity_type VARCHAR(20) NOT NULL, -- 'customer', 'company', 'contract'
+  entity_id UUID,
+  template_config JSONB NOT NULL,
+  inheritance_rules JSONB DEFAULT '{}',
+  priority INTEGER DEFAULT 0
+);
+
+-- Agendamento inteligente
+CREATE TABLE report_smart_schedules (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  report_id UUID NOT NULL,
+  schedule_type VARCHAR(20) NOT NULL, -- 'cron', 'event_driven', 'threshold'
+  schedule_config JSONB NOT NULL,
+  timezone VARCHAR(50) DEFAULT 'UTC',
+  off_peak_only BOOLEAN DEFAULT false,
+  resource_priority INTEGER DEFAULT 5
+);
+
+-- Integração com notificações
+CREATE TABLE report_notification_rules (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  report_id UUID NOT NULL,
+  trigger_conditions JSONB NOT NULL,
+  notification_channels JSONB NOT NULL, -- ['email', 'slack', 'webhook']
+  escalation_rules JSONB DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Cache inteligente por localização
+CREATE TABLE report_location_cache (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  location_id UUID,
+  report_signature VARCHAR(255) NOT NULL,
+  cached_data JSONB NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  last_accessed TIMESTAMP DEFAULT NOW()
+);
+```
+
+## 🎯 **OBJETIVOS CONSOLIDADOS**
+
+1. **Centralização Total**: Unificar dados de todos os 25 módulos em relatórios únicos
+2. **Experiência Unificada**: Interface consistente com o design system existente
+3. **Performance Otimizada**: Cache inteligente e consultas otimizadas
+4. **Escalabilidade**: Suporte a crescimento de dados e usuários
+5. **Compliance**: Atendimento total às regulamentações brasileiras e internacionais
+6. **Integração Nativa**: Aproveitamento máximo de funcionalidades já implementadas
+
+## 🚀 **DIFERENCIAIS COMPETITIVOS**
+
+- **Zero Configuração**: Templates inteligentes baseados no módulo ativo
+- **Contexto Automático**: Relatórios que se adaptam ao perfil do usuário
+- **Colaboração Real-time**: Dashboards compartilhados com edição simultânea
+- **Mobile-First**: Experiência otimizada para dispositivos móveis
+- **Offline Capability**: Relatórios funcionais mesmo sem conexão
+- **API-First**: Todas as funcionalidades disponíveis via API REST/GraphQL
+
+Este módulo será o **centro de inteligência** do Conductor, transformando dados operacionais em insights estratégicos acionáveis.
