@@ -1710,8 +1710,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       // Fetch user profile with extended information following 1qa.md patterns
-      // Use schemaManager for consistent naming across system
-      console.log('[PROFILE-GET] Using schema:', schemaName);
+      // Users table is in public schema, not tenant schema
+      console.log('[PROFILE-GET] Using public schema for users table');
       const result = await pool.query(`
         SELECT 
           u.id,
@@ -1730,7 +1730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           NULL as timezone,
           NULL as "dateOfBirth",
           NULL as address
-        FROM "${schemaName}".users u
+        FROM "public".users u
         WHERE u.id = $1 AND u.tenant_id = $2
       `, [userId, tenantId]);
 
@@ -1950,10 +1950,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[PROFILE-PHOTO] Avatar upload completed:', { objectPath, userId, tenantId });
       
       // Update avatar_url in user record following 1qa.md database patterns
-      // Use schemaManager for consistent naming across system
-      console.log('[PROFILE-PHOTO] Using schema:', schemaName);
+      // Users table is in public schema, not tenant schema
+      console.log('[PROFILE-PHOTO] Using public schema for users table');
       await pool.query(`
-        UPDATE "${schemaName}".users 
+        UPDATE "public".users 
         SET avatar_url = $1, updated_at = NOW()
         WHERE id = $2 AND tenant_id = $3
       `, [objectPath, userId, tenantId]);
@@ -2094,15 +2094,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       // Get user preferences (with defaults) following 1qa.md patterns
-      // Use schemaManager for consistent naming across system
-      console.log('[PREFERENCES-GET] Using schema:', schemaName);
+      // Users table is in public schema, not tenant schema
+      console.log('[PREFERENCES-GET] Using public schema for users table');
       const result = await pool.query(`
         SELECT 
           'pt-BR' as language,
           true as "emailNotifications",
           true as "pushNotifications",
           false as "darkMode"
-        FROM "${schemaName}".users 
+        FROM "public".users 
         WHERE id = $1 AND tenant_id = $2
       `, [userId, tenantId]);
 
@@ -2145,10 +2145,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       // Update user preferences following 1qa.md patterns
-      // Use schemaManager for consistent naming across system
-      console.log('[PREFERENCES-UPDATE] Using schema:', schemaName);
+      // Users table is in public schema, not tenant schema
+      console.log('[PREFERENCES-UPDATE] Using public schema for users table');
       await pool.query(`
-        UPDATE "${schemaName}".users 
+        UPDATE "public".users 
         SET updated_at = NOW()
         WHERE id = $1 AND tenant_id = $2
       `, [userId, tenantId]);
