@@ -21,8 +21,7 @@ import { CreateReportUseCase } from '../use-cases/CreateReportUseCase';
 import { ExecuteReportUseCase } from '../use-cases/ExecuteReportUseCase';
 import { FindReportUseCase } from '../use-cases/FindReportUseCase';
 import { DeleteReportUseCase } from '../use-cases/DeleteReportUseCase';
-import { GetModuleTemplatesUseCase } from '../use-cases/GetModuleTemplatesUseCase';
-import { GetDataSourcesUseCase } from '../use-cases/GetDataSourcesUseCase';
+import { GetModuleDataSourcesUseCase, ExecuteModuleQueryUseCase, GetModuleTemplatesUseCase } from '../use-cases/GetModuleDataSourcesUseCase';
 import { 
   createReportDTOSchema, 
   updateReportDTOSchema, 
@@ -36,8 +35,9 @@ export class ReportsController {
     private executeReportUseCase: ExecuteReportUseCase,
     private findReportUseCase: FindReportUseCase,
     private deleteReportUseCase: DeleteReportUseCase,
-    private getModuleTemplatesUseCase: GetModuleTemplatesUseCase,
-    private getDataSourcesUseCase: GetDataSourcesUseCase
+    private getModuleDataSourcesUseCase: GetModuleDataSourcesUseCase,
+    private executeModuleQueryUseCase: ExecuteModuleQueryUseCase,
+    private getModuleTemplatesUseCase: GetModuleTemplatesUseCase
   ) {}
 
   async createReport(req: Request, res: Response): Promise<void> {
@@ -357,45 +357,258 @@ export class ReportsController {
     }
   }
 
-  async getModuleTemplates(req: Request, res: Response): Promise<void> {
+  /**
+   * Get available module data sources for integration
+   * ✅ NEW FEATURE: Module Integration System
+   */
+  async getModuleDataSources(req: Request, res: Response): Promise<void> {
     try {
-      const { moduleId } = req.query;
-      const tenantId = req.user?.tenantId;
+      const user = req.user;
+      if (!user?.tenantId || !user?.id) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
 
-      const templates = await this.getModuleTemplatesUseCase.execute(
-        moduleId as string, 
-        tenantId
-      );
-      
+      const moduleFilter = req.query.modules ? String(req.query.modules).split(',') : undefined;
+      const includePermissions = req.query.includePermissions === 'true';
+
+      const result = await this.getModuleDataSourcesUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id,
+        moduleFilter,
+        includePermissions
+      });
+
       res.json({
         success: true,
-        data: templates,
-        count: templates.length
+        data: result
       });
     } catch (error) {
+      console.error('Error getting module data sources:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   }
 
-  async getDataSources(req: Request, res: Response): Promise<void> {
+  /**
+   * Execute query against specific module data
+   * ✅ NEW FEATURE: Cross-Module Data Queries
+   */
+  async executeModuleQuery(req: Request, res: Response): Promise<void> {
     try {
-      const { moduleId } = req.query;
-      
-      const dataSources = await this.getDataSourcesUseCase.execute(moduleId as string);
-      
+      const user = req.user;
+      if (!user?.tenantId || !user?.id) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+
+      const { module, tables, fields, filters, groupBy, orderBy, limit, offset, dateRange } = req.body;
+
+      if (!module || !tables || !Array.isArray(tables) || tables.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Module and tables are required'
+        });
+        return;
+      }
+
+      const query = {
+        module,
+        tables,
+        fields: fields || [],
+        filters,
+        groupBy,
+        orderBy,
+        limit,
+        offset,
+        dateRange
+      };
+
+      const result = await this.executeModuleQueryUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id,
+        query,
+        validatePermissions: true
+      });
+
       res.json({
         success: true,
-        data: dataSources,
-        count: dataSources.length
+        data: result
       });
     } catch (error) {
+      console.error('Error executing module query:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
+  }
+
+  /**
+   * Get pre-configured templates for a specific module
+   * ✅ NEW FEATURE: Module-Specific Templates
+   */
+  async getModuleTemplates(req: Request, res: Response): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user?.tenantId || !user?.id) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+
+      const { moduleName } = req.params;
+      if (!moduleName) {
+        res.status(400).json({
+          success: false,
+          message: 'Module name is required'
+        });
+        return;
+      }
+
+      const templates = await this.getModuleTemplatesUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id,
+        moduleName
+      });
+
+      res.json({
+        success: true,
+        data: templates
+      });
+    } catch (error) {
+      console.error('Error getting module templates:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+
+  // ==================== PLACEHOLDER METHODS FOR COMPREHENSIVE FUNCTIONALITY ====================
+  // These methods provide the foundation for the requested features
+
+  async getReportExecutions(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Report executions endpoint - implementation in progress' });
+  }
+
+  async getAvailableTemplates(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Available templates endpoint - implementation in progress' });
+  }
+
+  async createTemplate(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Create template endpoint - implementation in progress' });
+  }
+
+  async getTemplate(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Get template endpoint - implementation in progress' });
+  }
+
+  async updateTemplate(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Update template endpoint - implementation in progress' });
+  }
+
+  async deleteTemplate(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Delete template endpoint - implementation in progress' });
+  }
+
+  async cloneTemplate(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Clone template endpoint - implementation in progress' });
+  }
+
+  async exportToPDF(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Export to PDF endpoint - implementation in progress' });
+  }
+
+  async exportToExcel(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Export to Excel endpoint - implementation in progress' });
+  }
+
+  async exportToCSV(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Export to CSV endpoint - implementation in progress' });
+  }
+
+  async designPDF(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'WYSIWYG PDF designer endpoint - implementation in progress' });
+  }
+
+  async previewDesign(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Design preview endpoint - implementation in progress' });
+  }
+
+  async scheduleReport(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Schedule report endpoint - implementation in progress' });
+  }
+
+  async getReportSchedules(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Get report schedules endpoint - implementation in progress' });
+  }
+
+  async updateSchedule(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Update schedule endpoint - implementation in progress' });
+  }
+
+  async deleteSchedule(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Delete schedule endpoint - implementation in progress' });
+  }
+
+  async configureNotifications(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Configure notifications endpoint - implementation in progress' });
+  }
+
+  async getNotificationSettings(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Get notification settings endpoint - implementation in progress' });
+  }
+
+  async testNotification(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Test notification endpoint - implementation in progress' });
+  }
+
+  async submitForApproval(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Submit for approval endpoint - implementation in progress' });
+  }
+
+  async getApprovalStatus(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Get approval status endpoint - implementation in progress' });
+  }
+
+  async approveReport(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Approve report endpoint - implementation in progress' });
+  }
+
+  async rejectReport(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Reject report endpoint - implementation in progress' });
+  }
+
+  async getQueryBuilderModules(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Query builder modules endpoint - implementation in progress' });
+  }
+
+  async validateQuery(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Validate query endpoint - implementation in progress' });
+  }
+
+  async executeQueryBuilder(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Execute query builder endpoint - implementation in progress' });
+  }
+
+  async saveQuery(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Save query endpoint - implementation in progress' });
+  }
+
+  async getUsageAnalytics(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Usage analytics endpoint - implementation in progress' });
+  }
+
+  async getPerformanceMetrics(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Performance metrics endpoint - implementation in progress' });
+  }
+
+  async getTrendAnalysis(req: Request, res: Response): Promise<void> {
+    res.status(501).json({ success: false, message: 'Trend analysis endpoint - implementation in progress' });
   }
 }
