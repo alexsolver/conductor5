@@ -4251,6 +4251,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('⚠️ [APPROVAL-MANAGEMENT] Routes module failed to load:', error.message);
   }
 
+  // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - CONTRACT MANAGEMENT MODULE
+  // Contract Management Routes - Complete contract lifecycle management system
+  try {
+    const contractRoutes = await import('./modules/contracts/routes/contractRoutes');
+    if (contractRoutes.default) {
+      app.use('/api/contracts', jwtAuth, contractRoutes.default);
+      console.log('✅ [CONTRACT-MANAGEMENT] Routes registered successfully at /api/contracts');
+    } else {
+      console.warn('⚠️ [CONTRACT-MANAGEMENT] Routes module not properly exported, skipping registration');
+    }
+  } catch (error) {
+    console.warn('⚠️ [CONTRACT-MANAGEMENT] Routes module failed to load:', error.message);
+  }
+
   const httpServer = createServer(app);
   return httpServer;
 }

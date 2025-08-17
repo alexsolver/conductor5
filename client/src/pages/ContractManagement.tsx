@@ -1,13 +1,49 @@
+/**
+ * ContractManagement - Página principal de gestão de contratos
+ * Seguindo 1qa.md compliance e Clean Architecture patterns
+ */
+
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, Search, Filter, FileText, DollarSign, Calendar, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, Filter, FileText, Calendar, DollarSign, Users, AlertCircle, Clock } from 'lucide-react';
-import { CreateContractDialog } from '@/components/contract-management/CreateContractDialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+
+// Tipos de contrato
+const contractTypes = [
+  { value: 'service', label: 'Serviço' },
+  { value: 'supply', label: 'Fornecimento' },
+  { value: 'maintenance', label: 'Manutenção' },
+  { value: 'rental', label: 'Locação' },
+  { value: 'sla', label: 'SLA' },
+];
+
+const contractStatuses = [
+  { value: 'draft', label: 'Rascunho', color: 'gray' },
+  { value: 'analysis', label: 'Análise', color: 'yellow' },
+  { value: 'approved', label: 'Aprovado', color: 'blue' },
+  { value: 'active', label: 'Ativo', color: 'green' },
+  { value: 'terminated', label: 'Encerrado', color: 'red' },
+];
+
+const priorities = [
+  { value: 'low', label: 'Baixa', color: 'gray' },
+  { value: 'medium', label: 'Média', color: 'blue' },
+  { value: 'high', label: 'Alta', color: 'orange' },
+  { value: 'critical', label: 'Crítica', color: 'red' },
+  { value: 'emergency', label: 'Emergencial', color: 'purple' },
+];
 
 interface Contract {
   id: string;
@@ -16,337 +52,371 @@ interface Contract {
   contractType: string;
   status: string;
   priority: string;
-  totalValue: number;
-  currency: string;
+  managerId: string;
   startDate: string;
   endDate: string;
-  customerCompanyName?: string;
-  managerName?: string;
+  totalValue: number;
+  monthlyValue: number;
+  currency: string;
   description?: string;
-  isActive: boolean;
   createdAt: string;
-  updatedAt: string;
 }
 
-interface ContractStats {
-  totalContracts: number;
-  activeContracts: number;
-  totalValue: number;
-  expiringThisMonth: number;
-  draftContracts: number;
-  renewalsNeeded: number;
+interface ContractFilters {
+  search?: string;
+  status?: string;
+  contractType?: string;
+  priority?: string;
 }
 
 export default function ContractManagement() {
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [filters, setFilters] = useState<ContractFilters>({});
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Fetch contract statistics
-  const { data: stats, isLoading: statsLoading } = useQuery<ContractStats>({
-    queryKey: ['/api/contracts/dashboard/stats']
+  // Buscar métricas do dashboard
+  const { data: dashboardMetrics } = useQuery({
+    queryKey: ['/api/contracts/dashboard-metrics'],
+    queryFn: async () => {
+      const response = await fetch('/api/contracts/dashboard-metrics', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      return response.json();
+    },
   });
 
-  // Fetch contracts with filters
-  const { data: contractsData, isLoading: contractsLoading, error: contractsError, refetch: refetchContracts } = useQuery<Contract[]>({
-    queryKey: ['/api/contracts/contracts', statusFilter, typeFilter, priorityFilter, searchTerm],
-    retry: (failureCount, error) => {
-      // Don't retry on auth errors
-      if (error?.message?.includes('401') || error?.message?.includes('autenticação')) {
-        return false;
-      }
-      return failureCount < 3;
-    }
+  // Buscar contratos
+  const { data: contractsData, isLoading } = useQuery({
+    queryKey: ['/api/contracts', filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+      const response = await fetch(`/api/contracts?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      return response.json();
+    },
   });
 
-  // Backend returns array directly
-  const contracts = Array.isArray(contractsData) ? contractsData : [];
+  const contracts = contractsData?.data?.contracts || [];
+  const total = contractsData?.data?.total || 0;
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      draft: { label: 'Rascunho', variant: 'secondary' as const },
-      active: { label: 'Ativo', variant: 'default' as const },
-      expired: { label: 'Expirado', variant: 'destructive' as const },
-      terminated: { label: 'Rescindido', variant: 'outline' as const },
-      renewed: { label: 'Renovado', variant: 'default' as const },
-    };
+  // Mutation para deletar contrato
+  const deleteContractMutation = useMutation({
+    mutationFn: async (contractId: string) => {
+      const response = await fetch(`/api/contracts/${contractId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
+      toast({
+        title: "Sucesso",
+        description: "Contrato excluído com sucesso",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir contrato",
+        variant: "destructive",
+      });
+    },
+  });
 
-    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'secondary' as const };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const getPriorityBadge = (priority: string) => {
-    const priorityConfig = {
-      low: { label: 'Baixa', variant: 'outline' as const },
-      medium: { label: 'Média', variant: 'secondary' as const },
-      high: { label: 'Alta', variant: 'default' as const },
-      critical: { label: 'Crítica', variant: 'destructive' as const },
-    };
-
-    const config = priorityConfig[priority as keyof typeof priorityConfig] || { label: priority, variant: 'secondary' as const };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const formatCurrency = (value: number, currency: string = 'BRL') => {
+  const formatCurrency = (value: number, currency = 'BRL') => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: currency,
     }).format(value);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+  const getStatusBadge = (status: string) => {
+    const statusConfig = contractStatuses.find(s => s.value === status);
+    return (
+      <Badge 
+        variant="outline" 
+        className={`border-${statusConfig?.color}-500 text-${statusConfig?.color}-700`}
+        data-testid={`badge-status-${status}`}
+      >
+        {statusConfig?.label || status}
+      </Badge>
+    );
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    const priorityConfig = priorities.find(p => p.value === priority);
+    return (
+      <Badge 
+        variant="outline" 
+        className={`border-${priorityConfig?.color}-500 text-${priorityConfig?.color}-700`}
+        data-testid={`badge-priority-${priority}`}
+      >
+        {priorityConfig?.label || priority}
+      </Badge>
+    );
+  };
+
+  const getTypeBadge = (type: string) => {
+    const typeConfig = contractTypes.find(t => t.value === type);
+    return (
+      <Badge variant="secondary" data-testid={`badge-type-${type}`}>
+        {typeConfig?.label || type}
+      </Badge>
+    );
   };
 
   return (
-    <div className="p-4 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestão de Contratos</h1>
-          <p className="text-gray-600">Gerencie contratos, SLAs, serviços e documentos</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+              Gestão de Contratos
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Gerencie todo o ciclo de vida dos contratos empresariais
+            </p>
+          </div>
+          <Button 
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            data-testid="button-create-contract"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Contrato
+          </Button>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Novo Contrato
-        </Button>
-      </div>
 
-      {/* Statistics Cards */}
-      {statsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
+        {/* Métricas do Dashboard */}
+        {dashboardMetrics?.data && (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Contratos Ativos</CardTitle>
+                <FileText className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600" data-testid="metric-active-contracts">
+                  {dashboardMetrics.data.totalActive}
+                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      ) : stats ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total de Contratos</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalContracts}</p>
-                </div>
-                <FileText className="w-8 h-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Contratos Ativos</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.activeContracts}</p>
+            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>
+                <FileText className="h-4 w-4 text-gray-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-600" data-testid="metric-draft-contracts">
+                  {dashboardMetrics.data.totalDraft}
                 </div>
-                <Users className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                  <p className="text-2xl font-bold text-blue-600">{formatCurrency(stats.totalValue)}</p>
+            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Vencendo em 30 dias</CardTitle>
+                <Calendar className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600" data-testid="metric-expiring-contracts">
+                  {dashboardMetrics.data.totalExpiringSoon}
                 </div>
-                <DollarSign className="w-8 h-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Vencem Este Mês</p>
-                  <p className="text-2xl font-bold text-orange-600">{stats.expiringThisMonth}</p>
+            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
+                <DollarSign className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600" data-testid="metric-monthly-revenue">
+                  {formatCurrency(dashboardMetrics.data.monthlyRevenue)}
                 </div>
-                <AlertCircle className="w-8 h-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      ) : null}
+              </CardContent>
+            </Card>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
+            <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+                <DollarSign className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600" data-testid="metric-total-revenue">
+                  {formatCurrency(dashboardMetrics.data.totalRevenue)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Filtros */}
+        <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtros
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar por título, número ou descrição..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Buscar contratos..."
+                  value={filters.search || ''}
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="pl-10"
+                  data-testid="input-search-contracts"
                 />
               </div>
-            </div>
 
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
+              <Select 
+                value={filters.status || ''} 
+                onValueChange={(value) => setFilters({ ...filters, status: value })}
+              >
+                <SelectTrigger data-testid="select-status-filter">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="draft">Rascunho</SelectItem>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="expired">Expirado</SelectItem>
-                  <SelectItem value="terminated">Rescindido</SelectItem>
-                  <SelectItem value="renewed">Renovado</SelectItem>
+                  <SelectItem value="">Todos os Status</SelectItem>
+                  {contractStatuses.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-40">
+              <Select 
+                value={filters.contractType || ''} 
+                onValueChange={(value) => setFilters({ ...filters, contractType: value })}
+              >
+                <SelectTrigger data-testid="select-type-filter">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="service">Serviço</SelectItem>
-                  <SelectItem value="maintenance">Manutenção</SelectItem>
-                  <SelectItem value="support">Suporte</SelectItem>
-                  <SelectItem value="consultation">Consultoria</SelectItem>
-                  <SelectItem value="license">Licenciamento</SelectItem>
-                  <SelectItem value="partnership">Parceria</SelectItem>
+                  <SelectItem value="">Todos os Tipos</SelectItem>
+                  {contractTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-32">
+              <Select 
+                value={filters.priority || ''} 
+                onValueChange={(value) => setFilters({ ...filters, priority: value })}
+              >
+                <SelectTrigger data-testid="select-priority-filter">
                   <SelectValue placeholder="Prioridade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="critical">Crítica</SelectItem>
+                  <SelectItem value="">Todas as Prioridades</SelectItem>
+                  {priorities.map((priority) => (
+                    <SelectItem key={priority.value} value={priority.value}>
+                      {priority.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('all');
-                  setTypeFilter('all');
-                  setPriorityFilter('all');
-                }}
-              >
-                Limpar
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Contracts Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Contratos ({contracts.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-        {(statsLoading || contractsLoading) ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p>Carregando contratos...</p>
-            </div>
-          </div>
-        ) : contractsError ? (
-          <div className="flex flex-col justify-center items-center h-64 space-y-4">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-destructive mb-2">Erro ao carregar contratos</h3>
-              <p className="text-muted-foreground mb-4">{contractsError.message}</p>
-              <Button onClick={() => refetchContracts()} variant="outline">
-                Tentar novamente
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {contractsLoading ? (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="animate-pulse flex items-center space-x-4 p-4 border rounded-lg">
-                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  </div>
-                ))}
+        {/* Lista de Contratos */}
+        <Card className="bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Contratos ({total})</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               </div>
             ) : contracts.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum contrato encontrado</h3>
-                <p className="text-gray-600 mb-4">
-                  {searchTerm || statusFilter || typeFilter || priorityFilter
-                    ? 'Nenhum contrato corresponde aos filtros aplicados.'
-                    : 'Comece criando seu primeiro contrato.'}
-                </p>
-                <Button onClick={() => setShowCreateDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar Primeiro Contrato
-                </Button>
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum contrato encontrado
               </div>
             ) : (
               <div className="space-y-4">
-                {contracts.map((contract) => (
-                  <div key={contract.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
+                {contracts.map((contract: Contract) => (
+                  <div 
+                    key={contract.id} 
+                    className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    data-testid={`contract-item-${contract.id}`}
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-gray-900">{contract.title}</h3>
+                          <h3 className="font-semibold text-lg" data-testid={`contract-title-${contract.id}`}>
+                            {contract.title}
+                          </h3>
+                          <span className="text-sm text-muted-foreground" data-testid={`contract-number-${contract.id}`}>
+                            {contract.contractNumber}
+                          </span>
+                        </div>
+                        
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           {getStatusBadge(contract.status)}
+                          {getTypeBadge(contract.contractType)}
                           {getPriorityBadge(contract.priority)}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
-                          <div>
-                            <span className="font-medium">Número:</span> {contract.contractNumber}
-                          </div>
-                          <div>
-                            <span className="font-medium">Tipo:</span> {contract.contractType}
-                          </div>
-                          <div>
-                            <span className="font-medium">Valor:</span> {formatCurrency(contract.totalValue, contract.currency)}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>{formatDate(contract.startDate)} - {formatDate(contract.endDate)}</span>
-                          </div>
-                        </div>
+                        <p className="text-sm text-muted-foreground mb-2" data-testid={`contract-description-${contract.id}`}>
+                          {contract.description || 'Sem descrição'}
+                        </p>
 
-                        {contract.description && (
-                          <p className="text-sm text-gray-600 mt-2 truncate">
-                            {contract.description}
-                          </p>
-                        )}
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                          <span data-testid={`contract-period-${contract.id}`}>
+                            {new Date(contract.startDate).toLocaleDateString('pt-BR')} - {new Date(contract.endDate).toLocaleDateString('pt-BR')}
+                          </span>
+                          <span data-testid={`contract-total-value-${contract.id}`}>
+                            Valor Total: {formatCurrency(contract.totalValue, contract.currency)}
+                          </span>
+                          {contract.monthlyValue > 0 && (
+                            <span data-testid={`contract-monthly-value-${contract.id}`}>
+                              Mensal: {formatCurrency(contract.monthlyValue, contract.currency)}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button variant="outline" size="sm">
-                          Ver Detalhes
-                        </Button>
-                        <Button variant="outline" size="sm">
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          data-testid={`button-edit-${contract.id}`}
+                        >
                           Editar
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => deleteContractMutation.mutate(contract.id)}
+                          disabled={deleteContractMutation.isPending}
+                          data-testid={`button-delete-${contract.id}`}
+                        >
+                          Excluir
                         </Button>
                       </div>
                     </div>
@@ -354,20 +424,9 @@ export default function ContractManagement() {
                 ))}
               </div>
             )}
-          </>
-        )}
-        </CardContent>
-      </Card>
-
-      {/* Create Contract Dialog */}
-      <CreateContractDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onSuccess={() => {
-          refetchContracts();
-          setShowCreateDialog(false);
-        }}
-      />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
