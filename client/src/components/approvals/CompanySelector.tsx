@@ -41,7 +41,13 @@ export function CompanySelector({
   const { data: companies = [], isLoading, error } = useQuery<Company[]>({
     queryKey: ['/api/customers', { customerType: 'PJ' }],
     queryFn: async () => {
-      const response = await fetch('/api/customers?customerType=PJ&isActive=true&limit=100');
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/customers?customerType=PJ&isActive=true&limit=100', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) {
         throw new Error('Falha ao carregar empresas');
       }
@@ -66,8 +72,8 @@ export function CompanySelector({
       </label>
       
       <Select
-        value={value || ''}
-        onValueChange={(val) => onValueChange(val || null)}
+        value={value || 'none'}
+        onValueChange={(val) => onValueChange(val === 'none' ? null : val)}
         disabled={disabled || isLoading}
       >
         <SelectTrigger className="w-full">
@@ -76,7 +82,7 @@ export function CompanySelector({
         
         <SelectContent>
           {/* Opção para remover seleção */}
-          <SelectItem value="">
+          <SelectItem value="none">
             <span className="text-gray-500">Nenhuma empresa (regra global)</span>
           </SelectItem>
           

@@ -23,6 +23,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
         description: data.description,
         moduleType: data.moduleType,
         entityType: data.entityType,
+        companyId: data.companyId || null,
         queryConditions: data.queryConditions,
         approvalSteps: data.approvalSteps,
         slaHours: data.slaHours,
@@ -45,6 +46,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       .set({
         name: data.name,
         description: data.description,
+        companyId: data.companyId,
         queryConditions: data.queryConditions,
         approvalSteps: data.approvalSteps,
         slaHours: data.slaHours,

@@ -68,7 +68,13 @@ export function ApprovalGroupsManager() {
   const { data: groupsData, isLoading } = useQuery({
     queryKey: ['/api/approvals/groups'],
     queryFn: async () => {
-      const response = await fetch('/api/approvals/groups');
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/approvals/groups', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) throw new Error('Falha ao carregar grupos');
       return response.json();
     }

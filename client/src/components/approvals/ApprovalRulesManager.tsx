@@ -18,6 +18,7 @@ interface ApprovalRule {
   name: string;
   moduleType: string;
   entityType: string;
+  companyId?: string | null;
   isActive: boolean;
   priority: number;
   queryConditions: any;
@@ -193,8 +194,8 @@ export function ApprovalRulesManager() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {moduleTypes.map(type => (
-                            <SelectItem key={type.value} value={type.value}>
+                            {moduleTypes.map(type => (
+                            <SelectItem key={`module-${type.value}`} value={type.value}>
                               {type.label}
                             </SelectItem>
                           ))}

@@ -9,6 +9,7 @@ export interface CreateApprovalRuleData {
   description?: string;
   moduleType: 'tickets' | 'materials' | 'knowledge_base' | 'timecard' | 'contracts';
   entityType: string;
+  companyId?: string | null;
   queryConditions: any[];
   approvalSteps: any[];
   slaHours: number;
@@ -23,6 +24,7 @@ export interface CreateApprovalRuleData {
 export interface UpdateApprovalRuleData {
   name?: string;
   description?: string;
+  companyId?: string | null;
   queryConditions?: any[];
   approvalSteps?: any[];
   slaHours?: number;
