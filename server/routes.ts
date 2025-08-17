@@ -1776,6 +1776,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[PROFILE-UPDATE] Using public schema for users table');
       console.log('[PROFILE-UPDATE] Updating with data:', { firstName, lastName, phone, department, position, bio, location, timezone, dateOfBirth, address, userId, tenantId });
       
+      // First verify user exists
+      const existingUser = await pool.query('SELECT id, first_name, last_name, phone FROM public.users WHERE id = $1 AND tenant_id = $2', [userId, tenantId]);
+      console.log('[PROFILE-UPDATE] Current user data BEFORE update:', existingUser.rows[0] || 'USER NOT FOUND');
+      
       const result = await pool.query(`
         UPDATE "public".users 
         SET 
@@ -1810,6 +1814,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('[PROFILE-UPDATE] Profile updated successfully:', result.rows[0]);
+      
+      // Verify update actually happened
+      const verifyResult = await pool.query('SELECT first_name, last_name, phone, updated_at FROM public.users WHERE id = $1 AND tenant_id = $2', [userId, tenantId]);
+      console.log('[PROFILE-UPDATE] Verification - data in DB AFTER update:', verifyResult.rows[0]);
+      
       res.json(result.rows[0]);
 
     } catch (error) {
