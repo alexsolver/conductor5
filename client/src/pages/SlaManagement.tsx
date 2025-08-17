@@ -586,11 +586,17 @@ export default function SlaManagement() {
         {/* SLA Definitions Tab */}
         <TabsContent value="definitions" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Definições de SLA</CardTitle>
-              <CardDescription>
-                Configure acordos de nível de serviço (SLA), operacional (OLA) e contratos base (UC)
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Definições de SLA</CardTitle>
+                <CardDescription>
+                  Configure acordos de nível de serviço (SLA), operacional (OLA) e contratos base (UC)
+                </CardDescription>
+              </div>
+              <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-sla">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo SLA
+              </Button>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

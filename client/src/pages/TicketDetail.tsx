@@ -13,6 +13,7 @@ import { useFieldColors } from "@/hooks/useFieldColors";
 import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLocalization } from "@/hooks/useLocalization";
+import { SlaLed } from "@/components/SlaLed";
 
 interface Ticket {
   id: string;
@@ -296,6 +297,7 @@ export default function TicketDetail() {
                   {getFieldLabel('category', ticket.category)}
                 </DynamicBadge>
               )}
+              <SlaLed ticketId={ticket.id} />
             </div>
           </div>
         </div>
