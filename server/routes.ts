@@ -1755,9 +1755,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put('/api/user/profile', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    console.log('🔥 [PROFILE-UPDATE-DEBUG] PUT /api/user/profile endpoint HIT!');
-    console.log('🔥 [PROFILE-UPDATE-DEBUG] Request body:', req.body);
-    console.log('🔥 [PROFILE-UPDATE-DEBUG] User from token:', req.user);
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -1816,13 +1813,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.log('[PROFILE-UPDATE] Raw UPDATE result:', result);
       console.log('[PROFILE-UPDATE] Profile updated successfully:', result.rows[0]);
       
-      // Verify update actually happened
+      // Critical verification - force a separate connection to verify data persistence
       const verifyResult = await pool.query('SELECT first_name, last_name, phone, updated_at FROM public.users WHERE id = $1 AND tenant_id = $2', [userId, tenantId]);
-      console.log('[PROFILE-UPDATE] Verification - data in DB AFTER update:', verifyResult.rows[0]);
+      console.log('[PROFILE-UPDATE] VERIFICATION - data in DB AFTER update:', verifyResult.rows[0]);
       
-      res.json(result.rows[0]);
+      // Double check - return the verification result instead of the update result
+      if (verifyResult.rows.length > 0) {
+        const verified = verifyResult.rows[0];
+        res.json({
+          id: userId,
+          firstName: verified.first_name,
+          lastName: verified.last_name,
+          email: req.user?.email,
+          role: req.user?.role,
+          tenantId: tenantId,
+          phone: verified.phone,
+          department: '',
+          position: verified.position || '',
+          bio: '',
+          location: '',
+          timezone: verified.time_zone || 'America/Sao_Paulo',
+          dateOfBirth: '',
+          address: '',
+          updatedAt: verified.updated_at
+        });
+      } else {
+        res.json(result.rows[0]);
+      }
 
     } catch (error) {
       console.error('[USER-PROFILE] Error updating profile:', error);
