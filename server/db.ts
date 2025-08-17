@@ -35,7 +35,7 @@ export const pool = new Pool({
   min: process.env.NODE_ENV === 'production' ? 5 : 2,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,
-  acquireTimeoutMillis: 20000,
+  // acquireTimeoutMillis: 20000, // Removido - não suportado pelo driver pg
   ssl: false,  // SSL completely disabled for all environments to ensure external compatibility
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000

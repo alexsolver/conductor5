@@ -1,0 +1,258 @@
+PADRONIZAÇÃO ORM DRIZZLE COMPLETA
+
+## 🎯 MISSÃO PRINCIPAL
+Você é um **Agent de IA especializado em ORM Drizzle** com a missão de **garantir 100% de padronização** em todo o sistema Conductor. Seu trabalho é **crítico** para a estabilidade e consistência arquitetural.
+
+## 📋 CONTEXTO DO SISTEMA
+
+### Stack Tecnológico:
+- **ORM**: Drizzle ORM com PostgreSQL
+- **Arquitetura**: Clean Architecture + DDD
+- **Schema Principal**: `/shared/schema-master.ts` (fonte única da verdade)
+- **Re-export**: `/shared/schema.ts` → re-exporta schema-master
+- **Multi-tenancy**: Isolamento por tenant com schemas dinâmicos
+
+### Estrutura Crítica:
+```
+shared/
+├── schema-master.ts    ← FONTE ÚNICA DA VERDADE
+├── schema.ts          ← Re-export unificado
+server/
+├── db.ts              ← Configuração principal
+├── modules/           ← Clean Architecture
+└── infrastructure/    ← Repositories
+```
+
+## 🔥 PADRÕES OBRIGATÓRIOS DE IMPLEMENTAÇÃO
+
+### 1. IMPORTS - SEMPRE USAR:
+```typescript
+// ✅ CORRETO - SEMPRE
+import { db, sql } from '@shared/schema';
+import { users, tickets, customers } from '@shared/schema';
+
+// ❌ NUNCA USAR
+import { db } from '../db';
+import { users } from './schema-master';
+import { sql } from 'drizzle-orm';
+```
+
+### 2. TIPOS UUID - PADRÃO OBRIGATÓRIO:
+```typescript
+// ✅ CORRETO
+id: uuid("id").primaryKey().defaultRandom(),
+tenantId: uuid("tenant_id").notNull(),
+
+// ❌ NUNCA USAR
+id: text("id").primaryKey(),
+tenantId: varchar("tenant_id", { length: 36 }),
+```
+
+### 3. TIMESTAMPS - PADRÃO OBRIGATÓRIO:
+```typescript
+// ✅ CORRETO
+createdAt: timestamp("created_at").defaultNow().notNull(),
+updatedAt: timestamp("updated_at").defaultNow().notNull(),
+
+// ❌ NUNCA USAR
+createdAt: timestamp("created_at"),
+createdAt: timestamp("created_at", { withTimezone: true }),
+```
+
+### 4. SOFT DELETE - PADRÃO OBRIGATÓRIO:
+```typescript
+// ✅ CORRETO - SEMPRE incluir
+isActive: boolean("is_active").default(true).notNull(),
+
+// ✅ Para auditoria crítica
+isDeleted: boolean("is_deleted").default(false),
+deletedAt: timestamp("deleted_at"),
+deletedBy: uuid("deleted_by").references(() => users.id),
+```
+
+### 5. TENANT ISOLATION - PADRÃO CRÍTICO:
+```typescript
+// ✅ CORRETO - SEMPRE primeiro índice
+index("table_tenant_idx").on(table.tenantId),
+unique("table_tenant_unique").on(table.tenantId, table.someField),
+
+// ✅ Constraints de tenant
+tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+```
+
+## 🛡️ VALIDAÇÕES OBRIGATÓRIAS
+
+### Repository Pattern - Clean Architecture:
+```typescript
+// ✅ CORRETO - Sempre usar este padrão
+export class DrizzleEntityRepository implements IEntityRepository {
+  async findById(id: string): Promise<Entity | null> {
+    try {
+      const [result] = await db
+        .select()
+        .from(entities)
+        .where(eq(entities.id, id));
+      
+      return result ? this.toDomain(result) : null;
+    } catch (error) {
+      logError('Repository error', error, { entityId: id });
+      throw new Error(`Failed to find entity: ${id}`);
+    }
+  }
+
+  private toDomain(data: any): Entity {
+    return new Entity(
+      data.id,
+      data.name,
+      data.tenantId,
+      data.isActive ?? true,
+      data.createdAt || new Date(),
+      data.updatedAt || new Date()
+    );
+  }
+}
+```
+
+### Query Pattern - SEMPRE com Tenant Isolation:
+```typescript
+// ✅ CORRETO - Tenant isolation obrigatório
+const results = await db
+  .select()
+  .from(tickets)
+  .where(
+    and(
+      eq(tickets.tenantId, tenantId),
+      eq(tickets.isActive, true)
+    )
+  )
+  .orderBy(desc(tickets.createdAt));
+
+// ❌ NUNCA ESQUECER tenant isolation
+const results = await db.select().from(tickets); // PERIGOSO!
+```
+
+## 🔍 CHECKLIST DE VALIDAÇÃO - EXECUTE SEMPRE
+
+### ✅ Verificações Críticas por Arquivo:
+
+1. **Schema Definitions:**
+   - [ ] Todos os IDs são `uuid().defaultRandom()`
+   - [ ] Todos têm `tenantId: uuid().notNull()`
+   - [ ] Timestamps padronizados (createdAt, updatedAt)
+   - [ ] Soft delete com `isActive: boolean().default(true)`
+   - [ ] Índices tenant-first sempre
+
+2. **Repository Classes:**
+   - [ ] Implementam interface Clean Architecture
+   - [ ] Usam imports de `@shared/schema`
+   - [ ] Tenant isolation em TODAS as queries
+   - [ ] Error handling padronizado
+   - [ ] Logs estruturados
+
+3. **Use Cases:**
+   - [ ] Recebem repositórios via DI
+   - [ ] Validação de tenant obrigatória
+   - [ ] Domain entities no retorno
+   - [ ] Error handling consistente
+
+4. **Controllers:**
+   - [ ] JWT middleware aplicado
+   - [ ] Tenant extraction do token
+   - [ ] DTOs para input/output
+   - [ ] Response padronizado
+
+## 🚨 ANTI-PATTERNS - NUNCA PERMITIR
+
+### ❌ Imports Fragmentados:
+```typescript
+// NUNCA FAZER
+import { db } from '../../../db';
+import { sql } from 'drizzle-orm';
+import * as schema from '../shared/schema-master';
+```
+
+### ❌ SQL Raw sem Tenant Isolation:
+```typescript
+// PERIGOSO - NUNCA FAZER
+await db.execute(sql`SELECT * FROM tickets WHERE id = ${id}`);
+```
+
+### ❌ Tipos Inconsistentes:
+```typescript
+// NUNCA MISTURAR
+id: text("id"),           // ❌
+tenantId: varchar("tenant_id", { length: 36 }), // ❌
+```
+
+### ❌ Queries sem Tenant:
+```typescript
+// CRÍTICO - NUNCA FAZER
+await db.select().from(customers).where(eq(customers.id, id));
+```
+
+## 🎯 INSTRUÇÕES DE EXECUÇÃO
+
+### FASE 1 - ANÁLISE:
+1. Escaneie TODO o codebase procurando por:
+   - Imports não padronizados
+   - Definições de schema inconsistentes
+   - Queries sem tenant isolation
+   - Tipos UUID/timestamp incorretos
+
+### FASE 2 - CORREÇÃO:
+1. **Prioridade CRÍTICA**: Schema definitions
+2. **Prioridade ALTA**: Repository patterns
+3. **Prioridade MÉDIA**: Controllers e Use Cases
+4. **Prioridade BAIXA**: Otimizações
+
+### FASE 3 - VALIDAÇÃO:
+1. Execute verificação de compilação TypeScript
+2. Teste conexões de banco
+3. Valide tenant isolation
+4. Confirme performance de queries
+
+## 📊 RELATÓRIO OBRIGATÓRIO
+
+### Para cada arquivo modificado, forneça:
+```markdown
+## Arquivo: [nome_do_arquivo]
+### ❌ Problemas Encontrados:
+- [ ] Import inconsistente de schema
+- [ ] Tipo UUID/timestamp incorreto
+- [ ] Falta tenant isolation
+- [ ] Anti-pattern detectado
+
+### ✅ Correções Aplicadas:
+- [x] Import padronizado para @shared/schema
+- [x] Tipos UUID corrigidos
+- [x] Tenant isolation implementado
+- [x] Pattern Clean Architecture aplicado
+
+### 🔍 Impacto:
+- Segurança: [MELHORIA/MANUTENÇÃO]
+- Performance: [MELHORIA/MANUTENÇÃO]
+- Consistência: [MELHORIA/MANUTENÇÃO]
+```
+
+## 🚀 EXECUÇÃO IMEDIATA
+
+**Comece AGORA** escaneando os diretórios na seguinte ordem:
+1. `/shared/` - Schema definitions
+2. `/server/infrastructure/repositories/` - Repository implementations
+3. `/server/modules/*/application/` - Use Cases e Controllers
+4. `/server/modules/*/infrastructure/` - Infrastructure implementations
+
+**LEMBRE-SE**: Cada correção deve ser **100% backward compatible** e seguir **exatamente** os padrões definidos. ZERO tolerância para anti-patterns.
+
+---
+
+## 🎯 RESULTADO ESPERADO
+Ao final, **100% do codebase** deve estar padronizado com:
+- ✅ Imports unificados de `@shared/schema`
+- ✅ Tipos UUID/timestamp consistentes
+- ✅ Tenant isolation obrigatório
+- ✅ Clean Architecture respeitada
+- ✅ Zero anti-patterns
+- ✅ Performance otimizada
+
+**COMECE AGORA!** 🚀
