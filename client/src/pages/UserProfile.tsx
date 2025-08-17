@@ -140,12 +140,14 @@ export default function UserProfile() {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[PROFILE-UPDATE] Error:', error);
       toast({
         title: "Erro ao atualizar",
         description: "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
+      // Don't cause logout on profile update errors following 1qa.md
     },
   });
 
@@ -168,12 +170,14 @@ export default function UserProfile() {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[PHOTO-UPLOAD] Error:', error);
       toast({
         title: "Erro ao atualizar foto",
         description: "Não foi possível atualizar sua foto de perfil.",
         variant: "destructive",
       });
+      // Don't cause logout on photo upload errors following 1qa.md
     },
   });
 

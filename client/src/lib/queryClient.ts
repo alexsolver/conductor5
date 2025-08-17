@@ -104,7 +104,7 @@ export const apiRequest = async (method: string, url: string, data?: any): Promi
 
   const response = await fetch(url, options);
 
-  // ✅ 1QA.MD: Auto-refresh automático em caso de 401 - menos agressivo
+  // ✅ 1QA.MD: Auto-refresh following strict patterns - prevent automatic logout
   if (response.status === 401 && url !== '/api/auth/refresh') {
     console.log('🔄 [API-INTERCEPTOR] 401 detected, attempting token refresh...');
 
@@ -142,12 +142,12 @@ export const apiRequest = async (method: string, url: string, data?: any): Promi
         }
       } catch (error) {
         console.warn('⚠️ [API-INTERCEPTOR] Refresh failed:', error.message);
+        // Don't redirect automatically - let component handle the error following 1qa.md
       }
     }
 
-    // ✅ CRITICAL FIX: Não redirecionar automaticamente, deixar o componente tratar
-    console.warn('⚠️ [API-INTERCEPTOR] Token refresh failed for request:', url);
-    // Apenas retornar a resposta 401 original para que o componente possa decidir o que fazer
+    // Return original 401 response - don't force logout following 1qa.md patterns
+    console.warn('⚠️ [API-INTERCEPTOR] Token refresh failed, returning original response for component handling');
   }
 
   return response;
@@ -177,10 +177,9 @@ export const getQueryFn: <T>(options: {
       if (unauthorizedBehavior === "returnNull") {
         return null;
       }
-      // Para outros casos, redirecionar para login
-      console.log('🔄 [QUERY-CLIENT] Redirecting to login due to missing token');
-      window.location.href = '/auth';
-      return null;
+      // Don't redirect automatically - let component handle missing token following 1qa.md
+      console.log('🔄 [QUERY-CLIENT] No token available for query');
+      throw new Error('No authentication token available');
     }
 
     headers["Authorization"] = `Bearer ${token}`;
