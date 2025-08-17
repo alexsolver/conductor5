@@ -89,10 +89,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     retry: false,
-    staleTime: 30 * 60 * 1000, // Increase stale time to 30 minutes to prevent refetching during profile operations
-    gcTime: 60 * 60 * 1000, // Increase garbage collection time to 1 hour
+    staleTime: 60 * 60 * 1000, // Increase stale time to 1 hour to prevent refetching during profile operations
+    gcTime: 2 * 60 * 60 * 1000, // Increase garbage collection time to 2 hours
     refetchOnWindowFocus: false, // Disable refetch on window focus to prevent logout during profile operations
     refetchOnMount: false, // Only fetch on mount if no data exists
+    refetchOnReconnect: false, // Disable refetch on reconnect to prevent logout during operations
   });
 
   // Token refresh mechanism - ✅ 1QA.MD compliance
@@ -450,17 +451,18 @@ export function useAuth() {
       }
     };
 
-    // ✅ CRITICAL FIX: Aguardar 30 segundos antes de começar verificações automáticas
+    // ✅ CRITICAL FIX: Aguardar 2 minutos antes de começar verificações automáticas - evitar logout durante operações
     const initialDelay = setTimeout(() => {
       checkTokenExpiry();
-      
-      // Verificar a cada 30 minutos (menos frequente para evitar interferências)
-      const interval = setInterval(checkTokenExpiry, 30 * 60 * 1000);
-      
-      return () => clearInterval(interval);
-    }, 30000); // 30 segundos de delay inicial
+    }, 120000); // 2 minutos
+
+    // ✅ Verificar a cada 10 minutos após o delay inicial para evitar logout durante operações
+    const interval = setInterval(checkTokenExpiry, 10 * 60 * 1000);
     
-    return () => clearTimeout(initialDelay);
+    return () => {
+      clearTimeout(initialDelay);
+      clearInterval(interval);
+    };
   }, [context.user]);
 
   const refreshToken = async () => {

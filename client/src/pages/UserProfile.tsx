@@ -197,13 +197,22 @@ export default function UserProfile() {
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-      // ✅ SOLUÇÃO DEFINITIVA - Force invalidation + refetch seguindo 1qa.md
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      // Force refresh das queries críticas para atualização imediata do avatar
-      queryClient.refetchQueries({ queryKey: ['/api/user/profile'] });
-      queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
+      // ✅ CRITICAL FIX: Invalidate only profile queries to prevent auth loops - seguindo 1qa.md
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/user/profile'],
+        exact: true
+      });
+      // ✅ Use setQueryData for immediate update without triggering auth refetch
+      queryClient.setQueryData(['/api/user/profile'], (oldData: any) => {
+        if (oldData) {
+          return {
+            ...oldData,
+            avatar: data.data?.avatarURL || data.data?.avatar_url,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return oldData;
+      });
     },
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
