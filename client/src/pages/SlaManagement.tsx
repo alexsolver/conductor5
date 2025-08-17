@@ -41,9 +41,24 @@ import {
   GitBranch,
   Play,
   Code,
-  Settings2
+  Settings2,
+  Filter,
+  X
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { QueryBuilderComponent } from '@/components/QueryBuilder';
+
+// SLA Schema imports - following 1qa.md
+import type {
+  QueryRule,
+  QueryBuilder,
+  QueryOperator,
+  LogicalOperator,
+  TicketField,
+  queryOperatorEnum,
+  logicalOperatorEnum,
+  ticketFieldEnum
+} from '@shared/schema-sla';
 
 // ======================================
 // TYPES AND SCHEMAS
@@ -143,7 +158,15 @@ const slaDefinitionSchema = z.object({
   timezone: z.string(),
   escalationEnabled: z.boolean(),
   escalationThresholdPercent: z.number().min(0).max(100),
-  applicationRules: z.array(z.any()),
+  applicationRules: z.object({
+    rules: z.array(z.object({
+      field: z.string(),
+      operator: z.string(),
+      value: z.union([z.string(), z.number(), z.array(z.string())]),
+      logicalOperator: z.string().optional()
+    })),
+    logicalOperator: z.string().default('AND')
+  }).optional(),
   escalationActions: z.array(z.any()),
   pauseConditions: z.array(z.any()),
   resumeConditions: z.array(z.any()),
@@ -332,7 +355,7 @@ export default function SlaManagement() {
       timezone: 'America/Sao_Paulo',
       escalationEnabled: false,
       escalationThresholdPercent: 80,
-      applicationRules: [],
+      applicationRules: { rules: [], logicalOperator: 'AND' },
       escalationActions: [],
       pauseConditions: [],
       resumeConditions: [],
@@ -1214,6 +1237,27 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
               )}
             />
           )}
+        </div>
+
+        {/* Application Rules */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Regras de Aplicação</h3>
+          <FormField
+            control={form.control}
+            name="applicationRules"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Condições de Aplicação do SLA</FormLabel>
+                <FormControl>
+                  <QueryBuilderComponent
+                    value={field.value || { rules: [], logicalOperator: 'AND' }}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* Submit Button */}

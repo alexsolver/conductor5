@@ -301,6 +301,13 @@ export const tickets = pgTable("tickets", {
   linkType: varchar("link_type", { length: 50 }),
   linkComment: text("link_comment"),
 
+  // SLA Fields - Supporting SLA expiration and visual LED indicator
+  slaExpirationDate: timestamp("sla_expiration_date"), // Data/hora de vencimento do SLA
+  slaStartDate: timestamp("sla_start_date"), // Data/hora de início do SLA
+  slaElapsedPercent: decimal("sla_elapsed_percent", { precision: 5, scale: 2 }).default("0"), // Percentual decorrido 0-100
+  slaStatus: varchar("sla_status", { length: 20 }).default("none"), // none, active, warning, breached
+  appliedSlaId: uuid("applied_sla_id"), // ID da definição SLA aplicada
+  
   // Audit fields
   createdBy: uuid("opened_by_id").references(() => users.id),
   updatedBy: uuid("updated_by"),

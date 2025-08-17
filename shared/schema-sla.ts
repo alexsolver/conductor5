@@ -58,6 +58,52 @@ export const slaActionTypeEnum = z.enum([
   'notify'
 ]);
 
+// Query Builder Enums for SLA Rules
+export const queryOperatorEnum = z.enum([
+  'equals',
+  'not_equals',
+  'greater_than',
+  'greater_than_or_equal',
+  'less_than',
+  'less_than_or_equal',
+  'contains',
+  'not_contains',
+  'starts_with',
+  'ends_with',
+  'is_empty',
+  'is_not_empty',
+  'in',
+  'not_in'
+]);
+
+export const logicalOperatorEnum = z.enum([
+  'AND',
+  'OR'
+]);
+
+export const ticketFieldEnum = z.enum([
+  'status',
+  'priority',
+  'impact',
+  'urgency',
+  'category',
+  'subcategory',
+  'companyId',
+  'callerId',
+  'responsibleId',
+  'assignmentGroupId',
+  'environment',
+  'tags',
+  'callerType',
+  'contactType',
+  'symptoms',
+  'businessImpact',
+  'templateName',
+  'serviceVersion',
+  'createdAt',
+  'updatedAt'
+]);
+
 export const slaMetricTypeEnum = z.enum([
   'response_time',     // Time to first response
   'resolution_time',   // Time to resolution
@@ -81,8 +127,8 @@ export const slaDefinitions = pgTable("sla_definitions", {
   validFrom: timestamp("valid_from").notNull(),
   validUntil: timestamp("valid_until"),
   
-  // Application rules
-  applicationRules: jsonb("application_rules").notNull(), // Conditions when this SLA applies
+  // Application rules - Query Builder conditions
+  applicationRules: jsonb("application_rules").notNull(), // Query builder rules for ticket field association
   
   // Target metrics
   responseTimeMinutes: integer("response_time_minutes"),
@@ -360,11 +406,26 @@ export const slaReports = pgTable("sla_reports", {
   unique("sla_reports_tenant_type_period").on(table.tenantId, table.reportType, table.reportPeriod),
 ]);
 
+// Query Builder Schemas
+export const queryRuleSchema = z.object({
+  field: ticketFieldEnum,
+  operator: queryOperatorEnum,
+  value: z.union([z.string(), z.number(), z.array(z.string())]),
+  logicalOperator: logicalOperatorEnum.optional()
+});
+
+export const queryBuilderSchema = z.object({
+  rules: z.array(queryRuleSchema).min(1),
+  logicalOperator: logicalOperatorEnum.default('AND')
+});
+
 // Zod schemas for validation
 export const insertSlaDefinitionSchema = createInsertSchema(slaDefinitions).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  applicationRules: queryBuilderSchema
 });
 
 export const insertSlaInstanceSchema = createInsertSchema(slaInstances).omit({
@@ -424,3 +485,10 @@ export type InsertSlaWorkflow = z.infer<typeof insertSlaWorkflowSchema>;
 
 export type SlaWorkflowExecution = typeof slaWorkflowExecutions.$inferSelect;
 export type InsertSlaWorkflowExecution = z.infer<typeof insertSlaWorkflowExecutionSchema>;
+
+// Query Builder types
+export type QueryRule = z.infer<typeof queryRuleSchema>;
+export type QueryBuilder = z.infer<typeof queryBuilderSchema>;
+export type QueryOperator = z.infer<typeof queryOperatorEnum>;
+export type LogicalOperator = z.infer<typeof logicalOperatorEnum>;
+export type TicketField = z.infer<typeof ticketFieldEnum>;
