@@ -1773,15 +1773,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user profile following 1qa.md patterns
       // Users table is in public schema, not tenant schema  
       console.log('[PROFILE-UPDATE] Using public schema for users table');
+      console.log('[PROFILE-UPDATE] Updating with data:', { firstName, lastName, phone, department, position, bio, location, timezone, dateOfBirth, address, userId, tenantId });
+      
       const result = await pool.query(`
         UPDATE "public".users 
         SET 
           first_name = $1,
           last_name = $2,
           phone = $3,
-          position = $4,
+          department_id = $4,
+          position = $5,
+          time_zone = $6,
           updated_at = NOW()
-        WHERE id = $5 AND tenant_id = $6
+        WHERE id = $7 AND tenant_id = $8
         RETURNING 
           id, 
           first_name as "firstName", 
@@ -1789,11 +1793,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email, 
           phone, 
           role,
-          department,
+          department_id as "department",
           position,
+          time_zone as "timezone",
           avatar_url,
           updated_at as "updatedAt"
-      `, [firstName, lastName, phone, position, userId, tenantId]);
+      `, [firstName, lastName, phone, department, position, timezone, userId, tenantId]);
 
       if (result.rows.length === 0) {
         return res.status(404).json({
