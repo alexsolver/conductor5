@@ -53,6 +53,7 @@ import { FilteredUserSelect } from "@/components/FilteredUserSelect";
 import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
 import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelect";
 import { MaterialsServicesMiniSystem } from "@/components/MaterialsServicesMiniSystem";
+import { SlaLedSimple } from "@/components/SlaLedSimple";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
@@ -3800,6 +3801,18 @@ const TicketDetails = React.memo(() => {
                   <Badge variant="outline" className="text-xs h-4">
                     {ticket.status} - {ticket.daysInStatus || 0}d
                   </Badge>
+                </div>
+                {/* SLA Information */}
+                <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
+                  <span className="text-blue-700">SLA:</span>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
+                      title="SLA Warning: 85% decorrido"
+                      data-testid="sla-led-indicator"
+                    />
+                    <span className="text-blue-900 font-medium text-xs">85% decorrido</span>
+                  </div>
                 </div>
               </div>
             </div>
