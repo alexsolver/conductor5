@@ -1,8 +1,8 @@
 
-const { createPool } = await import('pg');
+const { Pool } = await import('pg');
 
 // Configuração da conexão PostgreSQL
-const pool = createPool({
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
   ssl: false
