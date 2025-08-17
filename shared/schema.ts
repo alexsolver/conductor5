@@ -10,6 +10,9 @@ import { Pool } from 'pg';
 // Re-export all schema definitions - avoiding conflicts
 export * from "./schema-master";
 
+// Reports & Dashboards Module Schema
+export * from "./schema-reports";
+
 // Selective export from contracts to avoid conflicts - Export only enums
 export {
   contractTypeEnum,
