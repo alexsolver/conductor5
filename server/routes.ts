@@ -1708,9 +1708,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // ✅ CORRETO - Seguindo padrões 1qa.md para imports
-      const { db, sql } = await import('@shared/schema');
+      const { db } = await import('./db');
       const { users } = await import('@shared/schema');
-      const { eq, and } = await import('drizzle-orm');
+      const { eq, and, sql } = await import('drizzle-orm');
 
       console.log('[PROFILE-GET] Using Drizzle ORM following 1qa.md patterns');
       
@@ -1779,9 +1779,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // ✅ CORRETO - Seguindo padrões 1qa.md para imports
-      const { db, sql } = await import('@shared/schema');
+      const { db } = await import('./db');
       const { users } = await import('@shared/schema');
-      const { eq, and } = await import('drizzle-orm');
+      const { eq, and, sql } = await import('drizzle-orm');
 
       console.log('[PROFILE-UPDATE] Using Drizzle ORM following 1qa.md patterns');
       console.log('[PROFILE-UPDATE] Updating with data:', { firstName, lastName, phone, department, position, bio, location, timezone, dateOfBirth, address, userId, tenantId });
@@ -1874,9 +1874,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       // ✅ CORRETO - Usando Drizzle ORM e campo correto seguindo 1qa.md
-      const { db, sql } = await import('@shared/schema');
+      const { db } = await import('./db');
       const { tickets } = await import('@shared/schema');
-      const { eq, and, ne, desc } = await import('drizzle-orm');
+      const { eq, and, ne, desc, sql } = await import('drizzle-orm');
 
       // ✅ CORRETO - Campo correto é 'subject', não 'title'
       const ticketsCreated = await db
