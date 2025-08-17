@@ -8,7 +8,8 @@ import { ApprovalDashboard } from '@/components/approvals/ApprovalDashboard';
 import { ApprovalInstances } from '@/components/approvals/ApprovalInstances';
 import { QueryBuilder } from '@/components/approvals/QueryBuilder';
 import { PipelineDesigner } from '@/components/approvals/PipelineDesigner';
-import { Settings, BarChart3, List, Workflow, Search } from 'lucide-react';
+import { ApprovalGroupsManager } from '@/components/approvals/ApprovalGroupsManager';
+import { Settings, BarChart3, List, Workflow, Search, Users } from 'lucide-react';
 
 export function ApprovalManagement() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -30,7 +31,7 @@ export function ApprovalManagement() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5" data-testid="tabs-navigation">
+        <TabsList className="grid w-full grid-cols-6" data-testid="tabs-navigation">
           <TabsTrigger value="dashboard" className="flex items-center gap-2" data-testid="tab-dashboard">
             <BarChart3 className="h-4 w-4" />
             Dashboard
@@ -42,6 +43,10 @@ export function ApprovalManagement() {
           <TabsTrigger value="instances" className="flex items-center gap-2" data-testid="tab-instances">
             <List className="h-4 w-4" />
             Instâncias
+          </TabsTrigger>
+          <TabsTrigger value="groups" className="flex items-center gap-2" data-testid="tab-groups">
+            <Users className="h-4 w-4" />
+            Grupos
           </TabsTrigger>
           <TabsTrigger value="designer" className="flex items-center gap-2" data-testid="tab-designer">
             <Workflow className="h-4 w-4" />
@@ -64,6 +69,10 @@ export function ApprovalManagement() {
 
           <TabsContent value="instances" data-testid="content-instances">
             <ApprovalInstances />
+          </TabsContent>
+
+          <TabsContent value="groups" data-testid="content-groups">
+            <ApprovalGroupsManager />
           </TabsContent>
 
           <TabsContent value="designer" data-testid="content-designer">

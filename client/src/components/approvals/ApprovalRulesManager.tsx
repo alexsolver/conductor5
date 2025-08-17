@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit, Trash2, Play, Pause } from 'lucide-react';
+import { CompanySelector } from './CompanySelector';
 import { apiRequest } from '@/lib/queryClient';
 
 interface ApprovalRule {
@@ -32,6 +33,7 @@ export function ApprovalRulesManager() {
     name: '',
     moduleType: 'tickets',
     entityType: 'ticket',
+    companyId: null as string | null,
     isActive: true,
     priority: 1,
     queryConditions: {},
@@ -56,6 +58,7 @@ export function ApprovalRulesManager() {
         name: '',
         moduleType: 'tickets',
         entityType: 'ticket',
+        companyId: null,
         isActive: true,
         priority: 1,
         queryConditions: {},
@@ -200,6 +203,14 @@ export function ApprovalRulesManager() {
                     </div>
                   </div>
                   
+                  {/* Seletor de Empresa - Associação Hierárquica */}
+                  <CompanySelector
+                    value={newRule.companyId}
+                    onValueChange={(companyId) => setNewRule(prev => ({ ...prev, companyId }))}
+                    placeholder="Selecionar empresa (opcional para regra global)"
+                    className="mb-4"
+                  />
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">Prioridade</label>

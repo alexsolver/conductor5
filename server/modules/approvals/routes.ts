@@ -22,6 +22,9 @@ export function createApprovalRoutes(db: Pool): Router {
   // User-specific routes
   router.get('/pending', (req, res) => controller.getPendingApprovals(req, res));
   router.get('/my-decisions', (req, res) => controller.getUserDecisions(req, res));
+  
+  // Dashboard metrics
+  router.get('/dashboard', (req, res) => controller.getApprovalDashboard(req, res));
 
   return router;
 }

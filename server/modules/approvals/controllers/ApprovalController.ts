@@ -7,6 +7,8 @@ import { z } from 'zod';
 // Import repositories
 import { DrizzleApprovalRuleRepository } from '../infrastructure/repositories/DrizzleApprovalRuleRepository';
 import { DrizzleApprovalInstanceRepository } from '../infrastructure/repositories/DrizzleApprovalInstanceRepository';
+import { DrizzleApprovalGroupRepository } from '../infrastructure/repositories/DrizzleApprovalGroupRepository';
+import { IApprovalGroupRepository } from '../domain/repositories/IApprovalGroupRepository';
 
 // Import domain services
 import { ApprovalRuleEngine } from '../domain/services/ApprovalRuleEngine';

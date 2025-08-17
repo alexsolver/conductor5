@@ -972,35 +972,40 @@ export const hourBankEntries = pgTable("hour_bank_entries", {
 });
 
 // Approval Groups - Grupos de Aprovação
+// Approval Groups - Sistema de grupos para organizar aprovadores (agentes, clientes, favorecidos)
 export const approvalGroups = pgTable("approval_groups", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull(),
-  name: varchar("name", { length: 100 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
+  groupType: varchar("group_type", { length: 50 }).notNull(), // 'agents', 'clients', 'beneficiaries', 'mixed'
   isActive: boolean("is_active").default(true),
-  createdBy: uuid("created_by").references(() => users.id),
+  createdById: uuid("created_by_id").notNull(),
+  updatedById: uuid("updated_by_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("approval_groups_tenant_idx").on(table.tenantId),
-  index("approval_groups_active_idx").on(table.tenantId, table.isActive),
+  index("approval_groups_type_idx").on(table.groupType),
+  index("approval_groups_active_idx").on(table.isActive),
 ]);
 
-// Approval Group Members - Membros dos Grupos de Aprovação
+// Approval Group Members - Membros dos grupos de aprovação (usuários, clientes, favorecidos)
 export const approvalGroupMembers = pgTable("approval_group_members", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull(),
   groupId: uuid("group_id").notNull().references(() => approvalGroups.id, { onDelete: 'cascade' }),
-  userId: uuid("user_id").notNull().references(() => users.id),
-  role: varchar("role", { length: 20 }).default("member"), // 'member', 'approver'
+  memberType: varchar("member_type", { length: 50 }).notNull(), // 'user', 'customer', 'beneficiary'
+  memberId: uuid("member_id").notNull(),
+  role: varchar("role", { length: 50 }).default("member"),
   isActive: boolean("is_active").default(true),
-  addedBy: uuid("added_by_id").references(() => users.id),
+  addedById: uuid("added_by_id").notNull(),
   addedAt: timestamp("added_at").defaultNow(),
 }, (table) => [
-  index("approval_group_members_group_idx").on(table.groupId),
-  index("approval_group_members_user_idx").on(table.userId),
   index("approval_group_members_tenant_idx").on(table.tenantId),
-  unique("approval_group_members_unique").on(table.groupId, table.userId),
+  index("approval_group_members_group_idx").on(table.groupId),
+  index("approval_group_members_member_idx").on(table.memberType, table.memberId),
+  unique("approval_group_members_unique").on(table.groupId, table.memberType, table.memberId),
 ]);
 
 // Timecard Approval Settings - Configurações de Aprovação de Jornada
@@ -3529,6 +3534,9 @@ export const approvalRules = pgTable("approval_rules", {
   autoApprovalConditions: jsonb("auto_approval_conditions").default({}),
   escalationSettings: jsonb("escalation_settings").default({}),
   
+  // Hierarchical association
+  companyId: uuid("company_id").references(() => customers.id), // Associate with customer/company
+
   // Configuration
   isActive: boolean("is_active").default(true),
   priority: integer("priority").default(0), // Higher priority rules evaluated first
