@@ -52,36 +52,36 @@ export interface WorkOrder {
   id: string;
   tenantId: string;
   assetId: string;
-  ticketId?: string; // vinculado a ticket se origem for incident
-  maintenancePlanId?: string; // vinculado a plano se origem for PM
+  ticketId: string | null; // vinculado a ticket se origem for incident
+  maintenancePlanId: string | null; // vinculado a plano se origem for PM
   origin: 'pm' | 'incident' | 'manual' | 'condition';
   priority: 'low' | 'medium' | 'high' | 'critical' | 'emergency';
   status: 'drafted' | 'scheduled' | 'in_progress' | 'waiting_parts' | 'waiting_window' | 'waiting_client' | 'completed' | 'approved' | 'closed' | 'rejected' | 'canceled';
   title: string;
-  description?: string;
+  description: string | null;
   estimatedDuration: number; // em minutos
-  scheduledStart?: Date;
-  scheduledEnd?: Date;
-  actualStart?: Date;
-  actualEnd?: Date;
-  slaTargetAt?: Date;
-  idlePolicyJson?: IdleTimePolicy;
-  assignedTechnicianId?: string;
-  assignedTeamId?: string;
+  scheduledStart: Date | null;
+  scheduledEnd: Date | null;
+  actualStart: Date | null;
+  actualEnd: Date | null;
+  slaTargetAt: Date | null;
+  idlePolicyJson: IdleTimePolicy | null;
+  assignedTechnicianId: string | null;
+  assignedTeamId: string | null;
   locationId: string;
-  contactPersonId?: string;
+  contactPersonId: string | null;
   requiresApproval: boolean;
-  approvalWorkflowId?: string;
-  approvalStatus?: 'pending' | 'approved' | 'rejected';
+  approvalWorkflowId: string | null;
+  approvalStatus: 'pending' | 'approved' | 'rejected' | null;
   totalCost: number;
   laborCost: number;
   partsCost: number;
   externalCost: number;
   completionPercentage: number;
-  notes?: string;
-  riskAssessmentJson?: RiskAssessment;
-  permitsRequiredJson?: string[];
-  safetyRequirementsJson?: string[];
+  notes: string | null;
+  riskAssessmentJson: RiskAssessment | null;
+  permitsRequiredJson: string[] | null;
+  safetyRequirementsJson: string[] | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -5,7 +5,7 @@
  */
 
 import { eq, and, sql, desc, asc, ilike, isNull, isNotNull, count } from 'drizzle-orm';
-import { db } from '../../../db.js';
+import { db } from '../../../../db';
 import { Asset, InsertAsset } from '../../domain/entities/Asset';
 import { 
   IAssetRepository, 
@@ -264,7 +264,7 @@ export class DrizzleAssetRepository implements IAssetRepository {
       .orderBy(asc(assets.name));
 
     const hierarchies = await Promise.all(
-      rootAssets.map(asset => this.getHierarchy(tenantId, asset.id))
+      rootAssets.map((asset: Asset) => this.getHierarchy(tenantId, asset.id))
     );
 
     return hierarchies;

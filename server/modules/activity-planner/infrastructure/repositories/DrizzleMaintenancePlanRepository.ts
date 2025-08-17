@@ -5,7 +5,7 @@
  */
 
 import { eq, and, sql, desc, asc, ilike, count, lte } from 'drizzle-orm';
-import { db } from '../../../db.js';
+import { db } from '../../../../db';
 import { MaintenancePlan, InsertMaintenancePlan } from '../../domain/entities/MaintenancePlan';
 import { 
   IMaintenancePlanRepository, 
@@ -115,12 +115,8 @@ export class DrizzleMaintenancePlanRepository implements IMaintenancePlanReposit
     }
 
     if (filters.needsGeneration) {
-      conditions.push(
-        and(
-          eq(maintenancePlans.isActive, true),
-          sql`${maintenancePlans.nextScheduledAt} <= NOW()`
-        )
-      );
+      conditions.push(eq(maintenancePlans.isActive, true));
+      conditions.push(sql`${maintenancePlans.nextScheduledAt} <= NOW()`);
     }
 
     let query = db

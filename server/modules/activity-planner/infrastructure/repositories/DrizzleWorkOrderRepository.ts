@@ -5,7 +5,7 @@
  */
 
 import { eq, and, sql, desc, asc, ilike, count, lte, gte, between, isNull, isNotNull } from 'drizzle-orm';
-import { db } from '../../../db.js';
+import { db } from '../../../../db';
 import { WorkOrder, InsertWorkOrder } from '../../domain/entities/WorkOrder';
 import { 
   IWorkOrderRepository, 
@@ -23,7 +23,6 @@ export class DrizzleWorkOrderRepository implements IWorkOrderRepository {
       .insert(workOrders)
       .values({
         ...workOrderData,
-        tenantId,
         updatedBy: workOrderData.createdBy,
         requiresApproval: workOrderData.requiresApproval ?? false,
         totalCost: 0,
