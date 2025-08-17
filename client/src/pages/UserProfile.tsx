@@ -161,8 +161,9 @@ export default function UserProfile() {
         description: "Suas informações foram salvas com sucesso.",
       });
       setIsEditing(false);
-      // Only refetch profile data, don't touch auth queries to prevent logout following 1qa.md
-      queryClient.refetchQueries({ queryKey: ['/api/user/profile'] });
+      // ✅ CORRETO - Refetch profile data and user auth to update header, seguindo 1qa.md
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     },
     onError: (error: any) => {
       console.error('[PROFILE-UPDATE] Error details:', error);
@@ -195,8 +196,9 @@ export default function UserProfile() {
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-      // Only refetch profile data, don't touch auth queries to prevent logout following 1qa.md
-      queryClient.refetchQueries({ queryKey: ['/api/user/profile'] });
+      // ✅ CORRETO - Invalidate profile and auth queries to update avatar, seguindo 1qa.md
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     },
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
@@ -335,9 +337,9 @@ export default function UserProfile() {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={(profile as any)?.avatar_url || (profile as any)?.avatar || ""} />
+                <AvatarImage src={(profile as any)?.avatar || (profile as any)?.avatar_url || ""} />
                 <AvatarFallback className="text-lg">
-                  {(profile as any)?.firstName?.charAt(0) || user?.firstName?.charAt(0)}{(profile as any)?.lastName?.charAt(0) || user?.lastName?.charAt(0)}
+                  {((profile as any)?.firstName || user?.firstName)?.charAt(0)}{((profile as any)?.lastName || user?.lastName)?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <ObjectUploader
@@ -351,10 +353,10 @@ export default function UserProfile() {
               </ObjectUploader>
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold">{user?.firstName} {user?.lastName}</h2>
-              <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
+              <h2 className="text-xl font-semibold">{(profile as any)?.firstName || user?.firstName} {(profile as any)?.lastName || user?.lastName}</h2>
+              <p className="text-gray-600 dark:text-gray-400">{(profile as any)?.email || user?.email}</p>
               <div className="flex items-center space-x-2 mt-2">
-                <Badge variant="outline">{user?.role}</Badge>
+                <Badge variant="outline">{(profile as any)?.role || user?.role}</Badge>
                 {(profile as any)?.department && <Badge variant="secondary">{(profile as any).department}</Badge>}
               </div>
             </div>
