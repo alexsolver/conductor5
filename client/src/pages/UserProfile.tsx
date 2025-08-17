@@ -454,10 +454,10 @@ export default function UserProfile() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled type="email" />
+                            <Input {...field} disabled={!isEditing} type="email" />
                           </FormControl>
                           <FormDescription>
-                            O email não pode ser alterado
+                            {!isEditing ? "Clique em 'Editar Perfil' para alterar o email" : "Digite seu email"}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

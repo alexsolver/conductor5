@@ -1719,7 +1719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id, first_name, last_name, email, phone, role, tenant_id,
           department_id, position, created_at, updated_at, avatar_url, time_zone
         FROM "public".users 
-        WHERE id = $1 AND tenant_id = $2 AND (is_deleted = false OR is_deleted IS NULL)
+        WHERE id = $1 AND tenant_id = $2
       `, [userId, tenantId]);
 
       if (result.rows.length === 0) {
@@ -1812,6 +1812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set({
           firstName: firstName,
           lastName: lastName,
+          email: email, // ✅ Permitir atualização do email seguindo 1qa.md
           phone: phone,
           departmentId: department || null,
           position: position,
@@ -1838,7 +1839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: updatedUser.id,
           firstName: updatedUser.firstName || '',
           lastName: updatedUser.lastName || '',
-          email: updatedUser.email,
+          email: email || updatedUser.email, // ✅ Permitir atualização do email seguindo 1qa.md
           phone: updatedUser.phone || '',
           role: updatedUser.role,
           tenantId: updatedUser.tenantId,
