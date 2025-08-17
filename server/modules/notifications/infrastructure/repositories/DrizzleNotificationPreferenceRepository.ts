@@ -1,0 +1,343 @@
+// ✅ 1QA.MD COMPLIANCE: DRIZZLE NOTIFICATION PREFERENCE REPOSITORY
+// Infrastructure layer - Database implementation for user preferences
+
+import { db, sql, userNotificationPreferences } from '@shared/schema';
+import { eq, and, count } from 'drizzle-orm';
+import { 
+  INotificationPreferenceRepository, 
+  UserNotificationPreferences, 
+  PreferenceStats 
+} from '../../domain/repositories/INotificationPreferenceRepository';
+import { NotificationPreference, NotificationPreferenceEntity } from '../../domain/entities/NotificationPreference';
+
+export class DrizzleNotificationPreferenceRepository implements INotificationPreferenceRepository {
+  
+  async findById(id: string, tenantId: string): Promise<NotificationPreference | null> {
+    try {
+      // Since we're using simplified schema, we need to work with the preferences JSON
+      // In a full implementation, this would query the notification_preferences table
+      return null; // Simplified for now
+    } catch (error) {
+      console.error('Error finding notification preference by ID:', error);
+      return null;
+    }
+  }
+
+  async findByUserId(userId: string, tenantId: string): Promise<NotificationPreference[]> {
+    try {
+      // Simplified implementation using the user preferences JSON structure
+      const userPrefs = await this.getUserPreferences(userId, tenantId);
+      const preferences: NotificationPreference[] = [];
+      
+      for (const [type, settings] of Object.entries(userPrefs.preferences)) {
+        preferences.push(new NotificationPreferenceEntity(
+          `${userId}-${type}`, // Generate ID
+          tenantId,
+          userId,
+          type,
+          settings.channels,
+          settings.digestFrequency as any,
+          settings.enabled,
+          true, // isActive
+          new Date(), // createdAt
+          new Date(), // updatedAt
+          settings.quietHours,
+          userPrefs.globalSettings.emailAddress,
+          userPrefs.globalSettings.phoneNumber,
+          userPrefs.globalSettings.slackUserId,
+          userPrefs.globalSettings.webhookUrl
+        ));
+      }
+      
+      return preferences;
+    } catch (error) {
+      console.error('Error finding preferences by user ID:', error);
+      return [];
+    }
+  }
+
+  async findByUserIdAndType(userId: string, type: string, tenantId: string): Promise<NotificationPreference | null> {
+    try {
+      const userPrefs = await this.getUserPreferences(userId, tenantId);
+      const typeSettings = userPrefs.preferences[type];
+      
+      if (!typeSettings) return null;
+      
+      return new NotificationPreferenceEntity(
+        `${userId}-${type}`,
+        tenantId,
+        userId,
+        type,
+        typeSettings.channels,
+        typeSettings.digestFrequency as any,
+        typeSettings.enabled,
+        true,
+        new Date(),
+        new Date(),
+        typeSettings.quietHours,
+        userPrefs.globalSettings.emailAddress,
+        userPrefs.globalSettings.phoneNumber,
+        userPrefs.globalSettings.slackUserId,
+        userPrefs.globalSettings.webhookUrl
+      );
+    } catch (error) {
+      console.error('Error finding preference by user and type:', error);
+      return null;
+    }
+  }
+
+  async create(preference: Omit<NotificationPreference, 'id' | 'createdAt' | 'updatedAt'>): Promise<NotificationPreference> {
+    try {
+      // Update the user preferences JSON structure
+      const userPrefs = await this.getUserPreferences(preference.userId, preference.tenantId);
+      
+      userPrefs.preferences[preference.notificationType] = {
+        enabled: preference.isEnabled,
+        channels: preference.channels,
+        digestFrequency: preference.digestFrequency,
+        quietHours: preference.quietHours,
+        customSettings: {}
+      };
+
+      await this.updateUserPreferences(preference.userId, preference.tenantId, userPrefs);
+      
+      return new NotificationPreferenceEntity(
+        `${preference.userId}-${preference.notificationType}`,
+        preference.tenantId,
+        preference.userId,
+        preference.notificationType,
+        preference.channels,
+        preference.digestFrequency,
+        preference.isEnabled,
+        preference.isActive,
+        new Date(),
+        new Date(),
+        preference.quietHours,
+        preference.emailAddress,
+        preference.phoneNumber,
+        preference.slackUserId,
+        preference.webhookUrl
+      );
+    } catch (error) {
+      console.error('Error creating notification preference:', error);
+      throw new Error('Failed to create notification preference');
+    }
+  }
+
+  async update(id: string, tenantId: string, updates: Partial<NotificationPreference>): Promise<NotificationPreference | null> {
+    try {
+      // Extract userId and type from the composite ID
+      const [userId, type] = id.split('-', 2);
+      
+      const userPrefs = await this.getUserPreferences(userId, tenantId);
+      const currentSettings = userPrefs.preferences[type];
+      
+      if (!currentSettings) return null;
+      
+      // Update the settings
+      userPrefs.preferences[type] = {
+        ...currentSettings,
+        enabled: updates.isEnabled ?? currentSettings.enabled,
+        channels: updates.channels ?? currentSettings.channels,
+        digestFrequency: updates.digestFrequency ?? currentSettings.digestFrequency,
+        quietHours: updates.quietHours ?? currentSettings.quietHours
+      };
+
+      await this.updateUserPreferences(userId, tenantId, userPrefs);
+      
+      return new NotificationPreferenceEntity(
+        id,
+        tenantId,
+        userId,
+        type,
+        userPrefs.preferences[type].channels,
+        userPrefs.preferences[type].digestFrequency as any,
+        userPrefs.preferences[type].enabled,
+        true,
+        new Date(),
+        new Date(),
+        userPrefs.preferences[type].quietHours,
+        updates.emailAddress,
+        updates.phoneNumber,
+        updates.slackUserId,
+        updates.webhookUrl
+      );
+    } catch (error) {
+      console.error('Error updating notification preference:', error);
+      return null;
+    }
+  }
+
+  async delete(id: string, tenantId: string): Promise<boolean> {
+    try {
+      const [userId, type] = id.split('-', 2);
+      
+      const userPrefs = await this.getUserPreferences(userId, tenantId);
+      delete userPrefs.preferences[type];
+      
+      await this.updateUserPreferences(userId, tenantId, userPrefs);
+      return true;
+    } catch (error) {
+      console.error('Error deleting notification preference:', error);
+      return false;
+    }
+  }
+
+  async getUserPreferences(userId: string, tenantId: string): Promise<UserNotificationPreferences> {
+    try {
+      const [result] = await db
+        .select()
+        .from(userNotificationPreferences)
+        .where(and(
+          eq(userNotificationPreferences.userId, userId),
+          eq(userNotificationPreferences.tenantId, tenantId)
+        ));
+
+      if (result?.preferences) {
+        return {
+          userId,
+          tenantId,
+          preferences: result.preferences.preferences || {},
+          globalSettings: result.preferences.globalSettings || {}
+        };
+      }
+
+      // Return default preferences if none exist
+      return this.getDefaultPreferences(userId, tenantId);
+    } catch (error) {
+      console.error('Error getting user preferences:', error);
+      return this.getDefaultPreferences(userId, tenantId);
+    }
+  }
+
+  async updateUserPreferences(userId: string, tenantId: string, preferences: UserNotificationPreferences): Promise<boolean> {
+    try {
+      await db
+        .insert(userNotificationPreferences)
+        .values({
+          userId,
+          tenantId,
+          preferences: {
+            preferences: preferences.preferences,
+            globalSettings: preferences.globalSettings
+          },
+          updatedAt: new Date()
+        })
+        .onConflictDoUpdate({
+          target: [userNotificationPreferences.userId, userNotificationPreferences.tenantId],
+          set: {
+            preferences: {
+              preferences: preferences.preferences,
+              globalSettings: preferences.globalSettings
+            },
+            updatedAt: new Date()
+          }
+        });
+
+      return true;
+    } catch (error) {
+      console.error('Error updating user preferences:', error);
+      return false;
+    }
+  }
+
+  async resetToDefaults(userId: string, tenantId: string): Promise<boolean> {
+    try {
+      const defaults = this.getDefaultPreferences(userId, tenantId);
+      return await this.updateUserPreferences(userId, tenantId, defaults);
+    } catch (error) {
+      console.error('Error resetting preferences to defaults:', error);
+      return false;
+    }
+  }
+
+  async findByChannel(channel: string, tenantId: string): Promise<NotificationPreference[]> {
+    // Simplified implementation - would need to query across all user preferences
+    return [];
+  }
+
+  async findEnabledByType(type: string, tenantId: string): Promise<NotificationPreference[]> {
+    // Simplified implementation - would need to query across all user preferences
+    return [];
+  }
+
+  async findUsersWithImmediatePreference(type: string, tenantId: string): Promise<string[]> {
+    // Simplified implementation - would need to query across all user preferences
+    return [];
+  }
+
+  async bulkUpdatePreferences(userIds: string[], updates: Partial<NotificationPreference>, tenantId: string): Promise<number> {
+    // Simplified implementation
+    return 0;
+  }
+
+  async getPreferenceStats(tenantId: string): Promise<PreferenceStats> {
+    try {
+      const [totalResult] = await db
+        .select({ count: count() })
+        .from(userNotificationPreferences)
+        .where(eq(userNotificationPreferences.tenantId, tenantId));
+
+      return {
+        totalUsers: totalResult?.count || 0,
+        byChannel: {},
+        byDigestFrequency: {},
+        withQuietHours: 0,
+        fullyDisabled: 0
+      };
+    } catch (error) {
+      console.error('Error getting preference stats:', error);
+      return {
+        totalUsers: 0,
+        byChannel: {},
+        byDigestFrequency: {},
+        withQuietHours: 0,
+        fullyDisabled: 0
+      };
+    }
+  }
+
+  private getDefaultPreferences(userId: string, tenantId: string): UserNotificationPreferences {
+    return {
+      userId,
+      tenantId,
+      preferences: {
+        // Ticket notifications
+        'ticket_created': {
+          enabled: true,
+          channels: ['in_app', 'email'],
+          digestFrequency: 'immediate'
+        },
+        'ticket_assigned': {
+          enabled: true,
+          channels: ['in_app', 'email'],
+          digestFrequency: 'immediate'
+        },
+        'ticket_status_changed': {
+          enabled: true,
+          channels: ['in_app'],
+          digestFrequency: 'immediate'
+        },
+        // System notifications
+        'system_alert': {
+          enabled: true,
+          channels: ['in_app', 'email'],
+          digestFrequency: 'immediate'
+        },
+        // Marketing notifications
+        'marketing': {
+          enabled: false,
+          channels: ['email'],
+          digestFrequency: 'weekly'
+        }
+      },
+      globalSettings: {
+        globalQuietHours: {
+          start: '22:00',
+          end: '08:00',
+          timezone: 'America/Sao_Paulo'
+        }
+      }
+    };
+  }
+}
