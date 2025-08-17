@@ -193,25 +193,36 @@ export default function UserProfile() {
     },
     onSuccess: (data) => {
       console.log('[PHOTO-UPLOAD] Success:', data);
+      const newAvatarUrl = data.data?.avatarURL || data.data?.avatar_url;
+      
       toast({
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-      // ✅ CRITICAL FIX: Invalidate only profile queries to prevent auth loops - seguindo 1qa.md
+      
+      // ✅ CRITICAL FIX: Update both profile and header queries - seguindo 1qa.md
       queryClient.invalidateQueries({ 
         queryKey: ['/api/user/profile'],
         exact: true
       });
+      
       // ✅ Use setQueryData for immediate update without triggering auth refetch
       queryClient.setQueryData(['/api/user/profile'], (oldData: any) => {
         if (oldData) {
           return {
             ...oldData,
-            avatar: data.data?.avatarURL || data.data?.avatar_url,
+            avatar: newAvatarUrl,
+            avatar_url: newAvatarUrl,
             updatedAt: new Date().toISOString()
           };
         }
         return oldData;
+      });
+      
+      // ✅ Force header to refetch profile data for avatar update
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/user/profile'],
+        exact: true
       });
     },
     onError: (error: any) => {

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder, UserCircle } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +10,19 @@ import { apiRequest } from "@/lib/queryClient";
 export function Header() {
   const { user, logoutMutation } = useAuth();
   const [, setLocation] = useLocation();
+
+  // ✅ 1QA.MD: Query para obter dados completos do perfil com avatar atualizado
+  const { data: userProfile } = useQuery({
+    queryKey: ['/api/user/profile'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/user/profile');
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutos para permitir atualizações
+    refetchOnWindowFocus: false,
+  });
 
   // Query para verificar status do timecard
   const { data: timecardStatus } = useQuery({
@@ -97,15 +111,24 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className={`relative h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700 ${
+                  className={`relative h-8 w-8 rounded-full p-0 ${
                     isWorking 
                       ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-white dark:ring-offset-gray-800 shadow-lg shadow-yellow-400/50' 
                       : ''
                   }`}
                 >
-                  <span className="text-white text-sm font-semibold">
-                    {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
-                  </span>
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage 
+                      src={userProfile?.avatar || userProfile?.avatar_url || ""} 
+                      alt={`${userProfile?.firstName || user?.firstName} ${userProfile?.lastName || user?.lastName}`}
+                    />
+                    <AvatarFallback className="bg-purple-600 text-white text-sm font-semibold">
+                      {(userProfile?.firstName || user?.firstName) ? 
+                        (userProfile?.firstName || user?.firstName).charAt(0).toUpperCase() : 
+                        user?.email?.charAt(0).toUpperCase()
+                      }
+                    </AvatarFallback>
+                  </Avatar>
                   {/* Aura amarela pulsante quando trabalhando */}
                   {isWorking && (
                     <span className="absolute inset-0 rounded-full ring-2 ring-yellow-400 animate-pulse"></span>
@@ -116,13 +139,16 @@ export function Header() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
+                      {(userProfile?.firstName || user?.firstName) ? 
+                        `${userProfile?.firstName || user?.firstName} ${userProfile?.lastName || user?.lastName || ''}`.trim() : 
+                        userProfile?.email || user?.email
+                      }
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
+                      {userProfile?.email || user?.email}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground capitalize">
-                      {user?.role}
+                      {userProfile?.role || user?.role}
                     </p>
                   </div>
                 </DropdownMenuLabel>
