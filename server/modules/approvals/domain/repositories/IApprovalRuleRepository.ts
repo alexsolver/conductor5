@@ -37,7 +37,6 @@ export interface UpdateApprovalRuleData {
 export interface ApprovalRuleFilters {
   tenantId: string;
   moduleType?: string;
-  entityType?: string;
   isActive?: boolean;
   createdById?: string;
   search?: string; // Search in name and description

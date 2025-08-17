@@ -117,7 +117,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
 
     if (filters.search) {
       conditions.push(
-        sql`(${approvalRules.name} ILIKE ${`%${filters.search}%`} OR ${approvalRules.description} ILIKE ${`%${filters.search}%`})`
+        ilike(approvalRules.name, `%${filters.search}%`)
       );
     }
 

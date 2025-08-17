@@ -164,7 +164,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
     }
 
     if (filters.entityType) {
-      conditions.push(sql`${approvalInstances.entityType} = ${filters.entityType}`);
+      conditions.push(eq(approvalInstances.entityType, filters.entityType));
     }
 
     if (filters.entityId) {
@@ -224,7 +224,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
       .from(approvalInstances)
       .where(and(
         eq(approvalInstances.tenantId, tenantId),
-        sql`${approvalInstances.entityType} = ${entityType}`,
+        eq(approvalInstances.entityType, entityType),
         eq(approvalInstances.entityId, entityId)
       ))
       .orderBy(desc(approvalInstances.createdAt));
@@ -429,7 +429,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
       .from(approvalInstances)
       .where(and(
         ...conditions,
-        sql`${approvalInstances.slaStatus} != 'violated'`
+        eq(approvalInstances.slaStatus, 'active')
       ));
 
     if (totalResult.count === 0) return 100;
@@ -509,7 +509,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
       .from(approvalInstances)
       .where(and(
         periodConditions,
-        sql`${approvalInstances.slaStatus} = 'violated'`
+        eq(approvalInstances.slaStatus, 'violated')
       ));
 
     const totalInstances = totalResult.count;
@@ -589,7 +589,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
       }
 
       if (filters.entityType) {
-        conditions.push(sql`${approvalInstances.entityType} = ${filters.entityType}`);
+        conditions.push(eq(approvalInstances.entityType, filters.entityType));
       }
 
       // Add other filter conditions as needed

@@ -7,7 +7,6 @@ import { IApprovalRuleRepository, ApprovalRuleFilters } from '../../domain/repos
 export interface GetApprovalRulesRequest {
   tenantId: string;
   moduleType?: string;
-  entityType?: string;
   isActive?: boolean;
   createdById?: string;
   search?: string;
@@ -40,7 +39,6 @@ export class GetApprovalRulesQuery {
       const filters: ApprovalRuleFilters = {
         tenantId: request.tenantId,
         moduleType: request.moduleType,
-        entityType: request.entityType,
         isActive: request.isActive,
         createdById: request.createdById,
         search: request.search,
