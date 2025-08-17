@@ -1,7 +1,8 @@
 // ✅ 1QA.MD COMPLIANCE: DRIZZLE NOTIFICATION REPOSITORY
 // Infrastructure layer - Database implementation using Drizzle ORM
 
-import { db, sql, notifications } from '@shared/schema';
+import { db, sql } from '@shared/schema';
+import { notifications } from '@shared/schema-notifications';
 import { eq, and, desc, asc, count, isNull, inArray, gte, lte } from 'drizzle-orm';
 import { INotificationRepository, NotificationStats } from '../../domain/repositories/INotificationRepository';
 import { Notification, NotificationEntity } from '../../domain/entities/Notification';

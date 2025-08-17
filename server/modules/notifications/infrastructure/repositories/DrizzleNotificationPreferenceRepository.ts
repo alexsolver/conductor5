@@ -1,7 +1,8 @@
 // ✅ 1QA.MD COMPLIANCE: DRIZZLE NOTIFICATION PREFERENCE REPOSITORY
 // Infrastructure layer - Database implementation for user preferences
 
-import { db, sql, userNotificationPreferences } from '@shared/schema';
+import { db, sql } from '@shared/schema';
+import { notificationPreferences } from '@shared/schema-notifications';
 import { eq, and, count } from 'drizzle-orm';
 import { 
   INotificationPreferenceRepository, 

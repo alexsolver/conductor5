@@ -19,6 +19,12 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // ========================================
+// NOTIFICATIONS SCHEMA IMPORT
+// ========================================
+// Import notifications schema from dedicated file
+export * from "./schema-notifications";
+
+// ========================================
 // PUBLIC SCHEMA TABLES (Cross-tenant)
 // ========================================
 

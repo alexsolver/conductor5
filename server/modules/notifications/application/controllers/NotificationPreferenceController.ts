@@ -14,15 +14,17 @@ export class NotificationPreferenceController {
   // GET /api/user/notification-preferences - Get user preferences
   async getUserPreferences(req: Request, res: Response): Promise<void> {
     try {
-      const { userId, tenantId } = req.user || {};
+      const user = (req as any).user;
 
-      if (!userId || !tenantId) {
+      if (!user?.id || !user?.tenantId) {
         res.status(400).json({
           success: false,
           error: 'User authentication required'
         });
         return;
       }
+
+      const { userId, tenantId } = { userId: user.id, tenantId: user.tenantId };
 
       console.log('[USER-NOTIFICATION-PREFERENCES-CONTROLLER] GET request - User:', userId, 'Tenant:', tenantId);
 
@@ -44,7 +46,8 @@ export class NotificationPreferenceController {
   // PUT /api/user/notification-preferences - Update user preferences
   async updateUserPreferences(req: Request, res: Response): Promise<void> {
     try {
-      const { userId, tenantId } = req.user || {};
+      const user = (req as any).user;
+      const { userId, tenantId } = { userId: user?.id, tenantId: user?.tenantId };
       const { preferences, globalSettings } = req.body;
 
       if (!userId || !tenantId) {
@@ -89,7 +92,8 @@ export class NotificationPreferenceController {
   // POST /api/user/notification-preferences/reset - Reset to defaults
   async resetToDefaults(req: Request, res: Response): Promise<void> {
     try {
-      const { userId, tenantId } = req.user || {};
+      const user = (req as any).user;
+      const { userId, tenantId } = { userId: user?.id, tenantId: user?.tenantId };
 
       if (!userId || !tenantId) {
         res.status(400).json({
@@ -154,7 +158,8 @@ export class NotificationPreferenceController {
   // PUT /api/user/notification-preferences/:type - Update specific notification type preference
   async updateNotificationTypePreference(req: Request, res: Response): Promise<void> {
     try {
-      const { userId, tenantId } = req.user || {};
+      const user = (req as any).user;
+      const { userId, tenantId } = { userId: user?.id, tenantId: user?.tenantId };
       const { type } = req.params;
       const { enabled, channels, digestFrequency, quietHours } = req.body;
 

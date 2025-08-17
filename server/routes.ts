@@ -55,8 +55,7 @@ import { TicketViewsController } from './controllers/TicketViewsController';
 import { v4 as uuidv4 } from 'uuid';
 
 // Clean Architecture Modules
-import { notificationsModule } from './modules/notifications-alerts';
-import { userNotificationPreferencesRoutes } from './modules/user-notifications/routes';
+import notificationRoutes from './modules/notifications/routes';
 
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
 // Legacy imports removed per analysis
@@ -323,11 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ NOTIFICATIONS & ALERTS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
-  app.use('/api', notificationsModule.getRouter());
-  // User Notification Preferences Clean Architecture Module - Following 1qa.md
-  console.log('🏗️ [USER-NOTIFICATION-PREFERENCES] Initializing Clean Architecture module...');
-  const { userNotificationPreferencesRoutes } = await import('./modules/user-notification-preferences/routes');
-  app.use('/api', userNotificationPreferencesRoutes);
+  app.use('/api', notificationRoutes);
   console.log('✅ [NOTIFICATIONS-ALERTS] Clean Architecture module registered at /api/notifications');
 
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md

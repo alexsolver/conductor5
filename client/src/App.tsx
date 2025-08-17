@@ -214,6 +214,7 @@ function AppRouter() {
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
         <Route path="/drag-drop-demo" component={DragDropDemo} />
         <Route path="/productivity-reports" component={ProductivityReports} />
+        <Route path="/notifications" component={NotificationsPage} />
 
         <Route path="/companies" component={Companies} />
         <Route component={NotFound} />

@@ -32,16 +32,18 @@ export class NotificationController {
   // GET /api/notifications - List user notifications
   async getUserNotifications(req: Request, res: Response): Promise<void> {
     try {
-      const { userId, tenantId } = req.user || {};
+      const user = (req as any).user;
       const { status, type, limit = 50, offset = 0 } = req.query;
 
-      if (!userId || !tenantId) {
+      if (!user?.id || !user?.tenantId) {
         res.status(400).json({
           success: false,
-          error: 'User authentication required'
+          error: 'Tenant ID is required'
         });
         return;
       }
+
+      const { userId, tenantId } = { userId: user.id, tenantId: user.tenantId };
 
       let notifications;
       if (status) {
@@ -78,15 +80,17 @@ export class NotificationController {
   // GET /api/notifications/unread - Get unread notifications
   async getUnreadNotifications(req: Request, res: Response): Promise<void> {
     try {
-      const { userId, tenantId } = req.user || {};
+      const user = (req as any).user;
 
-      if (!userId || !tenantId) {
+      if (!user?.id || !user?.tenantId) {
         res.status(400).json({
           success: false,
-          error: 'User authentication required'
+          error: 'Tenant ID is required'
         });
         return;
       }
+
+      const { userId, tenantId } = { userId: user.id, tenantId: user.tenantId };
 
       const notifications = await this.notificationRepository.findUnreadByUserId(userId, tenantId);
       const unreadCount = notifications.length;
@@ -110,7 +114,8 @@ export class NotificationController {
   // POST /api/notifications - Create new notification
   async createNotification(req: Request, res: Response): Promise<void> {
     try {
-      const { tenantId } = req.user || {};
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
       const {
         userId,
         type,
@@ -166,7 +171,8 @@ export class NotificationController {
   // POST /api/notifications/:id/send - Send specific notification
   async sendNotification(req: Request, res: Response): Promise<void> {
     try {
-      const { tenantId } = req.user || {};
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
       const { id } = req.params;
       const { forceResend } = req.body;
 
@@ -201,7 +207,8 @@ export class NotificationController {
   // PUT /api/notifications/:id/read - Mark notification as read
   async markAsRead(req: Request, res: Response): Promise<void> {
     try {
-      const { tenantId } = req.user || {};
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
       const { id } = req.params;
 
       if (!tenantId) {
@@ -237,7 +244,8 @@ export class NotificationController {
   // PUT /api/notifications/read-all - Mark all notifications as read
   async markAllAsRead(req: Request, res: Response): Promise<void> {
     try {
-      const { userId, tenantId } = req.user || {};
+      const user = (req as any).user;
+      const { userId, tenantId } = { userId: user?.id, tenantId: user?.tenantId };
 
       if (!userId || !tenantId) {
         res.status(400).json({
@@ -266,7 +274,8 @@ export class NotificationController {
   // GET /api/notifications/stats - Get notification statistics
   async getNotificationStats(req: Request, res: Response): Promise<void> {
     try {
-      const { tenantId } = req.user || {};
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
       const { fromDate, toDate } = req.query;
 
       if (!tenantId) {
