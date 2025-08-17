@@ -70,6 +70,7 @@ import AgendaManager from "./pages/AgendaManager";
 import UserProfile from "./pages/UserProfile";
 import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
+import CorporateExpenseManagement from "./pages/CorporateExpenseManagement";
 
 import ItemCatalog from "./pages/ItemCatalog";
 import TicketMaterials from "./pages/TicketMaterials";
@@ -205,6 +206,8 @@ function AppRouter() {
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
         <Route path="/contracts" component={ContractManagement} />
+        <Route path="/expense-management" component={CorporateExpenseManagement} />
+        <Route path="/corporate-expenses" component={CorporateExpenseManagement} />
 
         <Route path="/item-catalog" component={ItemCatalog} />
         <Route path="/tickets/:id/materials" component={TicketMaterials} />

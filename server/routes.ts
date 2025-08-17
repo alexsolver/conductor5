@@ -4261,8 +4261,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } else {
       console.warn('⚠️ [CONTRACT-MANAGEMENT] Routes module not properly exported, skipping registration');
     }
+
+    // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - EXPENSE APPROVAL MODULE
+    // Corporate Expense Management Routes - Complete expense approval workflow system
+    const expenseApprovalRoutes = await import('./modules/expense-approval/routes/expenseApprovalRoutes');
+    if (expenseApprovalRoutes.default) {
+      app.use('/api/expense-approval', jwtAuth, expenseApprovalRoutes.default);
+      console.log('✅ [EXPENSE-APPROVAL] Routes registered successfully at /api/expense-approval');
+    } else {
+      console.warn('⚠️ [EXPENSE-APPROVAL] Routes module not properly exported, skipping registration');
+    }
   } catch (error) {
-    console.warn('⚠️ [CONTRACT-MANAGEMENT] Routes module failed to load:', error.message);
+    console.warn('⚠️ [CONTRACT-EXPENSE-MANAGEMENT] Routes module failed to load:', error.message);
   }
 
   const httpServer = createServer(app);
