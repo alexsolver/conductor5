@@ -142,10 +142,29 @@ export function UnifiedApprovalConfigurator() {
   // Save rule mutation
   const saveRuleMutation = useMutation({
     mutationFn: async (ruleData: ApprovalRule) => {
-      const response = await apiRequest('POST', '/api/approvals/rules', ruleData);
-      return response.json();
+      console.log('🚀 [SAVE-MUTATION] Enviando dados:', ruleData);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/approvals/rules', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(ruleData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('❌ [SAVE-MUTATION] Erro na API:', errorData);
+        throw new Error(errorData.message || 'Erro ao salvar regra');
+      }
+      
+      const result = await response.json();
+      console.log('✅ [SAVE-MUTATION] Sucesso:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ [SAVE-SUCCESS] Regra salva com sucesso:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/rules'] });
       toast({
         title: "Regra salva com sucesso",
@@ -153,17 +172,19 @@ export function UnifiedApprovalConfigurator() {
       });
       resetRule();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.log('❌ [SAVE-ERROR] Erro ao salvar:', error);
       toast({
         title: "Erro ao salvar regra",
-        description: "Verifique os dados e tente novamente.",
+        description: error.message || "Verifique os dados e tente novamente.",
         variant: "destructive"
       });
     }
   });
 
   const resetRule = useCallback(() => {
-    setCurrentRule({
+    console.log('🔧 [RESET-RULE] Resetando regra para nova configuração');
+    const newRule = {
       name: '',
       description: '',
       moduleType: 'tickets',
@@ -177,8 +198,10 @@ export function UnifiedApprovalConfigurator() {
       autoApprovalConditions: [],
       isActive: true,
       priority: 100
-    });
+    };
+    setCurrentRule(newRule);
     setActiveTab('basic');
+    console.log('✅ [RESET-RULE] Regra resetada:', newRule);
   }, []);
 
   const addCondition = useCallback(() => {
@@ -254,8 +277,10 @@ export function UnifiedApprovalConfigurator() {
   }, [currentRule]);
 
   const handleSave = useCallback(() => {
+    console.log('💾 [SAVE-RULE] Tentando salvar regra:', currentRule);
     const errors = validateRule();
     if (errors.length > 0) {
+      console.log('❌ [SAVE-RULE] Validação falhou:', errors);
       toast({
         title: "Validação falhou",
         description: errors.join(', '),
@@ -263,6 +288,7 @@ export function UnifiedApprovalConfigurator() {
       });
       return;
     }
+    console.log('✅ [SAVE-RULE] Validação passou, salvando...');
     saveRuleMutation.mutate(currentRule);
   }, [currentRule, validateRule, saveRuleMutation, toast]);
 
@@ -290,7 +316,10 @@ export function UnifiedApprovalConfigurator() {
             {isPreviewMode ? 'Editar' : 'Preview'}
           </Button>
           <Button
-            onClick={resetRule}
+            onClick={() => {
+              console.log('🔧 [RESET-RULE] Nova regra solicitada');
+              resetRule();
+            }}
             variant="outline"
             data-testid="button-reset"
           >
@@ -330,7 +359,7 @@ export function UnifiedApprovalConfigurator() {
                   <div className="space-y-2">
                     {rulesData?.data?.map((rule: any) => (
                       <div
-                        key={rule.id}
+                        key={`rule-${rule.id}`}
                         className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                         onClick={() => setCurrentRule(rule)}
                       >
