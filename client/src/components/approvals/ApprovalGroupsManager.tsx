@@ -85,16 +85,24 @@ export function ApprovalGroupsManager() {
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: typeof createForm) => {
+      console.log('🔧 [CREATE-GROUP] Tentando criar grupo:', groupData);
+      const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/approvals/groups', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify(groupData)
       });
       if (!response.ok) {
         const error = await response.json();
+        console.log('❌ [CREATE-GROUP] Erro na API:', error);
         throw new Error(error.error || 'Falha ao criar grupo');
       }
-      return response.json();
+      const result = await response.json();
+      console.log('✅ [CREATE-GROUP] Grupo criado com sucesso:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/groups'] });
@@ -117,11 +125,23 @@ export function ApprovalGroupsManager() {
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
+      console.log('🗑️ [DELETE-GROUP] Tentando excluir grupo:', groupId);
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/approvals/groups/${groupId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      if (!response.ok) throw new Error('Falha ao excluir grupo');
-      return response.json();
+      if (!response.ok) {
+        const error = await response.json();
+        console.log('❌ [DELETE-GROUP] Erro na API:', error);
+        throw new Error(error.error || 'Falha ao excluir grupo');
+      }
+      const result = await response.json();
+      console.log('✅ [DELETE-GROUP] Grupo excluído:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/groups'] });
@@ -140,7 +160,9 @@ export function ApprovalGroupsManager() {
   });
 
   const handleCreateGroup = () => {
+    console.log('🔧 [HANDLE-CREATE-GROUP] Formulário atual:', createForm);
     if (!createForm.name.trim()) {
+      console.log('❌ [HANDLE-CREATE-GROUP] Nome vazio');
       toast({
         title: "Erro",
         description: "Nome do grupo é obrigatório",
@@ -149,6 +171,7 @@ export function ApprovalGroupsManager() {
       return;
     }
 
+    console.log('✅ [HANDLE-CREATE-GROUP] Iniciando criação do grupo');
     createGroupMutation.mutate(createForm);
   };
 
