@@ -297,7 +297,7 @@ export default function TicketDetail() {
                   {getFieldLabel('category', ticket.category)}
                 </DynamicBadge>
               )}
-              <SlaLed ticketId={ticket.id} />
+              <SlaLed ticketId={ticket.id} size="lg" />
             </div>
           </div>
         </div>

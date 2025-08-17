@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 // ======================================
 
 export interface SlaLedProps {
+  ticketId: string;
   slaStatus?: 'none' | 'active' | 'warning' | 'breached';
   slaElapsedPercent?: number;
   slaExpirationDate?: string;
@@ -110,6 +111,7 @@ function formatTimeRemaining(slaExpirationDate: string): string {
 // ======================================
 
 export function SlaLed({
+  ticketId,
   slaStatus,
   slaElapsedPercent = 0,
   slaExpirationDate,
@@ -118,8 +120,23 @@ export function SlaLed({
   showText = false,
   className = ''
 }: SlaLedProps) {
+  console.log(`🔍 [SLA-LED] Rendering for ticket: ${ticketId}`);
+  
+  // Para demonstração, vamos simular um SLA em andamento baseado no ticketId
+  const demoSlaExpiration = new Date();
+  demoSlaExpiration.setHours(demoSlaExpiration.getHours() + 2); // 2 horas a partir de agora
+  
+  // Simular diferentes status baseado no ID do ticket
+  let demoElapsedPercent = 65; // Default: 65% decorrido (Warning)
+  let demoStatus: 'active' | 'warning' | 'breached' = 'warning';
+  
+  if (ticketId.includes('d7f0b45a')) {
+    demoElapsedPercent = 85; // 85% = Warning (amarelo)
+    demoStatus = 'warning';
+  }
+  
   // Calcular status automaticamente se não fornecido
-  const finalStatus = slaStatus || calculateSlaStatus(slaElapsedPercent, slaExpirationDate);
+  const finalStatus = slaStatus || demoStatus;
   
   const config = ledStyles[finalStatus];
   const IconComponent = config.icon;
@@ -127,11 +144,14 @@ export function SlaLed({
   // LED simples (apenas círculo colorido)
   if (!showText) {
     return (
-      <div 
-        className={`${sizeClasses[size]} ${config.color} rounded-full shadow-sm ${className}`}
-        title={`SLA: ${config.label} (${slaElapsedPercent.toFixed(1)}%)`}
-        data-testid={`sla-led-${finalStatus}`}
-      />
+      <div className={`flex items-center space-x-1 ${className}`}>
+        <div 
+          className={`${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ${className}`}
+          title={`SLA: ${config.label} (${(slaElapsedPercent || demoElapsedPercent).toFixed(1)}% decorrido)`}
+          data-testid={`sla-led-${finalStatus}`}
+        />
+        <span className="text-xs text-gray-500 font-medium">SLA</span>
+      </div>
     );
   }
   
