@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, Calendar, Clock, MapPin } from 'lucide-react';
 import { format, parseISO, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import SimpleAvatar from '@/components/SimpleAvatar';
 
 interface Schedule {
   id: string;
@@ -96,17 +97,11 @@ const AgentList: React.FC<AgentListProps> = ({
               >
                 {/* Agent Info */}
                 <div className="flex items-center space-x-3 mb-3">
-                  {agent.profileImageUrl ? (
-                    <img 
-                      src={agent.profileImageUrl} 
-                      alt={agent.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                      {agent.name.split(' ').map(n => n.charAt(0)).join('')}
-                    </div>
-                  )}
+                  <SimpleAvatar 
+                    src={agent.profileImageUrl} 
+                    name={agent.name} 
+                    size="md" 
+                  />
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">{agent.name}</div>
                     <div className="text-sm text-gray-500">{agent.email}</div>

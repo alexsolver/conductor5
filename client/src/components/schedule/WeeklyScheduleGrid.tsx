@@ -4,7 +4,7 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import SimpleAvatar from '@/components/ui/avatar';
+import SimpleAvatar from '@/components/SimpleAvatar';
 
 interface Schedule {
   id: string;
@@ -57,13 +57,13 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   // Generate hourly time slots for all 14 days (6:00 to 23:00)
   const getTimeSlots = () => {
     const slots: Date[] = [];
-    
+
     days.forEach(day => {
       for (let hour = 6; hour < 24; hour++) {
         slots.push(addHours(startOfDay(day), hour));
       }
     });
-    
+
     return slots;
   };
 
@@ -82,9 +82,9 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   // Filter agents by search - fixed to handle firstName/lastName structure
   const filteredAgents = agents.filter(agent => {
     if (!agent || !agent.email) return false;
-    
+
     const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
-    
+
     return agentName.toLowerCase().includes(searchAgent.toLowerCase()) ||
            agent.email.toLowerCase().includes(searchAgent.toLowerCase());
   });
@@ -96,19 +96,19 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   const getSchedulesForTimeSlot = (agentId: string, timeSlot: Date, type: 'planned' | 'actual') => {
     return schedules.filter(schedule => {
       if (!schedule.agentId || !schedule.type || !schedule.startDateTime) return false;
-      
+
       const scheduleStart = parseISO(schedule.startDateTime);
-      
+
       // Match agent ID (handle both UUID formats)
       const agentMatch = schedule.agentId === agentId || 
                         schedule.agentId.startsWith(agentId.substring(0, 8));
-      
+
       // Check if schedule overlaps with time slot
       const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : addHours(scheduleStart, 1);
       const timeSlotEnd = addMinutes(timeSlot, getTimeSlotDuration());
-      
+
       const timeMatch = scheduleStart < timeSlotEnd && scheduleEnd > timeSlot;
-      
+
       return agentMatch && schedule.type === type && timeMatch;
     });
   };
@@ -150,7 +150,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
               onChange={(e) => setSearchAgent(e.target.value)}
             />
           </div>
-          
+
           {/* Fixed to hourly view for 14 days */}
           <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
             Visualização por hora - 14 dias
@@ -166,7 +166,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
           <div className="w-64 flex-shrink-0 border-r bg-gray-100 p-4">
             <div className="text-sm font-medium text-gray-700">Técnicos</div>
           </div>
-          
+
           {/* Time slots header with day information */}
           <div 
             ref={headerScrollRef}
@@ -181,10 +181,10 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                   slot.getMonth() === day.getMonth() && 
                   slot.getFullYear() === day.getFullYear()
                 );
-                
+
                 const slotsPerDay = dayTimeSlots.length;
                 const cellWidth = 32; // Fixed 32px width for better text readability
-                
+
                 return (
                   <div key={dayIndex} className="border-r">
                     {/* Day header */}
@@ -221,7 +221,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
           <div className="w-64 flex-shrink-0 border-r bg-gray-50">
             {filteredAgents.map((agent) => {
               const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
-              
+
               return (
                 <div key={agent.id} className="border-b">
                   {/* Planned row */}
@@ -238,7 +238,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Actual row */}
                   <div className="h-10 px-4 py-2 bg-gray-50 flex items-center justify-between">
                     <div className="text-sm flex-1 flex items-center gap-2">
@@ -272,9 +272,9 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                   slot.getMonth() === day.getMonth() && 
                   slot.getFullYear() === day.getFullYear()
                 );
-                
+
                 const cellWidth = 32; // Fixed 32px width for better text readability
-                
+
                 return (
                   <div key={dayIndex} className="flex border-r">
                     {dayTimeSlots.map((timeSlot, timeIndex) => (
@@ -286,7 +286,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                         {filteredAgents.map((agent) => {
                           const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
                           const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
-                          
+
                           return (
                             <div key={agent.id} className="border-b">
                               {/* Planned row */}
@@ -297,7 +297,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                                 {plannedSchedules.map((schedule) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
-                                  
+
                                   return (
                                     <div
                                       key={schedule.id}
@@ -319,7 +319,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                                   );
                                 })}
                               </div>
-                              
+
                               {/* Actual row */}
                               <div 
                                 className="h-10 bg-gray-50 relative cursor-pointer hover:bg-gray-100"
@@ -328,7 +328,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                                 {actualSchedules.map((schedule) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
-                                  
+
                                   return (
                                     <div
                                       key={schedule.id}

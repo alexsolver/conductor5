@@ -165,7 +165,17 @@ const AgendaManager: React.FC = () => {
     },
   });
   
-  const agents = (agentsData as any)?.users || [];
+  // ✅ 1QA.MD COMPLIANCE: Map agents data ensuring profileImageUrl is available
+  const agents = React.useMemo(() => {
+    const rawAgents = (agentsData as any)?.users || [];
+    return rawAgents.map((agent: any) => ({
+      ...agent,
+      // ✅ Ensure profileImageUrl is properly mapped from avatar field if needed
+      profileImageUrl: agent.profileImageUrl || agent.avatar || null,
+      // ✅ Ensure name is properly constructed
+      name: agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email || 'Técnico'
+    }));
+  }, [agentsData]);
 
   // Buscar empresas clientes (não pessoas físicas)
   const { data: companiesData } = useQuery({

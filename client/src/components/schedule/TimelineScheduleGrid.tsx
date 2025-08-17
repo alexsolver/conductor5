@@ -4,7 +4,7 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Search, Home, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import SimpleAvatar from '@/components/ui/avatar';
+import SimpleAvatar from '@/components/SimpleAvatar';
 import InternalActionDetailsModal from './InternalActionDetailsModal';
 
 interface Schedule {

@@ -22,7 +22,7 @@ export class UserRepository implements IUserRepository {
 
       if (!userData) return null;
 
-      // ✅ 1QA.MD COMPLIANCE: User entity creation with proper type safety
+      // ✅ 1QA.MD COMPLIANCE: User entity creation with proper type safety and avatar mapping
       const user = new User(
         userData.id,
         userData.email!,
@@ -31,7 +31,8 @@ export class UserRepository implements IUserRepository {
         userData.lastName || null,
         userData.role as any,
         userData.tenantId,
-        userData.profileImageUrl || null,
+        // ✅ Map both profileImageUrl and avatar fields for compatibility
+        userData.profileImageUrl || userData.avatar || null,
         userData.isActive ?? true,
         userData.lastLoginAt || null,
         userData.createdAt || new Date(),
