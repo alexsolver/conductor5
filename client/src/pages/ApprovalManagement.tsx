@@ -3,13 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ApprovalRulesManager } from '@/components/approvals/ApprovalRulesManager';
 import { ApprovalDashboard } from '@/components/approvals/ApprovalDashboard';
 import { ApprovalInstances } from '@/components/approvals/ApprovalInstances';
-import { QueryBuilder } from '@/components/approvals/QueryBuilder';
-import { PipelineDesigner } from '@/components/approvals/PipelineDesigner';
 import { ApprovalGroupsManager } from '@/components/approvals/ApprovalGroupsManager';
-import { Settings, BarChart3, List, Workflow, Search, Users } from 'lucide-react';
+import { UnifiedApprovalConfigurator } from '@/components/approvals/UnifiedApprovalConfigurator';
+import { Settings, BarChart3, List, Users } from 'lucide-react';
 
 export function ApprovalManagement() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -22,7 +20,7 @@ export function ApprovalManagement() {
             Gerenciamento de Aprovações
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2" data-testid="page-description">
-            Sistema universal de aprovações hierárquicas e condicionais
+            Sistema universal de aprovações hierárquicas e condicionais - Configurador unificado
           </p>
         </div>
         <Badge variant="secondary" className="text-sm" data-testid="status-badge">
@@ -31,14 +29,14 @@ export function ApprovalManagement() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6" data-testid="tabs-navigation">
+        <TabsList className="grid w-full grid-cols-4" data-testid="tabs-navigation">
           <TabsTrigger value="dashboard" className="flex items-center gap-2" data-testid="tab-dashboard">
             <BarChart3 className="h-4 w-4" />
             Dashboard
           </TabsTrigger>
-          <TabsTrigger value="rules" className="flex items-center gap-2" data-testid="tab-rules">
+          <TabsTrigger value="configurator" className="flex items-center gap-2" data-testid="tab-configurator">
             <Settings className="h-4 w-4" />
-            Regras
+            Configurador Universal
           </TabsTrigger>
           <TabsTrigger value="instances" className="flex items-center gap-2" data-testid="tab-instances">
             <List className="h-4 w-4" />
@@ -48,14 +46,6 @@ export function ApprovalManagement() {
             <Users className="h-4 w-4" />
             Grupos
           </TabsTrigger>
-          <TabsTrigger value="designer" className="flex items-center gap-2" data-testid="tab-designer">
-            <Workflow className="h-4 w-4" />
-            Designer
-          </TabsTrigger>
-          <TabsTrigger value="builder" className="flex items-center gap-2" data-testid="tab-builder">
-            <Search className="h-4 w-4" />
-            Query Builder
-          </TabsTrigger>
         </TabsList>
 
         <div className="mt-6">
@@ -63,8 +53,8 @@ export function ApprovalManagement() {
             <ApprovalDashboard />
           </TabsContent>
 
-          <TabsContent value="rules" data-testid="content-rules">
-            <ApprovalRulesManager />
+          <TabsContent value="configurator" data-testid="content-configurator">
+            <UnifiedApprovalConfigurator />
           </TabsContent>
 
           <TabsContent value="instances" data-testid="content-instances">
@@ -73,14 +63,6 @@ export function ApprovalManagement() {
 
           <TabsContent value="groups" data-testid="content-groups">
             <ApprovalGroupsManager />
-          </TabsContent>
-
-          <TabsContent value="designer" data-testid="content-designer">
-            <PipelineDesigner />
-          </TabsContent>
-
-          <TabsContent value="builder" data-testid="content-builder">
-            <QueryBuilder />
           </TabsContent>
         </div>
       </Tabs>
