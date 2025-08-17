@@ -3,7 +3,7 @@
 
 import { Report, ReportDomain } from '../entities/Report';
 import { Dashboard, DashboardDomain } from '../entities/Dashboard';
-import { ReportTemplate, ReportTemplateDomain } from '../entities/ReportTemplate';
+import { ReportTemplate } from '../entities/ReportTemplate';
 
 export class ReportsDomainService {
   
@@ -18,12 +18,19 @@ export class ReportsDomainService {
   ): Partial<Report> {
     // Validate user access to template
     const userRoles = customParameters.userRoles || [];
-    if (!ReportTemplateDomain.canUserAccessTemplate(template, userId, userRoles)) {
+    // For now, basic access check - template domain logic will be implemented later
+    if (template.accessLevel === 'private' && template.ownerId && template.ownerId !== userId) {
       throw new Error('User does not have access to this template');
     }
     
-    // Generate base report from template
-    const baseReport = ReportTemplateDomain.generateReportFromTemplate(template, customParameters);
+    // Generate base report from template (simplified for now)
+    const baseReport = {
+      name: customParameters.name || template.name,
+      description: customParameters.description || template.description,
+      dataSource: template.templateConfig.dataSources[0]?.module || 'tickets',
+      reportType: 'table',
+      config: template.templateConfig
+    };
     
     // Add user and tenant context
     return {
@@ -33,8 +40,7 @@ export class ReportsDomainService {
       createdBy: userId,
       status: 'draft',
       // Inherit access settings from template if not specified
-      isPublic: customParameters.isPublic ?? template.isPublic,
-      allowedRoles: customParameters.allowedRoles ?? template.allowedRoles,
+      isPublic: customParameters.isPublic ?? (template.accessLevel === 'public'),
       // Add generation metadata
       metadata: {
         ...baseReport.metadata,
@@ -43,7 +49,7 @@ export class ReportsDomainService {
         sourceTemplate: {
           id: template.id,
           name: template.name,
-          version: template.version
+          moduleId: template.moduleId
         }
       }
     };
@@ -64,13 +70,24 @@ export class ReportsDomainService {
     const errors: string[] = [];
     const warnings: string[] = [];
     
-    // Basic report validation
-    const reportErrors = ReportDomain.validateReportExecution(report);
-    errors.push(...reportErrors);
+    // Basic report validation (simplified for now)
+    if (!report.dataSource) {
+      errors.push('Report data source is required');
+    }
     
-    // Access validation
-    if (!ReportDomain.canUserAccessReport(report, executionContext.userId, executionContext.userRoles)) {
-      errors.push('User does not have access to execute this report');
+    if (!report.config) {
+      errors.push('Report configuration is required');
+    }
+    
+    // Access validation (simplified for now)
+    if (!report.isPublic && report.ownerId !== executionContext.userId) {
+      // Check if user has appropriate role-based access
+      const hasAccess = executionContext.userRoles.some(role => 
+        ['admin', 'manager', 'analyst'].includes(role)
+      );
+      if (!hasAccess) {
+        errors.push('User does not have access to execute this report');
+      }
     }
     
     // Parameter validation

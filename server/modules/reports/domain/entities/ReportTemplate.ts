@@ -1,369 +1,348 @@
-// ✅ 1QA.MD COMPLIANCE: DOMAIN ENTITY - PURE BUSINESS LOGIC
-// Domain Layer - Zero dependencies on infrastructure or application layers
-
 export interface ReportTemplate {
   id: string;
   tenantId: string;
-  
-  // Template Information
+  moduleId: string;
   name: string;
-  description?: string;
-  category: string; // Module or functional category
-  moduleType?: string; // tickets, customers, materials, etc.
-  
-  // Template Configuration
-  templateConfig: Record<string, any>; // Complete report configuration
-  defaultParameters: Record<string, any>;
-  requiredFields: string[];
-  optionalFields: string[];
-  
-  // Customization & Branding
-  brandingConfig: Record<string, any>; // Logo, colors, fonts
-  layoutOptions: Record<string, any>; // Available layout variations
-  styleOptions: Record<string, any>; // Available styling options
-  
-  // Usage & Popularity
-  usageCount: number;
-  rating: number;
-  ratingCount: number;
-  
-  // Access & Sharing
-  isPublic: boolean;
-  isSystem: boolean; // System-provided templates
-  allowedRoles: string[];
-  
-  // Versioning
-  version: string;
-  parentTemplateId?: string; // For template inheritance
-  isLatestVersion: boolean;
-  
-  // System Fields
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string; // references users.id
-}
-
-export interface ReportSchedule {
-  id: string;
-  tenantId: string;
-  reportId: string;
-  
-  // Schedule Configuration
-  name: string;
-  type: 'cron' | 'event_driven' | 'threshold' | 'manual' | 'real_time';
-  cronExpression?: string; // For cron schedules
-  scheduleConfig: Record<string, any>; // Advanced scheduling options
-  
-  // Execution Settings
-  timezone: string;
-  isActive: boolean;
-  offPeakOnly: boolean;
-  resourcePriority: number; // 1-10 scale
-  maxExecutionTime: number; // seconds
-  retryAttempts: number;
-  retryDelay: number; // seconds
-  
-  // Trigger Conditions (for event-driven schedules)
-  triggerConditions: Record<string, any>;
-  thresholdConfig: Record<string, any>;
-  
-  // Delivery & Output
-  outputFormats: string[];
-  deliveryMethods: string[];
-  recipients: Record<string, any>; // Email addresses, webhook URLs, etc.
-  
-  // Execution History
-  lastExecutedAt?: Date;
-  nextExecutionAt?: Date;
-  executionCount: number;
-  successCount: number;
-  failureCount: number;
-  lastError?: string;
-  
-  // System Fields
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string; // references users.id
-}
-
-export interface ReportNotification {
-  id: string;
-  tenantId: string;
-  reportId: string;
-  
-  // Notification Configuration
-  name: string;
-  triggerType: string; // result_threshold, execution_status, schedule, data_change
-  triggerConditions: Record<string, any>; // Specific trigger conditions
-  
-  // Notification Settings
-  notificationChannels: string[]; // email, sms, webhook, slack, teams
-  recipients: Record<string, any>; // Channel-specific recipients
-  messageTemplate?: string;
-  subjectTemplate?: string;
-  
-  // Action Configuration
-  actions: any[]; // Automated actions to take
-  escalationRules: Record<string, any>; // Escalation configuration
-  
-  // Status & Control
-  isActive: boolean;
-  priority: number; // 1-10 scale
-  cooldownPeriod: number; // seconds between notifications
-  
-  // Execution History
-  lastTriggeredAt?: Date;
-  triggerCount: number;
-  lastNotificationSent?: Date;
-  notificationCount: number;
-  
-  // System Fields
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string; // references users.id
-}
-
-export interface ReportTemplateFilters {
-  tenantId: string;
-  category?: string;
-  moduleType?: string;
-  isPublic?: boolean;
-  isSystem?: boolean;
-  isLatestVersion?: boolean;
-  search?: string;
-  minRating?: number;
-  allowedRoles?: string[];
-}
-
-// Template-specific domain business rules
-export class ReportTemplateDomain {
-  static validateTemplateCreation(template: Partial<ReportTemplate>): string[] {
-    const errors: string[] = [];
-    
-    if (!template.name || template.name.trim().length === 0) {
-      errors.push('Template name is required');
-    }
-    
-    if (template.name && template.name.length > 255) {
-      errors.push('Template name cannot exceed 255 characters');
-    }
-    
-    if (!template.category || template.category.trim().length === 0) {
-      errors.push('Template category is required');
-    }
-    
-    if (!template.templateConfig || typeof template.templateConfig !== 'object') {
-      errors.push('Template configuration is required');
-    }
-    
-    if (!template.tenantId) {
-      errors.push('Tenant ID is required');
-    }
-    
-    if (!template.createdBy) {
-      errors.push('Creator ID is required');
-    }
-    
-    if (template.rating && (template.rating < 0 || template.rating > 5)) {
-      errors.push('Rating must be between 0 and 5');
-    }
-    
-    if (template.version && !isValidVersionString(template.version)) {
-      errors.push('Invalid version format (use semantic versioning like 1.0.0)');
-    }
-    
-    return errors;
-  }
-  
-  static validateScheduleCreation(schedule: Partial<ReportSchedule>): string[] {
-    const errors: string[] = [];
-    
-    if (!schedule.name || schedule.name.trim().length === 0) {
-      errors.push('Schedule name is required');
-    }
-    
-    if (!schedule.reportId) {
-      errors.push('Report ID is required');
-    }
-    
-    if (!schedule.type) {
-      errors.push('Schedule type is required');
-    }
-    
-    if (!['cron', 'event_driven', 'threshold', 'manual', 'real_time'].includes(schedule.type || '')) {
-      errors.push('Invalid schedule type');
-    }
-    
-    if (schedule.type === 'cron' && !schedule.cronExpression) {
-      errors.push('Cron expression is required for cron schedules');
-    }
-    
-    if (schedule.resourcePriority && (schedule.resourcePriority < 1 || schedule.resourcePriority > 10)) {
-      errors.push('Resource priority must be between 1 and 10');
-    }
-    
-    if (schedule.maxExecutionTime && schedule.maxExecutionTime < 1) {
-      errors.push('Max execution time must be at least 1 second');
-    }
-    
-    if (schedule.retryAttempts && schedule.retryAttempts < 0) {
-      errors.push('Retry attempts cannot be negative');
-    }
-    
-    return errors;
-  }
-  
-  static validateNotificationCreation(notification: Partial<ReportNotification>): string[] {
-    const errors: string[] = [];
-    
-    if (!notification.name || notification.name.trim().length === 0) {
-      errors.push('Notification name is required');
-    }
-    
-    if (!notification.reportId) {
-      errors.push('Report ID is required');
-    }
-    
-    if (!notification.triggerType) {
-      errors.push('Trigger type is required');
-    }
-    
-    if (!notification.triggerConditions || typeof notification.triggerConditions !== 'object') {
-      errors.push('Trigger conditions are required');
-    }
-    
-    if (!notification.notificationChannels || !Array.isArray(notification.notificationChannels) || notification.notificationChannels.length === 0) {
-      errors.push('At least one notification channel is required');
-    }
-    
-    if (!notification.recipients || typeof notification.recipients !== 'object') {
-      errors.push('Recipients configuration is required');
-    }
-    
-    if (notification.priority && (notification.priority < 1 || notification.priority > 10)) {
-      errors.push('Priority must be between 1 and 10');
-    }
-    
-    if (notification.cooldownPeriod && notification.cooldownPeriod < 0) {
-      errors.push('Cooldown period cannot be negative');
-    }
-    
-    return errors;
-  }
-  
-  static canUserAccessTemplate(template: ReportTemplate, userId: string, userRoles: string[]): boolean {
-    // Public templates are accessible to all
-    if (template.isPublic) {
-      return true;
-    }
-    
-    // Creator always has access
-    if (template.createdBy === userId) {
-      return true;
-    }
-    
-    // System templates are accessible to all within tenant
-    if (template.isSystem) {
-      return true;
-    }
-    
-    // Check if user's role is allowed
-    const hasAllowedRole = userRoles.some(role => template.allowedRoles.includes(role));
-    if (hasAllowedRole) {
-      return true;
-    }
-    
-    return false;
-  }
-  
-  static generateReportFromTemplate(template: ReportTemplate, customParameters?: Record<string, any>): Partial<Report> {
-    const reportConfig = { ...template.templateConfig };
-    
-    // Merge custom parameters with default parameters
-    const parameters = {
-      ...template.defaultParameters,
-      ...customParameters
-    };
-    
-    return {
-      name: `${template.name} - ${new Date().toLocaleDateString()}`,
-      description: `Generated from template: ${template.name}`,
-      type: 'custom',
-      status: 'draft',
-      category: template.category,
-      templateId: template.id,
-      queryConfig: reportConfig.queryConfig || {},
-      layoutConfig: reportConfig.layoutConfig || {},
-      chartConfig: reportConfig.chartConfig || {},
-      formatConfig: reportConfig.formatConfig || {},
-      parameters,
-      filters: reportConfig.filters || {},
-      exportFormats: reportConfig.exportFormats || ['pdf'],
-      tags: [template.category, 'template-generated'],
-      metadata: {
-        templateId: template.id,
-        templateName: template.name,
-        templateVersion: template.version,
-        generatedAt: new Date().toISOString()
-      }
-    };
-  }
-  
-  static calculateTemplatePopularity(template: ReportTemplate): number {
-    // Simple popularity score based on usage and rating
-    const usageScore = Math.min(template.usageCount * 0.1, 10); // Max 10 points for usage
-    const ratingScore = template.rating * 2; // Max 10 points for rating
-    const recencyScore = calculateRecencyScore(template.updatedAt); // Max 5 points for recency
-    
-    return Math.round((usageScore + ratingScore + recencyScore) / 3 * 10) / 10;
-  }
-}
-
-// Helper functions
-function isValidVersionString(version: string): boolean {
-  const semverPattern = /^\d+\.\d+\.\d+$/;
-  return semverPattern.test(version);
-}
-
-function calculateRecencyScore(updatedAt: Date): number {
-  const now = new Date();
-  const daysSinceUpdate = (now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60 * 24);
-  
-  if (daysSinceUpdate <= 7) return 5; // Very recent
-  if (daysSinceUpdate <= 30) return 4; // Recent
-  if (daysSinceUpdate <= 90) return 3; // Somewhat recent
-  if (daysSinceUpdate <= 180) return 2; // Old
-  return 1; // Very old
-}
-
-// Import Report interface for template generation
-interface Report {
-  id?: string;
-  tenantId?: string;
-  name: string;
-  description?: string;
-  type: 'standard' | 'custom' | 'dashboard' | 'scheduled' | 'real_time';
-  status: 'draft' | 'active' | 'archived' | 'error' | 'processing' | 'completed';
-  category?: string;
-  dataSource?: string;
-  query?: string;
-  queryConfig?: Record<string, any>;
-  filters?: Record<string, any>;
-  parameters?: Record<string, any>;
-  layoutConfig?: Record<string, any>;
-  chartConfig?: Record<string, any>;
-  formatConfig?: Record<string, any>;
+  description: string;
+  category: string;
   ownerId?: string;
-  isPublic?: boolean;
-  accessLevel?: 'view_only' | 'edit' | 'admin' | 'public' | 'restricted';
-  allowedRoles?: string[];
-  allowedUsers?: string[];
-  exportFormats?: string[];
-  tags?: string[];
-  metadata?: Record<string, any>;
-  version?: number;
-  isTemplate?: boolean;
-  templateId?: string;
-  createdBy?: string;
-  updatedBy?: string;
+  templateConfig: {
+    dataSources: Array<{
+      module: string;
+      tables: string[];
+      relationships: Record<string, string>;
+    }>;
+    defaultFields: string[];
+    defaultFilters: Record<string, any>;
+    defaultGrouping: string[];
+    defaultSorting: Array<{ field: string; direction: 'asc' | 'desc' }>;
+    chartConfig: {
+      type: string;
+      xAxis: string;
+      yAxis: string[];
+      colors: string[];
+    };
+    metricsConfig: {
+      kpis: Array<{
+        name: string;
+        calculation: string;
+        target?: number;
+        format: string;
+      }>;
+      alerts: Array<{
+        condition: string;
+        threshold: number;
+        severity: 'low' | 'medium' | 'high' | 'critical';
+      }>;
+    };
+  };
+  accessLevel: 'public' | 'private' | 'department' | 'executive';
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+export interface ModuleDataSource {
+  module: string;
+  displayName: string;
+  description: string;
+  tables: Array<{
+    name: string;
+    displayName: string;
+    fields: Array<{
+      name: string;
+      type: string;
+      displayName: string;
+      isAggregatable: boolean;
+      isFilterable: boolean;
+    }>;
+  }>;
+  relationships: Array<{
+    from: string;
+    to: string;
+    type: 'one-to-one' | 'one-to-many' | 'many-to-many' | 'many-to-one';
+    foreignKey: string;
+  }>;
+  businessRules: Array<{
+    name: string;
+    description: string;
+    calculation: string;
+  }>;
+}
+
+// Templates pré-configurados por módulo seguindo especificação
+export const MODULE_TEMPLATES: Record<string, ReportTemplate[]> = {
+  tickets: [
+    {
+      id: 'sla-performance-template',
+      tenantId: '',
+      moduleId: 'tickets',
+      name: 'SLA Performance Report',
+      description: 'Análise de violações de SLA e métricas de tempo de resposta',
+      category: 'performance',
+      templateConfig: {
+        dataSources: [{
+          module: 'tickets',
+          tables: ['tickets', 'ticket_comments', 'users'],
+          relationships: { 'tickets.assignedTo': 'users.id', 'tickets.id': 'ticket_comments.ticketId' }
+        }],
+        defaultFields: ['title', 'status', 'priority', 'createdAt', 'resolvedAt', 'slaTarget', 'slaBreached'],
+        defaultFilters: { createdAt: { gte: '30_days_ago' } },
+        defaultGrouping: ['status', 'priority'],
+        defaultSorting: [{ field: 'createdAt', direction: 'desc' }],
+        chartConfig: {
+          type: 'bar',
+          xAxis: 'status',
+          yAxis: ['count', 'avgResolutionTime'],
+          colors: ['#8b5cf6', '#06b6d4']
+        },
+        metricsConfig: {
+          kpis: [
+            { name: 'SLA Compliance', calculation: '(total_tickets - sla_breached) / total_tickets * 100', target: 95, format: 'percentage' },
+            { name: 'Avg Resolution Time', calculation: 'avg(resolution_time)', format: 'hours' },
+            { name: 'First Response Time', calculation: 'avg(first_response_time)', format: 'hours' }
+          ],
+          alerts: [
+            { condition: 'sla_compliance < 90', threshold: 90, severity: 'critical' },
+            { condition: 'avg_resolution_time > 24', threshold: 24, severity: 'high' }
+          ]
+        }
+      },
+      accessLevel: 'department',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ],
+  materials_services: [
+    {
+      id: 'inventory-management-template',
+      tenantId: '',
+      moduleId: 'materials_services',
+      name: 'Inventory Management Report',
+      description: 'Níveis de estoque, rotatividade e pontos de reposição',
+      category: 'inventory',
+      templateConfig: {
+        dataSources: [{
+          module: 'materials_services',
+          tables: ['items', 'item_catalog', 'suppliers'],
+          relationships: { 'items.catalogId': 'item_catalog.id', 'items.supplierId': 'suppliers.id' }
+        }],
+        defaultFields: ['name', 'currentStock', 'minimumStock', 'maximumStock', 'unitCost', 'turnoverRate'],
+        defaultFilters: { isActive: true },
+        defaultGrouping: ['category', 'supplier'],
+        defaultSorting: [{ field: 'turnoverRate', direction: 'desc' }],
+        chartConfig: {
+          type: 'column',
+          xAxis: 'category',
+          yAxis: ['currentStock', 'minimumStock'],
+          colors: ['#10b981', '#f59e0b']
+        },
+        metricsConfig: {
+          kpis: [
+            { name: 'Inventory Turnover', calculation: 'sum(cost_of_goods_sold) / avg(inventory_value)', format: 'number' },
+            { name: 'Stock Out Rate', calculation: 'count(items_out_of_stock) / count(total_items) * 100', format: 'percentage' },
+            { name: 'Carrying Cost', calculation: 'inventory_value * carrying_cost_rate', format: 'currency' }
+          ],
+          alerts: [
+            { condition: 'stock_level < minimum_stock', threshold: 1, severity: 'high' },
+            { condition: 'inventory_turnover < 4', threshold: 4, severity: 'medium' }
+          ]
+        }
+      },
+      accessLevel: 'department',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ],
+  timecard: [
+    {
+      id: 'clt-compliance-template',
+      tenantId: '',
+      moduleId: 'timecard',
+      name: 'CLT Compliance Dashboard',
+      description: 'Violações de horas extras, compliance de pausas e alertas legais',
+      category: 'compliance',
+      templateConfig: {
+        dataSources: [{
+          module: 'timecard',
+          tables: ['timecards', 'time_entries', 'users'],
+          relationships: { 'timecards.userId': 'users.id', 'timecards.id': 'time_entries.timecardId' }
+        }],
+        defaultFields: ['userId', 'date', 'hoursWorked', 'overtimeHours', 'breakDuration', 'cltViolations'],
+        defaultFilters: { date: { gte: '30_days_ago' } },
+        defaultGrouping: ['userId', 'week'],
+        defaultSorting: [{ field: 'date', direction: 'desc' }],
+        chartConfig: {
+          type: 'line',
+          xAxis: 'date',
+          yAxis: ['hoursWorked', 'overtimeHours'],
+          colors: ['#3b82f6', '#ef4444']
+        },
+        metricsConfig: {
+          kpis: [
+            { name: 'CLT Compliance Rate', calculation: '(total_employees - employees_with_violations) / total_employees * 100', target: 100, format: 'percentage' },
+            { name: 'Avg Weekly Hours', calculation: 'avg(weekly_hours)', target: 44, format: 'hours' },
+            { name: 'Overtime Rate', calculation: 'sum(overtime_hours) / sum(regular_hours) * 100', format: 'percentage' }
+          ],
+          alerts: [
+            { condition: 'weekly_hours > 44', threshold: 44, severity: 'critical' },
+            { condition: 'consecutive_days > 6', threshold: 6, severity: 'high' },
+            { condition: 'break_duration < 15', threshold: 15, severity: 'medium' }
+          ]
+        }
+      },
+      accessLevel: 'department',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ],
+  omnibridge: [
+    {
+      id: 'channel-performance-template',
+      tenantId: '',
+      moduleId: 'omnibridge',
+      name: 'Channel Performance Dashboard',
+      description: 'Tempos de resposta, taxas de conversão e métricas de engajamento',
+      category: 'communication',
+      templateConfig: {
+        dataSources: [{
+          module: 'omnibridge',
+          tables: ['channels', 'messages', 'conversations'],
+          relationships: { 'messages.channelId': 'channels.id', 'messages.conversationId': 'conversations.id' }
+        }],
+        defaultFields: ['channelId', 'messageCount', 'responseTime', 'resolutionRate', 'customerSatisfaction'],
+        defaultFilters: { createdAt: { gte: '7_days_ago' } },
+        defaultGrouping: ['channelId', 'day'],
+        defaultSorting: [{ field: 'responseTime', direction: 'asc' }],
+        chartConfig: {
+          type: 'mixed',
+          xAxis: 'day',
+          yAxis: ['messageCount', 'responseTime'],
+          colors: ['#8b5cf6', '#06b6d4']
+        },
+        metricsConfig: {
+          kpis: [
+            { name: 'Avg Response Time', calculation: 'avg(response_time)', target: 300, format: 'seconds' },
+            { name: 'Resolution Rate', calculation: 'count(resolved_conversations) / count(total_conversations) * 100', target: 90, format: 'percentage' },
+            { name: 'Customer Satisfaction', calculation: 'avg(satisfaction_score)', target: 4.5, format: 'rating' }
+          ],
+          alerts: [
+            { condition: 'avg_response_time > 600', threshold: 600, severity: 'high' },
+            { condition: 'resolution_rate < 80', threshold: 80, severity: 'medium' }
+          ]
+        }
+      },
+      accessLevel: 'department',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ]
+};
+
+// Definição de fontes de dados dos 25 módulos do sistema
+export const SYSTEM_DATA_SOURCES: Record<string, ModuleDataSource> = {
+  tickets: {
+    module: 'tickets',
+    displayName: 'Tickets & SLA',
+    description: 'Sistema de gestão de tickets com métricas de SLA e atendimento',
+    tables: [
+      {
+        name: 'tickets',
+        displayName: 'Tickets',
+        fields: [
+          { name: 'id', type: 'uuid', displayName: 'ID', isAggregatable: false, isFilterable: true },
+          { name: 'title', type: 'string', displayName: 'Título', isAggregatable: false, isFilterable: true },
+          { name: 'status', type: 'string', displayName: 'Status', isAggregatable: true, isFilterable: true },
+          { name: 'priority', type: 'string', displayName: 'Prioridade', isAggregatable: true, isFilterable: true },
+          { name: 'createdAt', type: 'datetime', displayName: 'Criado em', isAggregatable: false, isFilterable: true },
+          { name: 'resolvedAt', type: 'datetime', displayName: 'Resolvido em', isAggregatable: false, isFilterable: true }
+        ]
+      }
+    ],
+    relationships: [
+      { from: 'tickets.assignedTo', to: 'users.id', type: 'many-to-one', foreignKey: 'assignedTo' }
+    ],
+    businessRules: [
+      { name: 'SLA Breach', description: 'Ticket violou SLA quando tempo de resolução > SLA target', calculation: 'resolution_time > sla_target' },
+      { name: 'Response Time', description: 'Tempo até primeira resposta', calculation: 'first_comment_time - created_time' }
+    ]
+  },
+  materials_services: {
+    module: 'materials_services',
+    displayName: 'Materiais & Serviços',
+    description: 'Gestão de inventário, fornecedores e precificação LPU',
+    tables: [
+      {
+        name: 'items',
+        displayName: 'Itens',
+        fields: [
+          { name: 'id', type: 'uuid', displayName: 'ID', isAggregatable: false, isFilterable: true },
+          { name: 'name', type: 'string', displayName: 'Nome', isAggregatable: false, isFilterable: true },
+          { name: 'currentStock', type: 'number', displayName: 'Estoque Atual', isAggregatable: true, isFilterable: true },
+          { name: 'minimumStock', type: 'number', displayName: 'Estoque Mínimo', isAggregatable: true, isFilterable: true },
+          { name: 'unitCost', type: 'decimal', displayName: 'Custo Unitário', isAggregatable: true, isFilterable: true }
+        ]
+      }
+    ],
+    relationships: [
+      { from: 'items.supplierId', to: 'suppliers.id', type: 'many-to-one', foreignKey: 'supplierId' }
+    ],
+    businessRules: [
+      { name: 'Stock Level', description: 'Nível de estoque crítico', calculation: 'current_stock <= minimum_stock' },
+      { name: 'Turnover Rate', description: 'Taxa de rotatividade do estoque', calculation: 'cost_of_goods_sold / average_inventory' }
+    ]
+  },
+  timecard: {
+    module: 'timecard',
+    displayName: 'Controle de Ponto',
+    description: 'Sistema de ponto eletrônico com compliance CLT',
+    tables: [
+      {
+        name: 'timecards',
+        displayName: 'Cartões de Ponto',
+        fields: [
+          { name: 'id', type: 'uuid', displayName: 'ID', isAggregatable: false, isFilterable: true },
+          { name: 'userId', type: 'uuid', displayName: 'Usuário', isAggregatable: true, isFilterable: true },
+          { name: 'date', type: 'date', displayName: 'Data', isAggregatable: false, isFilterable: true },
+          { name: 'hoursWorked', type: 'decimal', displayName: 'Horas Trabalhadas', isAggregatable: true, isFilterable: true },
+          { name: 'overtimeHours', type: 'decimal', displayName: 'Horas Extras', isAggregatable: true, isFilterable: true }
+        ]
+      }
+    ],
+    relationships: [
+      { from: 'timecards.userId', to: 'users.id', type: 'many-to-one', foreignKey: 'userId' }
+    ],
+    businessRules: [
+      { name: 'CLT Overtime', description: 'Horas extras acima do limite CLT', calculation: 'weekly_hours > 44' },
+      { name: 'Break Compliance', description: 'Compliance de pausas obrigatórias', calculation: 'break_duration >= required_break_time' }
+    ]
+  },
+  omnibridge: {
+    module: 'omnibridge',
+    displayName: 'OmniBridge',
+    description: 'Centro de comunicação unificada multi-canal',
+    tables: [
+      {
+        name: 'channels',
+        displayName: 'Canais',
+        fields: [
+          { name: 'id', type: 'string', displayName: 'ID', isAggregatable: false, isFilterable: true },
+          { name: 'name', type: 'string', displayName: 'Nome', isAggregatable: false, isFilterable: true },
+          { name: 'type', type: 'string', displayName: 'Tipo', isAggregatable: true, isFilterable: true },
+          { name: 'isEnabled', type: 'boolean', displayName: 'Ativo', isAggregatable: true, isFilterable: true }
+        ]
+      }
+    ],
+    relationships: [
+      { from: 'messages.channelId', to: 'channels.id', type: 'many-to-one', foreignKey: 'channelId' }
+    ],
+    businessRules: [
+      { name: 'Response Time SLA', description: 'Tempo de resposta dentro do SLA', calculation: 'response_time <= channel_sla_target' },
+      { name: 'Resolution Rate', description: 'Taxa de resolução por canal', calculation: 'resolved_messages / total_messages' }
+    ]
+  }
+};

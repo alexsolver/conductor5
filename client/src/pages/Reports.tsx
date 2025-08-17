@@ -83,10 +83,10 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
   });
 
   const createReportMutation = useMutation({
-    mutationFn: (data: ReportFormData) => apiRequest("POST", "/api/reports", data),
+    mutationFn: (data: ReportFormData) => apiRequest("POST", "/api/reports-dashboards/reports", data),
     onSuccess: () => {
       toast({ title: "Report created successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
       setOpen(false);
       form.reset();
       onSuccess();
@@ -295,10 +295,10 @@ function ReportCard({ report, onExecute }: { report: Report; onExecute: (id: str
   const ChartIcon = chartTypeIcons[report.chartType as keyof typeof chartTypeIcons] || BarChart3;
 
   const deleteReportMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/reports/${id}`),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/reports-dashboards/reports/${id}`),
     onSuccess: () => {
       toast({ title: "Report deleted successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
     },
     onError: (error) => {
       toast({ 
@@ -391,15 +391,19 @@ export default function Reports() {
   const { toast } = useToast();
 
   const { data: reports = [], isLoading } = useQuery({
-    queryKey: ["/api/reports"],
-    queryFn: () => apiRequest("/api/reports", "GET"),
+    queryKey: ["/api/reports-dashboards/reports"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/reports-dashboards/reports");
+      const data = await response.json();
+      return data.data || data;
+    },
   });
 
   const executeReportMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/reports/${id}/execute`, "POST"),
+    mutationFn: (id: string) => apiRequest("POST", `/api/reports-dashboards/reports/${id}/execute`),
     onSuccess: () => {
       toast({ title: "Report executed successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
     },
     onError: (error) => {
       toast({ 

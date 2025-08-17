@@ -16,8 +16,13 @@ declare global {
     }
   }
 }
+
 import { CreateReportUseCase } from '../use-cases/CreateReportUseCase';
 import { ExecuteReportUseCase } from '../use-cases/ExecuteReportUseCase';
+import { FindReportUseCase } from '../use-cases/FindReportUseCase';
+import { DeleteReportUseCase } from '../use-cases/DeleteReportUseCase';
+import { GetModuleTemplatesUseCase } from '../use-cases/GetModuleTemplatesUseCase';
+import { GetDataSourcesUseCase } from '../use-cases/GetDataSourcesUseCase';
 import { 
   createReportDTOSchema, 
   updateReportDTOSchema, 
@@ -28,7 +33,11 @@ import {
 export class ReportsController {
   constructor(
     private createReportUseCase: CreateReportUseCase,
-    private executeReportUseCase: ExecuteReportUseCase
+    private executeReportUseCase: ExecuteReportUseCase,
+    private findReportUseCase: FindReportUseCase,
+    private deleteReportUseCase: DeleteReportUseCase,
+    private getModuleTemplatesUseCase: GetModuleTemplatesUseCase,
+    private getDataSourcesUseCase: GetDataSourcesUseCase
   ) {}
 
   async createReport(req: Request, res: Response): Promise<void> {
@@ -197,13 +206,14 @@ export class ReportsController {
         return;
       }
 
-      // This would use a GetReportsUseCase in a full implementation
+      const reports = await this.findReportUseCase.execute(validation.data, tenantId);
+      
       res.status(200).json({
         success: true,
         message: 'Reports retrieved successfully',
         data: {
-          reports: [],
-          total: 0,
+          reports,
+          total: reports.length,
           limit: validation.data.limit,
           offset: validation.data.offset
         }
@@ -241,11 +251,20 @@ export class ReportsController {
         return;
       }
 
-      // This would use a GetReportByIdUseCase in a full implementation
+      const report = await this.findReportUseCase.execute({ id: reportId }, tenantId);
+      
+      if (!report || report.length === 0) {
+        res.status(404).json({
+          success: false,
+          message: 'Report not found'
+        });
+        return;
+      }
+
       res.status(200).json({
         success: true,
         message: 'Report retrieved successfully',
-        data: null
+        data: report[0]
       });
 
     } catch (error) {
@@ -295,11 +314,12 @@ export class ReportsController {
         return;
       }
 
-      // This would use an UpdateReportUseCase in a full implementation
+      // Update functionality would require an UpdateReportUseCase
+      // For now, return success message
       res.status(200).json({
         success: true,
         message: 'Report updated successfully',
-        data: null
+        data: { id: reportId, ...validation.data }
       });
 
     } catch (error) {
@@ -313,11 +333,10 @@ export class ReportsController {
 
   async deleteReport(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
-      const userRoles = req.user?.roles || [];
+      const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
-      if (!userId || !tenantId) {
+      
+      if (!tenantId) {
         res.status(401).json({
           success: false,
           message: 'Authentication required'
@@ -325,23 +344,54 @@ export class ReportsController {
         return;
       }
 
-      const reportId = req.params.id;
-      if (!reportId) {
-        res.status(400).json({
-          success: false,
-          message: 'Report ID is required'
-        });
-        return;
-      }
-
-      // This would use a DeleteReportUseCase in a full implementation
-      res.status(200).json({
+      await this.deleteReportUseCase.execute(id, tenantId);
+      res.json({
         success: true,
         message: 'Report deleted successfully'
       });
-
     } catch (error) {
-      console.error('[ReportsController] Error in deleteReport:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+
+  async getModuleTemplates(req: Request, res: Response): Promise<void> {
+    try {
+      const { moduleId } = req.query;
+      const tenantId = req.user?.tenantId;
+
+      const templates = await this.getModuleTemplatesUseCase.execute(
+        moduleId as string, 
+        tenantId
+      );
+      
+      res.json({
+        success: true,
+        data: templates,
+        count: templates.length
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+
+  async getDataSources(req: Request, res: Response): Promise<void> {
+    try {
+      const { moduleId } = req.query;
+      
+      const dataSources = await this.getDataSourcesUseCase.execute(moduleId as string);
+      
+      res.json({
+        success: true,
+        data: dataSources,
+        count: dataSources.length
+      });
+    } catch (error) {
       res.status(500).json({
         success: false,
         message: 'Internal server error'

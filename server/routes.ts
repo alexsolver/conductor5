@@ -341,6 +341,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/sla', slaRoutes);
   console.log('✅ [SLA-MANAGEMENT] Clean Architecture module registered at /api/sla');
 
+  // ✅ REPORTS & DASHBOARDS CLEAN ARCHITECTURE MODULE per 1qa.md
+  console.log('🏗️ [REPORTS-DASHBOARDS] Initializing Reports & Dashboards Clean Architecture module...');
+  app.use('/api/reports-dashboards', reportsRoutes);
+  console.log('✅ [REPORTS-DASHBOARDS] Clean Architecture module registered at /api/reports-dashboards');
+
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');
   app.use('/api/beneficiaries', beneficiariesRoutes);

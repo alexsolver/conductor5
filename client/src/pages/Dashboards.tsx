@@ -107,11 +107,11 @@ function CreateDashboardDialog({ onSuccess }: { onSuccess: () => void }) {
         ...data,
         tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
       };
-      return apiRequest("/api/dashboards", "POST", payload);
+      return apiRequest("POST", "/api/reports-dashboards/dashboards", payload);
     },
     onSuccess: () => {
       toast({ title: "Dashboard created successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/dashboards"] });
       setOpen(false);
       form.reset();
       onSuccess();
@@ -400,10 +400,10 @@ function DashboardCard({ dashboard, onToggleFavorite }: { dashboard: Dashboard; 
   const LayoutIcon = layoutTypeIcons[dashboard.layoutType as keyof typeof layoutTypeIcons] || Grid;
 
   const deleteDashboardMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/dashboards/${id}`, "DELETE"),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/reports-dashboards/dashboards/${id}`),
     onSuccess: () => {
       toast({ title: "Dashboard deleted successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/dashboards"] });
     },
     onError: (error) => {
       toast({ 
@@ -537,14 +537,18 @@ export default function Dashboards() {
   const { toast } = useToast();
 
   const { data: dashboards = [], isLoading } = useQuery({
-    queryKey: ["/api/dashboards"],
-    queryFn: () => apiRequest("/api/dashboards", "GET"),
+    queryKey: ["/api/reports-dashboards/dashboards"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/reports-dashboards/dashboards");
+      const data = await response.json();
+      return data.data || data;
+    },
   });
 
   const toggleFavoriteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/dashboards/${id}/favorite`, "POST"),
+    mutationFn: (id: string) => apiRequest("POST", `/api/reports-dashboards/dashboards/${id}/favorite`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboards"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/dashboards"] });
     },
     onError: (error) => {
       toast({ 

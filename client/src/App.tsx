@@ -92,6 +92,8 @@ import DragDropDemo from './pages/DragDropDemo';
 import ProductivityReports from './pages/ProductivityReports';
 import TimecardApprovals from './pages/TimecardApprovals';
 import NotificationsPage from './pages/NotificationsPage';
+import Reports from './pages/Reports';
+import Dashboards from './pages/Dashboards';
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Customers from "./pages/Customers";
@@ -226,6 +228,8 @@ function AppRouter() {
         <Route path="/drag-drop-demo" component={DragDropDemo} />
         <Route path="/productivity-reports" component={ProductivityReports} />
         <Route path="/notifications" component={NotificationsPage} />
+        <Route path="/reports" component={Reports} />
+        <Route path="/dashboards" component={Dashboards} />
 
         <Route path="/companies" component={Companies} />
         <Route component={NotFound} />

@@ -5,6 +5,10 @@ import { Router } from 'express';
 import { ReportsController } from './application/controllers/ReportsController';
 import { CreateReportUseCase } from './application/use-cases/CreateReportUseCase';
 import { ExecuteReportUseCase } from './application/use-cases/ExecuteReportUseCase';
+import { FindReportUseCase } from './application/use-cases/FindReportUseCase';
+import { DeleteReportUseCase } from './application/use-cases/DeleteReportUseCase';
+import { GetModuleTemplatesUseCase } from './application/use-cases/GetModuleTemplatesUseCase';
+import { GetDataSourcesUseCase } from './application/use-cases/GetDataSourcesUseCase';
 import { CreateDashboardUseCase } from './application/use-cases/CreateDashboardUseCase';
 import { CreateDashboardWidgetUseCase } from './application/use-cases/CreateDashboardWidgetUseCase';
 import { ReportsRepository } from './infrastructure/repositories/ReportsRepository';
@@ -14,16 +18,27 @@ import { DashboardsRepository } from './infrastructure/repositories/DashboardsRe
 const reportsRepository = new ReportsRepository();
 const dashboardsRepository = new DashboardsRepository();
 
+// Import logger  
+import logger from '../../utils/logger';
+
 // Create use cases
-const createReportUseCase = new CreateReportUseCase(reportsRepository);
-const executeReportUseCase = new ExecuteReportUseCase(reportsRepository);
+const createReportUseCase = new CreateReportUseCase(reportsRepository, logger);
+const executeReportUseCase = new ExecuteReportUseCase(reportsRepository, logger);
+const findReportUseCase = new FindReportUseCase(reportsRepository, logger);
+const deleteReportUseCase = new DeleteReportUseCase(reportsRepository, logger);
+const getModuleTemplatesUseCase = new GetModuleTemplatesUseCase(logger);
+const getDataSourcesUseCase = new GetDataSourcesUseCase(logger);
 const createDashboardUseCase = new CreateDashboardUseCase(dashboardsRepository);
 const createDashboardWidgetUseCase = new CreateDashboardWidgetUseCase(dashboardsRepository);
 
 // Create controllers
 const reportsController = new ReportsController(
   createReportUseCase,
-  executeReportUseCase
+  executeReportUseCase,
+  findReportUseCase,
+  deleteReportUseCase,
+  getModuleTemplatesUseCase,
+  getDataSourcesUseCase
 );
 
 // Create router
@@ -50,6 +65,12 @@ router.delete('/reports/:id', (req, res) => reportsController.deleteReport(req, 
 
 // Execute a report
 router.post('/reports/:id/execute', (req, res) => reportsController.executeReport(req, res));
+
+// Get module templates (NEW - following specification)
+router.get('/reports/templates', (req, res) => reportsController.getModuleTemplates(req, res));
+
+// Get data sources for reports (NEW - following specification)
+router.get('/reports/data-sources', (req, res) => reportsController.getDataSources(req, res));
 
 // ========================================
 // DASHBOARDS ROUTES

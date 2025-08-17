@@ -2,8 +2,8 @@
 // Infrastructure Layer - Drizzle ORM implementation with tenant isolation
 
 import { eq, and, desc, asc, like, inArray, gte, lte, sql, count } from 'drizzle-orm';
-import { db } from '@shared/schema';
-import { reports, reportExecutions } from '@shared/schema-reports';
+import { db } from '../../../../db';
+import { reports, reportExecutions } from '../../../../../shared/schema-reports';
 import { IReportsRepository } from '../../domain/repositories/IReportsRepository';
 import { Report, ReportFilters, ReportExecutionResult } from '../../domain/entities/Report';
 
