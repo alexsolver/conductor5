@@ -3,7 +3,7 @@
 
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { db, sql, pool } from '@shared/schema';
+import { sql } from 'drizzle-orm';
 import * as schema from '@shared/schema';
 
 // Validate schema import

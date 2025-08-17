@@ -1,50 +1,119 @@
-import { ApprovalInstance, ApprovalInstanceStatus, ModuleType } from '../entities/ApprovalInstance';
-import { ApprovalDecision } from '../entities/ApprovalDecision';
-import { InsertApprovalInstanceForm, InsertApprovalDecisionForm } from '../../../../../shared/schema-master';
+// ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - DOMAIN LAYER
+// Repository Interface: IApprovalInstanceRepository - Domain contract without implementation details
 
-export interface ApprovalInstanceFilters {
-  status?: ApprovalInstanceStatus;
-  entityType?: ModuleType;
-  requestedById?: string;
-  ruleId?: string;
-  slaStatus?: string;
-  dateFrom?: Date;
-  dateTo?: Date;
-  search?: string;
-  limit?: number;
-  offset?: number;
+import { ApprovalInstance } from '../entities/ApprovalInstance';
+import { ApprovalStep } from '../entities/ApprovalStep';
+import { ApprovalDecision } from '../entities/ApprovalDecision';
+
+export interface CreateApprovalInstanceData {
+  tenantId: string;
+  ruleId: string;
+  entityType: 'tickets' | 'materials' | 'knowledge_base' | 'timecard' | 'contracts';
+  entityId: string;
+  entityData?: Record<string, any>;
+  requestedById: string;
+  requestReason?: string;
+  urgencyLevel?: number;
+  slaDeadline?: Date;
 }
 
-export interface ApprovalInstanceStats {
-  totalInstances: number;
-  pendingInstances: number;
-  approvedInstances: number;
-  rejectedInstances: number;
-  expiredInstances: number;
-  averageProcessingTime: number;
-  instancesByModule: Record<string, number>;
-  slaBreaches: number;
+export interface UpdateApprovalInstanceData {
+  currentStepIndex?: number;
+  status?: 'pending' | 'approved' | 'rejected' | 'expired' | 'cancelled';
+  requestReason?: string;
+  urgencyLevel?: number;
+  slaDeadline?: Date;
+  firstReminderSent?: Date;
+  secondReminderSent?: Date;
+  escalatedAt?: Date;
+  completedAt?: Date;
+  completedById?: string;
+  completionReason?: string;
+  totalResponseTimeMinutes?: number;
+  slaViolated?: boolean;
+}
+
+export interface ApprovalInstanceFilters {
+  tenantId: string;
+  status?: string | string[];
+  entityType?: string;
+  entityId?: string;
+  requestedById?: string;
+  completedById?: string;
+  ruleId?: string;
+  urgencyLevel?: number;
+  slaViolated?: boolean;
+  overdueOnly?: boolean;
+  dateFrom?: Date;
+  dateTo?: Date;
+}
+
+export interface ApprovalInstanceWithDetails extends ApprovalInstance {
+  steps?: ApprovalStep[];
+  decisions?: ApprovalDecision[];
+  ruleName?: string;
+  requesterName?: string;
 }
 
 export interface IApprovalInstanceRepository {
+  // CRUD operations
+  create(data: CreateApprovalInstanceData): Promise<ApprovalInstance>;
+  update(id: string, data: UpdateApprovalInstanceData): Promise<ApprovalInstance>;
+  delete(id: string, tenantId: string): Promise<void>;
+
+  // Query operations
   findById(id: string, tenantId: string): Promise<ApprovalInstance | null>;
-  findAll(tenantId: string, filters?: ApprovalInstanceFilters): Promise<ApprovalInstance[]>;
-  findByEntityId(tenantId: string, entityType: ModuleType, entityId: string): Promise<ApprovalInstance[]>;
-  findPendingByUser(tenantId: string, userId: string): Promise<ApprovalInstance[]>;
-  findByStatus(tenantId: string, status: ApprovalInstanceStatus): Promise<ApprovalInstance[]>;
-  create(tenantId: string, instanceData: InsertApprovalInstanceForm): Promise<ApprovalInstance>;
-  update(id: string, tenantId: string, instanceData: Partial<InsertApprovalInstanceForm>): Promise<ApprovalInstance>;
-  updateStatus(id: string, tenantId: string, status: ApprovalInstanceStatus, completedById?: string): Promise<ApprovalInstance>;
-  updateSlaStatus(id: string, tenantId: string, slaStatus: string, elapsedMinutes: number): Promise<void>;
-  incrementReminders(id: string, tenantId: string): Promise<void>;
-  recordEscalation(id: string, tenantId: string): Promise<void>;
-  getStats(tenantId: string): Promise<ApprovalInstanceStats>;
-  findExpiredInstances(tenantId: string): Promise<ApprovalInstance[]>;
-  findInstancesForReminder(tenantId: string): Promise<ApprovalInstance[]>;
+  findByIdWithDetails(id: string, tenantId: string): Promise<ApprovalInstanceWithDetails | null>;
+  findByTenant(tenantId: string): Promise<ApprovalInstance[]>;
+  findByFilters(filters: ApprovalInstanceFilters): Promise<ApprovalInstance[]>;
+  findByEntity(tenantId: string, entityType: string, entityId: string): Promise<ApprovalInstance[]>;
   
-  // Decision methods
-  createDecision(tenantId: string, decisionData: InsertApprovalDecisionForm): Promise<ApprovalDecision>;
-  findDecisionsByInstance(tenantId: string, instanceId: string): Promise<ApprovalDecision[]>;
-  findDecisionsByStep(tenantId: string, stepId: string): Promise<ApprovalDecision[]>;
-  findUserDecisions(tenantId: string, userId: string, limit?: number): Promise<ApprovalDecision[]>;
+  // Workflow operations
+  findPendingInstances(tenantId: string): Promise<ApprovalInstance[]>;
+  findCompletedInstances(tenantId: string, limit?: number): Promise<ApprovalInstance[]>;
+  findByRequester(tenantId: string, requestedById: string): Promise<ApprovalInstance[]>;
+  findByRule(tenantId: string, ruleId: string): Promise<ApprovalInstance[]>;
+  
+  // SLA and timing
+  findOverdueInstances(tenantId: string): Promise<ApprovalInstance[]>;
+  findNeedingReminders(tenantId: string): Promise<ApprovalInstance[]>;
+  findNeedingEscalation(tenantId: string): Promise<ApprovalInstance[]>;
+  findExpiredInstances(tenantId: string): Promise<ApprovalInstance[]>;
+  
+  // Statistics and analytics
+  countByStatus(tenantId: string): Promise<Record<string, number>>;
+  countByTenant(tenantId: string): Promise<number>;
+  countOverdue(tenantId: string): Promise<number>;
+  getAverageResponseTime(tenantId: string, entityType?: string): Promise<number>;
+  getSlaComplianceRate(tenantId: string, entityType?: string): Promise<number>;
+  
+  // Performance metrics
+  findSlowApprovals(tenantId: string, thresholdMinutes: number): Promise<ApprovalInstance[]>;
+  findByResponseTimeRange(tenantId: string, minMinutes: number, maxMinutes: number): Promise<ApprovalInstance[]>;
+  getMetricsForPeriod(tenantId: string, startDate: Date, endDate: Date): Promise<{
+    totalInstances: number;
+    completedInstances: number;
+    averageResponseTime: number;
+    slaViolations: number;
+    slaCompliance: number;
+  }>;
+  
+  // Bulk operations
+  markRemindersForOverdue(tenantId: string): Promise<ApprovalInstance[]>;
+  expireOverdueInstances(tenantId: string): Promise<ApprovalInstance[]>;
+  
+  // Search and pagination
+  searchInstances(tenantId: string, query: string, filters?: ApprovalInstanceFilters): Promise<ApprovalInstance[]>;
+  findPaginated(
+    filters: ApprovalInstanceFilters,
+    page: number,
+    limit: number,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<{
+    instances: ApprovalInstanceWithDetails[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+  }>;
 }

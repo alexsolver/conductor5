@@ -1,172 +1,255 @@
+// ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - DOMAIN SERVICE
+// Domain Service: ApprovalRuleEngine - Business logic for rule evaluation and matching
+
 import { ApprovalRule } from '../entities/ApprovalRule';
 import { ApprovalInstance } from '../entities/ApprovalInstance';
-import { ModuleType } from '../entities/ApprovalInstance';
+import { IApprovalRuleRepository } from '../repositories/IApprovalRuleRepository';
 
-export interface MatchResult {
+export interface RuleEvaluationResult {
   rule: ApprovalRule;
-  shouldAutoApprove: boolean;
-  matchedConditions: string[];
+  matches: boolean;
+  autoApprovalEligible: boolean;
+  evaluationDetails: {
+    conditionResults: Array<{
+      field: string;
+      operator: string;
+      value: any;
+      actualValue: any;
+      result: boolean;
+    }>;
+    autoApprovalResults?: Array<{
+      field: string;
+      operator: string;
+      value: any;
+      actualValue: any;
+      result: boolean;
+    }>;
+  };
+}
+
+export interface ApprovalWorkflowPlan {
+  rule: ApprovalRule;
+  autoApprove: boolean;
+  estimatedSlaHours: number;
+  steps: Array<{
+    stepIndex: number;
+    stepName: string;
+    approvers: Array<{
+      type: string;
+      id?: string;
+      name: string;
+    }>;
+    decisionMode: string;
+    slaHours: number;
+  }>;
 }
 
 export class ApprovalRuleEngine {
-  
-  /**
-   * Finds all applicable rules for a given entity
-   */
-  public findApplicableRules(
-    rules: ApprovalRule[],
-    entityType: ModuleType,
+  constructor(
+    private readonly approvalRuleRepository: IApprovalRuleRepository
+  ) {}
+
+  // Primary rule evaluation method
+  async evaluateRulesForEntity(
+    tenantId: string,
+    moduleType: string,
+    entityType: string,
     entityData: Record<string, any>
-  ): MatchResult[] {
-    const applicableRules: MatchResult[] = [];
+  ): Promise<RuleEvaluationResult[]> {
+    // Get all applicable rules for the entity type
+    const rules = await this.approvalRuleRepository.findByModule(tenantId, moduleType, entityType);
     
-    // Filter rules by module type and active status
-    const moduleRules = rules.filter(rule => 
-      rule.moduleType === entityType && rule.isActive
-    );
-
-    // Sort by priority (lower number = higher priority)
-    const sortedRules = moduleRules.sort((a, b) => a.priority - b.priority);
-
+    // Sort by priority (higher priority first)
+    const sortedRules = rules.sort((a, b) => b.priority - a.priority);
+    
+    const evaluationResults: RuleEvaluationResult[] = [];
+    
     for (const rule of sortedRules) {
-      if (rule.matchesEntity(entityData)) {
-        const shouldAutoApprove = rule.shouldAutoApprove(entityData);
-        
-        applicableRules.push({
-          rule,
-          shouldAutoApprove,
-          matchedConditions: this.getMatchedConditions(rule, entityData)
-        });
-      }
+      if (!rule.isActive) continue;
+      
+      const result = this.evaluateRule(rule, entityData);
+      evaluationResults.push(result);
     }
-
-    return applicableRules;
-  }
-
-  /**
-   * Gets the best matching rule (highest priority that matches)
-   */
-  public getBestMatch(
-    rules: ApprovalRule[],
-    entityType: ModuleType,
-    entityData: Record<string, any>
-  ): MatchResult | null {
-    const applicableRules = this.findApplicableRules(rules, entityType, entityData);
     
-    return applicableRules.length > 0 ? applicableRules[0] : null;
+    return evaluationResults;
   }
 
-  /**
-   * Determines if an approval should be auto-approved
-   */
-  public shouldAutoApprove(
-    rule: ApprovalRule,
+  // Evaluate a single rule against entity data
+  evaluateRule(rule: ApprovalRule, entityData: Record<string, any>): RuleEvaluationResult {
+    const conditionResults = rule.queryConditions.map(condition => ({
+      field: condition.field,
+      operator: condition.operator,
+      value: condition.value,
+      actualValue: this.getNestedValue(entityData, condition.field),
+      result: this.evaluateCondition(condition, entityData),
+    }));
+    
+    const matches = rule.evaluateConditions(entityData);
+    
+    let autoApprovalEligible = false;
+    let autoApprovalResults: any[] = [];
+    
+    if (matches && rule.autoApprovalEnabled && rule.autoApprovalConditions) {
+      autoApprovalResults = rule.autoApprovalConditions.map(condition => ({
+        field: condition.field,
+        operator: condition.operator,
+        value: condition.value,
+        actualValue: this.getNestedValue(entityData, condition.field),
+        result: this.evaluateCondition(condition, entityData),
+      }));
+      
+      autoApprovalEligible = rule.shouldAutoApprove(entityData);
+    }
+    
+    return {
+      rule,
+      matches,
+      autoApprovalEligible,
+      evaluationDetails: {
+        conditionResults,
+        autoApprovalResults: autoApprovalResults.length > 0 ? autoApprovalResults : undefined,
+      },
+    };
+  }
+
+  // Find the best matching rule for an entity
+  async findBestMatchingRule(
+    tenantId: string,
+    moduleType: string,
+    entityType: string,
     entityData: Record<string, any>
-  ): boolean {
+  ): Promise<ApprovalRule | null> {
+    const evaluationResults = await this.evaluateRulesForEntity(
+      tenantId,
+      moduleType,
+      entityType,
+      entityData
+    );
+    
+    // Find the first (highest priority) matching rule
+    const matchingResult = evaluationResults.find(result => result.matches);
+    
+    return matchingResult?.rule || null;
+  }
+
+  // Create approval workflow plan
+  async createWorkflowPlan(
+    tenantId: string,
+    moduleType: string,
+    entityType: string,
+    entityData: Record<string, any>
+  ): Promise<ApprovalWorkflowPlan | null> {
+    const rule = await this.findBestMatchingRule(tenantId, moduleType, entityType, entityData);
+    
+    if (!rule) {
+      return null;
+    }
+    
+    const evaluationResult = this.evaluateRule(rule, entityData);
+    
+    return {
+      rule,
+      autoApprove: evaluationResult.autoApprovalEligible,
+      estimatedSlaHours: rule.defaultSlaHours,
+      steps: rule.approvalSteps.map(step => ({
+        stepIndex: step.stepIndex,
+        stepName: step.stepName,
+        approvers: step.approvers.map(approver => ({
+          type: approver.type,
+          id: approver.id,
+          name: approver.name,
+        })),
+        decisionMode: step.decisionMode,
+        slaHours: step.slaHours,
+      })),
+    };
+  }
+
+  // Check if entity requires approval
+  async requiresApproval(
+    tenantId: string,
+    moduleType: string,
+    entityType: string,
+    entityData: Record<string, any>
+  ): Promise<boolean> {
+    const rule = await this.findBestMatchingRule(tenantId, moduleType, entityType, entityData);
+    return rule !== null;
+  }
+
+  // Check if entity qualifies for auto-approval
+  async qualifiesForAutoApproval(
+    tenantId: string,
+    moduleType: string,
+    entityType: string,
+    entityData: Record<string, any>
+  ): Promise<boolean> {
+    const rule = await this.findBestMatchingRule(tenantId, moduleType, entityType, entityData);
+    
+    if (!rule) {
+      return false;
+    }
+    
     return rule.shouldAutoApprove(entityData);
   }
 
-  /**
-   * Calculates SLA deadline for an approval instance
-   */
-  public calculateSlaDeadline(
-    rule: ApprovalRule,
-    startDate: Date = new Date()
-  ): Date {
-    return rule.calculateSlaDeadline(startDate);
-  }
-
-  /**
-   * Validates if entity data contains required fields for rule evaluation
-   */
-  public validateEntityData(
-    rule: ApprovalRule,
-    entityData: Record<string, any>
-  ): { valid: boolean; missingFields: string[] } {
-    const missingFields: string[] = [];
+  // Validate rule logic and conflicts
+  async validateRule(rule: ApprovalRule): Promise<{
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+    conflicts: ApprovalRule[];
+  }> {
+    const errors = rule.validate();
+    const warnings: string[] = [];
     
-    // Extract field names from rule conditions
-    const requiredFields = this.extractRequiredFields(rule);
+    // Check for conflicting rules
+    const conflicts = await this.approvalRuleRepository.findConflictingRules(rule);
     
-    for (const field of requiredFields) {
-      if (!(field in entityData)) {
-        missingFields.push(field);
-      }
+    // Add warnings for potential issues
+    if (rule.autoApprovalEnabled && (!rule.autoApprovalConditions || rule.autoApprovalConditions.length === 0)) {
+      warnings.push('Auto-approval is enabled but no auto-approval conditions are defined');
     }
-
+    
+    if (rule.approvalSteps.length > 5) {
+      warnings.push('Rule has many approval steps which may slow down the process');
+    }
+    
+    if (rule.defaultSlaHours > 168) { // 1 week
+      warnings.push('Default SLA is very long (over 1 week)');
+    }
+    
     return {
-      valid: missingFields.length === 0,
-      missingFields
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      conflicts,
     };
   }
 
-  /**
-   * Gets evaluation context for debugging
-   */
-  public getEvaluationContext(
-    rule: ApprovalRule,
-    entityData: Record<string, any>
-  ): {
-    ruleId: string;
-    ruleName: string;
-    entityData: Record<string, any>;
-    conditions: any[];
+  // Test rule against sample data
+  testRule(rule: ApprovalRule, testData: Record<string, any>[]): {
+    testData: Record<string, any>;
     matches: boolean;
-    autoApprove: boolean;
-    slaDeadline: Date;
-  } {
-    return {
-      ruleId: rule.id,
-      ruleName: rule.name,
-      entityData,
-      conditions: rule.queryConditions.conditions,
-      matches: rule.matchesEntity(entityData),
-      autoApprove: rule.shouldAutoApprove(entityData),
-      slaDeadline: rule.calculateSlaDeadline()
-    };
-  }
-
-  /**
-   * Extracts field names referenced in rule conditions
-   */
-  private extractRequiredFields(rule: ApprovalRule): string[] {
-    const fields = new Set<string>();
-    
-    for (const condition of rule.queryConditions.conditions) {
-      fields.add(condition.field);
-    }
-
-    return Array.from(fields);
-  }
-
-  /**
-   * Gets the matched conditions for debugging purposes
-   */
-  private getMatchedConditions(
-    rule: ApprovalRule,
-    entityData: Record<string, any>
-  ): string[] {
-    const matchedConditions: string[] = [];
-    
-    for (const condition of rule.queryConditions.conditions) {
-      const fieldValue = entityData[condition.field];
-      const conditionString = `${condition.field} ${condition.operator} ${JSON.stringify(condition.value)}`;
+    autoApprovalEligible: boolean;
+    stepCount: number;
+    estimatedSlaHours: number;
+  }[] {
+    return testData.map(data => {
+      const result = this.evaluateRule(rule, data);
       
-      if (this.evaluateCondition(condition, entityData)) {
-        matchedConditions.push(`✓ ${conditionString} (${JSON.stringify(fieldValue)})`);
-      } else {
-        matchedConditions.push(`✗ ${conditionString} (${JSON.stringify(fieldValue)})`);
-      }
-    }
-
-    return matchedConditions;
+      return {
+        testData: data,
+        matches: result.matches,
+        autoApprovalEligible: result.autoApprovalEligible,
+        stepCount: rule.approvalSteps.length,
+        estimatedSlaHours: rule.defaultSlaHours,
+      };
+    });
   }
 
-  /**
-   * Evaluates a single condition - duplicated from ApprovalRule for engine-level access
-   */
+  // Private helper methods
   private evaluateCondition(condition: any, entityData: Record<string, any>): boolean {
-    const fieldValue = entityData[condition.field];
+    const fieldValue = this.getNestedValue(entityData, condition.field);
     const conditionValue = condition.value;
 
     switch (condition.operator) {
@@ -201,5 +284,9 @@ export class ApprovalRuleEngine {
       default:
         return false;
     }
+  }
+
+  private getNestedValue(obj: Record<string, any>, path: string): any {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
   }
 }

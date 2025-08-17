@@ -1,221 +1,299 @@
-export type ApprovalInstanceStatus = 'pending' | 'approved' | 'rejected' | 'expired' | 'cancelled';
-export type SlaStatus = 'active' | 'warning' | 'breached';
-export type ModuleType = 'tickets' | 'materials' | 'knowledge_base' | 'timecard' | 'contracts';
+// ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - DOMAIN LAYER
+// Domain Entity: ApprovalInstance - Pure business logic with no external dependencies
+
+export interface ApprovalInstanceValue {
+  id: string;
+  tenantId: string;
+  ruleId: string;
+  entityType: 'tickets' | 'materials' | 'knowledge_base' | 'timecard' | 'contracts';
+  entityId: string;
+  entityData?: Record<string, any>;
+  currentStepIndex: number;
+  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'cancelled';
+  requestedById: string;
+  requestReason?: string;
+  urgencyLevel: number;
+  slaDeadline?: Date;
+  firstReminderSent?: Date;
+  secondReminderSent?: Date;
+  escalatedAt?: Date;
+  completedAt?: Date;
+  completedById?: string;
+  completionReason?: string;
+  totalResponseTimeMinutes?: number;
+  slaViolated: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export class ApprovalInstance {
-  constructor(
-    public readonly id: string,
-    public readonly tenantId: string,
-    public readonly ruleId: string,
-    public readonly entityType: ModuleType,
-    public readonly entityId: string,
-    public readonly entityData: Record<string, any>,
-    public readonly currentStepIndex: number,
-    public readonly status: ApprovalInstanceStatus,
-    public readonly slaDeadline: Date | null,
-    public readonly slaStarted: Date,
-    public readonly slaElapsedMinutes: number,
-    public readonly slaStatus: SlaStatus,
-    public readonly requestComments: string | null,
-    public readonly finalComments: string | null,
-    public readonly lastEscalationAt: Date | null,
-    public readonly remindersSent: number,
-    public readonly approvedAt: Date | null,
-    public readonly rejectedAt: Date | null,
-    public readonly completedAt: Date | null,
-    public readonly expiredAt: Date | null,
-    public readonly requestedById: string,
-    public readonly completedById: string | null,
-    public readonly isActive: boolean,
-    public readonly createdAt: Date,
-    public readonly updatedAt: Date
-  ) {
-    this.validateInstance();
+  private constructor(private readonly data: ApprovalInstanceValue) {}
+
+  static create(data: Omit<ApprovalInstanceValue, 'id' | 'createdAt' | 'updatedAt'>): ApprovalInstance {
+    const now = new Date();
+    return new ApprovalInstance({
+      ...data,
+      id: crypto.randomUUID(),
+      currentStepIndex: data.currentStepIndex ?? 0,
+      status: data.status ?? 'pending',
+      urgencyLevel: data.urgencyLevel ?? 1,
+      slaViolated: data.slaViolated ?? false,
+      isActive: data.isActive ?? true,
+      createdAt: now,
+      updatedAt: now,
+    });
   }
 
-  private validateInstance(): void {
-    if (!this.tenantId) {
-      throw new Error('Tenant ID is required');
-    }
-
-    if (!this.ruleId) {
-      throw new Error('Rule ID is required');
-    }
-
-    if (!this.entityId) {
-      throw new Error('Entity ID is required');
-    }
-
-    if (!this.requestedById) {
-      throw new Error('Requested by ID is required');
-    }
-
-    if (this.currentStepIndex < 0) {
-      throw new Error('Current step index cannot be negative');
-    }
-
-    if (this.slaElapsedMinutes < 0) {
-      throw new Error('SLA elapsed minutes cannot be negative');
-    }
-
-    if (this.remindersSent < 0) {
-      throw new Error('Reminders sent cannot be negative');
-    }
+  static fromDatabase(data: ApprovalInstanceValue): ApprovalInstance {
+    return new ApprovalInstance(data);
   }
 
-  public isPending(): boolean {
-    return this.status === 'pending';
+  // Getters
+  get id(): string { return this.data.id; }
+  get tenantId(): string { return this.data.tenantId; }
+  get ruleId(): string { return this.data.ruleId; }
+  get entityType(): string { return this.data.entityType; }
+  get entityId(): string { return this.data.entityId; }
+  get entityData(): Record<string, any> | undefined { return this.data.entityData; }
+  get currentStepIndex(): number { return this.data.currentStepIndex; }
+  get status(): string { return this.data.status; }
+  get requestedById(): string { return this.data.requestedById; }
+  get requestReason(): string | undefined { return this.data.requestReason; }
+  get urgencyLevel(): number { return this.data.urgencyLevel; }
+  get slaDeadline(): Date | undefined { return this.data.slaDeadline; }
+  get firstReminderSent(): Date | undefined { return this.data.firstReminderSent; }
+  get secondReminderSent(): Date | undefined { return this.data.secondReminderSent; }
+  get escalatedAt(): Date | undefined { return this.data.escalatedAt; }
+  get completedAt(): Date | undefined { return this.data.completedAt; }
+  get completedById(): string | undefined { return this.data.completedById; }
+  get completionReason(): string | undefined { return this.data.completionReason; }
+  get totalResponseTimeMinutes(): number | undefined { return this.data.totalResponseTimeMinutes; }
+  get slaViolated(): boolean { return this.data.slaViolated; }
+  get isActive(): boolean { return this.data.isActive; }
+  get createdAt(): Date { return this.data.createdAt; }
+  get updatedAt(): Date { return this.data.updatedAt; }
+
+  // Business Methods
+  private update(updates: Partial<Omit<ApprovalInstanceValue, 'id' | 'tenantId' | 'createdAt'>>): ApprovalInstance {
+    return new ApprovalInstance({
+      ...this.data,
+      ...updates,
+      updatedAt: new Date(),
+    });
   }
 
-  public isCompleted(): boolean {
+  // Workflow progression
+  advanceToNextStep(): ApprovalInstance {
+    return this.update({
+      currentStepIndex: this.currentStepIndex + 1,
+    });
+  }
+
+  // Status transitions
+  approve(completedById: string, completionReason?: string): ApprovalInstance {
+    const now = new Date();
+    const responseTime = this.calculateResponseTime(now);
+    
+    return this.update({
+      status: 'approved',
+      completedAt: now,
+      completedById,
+      completionReason,
+      totalResponseTimeMinutes: responseTime,
+    });
+  }
+
+  reject(completedById: string, completionReason: string): ApprovalInstance {
+    const now = new Date();
+    const responseTime = this.calculateResponseTime(now);
+    
+    return this.update({
+      status: 'rejected',
+      completedAt: now,
+      completedById,
+      completionReason,
+      totalResponseTimeMinutes: responseTime,
+    });
+  }
+
+  cancel(completedById: string, completionReason?: string): ApprovalInstance {
+    const now = new Date();
+    
+    return this.update({
+      status: 'cancelled',
+      completedAt: now,
+      completedById,
+      completionReason,
+    });
+  }
+
+  expire(): ApprovalInstance {
+    const now = new Date();
+    
+    return this.update({
+      status: 'expired',
+      completedAt: now,
+      completionReason: 'SLA deadline exceeded',
+      slaViolated: true,
+    });
+  }
+
+  // SLA management
+  setSlaDeadline(deadline: Date): ApprovalInstance {
+    return this.update({
+      slaDeadline: deadline,
+    });
+  }
+
+  markFirstReminderSent(): ApprovalInstance {
+    return this.update({
+      firstReminderSent: new Date(),
+    });
+  }
+
+  markSecondReminderSent(): ApprovalInstance {
+    return this.update({
+      secondReminderSent: new Date(),
+    });
+  }
+
+  escalate(): ApprovalInstance {
+    return this.update({
+      escalatedAt: new Date(),
+    });
+  }
+
+  violateSla(): ApprovalInstance {
+    return this.update({
+      slaViolated: true,
+    });
+  }
+
+  // Utility methods
+  private calculateResponseTime(endTime: Date): number {
+    const startTime = this.createdAt;
+    return Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60)); // minutes
+  }
+
+  isOverdue(): boolean {
+    if (!this.slaDeadline) return false;
+    return new Date() > this.slaDeadline && !this.isCompleted();
+  }
+
+  isCompleted(): boolean {
     return ['approved', 'rejected', 'expired', 'cancelled'].includes(this.status);
   }
 
-  public isApproved(): boolean {
-    return this.status === 'approved';
+  isPending(): boolean {
+    return this.status === 'pending';
   }
 
-  public isRejected(): boolean {
-    return this.status === 'rejected';
-  }
-
-  public isExpired(): boolean {
-    return this.status === 'expired';
-  }
-
-  public isCancelled(): boolean {
-    return this.status === 'cancelled';
-  }
-
-  public isSlaBreached(): boolean {
-    return this.slaStatus === 'breached';
-  }
-
-  public isSlaWarning(): boolean {
-    return this.slaStatus === 'warning';
-  }
-
-  public calculateSlaElapsed(): number {
-    if (!this.slaDeadline) {
-      return 0;
-    }
-
-    const now = new Date();
-    const totalSlaMinutes = Math.floor((this.slaDeadline.getTime() - this.slaStarted.getTime()) / (1000 * 60));
-    const elapsedMinutes = Math.floor((now.getTime() - this.slaStarted.getTime()) / (1000 * 60));
-
-    return Math.min(Math.max((elapsedMinutes / totalSlaMinutes) * 100, 0), 100);
-  }
-
-  public getSlaPercentage(): number {
-    return this.calculateSlaElapsed();
-  }
-
-  public getRemainingMinutes(): number {
-    if (!this.slaDeadline) {
-      return 0;
-    }
-
-    const now = new Date();
-    const remainingMs = this.slaDeadline.getTime() - now.getTime();
-    
-    return Math.max(Math.floor(remainingMs / (1000 * 60)), 0);
-  }
-
-  public shouldSendReminder(): boolean {
-    if (this.isCompleted()) {
+  needsFirstReminder(): boolean {
+    if (!this.slaDeadline || this.firstReminderSent || this.isCompleted()) {
       return false;
     }
-
-    const slaPercentage = this.getSlaPercentage();
-    const reminderThresholds = [25, 50, 75, 90, 95]; // Percentages at which to send reminders
     
-    const nextThreshold = reminderThresholds[this.remindersSent];
+    // Send first reminder at 75% of SLA time
+    const reminderTime = new Date(this.createdAt.getTime() + 
+      (this.slaDeadline.getTime() - this.createdAt.getTime()) * 0.75);
     
-    return nextThreshold !== undefined && slaPercentage >= nextThreshold;
+    return new Date() >= reminderTime;
   }
 
-  public shouldEscalate(): boolean {
-    if (this.isCompleted()) {
+  needsSecondReminder(): boolean {
+    if (!this.slaDeadline || this.secondReminderSent || this.isCompleted()) {
       return false;
     }
-
-    return this.isSlaBreached();
+    
+    // Send second reminder at 90% of SLA time
+    const reminderTime = new Date(this.createdAt.getTime() + 
+      (this.slaDeadline.getTime() - this.createdAt.getTime()) * 0.9);
+    
+    return new Date() >= reminderTime;
   }
 
-  public getProcessingTime(): number | null {
-    if (!this.completedAt) {
+  needsEscalation(): boolean {
+    if (!this.slaDeadline || this.escalatedAt || this.isCompleted()) {
+      return false;
+    }
+    
+    // Escalate at 95% of SLA time
+    const escalationTime = new Date(this.createdAt.getTime() + 
+      (this.slaDeadline.getTime() - this.createdAt.getTime()) * 0.95);
+    
+    return new Date() >= escalationTime;
+  }
+
+  getTimeRemaining(): number | null {
+    if (!this.slaDeadline || this.isCompleted()) {
       return null;
     }
-
-    return Math.floor((this.completedAt.getTime() - this.createdAt.getTime()) / (1000 * 60));
+    
+    const now = new Date();
+    const timeRemaining = this.slaDeadline.getTime() - now.getTime();
+    return Math.max(0, Math.floor(timeRemaining / (1000 * 60))); // minutes
   }
 
-  public canBeCancelled(): boolean {
-    return this.isPending() && !this.isCompleted();
+  getSlaUsagePercentage(): number | null {
+    if (!this.slaDeadline) {
+      return null;
+    }
+    
+    const now = this.isCompleted() ? (this.completedAt || new Date()) : new Date();
+    const totalTime = this.slaDeadline.getTime() - this.createdAt.getTime();
+    const usedTime = now.getTime() - this.createdAt.getTime();
+    
+    return Math.min(100, Math.max(0, (usedTime / totalTime) * 100));
   }
 
-  public getEntityReference(): string {
-    return `${this.entityType}:${this.entityId}`;
+  // Domain validation
+  validate(): string[] {
+    const errors: string[] = [];
+
+    if (!this.tenantId) {
+      errors.push('Tenant ID is required');
+    }
+
+    if (!this.ruleId) {
+      errors.push('Rule ID is required');
+    }
+
+    if (!this.entityId) {
+      errors.push('Entity ID is required');
+    }
+
+    if (!this.requestedById) {
+      errors.push('Requested by ID is required');
+    }
+
+    if (this.urgencyLevel < 1 || this.urgencyLevel > 5) {
+      errors.push('Urgency level must be between 1 and 5');
+    }
+
+    if (this.currentStepIndex < 0) {
+      errors.push('Current step index cannot be negative');
+    }
+
+    const validStatuses = ['pending', 'approved', 'rejected', 'expired', 'cancelled'];
+    if (!validStatuses.includes(this.status)) {
+      errors.push('Invalid status');
+    }
+
+    // Completion validation
+    if (this.isCompleted() && !this.completedAt) {
+      errors.push('Completed instances must have completion date');
+    }
+
+    if (this.status === 'rejected' && !this.completionReason) {
+      errors.push('Rejected instances must have completion reason');
+    }
+
+    return errors;
   }
 
-  public static fromDatabase(data: any): ApprovalInstance {
-    return new ApprovalInstance(
-      data.id,
-      data.tenantId || data.tenant_id,
-      data.ruleId || data.rule_id,
-      data.entityType || data.entity_type,
-      data.entityId || data.entity_id,
-      data.entityData || data.entity_data || {},
-      data.currentStepIndex || data.current_step_index || 0,
-      data.status || 'pending',
-      data.slaDeadline ? new Date(data.slaDeadline || data.sla_deadline) : null,
-      new Date(data.slaStarted || data.sla_started),
-      data.slaElapsedMinutes || data.sla_elapsed_minutes || 0,
-      data.slaStatus || data.sla_status || 'active',
-      data.requestComments || data.request_comments || null,
-      data.finalComments || data.final_comments || null,
-      data.lastEscalationAt ? new Date(data.lastEscalationAt || data.last_escalation_at) : null,
-      data.remindersSent || data.reminders_sent || 0,
-      data.approvedAt ? new Date(data.approvedAt || data.approved_at) : null,
-      data.rejectedAt ? new Date(data.rejectedAt || data.rejected_at) : null,
-      data.completedAt ? new Date(data.completedAt || data.completed_at) : null,
-      data.expiredAt ? new Date(data.expiredAt || data.expired_at) : null,
-      data.requestedById || data.requested_by_id,
-      data.completedById || data.completed_by_id || null,
-      data.isActive !== undefined ? data.isActive : data.is_active !== undefined ? data.is_active : true,
-      new Date(data.createdAt || data.created_at),
-      new Date(data.updatedAt || data.updated_at)
-    );
-  }
-
-  public toDatabase(): Record<string, any> {
-    return {
-      id: this.id,
-      tenant_id: this.tenantId,
-      rule_id: this.ruleId,
-      entity_type: this.entityType,
-      entity_id: this.entityId,
-      entity_data: this.entityData,
-      current_step_index: this.currentStepIndex,
-      status: this.status,
-      sla_deadline: this.slaDeadline,
-      sla_started: this.slaStarted,
-      sla_elapsed_minutes: this.slaElapsedMinutes,
-      sla_status: this.slaStatus,
-      request_comments: this.requestComments,
-      final_comments: this.finalComments,
-      last_escalation_at: this.lastEscalationAt,
-      reminders_sent: this.remindersSent,
-      approved_at: this.approvedAt,
-      rejected_at: this.rejectedAt,
-      completed_at: this.completedAt,
-      expired_at: this.expiredAt,
-      requested_by_id: this.requestedById,
-      completed_by_id: this.completedById,
-      is_active: this.isActive,
-      created_at: this.createdAt,
-      updated_at: this.updatedAt
-    };
+  // Export for persistence
+  toDatabase(): ApprovalInstanceValue {
+    return { ...this.data };
   }
 }

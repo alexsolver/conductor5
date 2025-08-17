@@ -14,6 +14,7 @@ import {
   time,
   bigint,
   serial, // Import serial for nsr
+  pgEnum, // Import pgEnum for approval enums
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1832,246 +1833,9 @@ export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 export const updateUserGroupSchema = insertUserGroupSchema.partial();
 
 // ========================================
-// APPROVAL MANAGEMENT TABLES - Universal approval system
+// APPROVAL MANAGEMENT TABLES - Universal approval system (LEGACY - TO BE REMOVED)
 // ========================================
-
-// Approval Rules table - Configuration for approval flows
-export const approvalRules = pgTable("approval_rules", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  moduleType: varchar("module_type", { length: 50 }).notNull(), // 'tickets', 'materials', 'knowledge_base', 'timecard', 'contracts'
-  
-  // Query Builder Configuration
-  queryConditions: jsonb("query_conditions").notNull().default('{}'), // Query Builder JSON structure
-  
-  // Approval Pipeline Configuration
-  approvalSteps: jsonb("approval_steps").notNull().default('[]'), // Array of step configurations
-  
-  // Escalation Settings
-  escalationSettings: jsonb("escalation_settings").default('{}'),
-  
-  // SLA Configuration
-  slaHours: integer("sla_hours").default(24),
-  businessHoursOnly: boolean("business_hours_only").default(true),
-  
-  // Auto-approval rules
-  autoApprovalConditions: jsonb("auto_approval_conditions").default('{}'),
-  
-  // Priority and Activation
-  priority: integer("priority").default(100), // Lower number = higher priority
-  isActive: boolean("is_active").default(true),
-  
-  // Audit fields
-  createdById: uuid("created_by_id").references(() => users.id).notNull(),
-  updatedById: uuid("updated_by_id").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => [
-  index("approval_rules_tenant_module_idx").on(table.tenantId, table.moduleType),
-  index("approval_rules_tenant_active_idx").on(table.tenantId, table.isActive),
-  index("approval_rules_tenant_priority_idx").on(table.tenantId, table.priority),
-  unique("approval_rules_tenant_name_unique").on(table.tenantId, table.name),
-]);
-
-// Approval Instances table - Active approval processes
-export const approvalInstances = pgTable("approval_instances", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  ruleId: uuid("rule_id").references(() => approvalRules.id, { onDelete: 'cascade' }).notNull(),
-  
-  // Entity being approved
-  entityType: varchar("entity_type", { length: 50 }).notNull(),
-  entityId: uuid("entity_id").notNull(),
-  entityData: jsonb("entity_data").default('{}'), // Snapshot of entity at approval time
-  
-  // Current state
-  currentStepIndex: integer("current_step_index").default(0),
-  status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected, expired, cancelled
-  
-  // SLA tracking
-  slaDeadline: timestamp("sla_deadline"),
-  slaStarted: timestamp("sla_started").defaultNow(),
-  slaElapsedMinutes: integer("sla_elapsed_minutes").default(0),
-  slaStatus: varchar("sla_status", { length: 20 }).default("active"), // active, warning, breached
-  
-  // Comments and reasoning
-  requestComments: text("request_comments"),
-  finalComments: text("final_comments"),
-  
-  // Processing metadata
-  lastEscalationAt: timestamp("last_escalation_at"),
-  remindersSent: integer("reminders_sent").default(0),
-  
-  // Completion tracking
-  approvedAt: timestamp("approved_at"),
-  rejectedAt: timestamp("rejected_at"),
-  completedAt: timestamp("completed_at"),
-  expiredAt: timestamp("expired_at"),
-  
-  // Audit fields
-  requestedById: uuid("requested_by_id").references(() => users.id).notNull(),
-  completedById: uuid("completed_by_id").references(() => users.id),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => [
-  index("approval_instances_tenant_entity_idx").on(table.tenantId, table.entityType, table.entityId),
-  index("approval_instances_tenant_status_idx").on(table.tenantId, table.status),
-  index("approval_instances_tenant_sla_idx").on(table.tenantId, table.slaStatus, table.slaDeadline),
-  index("approval_instances_tenant_requester_idx").on(table.tenantId, table.requestedById),
-  index("approval_instances_rule_idx").on(table.ruleId),
-]);
-
-// Approval Steps table - Individual step executions
-export const approvalSteps = pgTable("approval_steps", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  instanceId: uuid("instance_id").references(() => approvalInstances.id, { onDelete: 'cascade' }).notNull(),
-  
-  // Step configuration
-  stepIndex: integer("step_index").notNull(),
-  stepName: varchar("step_name", { length: 255 }).notNull(),
-  stepConfig: jsonb("step_config").notNull().default('{}'), // Configuration for this step
-  
-  // Approval requirements
-  approverMode: varchar("approver_mode", { length: 20 }).default("ANY"), // ANY, ALL, QUORUM
-  requiredApprovers: integer("required_approvers").default(1),
-  totalApprovers: integer("total_approvers").default(0),
-  
-  // Status tracking
-  status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected, skipped
-  approvedCount: integer("approved_count").default(0),
-  rejectedCount: integer("rejected_count").default(0),
-  
-  // SLA for this step
-  stepSlaHours: integer("step_sla_hours"),
-  stepDeadline: timestamp("step_deadline"),
-  stepStartedAt: timestamp("step_started_at"),
-  stepCompletedAt: timestamp("step_completed_at"),
-  
-  // Escalation tracking
-  escalationLevel: integer("escalation_level").default(0),
-  lastEscalationAt: timestamp("last_escalation_at"),
-  
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => [
-  index("approval_steps_tenant_instance_idx").on(table.tenantId, table.instanceId),
-  index("approval_steps_tenant_status_idx").on(table.tenantId, table.status),
-  index("approval_steps_tenant_deadline_idx").on(table.tenantId, table.stepDeadline),
-  unique("approval_steps_instance_step_unique").on(table.instanceId, table.stepIndex),
-]);
-
-// Approval Decisions table - Individual approver actions
-export const approvalDecisions = pgTable("approval_decisions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  instanceId: uuid("instance_id").references(() => approvalInstances.id, { onDelete: 'cascade' }).notNull(),
-  stepId: uuid("step_id").references(() => approvalSteps.id, { onDelete: 'cascade' }).notNull(),
-  
-  // Approver information
-  approverId: uuid("approver_id").references(() => users.id),
-  approverType: varchar("approver_type", { length: 50 }).notNull(), // user, group, external, automated
-  approverIdentifier: varchar("approver_identifier", { length: 255 }), // For external or group approvers
-  
-  // Decision details
-  decision: varchar("decision", { length: 20 }).notNull(), // approved, rejected, delegated, escalated
-  comments: text("comments"),
-  reasonCode: varchar("reason_code", { length: 100 }),
-  
-  // Delegation information
-  delegatedToId: uuid("delegated_to_id").references(() => users.id),
-  delegationReason: text("delegation_reason"),
-  
-  // Timing information
-  responseTimeMinutes: integer("response_time_minutes"),
-  
-  // Metadata
-  ipAddress: varchar("ip_address", { length: 45 }),
-  userAgent: text("user_agent"),
-  
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => [
-  index("approval_decisions_tenant_instance_idx").on(table.tenantId, table.instanceId),
-  index("approval_decisions_tenant_step_idx").on(table.tenantId, table.stepId),
-  index("approval_decisions_tenant_approver_idx").on(table.tenantId, table.approverId),
-  index("approval_decisions_tenant_decision_idx").on(table.tenantId, table.decision),
-  unique("approval_decisions_step_approver_unique").on(table.stepId, table.approverId, table.approverType),
-]);
-
-// Approval Audit Logs table - Complete audit trail
-export const approvalAuditLogs = pgTable("approval_audit_logs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  instanceId: uuid("instance_id").references(() => approvalInstances.id, { onDelete: 'cascade' }).notNull(),
-  
-  // Action details
-  actionType: varchar("action_type", { length: 50 }).notNull(), // requested, reminded, approved, rejected, delegated, escalated, expired, auto_approved, cancelled
-  actorId: uuid("actor_id").references(() => users.id),
-  actorType: varchar("actor_type", { length: 50 }).notNull(), // user, system, external, automated
-  
-  // Context information
-  beforeSnapshot: jsonb("before_snapshot").default('{}'),
-  afterSnapshot: jsonb("after_snapshot").default('{}'),
-  changeDetails: jsonb("change_details").default('{}'),
-  
-  // Request context
-  ipAddress: varchar("ip_address", { length: 45 }),
-  userAgent: text("user_agent"),
-  sessionId: varchar("session_id", { length: 255 }),
-  
-  // System metadata
-  systemVersion: varchar("system_version", { length: 50 }),
-  processingTimeMs: integer("processing_time_ms"),
-  
-  // Additional context
-  notes: text("notes"),
-  metadata: jsonb("metadata").default('{}'),
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => [
-  index("approval_audit_logs_tenant_instance_idx").on(table.tenantId, table.instanceId),
-  index("approval_audit_logs_tenant_action_idx").on(table.tenantId, table.actionType),
-  index("approval_audit_logs_tenant_actor_idx").on(table.tenantId, table.actorId),
-  index("approval_audit_logs_tenant_time_idx").on(table.tenantId, table.createdAt),
-]);
-
-// Approval Escalation History table - Escalation tracking
-export const approvalEscalations = pgTable("approval_escalations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  instanceId: uuid("instance_id").references(() => approvalInstances.id, { onDelete: 'cascade' }).notNull(),
-  stepId: uuid("step_id").references(() => approvalSteps.id, { onDelete: 'cascade' }),
-  
-  // Escalation details
-  escalationType: varchar("escalation_type", { length: 50 }).notNull(), // timeout, manual, hierarchical, external
-  fromApproverId: uuid("from_approver_id").references(() => users.id),
-  toApproverId: uuid("to_approver_id").references(() => users.id),
-  
-  // Escalation reason and timing
-  reason: text("reason"),
-  triggeredAt: timestamp("triggered_at").defaultNow().notNull(),
-  autoEscalation: boolean("auto_escalation").default(false),
-  
-  // Hierarchy information
-  hierarchyLevel: integer("hierarchy_level").default(1),
-  
-  // Status
-  status: varchar("status", { length: 20 }).default("active"), // active, resolved, cancelled
-  resolvedAt: timestamp("resolved_at"),
-  
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => [
-  index("approval_escalations_tenant_instance_idx").on(table.tenantId, table.instanceId),
-  index("approval_escalations_tenant_type_idx").on(table.tenantId, table.escalationType),
-  index("approval_escalations_tenant_status_idx").on(table.tenantId, table.status),
-]);
+// Note: These tables are being replaced by the new approval system below
 
 // ========================================
 // CONTRACT MANAGEMENT TABLES
@@ -3659,76 +3423,7 @@ export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
 export type ComplianceScore = typeof complianceScores.$inferSelect;
 export type InsertComplianceScore = typeof complianceScores.$inferInsert;
 
-// ========================================
-// APPROVAL MANAGEMENT TYPES
-// ========================================
-
-export type ApprovalRule = typeof approvalRules.$inferSelect;
-export type InsertApprovalRule = typeof approvalRules.$inferInsert;
-
-export type ApprovalInstance = typeof approvalInstances.$inferSelect;
-export type InsertApprovalInstance = typeof approvalInstances.$inferInsert;
-
-export type ApprovalStep = typeof approvalSteps.$inferSelect;
-export type InsertApprovalStep = typeof approvalSteps.$inferInsert;
-
-export type ApprovalDecision = typeof approvalDecisions.$inferSelect;
-export type InsertApprovalDecision = typeof approvalDecisions.$inferInsert;
-
-export type ApprovalAuditLog = typeof approvalAuditLogs.$inferSelect;
-export type InsertApprovalAuditLog = typeof approvalAuditLogs.$inferInsert;
-
-export type ApprovalEscalation = typeof approvalEscalations.$inferSelect;
-export type InsertApprovalEscalation = typeof approvalEscalations.$inferInsert;
-
-// Approval Rules validation schema
-export const insertApprovalRuleSchema = createInsertSchema(approvalRules).extend({
-  name: z.string().min(1, "Nome da regra é obrigatório"),
-  moduleType: z.enum(['tickets', 'materials', 'knowledge_base', 'timecard', 'contracts'], {
-    errorMap: () => ({ message: "Tipo de módulo inválido" })
-  }),
-  queryConditions: z.object({
-    conditions: z.array(z.object({
-      field: z.string(),
-      operator: z.enum(['EQ', 'NEQ', 'IN', 'NOT_IN', 'GT', 'GTE', 'LT', 'LTE', 'CONTAINS', 'STARTS_WITH', 'EXISTS', 'BETWEEN']),
-      value: z.any(),
-      logicalOperator: z.enum(['AND', 'OR']).optional()
-    })).min(1, "Pelo menos uma condição é obrigatória")
-  }),
-  approvalSteps: z.array(z.object({
-    stepName: z.string().min(1, "Nome da etapa é obrigatório"),
-    approverMode: z.enum(['ANY', 'ALL', 'QUORUM']),
-    approvers: z.array(z.object({
-      type: z.enum(['user', 'group', 'manager_chain', 'external']),
-      identifier: z.string(),
-      level: z.number().optional()
-    })).min(1, "Pelo menos um aprovador é obrigatório"),
-    slaHours: z.number().min(1).optional(),
-    conditions: z.object({}).optional()
-  })).min(1, "Pelo menos uma etapa é obrigatória"),
-  slaHours: z.number().int().min(1, "SLA deve ser pelo menos 1 hora"),
-  priority: z.number().int().min(1).max(999, "Prioridade deve estar entre 1 e 999")
-}).omit({ id: true, createdAt: true, updatedAt: true });
-
-// Approval Instance validation schema
-export const insertApprovalInstanceSchema = createInsertSchema(approvalInstances).extend({
-  entityType: z.enum(['tickets', 'materials', 'knowledge_base', 'timecard', 'contracts']),
-  entityData: z.object({}).optional(),
-  requestComments: z.string().optional()
-}).omit({ id: true, createdAt: true, updatedAt: true, completedAt: true, approvedAt: true, rejectedAt: true, expiredAt: true });
-
-// Approval Decision validation schema  
-export const insertApprovalDecisionSchema = createInsertSchema(approvalDecisions).extend({
-  decision: z.enum(['approved', 'rejected', 'delegated', 'escalated']),
-  comments: z.string().min(1, "Comentário é obrigatório para decisões"),
-  reasonCode: z.string().optional(),
-  delegationReason: z.string().optional()
-}).omit({ id: true, createdAt: true, updatedAt: true, responseTimeMinutes: true });
-
-// Type inference for validation schemas
-export type InsertApprovalRuleForm = z.infer<typeof insertApprovalRuleSchema>;
-export type InsertApprovalInstanceForm = z.infer<typeof insertApprovalInstanceSchema>;
-export type InsertApprovalDecisionForm = z.infer<typeof insertApprovalDecisionSchema>;
+// Approval schemas and types will be defined after table declarations below
 
 // Zod schemas para validação
 export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
@@ -3775,3 +3470,307 @@ export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
 export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
 export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
 export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
+
+// ========================================
+// APPROVALS MODULE SCHEMA (Following 1qa.md patterns)
+// ========================================
+
+// Entity types that can have approval workflows
+export const approvalEntityTypeEnum = pgEnum("approval_entity_type", [
+  "tickets", "materials", "knowledge_base", "timecard", "contracts"
+]);
+
+// Approval statuses
+export const approvalStatusEnum = pgEnum("approval_status", [
+  "pending", "approved", "rejected", "expired", "cancelled"
+]);
+
+// Approval decision types
+export const approvalDecisionEnum = pgEnum("approval_decision", [
+  "approved", "rejected", "delegated", "escalated"
+]);
+
+// Approval step decision modes
+export const stepDecisionModeEnum = pgEnum("step_decision_mode", [
+  "ALL", "ANY", "QUORUM"
+]);
+
+// Approver types
+export const approverTypeEnum = pgEnum("approver_type", [
+  "user", "user_group", "customer_contact", "supplier", "manager_chain", "auto"
+]);
+
+// Query builder operators
+export const queryOperatorEnum = pgEnum("query_operator", [
+  "EQ", "NEQ", "IN", "NOT_IN", "GT", "GTE", "LT", "LTE", 
+  "CONTAINS", "STARTS_WITH", "EXISTS", "BETWEEN"
+]);
+
+// Approval Rules - Universal rules for any module
+export const approvalRules = pgTable("approval_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  
+  // Module context
+  moduleType: approvalEntityTypeEnum("module_type").notNull(),
+  entityType: varchar("entity_type", { length: 100 }).notNull(), // Specific entity within module
+  
+  // Query builder conditions (JSON structure)
+  queryConditions: jsonb("query_conditions").notNull(),
+  
+  // Approval pipeline configuration
+  approvalSteps: jsonb("approval_steps").notNull(),
+  
+  // SLA settings
+  defaultSlaHours: integer("default_sla_hours").default(24),
+  escalationEnabled: boolean("escalation_enabled").default(true),
+  autoApprovalEnabled: boolean("auto_approval_enabled").default(false),
+  autoApprovalConditions: jsonb("auto_approval_conditions"),
+  
+  // Configuration
+  isActive: boolean("is_active").default(true),
+  priority: integer("priority").default(0), // Higher priority rules evaluated first
+  
+  // Audit fields
+  createdById: uuid("created_by_id").notNull(),
+  updatedById: uuid("updated_by_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("approval_rules_tenant_idx").on(table.tenantId),
+  index("approval_rules_module_idx").on(table.moduleType),
+  index("approval_rules_active_idx").on(table.isActive),
+  index("approval_rules_priority_idx").on(table.priority),
+]);
+
+// Approval Instances - Actual approval workflows in progress
+export const approvalInstances = pgTable("approval_instances", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ruleId: uuid("rule_id").references(() => approvalRules.id).notNull(),
+  
+  // Entity being approved
+  entityType: approvalEntityTypeEnum("entity_type").notNull(),
+  entityId: uuid("entity_id").notNull(),
+  entityData: jsonb("entity_data"), // Snapshot of entity at approval time
+  
+  // Workflow state
+  currentStepIndex: integer("current_step_index").default(0),
+  status: approvalStatusEnum("status").default("pending"),
+  
+  // Request information
+  requestedById: uuid("requested_by_id").notNull(),
+  requestReason: text("request_reason"),
+  urgencyLevel: integer("urgency_level").default(1), // 1-5 scale
+  
+  // SLA tracking
+  slaDeadline: timestamp("sla_deadline"),
+  firstReminderSent: timestamp("first_reminder_sent"),
+  secondReminderSent: timestamp("second_reminder_sent"),
+  escalatedAt: timestamp("escalated_at"),
+  
+  // Completion data
+  completedAt: timestamp("completed_at"),
+  completedById: uuid("completed_by_id"),
+  completionReason: text("completion_reason"),
+  
+  // Metrics
+  totalResponseTimeMinutes: integer("total_response_time_minutes"),
+  slaViolated: boolean("sla_violated").default(false),
+  
+  // Audit fields
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("approval_instances_tenant_idx").on(table.tenantId),
+  index("approval_instances_entity_idx").on(table.entityType, table.entityId),
+  index("approval_instances_status_idx").on(table.status),
+  index("approval_instances_deadline_idx").on(table.slaDeadline),
+  index("approval_instances_requester_idx").on(table.requestedById),
+]);
+
+// Approval Steps - Individual steps within an approval workflow
+export const approvalSteps = pgTable("approval_steps", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
+  
+  // Step configuration
+  stepIndex: integer("step_index").notNull(),
+  stepName: varchar("step_name", { length: 255 }).notNull(),
+  decisionMode: stepDecisionModeEnum("decision_mode").notNull(),
+  quorumCount: integer("quorum_count"), // Required when decision_mode = QUORUM
+  
+  // Step status
+  status: approvalStatusEnum("status").default("pending"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  
+  // SLA for this step
+  stepSlaHours: integer("step_sla_hours").default(24),
+  stepDeadline: timestamp("step_deadline"),
+  
+  // Approvers for this step
+  approverConfiguration: jsonb("approver_configuration").notNull(),
+  
+  // Results
+  approvedCount: integer("approved_count").default(0),
+  rejectedCount: integer("rejected_count").default(0),
+  totalApprovers: integer("total_approvers").default(0),
+  
+  // Audit fields
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("approval_steps_tenant_idx").on(table.tenantId),
+  index("approval_steps_instance_idx").on(table.instanceId),
+  index("approval_steps_status_idx").on(table.status),
+  index("approval_steps_deadline_idx").on(table.stepDeadline),
+]);
+
+// Approval Decisions - Individual approver decisions
+export const approvalDecisions = pgTable("approval_decisions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
+  stepId: uuid("step_id").references(() => approvalSteps.id).notNull(),
+  
+  // Approver information
+  approverType: approverTypeEnum("approver_type").notNull(),
+  approverId: uuid("approver_id"), // User ID when approver_type = user
+  approverGroupId: uuid("approver_group_id"), // Group ID when approver_type = user_group
+  approverName: varchar("approver_name", { length: 255 }).notNull(),
+  
+  // Decision details
+  decision: approvalDecisionEnum("decision").notNull(),
+  comments: text("comments").notNull(),
+  attachments: jsonb("attachments"), // File attachments for decision
+  
+  // Timing
+  decidedAt: timestamp("decided_at").defaultNow(),
+  notifiedAt: timestamp("notified_at"),
+  responseTimeMinutes: integer("response_time_minutes"),
+  
+  // Delegation/Escalation tracking
+  delegatedToId: uuid("delegated_to_id"),
+  escalatedFromStepId: uuid("escalated_from_step_id"),
+  escalationReason: text("escalation_reason"),
+  
+  // Audit information
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  
+  // System tracking
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("approval_decisions_tenant_idx").on(table.tenantId),
+  index("approval_decisions_instance_idx").on(table.instanceId),
+  index("approval_decisions_step_idx").on(table.stepId),
+  index("approval_decisions_approver_idx").on(table.approverId),
+  index("approval_decisions_decided_idx").on(table.decidedAt),
+]);
+
+// Approval Notifications - Track notification delivery
+export const approvalNotifications = pgTable("approval_notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  instanceId: uuid("instance_id").references(() => approvalInstances.id).notNull(),
+  stepId: uuid("step_id").references(() => approvalSteps.id),
+  
+  // Recipient information
+  recipientType: varchar("recipient_type", { length: 50 }).notNull(), // user, external_email, webhook
+  recipientId: uuid("recipient_id"),
+  recipientEmail: varchar("recipient_email", { length: 255 }),
+  
+  // Notification details
+  notificationType: varchar("notification_type", { length: 50 }).notNull(), // request, reminder, escalation, completion
+  channel: varchar("channel", { length: 50 }).notNull(), // email, in_app, sms, webhook, slack
+  subject: varchar("subject", { length: 500 }),
+  content: text("content"),
+  
+  // Delivery tracking
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  status: varchar("status", { length: 20 }).default("pending"), // pending, sent, delivered, failed, read
+  errorMessage: text("error_message"),
+  
+  // Retry logic
+  retryCount: integer("retry_count").default(0),
+  maxRetries: integer("max_retries").default(3),
+  nextRetryAt: timestamp("next_retry_at"),
+  
+  // System tracking
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("approval_notifications_tenant_idx").on(table.tenantId),
+  index("approval_notifications_instance_idx").on(table.instanceId),
+  index("approval_notifications_recipient_idx").on(table.recipientId),
+  index("approval_notifications_status_idx").on(table.status),
+  index("approval_notifications_retry_idx").on(table.nextRetryAt),
+]);
+
+// Approval Delegations - Track approval authority delegation
+export const approvalDelegations = pgTable("approval_delegations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Delegation details
+  delegatorId: uuid("delegator_id").notNull(), // User delegating authority
+  delegateId: uuid("delegate_id").notNull(), // User receiving authority
+  
+  // Scope of delegation
+  moduleTypes: text("module_types").array(), // Which modules this delegation covers
+  ruleIds: text("rule_ids").array(), // Specific rules (null = all rules)
+  maxValue: decimal("max_value", { precision: 15, scale: 2 }), // Maximum value they can approve
+  
+  // Timing
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until"),
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  delegationReason: text("delegation_reason"),
+  
+  // Audit fields
+  createdById: uuid("created_by_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("approval_delegations_tenant_idx").on(table.tenantId),
+  index("approval_delegations_delegator_idx").on(table.delegatorId),
+  index("approval_delegations_delegate_idx").on(table.delegateId),
+  index("approval_delegations_valid_idx").on(table.validFrom, table.validUntil),
+]);
+
+// ========================================
+// APPROVAL TYPES & SCHEMAS
+// ========================================
+
+export type ApprovalRule = typeof approvalRules.$inferSelect;
+export type InsertApprovalRule = typeof approvalRules.$inferInsert;
+
+export type ApprovalInstance = typeof approvalInstances.$inferSelect;
+export type InsertApprovalInstance = typeof approvalInstances.$inferInsert;
+
+export type ApprovalStep = typeof approvalSteps.$inferSelect;
+export type InsertApprovalStep = typeof approvalSteps.$inferInsert;
+
+export type ApprovalDecision = typeof approvalDecisions.$inferSelect;
+export type InsertApprovalDecision = typeof approvalDecisions.$inferInsert;
+
+export type ApprovalNotification = typeof approvalNotifications.$inferSelect;
+export type InsertApprovalNotification = typeof approvalNotifications.$inferInsert;
+
+export type ApprovalDelegation = typeof approvalDelegations.$inferSelect;
+export type InsertApprovalDelegation = typeof approvalDelegations.$inferInsert;
+
+// Note: Zod schemas are defined earlier in the file - no duplicates needed

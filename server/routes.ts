@@ -4228,6 +4228,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('⚠️ [OMNIBRIDGE] Routes module failed to load:', error.message);
   }
 
+  // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - APPROVAL MANAGEMENT MODULE
+  // Approval Management Routes - Comprehensive approval workflow system
+  try {
+    const { approvalRoutes } = await import('./modules/approvals/routes/approvalRoutes');
+    if (approvalRoutes) {
+      app.use('/api/approvals', approvalRoutes);
+      console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
+    } else {
+      console.warn('⚠️ [APPROVAL-MANAGEMENT] Routes module not properly exported, skipping registration');
+    }
+  } catch (error) {
+    console.warn('⚠️ [APPROVAL-MANAGEMENT] Routes module failed to load:', error.message);
+  }
+
   const httpServer = createServer(app);
   return httpServer;
 }

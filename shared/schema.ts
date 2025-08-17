@@ -116,9 +116,7 @@ export type {
 
 // Removed duplicate userNotificationPreferences table - using the one from schema-notifications.ts per 1qa.md
 
-// Export all tables for migrations
-export * from './schema-master';
-export * from './schema-materials-services';
+// Export all tables for migrations - using selective exports to avoid conflicts
 export * from './schema-field-layout';
 export * from './schema-notifications';
 export * from './schema-sla';

@@ -48,6 +48,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
     - **Notifications Management**: Comprehensive notification management with multi-channel support (email/in-app/sms/webhook/slack), user preferences, scheduled processing, and automation. User profile notification preferences fully implemented with global channel controls and reset functionality (August 2025).
     - **Dashboard Module**: Real-time statistics aggregation, activity tracking, performance monitoring, customizable widget system, and multi-module analytics integration.
     - **SaaS Admin Module**: Global system administration, complete tenant lifecycle management, billing oversight, audit compliance, advanced analytics, and system maintenance tools.
+    - **Approval Management Module**: Comprehensive approval workflow system with hierarchical and conditional approval rules, supporting multiple entity types (tickets, materials, knowledge base, timecard, contracts). Features automatic rule application, SLA tracking, escalation management, decision processing (approved/rejected/delegated/escalated), dashboard metrics, and full audit trails. Implements Clean Architecture with complete CQRS pattern, real database integration, and multi-tenant isolation. (January 2025)
 
 ## External Dependencies
 - **Database**: Neon PostgreSQL.

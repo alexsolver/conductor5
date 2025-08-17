@@ -1,114 +1,112 @@
-export interface QueryCondition {
+// ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - DOMAIN LAYER
+// Domain Entity: ApprovalRule - Pure business logic with no external dependencies
+
+export interface ApprovalCondition {
   field: string;
   operator: 'EQ' | 'NEQ' | 'IN' | 'NOT_IN' | 'GT' | 'GTE' | 'LT' | 'LTE' | 'CONTAINS' | 'STARTS_WITH' | 'EXISTS' | 'BETWEEN';
   value: any;
   logicalOperator?: 'AND' | 'OR';
 }
 
-export interface QueryConditions {
-  conditions: QueryCondition[];
-}
-
-export interface ApprovalStepApprover {
-  type: 'user' | 'group' | 'manager_chain' | 'external';
-  identifier: string;
-  level?: number;
-}
-
 export interface ApprovalStepConfig {
+  stepIndex: number;
   stepName: string;
-  approverMode: 'ANY' | 'ALL' | 'QUORUM';
-  approvers: ApprovalStepApprover[];
-  slaHours?: number;
-  conditions?: Record<string, any>;
+  decisionMode: 'ALL' | 'ANY' | 'QUORUM';
+  quorumCount?: number;
+  slaHours: number;
+  approvers: ApprovalApprover[];
+  autoApprovalEnabled?: boolean;
+  autoApprovalConditions?: ApprovalCondition[];
 }
 
-export interface EscalationSettings {
-  enabled: boolean;
-  levels: {
-    level: number;
-    afterHours: number;
-    escalateToType: 'manager' | 'group' | 'user';
-    escalateToId: string;
-  }[];
+export interface ApprovalApprover {
+  type: 'user' | 'user_group' | 'customer_contact' | 'supplier' | 'manager_chain' | 'auto';
+  id?: string;
+  name: string;
+  hierarchyLevel?: number; // For manager_chain type
 }
 
-export interface AutoApprovalConditions {
-  enabled: boolean;
-  rules: QueryCondition[];
+export interface ApprovalRuleValue {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string;
+  moduleType: 'tickets' | 'materials' | 'knowledge_base' | 'timecard' | 'contracts';
+  entityType: string;
+  queryConditions: ApprovalCondition[];
+  approvalSteps: ApprovalStepConfig[];
+  defaultSlaHours: number;
+  escalationEnabled: boolean;
+  autoApprovalEnabled: boolean;
+  autoApprovalConditions?: ApprovalCondition[];
+  isActive: boolean;
+  priority: number;
+  createdById: string;
+  updatedById?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class ApprovalRule {
-  constructor(
-    public readonly id: string,
-    public readonly tenantId: string,
-    public readonly name: string,
-    public readonly description: string | null,
-    public readonly moduleType: 'tickets' | 'materials' | 'knowledge_base' | 'timecard' | 'contracts',
-    public readonly queryConditions: QueryConditions,
-    public readonly approvalSteps: ApprovalStepConfig[],
-    public readonly escalationSettings: EscalationSettings,
-    public readonly slaHours: number,
-    public readonly businessHoursOnly: boolean,
-    public readonly autoApprovalConditions: AutoApprovalConditions,
-    public readonly priority: number,
-    public readonly isActive: boolean,
-    public readonly createdById: string,
-    public readonly updatedById: string | null,
-    public readonly createdAt: Date,
-    public readonly updatedAt: Date
-  ) {
-    this.validateRule();
-  }
+  private constructor(private readonly data: ApprovalRuleValue) {}
 
-  private validateRule(): void {
-    if (!this.name || this.name.trim().length === 0) {
-      throw new Error('Approval rule name is required');
-    }
-
-    if (!this.tenantId) {
-      throw new Error('Tenant ID is required');
-    }
-
-    if (!this.queryConditions.conditions || this.queryConditions.conditions.length === 0) {
-      throw new Error('At least one query condition is required');
-    }
-
-    if (!this.approvalSteps || this.approvalSteps.length === 0) {
-      throw new Error('At least one approval step is required');
-    }
-
-    if (this.slaHours <= 0) {
-      throw new Error('SLA hours must be greater than 0');
-    }
-
-    if (this.priority < 1 || this.priority > 999) {
-      throw new Error('Priority must be between 1 and 999');
-    }
-
-    // Validate approval steps
-    this.approvalSteps.forEach((step, index) => {
-      if (!step.stepName || step.stepName.trim().length === 0) {
-        throw new Error(`Step ${index + 1} name is required`);
-      }
-
-      if (!step.approvers || step.approvers.length === 0) {
-        throw new Error(`Step ${index + 1} must have at least one approver`);
-      }
-
-      step.approvers.forEach((approver, approverIndex) => {
-        if (!approver.identifier || approver.identifier.trim().length === 0) {
-          throw new Error(`Step ${index + 1}, approver ${approverIndex + 1} identifier is required`);
-        }
-      });
+  static create(data: Omit<ApprovalRuleValue, 'id' | 'createdAt' | 'updatedAt'>): ApprovalRule {
+    const now = new Date();
+    return new ApprovalRule({
+      ...data,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
     });
   }
 
-  public matchesEntity(entityData: Record<string, any>): boolean {
-    return this.evaluateConditions(this.queryConditions.conditions, entityData);
+  static fromDatabase(data: ApprovalRuleValue): ApprovalRule {
+    return new ApprovalRule(data);
   }
 
-  private evaluateConditions(conditions: QueryCondition[], entityData: Record<string, any>): boolean {
+  // Getters
+  get id(): string { return this.data.id; }
+  get tenantId(): string { return this.data.tenantId; }
+  get name(): string { return this.data.name; }
+  get description(): string | undefined { return this.data.description; }
+  get moduleType(): string { return this.data.moduleType; }
+  get entityType(): string { return this.data.entityType; }
+  get queryConditions(): ApprovalCondition[] { return this.data.queryConditions; }
+  get approvalSteps(): ApprovalStepConfig[] { return this.data.approvalSteps; }
+  get defaultSlaHours(): number { return this.data.defaultSlaHours; }
+  get escalationEnabled(): boolean { return this.data.escalationEnabled; }
+  get autoApprovalEnabled(): boolean { return this.data.autoApprovalEnabled; }
+  get autoApprovalConditions(): ApprovalCondition[] | undefined { return this.data.autoApprovalConditions; }
+  get isActive(): boolean { return this.data.isActive; }
+  get priority(): number { return this.data.priority; }
+  get createdById(): string { return this.data.createdById; }
+  get updatedById(): string | undefined { return this.data.updatedById; }
+  get createdAt(): Date { return this.data.createdAt; }
+  get updatedAt(): Date { return this.data.updatedAt; }
+
+  // Business Methods
+  update(updates: Partial<Omit<ApprovalRuleValue, 'id' | 'tenantId' | 'createdAt' | 'createdById'>>): ApprovalRule {
+    return new ApprovalRule({
+      ...this.data,
+      ...updates,
+      updatedAt: new Date(),
+    });
+  }
+
+  deactivate(): ApprovalRule {
+    return this.update({ isActive: false });
+  }
+
+  activate(): ApprovalRule {
+    return this.update({ isActive: true });
+  }
+
+  // Rule evaluation
+  evaluateConditions(entityData: Record<string, any>): boolean {
+    return this.evaluateConditionGroup(this.queryConditions, entityData);
+  }
+
+  private evaluateConditionGroup(conditions: ApprovalCondition[], entityData: Record<string, any>): boolean {
     if (conditions.length === 0) return true;
 
     let result = this.evaluateCondition(conditions[0], entityData);
@@ -127,8 +125,8 @@ export class ApprovalRule {
     return result;
   }
 
-  private evaluateCondition(condition: QueryCondition, entityData: Record<string, any>): boolean {
-    const fieldValue = entityData[condition.field];
+  private evaluateCondition(condition: ApprovalCondition, entityData: Record<string, any>): boolean {
+    const fieldValue = this.getNestedValue(entityData, condition.field);
     const conditionValue = condition.value;
 
     switch (condition.operator) {
@@ -165,34 +163,78 @@ export class ApprovalRule {
     }
   }
 
-  public shouldAutoApprove(entityData: Record<string, any>): boolean {
-    if (!this.autoApprovalConditions.enabled) {
-      return false;
-    }
-
-    return this.evaluateConditions(this.autoApprovalConditions.rules, entityData);
+  private getNestedValue(obj: Record<string, any>, path: string): any {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
   }
 
-  public calculateSlaDeadline(startDate: Date = new Date()): Date {
-    const deadline = new Date(startDate);
-    
-    if (this.businessHoursOnly) {
-      // Simple implementation - add business hours
-      // In a real system, this would consider holidays and weekends
-      let hoursToAdd = this.slaHours;
-      let currentHour = deadline.getHours();
-      
-      while (hoursToAdd > 0) {
-        if (currentHour >= 8 && currentHour < 18) { // Business hours 8-18
-          hoursToAdd--;
-        }
-        deadline.setHours(deadline.getHours() + 1);
-        currentHour = deadline.getHours();
-      }
-    } else {
-      deadline.setHours(deadline.getHours() + this.slaHours);
+  // Auto-approval evaluation
+  shouldAutoApprove(entityData: Record<string, any>): boolean {
+    if (!this.autoApprovalEnabled || !this.autoApprovalConditions) {
+      return false;
+    }
+    return this.evaluateConditionGroup(this.autoApprovalConditions, entityData);
+  }
+
+  // Domain validation
+  validate(): string[] {
+    const errors: string[] = [];
+
+    if (!this.name.trim()) {
+      errors.push('Rule name is required');
     }
 
-    return deadline;
+    if (!this.tenantId) {
+      errors.push('Tenant ID is required');
+    }
+
+    if (!this.moduleType) {
+      errors.push('Module type is required');
+    }
+
+    if (!this.entityType) {
+      errors.push('Entity type is required');
+    }
+
+    if (this.queryConditions.length === 0) {
+      errors.push('At least one query condition is required');
+    }
+
+    if (this.approvalSteps.length === 0) {
+      errors.push('At least one approval step is required');
+    }
+
+    // Validate approval steps
+    this.approvalSteps.forEach((step, index) => {
+      if (!step.stepName.trim()) {
+        errors.push(`Step ${index + 1}: Step name is required`);
+      }
+
+      if (step.decisionMode === 'QUORUM' && (!step.quorumCount || step.quorumCount <= 0)) {
+        errors.push(`Step ${index + 1}: Quorum count is required for QUORUM decision mode`);
+      }
+
+      if (step.approvers.length === 0) {
+        errors.push(`Step ${index + 1}: At least one approver is required`);
+      }
+
+      if (step.decisionMode === 'QUORUM' && step.quorumCount && step.quorumCount > step.approvers.length) {
+        errors.push(`Step ${index + 1}: Quorum count cannot exceed number of approvers`);
+      }
+    });
+
+    if (this.defaultSlaHours <= 0) {
+      errors.push('Default SLA hours must be positive');
+    }
+
+    if (this.priority < 0) {
+      errors.push('Priority must be non-negative');
+    }
+
+    return errors;
+  }
+
+  // Export for persistence
+  toDatabase(): ApprovalRuleValue {
+    return { ...this.data };
   }
 }
