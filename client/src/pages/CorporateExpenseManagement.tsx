@@ -86,20 +86,10 @@ function CreateExpenseReportDialog() {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateExpenseReportData) => {
-      const response = await fetch('/api/expense-approval/reports', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        },
-        body: JSON.stringify(data)
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create expense report');
-      }
-      return response.json();
+      return apiRequest('POST', '/api/expense-approval/reports', data);
     },
-    onSuccess: () => {
+    onSuccess: async (response) => {
+      const result = await response.json();
       queryClient.invalidateQueries({ queryKey: ['/api/expense-approval/reports'] });
       toast({
         title: 'Sucesso',
@@ -235,14 +225,7 @@ export default function CorporateExpenseManagement() {
   const { data: expenseReports, isLoading, error } = useQuery({
     queryKey: ['/api/expense-approval/reports'],
     queryFn: async () => {
-      const response = await fetch('/api/expense-approval/reports', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch expense reports');
-      }
+      const response = await apiRequest('GET', '/api/expense-approval/reports');
       return response.json();
     }
   });
@@ -251,14 +234,7 @@ export default function CorporateExpenseManagement() {
   const { data: metrics } = useQuery({
     queryKey: ['/api/expense-approval/dashboard-metrics'],
     queryFn: async () => {
-      const response = await fetch('/api/expense-approval/dashboard-metrics', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard metrics');
-      }
+      const response = await apiRequest('GET', '/api/expense-approval/dashboard-metrics');
       return response.json();
     }
   });

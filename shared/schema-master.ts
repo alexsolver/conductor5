@@ -24,6 +24,7 @@ import { z } from "zod";
 // ========================================
 // Import notifications schema from dedicated file
 export * from "./schema-notifications";
+export * from "./schema-expense-approval";
 
 // ========================================
 // PUBLIC SCHEMA TABLES (Cross-tenant)
