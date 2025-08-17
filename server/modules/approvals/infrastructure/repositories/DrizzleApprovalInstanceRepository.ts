@@ -395,7 +395,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
   async getAverageResponseTime(tenantId: string, entityType?: string): Promise<number> {
     const conditions = [
       eq(approvalInstances.tenantId, tenantId),
-      isNotNull(approvalInstances.totalResponseTimeMinutes)
+      isNotNull(approvalInstances.slaElapsedMinutes)
     ];
 
     if (entityType) {
@@ -404,7 +404,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
 
     const [result] = await db
       .select({ 
-        avg: sql`AVG(${approvalInstances.totalResponseTimeMinutes})`.mapWith(Number) 
+        avg: sql`AVG(${approvalInstances.slaElapsedMinutes})`.mapWith(Number) 
       })
       .from(approvalInstances)
       .where(and(...conditions));
@@ -429,7 +429,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
       .from(approvalInstances)
       .where(and(
         ...conditions,
-        eq(approvalInstances.slaViolated, false)
+        sql`${approvalInstances.slaStatus} != 'violated'`
       ));
 
     if (totalResult.count === 0) return 100;
@@ -443,9 +443,9 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
       .from(approvalInstances)
       .where(and(
         eq(approvalInstances.tenantId, tenantId),
-        gt(approvalInstances.totalResponseTimeMinutes, thresholdMinutes)
+        gt(approvalInstances.slaElapsedMinutes, thresholdMinutes)
       ))
-      .orderBy(desc(approvalInstances.totalResponseTimeMinutes));
+      .orderBy(desc(approvalInstances.slaElapsedMinutes));
 
     return results.map(result => this.mapToEntity(result));
   }
@@ -456,10 +456,10 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
       .from(approvalInstances)
       .where(and(
         eq(approvalInstances.tenantId, tenantId),
-        gte(approvalInstances.totalResponseTimeMinutes, minMinutes),
-        lte(approvalInstances.totalResponseTimeMinutes, maxMinutes)
+        gte(approvalInstances.slaElapsedMinutes, minMinutes),
+        lte(approvalInstances.slaElapsedMinutes, maxMinutes)
       ))
-      .orderBy(desc(approvalInstances.totalResponseTimeMinutes));
+      .orderBy(desc(approvalInstances.slaElapsedMinutes));
 
     return results.map(result => this.mapToEntity(result));
   }
@@ -495,12 +495,12 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
     // Average response time
     const [avgResult] = await db
       .select({ 
-        avg: sql`AVG(${approvalInstances.totalResponseTimeMinutes})`.mapWith(Number) 
+        avg: sql`AVG(${approvalInstances.slaElapsedMinutes})`.mapWith(Number) 
       })
       .from(approvalInstances)
       .where(and(
         periodConditions,
-        isNotNull(approvalInstances.totalResponseTimeMinutes)
+        isNotNull(approvalInstances.slaElapsedMinutes)
       ));
 
     // SLA violations
@@ -509,7 +509,7 @@ export class DrizzleApprovalInstanceRepository implements IApprovalInstanceRepos
       .from(approvalInstances)
       .where(and(
         periodConditions,
-        eq(approvalInstances.slaViolated, true)
+        sql`${approvalInstances.slaStatus} = 'violated'`
       ));
 
     const totalInstances = totalResult.count;

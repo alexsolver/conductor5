@@ -22,12 +22,10 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
         name: data.name,
         description: data.description,
         moduleType: data.moduleType,
-        entityType: data.entityType,
         queryConditions: data.queryConditions,
         approvalSteps: data.approvalSteps,
-        defaultSlaHours: data.defaultSlaHours,
-        escalationEnabled: data.escalationEnabled,
-        autoApprovalEnabled: data.autoApprovalEnabled,
+        slaHours: data.defaultSlaHours,
+        escalationSettings: data.escalationEnabled ? {} : null,
         autoApprovalConditions: data.autoApprovalConditions,
         isActive: data.isActive ?? true,
         priority: data.priority ?? 100,
@@ -47,9 +45,8 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
         description: data.description,
         queryConditions: data.queryConditions,
         approvalSteps: data.approvalSteps,
-        defaultSlaHours: data.defaultSlaHours,
-        escalationEnabled: data.escalationEnabled,
-        autoApprovalEnabled: data.autoApprovalEnabled,
+        slaHours: data.defaultSlaHours,
+        escalationSettings: data.escalationEnabled ? {} : null,
         autoApprovalConditions: data.autoApprovalConditions,
         isActive: data.isActive,
         priority: data.priority,
@@ -276,18 +273,17 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
   }
 
   async findConflictingRules(rule: ApprovalRule): Promise<ApprovalRule[]> {
-    // Find rules with same module type, entity type, and overlapping priority
+    // Find rules with same module type and overlapping priority
     // This is a simplified conflict detection - you might want more sophisticated logic
     const results = await db
       .select()
       .from(approvalRules)
       .where(and(
         eq(approvalRules.tenantId, rule.tenantId),
-        sql`${approvalRules.moduleType} = ${rule.moduleType}`,
-        sql`${approvalRules.entityType} = ${rule.entityType}`,
+        eq(approvalRules.moduleType, rule.moduleType),
         eq(approvalRules.isActive, true),
         sql`${approvalRules.id} != ${rule.id}`,
-        sql`${approvalRules.priority} = ${rule.priority}`
+        eq(approvalRules.priority, rule.priority)
       ));
 
     return results.map(result => this.mapToEntity(result));
@@ -329,12 +325,12 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       name: dbRecord.name,
       description: dbRecord.description,
       moduleType: dbRecord.moduleType,
-      entityType: dbRecord.entityType,
+      entityType: dbRecord.moduleType, // Use moduleType as entityType since entityType column doesn't exist
       queryConditions: dbRecord.queryConditions,
       approvalSteps: dbRecord.approvalSteps,
-      defaultSlaHours: dbRecord.defaultSlaHours,
-      escalationEnabled: dbRecord.escalationEnabled,
-      autoApprovalEnabled: dbRecord.autoApprovalEnabled,
+      defaultSlaHours: dbRecord.slaHours, // Real column name
+      escalationEnabled: dbRecord.escalationSettings ? true : false, // Real column name
+      autoApprovalEnabled: false, // Column doesn't exist, default to false
       autoApprovalConditions: dbRecord.autoApprovalConditions,
       isActive: dbRecord.isActive,
       priority: dbRecord.priority,
