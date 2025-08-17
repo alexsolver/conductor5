@@ -161,7 +161,7 @@ import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
 import automationRulesRoutes from './routes/automationRules';
 import technicalSkillsIntegrationRoutes from './routes/technicalSkillsIntegrationRoutes';
-import technicalSkillsWorkingRoutes from './routes/technicalSkillsWorkingRoutes';
+const { technicalSkillsWorkingRoutes } = require('./modules/technical-skills/routes-working');
 
 const app = express();
 

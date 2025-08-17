@@ -9,13 +9,14 @@
  * @created 2025-08-12 - Phase 9 Clean Architecture Implementation
  */
 
-import { Router } from 'express';
-import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
-import { z } from 'zod';
+const express = require('express');
+const { db } = require('../../../db');
+const { skills, userSkills } = require('../../../shared/schema');
+const { eq, and } = require('drizzle-orm');
+const { jwtAuth } = require('../../middleware/jwtAuth');
+const { v4: uuidv4 } = require('uuid');
 
-const router = Router();
-
-// Apply authentication middleware
+const router = express.Router();
 router.use(jwtAuth);
 
 // Validation schemas
@@ -41,7 +42,7 @@ const createUserSkillSchema = z.object({
  * Phase 9 Status Endpoint
  * GET /working/status
  */
-router.get('/working/status', (req: AuthenticatedRequest, res) => {
+router.get('/working/status', (req, res) => {
   res.json({
     success: true,
     phase: 9,
@@ -82,7 +83,7 @@ router.get('/working/status', (req: AuthenticatedRequest, res) => {
  * Create technical skill - Working implementation with persistence
  * POST /working/skills
  */
-router.post('/working/skills', async (req: AuthenticatedRequest, res) => {
+router.post('/working/skills', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -145,7 +146,7 @@ router.post('/working/skills', async (req: AuthenticatedRequest, res) => {
  * List technical skills - Working implementation with persistence
  * GET /working/skills
  */
-router.get('/working/skills', async (req: AuthenticatedRequest, res) => {
+router.get('/working/skills', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -166,15 +167,15 @@ router.get('/working/skills', async (req: AuthenticatedRequest, res) => {
 
     // Query database for skills
     let whereConditions = [eq(skills.tenantId, tenantId)];
-    
+
     if (category) {
       whereConditions.push(eq(skills.category, category as string));
     }
-    
+
     if (level) {
       whereConditions.push(eq(skills.level, level as string));
     }
-    
+
     if (isActive !== undefined) {
       whereConditions.push(eq(skills.isActive, isActive === 'true'));
     }
@@ -210,7 +211,7 @@ router.get('/working/skills', async (req: AuthenticatedRequest, res) => {
  * Get technical skill by ID - Working implementation with persistence
  * GET /working/skills/:id
  */
-router.get('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
+router.get('/working/skills/:id', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -222,7 +223,7 @@ router.get('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
     }
 
     const { id } = req.params;
-    
+
     // Import database and schema
     const { db } = await import('../../../db');
     const { skills, userSkills } = await import('../../../shared/schema');
@@ -276,7 +277,7 @@ router.get('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
  * Get skills categories - Working implementation
  * GET /working/skills/categories
  */
-router.get('/working/skills/categories', async (req: AuthenticatedRequest, res) => {
+router.get('/working/skills/categories', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -325,7 +326,7 @@ router.get('/working/skills/categories', async (req: AuthenticatedRequest, res) 
  * Update technical skill - Working implementation
  * PUT /working/skills/:id
  */
-router.put('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
+router.put('/working/skills/:id', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -337,10 +338,10 @@ router.put('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
     }
 
     const { id } = req.params;
-    
+
     // Validate partial update data
     const updateData = createSkillSchema.partial().parse(req.body);
-    
+
     // Return updated skill
     const updatedSkill = {
       id,
@@ -379,7 +380,7 @@ router.put('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
  * Delete technical skill - Working implementation
  * DELETE /working/skills/:id
  */
-router.delete('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
+router.delete('/working/skills/:id', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -391,7 +392,7 @@ router.delete('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
     }
 
     const { id } = req.params;
-    
+
     console.log(`[TECHNICAL-SKILLS-WORKING] Deleted skill: ${id} for tenant: ${tenantId}`);
 
     res.json({
@@ -413,7 +414,7 @@ router.delete('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
  * Create user skill assignment - Working implementation
  * POST /working/user-skills
  */
-router.post('/working/user-skills', async (req: AuthenticatedRequest, res) => {
+router.post('/working/user-skills', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -477,7 +478,7 @@ router.post('/working/user-skills', async (req: AuthenticatedRequest, res) => {
  * List user skills - Working implementation
  * GET /working/user-skills
  */
-router.get('/working/user-skills', async (req: AuthenticatedRequest, res) => {
+router.get('/working/user-skills', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -564,7 +565,7 @@ router.get('/working/user-skills', async (req: AuthenticatedRequest, res) => {
  * Get user skills by user ID - Working implementation
  * GET /working/user-skills/user/:userId
  */
-router.get('/working/user-skills/user/:userId', async (req: AuthenticatedRequest, res) => {
+router.get('/working/user-skills/user/:userId', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -651,7 +652,7 @@ router.get('/working/user-skills/user/:userId', async (req: AuthenticatedRequest
  * Delete user skill assignment - Working implementation
  * DELETE /working/user-skills/:id
  */
-router.delete('/working/user-skills/:id', async (req: AuthenticatedRequest, res) => {
+router.delete('/working/user-skills/:id', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -663,7 +664,7 @@ router.delete('/working/user-skills/:id', async (req: AuthenticatedRequest, res)
     }
 
     const { id } = req.params;
-    
+
     console.log(`[TECHNICAL-SKILLS-WORKING] Deleted user skill: ${id} for tenant: ${tenantId}`);
 
     res.json({
@@ -685,7 +686,7 @@ router.delete('/working/user-skills/:id', async (req: AuthenticatedRequest, res)
  * Get expired certifications - Working implementation
  * GET /working/certifications/expired
  */
-router.get('/working/certifications/expired', async (req: AuthenticatedRequest, res) => {
+router.get('/working/certifications/expired', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -717,7 +718,7 @@ router.get('/working/certifications/expired', async (req: AuthenticatedRequest, 
  * Get expiring certifications - Working implementation
  * GET /working/certifications/expiring
  */
-router.get('/working/certifications/expiring', async (req: AuthenticatedRequest, res) => {
+router.get('/working/certifications/expiring', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
@@ -745,4 +746,4 @@ router.get('/working/certifications/expiring', async (req: AuthenticatedRequest,
   }
 });
 
-export default router;
+module.exports = { technicalSkillsWorkingRoutes: router };
