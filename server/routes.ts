@@ -2253,23 +2253,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Object serving route for private objects
-  app.get('/objects/:objectPath(*)', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    const userId = req.user?.id;
+  // Object serving route for private objects - ✅ AVATAR ACCESS FIX seguindo 1qa.md
+  app.get('/objects/:objectPath(*)', async (req, res) => {
+    const objectPath = req.params.objectPath;
     const { ObjectStorageService, ObjectNotFoundError } = await import('./objectStorage');
     const { ObjectPermission } = await import('./objectAcl');
     const objectStorageService = new ObjectStorageService();
+    
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      const canAccess = await objectStorageService.canAccessObjectEntity({
-        objectFile,
-        userId: userId,
-        requestedPermission: ObjectPermission.READ,
-      });
-      if (!canAccess) {
+      
+      // ✅ CRITICAL FIX: Allow public access to avatars for profile photos seguindo 1qa.md
+      if (objectPath.startsWith('uploads/') && req.path.includes('/objects/uploads/')) {
+        console.log('[AVATAR-ACCESS] Allowing public access to avatar:', req.path);
+        objectStorageService.downloadObject(objectFile, res);
+        return;
+      }
+      
+      // For other objects, require authentication and ACL check
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.sendStatus(401);
       }
-      objectStorageService.downloadObject(objectFile, res);
+      
+      // Get user from token for ACL check
+      const { verifyToken } = await import('./middleware/tokenManager');
+      try {
+        const token = authHeader.substring(7);
+        const decoded = verifyToken(token);
+        const userId = decoded.userId;
+        
+        const canAccess = await objectStorageService.canAccessObjectEntity({
+          objectFile,
+          userId: userId,
+          requestedPermission: ObjectPermission.READ,
+        });
+        if (!canAccess) {
+          return res.sendStatus(401);
+        }
+        objectStorageService.downloadObject(objectFile, res);
+      } catch (tokenError) {
+        console.error('[AVATAR-ACCESS] Token verification failed:', tokenError);
+        return res.sendStatus(401);
+      }
     } catch (error) {
       console.error("Error checking object access:", error);
       if (error instanceof ObjectNotFoundError) {

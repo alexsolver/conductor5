@@ -126,20 +126,21 @@ export default function UserProfile() {
 
   // Update form when profile data loads following 1qa.md patterns
   useEffect(() => {
-    if (profile) {
+    if (profile && typeof profile === 'object') {
       console.log('[PROFILE-FORM] Updating form with profile data:', profile);
+      const profileData = profile as any; // Type assertion para evitar erros
       form.reset({
-        firstName: profile.firstName || "",
-        lastName: profile.lastName || "",
-        email: profile.email || "",
-        phone: profile.phone || "",
-        department: profile.department || "",
-        position: profile.position || "",
-        bio: profile.bio || "",
-        location: profile.location || "",
-        timezone: profile.timezone || "",
-        dateOfBirth: profile.dateOfBirth || "",
-        address: profile.address || "",
+        firstName: profileData.firstName || "",
+        lastName: profileData.lastName || "",
+        email: profileData.email || "",
+        phone: profileData.phone || "",
+        department: profileData.department || "",
+        position: profileData.position || "",
+        bio: profileData.bio || "",
+        location: profileData.location || "",
+        timezone: profileData.timezone || "",
+        dateOfBirth: profileData.dateOfBirth || "",
+        address: profileData.address || "",
       });
     }
   }, [profile, form]);
@@ -196,9 +197,13 @@ export default function UserProfile() {
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-      // ✅ CORRETO - Invalidate profile and auth queries to update avatar, seguindo 1qa.md
+      // ✅ SOLUÇÃO DEFINITIVA - Force invalidation + refetch seguindo 1qa.md
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      // Force refresh das queries críticas para atualização imediata do avatar
+      queryClient.refetchQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
     },
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
@@ -303,9 +308,9 @@ export default function UserProfile() {
 
   // Handle preference changes
   const handlePreferenceChange = (key: string, value: any) => {
-    const currentPrefs = preferences?.data || {};
+    const preferencesData = preferences && typeof preferences === 'object' ? (preferences as any).data : {};
     updatePreferencesMutation.mutate({
-      ...currentPrefs,
+      ...preferencesData,
       [key]: value,
     });
   };
@@ -730,8 +735,8 @@ export default function UserProfile() {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-3">
-                        {Array.isArray(sessions?.data) && sessions.data.length > 0 ? (
-                          sessions.data.map((session: any) => (
+                        {Array.isArray((sessions as any)?.data) && (sessions as any).data.length > 0 ? (
+                          (sessions as any).data.map((session: any) => (
                             <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
                               <div>
                                 <p className="font-medium">{session.device}</p>
@@ -782,7 +787,7 @@ export default function UserProfile() {
                     <p className="text-sm text-gray-600">Selecione seu idioma preferido</p>
                   </div>
                   <Select 
-                    value={preferences?.data?.language || "pt-BR"}
+                    value={(preferences as any)?.data?.language || "pt-BR"}
                     onValueChange={(value) => handlePreferenceChange('language', value)}
                   >
                     <SelectTrigger className="w-40">
@@ -805,7 +810,7 @@ export default function UserProfile() {
                   </div>
                   <Switch 
                     id="notifications" 
-                    checked={preferences?.data?.emailNotifications ?? true}
+                    checked={(preferences as any)?.data?.emailNotifications ?? true}
                     onCheckedChange={(checked) => handlePreferenceChange('emailNotifications', checked)}
                   />
                 </div>
@@ -817,7 +822,7 @@ export default function UserProfile() {
                   </div>
                   <Switch 
                     id="push-notifications" 
-                    checked={preferences?.data?.pushNotifications ?? true}
+                    checked={(preferences as any)?.data?.pushNotifications ?? true}
                     onCheckedChange={(checked) => handlePreferenceChange('pushNotifications', checked)}
                   />
                 </div>
@@ -829,7 +834,7 @@ export default function UserProfile() {
                   </div>
                   <Switch 
                     id="dark-mode" 
-                    checked={preferences?.data?.darkMode ?? false}
+                    checked={(preferences as any)?.data?.darkMode ?? false}
                     onCheckedChange={(checked) => handlePreferenceChange('darkMode', checked)}
                   />
                 </div>
