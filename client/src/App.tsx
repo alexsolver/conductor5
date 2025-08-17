@@ -53,6 +53,7 @@ import InternalForms from './pages/InternalForms';
 import Companies from "./pages/Companies";
 import TechnicalSkills from "./pages/TechnicalSkills";
 import TicketTemplates from "./pages/TicketTemplates";
+import SlaManagement from "./pages/SlaManagement";
 
 // Removed: ExternalContactsManagement - functionality eliminated
 // Removed: Projects and ProjectActions - module completely eliminated
@@ -152,7 +153,7 @@ function AppRouter() {
         <Route path="/tenant-admin" component={TenantAdmin} />
         <Route path="/tenant-admin/geral" component={TenantAdminGeral} />
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
-        {/* SLA module route - will be added with new implementation */}
+        <Route path="/sla-management" component={SlaManagement} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
 

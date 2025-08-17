@@ -46,7 +46,7 @@ import contractRoutes from './routes/contractRoutes';
 // ✅ LEGACY NOTIFICATIONS ROUTES REMOVED - Clean Architecture only per 1qa.md
 import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import ticketFieldOptionsRoutes from './routes/ticketFieldOptions';
-import { slaController } from './modules/tickets/SlaController';
+// ✅ LEGACY slaController removed - Clean Architecture SLA module per 1qa.md
 // ✅ LEGACY NON-CLEAN routes eliminated per 1qa.md
 import { TicketViewsController } from './controllers/TicketViewsController';
 // Hierarchical ticket metadata import - loaded dynamically below
@@ -325,6 +325,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
   app.use('/api', notificationRoutes);
   console.log('✅ [NOTIFICATIONS-ALERTS] Clean Architecture module registered at /api/notifications');
+
+  // ✅ SLA MANAGEMENT CLEAN ARCHITECTURE MODULE per 1qa.md
+  console.log('🏗️ [SLA-MANAGEMENT] Initializing SLA Management Clean Architecture module...');
+  app.use('/api/sla', slaRoutes);
+  console.log('✅ [SLA-MANAGEMENT] Clean Architecture module registered at /api/sla');
 
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');
@@ -3830,37 +3835,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SLA SYSTEMROUTES - INTEGRATED WITH TICKET METADATA
   // ========================================
 
-  // Ticket SLA management routes
-  app.post('/api/sla/tickets-slas', jwtAuth, requireTenantAccess, slaController.createTicketSla.bind(slaController));
-  app.get('/api/sla/tickets-slas', jwtAuth, requireTenantAccess, slaController.getTicketSlas.bind(slaController));
-  app.get('/api/sla/tickets-slas/:id', jwtAuth, requireTenantAccess, slaController.getTicketSlaById.bind(slaController));
-  app.put('/api/sla/tickets-slas/:id', jwtAuth, requireTenantAccess, slaController.updateTicketSla.bind(slaController));
-  app.delete('/api/sla/tickets-slas/:id', jwtAuth, requireTenantAccess, slaController.deleteTicketSla.bind(slaController));
-
-  // SLA rules management routes
-  app.post('/api/sla/rules', jwtAuth, requireTenantAccess, slaController.createSlaRule.bind(slaController));
-  app.get('/api/sla/rules/:slaId', jwtAuth, requireTenantAccess, slaController.getSlaRules.bind(slaController));
-  app.put('/api/sla/rules/:id', jwtAuth, requireTenantAccess, slaController.updateSlaRule.bind(slaController));
-  app.delete('/api/sla/rules/:id', jwtAuth, requireTenantAccess, slaController.deleteSlaRule.bind(slaController));
-
-  // Status timeout management routes  
-  app.post('/api/sla/status-timeouts', jwtAuth, requireTenantAccess, slaController.createStatusTimeout.bind(slaController));
-  app.get('/api/sla/status-timeouts/:slaId', jwtAuth, requireTenantAccess, slaController.getStatusTimeouts.bind(slaController));
-  app.put('/api/sla/status-timeouts/:id', jwtAuth, requireTenantAccess, slaController.updateStatusTimeout.bind(slaController));
-  app.delete('/api/sla/status-timeouts/:id', jwtAuth, requireTenantAccess, slaController.deleteStatusTimeout.bind(slaController));
-
-  // Escalation tracking routes
-  app.get('/api/sla/escalations/ticket/:ticketId', jwtAuth, requireTenantAccess, slaController.getTicketEscalations.bind(slaController));
-  app.get('/api/sla/escalations/pending', jwtAuth, requireTenantAccess, slaController.getPendingEscalations.bind(slaController));
-  app.put('/api/sla/escalations/:id/acknowledge', jwtAuth, requireTenantAccess, slaController.acknowledgeEscalation.bind(slaController));
-
-  // Metrics and compliance routes
-  app.get('/api/sla/metrics/ticket/:ticketId', jwtAuth, requireTenantAccess, slaController.getTicketMetrics.bind(slaController));
-  app.get('/api/sla/metrics/compliance-stats', jwtAuth, requireTenantAccess, slaController.getSlaComplianceStats.bind(slaController));
-
-  // Metadata integration routes
-  app.post('/api/sla/rules/applicable', jwtAuth, requireTenantAccess, slaController.getApplicableSlaRules.bind(slaController));
-  app.post('/api/sla/metrics/calculate/:ticketId', jwtAuth, requireTenantAccess, slaController.calculateTicketSlaMetrics.bind(slaController));
+  // ✅ LEGACY SLA ROUTES REMOVED - Clean Architecture SLA module now handles all SLA functionality per 1qa.md
 
   // ========================================
   // PROJECTS MODULE COMPLETELY REMOVED

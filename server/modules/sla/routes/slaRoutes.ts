@@ -3,13 +3,13 @@
 
 import { Router } from 'express';
 import { SlaController } from '../application/controllers/SlaController';
-import { authMiddleware } from '../../../middleware/authMiddleware';
+import { jwtAuth } from '../../../middleware/jwtAuth';
 
 const router = Router();
 const slaController = new SlaController();
 
 // Apply JWT authentication to all routes
-router.use(authMiddleware);
+router.use(jwtAuth);
 
 // ===== SLA DEFINITIONS =====
 router.get('/definitions', slaController.getSlaDefinitions.bind(slaController));

@@ -2,7 +2,7 @@
 // Clean Architecture infrastructure repository implementation
 
 import { eq, and, desc, gte, lte, count, avg, sum } from 'drizzle-orm';
-import { db } from '../../../db';
+import { db } from '../../../../db';
 import { 
   slaDefinitions, 
   slaInstances, 
