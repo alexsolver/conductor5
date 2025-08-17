@@ -1698,6 +1698,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
 
+      console.log('[PROFILE-GET] Debug - userId:', userId, 'tenantId:', tenantId);
+
       if (!userId || !tenantId) {
         return res.status(401).json({
           success: false,
@@ -1705,45 +1707,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { schemaManager } = await import('./db');
-      const pool = schemaManager.getPool();
-      const schemaName = schemaManager.getSchemaName(tenantId);
+      // ✅ CORRETO - Seguindo padrões 1qa.md para imports
+      const { db, sql } = await import('@shared/schema');
+      const { users } = await import('@shared/schema');
+      const { eq, and } = await import('drizzle-orm');
 
-      // Fetch user profile with extended information following 1qa.md patterns
-      // Users table is in public schema, not tenant schema
-      console.log('[PROFILE-GET] Using public schema for users table');
-      const result = await pool.query(`
-        SELECT 
-          u.id,
-          u.first_name as "firstName",
-          u.last_name as "lastName", 
-          u.email,
-          u.phone,
-          u.role,
-          u.tenant_id as "tenantId",
-          COALESCE(u.department_id, '') as "department",
-          u.position,
-          u.created_at as "createdAt",
-          u.updated_at as "updatedAt",
-          u.avatar_url as avatar,
-          COALESCE(u.time_zone, 'America/Sao_Paulo') as "timezone",
-          '' as bio,
-          '' as location,
-          '' as "dateOfBirth",
-          '' as address
-        FROM "public".users u
-        WHERE u.id = $1 AND u.tenant_id = $2
-      `, [userId, tenantId]);
+      console.log('[PROFILE-GET] Using Drizzle ORM following 1qa.md patterns');
+      
+      // ✅ CORRETO - Tenant isolation obrigatório seguindo 1qa.md
+      const result = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          tenantId: users.tenantId,
+          department: users.departmentId,
+          position: users.position,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+          avatar: users.avatarUrl,
+          timezone: sql<string>`COALESCE(${users.timeZone}, 'America/Sao_Paulo')`,
+          bio: sql<string>`''`,
+          location: sql<string>`''`,
+          dateOfBirth: sql<string>`''`,
+          address: sql<string>`''`
+        })
+        .from(users)
+        .where(
+          and(
+            eq(users.id, userId),
+            eq(users.tenantId, tenantId)
+          )
+        );
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'User profile not found'
         });
       }
 
-      console.log('[PROFILE-GET] Profile fetched successfully:', result.rows[0]);
-      res.json(result.rows[0]);
+      console.log('[PROFILE-GET] Profile fetched successfully with Drizzle ORM:', result[0]);
+      res.json(result[0]);
 
     } catch (error) {
       console.error('[USER-PROFILE] Error fetching profile:', error);
@@ -1770,81 +1778,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { schemaManager } = await import('./db');
-      const pool = schemaManager.getPool();
-      const schemaName = schemaManager.getSchemaName(tenantId);
+      // ✅ CORRETO - Seguindo padrões 1qa.md para imports
+      const { db, sql } = await import('@shared/schema');
+      const { users } = await import('@shared/schema');
+      const { eq, and } = await import('drizzle-orm');
 
-      // Update user profile following 1qa.md patterns
-      // Users table is in public schema, not tenant schema  
-      console.log('[PROFILE-UPDATE] Using public schema for users table');
+      console.log('[PROFILE-UPDATE] Using Drizzle ORM following 1qa.md patterns');
       console.log('[PROFILE-UPDATE] Updating with data:', { firstName, lastName, phone, department, position, bio, location, timezone, dateOfBirth, address, userId, tenantId });
       
+      // ✅ CORRETO - Tenant isolation obrigatório seguindo 1qa.md
       // First verify user exists
-      const existingUser = await pool.query('SELECT id, first_name, last_name, phone FROM public.users WHERE id = $1 AND tenant_id = $2', [userId, tenantId]);
-      console.log('[PROFILE-UPDATE] Current user data BEFORE update:', existingUser.rows[0] || 'USER NOT FOUND');
+      const existingUser = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          phone: users.phone
+        })
+        .from(users)
+        .where(
+          and(
+            eq(users.id, userId),
+            eq(users.tenantId, tenantId)
+          )
+        );
       
-      const result = await pool.query(`
-        UPDATE "public".users 
-        SET 
-          first_name = $1,
-          last_name = $2,
-          phone = $3,
-          department_id = $4,
-          position = $5,
-          time_zone = $6,
-          updated_at = NOW()
-        WHERE id = $7 AND tenant_id = $8
-        RETURNING 
-          id, 
-          first_name as "firstName", 
-          last_name as "lastName", 
-          email, 
-          phone, 
-          role,
-          tenant_id as "tenantId",
-          COALESCE(department_id, '') as "department",
-          position,
-          COALESCE(time_zone, 'America/Sao_Paulo') as "timezone",
-          avatar_url,
-          updated_at as "updatedAt"
-      `, [firstName, lastName, phone, department, position, timezone, userId, tenantId]);
+      console.log('[PROFILE-UPDATE] Current user data BEFORE update:', existingUser[0] || 'USER NOT FOUND');
+      
+      // ✅ CORRETO - Update com tenant isolation usando Drizzle ORM
+      const result = await db
+        .update(users)
+        .set({
+          firstName: firstName,
+          lastName: lastName,
+          phone: phone,
+          departmentId: department || null,
+          position: position,
+          timeZone: timezone,
+          updatedAt: sql`NOW()`
+        })
+        .where(
+          and(
+            eq(users.id, userId),
+            eq(users.tenantId, tenantId)
+          )
+        )
+        .returning({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          tenantId: users.tenantId,
+          department: users.departmentId,
+          position: users.position,
+          timezone: users.timeZone,
+          avatarUrl: users.avatarUrl,
+          updatedAt: users.updatedAt
+        });
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'User profile not found'
         });
-      }
-
-      console.log('[PROFILE-UPDATE] Raw UPDATE result:', result);
-      console.log('[PROFILE-UPDATE] Profile updated successfully:', result.rows[0]);
-      
-      // Critical verification - force a separate connection to verify data persistence
-      const verifyResult = await pool.query('SELECT first_name, last_name, phone, updated_at FROM public.users WHERE id = $1 AND tenant_id = $2', [userId, tenantId]);
-      console.log('[PROFILE-UPDATE] VERIFICATION - data in DB AFTER update:', verifyResult.rows[0]);
-      
-      // Double check - return the verification result instead of the update result
-      if (verifyResult.rows.length > 0) {
-        const verified = verifyResult.rows[0];
-        res.json({
-          id: userId,
-          firstName: verified.first_name,
-          lastName: verified.last_name,
-          email: req.user?.email,
-          role: req.user?.role,
-          tenantId: tenantId,
-          phone: verified.phone,
-          department: '',
-          position: verified.position || '',
-          bio: '',
-          location: '',
-          timezone: verified.time_zone || 'America/Sao_Paulo',
-          dateOfBirth: '',
-          address: '',
-          updatedAt: verified.updated_at
-        });
       } else {
-        res.json(result.rows[0]);
+        console.log('[PROFILE-UPDATE] User profile updated successfully with Drizzle ORM:', result[0]);
+        res.json(result[0]);
       }
 
     } catch (error) {
@@ -1872,28 +1873,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Fetch recent user activity from tickets and other systems
-      const result = await pool.query(`
-        SELECT 
-          'ticket_created' as type,
-          'Ticket criado: ' || t.title as description,
-          t.created_at as timestamp
-        FROM "${schemaName}".tickets t
-        WHERE t.created_by = $1
-        UNION ALL
-        SELECT 
-          'ticket_updated' as type,
-          'Ticket atualizado: ' || t.title as description,
-          t.updated_at as timestamp
-        FROM "${schemaName}".tickets t
-        WHERE t.assigned_to = $1 AND t.updated_at != t.created_at
-        ORDER BY timestamp DESC
-        LIMIT 10
-      `, [userId]);
+      // ✅ CORRETO - Usando Drizzle ORM e campo correto seguindo 1qa.md
+      const { db, sql } = await import('@shared/schema');
+      const { tickets } = await import('@shared/schema');
+      const { eq, and, ne, desc } = await import('drizzle-orm');
+
+      // ✅ CORRETO - Campo correto é 'subject', não 'title'
+      const ticketsCreated = await db
+        .select({
+          type: sql<string>`'ticket_created'`,
+          description: sql<string>`'Ticket criado: ' || ${tickets.subject}`,
+          timestamp: tickets.createdAt
+        })
+        .from(tickets)
+        .where(
+          and(
+            eq(tickets.tenantId, tenantId),
+            eq(tickets.callerId, userId)
+          )
+        )
+        .orderBy(desc(tickets.createdAt))
+        .limit(5);
+
+      const ticketsUpdated = await db
+        .select({
+          type: sql<string>`'ticket_updated'`,
+          description: sql<string>`'Ticket atualizado: ' || ${tickets.subject}`,
+          timestamp: tickets.updatedAt
+        })
+        .from(tickets)
+        .where(
+          and(
+            eq(tickets.tenantId, tenantId),
+            eq(tickets.assignedToId, userId),
+            ne(tickets.updatedAt, tickets.createdAt)
+          )
+        )
+        .orderBy(desc(tickets.updatedAt))
+        .limit(5);
+
+      // Combinar e ordenar resultados
+      const result = [...ticketsCreated, ...ticketsUpdated]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 10);
 
       res.json({
         success: true,
-        data: result.rows
+        data: result
       });
 
     } catch (error) {
