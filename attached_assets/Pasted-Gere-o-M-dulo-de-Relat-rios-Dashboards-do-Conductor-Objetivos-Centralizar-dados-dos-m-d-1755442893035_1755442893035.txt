@@ -1,0 +1,122 @@
+Gere o **Módulo de Relatórios & Dashboards** do Conductor.
+
+## Objetivos
+- Centralizar dados dos módulos (Tickets, SLAs, Manutenções, Despesas etc).
+- Criar **múltiplos dashboards** por usuário/equipe, com **atualização em tempo real** (SSE/WebSocket).
+- Permitir **compartilhamento por token** com **links públicos** configuráveis:
+  - **público sem login** (somente leitura, token no link)
+  - **público com login** (token + autenticação)
+  - tokens com **expiração/revogação** e escopo de dados.
+- Oferecer **relatórios** com execução agendada/automática e **gatilhos/ações** baseados nos resultados.
+- Suportar **múltiplas visualizações** (barra, pizza, linha, área, treemap/treeview, heatmap, tabela, KPI).
+
+---
+
+## Requisitos Funcionais
+
+### 1) Relatórios (Builder, Execução e Automação)
+- CRUD de relatórios com `query_json` (fonte, métricas, grupos, filtros, params).
+- Execução **sob demanda** e **automática** (agendamentos cron/RRULE).
+- Histórico de execuções (dataset, metadados, performance).
+- Exportação: CSV, XLSX, PDF, PNG.
+- **Gatilhos/Ações** baseados em resultados:
+  - operadores: `> >= < <= == != IN BETWEEN EXISTS`
+  - ações: notificar (email/in-app/webhook), abrir/atualizar ticket, disparar outro relatório, acender banner no dashboard.
+
+### 2) Dashboards (Múltiplos, Tempo Real e Gestão)
+- **Vários dashboards** por usuário/equipe/tenant.
+- Widgets: gráfico, tabela, KPI, texto.
+- **Tempo real**:
+  - canal push por **WebSocket** (preferencial) e fallback **SSE**.
+  - fontes: eventos operacionais (ex.: novo ticket, SLA violado), datasets reprocessados, KPIs.
+  - granularidade por widget (subscribe/unsubscribe).
+- Layout drag & drop (grid responsivo), filtros globais (intervalo, cliente, local, equipe), **drill-down**.
+
+### 3) Visualizações
+- Gráficos: barra/coluna, linha, área, pizza, donut, **treemap/treeview**, heatmap.
+- Tabelas dinâmicas (sort, paginação, subtotal/total).
+- KPI Cards (valor, meta, variação, semáforo).
+- **Mesma consulta com múltiplas visualizações** configuráveis.
+
+### 4) Compartilhamento por Token (Links Públicos)
+- Gerar **link público** com **token** e escopo:
+  - modo **sem login** (public read-only) ou **com login** (token + auth).
+- Configurações do token:
+  - **escopo de dados** (tenant, centros de custo, clientes, filtros fixos),
+  - **permissões** (viewer-only, bloqueio de drill-down/export),
+  - **expiração** (data/hora), **limite de acessos**, **IP allowlist** (opcional).
+- **Revogação** imediata de tokens; logs de acesso (quem/quando/origem).
+- Compartilhamento direto de **dashboard** ou **widget** ou **instantâneo (snapshot)**.
+
+### 5) Permissões & Segurança
+- Visibilidade: `private | group | customer | public`.
+- RBAC (owner/editor/viewer) em relatórios e dashboards.
+- Escopo de dados por política (tenant, local, contrato).
+- Proteção contra enumeração de tokens (128+ bits, tempo constante, rate limit).
+- Modo kiosk (somente exibição, sem controles).
+
+### 6) Alertas & Monitoramento
+- Alertas derivados de triggers ou métricas de widgets.
+- Centro de alertas (open/acked/closed), histórico e comentários.
+
+---
+
+## Requisitos Não Funcionais
+- **Clean Architecture** (Domain/Application/Infrastructure).
+- **Testes** unitários/integração (cobertura ≥ 80%).
+- **Performance**: cache de consultas, pré-agregações (quando aplicável), índices; push incremental.
+- **Escalabilidade**: vários dashboards simultâneos, centenas de assinaturas WebSocket por tenant.
+- **Acessibilidade**: WCAG 2.1 AA.
+- **Observabilidade**: métricas (latência de push, cache hit, falhas), tracing distribuído.
+- **Auditoria**: todas as ações em `audit_logs`.
+
+---
+
+## Modelo de Dados (mínimo)
+
+- **reports**(id, tenant_id, name, description, query_json, params_json, owner_id, visibility, scope_json, created_at, updated_at)
+- **report_executions**(id, report_id, executed_by, executed_at, status, runtime_ms, row_count, result_ref, meta_json)
+- **report_schedules**(id, report_id, schedule_expr, timezone, is_active, next_run_at, delivery_config_json)
+- **report_triggers**(id, report_id, rule_json, actions_json, is_active, last_fired_at)
+
+- **dashboards**(id, tenant_id, name, description, layout_json, filters_json, owner_id, visibility, realtime_enabled, created_at)
+- **widgets**(id, dashboard_id, type(chart|table|kpi|text), viz(bar|line|area|pie|donut|treemap|heatmap|table|kpi), config_json, position, refresh_interval_sec, realtime_channel)
+
+- **share_tokens**(id, object_type(report|dashboard|widget|snapshot), object_id, mode(with_login|no_login), token_hash, scope_json, permissions_json, expires_at, max_uses, used_count, ip_whitelist_json, created_by, created_at, revoked_at)
+
+- **public_links**(id, object_type, object_id, token_id, url_slug, created_at)
+
+- **alerts**(id, name, source_type(trigger|metric), object_id, severity(info|warn|crit), status(open|acked|closed), payload_json, created_at, closed_at)
+
+- **audit_logs**(tenant_id, user_id, action, snapshots, created_at)
+
+---
+
+## APIs (exemplos)
+
+### Relatórios
+- **POST /api/reports** – cria/atualiza relatório
+- **POST /api/reports/{id}/execute** – executa agora
+- **GET /api/reports/{id}/executions** – histórico
+- **POST /api/reports/{id}/schedule** – agenda execução automática
+- **POST /api/reports/{id}/trigger** – define regras de gatilho/ação
+
+### Dashboards & Widgets
+- **POST /api/dashboards** – cria dashboard (múltiplos por usuário/equipe)
+- **PUT /api/dashboards/{id}** – edita (layout, filtros, tempo real on/off)
+- **POST /api/widgets** – adiciona widget (tipo, viz, config)
+- **GET /api/dashboards/{id}/view** – render + dados (aplica permissões)
+- **WS /realtime** – canal WebSocket; `SUBSCRIBE {dashboardId, widgetIds}` / `UNSUBSCRIBE`
+- **GET /sse/dashboards/{id}** – fallback SSE
+
+### Compartilhamento por Token
+- **POST /api/share** – gera token (objeto + modo + escopo + permissões + expiração)
+- **DELETE /api/share/{tokenId}** – revoga token
+- **GET /pub/{objectType}/{slugOrToken}** – acesso público sem login (se permitido)
+- **GET /pub/{objectType}/{slugOrToken}/data** – dataset sob token (read-only)
+- **GET /api/share/{tokenId}/audit** – logs de acesso
+
+### Alertas & Ações
+- **POST /api/alerts** – cria alerta manual
+- **POST /api/webhooks/report-action** – ações externas
+- **POST /api/tickets** – abrir ticket a partir de trigger
