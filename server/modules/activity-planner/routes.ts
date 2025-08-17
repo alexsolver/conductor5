@@ -4,7 +4,7 @@
 import { Router } from 'express';
 import { ActivityPlannerController } from './application/controllers/ActivityPlannerController';
 import { DrizzleActivityPlannerRepository } from './infrastructure/repositories/DrizzleActivityPlannerRepository';
-import { jwtAuth } from '../../middleware/jwtAuth';
+import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 
 const router = Router();
 

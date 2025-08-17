@@ -9,9 +9,10 @@ import { insertActivityCategorySchema, insertActivityTemplateSchema, insertActiv
 
 interface AuthenticatedRequest extends Request {
   user?: {
-    userId: string;
+    id: string;
     tenantId: string;
     email: string;
+    role: string;
   };
 }
 
@@ -57,7 +58,7 @@ export class ActivityPlannerController {
   async createCategory(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       
       const validatedData = insertActivityCategorySchema.parse({
         ...req.body,
@@ -118,7 +119,7 @@ export class ActivityPlannerController {
   async updateCategory(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       const categoryId = req.params.id;
 
       const validatedData = { ...req.body, updatedBy: userId };
@@ -164,7 +165,7 @@ export class ActivityPlannerController {
   async createTemplate(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       
       const validatedData = insertActivityTemplateSchema.parse({
         ...req.body,
@@ -226,7 +227,7 @@ export class ActivityPlannerController {
   async createSchedule(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       
       const validatedData = insertActivityScheduleSchema.parse({
         ...req.body,
@@ -290,7 +291,7 @@ export class ActivityPlannerController {
   async createInstance(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       
       const validatedData = insertActivityInstanceSchema.parse({
         ...req.body,
@@ -366,7 +367,7 @@ export class ActivityPlannerController {
   async updateInstance(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       const instanceId = req.params.id;
 
       const validatedData = { ...req.body, updatedBy: userId };
@@ -412,7 +413,7 @@ export class ActivityPlannerController {
   async startInstance(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       const instanceId = req.params.id;
 
       const instance = await this.activityRepository.getInstanceById(instanceId, tenantId);
@@ -489,7 +490,7 @@ export class ActivityPlannerController {
   async completeInstance(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       const instanceId = req.params.id;
       const { completionNotes, qualityScore } = req.body;
 
@@ -613,7 +614,7 @@ export class ActivityPlannerController {
   async bulkUpdateInstanceStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       const { instanceIds, status } = req.body;
 
       if (!Array.isArray(instanceIds) || instanceIds.length === 0) {
@@ -643,7 +644,7 @@ export class ActivityPlannerController {
   async bulkAssignInstances(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId!;
-      const userId = req.user?.userId!;
+      const userId = req.user?.id!;
       const { instanceIds, assignedUserId, assignedTeamId } = req.body;
 
       if (!Array.isArray(instanceIds) || instanceIds.length === 0) {

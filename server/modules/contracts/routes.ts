@@ -5,7 +5,7 @@ import { Router } from 'express';
 import { ContractController } from './application/controllers/ContractController';
 import { DrizzleContractRepository } from './infrastructure/repositories/DrizzleContractRepository';
 import { ContractDomainService } from './domain/services/ContractDomainService';
-import { jwtAuth } from '../../middleware/jwtAuth';
+import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 
 const router = Router();
 
