@@ -1,6 +1,8 @@
 /**
- * ContractController - Controlador de contratos
- * Seguindo Clean Architecture e 1qa.md compliance
+ * CONTRACT CONTROLLER - CLEAN ARCHITECTURE IMPLEMENTATION
+ * ✅ 1QA.MD COMPLIANCE: Pure PostgreSQL with Drizzle ORM
+ * ✅ CLEAN ARCHITECTURE: Application layer controller
+ * ✅ AUTHENTICATION: JWT token validation required
  */
 
 import { Request, Response } from 'express';

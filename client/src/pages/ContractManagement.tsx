@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { CreateContractDialog } from '@/components/forms/CreateContractDialog';
 
 // Tipos de contrato
 const contractTypes = [
@@ -181,6 +182,12 @@ export default function ContractManagement() {
             Novo Contrato
           </Button>
         </div>
+
+        {/* Dialog para criar novo contrato */}
+        <CreateContractDialog 
+          open={isCreateDialogOpen} 
+          onOpenChange={setIsCreateDialogOpen} 
+        />
 
         {/* Métricas do Dashboard */}
         {dashboardMetrics?.data && (

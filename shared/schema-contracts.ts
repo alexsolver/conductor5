@@ -1,9 +1,12 @@
 /**
- * Contracts Schema - Schema de banco de dados para o módulo de gestão de contratos
- * Seguindo padrões Drizzle ORM e 1qa.md compliance
+ * CONTRACT MANAGEMENT MODULE - SCHEMA DEFINITIONS
+ * ✅ 1QA.MD COMPLIANCE: Pure Drizzle ORM without @neondatabase/serverless
+ * ✅ CLEAN ARCHITECTURE: Domain-driven schema design
+ * ✅ MULTI-TENANT: Schema isolation via tenant_id
  */
 
 import { pgTable, varchar, uuid, timestamp, text, decimal, boolean, integer, date, pgEnum } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
