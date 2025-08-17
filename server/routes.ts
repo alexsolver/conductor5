@@ -1741,10 +1741,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({
-        success: true,
-        data: result.rows[0]
-      });
+      console.log('[PROFILE-GET] Profile fetched successfully:', result.rows[0]);
+      res.json(result.rows[0]);
 
     } catch (error) {
       console.error('[USER-PROFILE] Error fetching profile:', error);
@@ -1772,20 +1770,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Update user profile
+      // Update user profile following 1qa.md patterns
+      // Users table is in public schema, not tenant schema  
+      console.log('[PROFILE-UPDATE] Using public schema for users table');
       const result = await pool.query(`
-        UPDATE "${schemaName}".users 
+        UPDATE "public".users 
         SET 
           first_name = $1,
           last_name = $2,
-          email = $3,
-          phone = $4,
-          department = $5,
-          position = $6,
+          phone = $3,
+          position = $4,
           updated_at = NOW()
-        WHERE id = $7 AND tenant_id = $8
-        RETURNING id, first_name as "firstName", last_name as "lastName", email, phone, department, position
-      `, [firstName, lastName, email, phone, department, position, userId, tenantId]);
+        WHERE id = $5 AND tenant_id = $6
+        RETURNING 
+          id, 
+          first_name as "firstName", 
+          last_name as "lastName", 
+          email, 
+          phone, 
+          role,
+          department,
+          position,
+          avatar_url,
+          updated_at as "updatedAt"
+      `, [firstName, lastName, phone, position, userId, tenantId]);
 
       if (result.rows.length === 0) {
         return res.status(404).json({
@@ -1794,11 +1802,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({
-        success: true,
-        data: result.rows[0],
-        message: 'Profile updated successfully'
-      });
+      console.log('[PROFILE-UPDATE] Profile updated successfully:', result.rows[0]);
+      res.json(result.rows[0]);
 
     } catch (error) {
       console.error('[USER-PROFILE] Error updating profile:', error);
