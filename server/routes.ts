@@ -1709,7 +1709,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Fetch user profile with extended information
+      // Fetch user profile with extended information following 1qa.md patterns
+      // Use schemaManager for consistent naming across system
+      console.log('[PROFILE-GET] Using schema:', schemaName);
       const result = await pool.query(`
         SELECT 
           u.id,
@@ -1948,6 +1950,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[PROFILE-PHOTO] Avatar upload completed:', { objectPath, userId, tenantId });
       
       // Update avatar_url in user record following 1qa.md database patterns
+      // Use schemaManager for consistent naming across system
+      console.log('[PROFILE-PHOTO] Using schema:', schemaName);
       await pool.query(`
         UPDATE "${schemaName}".users 
         SET avatar_url = $1, updated_at = NOW()
@@ -2089,7 +2093,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Get user preferences (with defaults)
+      // Get user preferences (with defaults) following 1qa.md patterns
+      // Use schemaManager for consistent naming across system
+      console.log('[PREFERENCES-GET] Using schema:', schemaName);
       const result = await pool.query(`
         SELECT 
           'pt-BR' as language,
@@ -2138,7 +2144,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Update user preferences following 1qa.md patterns  
+      // Update user preferences following 1qa.md patterns
+      // Use schemaManager for consistent naming across system
+      console.log('[PREFERENCES-UPDATE] Using schema:', schemaName);
       await pool.query(`
         UPDATE "${schemaName}".users 
         SET updated_at = NOW()
