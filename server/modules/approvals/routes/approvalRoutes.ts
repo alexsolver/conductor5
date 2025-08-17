@@ -3,7 +3,7 @@
 
 import { Router } from 'express';
 import { ApprovalController } from '../controllers/ApprovalController';
-import { authenticateJWT } from '../../../middleware/auth';
+import { jwtAuth as authenticateJWT } from '../../../middleware/jwtAuth';
 
 const router = Router();
 const approvalController = new ApprovalController();
