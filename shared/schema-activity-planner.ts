@@ -339,6 +339,8 @@ export const insertAssetSchema = createInsertSchema(assets).omit({
   createdAt: true, 
   updatedAt: true,
   updatedBy: true 
+}).extend({
+  parentAssetId: z.string().uuid().optional()
 });
 
 export const insertMaintenancePlanSchema = createInsertSchema(maintenancePlans).omit({ 

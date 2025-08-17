@@ -6,7 +6,7 @@
 
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { AuthenticatedRequest } from '../../../middleware/jwtAuth.js';
 import { AssetApplicationService } from '../services/AssetApplicationService';
 import { insertAssetSchema } from '@shared/schema-activity-planner';
 

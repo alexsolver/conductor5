@@ -1,91 +1,62 @@
 /**
  * WorkOrder Entity - Entidade de domínio para ordens de serviço
- * Representa trabalhos de manutenção a serem executados
+ * Representa ordens de trabalho de manutenção preventiva, corretiva ou preditiva
  * Seguindo padrões Clean Architecture e 1qa.md
  */
 
-export interface WorkOrderTask {
-  id: string;
-  workOrderId: string;
-  sequence: number;
+export interface IdleTimePolicy {
+  stages: IdleTimeStage[];
+  escalationRules: EscalationRule[];
+}
+
+export interface IdleTimeStage {
   name: string;
-  description?: string;
-  estimatedDuration: number; // em minutos
-  requiredSkillsJson: string[];
-  requiredCertificationsJson: string[];
-  checklistJson: ChecklistItem[];
-  requiredPartsJson?: WorkOrderPart[];
-  dependencies: string[]; // IDs de outras tarefas
-  status: TaskStatus;
-  assignedTechnicianId?: string;
-  actualStart?: Date;
-  actualEnd?: Date;
-  notes?: string;
-  evidenceJson?: TaskEvidence[];
-  createdAt: Date;
-  updatedAt: Date;
+  thresholdMinutes: number;
+  actions: IdleTimeAction[];
 }
 
-export interface ChecklistItem {
-  id: string;
-  description: string;
-  type: 'boolean' | 'numeric' | 'text' | 'photo' | 'signature';
-  required: boolean;
-  value?: any;
-  completed: boolean;
-  completedAt?: Date;
-  completedBy?: string;
+export interface IdleTimeAction {
+  type: 'notification' | 'reassign' | 'escalate' | 'auto_approve';
+  targetRoles?: string[];
+  targetUsers?: string[];
+  message?: string;
 }
 
-export interface WorkOrderPart {
-  id: string;
-  materialServiceId: string;
-  quantityRequired: number;
-  quantityReserved: number;
-  quantityUsed: number;
-  status: 'pending' | 'reserved' | 'issued' | 'consumed' | 'returned';
-  isOptional: boolean;
+export interface EscalationRule {
+  level: number;
+  delayMinutes: number;
+  targetRoles: string[];
+  autoApprove?: boolean;
 }
 
-export interface TaskEvidence {
-  id: string;
-  type: 'photo' | 'measurement' | 'signature' | 'document';
-  filename?: string;
-  url?: string;
-  value?: any;
-  description?: string;
-  capturedAt: Date;
-  capturedBy: string;
+export interface RiskAssessment {
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  hazards: string[];
+  mitigationMeasures: string[];
+  requiredPPE: string[];
+  safetyPrecautions: string[];
+  environmentalImpact?: string;
+  requiresPermit: boolean;
+  permitTypes?: string[];
 }
 
-export type WorkOrderStatus = 
-  | 'drafted' 
-  | 'scheduled' 
-  | 'in_progress' 
-  | 'waiting_parts' 
-  | 'waiting_window' 
-  | 'waiting_client' 
-  | 'completed' 
-  | 'approved' 
-  | 'closed' 
-  | 'rejected' 
-  | 'canceled';
-
-export type TaskStatus = 'pending' | 'doing' | 'blocked' | 'done' | 'verified';
-
-export type WorkOrderOrigin = 'pm' | 'incident' | 'manual' | 'condition';
-
-export type WorkOrderPriority = 'low' | 'medium' | 'high' | 'critical' | 'emergency';
+export interface WorkOrderCosts {
+  labor: number;
+  parts: number;
+  external: number;
+  overhead?: number;
+  total: number;
+}
 
 export interface WorkOrder {
   id: string;
   tenantId: string;
   assetId: string;
-  ticketId?: string; // vinculado a um ticket se origem for incident
-  maintenancePlanId?: string; // vinculado a um plano se origem for PM
-  origin: WorkOrderOrigin;
-  priority: WorkOrderPriority;
-  status: WorkOrderStatus;
+  ticketId?: string; // vinculado a ticket se origem for incident
+  maintenancePlanId?: string; // vinculado a plano se origem for PM
+  origin: 'pm' | 'incident' | 'manual' | 'condition';
+  priority: 'low' | 'medium' | 'high' | 'critical' | 'emergency';
+  status: 'drafted' | 'scheduled' | 'in_progress' | 'waiting_parts' | 'waiting_window' | 'waiting_client' | 'completed' | 'approved' | 'closed' | 'rejected' | 'canceled';
   title: string;
   description?: string;
   estimatedDuration: number; // em minutos
@@ -108,34 +79,14 @@ export interface WorkOrder {
   externalCost: number;
   completionPercentage: number;
   notes?: string;
-  riskAssessment?: RiskAssessment;
-  permitsRequired: string[];
-  safetyRequirements: string[];
+  riskAssessmentJson?: RiskAssessment;
+  permitsRequiredJson?: string[];
+  safetyRequirementsJson?: string[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
   updatedBy: string;
-  // Relacionamentos
-  tasks?: WorkOrderTask[];
-  partsReservations?: WorkOrderPart[];
-}
-
-export interface IdleTimePolicy {
-  warningThresholdMinutes: number; // ex: 240 (4h)
-  escalationThresholdMinutes: number; // ex: 480 (8h)
-  autoReassignThresholdMinutes: number; // ex: 720 (12h)
-  notificationEmails: string[];
-  escalationUserIds: string[];
-}
-
-export interface RiskAssessment {
-  riskLevel: 'low' | 'medium' | 'high' | 'critical';
-  hazards: string[];
-  mitigationMeasures: string[];
-  requiredPPE: string[];
-  assessedBy: string;
-  assessedAt: Date;
 }
 
 export interface InsertWorkOrder {
@@ -143,8 +94,8 @@ export interface InsertWorkOrder {
   assetId: string;
   ticketId?: string;
   maintenancePlanId?: string;
-  origin: WorkOrderOrigin;
-  priority: WorkOrderPriority;
+  origin: 'pm' | 'incident' | 'manual' | 'condition';
+  priority: 'low' | 'medium' | 'high' | 'critical' | 'emergency';
   title: string;
   description?: string;
   estimatedDuration: number;
@@ -152,13 +103,16 @@ export interface InsertWorkOrder {
   scheduledEnd?: Date;
   slaTargetAt?: Date;
   idlePolicyJson?: IdleTimePolicy;
+  assignedTechnicianId?: string;
+  assignedTeamId?: string;
   locationId: string;
   contactPersonId?: string;
-  requiresApproval: boolean;
+  requiresApproval?: boolean;
   approvalWorkflowId?: string;
-  riskAssessment?: RiskAssessment;
-  permitsRequired: string[];
-  safetyRequirements: string[];
+  notes?: string;
+  riskAssessmentJson?: RiskAssessment;
+  permitsRequiredJson?: string[];
+  safetyRequirementsJson?: string[];
   createdBy: string;
 }
 
@@ -177,33 +131,40 @@ export class WorkOrderEntity {
     return this.workOrder.assetId;
   }
 
-  getStatus(): WorkOrderStatus {
-    return this.workOrder.status;
+  getTitle(): string {
+    return this.workOrder.title;
   }
 
-  getPriority(): WorkOrderPriority {
-    return this.workOrder.priority;
-  }
-
-  getOrigin(): WorkOrderOrigin {
+  getOrigin(): 'pm' | 'incident' | 'manual' | 'condition' {
     return this.workOrder.origin;
   }
 
-  getTitle(): string {
-    return this.workOrder.title;
+  getPriority(): 'low' | 'medium' | 'high' | 'critical' | 'emergency' {
+    return this.workOrder.priority;
+  }
+
+  getStatus(): 'drafted' | 'scheduled' | 'in_progress' | 'waiting_parts' | 'waiting_window' | 'waiting_client' | 'completed' | 'approved' | 'closed' | 'rejected' | 'canceled' {
+    return this.workOrder.status;
   }
 
   getEstimatedDuration(): number {
     return this.workOrder.estimatedDuration;
   }
 
-  isScheduled(): boolean {
-    return !!this.workOrder.scheduledStart && !!this.workOrder.scheduledEnd;
+  getCompletionPercentage(): number {
+    return this.workOrder.completionPercentage;
   }
 
-  isOverdue(): boolean {
-    if (!this.workOrder.slaTargetAt) return false;
-    return new Date() > this.workOrder.slaTargetAt;
+  getTotalCost(): number {
+    return this.workOrder.totalCost;
+  }
+
+  isActive(): boolean {
+    return this.workOrder.isActive;
+  }
+
+  isScheduled(): boolean {
+    return !!this.workOrder.scheduledStart && !!this.workOrder.scheduledEnd;
   }
 
   isInProgress(): boolean {
@@ -214,112 +175,235 @@ export class WorkOrderEntity {
     return ['completed', 'approved', 'closed'].includes(this.workOrder.status);
   }
 
-  canStart(): boolean {
-    return this.workOrder.status === 'scheduled' && !!this.workOrder.assignedTechnicianId;
+  isCanceled(): boolean {
+    return ['rejected', 'canceled'].includes(this.workOrder.status);
   }
 
-  canComplete(): boolean {
-    return this.workOrder.status === 'in_progress' && this.workOrder.completionPercentage >= 100;
+  isOverdue(): boolean {
+    if (!this.workOrder.slaTargetAt) return false;
+    return new Date() > this.workOrder.slaTargetAt && !this.isCompleted();
+  }
+
+  isPastSchedule(): boolean {
+    if (!this.workOrder.scheduledEnd) return false;
+    return new Date() > this.workOrder.scheduledEnd && !this.isCompleted();
+  }
+
+  isHighPriority(): boolean {
+    return ['high', 'critical', 'emergency'].includes(this.workOrder.priority);
+  }
+
+  requiresRiskAssessment(): boolean {
+    return !!this.workOrder.riskAssessmentJson;
+  }
+
+  requiresPermits(): boolean {
+    return !!this.workOrder.permitsRequiredJson && this.workOrder.permitsRequiredJson.length > 0;
   }
 
   requiresApproval(): boolean {
     return this.workOrder.requiresApproval;
   }
 
-  start(): void {
-    if (!this.canStart()) {
-      throw new Error('Work order cannot be started in current state');
+  isApproved(): boolean {
+    return this.workOrder.approvalStatus === 'approved';
+  }
+
+  isPendingApproval(): boolean {
+    return this.workOrder.approvalStatus === 'pending';
+  }
+
+  canStart(): boolean {
+    if (!this.workOrder.isActive) return false;
+    if (this.isCompleted() || this.isCanceled()) return false;
+    if (this.requiresApproval() && !this.isApproved()) return false;
+    return ['drafted', 'scheduled'].includes(this.workOrder.status);
+  }
+
+  canComplete(): boolean {
+    return this.workOrder.status === 'in_progress' && this.workOrder.completionPercentage >= 100;
+  }
+
+  updateStatus(
+    newStatus: 'drafted' | 'scheduled' | 'in_progress' | 'waiting_parts' | 'waiting_window' | 'waiting_client' | 'completed' | 'approved' | 'closed' | 'rejected' | 'canceled',
+    updatedBy: string
+  ): void {
+    const oldStatus = this.workOrder.status;
+    this.workOrder.status = newStatus;
+    this.workOrder.updatedBy = updatedBy;
+    this.workOrder.updatedAt = new Date();
+
+    // Atualizar timestamps baseado no status
+    if (newStatus === 'in_progress' && !this.workOrder.actualStart) {
+      this.workOrder.actualStart = new Date();
     }
-    this.workOrder.status = 'in_progress';
-    this.workOrder.actualStart = new Date();
-    this.workOrder.updatedAt = new Date();
-  }
 
-  pause(): void {
-    if (!this.isInProgress()) {
-      throw new Error('Work order is not in progress');
+    if (newStatus === 'completed' && !this.workOrder.actualEnd) {
+      this.workOrder.actualEnd = new Date();
+      this.workOrder.completionPercentage = 100;
     }
-    // Status permanece 'in_progress' mas pode adicionar flag de pause se necessário
-    this.workOrder.updatedAt = new Date();
+
+    console.log(`WorkOrder ${this.workOrder.id} status changed: ${oldStatus} → ${newStatus}`);
   }
 
-  complete(): void {
-    if (!this.canComplete()) {
-      throw new Error('Work order cannot be completed in current state');
+  updateProgress(percentage: number, updatedBy: string): void {
+    if (percentage < 0 || percentage > 100) {
+      throw new Error('Completion percentage must be between 0 and 100');
     }
-    this.workOrder.status = 'completed';
-    this.workOrder.actualEnd = new Date();
-    this.workOrder.completionPercentage = 100;
-    this.workOrder.updatedAt = new Date();
-  }
 
-  approve(): void {
-    if (this.workOrder.status !== 'completed') {
-      throw new Error('Work order must be completed before approval');
+    this.workOrder.completionPercentage = percentage;
+    this.workOrder.updatedBy = updatedBy;
+    this.workOrder.updatedAt = new Date();
+
+    if (percentage === 100 && this.workOrder.status === 'in_progress') {
+      this.updateStatus('completed', updatedBy);
     }
-    this.workOrder.status = 'approved';
-    this.workOrder.approvalStatus = 'approved';
+  }
+
+  updateCosts(costs: Partial<WorkOrderCosts>, updatedBy: string): void {
+    if (costs.labor !== undefined) this.workOrder.laborCost = costs.labor;
+    if (costs.parts !== undefined) this.workOrder.partsCost = costs.parts;
+    if (costs.external !== undefined) this.workOrder.externalCost = costs.external;
+
+    this.recalculateTotalCost();
+    this.workOrder.updatedBy = updatedBy;
     this.workOrder.updatedAt = new Date();
   }
 
-  reject(reason?: string): void {
-    this.workOrder.status = 'rejected';
-    this.workOrder.approvalStatus = 'rejected';
-    if (reason) {
-      this.workOrder.notes = (this.workOrder.notes || '') + `\n[REJECTED] ${reason}`;
+  schedule(startDate: Date, endDate: Date, updatedBy: string): void {
+    if (startDate >= endDate) {
+      throw new Error('Start date must be before end date');
     }
-    this.workOrder.updatedAt = new Date();
-  }
 
-  cancel(reason?: string): void {
-    this.workOrder.status = 'canceled';
-    if (reason) {
-      this.workOrder.notes = (this.workOrder.notes || '') + `\n[CANCELED] ${reason}`;
-    }
-    this.workOrder.updatedAt = new Date();
-  }
-
-  assignTechnician(technicianId: string): void {
-    this.workOrder.assignedTechnicianId = technicianId;
-    this.workOrder.updatedAt = new Date();
-  }
-
-  schedule(startDate: Date, endDate: Date): void {
     this.workOrder.scheduledStart = startDate;
     this.workOrder.scheduledEnd = endDate;
-    this.workOrder.status = 'scheduled';
+    this.workOrder.updatedBy = updatedBy;
     this.workOrder.updatedAt = new Date();
-  }
 
-  updateProgress(percentage: number): void {
-    if (percentage < 0 || percentage > 100) {
-      throw new Error('Progress percentage must be between 0 and 100');
+    if (this.workOrder.status === 'drafted') {
+      this.updateStatus('scheduled', updatedBy);
     }
-    this.workOrder.completionPercentage = percentage;
+  }
+
+  assignTechnician(technicianId: string, updatedBy: string): void {
+    this.workOrder.assignedTechnicianId = technicianId;
+    this.workOrder.assignedTeamId = undefined; // Clear team assignment
+    this.workOrder.updatedBy = updatedBy;
     this.workOrder.updatedAt = new Date();
   }
 
-  addCost(laborCost: number, partsCost: number, externalCost: number): void {
-    this.workOrder.laborCost += laborCost;
-    this.workOrder.partsCost += partsCost;
-    this.workOrder.externalCost += externalCost;
-    this.workOrder.totalCost = this.workOrder.laborCost + this.workOrder.partsCost + this.workOrder.externalCost;
+  assignTeam(teamId: string, updatedBy: string): void {
+    this.workOrder.assignedTeamId = teamId;
+    this.workOrder.assignedTechnicianId = undefined; // Clear individual assignment
+    this.workOrder.updatedBy = updatedBy;
     this.workOrder.updatedAt = new Date();
   }
 
-  calculateDuration(): number | null {
+  updateRiskAssessment(riskAssessment: RiskAssessment, updatedBy: string): void {
+    this.workOrder.riskAssessmentJson = riskAssessment;
+    this.workOrder.updatedBy = updatedBy;
+    this.workOrder.updatedAt = new Date();
+  }
+
+  addPermitRequirement(permitType: string, updatedBy: string): void {
+    if (!this.workOrder.permitsRequiredJson) {
+      this.workOrder.permitsRequiredJson = [];
+    }
+
+    if (!this.workOrder.permitsRequiredJson.includes(permitType)) {
+      this.workOrder.permitsRequiredJson.push(permitType);
+      this.workOrder.updatedBy = updatedBy;
+      this.workOrder.updatedAt = new Date();
+    }
+  }
+
+  removePermitRequirement(permitType: string, updatedBy: string): void {
+    if (this.workOrder.permitsRequiredJson) {
+      const index = this.workOrder.permitsRequiredJson.indexOf(permitType);
+      if (index > -1) {
+        this.workOrder.permitsRequiredJson.splice(index, 1);
+        this.workOrder.updatedBy = updatedBy;
+        this.workOrder.updatedAt = new Date();
+      }
+    }
+  }
+
+  updateApprovalStatus(
+    status: 'pending' | 'approved' | 'rejected',
+    updatedBy: string
+  ): void {
+    this.workOrder.approvalStatus = status;
+    this.workOrder.updatedBy = updatedBy;
+    this.workOrder.updatedAt = new Date();
+
+    if (status === 'rejected') {
+      this.updateStatus('rejected', updatedBy);
+    }
+  }
+
+  calculateActualDuration(): number | null {
     if (!this.workOrder.actualStart || !this.workOrder.actualEnd) {
       return null;
     }
-    return this.workOrder.actualEnd.getTime() - this.workOrder.actualStart.getTime();
+
+    const durationMs = this.workOrder.actualEnd.getTime() - this.workOrder.actualStart.getTime();
+    return Math.round(durationMs / (1000 * 60)); // converter para minutos
   }
 
-  isWithinSLA(): boolean {
-    if (!this.workOrder.slaTargetAt) return true;
-    if (!this.workOrder.actualEnd && !this.isCompleted()) {
-      return new Date() <= this.workOrder.slaTargetAt;
+  calculateScheduledDuration(): number | null {
+    if (!this.workOrder.scheduledStart || !this.workOrder.scheduledEnd) {
+      return null;
     }
-    return this.workOrder.actualEnd ? this.workOrder.actualEnd <= this.workOrder.slaTargetAt : true;
+
+    const durationMs = this.workOrder.scheduledEnd.getTime() - this.workOrder.scheduledStart.getTime();
+    return Math.round(durationMs / (1000 * 60)); // converter para minutos
+  }
+
+  isWithinEstimate(): boolean {
+    const actualDuration = this.calculateActualDuration();
+    if (!actualDuration) return true;
+
+    const tolerance = this.workOrder.estimatedDuration * 0.1; // 10% de tolerância
+    return actualDuration <= (this.workOrder.estimatedDuration + tolerance);
+  }
+
+  getIdleTime(): number {
+    if (!this.workOrder.actualStart) return 0;
+
+    const now = new Date();
+    const currentDurationMs = now.getTime() - this.workOrder.actualStart.getTime();
+    const currentDurationMinutes = Math.round(currentDurationMs / (1000 * 60));
+
+    // Tempo ocioso = tempo atual - progresso esperado baseado na porcentagem
+    const expectedDuration = (this.workOrder.completionPercentage / 100) * this.workOrder.estimatedDuration;
+    return Math.max(0, currentDurationMinutes - expectedDuration);
+  }
+
+  shouldEscalate(): boolean {
+    if (!this.workOrder.idlePolicyJson) return false;
+
+    const idleTime = this.getIdleTime();
+    const policy = this.workOrder.idlePolicyJson;
+
+    return policy.stages.some(stage => idleTime >= stage.thresholdMinutes);
+  }
+
+  getApplicableIdleStage(): IdleTimeStage | null {
+    if (!this.workOrder.idlePolicyJson) return null;
+
+    const idleTime = this.getIdleTime();
+    const policy = this.workOrder.idlePolicyJson;
+
+    // Retornar o estágio mais alto aplicável
+    const applicableStages = policy.stages
+      .filter(stage => idleTime >= stage.thresholdMinutes)
+      .sort((a, b) => b.thresholdMinutes - a.thresholdMinutes);
+
+    return applicableStages[0] || null;
+  }
+
+  private recalculateTotalCost(): void {
+    this.workOrder.totalCost = this.workOrder.laborCost + this.workOrder.partsCost + this.workOrder.externalCost;
   }
 
   toPlainObject(): WorkOrder {

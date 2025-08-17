@@ -5,7 +5,7 @@
  */
 
 import { eq, and, sql, desc, asc, ilike, isNull, isNotNull, count } from 'drizzle-orm';
-import { db } from '../../../db';
+import { db } from '../../../db.js';
 import { Asset, InsertAsset } from '../../domain/entities/Asset';
 import { 
   IAssetRepository, 
@@ -232,7 +232,7 @@ export class DrizzleAssetRepository implements IAssetRepository {
 
     const children = await this.findChildren(tenantId, assetId);
     const childrenHierarchy = await Promise.all(
-      children.map(child => this.getHierarchy(tenantId, child.id))
+      children.map((child: Asset) => this.getHierarchy(tenantId, child.id))
     );
 
     let parent: Asset | undefined;
@@ -465,7 +465,7 @@ export class DrizzleAssetRepository implements IAssetRepository {
       critical: 0
     };
 
-    results.forEach(result => {
+    results.forEach((result: any) => {
       if (result.criticality in counts) {
         counts[result.criticality as keyof typeof counts] = result.count;
       }
@@ -501,7 +501,7 @@ export class DrizzleAssetRepository implements IAssetRepository {
       decommissioned: 0
     };
 
-    results.forEach(result => {
+    results.forEach((result: any) => {
       if (result.status in counts) {
         counts[result.status as keyof typeof counts] = result.count;
       }
