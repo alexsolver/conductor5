@@ -7,9 +7,8 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { sql } from 'drizzle-orm';
 import { Pool } from 'pg';
 
-// Re-export all schema definitions
+// Re-export all schema definitions - avoiding conflicts
 export * from "./schema-master";
-export * from "./schema-activity-planner";
 
 // Selective export from contracts to avoid conflicts - Export only enums
 export {
@@ -45,13 +44,12 @@ import * as schemaDefinitions from "./schema-master";
 export const db = drizzle({ client: pool, schema: schemaDefinitions });
 export { sql, pool };
 
-// Selective exports from materials-services to avoid conflicts
+// Selective exports from materials-services to avoid conflicts with schema-master
 export {
   itemTypeEnum,
   measurementUnitEnum,
   itemStatusEnum,
   movementTypeEnum,
-  assetStatusEnum,
   linkTypeEnum,
   itemAttachments,
   itemGroups,
@@ -67,7 +65,6 @@ export {
   supplierCatalog,
   serviceTypes,
   serviceExecution,
-  assets,
   assetMovements,
   assetMaintenance,
   assetMeters,
@@ -76,7 +73,6 @@ export {
   priceListVersions,
   pricingRules,
   dynamicPricing,
-  auditLogs,
   materialCertifications,
   complianceAudits,
   complianceAlerts,
@@ -91,7 +87,6 @@ export {
   itemHierarchyRelations,
   stockLocationsRelations,
   suppliersRelations,
-  assetsRelations,
   priceListsRelations
 } from "./schema-materials-services";
 
@@ -135,7 +130,33 @@ export type {
 // Export all tables for migrations - using selective exports to avoid conflicts
 export * from './schema-field-layout';
 export * from './schema-notifications';
-export * from './schema-sla';
+
+// Selective export from schema-sla to avoid queryOperatorEnum conflict with schema-master
+// TEMPORARILY COMMENTED TO FIX MODULE LOADING ISSUE - WILL RE-ENABLE ONCE SYSTEM IS STABLE
+// export {
+//   slaDefinitions,
+//   slaWorkflows,
+//   slaWorkflowExecutions,
+//   slaInstances,
+//   slaEvents,
+//   slaViolations,
+//   slaReports,
+//   insertSlaDefinitionSchema,
+//   insertSlaInstanceSchema,
+//   insertSlaEventSchema,
+//   insertSlaViolationSchema,
+//   insertSlaReportSchema,
+//   SlaDefinition,
+//   InsertSlaDefinition,
+//   SlaInstance,
+//   InsertSlaInstance,
+//   SlaEvent,
+//   InsertSlaEvent,
+//   SlaViolation,
+//   InsertSlaViolation,
+//   SlaReport,
+//   InsertSlaReport
+// } from './schema-sla';
 
 // Selective exports from locations to avoid conflicts
 export {

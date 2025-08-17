@@ -5,7 +5,7 @@ import { Router } from 'express';
 import { ContractController } from './application/controllers/ContractController';
 import { DrizzleContractRepository } from './infrastructure/repositories/DrizzleContractRepository';
 import { ContractDomainService } from './domain/services/ContractDomainService';
-import { requireAuth } from '../../middleware/auth';
+import { jwtAuth } from '../../middleware/jwtAuth';
 
 const router = Router();
 
@@ -15,7 +15,7 @@ const contractDomainService = new ContractDomainService();
 const contractController = new ContractController(contractRepository, contractDomainService);
 
 // ✅ All routes require authentication
-router.use(requireAuth);
+router.use(jwtAuth);
 
 // ✅ Contract CRUD Routes
 router.post('/', (req, res) => contractController.create(req, res));

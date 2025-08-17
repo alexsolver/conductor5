@@ -1,406 +1,378 @@
-/**
- * Activity Planner Schema - Schema de banco de dados para o módulo de planejamento de atividades
- * Seguindo padrões Drizzle ORM e 1qa.md
- */
+// ✅ 1QA.MD COMPLIANCE: ACTIVITY PLANNER MODULE SCHEMA
+// Complete activity planner system schema following Clean Architecture patterns
 
-import { pgTable, varchar, uuid, timestamp, text, integer, decimal, boolean, jsonb, index } from 'drizzle-orm/pg-core';
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { z } from 'zod';
+import {
+  pgTable,
+  varchar,
+  uuid,
+  timestamp,
+  text,
+  jsonb,
+  boolean,
+  integer,
+  index,
+  unique,
+  real,
+  date,
+  time,
+  interval,
+  pgEnum
+} from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
-// Assets - Ativos que requerem manutenção
-export const assets = pgTable('assets', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  locationId: uuid('location_id').notNull(), // referência ao módulo locations
-  parentAssetId: uuid('parent_asset_id'),
-  tag: varchar('tag', { length: 100 }).notNull(), // identificador único do ativo
-  name: varchar('name', { length: 255 }).notNull(),
-  model: varchar('model', { length: 100 }),
-  manufacturer: varchar('manufacturer', { length: 100 }),
-  serialNumber: varchar('serial_number', { length: 100 }),
-  criticality: varchar('criticality', { length: 20 }).notNull().$type<'low' | 'medium' | 'high' | 'critical'>(),
-  status: varchar('status', { length: 20 }).notNull().$type<'active' | 'inactive' | 'maintenance' | 'decommissioned'>(),
-  metersJson: jsonb('meters_json'), // horímetros, odômetros, etc.
-  mtbf: integer('mtbf'), // Mean Time Between Failures (hours)
-  mttr: integer('mttr'), // Mean Time To Repair (hours)
-  failureCodesJson: jsonb('failure_codes_json').$type<string[]>(),
-  specifications: jsonb('specifications'),
-  installationDate: timestamp('installation_date'),
-  warrantyExpiryDate: timestamp('warranty_expiry_date'),
-  lastMaintenanceDate: timestamp('last_maintenance_date'),
-  nextMaintenanceDate: timestamp('next_maintenance_date'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  createdBy: uuid('created_by').notNull(),
-  updatedBy: uuid('updated_by').notNull()
+// Enum definitions for Activity Planner
+export const activityTypeEnum = pgEnum('activity_type', [
+  'maintenance_preventive',
+  'maintenance_corrective', 
+  'inspection',
+  'calibration',
+  'cleaning',
+  'audit',
+  'training',
+  'other'
+]);
+
+export const activityStatusEnum = pgEnum('activity_status', [
+  'scheduled',
+  'in_progress',
+  'completed',
+  'cancelled',
+  'postponed',
+  'overdue'
+]);
+
+export const priorityEnum = pgEnum('priority', [
+  'low',
+  'medium',
+  'high',
+  'critical',
+  'emergency'
+]);
+
+export const frequencyEnum = pgEnum('frequency', [
+  'once',
+  'daily',
+  'weekly',
+  'monthly',
+  'quarterly',
+  'semi_annual',
+  'annual',
+  'biennial',
+  'custom'
+]);
+
+export const workflowStatusEnum = pgEnum('workflow_status', [
+  'pending',
+  'approved',
+  'rejected',
+  'in_progress',
+  'completed',
+  'escalated'
+]);
+
+// Activity Categories
+export const activityCategories = pgTable("activity_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  description: text("description"),
+  color: varchar("color", { length: 7 }), // Hex color
+  icon: varchar("icon", { length: 50 }),
+  isActive: boolean("is_active").default(true),
+  parentId: uuid("parent_id"),
+  sortOrder: integer("sort_order").default(0),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").notNull(),
+  updatedBy: uuid("updated_by")
 }, (table) => ({
-  tenantIdx: index('assets_tenant_idx').on(table.tenantId),
-  locationIdx: index('assets_location_idx').on(table.locationId),
-  tagIdx: index('assets_tag_idx').on(table.tag),
-  criticality_idx: index('assets_criticality_idx').on(table.criticality),
-  nextMaintenanceIdx: index('assets_next_maintenance_idx').on(table.nextMaintenanceDate),
+  tenantIdx: index("activity_categories_tenant_idx").on(table.tenantId),
+  parentIdx: index("activity_categories_parent_idx").on(table.parentId),
+  nameIdx: index("activity_categories_name_idx").on(table.name),
+  uniqueTenantName: unique("activity_categories_tenant_name_unique").on(table.tenantId, table.name)
 }));
 
-// Maintenance Plans - Planos de manutenção preventiva
-export const maintenancePlans = pgTable('maintenance_plans', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  assetId: uuid('asset_id').notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  triggerType: varchar('trigger_type', { length: 20 }).notNull().$type<'time' | 'meter' | 'condition'>(),
-  frequencyJson: jsonb('frequency_json').notNull(), // MaintenanceFrequency
-  tasksTemplateJson: jsonb('tasks_template_json').notNull(), // MaintenanceTask[]
-  slaPolicy: varchar('sla_policy', { length: 255 }),
-  priority: varchar('priority', { length: 20 }).notNull().$type<'low' | 'medium' | 'high' | 'critical'>(),
-  estimatedDuration: integer('estimated_duration').notNull(), // em minutos
-  leadTime: integer('lead_time').notNull().default(24), // antecedência em horas
-  seasonalAdjustmentsJson: jsonb('seasonal_adjustments_json'),
-  isActive: boolean('is_active').notNull().default(true),
-  effectiveFrom: timestamp('effective_from').notNull(),
-  effectiveTo: timestamp('effective_to'),
-  lastGeneratedAt: timestamp('last_generated_at'),
-  nextScheduledAt: timestamp('next_scheduled_at'),
-  generationCount: integer('generation_count').notNull().default(0),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  createdBy: uuid('created_by').notNull(),
-  updatedBy: uuid('updated_by').notNull()
+// Activity Templates
+export const activityTemplates = pgTable("activity_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  description: text("description"),
+  categoryId: uuid("category_id").references(() => activityCategories.id),
+  activityType: activityTypeEnum("activity_type").notNull(),
+  estimatedDuration: interval("estimated_duration"), // Duration in minutes
+  requiredSkills: jsonb("required_skills").$type<string[]>().default([]),
+  requiredTools: jsonb("required_tools").$type<string[]>().default([]),
+  requiredMaterials: jsonb("required_materials").$type<any[]>().default([]),
+  safetyRequirements: jsonb("safety_requirements").$type<string[]>().default([]),
+  instructions: text("instructions"),
+  checklistItems: jsonb("checklist_items").$type<any[]>().default([]),
+  defaultPriority: priorityEnum("default_priority").default('medium'),
+  isActive: boolean("is_active").default(true),
+  version: integer("version").default(1),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").notNull(),
+  updatedBy: uuid("updated_by")
 }, (table) => ({
-  tenantIdx: index('maintenance_plans_tenant_idx').on(table.tenantId),
-  assetIdx: index('maintenance_plans_asset_idx').on(table.assetId),
-  triggerIdx: index('maintenance_plans_trigger_idx').on(table.triggerType),
-  nextScheduledIdx: index('maintenance_plans_next_scheduled_idx').on(table.nextScheduledAt),
-  activeIdx: index('maintenance_plans_active_idx').on(table.isActive),
+  tenantIdx: index("activity_templates_tenant_idx").on(table.tenantId),
+  categoryIdx: index("activity_templates_category_idx").on(table.categoryId),
+  typeIdx: index("activity_templates_type_idx").on(table.activityType),
+  activeIdx: index("activity_templates_active_idx").on(table.isActive)
 }));
 
-// Work Orders - Ordens de serviço
-export const workOrders = pgTable('work_orders', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  assetId: uuid('asset_id').notNull(),
-  ticketId: uuid('ticket_id'), // vinculado a ticket se origem for incident
-  maintenancePlanId: uuid('maintenance_plan_id'), // vinculado a plano se origem for PM
-  origin: varchar('origin', { length: 20 }).notNull().$type<'pm' | 'incident' | 'manual' | 'condition'>(),
-  priority: varchar('priority', { length: 20 }).notNull().$type<'low' | 'medium' | 'high' | 'critical' | 'emergency'>(),
-  status: varchar('status', { length: 20 }).notNull().$type<'drafted' | 'scheduled' | 'in_progress' | 'waiting_parts' | 'waiting_window' | 'waiting_client' | 'completed' | 'approved' | 'closed' | 'rejected' | 'canceled'>(),
-  title: varchar('title', { length: 255 }).notNull(),
-  description: text('description'),
-  estimatedDuration: integer('estimated_duration').notNull(), // em minutos
-  scheduledStart: timestamp('scheduled_start'),
-  scheduledEnd: timestamp('scheduled_end'),
-  actualStart: timestamp('actual_start'),
-  actualEnd: timestamp('actual_end'),
-  slaTargetAt: timestamp('sla_target_at'),
-  idlePolicyJson: jsonb('idle_policy_json'), // IdleTimePolicy
-  assignedTechnicianId: uuid('assigned_technician_id'),
-  assignedTeamId: uuid('assigned_team_id'),
-  locationId: uuid('location_id').notNull(),
-  contactPersonId: uuid('contact_person_id'),
-  requiresApproval: boolean('requires_approval').notNull().default(false),
-  approvalWorkflowId: uuid('approval_workflow_id'),
-  approvalStatus: varchar('approval_status', { length: 20 }).$type<'pending' | 'approved' | 'rejected'>(),
-  totalCost: decimal('total_cost', { precision: 10, scale: 2 }).notNull().default('0'),
-  laborCost: decimal('labor_cost', { precision: 10, scale: 2 }).notNull().default('0'),
-  partsCost: decimal('parts_cost', { precision: 10, scale: 2 }).notNull().default('0'),
-  externalCost: decimal('external_cost', { precision: 10, scale: 2 }).notNull().default('0'),
-  completionPercentage: integer('completion_percentage').notNull().default(0),
-  notes: text('notes'),
-  riskAssessmentJson: jsonb('risk_assessment_json'), // RiskAssessment
-  permitsRequiredJson: jsonb('permits_required_json').$type<string[]>(),
-  safetyRequirementsJson: jsonb('safety_requirements_json').$type<string[]>(),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  createdBy: uuid('created_by').notNull(),
-  updatedBy: uuid('updated_by').notNull()
+// Activity Schedules
+export const activitySchedules = pgTable("activity_schedules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  description: text("description"),
+  templateId: uuid("template_id").references(() => activityTemplates.id),
+  assetId: uuid("asset_id"), // Reference to assets/equipment
+  locationId: uuid("location_id"), // Reference to locations
+  frequency: frequencyEnum("frequency").notNull(),
+  customInterval: interval("custom_interval"), // For custom frequency
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  preferredTime: time("preferred_time"),
+  timezone: varchar("timezone", { length: 50 }).default('UTC'),
+  assignedTeamId: uuid("assigned_team_id"),
+  assignedUserId: uuid("assigned_user_id"),
+  estimatedDuration: interval("estimated_duration"),
+  priority: priorityEnum("priority").default('medium'),
+  isActive: boolean("is_active").default(true),
+  nextDueDate: timestamp("next_due_date"),
+  lastExecutedDate: timestamp("last_executed_date"),
+  executionCount: integer("execution_count").default(0),
+  alertBeforeDays: integer("alert_before_days").default(1),
+  escalationAfterDays: integer("escalation_after_days").default(0),
+  autoAssign: boolean("auto_assign").default(false),
+  requiresApproval: boolean("requires_approval").default(false),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").notNull(),
+  updatedBy: uuid("updated_by")
 }, (table) => ({
-  tenantIdx: index('work_orders_tenant_idx').on(table.tenantId),
-  assetIdx: index('work_orders_asset_idx').on(table.assetId),
-  statusIdx: index('work_orders_status_idx').on(table.status),
-  priorityIdx: index('work_orders_priority_idx').on(table.priority),
-  assignedTechnicianIdx: index('work_orders_assigned_technician_idx').on(table.assignedTechnicianId),
-  scheduledStartIdx: index('work_orders_scheduled_start_idx').on(table.scheduledStart),
-  slaTargetIdx: index('work_orders_sla_target_idx').on(table.slaTargetAt),
-  originIdx: index('work_orders_origin_idx').on(table.origin),
+  tenantIdx: index("activity_schedules_tenant_idx").on(table.tenantId),
+  templateIdx: index("activity_schedules_template_idx").on(table.templateId),
+  assetIdx: index("activity_schedules_asset_idx").on(table.assetId),
+  locationIdx: index("activity_schedules_location_idx").on(table.locationId),
+  nextDueDateIdx: index("activity_schedules_next_due_date_idx").on(table.nextDueDate),
+  assignedUserIdx: index("activity_schedules_assigned_user_idx").on(table.assignedUserId),
+  assignedTeamIdx: index("activity_schedules_assigned_team_idx").on(table.assignedTeamId),
+  activeIdx: index("activity_schedules_active_idx").on(table.isActive),
+  frequencyIdx: index("activity_schedules_frequency_idx").on(table.frequency)
 }));
 
-// Work Order Tasks - Tarefas das ordens de serviço
-export const workOrderTasks = pgTable('work_order_tasks', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  workOrderId: uuid('work_order_id').notNull(),
-  sequence: integer('sequence').notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  estimatedDuration: integer('estimated_duration').notNull(), // em minutos
-  requiredSkillsJson: jsonb('required_skills_json').$type<string[]>(),
-  requiredCertificationsJson: jsonb('required_certifications_json'),
-  checklistJson: jsonb('checklist_json'),
-  requiredPartsJson: jsonb('required_parts_json'),
-  dependenciesJson: jsonb('dependencies_json').$type<string[]>(), // IDs de outras tarefas
-  status: varchar('status', { length: 20 }).notNull().$type<'pending' | 'doing' | 'blocked' | 'done' | 'verified'>(),
-  assignedTechnicianId: uuid('assigned_technician_id'),
-  actualStart: timestamp('actual_start'),
-  actualEnd: timestamp('actual_end'),
-  notes: text('notes'),
-  evidenceJson: jsonb('evidence_json'), // TaskEvidence[]
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
+// Activity Instances (Generated from schedules)
+export const activityInstances = pgTable("activity_instances", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  scheduleId: uuid("schedule_id").references(() => activitySchedules.id),
+  templateId: uuid("template_id").references(() => activityTemplates.id),
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description"),
+  activityType: activityTypeEnum("activity_type").notNull(),
+  status: activityStatusEnum("status").default('scheduled'),
+  priority: priorityEnum("priority").default('medium'),
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  dueDate: timestamp("due_date"),
+  estimatedDuration: interval("estimated_duration"),
+  actualDuration: interval("actual_duration"),
+  assignedUserId: uuid("assigned_user_id"),
+  assignedTeamId: uuid("assigned_team_id"),
+  completedBy: uuid("completed_by"),
+  assetId: uuid("asset_id"),
+  locationId: uuid("location_id"),
+  parentInstanceId: uuid("parent_instance_id"), // For dependent activities
+  workOrderNumber: varchar("work_order_number", { length: 50 }),
+  isOverdue: boolean("is_overdue").default(false),
+  overdueBy: interval("overdue_by"),
+  checklistData: jsonb("checklist_data"),
+  attachments: jsonb("attachments").$type<any[]>().default([]),
+  comments: text("comments"),
+  completionNotes: text("completion_notes"),
+  qualityScore: integer("quality_score"), // 1-5 rating
+  customerFeedback: text("customer_feedback"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").notNull(),
+  updatedBy: uuid("updated_by")
 }, (table) => ({
-  tenantIdx: index('work_order_tasks_tenant_idx').on(table.tenantId),
-  workOrderIdx: index('work_order_tasks_work_order_idx').on(table.workOrderId),
-  statusIdx: index('work_order_tasks_status_idx').on(table.status),
-  sequenceIdx: index('work_order_tasks_sequence_idx').on(table.sequence),
-  assignedTechnicianIdx: index('work_order_tasks_assigned_technician_idx').on(table.assignedTechnicianId),
+  tenantIdx: index("activity_instances_tenant_idx").on(table.tenantId),
+  scheduleIdx: index("activity_instances_schedule_idx").on(table.scheduleId),
+  templateIdx: index("activity_instances_template_idx").on(table.templateId),
+  statusIdx: index("activity_instances_status_idx").on(table.status),
+  scheduledDateIdx: index("activity_instances_scheduled_date_idx").on(table.scheduledDate),
+  dueDateIdx: index("activity_instances_due_date_idx").on(table.dueDate),
+  assignedUserIdx: index("activity_instances_assigned_user_idx").on(table.assignedUserId),
+  assignedTeamIdx: index("activity_instances_assigned_team_idx").on(table.assignedTeamId),
+  assetIdx: index("activity_instances_asset_idx").on(table.assetId),
+  locationIdx: index("activity_instances_location_idx").on(table.locationId),
+  workOrderIdx: index("activity_instances_work_order_idx").on(table.workOrderNumber),
+  overdueIdx: index("activity_instances_overdue_idx").on(table.isOverdue),
+  parentIdx: index("activity_instances_parent_idx").on(table.parentInstanceId),
+  uniqueWorkOrder: unique("activity_instances_work_order_unique").on(table.tenantId, table.workOrderNumber)
 }));
 
-// Technicians - Técnicos/Recursos humanos
-export const technicians = pgTable('technicians', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  userId: uuid('user_id').notNull(), // referência ao user do sistema
-  employeeId: varchar('employee_id', { length: 50 }),
-  skillsJson: jsonb('skills_json').$type<string[]>().notNull(),
-  certificationsJson: jsonb('certifications_json').notNull(), // TechnicianCertification[]
-  shiftId: uuid('shift_id'),
-  homeBaseLocationId: uuid('home_base_location_id').notNull(),
-  availabilityJson: jsonb('availability_json').notNull(), // TechnicianAvailability
-  hourlyRate: decimal('hourly_rate', { precision: 8, scale: 2 }).notNull().default('0'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
+// Activity Workflows
+export const activityWorkflows = pgTable("activity_workflows", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  instanceId: uuid("instance_id").references(() => activityInstances.id),
+  workflowType: varchar("workflow_type", { length: 50 }).notNull(), // approval, escalation, notification
+  currentStep: integer("current_step").default(1),
+  totalSteps: integer("total_steps").notNull(),
+  status: workflowStatusEnum("status").default('pending'),
+  workflowData: jsonb("workflow_data"),
+  approvers: jsonb("approvers").$type<any[]>().default([]),
+  currentApprover: uuid("current_approver"),
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  deadline: timestamp("deadline"),
+  escalationLevel: integer("escalation_level").default(0),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").notNull()
 }, (table) => ({
-  tenantIdx: index('technicians_tenant_idx').on(table.tenantId),
-  userIdx: index('technicians_user_idx').on(table.userId),
-  shiftIdx: index('technicians_shift_idx').on(table.shiftId),
-  homeBaseIdx: index('technicians_home_base_idx').on(table.homeBaseLocationId),
-  activeIdx: index('technicians_active_idx').on(table.isActive),
+  tenantIdx: index("activity_workflows_tenant_idx").on(table.tenantId),
+  instanceIdx: index("activity_workflows_instance_idx").on(table.instanceId),
+  statusIdx: index("activity_workflows_status_idx").on(table.status),
+  approverIdx: index("activity_workflows_approver_idx").on(table.currentApprover),
+  deadlineIdx: index("activity_workflows_deadline_idx").on(table.deadline),
+  typeIdx: index("activity_workflows_type_idx").on(table.workflowType)
 }));
 
-// Work Shifts - Turnos de trabalho
-export const workShifts = pgTable('work_shifts', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  name: varchar('name', { length: 100 }).notNull(),
-  pattern: varchar('pattern', { length: 20 }).notNull().$type<'8x5' | '12x12' | '24x48' | 'custom'>(),
-  startTime: varchar('start_time', { length: 5 }).notNull(), // HH:mm
-  endTime: varchar('end_time', { length: 5 }).notNull(), // HH:mm
-  workDaysJson: jsonb('work_days_json').$type<number[]>().notNull(), // 0=domingo, 1=segunda, etc.
-  duration: integer('duration').notNull(), // em horas
-  breakDuration: integer('break_duration').notNull().default(0), // em minutos
-  calendarJson: jsonb('calendar_json').notNull(), // ShiftCalendar
-  effectiveFrom: timestamp('effective_from').notNull(),
-  effectiveTo: timestamp('effective_to'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
+// Activity Resources (Materials, Tools, Personnel)
+export const activityResources = pgTable("activity_resources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  instanceId: uuid("instance_id").references(() => activityInstances.id),
+  resourceType: varchar("resource_type", { length: 50 }).notNull(), // material, tool, personnel
+  resourceId: uuid("resource_id").notNull(), // Reference to materials/tools/users
+  resourceName: varchar("resource_name", { length: 200 }).notNull(),
+  quantityRequired: real("quantity_required"),
+  quantityUsed: real("quantity_used"),
+  unit: varchar("unit", { length: 20 }),
+  cost: real("cost"),
+  isAvailable: boolean("is_available").default(true),
+  reservedAt: timestamp("reserved_at"),
+  reservedBy: uuid("reserved_by"),
+  allocatedAt: timestamp("allocated_at"),
+  releasedAt: timestamp("released_at"),
+  notes: text("notes"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull()
 }, (table) => ({
-  tenantIdx: index('work_shifts_tenant_idx').on(table.tenantId),
-  patternIdx: index('work_shifts_pattern_idx').on(table.pattern),
-  activeIdx: index('work_shifts_active_idx').on(table.isActive),
+  tenantIdx: index("activity_resources_tenant_idx").on(table.tenantId),
+  instanceIdx: index("activity_resources_instance_idx").on(table.instanceId),
+  typeIdx: index("activity_resources_type_idx").on(table.resourceType),
+  resourceIdx: index("activity_resources_resource_idx").on(table.resourceId),
+  availabilityIdx: index("activity_resources_availability_idx").on(table.isAvailable)
 }));
 
-// Schedules - Programação de trabalhos
-export const schedules = pgTable('schedules', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  workOrderId: uuid('work_order_id').notNull(),
-  technicianId: uuid('technician_id').notNull(),
-  plannedStart: timestamp('planned_start').notNull(),
-  plannedEnd: timestamp('planned_end').notNull(),
-  actualStart: timestamp('actual_start'),
-  actualEnd: timestamp('actual_end'),
-  status: varchar('status', { length: 20 }).notNull().$type<'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'canceled' | 'rescheduled'>(),
-  routeSequence: integer('route_sequence'),
-  travelTime: integer('travel_time').notNull().default(0), // em minutos
-  setupTime: integer('setup_time').notNull().default(0), // em minutos
-  estimatedEffort: integer('estimated_effort').notNull(), // em minutos
-  actualEffort: integer('actual_effort'), // em minutos
-  priority: integer('priority').notNull().default(5), // 1 = mais alta
-  notes: text('notes'),
-  constraintsJson: jsonb('constraints_json').notNull(), // SchedulingConstraint[]
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  createdBy: uuid('created_by').notNull()
+// Activity History & Audit
+export const activityHistory = pgTable("activity_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  instanceId: uuid("instance_id").references(() => activityInstances.id),
+  action: varchar("action", { length: 100 }).notNull(),
+  description: text("description"),
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  performedBy: uuid("performed_by").notNull(),
+  performedAt: timestamp("performed_at").defaultNow().notNull(),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  metadata: jsonb("metadata")
 }, (table) => ({
-  tenantIdx: index('schedules_tenant_idx').on(table.tenantId),
-  workOrderIdx: index('schedules_work_order_idx').on(table.workOrderId),
-  technicianIdx: index('schedules_technician_idx').on(table.technicianId),
-  plannedStartIdx: index('schedules_planned_start_idx').on(table.plannedStart),
-  statusIdx: index('schedules_status_idx').on(table.status),
-  priorityIdx: index('schedules_priority_idx').on(table.priority),
+  tenantIdx: index("activity_history_tenant_idx").on(table.tenantId),
+  instanceIdx: index("activity_history_instance_idx").on(table.instanceId),
+  performedByIdx: index("activity_history_performed_by_idx").on(table.performedBy),
+  performedAtIdx: index("activity_history_performed_at_idx").on(table.performedAt),
+  actionIdx: index("activity_history_action_idx").on(table.action)
 }));
 
-// Parts Reservations - Reservas de peças
-export const partsReservations = pgTable('parts_reservations', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  workOrderId: uuid('work_order_id').notNull(),
-  materialServiceId: uuid('material_service_id').notNull(), // referência ao módulo materials-services
-  quantityRequired: decimal('quantity_required', { precision: 10, scale: 3 }).notNull(),
-  quantityReserved: decimal('quantity_reserved', { precision: 10, scale: 3 }).notNull().default('0'),
-  quantityUsed: decimal('quantity_used', { precision: 10, scale: 3 }).notNull().default('0'),
-  status: varchar('status', { length: 20 }).notNull().$type<'pending' | 'reserved' | 'issued' | 'consumed' | 'returned'>(),
-  isOptional: boolean('is_optional').notNull().default(false),
-  unitCost: decimal('unit_cost', { precision: 10, scale: 2 }).notNull().default('0'),
-  totalCost: decimal('total_cost', { precision: 10, scale: 2 }).notNull().default('0'),
-  reservedAt: timestamp('reserved_at'),
-  issuedAt: timestamp('issued_at'),
-  consumedAt: timestamp('consumed_at'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-}, (table) => ({
-  tenantIdx: index('parts_reservations_tenant_idx').on(table.tenantId),
-  workOrderIdx: index('parts_reservations_work_order_idx').on(table.workOrderId),
-  materialServiceIdx: index('parts_reservations_material_service_idx').on(table.materialServiceId),
-  statusIdx: index('parts_reservations_status_idx').on(table.status),
-}));
-
-// Time Entries - Registros de tempo
-export const timeEntries = pgTable('time_entries', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  workOrderId: uuid('work_order_id').notNull(),
-  technicianId: uuid('technician_id').notNull(),
-  taskId: uuid('task_id'), // opcional, se específico para uma tarefa
-  startTime: timestamp('start_time').notNull(),
-  endTime: timestamp('end_time'),
-  type: varchar('type', { length: 20 }).notNull().$type<'travel' | 'work' | 'wait' | 'break' | 'setup'>(),
-  notes: text('notes'),
-  locationSnapshot: jsonb('location_snapshot'), // GPS coordinates se aplicável
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-}, (table) => ({
-  tenantIdx: index('time_entries_tenant_idx').on(table.tenantId),
-  workOrderIdx: index('time_entries_work_order_idx').on(table.workOrderId),
-  technicianIdx: index('time_entries_technician_idx').on(table.technicianId),
-  typeIdx: index('time_entries_type_idx').on(table.type),
-  startTimeIdx: index('time_entries_start_time_idx').on(table.startTime),
-}));
-
-// SLA Policies - Políticas de SLA
-export const slaPolicies = pgTable('sla_policies', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  scopeJson: jsonb('scope_json').notNull(), // critérios de aplicação
-  startConditionsJson: jsonb('start_conditions_json').notNull(),
-  pauseConditionsJson: jsonb('pause_conditions_json'),
-  stopConditionsJson: jsonb('stop_conditions_json').notNull(),
-  targetMinutes: integer('target_minutes').notNull(),
-  warningThresholdPercent: integer('warning_threshold_percent').notNull().default(80),
-  escalationRulesJson: jsonb('escalation_rules_json'),
-  calendarId: uuid('calendar_id'), // referência a calendário de trabalho
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  createdBy: uuid('created_by').notNull(),
-  updatedBy: uuid('updated_by').notNull()
-}, (table) => ({
-  tenantIdx: index('sla_policies_tenant_idx').on(table.tenantId),
-  activeIdx: index('sla_policies_active_idx').on(table.isActive),
-}));
-
-// Risk Permits - Permissões de risco
-export const riskPermits = pgTable('risk_permits', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  workOrderId: uuid('work_order_id').notNull(),
-  permitType: varchar('permit_type', { length: 20 }).notNull().$type<'LOTO' | 'NR10' | 'NR35' | 'altura' | 'espaco_confinado' | 'soldagem'>(),
-  status: varchar('status', { length: 20 }).notNull().$type<'pending' | 'issued' | 'active' | 'expired' | 'canceled'>(),
-  issuedBy: uuid('issued_by').notNull(),
-  approvedBy: uuid('approved_by'),
-  validFrom: timestamp('valid_from').notNull(),
-  validUntil: timestamp('valid_until').notNull(),
-  hazardsJson: jsonb('hazards_json').$type<string[]>(),
-  mitigationMeasuresJson: jsonb('mitigation_measures_json').$type<string[]>(),
-  requiredPPEJson: jsonb('required_ppe_json').$type<string[]>(),
-  documentsJson: jsonb('documents_json'), // anexos/certificados
-  notes: text('notes'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-}, (table) => ({
-  tenantIdx: index('risk_permits_tenant_idx').on(table.tenantId),
-  workOrderIdx: index('risk_permits_work_order_idx').on(table.workOrderId),
-  permitTypeIdx: index('risk_permits_permit_type_idx').on(table.permitType),
-  statusIdx: index('risk_permits_status_idx').on(table.status),
-  validUntilIdx: index('risk_permits_valid_until_idx').on(table.validUntil),
-}));
-
-// Zod Schemas para validação
-export const insertAssetSchema = createInsertSchema(assets).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true,
-  updatedBy: true 
-}).extend({
-  parentAssetId: z.string().uuid().optional()
-});
-
-export const insertMaintenancePlanSchema = createInsertSchema(maintenancePlans).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true,
-  updatedBy: true,
-  lastGeneratedAt: true,
-  nextScheduledAt: true,
-  generationCount: true
-});
-
-export const insertWorkOrderSchema = createInsertSchema(workOrders).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true,
-  updatedBy: true,
-  totalCost: true,
-  laborCost: true,
-  partsCost: true,
-  externalCost: true,
-  completionPercentage: true
-});
-
-export const insertTechnicianSchema = createInsertSchema(technicians).omit({ 
-  id: true, 
-  createdAt: true, 
+// Zod Schemas
+export const insertActivityCategorySchema = createInsertSchema(activityCategories).omit({
+  id: true,
+  createdAt: true,
   updatedAt: true
 });
 
-export const insertScheduleSchema = createInsertSchema(schedules).omit({ 
-  id: true, 
-  createdAt: true, 
+export const insertActivityTemplateSchema = createInsertSchema(activityTemplates).omit({
+  id: true,
+  createdAt: true,
   updatedAt: true
 });
 
-// Tipos TypeScript
-export type Asset = typeof assets.$inferSelect;
-export type InsertAsset = z.infer<typeof insertAssetSchema>;
+export const insertActivityScheduleSchema = createInsertSchema(activitySchedules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
 
-export type MaintenancePlan = typeof maintenancePlans.$inferSelect;
-export type InsertMaintenancePlan = z.infer<typeof insertMaintenancePlanSchema>;
+export const insertActivityInstanceSchema = createInsertSchema(activityInstances).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
 
-export type WorkOrder = typeof workOrders.$inferSelect;
-export type InsertWorkOrder = z.infer<typeof insertWorkOrderSchema>;
+export const insertActivityWorkflowSchema = createInsertSchema(activityWorkflows).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
 
-export type WorkOrderTask = typeof workOrderTasks.$inferSelect;
+export const insertActivityResourceSchema = createInsertSchema(activityResources).omit({
+  id: true,
+  createdAt: true
+});
 
-export type Technician = typeof technicians.$inferSelect;
-export type InsertTechnician = z.infer<typeof insertTechnicianSchema>;
+export const insertActivityHistorySchema = createInsertSchema(activityHistory).omit({
+  id: true,
+  performedAt: true
+});
 
-export type WorkShift = typeof workShifts.$inferSelect;
+// TypeScript Types
+export type ActivityCategory = typeof activityCategories.$inferSelect;
+export type InsertActivityCategory = z.infer<typeof insertActivityCategorySchema>;
 
-export type Schedule = typeof schedules.$inferSelect;
-export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
+export type ActivityTemplate = typeof activityTemplates.$inferSelect;
+export type InsertActivityTemplate = z.infer<typeof insertActivityTemplateSchema>;
 
-export type PartsReservation = typeof partsReservations.$inferSelect;
+export type ActivitySchedule = typeof activitySchedules.$inferSelect;
+export type InsertActivitySchedule = z.infer<typeof insertActivityScheduleSchema>;
 
-export type TimeEntry = typeof timeEntries.$inferSelect;
+export type ActivityInstance = typeof activityInstances.$inferSelect;
+export type InsertActivityInstance = z.infer<typeof insertActivityInstanceSchema>;
 
-export type SLAPolicy = typeof slaPolicies.$inferSelect;
+export type ActivityWorkflow = typeof activityWorkflows.$inferSelect;
+export type InsertActivityWorkflow = z.infer<typeof insertActivityWorkflowSchema>;
 
-export type RiskPermit = typeof riskPermits.$inferSelect;
+export type ActivityResource = typeof activityResources.$inferSelect;
+export type InsertActivityResource = z.infer<typeof insertActivityResourceSchema>;
+
+export type ActivityHistory = typeof activityHistory.$inferSelect;
+export type InsertActivityHistory = z.infer<typeof insertActivityHistorySchema>;
+
+// Export Enums for use in other files - using z.enum for proper Zod types
+export const ActivityTypeZod = z.enum(['maintenance_preventive', 'maintenance_corrective', 'inspection', 'calibration', 'cleaning', 'audit', 'training', 'other']);
+export const ActivityStatusZod = z.enum(['scheduled', 'in_progress', 'completed', 'cancelled', 'postponed', 'overdue']);
+export const PriorityZod = z.enum(['low', 'medium', 'high', 'critical', 'emergency']);
+export const FrequencyZod = z.enum(['once', 'daily', 'weekly', 'monthly', 'quarterly', 'semi_annual', 'annual', 'biennial', 'custom']);
+export const WorkflowStatusZod = z.enum(['pending', 'approved', 'rejected', 'in_progress', 'completed', 'escalated']);
+
+export type ActivityType = z.infer<typeof ActivityTypeZod>;
+export type ActivityStatus = z.infer<typeof ActivityStatusZod>;
+export type Priority = z.infer<typeof PriorityZod>;
+export type Frequency = z.infer<typeof FrequencyZod>;
+export type WorkflowStatus = z.infer<typeof WorkflowStatusZod>;

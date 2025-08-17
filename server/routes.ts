@@ -4254,7 +4254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - CONTRACT MANAGEMENT MODULE
   // Contract Management Routes - Complete contract lifecycle management system
   try {
-    const contractRoutes = await import('./modules/contracts/routes/contractRoutes');
+    const contractRoutes = await import('./modules/contracts/routes');
     if (contractRoutes.default) {
       app.use('/api/contracts', jwtAuth, contractRoutes.default);
       console.log('✅ [CONTRACT-MANAGEMENT] Routes registered successfully at /api/contracts');

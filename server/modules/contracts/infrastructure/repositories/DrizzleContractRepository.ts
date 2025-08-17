@@ -6,7 +6,8 @@ import { eq, and, desc, asc, like, between, count, sum } from 'drizzle-orm';
 import { Contract } from '../../domain/entities/Contract';
 import { IContractRepository, ContractFilters, ContractSummary } from '../../domain/repositories/IContractRepository';
 import { ContractStatus } from '../../domain/entities/Contract';
-import { auditLogs } from '@shared/schema';
+// Import auditLogs from materials-services schema where it's actually defined
+import { auditLogs } from '@shared/schema-materials-services';
 import { contracts, type Contract as ContractRecord, type InsertContract as InsertContractType } from '@shared/schema-contracts';
 
 export class DrizzleContractRepository implements IContractRepository {
@@ -88,7 +89,11 @@ export class DrizzleContractRepository implements IContractRepository {
         );
       }
 
-      query = query.where(and(...conditions));
+      // Rebuild query with all conditions
+      query = db
+        .select()
+        .from(contracts)
+        .where(and(...conditions));
     }
 
     const result = await query.orderBy(desc(contracts.createdAt));
