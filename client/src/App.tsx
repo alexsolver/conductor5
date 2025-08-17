@@ -39,7 +39,7 @@ import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
 import SaasAdminIntegrations from "./pages/SaasAdminIntegrations";
 
 import TenantAdminWorkflows from "./pages/TenantAdminWorkflows";
-import TenantAdminSLAs from "./pages/TenantAdminSLAs";
+// Removed TenantAdminSLAs - replaced with new SLA module
 import TenantAdminIntegrations from "./pages/TenantAdminIntegrations";
 import TenantAdminBranding from "./pages/TenantAdminBranding";
 import TenantAdminGeral from "./pages/TenantAdminGeral";
@@ -152,7 +152,7 @@ function AppRouter() {
         <Route path="/tenant-admin" component={TenantAdmin} />
         <Route path="/tenant-admin/geral" component={TenantAdminGeral} />
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
-        <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
+        {/* SLA module route - will be added with new implementation */}
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
 
