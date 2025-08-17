@@ -39,11 +39,11 @@ export function CompanySelector({
   className = ""
 }: CompanySelectorProps) {
   const { data: companies = [], isLoading, error } = useQuery<Company[]>({
-    queryKey: ['/api/customers'],
+    queryKey: ['/api/customers', 'companies'],
     queryFn: async () => {
       console.log('🏢 [COMPANY-SELECTOR] Carregando empresas...');
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/customers', {
+      const response = await fetch('/api/companies', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -54,18 +54,29 @@ export function CompanySelector({
         throw new Error('Falha ao carregar empresas');
       }
       const result = await response.json();
-      console.log('✅ [COMPANY-SELECTOR] Empresas carregadas:', result);
-      // Mapear customers para o formato esperado
-      const mappedCompanies = (result.customers || []).map((customer: any) => ({
-        id: customer.id,
-        name: customer.companyName || customer.company_name || `${customer.firstName || customer.first_name} ${customer.lastName || customer.last_name}`,
-        displayName: customer.companyName || customer.company_name || `${customer.firstName || customer.first_name} ${customer.lastName || customer.last_name}`,
-        email: customer.email,
-        phone: customer.phone,
-        status: customer.isActive || customer.is_active ? 'active' : 'inactive'
-      }));
-      console.log('✅ [COMPANY-SELECTOR] Empresas mapeadas:', mappedCompanies);
-      return mappedCompanies;
+      console.log('✅ [COMPANY-SELECTOR] Dados brutos recebidos:', result);
+      
+      // Mapear dados das empresas diretamente do resultado da API /api/companies
+      const companies = (Array.isArray(result) ? result : [])
+        .map((company: any) => {
+          console.log('🔍 [COMPANY-FILTER]', {
+            id: company.id,
+            name: company.name,
+            displayName: company.displayName
+          });
+          return {
+            id: company.id,
+            name: company.name,
+            displayName: company.displayName || company.name,
+            email: company.email,
+            phone: company.phone,
+            status: company.isActive ? 'active' : 'inactive'
+          };
+        })
+        .filter((company: any) => company.name && company.name.trim() !== '' && company.id !== '00000000-0000-0000-0000-000000000001');
+        
+      console.log('✅ [COMPANY-SELECTOR] Empresas filtradas:', companies);
+      return companies;
     }
   });
 

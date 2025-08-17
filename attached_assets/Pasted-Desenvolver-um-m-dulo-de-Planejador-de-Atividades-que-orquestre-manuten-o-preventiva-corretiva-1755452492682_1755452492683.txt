@@ -1,0 +1,357 @@
+Desenvolver um **módulo de Planejador de Atividades** que orquestre manutenção preventiva, corretiva e preditiva em ativos e locais, com planos, ordens de serviço (OS), checklists, calendários/turnos, alocação de equipes, SLA/tempo ocioso, aprovações, peças/estoque e app móvel com offline.
+
+---
+
+## 🏗️ Requisitos Arquiteturais OBRIGATÓRIOS
+
+### Clean Architecture 100% Compliance
+```
+server/modules/activity-planner/
+├── domain/
+│   ├── entities/           → Asset.ts, MaintenancePlan.ts, WorkOrder.ts, Schedule.ts
+│   ├── repositories/       → IAssetRepository.ts, IWorkOrderRepository.ts, IScheduleRepository.ts
+│   ├── services/          → SchedulingEngine.ts, SLACalculator.ts, MaintenanceDomainService.ts
+│   └── value-objects/     → SLAPolicy.ts, WorkOrderStatus.ts, TaskStatus.ts
+├── application/
+│   ├── controllers/       → AssetController.ts, WorkOrderController.ts, ScheduleController.ts
+│   ├── use-cases/         → CreateWorkOrderUseCase.ts, ScheduleMaintenanceUseCase.ts
+│   ├── dto/              → CreateAssetDTO.ts, ScheduleWorkOrderDTO.ts
+│   └── services/         → MaintenanceApplicationService.ts
+├── infrastructure/
+│   ├── repositories/      → DrizzleAssetRepository.ts, DrizzleWorkOrderRepository.ts
+│   ├── clients/          → IoTSensorClient.ts, MobileAppClient.ts
+│   └── config/           → SchedulingConfig.ts
+└── routes.ts             → Definição de endpoints
+```
+
+### Integração Obrigatória com Módulos Existentes
+- **Tickets**: Usar [`Ticket`](rag://rag_source_0) entity para ordens de serviço derivadas de incidentes
+- **Materials-Services**: Integrar [`MaterialService`](rag://rag_source_1) para gestão de peças e estoque
+- **Aprovações**: Reutilizar motor de aprovações existente conforme [`PROMPT_MODULO_APROVACOES_COMPLETO.md`](PROMPT_MODULO_APROVACOES_COMPLETO.md)
+
+---
+
+## 📊 Modelo de Dados Principal
+
+### Entidades Core
+```typescript
+// Assets & Locations Hierarchy
+assets(id, location_id, parent_asset_id, tag, model, criticality, meters_json, mtbf, mttr, failure_codes_json)
+locations(id, parent_location_id, name, timezone, business_hours_json, holidays_json, hierarchy_level)
+
+// Maintenance Planning
+maintenance_plans(id, asset_id, trigger_type: 'time'|'meter'|'condition', frequency_json, tasks_template_json, sla_policy_id)
+work_orders(id, asset_id, ticket_id, origin: 'pm'|'incident'|'manual'|'condition', priority, status, sla_target_at, idle_policy_json)
+wo_tasks(id, wo_id, sequence, required_skill_json, required_cert_json, checklist_json, status, dependencies_json)
+
+// Scheduling & Resources
+schedules(id, wo_id, technician_id, planned_start, planned_end, actual_start, actual_end, route_sequence)
+shifts(id, pattern: '3x1'|'5x2'|'12x36', calendar_json, effective_from, effective_to)
+technicians(id, user_id, skills_json, certifications_json, shift_id, home_base_location_id, availability_json)
+
+// Execution & Tracking
+time_entries(id, wo_id, technician_id, start_time, end_time, type: 'travel'|'work'|'wait', notes)
+task_executions(id, task_id, checklist_responses_json, photos_json, measurements_json, signature_json, completed_at)
+parts_reservations(id, wo_id, material_service_id, quantity_reserved, quantity_used, status)
+
+// SLA & Quality
+sla_policies(id, name, scope_json, start_conditions_json, pause_conditions_json, stop_conditions_json, calendar_id)
+risk_permits(id, wo_id, permit_type: 'LOTO'|'NR10'|'NR35'|'altura', status, issued_by, valid_until)
+```
+
+### Estados das Máquinas
+```typescript
+// Work Order States
+type WorkOrderStatus = 'drafted' | 'scheduled' | 'in_progress' | 'waiting_parts' | 'waiting_window' | 'waiting_client' | 'completed' | 'approved' | 'closed' | 'rejected' | 'canceled';
+
+// Task States  
+type TaskStatus = 'pending' | 'doing' | 'blocked' | 'done' | 'verified';
+```
+
+---
+
+## 🔁 Fluxos Principais Obrigatórios
+
+### 1. Catálogo de Ativos & Locais
+- **Hierarquia**: site → prédio → área → linha → máquina → componente
+- **Atributos**: medidores/horímetros, criticidade, MTBF/MTTR, códigos de falha
+- **Integração**: Locais vindos do módulo [`locations`](rag://rag_source_10) existente
+
+### 2. Planos de Manutenção (PM)
+```typescript
+interface MaintenancePlan {
+  triggerType: 'time' | 'meter' | 'condition';
+  frequency: {
+    type: 'daily' | 'weekly' | 'monthly' | 'usage_based' | 'condition_based';
+    interval: number;
+    unit?: 'hours' | 'km' | 'cycles';
+  };
+  tasks: MaintenanceTask[];
+  slaPolicy: SLAPolicy;
+}
+```
+
+### 3. Geração de Ordens de Serviço
+- **Origens**: PM automática, chamado/ticket, condição IoT, manual
+- **SLA**: Integração com sistema de SLA existente
+- **Idle Time SLA**: Monitoramento de tempo ocioso por etapa
+
+### 4. Motor de Scheduling (CORE)
+```typescript
+interface SchedulingEngine {
+  inputs: {
+    workOrders: WorkOrder[];
+    technicians: Technician[];
+    constraints: SchedulingConstraints;
+  };
+  
+  rules: {
+    hard: CertificationRule | WindowRule | SafetyRule;
+    soft: ProximityRule | LoadBalanceRule | PreferenceRule;
+  };
+  
+  algorithm: 'multi_criteria_score' | 'greedy_improvement' | 'genetic_algorithm';
+  
+  outputs: {
+    schedule: Schedule[];
+    routes: RouteOptimization[];
+    conflicts: SchedulingConflict[];
+  };
+}
+```
+
+### 5. Execução (Campo & Oficina)
+- **App Móvel**: Offline-first com sincronização
+- **Validações**: Dependências, intertravamentos, segurança
+- **Evidências**: Fotos, medições, assinatura do cliente
+
+### 6. Fechamento & Custos
+- **Integração Materials-Services**: Consumo de peças do [`MaterialService`](rag://rag_source_1)
+- **Aprovações**: Motor existente para custos e qualidade
+- **Auditoria**: Logs completos via [`audit_logs`](rag://rag_source_2)
+
+---
+
+## 🔌 APIs Obrigatórias
+
+### Assets & Planning
+```
+POST /api/activity-planner/assets                    # Criar ativo
+GET  /api/activity-planner/assets                    # Listar ativos com hierarquia
+POST /api/activity-planner/maintenance-plans         # Criar plano PM
+GET  /api/activity-planner/maintenance-plans         # Listar planos
+```
+
+### Work Orders & Scheduling
+```
+POST /api/activity-planner/work-orders               # Criar OS
+GET  /api/activity-planner/work-orders               # Listar OS com filtros
+POST /api/activity-planner/work-orders/{id}/schedule # Atribuir/agendar
+PUT  /api/activity-planner/work-orders/{id}/start    # Iniciar execução
+PUT  /api/activity-planner/work-orders/{id}/pause    # Pausar OS
+PUT  /api/activity-planner/work-orders/{id}/complete # Finalizar OS
+```
+
+### Tasks & Execution
+```
+GET  /api/activity-planner/work-orders/{id}/tasks    # Listar tarefas da OS
+POST /api/activity-planner/tasks/{id}/checklist      # Executar checklist
+POST /api/activity-planner/tasks/{id}/evidence       # Anexar evidências
+PUT  /api/activity-planner/tasks/{id}/status         # Atualizar status
+```
+
+### Scheduling & Resources
+```
+GET  /api/activity-planner/schedule                  # Agenda consolidada
+POST /api/activity-planner/schedule/optimize         # Otimizar programação
+GET  /api/activity-planner/technicians               # Listar técnicos
+POST /api/activity-planner/shifts                    # Configurar turnos
+```
+
+### Parts & Inventory Integration
+```
+POST /api/activity-planner/parts/reserve             # Reservar peças (integra materials-services)
+POST /api/activity-planner/parts/consume             # Consumir peças
+GET  /api/activity-planner/parts/availability        # Verificar disponibilidade
+```
+
+### Analytics & KPIs
+```
+GET  /api/activity-planner/kpis/maintenance          # Métricas consolidadas
+GET  /api/activity-planner/reports/sla               # Relatório SLA
+GET  /api/activity-planner/reports/mttr-mtbf         # Indicadores técnicos
+GET  /api/activity-planner/reports/pareto            # Análise de falhas
+```
+
+---
+
+## 🖥️ Interface Obrigatória
+
+### 1. Planejamento Visual
+- **Calendário**: Visão dia/semana/mês com drag & drop
+- **Gantt**: Timeline de projetos e dependências
+- **Mapa**: Clusters geográficos de atividades
+- **Conflitos**: Detecção automática de sobreposições
+
+### 2. Backlog Inteligente
+- **Kanban**: Por status/criticidade/técnico
+- **Sugestões**: Motor de IA para otimização
+- **Filtros**: Query builder integrado
+
+### 3. Execução Móvel
+```typescript
+interface MobileExecution {
+  offlineSupport: boolean;
+  stepByStep: boolean;
+  checklistValidation: boolean;
+  photoCapture: boolean;
+  measurementInput: boolean;
+  clientSignature: boolean;
+  autoSync: boolean;
+}
+```
+
+### 4. Gestão de Peças
+- **Reserva**: Automática por BOM do plano
+- **Substitutos**: Equivalências configuráveis
+- **Baixa**: Integração com inventory
+
+### 5. Relatórios & Analytics
+- **SLA Dashboard**: Cumprimento em tempo real
+- **Idle Time**: Monitoramento de ociosidade
+- **MTTR/MTBF**: Indicadores por ativo
+- **Pareto**: Análise de causas de falhas
+- **Eficácia PM**: Taxa de sucesso preventiva
+
+---
+
+## ⚙️ Regras & Automações
+
+### Query Builder Integration
+```typescript
+interface MaintenanceRule {
+  trigger: QueryCondition[];
+  actions: AutomationAction[];
+  scope: 'pm_generation' | 'wo_approval' | 'sla_escalation';
+}
+```
+
+### SLA Policies
+- **Pausas**: Aguardando cliente/peça/janela
+- **Idle Time**: Por etapa/tarefa (ex: 4h → lembrete, 8h → reatribuir)
+- **Escalonamento**: Hierárquico automático
+
+### Safety & Compliance
+- **Permits**: LOTO, NR10/NR35, trabalho em altura
+- **EPIs**: Listas obrigatórias por tarefa
+- **Bloqueios**: Por risco, custo, parada de linha
+
+---
+
+## 🔒 Qualidade & Compliance
+
+### Testes Obrigatórios (≥ 80% cobertura)
+```typescript
+// Domain Tests
+AssetEntity.test.ts
+MaintenancePlan.test.ts
+SchedulingEngine.test.ts
+
+// Application Tests  
+CreateWorkOrderUseCase.test.ts
+ScheduleOptimizationUseCase.test.ts
+
+// Infrastructure Tests
+DrizzleAssetRepository.test.ts
+SchedulingAlgorithm.test.ts
+
+// Integration Tests
+WorkOrderFlow.integration.test.ts
+MaterialsServiceIntegration.test.ts
+```
+
+### Observabilidade
+```typescript
+interface Metrics {
+  scheduling_performance: 'optimization_time_ms';
+  sla_compliance: 'percentage_met';
+  idle_time: 'average_minutes_per_task';
+  pm_effectiveness: 'preventive_success_rate';
+}
+```
+
+### Auditoria Completa
+```sql
+-- Todas as transições devem ser auditadas
+INSERT INTO audit_logs (tenant_id, user_id, action_type, entity_type, entity_id, old_values, new_values, snapshots, created_at)
+VALUES (?, ?, 'work_order_status_changed', 'work_order', ?, ?, ?, ?, NOW());
+```
+
+### Acessibilidade WCAG 2.1 AA
+- **Contraste**: Mínimo 4.5:1
+- **Navegação**: Teclado completa
+- **Screen Reader**: Labels semânticos
+- **Focus Management**: Indicadores visuais
+
+---
+
+## 🧭 Integração com Ecosystem
+
+### Dependências de Módulos
+```typescript
+// Tickets Integration
+import { TicketEntity } from '../tickets/domain/entities/Ticket';
+
+// Materials-Services Integration  
+import { MaterialServiceEntity } from '../materials-services/domain/entities/MaterialService';
+
+// Approvals Integration
+import { ApprovalWorkflow } from '../approvals/domain/entities/ApprovalWorkflow';
+```
+
+### Database Multi-tenant
+```sql
+-- Seguir padrão tenant schema
+CREATE SCHEMA IF NOT EXISTS tenant_{tenant_id};
+
+-- Todas as tabelas com tenant_id obrigatório
+CREATE TABLE tenant_{tenant_id}.assets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES public.tenants(id),
+  -- demais campos
+);
+```
+
+---
+
+## ✅ Critérios de Aceite
+
+### Funcional
+- [ ] Criação de ativos com hierarquia completa
+- [ ] Planos PM por tempo/uso/condição
+- [ ] Geração automática de OS
+- [ ] Motor de scheduling otimizado
+- [ ] Execução móvel offline
+- [ ] Integração completa materials-services
+- [ ] SLA e Idle Time funcionando
+- [ ] Aprovações integradas
+- [ ] Relatórios e KPIs
+
+### Técnico
+- [ ] Clean Architecture 100%
+- [ ] Cobertura testes ≥ 80%
+- [ ] Performance: scheduling < 5s para 1000 OS
+- [ ] Mobile: sincronização < 30s
+- [ ] Auditoria: 100% das transições
+- [ ] Acessibilidade WCAG 2.1 AA
+
+### Integração
+- [ ] Tickets: OS derivadas de incidentes
+- [ ] Materials: Consumo automático
+- [ ] Aprovações: Fluxos customizáveis
+- [ ] Locais: Hierarquia sincronizada
+- [ ] SLA: Políticas globais
+
+---
+
+**RESULTADO ESPERADO**: Um módulo completo de Planejador de Atividades que seja o núcleo da gestão de manutenção, totalmente integrado ao ecossistema Conductor, seguindo rigorosamente os padrões Clean Architecture e proporcionando uma experiência de usuário excepcional tanto web quanto móvel.
