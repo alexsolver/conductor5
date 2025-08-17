@@ -108,9 +108,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       conditions.push(sql`${approvalRules.moduleType} = ${filters.moduleType}`);
     }
 
-    if (filters.entityType) {
-      conditions.push(sql`${approvalRules.entityType} = ${filters.entityType}`);
-    }
+    // entityType is not a column in approval_rules table - removed this filter
 
     if (filters.isActive !== undefined) {
       conditions.push(eq(approvalRules.isActive, filters.isActive));
@@ -142,9 +140,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       eq(approvalRules.isActive, true)
     ];
 
-    if (entityType) {
-      conditions.push(sql`${approvalRules.entityType} = ${entityType}`);
-    }
+    // entityType is not a column in approval_rules table - removed this filter
 
     const results = await db
       .select()

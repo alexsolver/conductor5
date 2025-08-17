@@ -45,10 +45,10 @@ export function ApprovalRulesManager() {
   });
 
   const createRuleMutation = useMutation({
-    mutationFn: (ruleData: any) => apiRequest('/api/approvals/rules', {
-      method: 'POST',
-      body: JSON.stringify(ruleData)
-    }),
+    mutationFn: async (ruleData: any) => {
+      const response = await apiRequest('POST', '/api/approvals/rules', ruleData);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/rules'] });
       setIsCreateDialogOpen(false);
@@ -65,11 +65,10 @@ export function ApprovalRulesManager() {
   });
 
   const updateRuleMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string, data: any }) => 
-      apiRequest(`/api/approvals/rules/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      }),
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      const response = await apiRequest('PUT', `/api/approvals/rules/${id}`, data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/rules'] });
       setEditingRule(null);
@@ -77,9 +76,10 @@ export function ApprovalRulesManager() {
   });
 
   const deleteRuleMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/approvals/rules/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/approvals/rules/${id}`);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/rules'] });
     }

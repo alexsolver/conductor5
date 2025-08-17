@@ -191,7 +191,7 @@ export function ApprovalInstances() {
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os status</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="approved">Aprovado</SelectItem>
                   <SelectItem value="rejected">Rejeitado</SelectItem>
@@ -212,7 +212,7 @@ export function ApprovalInstances() {
                   <SelectValue placeholder="Todos os módulos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os módulos</SelectItem>
+                  <SelectItem value="all">Todos os módulos</SelectItem>
                   <SelectItem value="tickets">Tickets</SelectItem>
                   <SelectItem value="materials">Materiais</SelectItem>
                   <SelectItem value="knowledge_base">Knowledge Base</SelectItem>
