@@ -4,7 +4,8 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { IActivityPlannerRepository } from '../../domain/repositories/IActivityPlannerRepository';
-import { ActivityInstance, ActivityInstanceEntity } from '../../domain/entities/ActivityInstance';
+import { ActivityInstanceEntity } from '../../domain/entities/ActivityInstance';
+import type { ActivityInstance } from '../../domain/entities/ActivityInstance';
 import { insertActivityCategorySchema, insertActivityTemplateSchema, insertActivityScheduleSchema, insertActivityInstanceSchema } from '@shared/schema-activity-planner';
 
 interface AuthenticatedRequest extends Request {
@@ -299,7 +300,8 @@ export class ActivityPlannerController {
         createdBy: userId
       });
 
-      const instance = await this.activityRepository.createInstance(validatedData);
+      // Cast to proper type for the repository interface
+      const instance = await this.activityRepository.createInstance(validatedData as any);
       
       res.status(201).json({
         success: true,
@@ -425,7 +427,7 @@ export class ActivityPlannerController {
         return;
       }
 
-      const activityEntity = new ActivityInstance(
+      const activityEntity = new ActivityInstanceEntity(
         instance.id,
         instance.tenantId,
         instance.title,
@@ -503,7 +505,7 @@ export class ActivityPlannerController {
         return;
       }
 
-      const activityEntity = new ActivityInstance(
+      const activityEntity = new ActivityInstanceEntity(
         instance.id,
         instance.tenantId,
         instance.title,
