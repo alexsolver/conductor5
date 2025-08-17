@@ -9,9 +9,10 @@ import { Request, Response } from 'express';
 import { ExpenseApprovalApplicationService } from '../services/ExpenseApprovalApplicationService';
 import { ZodError } from 'zod';
 
-// Interface de usuário autenticado
+// Interface de usuário autenticado compatível com JWT middleware
 interface AuthenticatedRequest extends Request {
   user?: {
+    id: string;
     userId: string;
     tenantId: string;
     email: string;
@@ -29,7 +30,7 @@ export class ExpenseApprovalController {
     
     try {
       const tenantId = req.user?.tenantId;
-      const userId = req.user?.userId;
+      const userId = req.user?.userId || req.user?.id;
       
       if (!tenantId || !userId) {
         res.status(401).json({ success: false, message: 'Authentication required' });
