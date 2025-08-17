@@ -1,7 +1,7 @@
 // ✅ 1QA.MD COMPLIANCE: Activity Planner Drizzle Repository Implementation
 // Clean Architecture Infrastructure Layer - Database Repository
 
-import { db } from '../../../db';
+import { db } from '../../../../db';
 import { eq, and, desc, asc, like, between, count, sum, gte, lte, inArray, isNull, or, sql } from 'drizzle-orm';
 import { 
   activityCategories,

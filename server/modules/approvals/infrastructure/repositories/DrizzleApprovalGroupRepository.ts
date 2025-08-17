@@ -3,7 +3,7 @@
  * Seguindo Clean Architecture e padrões 1qa.md com Drizzle ORM
  */
 
-import { db } from '../../../db';
+import { db } from '../../../../db';
 import { 
   approvalGroups, 
   approvalGroupMembers,
