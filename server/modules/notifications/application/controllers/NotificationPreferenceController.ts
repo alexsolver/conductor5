@@ -130,7 +130,8 @@ export class NotificationPreferenceController {
   // GET /api/admin/notification-preferences/stats - Get preference statistics (admin only)
   async getPreferenceStats(req: Request, res: Response): Promise<void> {
     try {
-      const { tenantId } = req.user || {};
+      const user = (req as any).user;
+      const { tenantId } = user || {};
 
       if (!tenantId) {
         res.status(400).json({
@@ -209,7 +210,8 @@ export class NotificationPreferenceController {
   // GET /api/user/notification-preferences/test/:channel - Test notification channel
   async testNotificationChannel(req: Request, res: Response): Promise<void> {
     try {
-      const { userId, tenantId } = req.user || {};
+      const user = (req as any).user;
+      const { userId, tenantId } = { userId: user?.id, tenantId: user?.tenantId };
       const { channel } = req.params;
 
       if (!userId || !tenantId) {

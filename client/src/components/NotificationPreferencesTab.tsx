@@ -25,7 +25,9 @@ import {
   Volume2,
   Vibrate,
   Save,
-  AlertCircle
+  AlertCircle,
+  RefreshCw,
+  Sliders
 } from "lucide-react";
 
 interface NotificationChannel {
@@ -65,6 +67,15 @@ interface NotificationPreferences {
       vibrationEnabled: boolean;
       emailDigest: boolean;
       digestFrequency: string;
+      globalChannels?: {
+        email: boolean;
+        sms: boolean;
+        push: boolean;
+        in_app: boolean;
+        webhook: boolean;
+        slack: boolean;
+        dashboard_alert: boolean;
+      };
     };
   };
   createdAt?: string;
@@ -77,6 +88,7 @@ const NOTIFICATION_CHANNELS: NotificationChannel[] = [
   { id: 'push', name: 'Push', icon: Smartphone, description: 'Notificação push' },
   { id: 'in_app', name: 'In-App', icon: Bell, description: 'Dentro da aplicação' },
   { id: 'webhook', name: 'Webhook', icon: Webhook, description: 'API webhook' },
+  { id: 'slack', name: 'Slack', icon: MessageSquare, description: 'Canal Slack' },
   { id: 'dashboard_alert', name: 'Dashboard', icon: Globe, description: 'Alerta no painel' }
 ];
 
@@ -164,6 +176,29 @@ export default function NotificationPreferencesTab() {
     },
   });
 
+  // Reset preferences mutation - following 1qa.md patterns
+  const resetPreferencesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/user/notification-preferences/reset', {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Configurações Resetadas",
+        description: "Suas preferências foram restauradas para os valores padrão.",
+      });
+      setIsModified(false);
+      refetch();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao Resetar",
+        description: error.message || "Não foi possível resetar as preferências.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Load preferences when data is fetched - following 1qa.md safety patterns
   useEffect(() => {
     if (userPreferences && typeof userPreferences === 'object' && 'data' in userPreferences) {
@@ -186,7 +221,16 @@ export default function NotificationPreferencesTab() {
             soundEnabled: true,
             vibrationEnabled: true,
             emailDigest: false,
-            digestFrequency: 'daily'
+            digestFrequency: 'daily',
+            globalChannels: {
+              email: true,
+              sms: true,
+              push: true,
+              in_app: true,
+              webhook: true,
+              slack: true,
+              dashboard_alert: true
+            }
           }
         }
       };
@@ -260,6 +304,33 @@ export default function NotificationPreferencesTab() {
     setIsModified(true);
   };
 
+  // Handle global channel toggle - following 1qa.md patterns
+  const handleGlobalChannelToggle = (channelId: string) => {
+    if (!preferences?.preferences?.globalSettings?.globalChannels) return;
+    
+    const updatedPreferences = {
+      ...preferences,
+      preferences: {
+        ...preferences.preferences,
+        globalSettings: {
+          ...preferences.preferences.globalSettings,
+          globalChannels: {
+            ...preferences.preferences.globalSettings.globalChannels,
+            [channelId]: !preferences.preferences.globalSettings.globalChannels[channelId]
+          }
+        }
+      }
+    };
+    
+    setPreferences(updatedPreferences);
+    setIsModified(true);
+  };
+
+  // Handle reset to defaults - following 1qa.md patterns
+  const handleResetToDefaults = () => {
+    resetPreferencesMutation.mutate();
+  };
+
   const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
     if (!preferences) return;
     
@@ -317,23 +388,86 @@ export default function NotificationPreferencesTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Save Button */}
+      {/* Header with Save and Reset Buttons */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Preferências de Notificação</h2>
           <p className="text-gray-600">Configure como deseja receber suas notificações</p>
         </div>
-        {isModified && (
+        <div className="flex gap-2">
           <Button 
-            onClick={handleSave} 
-            disabled={updatePreferencesMutation.isPending}
-            data-testid="button-save-preferences"
+            variant="outline"
+            onClick={handleResetToDefaults} 
+            disabled={resetPreferencesMutation.isPending}
+            data-testid="button-reset-preferences"
           >
-            <Save className="h-4 w-4 mr-2" />
-            {updatePreferencesMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {resetPreferencesMutation.isPending ? 'Resetando...' : 'Resetar Padrão'}
           </Button>
-        )}
+          {isModified && (
+            <Button 
+              onClick={handleSave} 
+              disabled={updatePreferencesMutation.isPending}
+              data-testid="button-save-preferences"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {updatePreferencesMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Global Channel Controls */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sliders className="h-5 w-5" />
+            Controles Globais de Canais
+          </CardTitle>
+          <CardDescription>
+            Ativar/desativar canais específicos para todas as notificações
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {NOTIFICATION_CHANNELS.map((channel) => {
+              const IconComponent = channel.icon;
+              const isEnabled = preferences?.preferences?.globalSettings?.globalChannels?.[channel.id] ?? true;
+              
+              return (
+                <div
+                  key={channel.id}
+                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all ${
+                    isEnabled
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                      : 'border-gray-200 bg-gray-50 dark:bg-gray-800'
+                  }`}
+                  onClick={() => handleGlobalChannelToggle(channel.id)}
+                  data-testid={`global-channel-${channel.id}`}
+                >
+                  <IconComponent className={`h-5 w-5 ${isEnabled ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`font-medium text-sm ${isEnabled ? 'text-blue-900 dark:text-blue-100' : 'text-gray-500'}`}>
+                        {channel.name}
+                      </span>
+                      <Switch
+                        checked={isEnabled}
+                        onCheckedChange={() => handleGlobalChannelToggle(channel.id)}
+                        size="sm"
+                        data-testid={`switch-global-${channel.id}`}
+                      />
+                    </div>
+                    <p className={`text-xs ${isEnabled ? 'text-blue-700 dark:text-blue-300' : 'text-gray-400'}`}>
+                      {channel.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Global Settings */}
       <Card>
@@ -551,9 +685,19 @@ export default function NotificationPreferencesTab() {
         })}
       </div>
 
-      {/* Save Button at Bottom */}
-      {isModified && (
-        <div className="flex justify-center pt-4">
+      {/* Action Buttons at Bottom */}
+      <div className="flex justify-center gap-4 pt-4">
+        <Button 
+          variant="outline"
+          onClick={handleResetToDefaults} 
+          disabled={resetPreferencesMutation.isPending}
+          size="lg"
+          data-testid="button-reset-preferences-bottom"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          {resetPreferencesMutation.isPending ? 'Resetando...' : 'Resetar para Padrão'}
+        </Button>
+        {isModified && (
           <Button 
             onClick={handleSave} 
             disabled={updatePreferencesMutation.isPending}
@@ -563,8 +707,8 @@ export default function NotificationPreferencesTab() {
             <Save className="h-4 w-4 mr-2" />
             {updatePreferencesMutation.isPending ? 'Salvando Preferências...' : 'Salvar Todas as Alterações'}
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

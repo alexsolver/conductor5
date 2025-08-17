@@ -2,7 +2,7 @@
 // Infrastructure layer - Database implementation for user preferences
 
 import { db, sql } from '@shared/schema';
-import { notificationPreferences } from '@shared/schema-notifications';
+import { userNotificationPreferences } from '@shared/schema-notifications';
 import { eq, and, count } from 'drizzle-orm';
 import { 
   INotificationPreferenceRepository, 
@@ -244,8 +244,10 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
 
   async resetToDefaults(userId: string, tenantId: string): Promise<boolean> {
     try {
-      const defaults = this.getDefaultPreferences(userId, tenantId);
-      return await this.updateUserPreferences(userId, tenantId, defaults);
+      const defaultPreferences = this.getDefaultPreferences(userId, tenantId);
+      const success = await this.updateUserPreferences(userId, tenantId, defaultPreferences);
+      console.log('[NOTIFICATION-PREFERENCES-REPOSITORY] Reset to defaults for user:', userId, 'Success:', success);
+      return success;
     } catch (error) {
       console.error('Error resetting preferences to defaults:', error);
       return false;
@@ -333,6 +335,20 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
         }
       },
       globalSettings: {
+        doNotDisturb: false,
+        soundEnabled: true,
+        vibrationEnabled: true,
+        emailDigest: false,
+        digestFrequency: 'daily',
+        globalChannels: {
+          email: true,
+          sms: true,
+          push: true,
+          in_app: true,
+          webhook: true,
+          slack: true,
+          dashboard_alert: true
+        },
         globalQuietHours: {
           start: '22:00',
           end: '08:00',
