@@ -125,7 +125,7 @@ export default function UserProfile() {
   });
 
   // Update form when profile data loads following 1qa.md patterns
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile) {
       console.log('[PROFILE-FORM] Updating form with profile data:', profile);
       form.reset({
