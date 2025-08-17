@@ -3,9 +3,9 @@
  * Seguindo Clean Architecture - 1qa.md compliance
  */
 
+// ✅ 1QA.MD COMPLIANCE: IMPORTS PADRONIZADOS
 import { eq, and, or, like, gte, lte, inArray, desc, asc, count, isNull } from 'drizzle-orm';
-import { db } from '../../../../db';
-import { customers } from '@shared/schema';
+import { db, sql, customers } from '@shared/schema';
 import { Customer } from '../../domain/entities/Customer';
 import { 
   ICustomerRepository, 

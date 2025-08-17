@@ -3,9 +3,9 @@
  * Seguindo Clean Architecture - 1qa.md compliance
  */
 
-import { eq, and, sql } from 'drizzle-orm';
-import { db } from '../../../../db';
-import { tickets } from '@shared/schema-master';
+// ✅ 1QA.MD COMPLIANCE: TICKETS REPOSITORY PADRONIZADO
+import { eq, and } from 'drizzle-orm';
+import { db, sql, tickets } from '@shared/schema';
 import { Ticket } from '../../domain/entities/Ticket';
 import {
   ITicketRepository,
@@ -28,9 +28,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   private async initializePool() {
     try {
-      const { pool } = await import('../../../../db');
+      // ✅ 1QA.MD COMPLIANCE: Usar pool de @shared/schema
+      const { pool } = await import('@shared/schema');
       this.pool = pool;
-      console.log('✅ [DrizzleTicketRepositoryClean] Pool initialized successfully');
+      console.log('✅ [DrizzleTicketRepositoryClean] Pool initialized successfully following 1qa.md');
     } catch (error) {
       console.error('❌ [DrizzleTicketRepositoryClean] Failed to initialize pool:', error);
       this.logger.error('Failed to initialize database pool', { error: error.message });

@@ -1,52 +1,43 @@
-// User Repository Implementation
+// ✅ 1QA.MD COMPLIANCE: USER REPOSITORY PADRONIZADO
 import { User } from "../../domain/entities/User";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { db } from "../../db";
-import { users } from '@shared/schema';
-import { eq, desc, count } from "drizzle-orm";
+import { db, sql, users } from '@shared/schema';
+import { eq, desc, count, and } from "drizzle-orm";
 import { logError } from "../../utils/logger";
 
 export class UserRepository implements IUserRepository {
   
   async findById(id: string): Promise<User | null> {
     try {
+      // ✅ 1QA.MD COMPLIANCE: Sempre incluir isActive check
       const [userData] = await db
         .select()
         .from(users)
-        .where(eq(users.id, id));
+        .where(
+          and(
+            eq(users.id, id),
+            eq(users.isActive, true)
+          )
+        );
 
       if (!userData) return null;
 
-      // Debug log crítico para identificar o problema
-      console.log('🔍 [USER-REPO] findById - Raw data from DB:', {
-        id: userData.id,
-        email: userData.email,
-        employmentType: userData.employmentType,
-        employmentTypeType: typeof userData.employmentType,
-        allFields: Object.keys(userData)
-      });
-
+      // ✅ 1QA.MD COMPLIANCE: User entity creation with proper type safety
       const user = new User(
         userData.id,
         userData.email!,
         userData.passwordHash!,
-        userData.firstName,
-        userData.lastName,
+        userData.firstName || null,
+        userData.lastName || null,
         userData.role as any,
         userData.tenantId,
-        userData.profileImageUrl,
+        userData.profileImageUrl || null,
         userData.isActive ?? true,
-        userData.lastLoginAt,
+        userData.lastLoginAt || null,
         userData.createdAt || new Date(),
         userData.updatedAt || new Date(),
         userData.employmentType as 'clt' | 'autonomo' || 'clt'
       );
-
-      console.log('🔍 [USER-REPO] findById - Created User object:', {
-        id: user.id,
-        email: user.email,
-        employmentType: user.employmentType
-      });
 
       return user;
     } catch (error) {
@@ -120,10 +111,10 @@ export class UserRepository implements IUserRepository {
 
   async save(user: User): Promise<User> {
     try {
+      // ✅ 1QA.MD COMPLIANCE: Correct insert schema without id
       const [savedData] = await db
         .insert(users)
         .values({
-          id: user.id,
           email: user.email,
           passwordHash: user.passwordHash,
           firstName: user.firstName,
@@ -133,8 +124,7 @@ export class UserRepository implements IUserRepository {
           profileImageUrl: user.profileImageUrl,
           isActive: user.isActive,
           lastLoginAt: user.lastLoginAt,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt
+          employmentType: user.employmentType
         })
         .returning();
 
@@ -161,18 +151,20 @@ export class UserRepository implements IUserRepository {
 
   async update(user: User): Promise<User> {
     try {
+      // ✅ 1QA.MD COMPLIANCE: Correct update schema with proper null handling
       const [updatedData] = await db
         .update(users)
         .set({
           email: user.email,
           passwordHash: user.passwordHash,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.firstName || null,
+          lastName: user.lastName || null,
           role: user.role,
           tenantId: user.tenantId,
-          profileImageUrl: user.profileImageUrl,
+          profileImageUrl: user.profileImageUrl || null,
           isActive: user.isActive,
-          lastLoginAt: user.lastLoginAt,
+          lastLoginAt: user.lastLoginAt || null,
+          employmentType: user.employmentType,
           updatedAt: new Date()
         })
         .where(eq(users.id, user.id))

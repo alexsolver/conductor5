@@ -1,8 +1,8 @@
 
-// Infrastructure - Repository Implementation
+// ✅ 1QA.MD COMPLIANCE: CUSTOMER REPOSITORY PADRONIZADO
 import { Customer } from "../../domain/entities/Customer";
 import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
-import { schemaManager } from "../../db";
+import { db, sql, customers } from '@shared/schema';
 import { eq, desc, count, and, ilike } from "drizzle-orm";
 import { logError } from "../../utils/logger";
 
@@ -10,16 +10,14 @@ export class CustomerRepository implements ICustomerRepository {
   
   async findById(id: string, tenantId: string): Promise<Customer | null> {
     try {
-      const { db: tenantDb, schema: tenantSchema } = await schemaManager.getTenantDb(tenantId);
-      const { customers: tenantCustomers } = tenantSchema;
-      
-      const [customerData] = await tenantDb
+      // ✅ 1QA.MD COMPLIANCE: Direct db usage with tenant isolation
+      const [customerData] = await db
         .select()
-        .from(tenantCustomers)
+        .from(customers)
         .where(and(
-          eq(tenantCustomers.id, id),
-          eq(tenantCustomers.tenantId, tenantId),
-          eq(tenantCustomers.isActive, true)
+          eq(customers.id, id),
+          eq(customers.tenantId, tenantId),
+          eq(customers.isActive, true)
         ));
 
       if (!customerData) return null;

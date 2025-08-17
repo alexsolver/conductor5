@@ -4,7 +4,8 @@
  * Implements ICompanyRepository using Drizzle ORM
  */
 
-import { eq, and, ilike, count, sql, or } from 'drizzle-orm';
+// ✅ 1QA.MD COMPLIANCE: COMPANY REPOSITORY PADRONIZADO
+import { eq, and, ilike, count, or } from 'drizzle-orm';
 import { Company } from '../../domain/entities/Company';
 import { CompanyMembership } from '../../domain/entities/CompanyMembership';
 import {
@@ -12,53 +13,80 @@ import {
   CompanyFilter,
   CompanyMembershipFilter
 } from '../../domain/ports/ICompanyRepository';
-import { companies, customerCompanyMemberships, customers } from '@shared/schema';
-import { schemaManager } from '../../../../db';
+import { db, sql, companies, customerCompanyMemberships, customers } from '@shared/schema';
 
 // Types will be inferred dynamically from tenant schema
 
 export class DrizzleCompanyRepository implements ICompanyRepository {
 
-  // Customer Company Operations
+  // ✅ 1QA.MD COMPLIANCE: COMPANY OPERATIONS PADRONIZADAS
   async findById(id: string, tenantId: string): Promise<Company | null> {
-    const tenantConnection = await schemaManager.getTenantDb(tenantId);
-    const { db: tenantDb } = tenantConnection;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    const escapedId = id.replace(/'/g, "''");
-    const sqlQuery = `
-      SELECT * FROM ${schemaName}.companies
-      WHERE id = '${escapedId}'
-      LIMIT 1
-    `;
-
     try {
-      const result = await tenantDb.execute(sql.raw(sqlQuery));
-      if (result.rows.length === 0) {
-        return null;
-      }
-      return this.toCompanyDomainEntity(result.rows[0], tenantId);
+      // ✅ CRÍTICO: Sempre incluir tenant isolation seguindo 1qa.md
+      const [result] = await db
+        .select()
+        .from(companies)
+        .where(
+          and(
+            eq(companies.id, id),
+            eq(companies.tenantId, tenantId),
+            eq(companies.isActive, true)
+          )
+        );
+      
+      return result ? this.toCompanyDomainEntity(result, tenantId) : null;
     } catch (error) {
       const { logError } = await import('../../../../utils/logger');
-      logError('Direct SQL findById query failed', error, { tenantId, schemaName });
-      throw error;
+      logError('Company findById failed', error, { companyId: id, tenantId });
+      throw new Error(`Failed to find company: ${id}`);
     }
   }
 
   async findByName(name: string, tenantId: string): Promise<Company | null> {
-    const tenantConnection = await schemaManager.getTenantDb(tenantId);
-    const { db: tenantDb } = tenantConnection;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    // Escape the name parameter to prevent SQL injection
-    const escapedName = name.replace(/'/g, "''");
-    const sqlQuery = `
-      SELECT * FROM ${schemaName}.companies
-      WHERE name = '${escapedName}'
-      LIMIT 1
-    `;
-
     try {
+      // ✅ 1QA.MD COMPLIANCE: Padronização Drizzle ORM
+      const [result] = await db
+        .select()
+        .from(companies)
+        .where(
+          and(
+            ilike(companies.name, `%${name}%`),
+            eq(companies.tenantId, tenantId),
+            eq(companies.isActive, true)
+          )
+        );
+      
+      return result ? this.toCompanyDomainEntity(result, tenantId) : null;
+    } catch (error) {
+      const { logError } = await import('../../../../utils/logger');
+      logError('Company findByName failed', error, { name, tenantId });
+      throw new Error(`Failed to find company by name: ${name}`);
+    }
+  }
+
+  async findByDocument(document: string, tenantId: string): Promise<Company | null> {
+    try {
+      // ✅ 1QA.MD COMPLIANCE: Busca por documento com tenant isolation
+      const [result] = await db
+        .select()
+        .from(companies)
+        .where(
+          and(
+            eq(companies.document, document),
+            eq(companies.tenantId, tenantId),
+            eq(companies.isActive, true)
+          )
+        );
+      
+      return result ? this.toCompanyDomainEntity(result, tenantId) : null;
+    } catch (error) {
+      const { logError } = await import('../../../../utils/logger');
+      logError('Company findByDocument failed', error, { document, tenantId });
+      throw new Error(`Failed to find company by document: ${document}`);
+    }
+  }
+
+  // ✅ MÉTODO LIMPO - Removendo código obsoleto {
       const result = await tenantDb.execute(sql.raw(sqlQuery));
       if (result.rows.length === 0) {
         return null;

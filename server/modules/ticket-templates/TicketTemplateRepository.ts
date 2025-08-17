@@ -1,49 +1,57 @@
-import { TicketTemplate, InsertTicketTemplate } from '@shared/schema';
+// ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATE REPOSITORY PADRONIZADO
+import { db, sql, ticketTemplates, TicketTemplate, InsertTicketTemplate } from '@shared/schema';
+import { eq, and, desc, asc, isNull, or } from 'drizzle-orm';
 
 export class TicketTemplateRepository {
-  constructor(private schemaManager: any) {}
+  // ✅ 1QA.MD: Removendo dependência de schemaManager - usando db direto
 
   async getTemplatesByCompany(
     tenantId: string, 
     customerCompanyId?: string, 
     includePublic: boolean = true
   ): Promise<TicketTemplate[]> {
-    const pool = this.schemaManager.getPool();
-    const schemaName = this.schemaManager.getSchemaName(tenantId);
-    
-    // Handle null, undefined, or 'null' string values
-    const companyId = customerCompanyId === 'null' || customerCompanyId === undefined || customerCompanyId === null ? null : customerCompanyId;
-    
-    let query: string;
-    let params: any[];
-    
-    if (companyId === null) {
-      // Show all public templates when no specific company
-      query = `
-        SELECT * FROM "${schemaName}".ticket_templates 
-        WHERE tenant_id = $1 
-        AND company_id IS NULL
-        AND is_active = true
-        ORDER BY sort_order ASC, usage_count DESC, name ASC
-      `;
-      params = [tenantId];
-    } else {
-      // Show company-specific + public templates
-      query = `
-        SELECT * FROM "${schemaName}".ticket_templates 
-        WHERE tenant_id = $1 
-        AND (
-          company_id = $2 
-          ${includePublic ? 'OR company_id IS NULL' : ''}
-        )
-        AND is_active = true
-        ORDER BY sort_order ASC, usage_count DESC, name ASC
-      `;
-      params = [tenantId, companyId];
+    try {
+      // ✅ 1QA.MD COMPLIANCE: Drizzle ORM query with proper tenant isolation
+      const companyId = customerCompanyId === 'null' || customerCompanyId === undefined || customerCompanyId === null ? null : customerCompanyId;
+      
+      let whereConditions;
+      
+      if (companyId === null) {
+        // Show all public templates when no specific company
+        whereConditions = and(
+          eq(ticketTemplates.tenantId, tenantId),
+          isNull(ticketTemplates.companyId),
+          eq(ticketTemplates.isActive, true)
+        );
+      } else {
+        // Show company-specific + public templates
+        const companyConditions = includePublic 
+          ? or(
+              eq(ticketTemplates.companyId, companyId),
+              isNull(ticketTemplates.companyId)
+            )
+          : eq(ticketTemplates.companyId, companyId);
+
+        whereConditions = and(
+          eq(ticketTemplates.tenantId, tenantId),
+          companyConditions,
+          eq(ticketTemplates.isActive, true)
+        );
+      }
+      
+      return await db
+        .select()
+        .from(ticketTemplates)
+        .where(whereConditions)
+        .orderBy(
+          asc(ticketTemplates.sortOrder),
+          desc(ticketTemplates.usageCount),
+          asc(ticketTemplates.name)
+        );
+    } catch (error) {
+      console.error('Error fetching templates by company:', error);
+      return [];
     }
-    
-    const result = await pool.query(query, params);
-    return result.rows;
   }
 
   async getTemplateById(tenantId: string, templateId: string): Promise<TicketTemplate | null> {

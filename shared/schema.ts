@@ -1,7 +1,33 @@
-// UNIFIED SCHEMA - SINGLE SOURCE OF TRUTH
+// ✅ 1QA.MD COMPLIANCE: UNIFIED SCHEMA - SINGLE SOURCE OF TRUTH
 // Re-exports from schema-master.ts as the authoritative source
+// CRITICAL: Este arquivo é a fonte única para imports em todo o sistema
 
+// Import Drizzle essentials FIRST
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { sql } from 'drizzle-orm';
+import { Pool } from 'pg';
+
+// Re-export all schema definitions
 export * from "./schema-master";
+
+// ✅ DRIZZLE ORM SETUP - 1QA.MD PATTERNS
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: process.env.NODE_ENV === 'production' ? 50 : 20,
+  min: process.env.NODE_ENV === 'production' ? 5 : 2,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 15000,
+  ssl: false,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000
+});
+
+// Import all schema definitions for drizzle connection
+import * as schemaDefinitions from "./schema-master";
+
+// Export essentials for universal access
+export const db = drizzle({ client: pool, schema: schemaDefinitions });
+export { sql, pool };
 
 // Selective exports from materials-services to avoid conflicts
 export {

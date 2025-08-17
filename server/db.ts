@@ -1,11 +1,10 @@
-// EMERGENCY SIMPLIFIED DB MANAGER
-// Temporary replacement due to syntax errors from sed commands
+// ✅ 1QA.MD DRIZZLE COMPLIANCE: PADRONIZAÇÃO COMPLETA
+// IMPORTS OBRIGATÓRIOS: Sempre usar @shared/schema como fonte única
 
-// 1qa.md COMPLIANCE: PostgreSQL local implementation
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { sql } from 'drizzle-orm';
-import * as schema from "@shared/schema";
+import { db, sql, pool } from '@shared/schema';
+import * as schema from '@shared/schema';
 
 // Validate schema import
 if (!schema.scheduleTemplates || !schema.workSchedules || !schema.users) {
