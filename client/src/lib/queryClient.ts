@@ -20,10 +20,8 @@ async function refreshAccessToken(): Promise<string | null> {
     });
 
     if (!response.ok) {
-      console.log('Refresh token failed, redirecting to login');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      window.location.href = '/auth';
+      console.log('Refresh token failed - not redirecting to avoid interrupting user operations');
+      // Don't force redirect following 1qa.md - let components handle auth state
       return null;
     }
 
@@ -35,9 +33,7 @@ async function refreshAccessToken(): Promise<string | null> {
     return data.accessToken;
   } catch (error) {
     console.error('Token refresh failed:', error);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    window.location.href = '/auth';
+    // Don't force redirect following 1qa.md - let components handle auth state
     return null;
   }
 }
@@ -206,11 +202,8 @@ export const getQueryFn: <T>(options: {
           credentials: "include",
         });
       } else {
-        console.error('❌ [QUERY-CLIENT] Token refresh failed, redirecting to auth');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('tenantId');
-        window.location.href = '/auth';
+        console.error('❌ [QUERY-CLIENT] Token refresh failed - not redirecting following 1qa.md');
+        // Don't force redirect following 1qa.md - let components handle auth state
         return null; // Return null if refresh fails and we can't proceed
       }
     }
