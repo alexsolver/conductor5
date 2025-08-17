@@ -89,8 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     retry: false,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // Increase stale time to 30 minutes to prevent refetching during profile operations
+    gcTime: 60 * 60 * 1000, // Increase garbage collection time to 1 hour
+    refetchOnWindowFocus: false, // Disable refetch on window focus to prevent logout during profile operations
+    refetchOnMount: false, // Only fetch on mount if no data exists
   });
 
   // Token refresh mechanism - ✅ 1QA.MD compliance

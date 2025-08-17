@@ -161,9 +161,8 @@ export default function UserProfile() {
         description: "Suas informações foram salvas com sucesso.",
       });
       setIsEditing(false);
-      // Invalidate queries to refetch updated data
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      // Only refetch profile data, don't touch auth queries to prevent logout following 1qa.md
+      queryClient.refetchQueries({ queryKey: ['/api/user/profile'] });
     },
     onError: (error: any) => {
       console.error('[PROFILE-UPDATE] Error details:', error);
@@ -196,8 +195,8 @@ export default function UserProfile() {
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-      // Invalidate queries without causing auth refresh loops
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      // Only refetch profile data, don't touch auth queries to prevent logout following 1qa.md
+      queryClient.refetchQueries({ queryKey: ['/api/user/profile'] });
     },
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
