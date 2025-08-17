@@ -39,20 +39,33 @@ export function CompanySelector({
   className = ""
 }: CompanySelectorProps) {
   const { data: companies = [], isLoading, error } = useQuery<Company[]>({
-    queryKey: ['/api/customers', { customerType: 'PJ' }],
+    queryKey: ['/api/customers'],
     queryFn: async () => {
+      console.log('🏢 [COMPANY-SELECTOR] Carregando empresas...');
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/customers?customerType=PJ&isActive=true&limit=100', {
+      const response = await fetch('/api/customers', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
       if (!response.ok) {
+        console.log('❌ [COMPANY-SELECTOR] Erro na API:', response.status);
         throw new Error('Falha ao carregar empresas');
       }
       const result = await response.json();
-      return result.data || [];
+      console.log('✅ [COMPANY-SELECTOR] Empresas carregadas:', result);
+      // Mapear customers para o formato esperado
+      const mappedCompanies = (result.customers || []).map((customer: any) => ({
+        id: customer.id,
+        name: customer.companyName || customer.company_name || `${customer.firstName || customer.first_name} ${customer.lastName || customer.last_name}`,
+        displayName: customer.companyName || customer.company_name || `${customer.firstName || customer.first_name} ${customer.lastName || customer.last_name}`,
+        email: customer.email,
+        phone: customer.phone,
+        status: customer.isActive || customer.is_active ? 'active' : 'inactive'
+      }));
+      console.log('✅ [COMPANY-SELECTOR] Empresas mapeadas:', mappedCompanies);
+      return mappedCompanies;
     }
   });
 
@@ -106,6 +119,13 @@ export function CompanySelector({
           )}
         </SelectContent>
       </Select>
+      
+      {/* Debug info */}
+      {companies.length > 0 && (
+        <div className="text-xs text-gray-500 mt-1">
+          {companies.length} empresas encontradas
+        </div>
+      )}
       
       <p className="text-xs text-gray-500 dark:text-gray-400">
         Deixe vazio para aplicar a regra globalmente ou selecione uma empresa específica

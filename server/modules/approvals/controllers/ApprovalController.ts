@@ -31,13 +31,15 @@ const createRuleSchema = z.object({
   description: z.string().optional(),
   moduleType: z.enum(['tickets', 'materials', 'knowledge_base', 'timecard', 'contracts']),
   entityType: z.string().min(1, "Tipo de entidade é obrigatório"),
-  queryConditions: z.any(),
+  companyId: z.string().nullable().optional(),
+  queryConditions: z.array(z.any()).optional().default([]),
   approvalSteps: z.array(z.any()).min(1, "Pelo menos uma etapa é obrigatória"),
-  defaultSlaHours: z.number().min(1, "SLA deve ser pelo menos 1 hora"),
-  escalationEnabled: z.boolean().optional(),
-  autoApprovalEnabled: z.boolean().optional(),
-  autoApprovalConditions: z.any().optional(),
-  priority: z.number().int().min(1).max(999).optional(),
+  slaHours: z.number().min(1, "SLA deve ser pelo menos 1 hora").optional().default(24),
+  businessHoursOnly: z.boolean().optional().default(true),
+  escalationSettings: z.any().optional().default({}),
+  autoApprovalConditions: z.array(z.any()).optional().default([]),
+  isActive: z.boolean().optional().default(true),
+  priority: z.number().int().min(1).max(999).optional().default(100),
 });
 
 const updateRuleSchema = createRuleSchema.partial().extend({
@@ -202,15 +204,20 @@ export class ApprovalController {
         return;
       }
 
+      console.log('🔍 [CREATE-RULE] Dados recebidos:', req.body);
+      
       // Validate request body
       const validation = createRuleSchema.safeParse(req.body);
       if (!validation.success) {
+        console.log('❌ [CREATE-RULE] Validação falhou:', validation.error.errors);
         res.status(400).json({
           error: 'Dados inválidos',
           validationErrors: validation.error.errors.map(e => e.message),
         });
         return;
       }
+      
+      console.log('✅ [CREATE-RULE] Validação passou:', validation.data);
 
       const response = await this.createApprovalRuleCommand.execute({
         tenantId,
