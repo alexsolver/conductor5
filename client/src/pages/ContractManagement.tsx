@@ -78,30 +78,18 @@ export default function ContractManagement() {
   // Buscar métricas do dashboard
   const { data: dashboardMetrics } = useQuery({
     queryKey: ['/api/contracts/dashboard-metrics'],
-    queryFn: async () => {
-      const response = await fetch('/api/contracts/dashboard-metrics', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-      });
-      return response.json();
-    },
+    queryFn: () => apiRequest('/api/contracts/dashboard-metrics'),
   });
 
   // Buscar contratos
   const { data: contractsData, isLoading } = useQuery({
     queryKey: ['/api/contracts', filters],
-    queryFn: async () => {
+    queryFn: () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
+        if (value && value !== 'all') params.append(key, value);
       });
-      const response = await fetch(`/api/contracts?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-      });
-      return response.json();
+      return apiRequest(`/api/contracts?${params.toString()}`);
     },
   });
 
@@ -110,15 +98,8 @@ export default function ContractManagement() {
 
   // Mutation para deletar contrato
   const deleteContractMutation = useMutation({
-    mutationFn: async (contractId: string) => {
-      const response = await fetch(`/api/contracts/${contractId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-      });
-      return response.json();
-    },
+    mutationFn: (contractId: string) => 
+      apiRequest(`/api/contracts/${contractId}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
@@ -288,14 +269,14 @@ export default function ContractManagement() {
               </div>
 
               <Select 
-                value={filters.status || ''} 
-                onValueChange={(value) => setFilters({ ...filters, status: value })}
+                value={filters.status || 'all'} 
+                onValueChange={(value) => setFilters({ ...filters, status: value === 'all' ? undefined : value })}
               >
                 <SelectTrigger data-testid="select-status-filter">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os Status</SelectItem>
+                  <SelectItem value="all">Todos os Status</SelectItem>
                   {contractStatuses.map((status) => (
                     <SelectItem key={status.value} value={status.value}>
                       {status.label}
@@ -305,14 +286,14 @@ export default function ContractManagement() {
               </Select>
 
               <Select 
-                value={filters.contractType || ''} 
-                onValueChange={(value) => setFilters({ ...filters, contractType: value })}
+                value={filters.contractType || 'all'} 
+                onValueChange={(value) => setFilters({ ...filters, contractType: value === 'all' ? undefined : value })}
               >
                 <SelectTrigger data-testid="select-type-filter">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os Tipos</SelectItem>
+                  <SelectItem value="all">Todos os Tipos</SelectItem>
                   {contractTypes.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
@@ -322,14 +303,14 @@ export default function ContractManagement() {
               </Select>
 
               <Select 
-                value={filters.priority || ''} 
-                onValueChange={(value) => setFilters({ ...filters, priority: value })}
+                value={filters.priority || 'all'} 
+                onValueChange={(value) => setFilters({ ...filters, priority: value === 'all' ? undefined : value })}
               >
                 <SelectTrigger data-testid="select-priority-filter">
                   <SelectValue placeholder="Prioridade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as Prioridades</SelectItem>
+                  <SelectItem value="all">Todas as Prioridades</SelectItem>
                   {priorities.map((priority) => (
                     <SelectItem key={priority.value} value={priority.value}>
                       {priority.label}

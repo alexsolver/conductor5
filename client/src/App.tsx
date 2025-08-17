@@ -203,6 +203,7 @@ function AppRouter() {
         <Route path="/omnibridge" component={OmniBridge} />
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
+        <Route path="/contract-management" component={ContractManagement} />
         <Route path="/contracts" component={ContractManagement} />
 
         <Route path="/item-catalog" component={ItemCatalog} />
