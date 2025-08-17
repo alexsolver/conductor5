@@ -22,6 +22,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 - **Language**: TypeScript with ES modules.
 - **Database**: PostgreSQL with Drizzle ORM. Complete 1qa.md compliance achieved - Neon completely removed from codebase, PostgreSQL infrastructure implemented. All database operations use pg driver with node-postgres for full PostgreSQL compatibility. @neondatabase/serverless package completely eliminated from all source files. **DRIZZLE ORM STANDARDIZATION COMPLETE (August 2025)**: All repositories now follow unified @shared/schema import pattern, schemaManager dependencies eliminated, proper tenant isolation implemented across DrizzleTicketRepositoryClean, DrizzleCustomerRepository, UserRepository, DrizzleCompanyRepository, CustomerRepository, and TicketTemplateRepository with enhanced type safety.
 - **Authentication**: Local JWT authentication with fixed auto-logout prevention following 1qa.md patterns.
+- **Notification Preferences**: Complete user notification preference system with global channel activation/deactivation controls (email, in-app, SMS, webhook, Slack) and reset to defaults functionality implemented in user profile page (August 2025).
 - **Session Management**: Express sessions with PostgreSQL storage.
 - **API Design**: RESTful endpoints with structured error handling.
 - **Architecture Pattern**: Clean Architecture with Domain, Application, and Infrastructure layers.
@@ -44,7 +45,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
     - **Inventory Management**: Comprehensive stock, supplier, and services management modules, including item catalog, stock tracking, and supplier ratings.
     - **Materials Services Management System**: Comprehensive item catalog with embedded ticket integration, including a three-phase workflow (Planning → Execution → Control), full CRUD operations, and a pricing rules system.
     - **Custom Fields Management**: Supports 12 field types, module-specific fields for 10 modules, ordering, conditional logic, templates, validation, and grouping.
-    - **Notifications Management**: Comprehensive notification management with multi-channel support (email/in-app/sms/webhook/slack), user preferences, scheduled processing, and automation.
+    - **Notifications Management**: Comprehensive notification management with multi-channel support (email/in-app/sms/webhook/slack), user preferences, scheduled processing, and automation. User profile notification preferences fully implemented with global channel controls and reset functionality (August 2025).
     - **Dashboard Module**: Real-time statistics aggregation, activity tracking, performance monitoring, customizable widget system, and multi-module analytics integration.
     - **SaaS Admin Module**: Global system administration, complete tenant lifecycle management, billing oversight, audit compliance, advanced analytics, and system maintenance tools.
 

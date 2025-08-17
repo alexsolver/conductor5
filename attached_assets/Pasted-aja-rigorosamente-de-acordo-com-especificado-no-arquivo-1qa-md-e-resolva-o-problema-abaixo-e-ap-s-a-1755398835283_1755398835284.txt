@@ -1,0 +1,47 @@
+aja rigorosamente de acordo com especificado no arquivo 1qa.md e resolva o problema abaixo e, após a resolução, garanta que os padrões especificados no arquivo foram mantidos.
+
+Exclua a atual pagina de SLA e vamos criar um módulo de SLA totalmente novo, completo, isolado, seguindo os padroes sistemicos de clean archtecture.
+
+- Não crie dados Mock
+- Use dados no banco desde o inicio
+- CRUD completo 
+- Nenhum botão sem operacao ou funcao
+
+🔹 1. Definição e Configuração
+	•	Criação de SLAs, OLAs e Underpinning Contracts (cliente, interno, fornecedor).
+	•	Regras de início, pausa e parada: ex. SLA inicia quando chamado é aberto, pausa quando aguarda cliente, para quando é resolvido.
+	•	Metas de tempo configuráveis: tempo para resposta inicial, tempo para resolução final, tempo de atualização etc.
+	•	SLA de Tempo Ocioso (Idle Time SLA): mede o tempo em que o ticket fica sem interação, seja do atendente (inatividade interna) ou do cliente (aguardando resposta). Útil para diagnosticar gargalos.
+	•	Workflows de SLA: definem ações automáticas em cada etapa do SLA.
+
+⸻
+
+🔹 2. Monitoramento em Tempo Real
+	•	Relógio de SLA visível no chamado, mostrando tempo decorrido/restante.
+	•	Pausas automáticas quando condições pré-definidas são atendidas (ex.: aguardando cliente).
+	•	Alertas e notificações antes de violação.
+	•	Indicadores de violação para tickets que ultrapassam o prazo.
+	•	Idle Time Tracking: acompanhamento específico de quanto tempo o ticket ficou parado em determinada fila ou status.
+
+⸻
+
+🔹 3. Automação
+	•	Escalonamento automático quando o SLA está em risco.
+	•	Mudança de prioridade ou grupo de atendimento quando há atraso.
+	•	Envio automático de emails/notificações para gestores e responsáveis.
+	•	Ações baseadas em tempo ocioso: reatribuir tickets parados, disparar lembretes, ou fechar tickets inativos após prazo.
+
+⸻
+
+🔹 4. Relatórios e Dashboards
+	•	KPIs de SLA: % atendidos, % violados, tempo médio de resolução.
+	•	Relatórios de tempo ocioso: identificam chamados que ficaram parados, por fila, grupo ou técnico.
+	•	Dashboards executivos com gráficos em tempo real.
+	•	Tendências históricas para análise de gargalos e melhoria contínua.
+	•	Service Analytics (com módulo adicional) para prever riscos de violação.
+
+⸻
+
+🔹 5. Integrações
+	•	Aplicação de SLAs em Incidents, Problems, Changes, Requests e outros registros.
+	•	Regras condicionais para aplicar SLAs diferentes por tipo de serviço, prioridade ou cliente.
