@@ -38,6 +38,9 @@ import {
   X
 } from "lucide-react";
 import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import type { UploadResult } from "@uppy/core";
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -55,11 +58,24 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
+// Password change schema
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "Senha atual é obrigatória"),
+  newPassword: z.string().min(6, "Nova senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
+type PasswordFormData = z.infer<typeof passwordSchema>;
+
 export default function UserProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("personal");
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   // Fetch user profile data
   const { data: profile, isLoading } = useQuery({
@@ -76,6 +92,18 @@ export default function UserProfile() {
   // Fetch user skills
   const { data: skills } = useQuery({
     queryKey: ['/api/user/skills'],
+    enabled: !!user,
+  });
+
+  // Fetch user preferences
+  const { data: preferences } = useQuery({
+    queryKey: ['/api/user/preferences'],
+    enabled: !!user,
+  });
+
+  // Fetch security sessions
+  const { data: sessions } = useQuery({
+    queryKey: ['/api/user/security/sessions'],
     enabled: !!user,
   });
 
@@ -123,6 +151,128 @@ export default function UserProfile() {
     updateProfileMutation.mutate(data);
   };
 
+  // Profile photo upload mutation
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (avatarURL: string) => {
+      const response = await apiRequest('PUT', '/api/user/profile/photo', { avatarURL });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Foto atualizada",
+        description: "Sua foto de perfil foi atualizada com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao atualizar foto",
+        description: "Não foi possível atualizar sua foto de perfil.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Password form
+  const passwordForm = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
+  // Password change mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: PasswordFormData) => {
+      const response = await apiRequest('PUT', '/api/user/security/password', {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Senha alterada",
+        description: "Sua senha foi alterada com sucesso.",
+      });
+      setShowPasswordDialog(false);
+      passwordForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao alterar senha",
+        description: error.message || "Não foi possível alterar a senha.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Preferences mutations
+  const updatePreferencesMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('PUT', '/api/user/preferences', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Preferências atualizadas",
+        description: "Suas preferências foram salvas com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as preferências.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle photo upload
+  const handlePhotoUpload = async () => {
+    try {
+      const response = await apiRequest('POST', '/api/user/profile/photo/upload');
+      const data = await response.json();
+      return {
+        method: 'PUT' as const,
+        url: data.uploadURL,
+      };
+    } catch (error) {
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível obter URL de upload.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const handlePhotoComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      if (uploadedFile.uploadURL) {
+        uploadPhotoMutation.mutate(uploadedFile.uploadURL as string);
+      }
+    }
+  };
+
+  // Handle password submit
+  const onPasswordSubmit = (data: PasswordFormData) => {
+    changePasswordMutation.mutate(data);
+  };
+
+  // Handle preference changes
+  const handlePreferenceChange = (key: string, value: any) => {
+    const currentPrefs = preferences?.data || {};
+    updatePreferencesMutation.mutate({
+      ...currentPrefs,
+      [key]: value,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="p-4 space-y-4">
@@ -150,18 +300,20 @@ export default function UserProfile() {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={(profile as any)?.avatar || ""} />
+                <AvatarImage src={(profile as any)?.avatar_url || (profile as any)?.avatar || ""} />
                 <AvatarFallback className="text-lg">
                   {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <Button
-                size="sm"
-                variant="outline"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+              <ObjectUploader
+                maxNumberOfFiles={1}
+                maxFileSize={5242880} // 5MB
+                onGetUploadParameters={handlePhotoUpload}
+                onComplete={handlePhotoComplete}
+                buttonClassName="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
               >
                 <Camera className="h-4 w-4" />
-              </Button>
+              </ObjectUploader>
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-semibold">{user?.firstName} {user?.lastName}</h2>
@@ -453,10 +605,73 @@ export default function UserProfile() {
                     <h4 className="font-medium">Alterar Senha</h4>
                     <p className="text-sm text-gray-600">Atualize sua senha de acesso</p>
                   </div>
-                  <Button variant="outline">
-                    <Lock className="h-4 w-4 mr-2" />
-                    Alterar
-                  </Button>
+                  <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Lock className="h-4 w-4 mr-2" />
+                        Alterar
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Alterar Senha</DialogTitle>
+                        <DialogDescription>
+                          Digite sua senha atual e a nova senha para alterar.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Form {...passwordForm}>
+                        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                          <FormField
+                            control={passwordForm.control}
+                            name="currentPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Senha Atual</FormLabel>
+                                <FormControl>
+                                  <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={passwordForm.control}
+                            name="newPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nova Senha</FormLabel>
+                                <FormControl>
+                                  <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={passwordForm.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Confirmar Nova Senha</FormLabel>
+                                <FormControl>
+                                  <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setShowPasswordDialog(false)}>
+                              Cancelar
+                            </Button>
+                            <Button type="submit" disabled={changePasswordMutation.isPending}>
+                              {changePasswordMutation.isPending ? "Alterando..." : "Alterar Senha"}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -464,7 +679,39 @@ export default function UserProfile() {
                     <h4 className="font-medium">Sessões Ativas</h4>
                     <p className="text-sm text-gray-600">Gerencie dispositivos conectados</p>
                   </div>
-                  <Button variant="outline">Ver Sessões</Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">Ver Sessões</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[525px]">
+                      <DialogHeader>
+                        <DialogTitle>Sessões Ativas</DialogTitle>
+                        <DialogDescription>
+                          Dispositivos conectados à sua conta
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-3">
+                        {Array.isArray(sessions?.data) && sessions.data.length > 0 ? (
+                          sessions.data.map((session: any) => (
+                            <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div>
+                                <p className="font-medium">{session.device}</p>
+                                <p className="text-sm text-gray-600">{session.location}</p>
+                                <p className="text-xs text-gray-500">
+                                  Última atividade: {new Date(session.lastActivity).toLocaleString('pt-BR')}
+                                </p>
+                              </div>
+                              {session.current && (
+                                <Badge variant="default">Atual</Badge>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-gray-500 text-center py-4">Nenhuma sessão ativa encontrada</p>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -495,7 +742,10 @@ export default function UserProfile() {
                     <Label htmlFor="language">Idioma</Label>
                     <p className="text-sm text-gray-600">Selecione seu idioma preferido</p>
                   </div>
-                  <Select defaultValue="pt-BR">
+                  <Select 
+                    value={preferences?.data?.language || "pt-BR"}
+                    onValueChange={(value) => handlePreferenceChange('language', value)}
+                  >
                     <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>
@@ -514,7 +764,11 @@ export default function UserProfile() {
                     <Label htmlFor="notifications">Notificações por Email</Label>
                     <p className="text-sm text-gray-600">Receber notificações por email</p>
                   </div>
-                  <Switch id="notifications" />
+                  <Switch 
+                    id="notifications" 
+                    checked={preferences?.data?.emailNotifications ?? true}
+                    onCheckedChange={(checked) => handlePreferenceChange('emailNotifications', checked)}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -522,7 +776,11 @@ export default function UserProfile() {
                     <Label htmlFor="push-notifications">Notificações Push</Label>
                     <p className="text-sm text-gray-600">Receber notificações no navegador</p>
                   </div>
-                  <Switch id="push-notifications" />
+                  <Switch 
+                    id="push-notifications" 
+                    checked={preferences?.data?.pushNotifications ?? true}
+                    onCheckedChange={(checked) => handlePreferenceChange('pushNotifications', checked)}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -530,7 +788,11 @@ export default function UserProfile() {
                     <Label htmlFor="dark-mode">Modo Escuro</Label>
                     <p className="text-sm text-gray-600">Usar tema escuro na interface</p>
                   </div>
-                  <Switch id="dark-mode" />
+                  <Switch 
+                    id="dark-mode" 
+                    checked={preferences?.data?.darkMode ?? false}
+                    onCheckedChange={(checked) => handlePreferenceChange('darkMode', checked)}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -556,7 +818,9 @@ export default function UserProfile() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">{item.description}</p>
-                        <p className="text-xs text-gray-500">{item.timestamp}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(item.timestamp).toLocaleString('pt-BR')}
+                        </p>
                       </div>
                     </div>
                   ))
