@@ -1,0 +1,177 @@
+Gere o **Módulo de Relatórios & Dashboards** do Conductor com:
+
+- **Dashboards múltiplos** por usuário/equipe, **tempo real** (WebSocket/SSE) e **compartilhamento por token** (links públicos com/sem login).
+- **Relatórios** com criação, **execução/geração automática** (schedule), **gatilhos/ações** por resultado, **fila de execução** (job queue) e opção de **off-peak scheduling**.
+- **Designer WYSIWYG de PDF** para relatórios personalizados (cores, textos, layouts, filtros, agrupamentos, componentes visuais) com **exportação em PDF** e renderização em fila.
+
+## Objetivos
+1) Centralizar dados (Tickets, SLAs, Manutenções, Despesas etc).
+2) Dashboards em tempo real com filtros, drill-down e múltiplas visualizações.
+3) Relatórios agendados com **regra/trigger** e **job queue** para controlar carga.
+4) **Off-peak windows**: executar relatórios pesados em horários de baixa demanda.
+5) Designer WYSIWYG para **PDFs** com branding, temas e dados vinculados.
+
+---
+
+## Requisitos Funcionais
+
+### 1) Relatórios (Builder, Execução, Automação)
+- CRUD de relatórios (`query_json`: fonte, métricas, groupBy, filtros, params).
+- Execução on-demand e automática (cron/RRULE; janelas relativas `{{now-7d}}..{{now}}`).
+- Histórico de execuções (dataset, metadados, performance).
+- Exportações: CSV, XLSX, PNG, PDF (via template).
+- **Triggers/Ações** por resultado:
+  - Operadores: `> >= < <= == != IN BETWEEN EXISTS`
+  - Ações: email/in-app/webhook, abrir ticket, disparar outro relatório, destacar widget.
+
+### 2) Dashboards (Múltiplos + Tempo Real)
+- Vários dashboards por usuário/equipe/tenant.
+- Widgets: gráfico, tabela, KPI, texto.
+- **Tempo real** (WebSocket com fallback SSE), subscribe por widget.
+- Layout drag & drop, filtros globais (tempo, cliente, local, equipe), drill-down.
+
+### 3) Visualizações
+- Gráficos: barra/coluna, linha, área, pizza, donut, treemap/treeview, heatmap.
+- Tabelas (sort, paginação, subtotais/totais).
+- KPI cards (valor, meta, variação, semáforo).
+- Mesma consulta → múltiplas visualizações.
+
+### 4) Compartilhamento por Token
+- Link público com token (modo **no_login** read-only ou **with_login**).
+- Escopo de dados, permissões (viewer/drilldown/export), expiração, max uses, IP allowlist.
+- Revogação imediata; logs de acesso; compartilhamento de dashboard/widget/snapshot.
+
+### 5) Permissões & Segurança
+- Visibilidade: `private | group | customer | public`.
+- RBAC por objeto (owner/editor/viewer) e escopo (tenant, local, contrato).
+- Proteção anti-enumeração de tokens; rate limit; modo kiosk.
+
+### 6) Alertas & Monitoramento
+- Alertas de triggers ou métricas; centro de alertas (open/acked/closed) e histórico.
+
+### 7) **Designer WYSIWYG de PDF**
+- Canvas com grid; drag & drop de: título, texto, imagens/logo, gráficos, tabelas, KPI, seções, capa/índice.
+- **Dados & Binding**: selecionar fonte (report/query), filtros, agrupamento, quebras de página por grupo, agregações (sum/avg/min/max/count).
+- **Branding/Temas**: paleta, tipografia, margens, header/footer, paginação, temas salvos (dark/light), variáveis de marca.
+- Multi-página (A4/Letter/custom; retrato/paisagem); preview com dados reais.
+- Exportação **PDF** server-side (headless) com opção **PDF/A**.
+- Agendamento de renders (usa **fila**) com entrega por email/in-app/link público.
+- Versionamento de templates; clone; variáveis por filial/contrato.
+
+---
+
+## **Fila de Execução (Job Queue) & Off-Peak**
+
+### Comportamento
+- Toda execução pesada (relatório grande, render de PDF, pré-agregações) entra em **fila**.
+- **Prioridades**: `low | normal | high | critical` (ex.: ad-hoc crítico pode furar fila até limite).
+- **Classes de job**: `report_execute`, `report_schedule`, `trigger_evaluate`, `pdf_render`, `dataset_precompute`.
+- **Limites de concorrência** por classe e por tenant (evita “noisy neighbor”).
+- **Técnicas**: backoff exponencial, retries configuráveis, deduplicação de jobs idempotentes, TTL de job.
+- **Circuit breaker** por fonte/destino (pausar ingest/execuções se erros em cascata).
+
+### Off-Peak Scheduling
+- Configurar **janelas de menor demanda** por tenant e global (ex.: 00:00–06:00 America/Sao_Paulo).
+- Relatórios/ PDFs marcados como “pesados” ou “não urgentes” **devem** ser enfileirados para execução **dentro das janelas off-peak** (salvo override por admin).
+- **Calendários de manutenção**: evitar executar jobs em janelas de manutenção.
+- **Janela flexível**: permitir preferências do usuário (ex.: “qualquer horário entre 1h e 5h”).
+- **Pré-agregações** (materialized views/cubos) atualizadas preferencialmente em off-peak.
+
+### Governança de Carga
+- **Cotas** por tenant (jobs/hora, CPU-seg, memória, storage temporário).
+- **Throttling** de queries por tamanho estimado (linhas, custo, tempo).
+- **Shard/Worker Pools**: pool para tempo real (WS) separado do pool batch (relatórios/PDF).
+
+---
+
+## Requisitos Não Funcionais
+- **Clean Architecture** (Domain/Application/Infrastructure).
+- **Testes** unitários/integração (≥ 80%).
+- **Performance**: cache, pré-agregações; paginação/streaming para datasets grandes; renderer PDF isolado.
+- **Escalabilidade**: múltiplos dashboards simultâneos; centenas de subscrições WS por tenant; fila distribuída.
+- **Observabilidade**: métricas de fila (lag, jobs pendentes, falhas, tempo médio), latência WS/SSE, tempo de render PDF; tracing distribuído.
+- **Auditoria**: criação/edição/execução/compartilhamento/visualização/jobs/tokens em `audit_logs`.
+
+---
+
+## Modelo de Dados (mínimo)
+
+- **reports**(id, tenant_id, name, description, query_json, params_json, owner_id, visibility, scope_json, heavy(bool), created_at, updated_at)
+- **report_executions**(id, report_id, executed_by, executed_at, status, runtime_ms, row_count, result_ref, meta_json)
+- **report_schedules**(id, report_id, schedule_expr, timezone, is_active, next_run_at, delivery_config_json, offpeak_only(bool), priority)
+- **report_triggers**(id, report_id, rule_json, actions_json, is_active, last_fired_at)
+
+- **dashboards**(id, tenant_id, name, description, layout_json, filters_json, owner_id, visibility, realtime_enabled, created_at)
+- **widgets**(id, dashboard_id, type(chart|table|kpi|text), viz(bar|line|area|pie|donut|treemap|heatmap|table|kpi), config_json, position, refresh_interval_sec, realtime_channel)
+
+- **share_tokens**(id, object_type(report|dashboard|widget|snapshot|pdf_template|pdf_render), object_id, mode(with_login|no_login), token_hash, scope_json, permissions_json, expires_at, max_uses, used_count, ip_whitelist_json, created_by, created_at, revoked_at)
+
+- **public_links**(id, object_type, object_id, token_id, url_slug, created_at)
+
+- **pdf_templates**(id, tenant_id, name, description, schema_json, theme_json, owner_id, visibility, version, is_active, created_at, updated_at)
+- **pdf_renders/jobs**(id, template_id, report_id, params_json, requested_by, requested_at, status(queued|running|done|failed|canceled), file_ref, pages, runtime_ms, errors_json, priority, offpeak_only)
+
+- **job_queue**(id, tenant_id, job_type, payload_json, priority, status(queued|running|retry|failed|done|canceled|deferred), attempts, max_attempts, not_before_at, scheduled_for, started_at, finished_at, last_error, worker_id)
+- **worker_pools**(id, name, types_allowed[], concurrency_limit, tenant_limit_json, status)
+
+- **offpeak_windows**(id, tenant_id|null, timezone, windows_json[{"dow":[1..7],"from":"HH:mm","to":"HH:mm"}], maintenance_json, is_active)
+- **alerts**(id, name, source_type(trigger|metric), object_id, severity(info|warn|crit), status(open|acked|closed), payload_json, created_at, closed_at)
+- **permissions**(id, object_type, object_id, subject_type(user|group|customer), subject_ref, role(owner|editor|viewer), expires_at)
+- **audit_logs**(tenant_id, user_id, action, snapshots, created_at)
+
+---
+
+## APIs (exemplos)
+
+### Relatórios
+- **POST /api/reports** – criar/atualizar
+- **POST /api/reports/{id}/execute** – executar (params, `priority`, `offpeak_only`)
+- **GET /api/reports/{id}/executions** – histórico
+- **POST /api/reports/{id}/schedule** – agendar (`schedule_expr`, `offpeak_only`, `priority`)
+- **POST /api/reports/{id}/trigger** – definir triggers/ações
+
+### Dashboards & Tempo Real
+- **POST /api/dashboards** – criar
+- **PUT /api/dashboards/{id}** – editar (layout/filtros/tempo real)
+- **POST /api/widgets** – adicionar widget
+- **GET /api/dashboards/{id}/view** – render + dados
+- **WS /realtime** – canal WS (SUBSCRIBE/UNSUBSCRIBE)
+- **GET /sse/dashboards/{id}** – fallback SSE
+
+### Compartilhamento por Token
+- **POST /api/share** – criar token (objeto, modo, escopo, permissões, expiração, max_uses, ip_allowlist)
+- **DELETE /api/share/{tokenId}** – revogar
+- **GET /pub/{objectType}/{slugOrToken}** – acessar público (no_login) ou gate de login (with_login)
+- **GET /api/share/{tokenId}/audit** – auditoria de acessos
+
+### PDF Designer & Render
+- **POST /api/pdf/templates** – criar/atualizar template
+- **GET /api/pdf/templates/{id}** – obter template
+- **POST /api/pdf/templates/{id}/render** – renderizar PDF (params, `priority`, `offpeak_only`)
+- **GET /api/pdf/renders/{id}** – status/download
+- **POST /api/pdf/templates/{id}/schedule** – agendar render (usa fila)
+- **POST /api/pdf/templates/{id}/share** – compartilhar render/template por token
+
+### Fila & Off-Peak
+- **GET /api/jobs** – listar jobs (filtros: status, tipo, prioridade, tenant)
+- **POST /api/jobs/{id}/cancel** – cancelar job
+- **POST /api/offpeak** – configurar janelas off-peak (tenant/global)
+- **GET /api/offpeak** – consultar janelas
+- **GET /api/workers** – status dos pools e limites
+- **POST /api/workers/rebalance** – ajustar concorrência/quotas
+
+UI
+	•	Home: lista de dashboards (meus, equipe, públicos), favoritos, busca.
+	•	Dashboard Viewer/Builder: drag & drop, filtros globais, indicador de tempo real, export, link público/token.
+	•	Report Builder: montar consulta, pré-via, multi-visualizações; marcar “pesado/off-peak”.
+	•	Automação: schedules + triggers (histórico/última execução).
+	•	PDF Designer: canvas WYSIWYG, dados/binding, temas; agendar render (off-peak), compartilhar PDF por token.
+	•	Fila & Monitor: página de jobs com status/priority/tenant, cancelar/retry, gráficos de lag e throughput.
+	•	Off-Peak Settings: configurar janelas por tenant e visualizar janelas globais.
+
+⸻
+
+Observabilidade & Segurança
+	•	Métricas: lag da fila, pendentes, falhas, tempo médio; latência WS/SSE; tempo de render PDF; cache hit.
+	•	Rate limit em endpoints públicos, CSP/headers nos viewers públicos, logs de acesso por token.
+	•	Auditoria total em audit_logs.
