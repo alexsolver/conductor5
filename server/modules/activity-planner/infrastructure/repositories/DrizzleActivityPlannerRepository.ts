@@ -20,7 +20,7 @@ import {
   ActivityHistory as ActivityHistoryType
 } from '@shared/schema-activity-planner';
 import { IActivityPlannerRepository, ActivityFilters, ActivitySummary } from '../../domain/repositories/IActivityPlannerRepository';
-import { ActivityInstance } from '../../domain/entities/ActivityInstance';
+import type { ActivityInstance } from '../../domain/entities/ActivityInstance';
 
 export class DrizzleActivityPlannerRepository implements IActivityPlannerRepository {
   

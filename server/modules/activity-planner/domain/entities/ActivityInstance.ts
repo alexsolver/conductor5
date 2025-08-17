@@ -31,7 +31,7 @@ export const Priority = z.enum([
   'emergency'
 ]);
 
-export interface ActivityInstance {
+export type ActivityInstance = {
   id: string;
   tenantId: string;
   scheduleId?: string;
@@ -67,7 +67,7 @@ export interface ActivityInstance {
   updatedAt: Date;
   createdBy: string;
   updatedBy?: string;
-}
+};
 
 export class ActivityInstanceEntity implements ActivityInstance {
   constructor(

@@ -4,7 +4,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { IActivityPlannerRepository } from '../../domain/repositories/IActivityPlannerRepository';
-import { ActivityInstance } from '../../domain/entities/ActivityInstance';
+import { ActivityInstance, ActivityInstanceEntity } from '../../domain/entities/ActivityInstance';
 import { insertActivityCategorySchema, insertActivityTemplateSchema, insertActivityScheduleSchema, insertActivityInstanceSchema } from '@shared/schema-activity-planner';
 
 interface AuthenticatedRequest extends Request {
