@@ -121,6 +121,58 @@ export const slaDefinitions = pgTable("sla_definitions", {
   unique("sla_definitions_tenant_name").on(table.tenantId, table.name),
 ]);
 
+// SLA workflows - automation and business logic
+export const slaWorkflows = pgTable("sla_workflows", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Basic workflow information
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  
+  // Workflow configuration
+  triggers: jsonb("triggers").notNull(), // Array of trigger configurations
+  actions: jsonb("actions").notNull(),   // Array of action configurations
+  metadata: jsonb("metadata").default({}),
+  
+  // System fields
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("sla_workflows_tenant_idx").on(table.tenantId),
+  index("sla_workflows_tenant_active_idx").on(table.tenantId, table.isActive),
+  unique("sla_workflows_tenant_name").on(table.tenantId, table.name),
+]);
+
+// SLA workflow executions - tracking workflow runs
+export const slaWorkflowExecutions = pgTable("sla_workflow_executions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  workflowId: uuid("workflow_id").notNull(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Execution details
+  triggeredBy: varchar("triggered_by", { length: 255 }).notNull(),
+  triggeredAt: timestamp("triggered_at").notNull(),
+  status: varchar("status", { length: 20 }).default('pending'),
+  context: jsonb("context").notNull(),
+  executedActions: jsonb("executed_actions").default([]),
+  
+  // Result tracking
+  error: text("error"),
+  completedAt: timestamp("completed_at"),
+  
+  // System fields
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("sla_workflow_executions_tenant_idx").on(table.tenantId),
+  index("sla_workflow_executions_workflow_idx").on(table.workflowId),
+  index("sla_workflow_executions_status_idx").on(table.tenantId, table.status),
+  index("sla_workflow_executions_triggered_idx").on(table.triggeredAt),
+]);
+
 // SLA instances - tracking actual SLA performance for tickets
 export const slaInstances = pgTable("sla_instances", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -352,3 +404,23 @@ export type InsertSlaViolation = z.infer<typeof insertSlaViolationSchema>;
 
 export type SlaReport = typeof slaReports.$inferSelect;
 export type InsertSlaReport = z.infer<typeof insertSlaReportSchema>;
+
+// Workflow schemas
+export const insertSlaWorkflowSchema = createInsertSchema(slaWorkflows).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSlaWorkflowExecutionSchema = createInsertSchema(slaWorkflowExecutions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Workflow types
+export type SlaWorkflow = typeof slaWorkflows.$inferSelect;
+export type InsertSlaWorkflow = z.infer<typeof insertSlaWorkflowSchema>;
+
+export type SlaWorkflowExecution = typeof slaWorkflowExecutions.$inferSelect;
+export type InsertSlaWorkflowExecution = z.infer<typeof insertSlaWorkflowExecutionSchema>;

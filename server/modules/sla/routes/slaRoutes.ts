@@ -4,12 +4,16 @@
 import { Router } from 'express';
 import { SlaController } from '../application/controllers/SlaController';
 import { jwtAuth } from '../../../middleware/jwtAuth';
+import slaWorkflowRoutes from './slaWorkflowRoutes';
 
 const router = Router();
 const slaController = new SlaController();
 
 // Apply JWT authentication to all routes
 router.use(jwtAuth);
+
+// Mount workflow routes
+router.use('/', slaWorkflowRoutes);
 
 // ===== SLA DEFINITIONS =====
 router.get('/definitions', slaController.getSlaDefinitions.bind(slaController));
