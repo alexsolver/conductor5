@@ -34,4 +34,24 @@ router.get('/analytics', expenseApprovalController.getAnalytics.bind(expenseAppr
 // Audit Trail
 router.get('/audit-trail/:entityType/:entityId', expenseApprovalController.getAuditTrail.bind(expenseApprovalController));
 
+/**
+ * =====================================
+ * NEW ENTERPRISE ROUTES - OCR & ADVANCED FEATURES
+ * =====================================
+ */
+
+// Import multer for file uploads
+import multer from 'multer';
+const upload = multer({ storage: multer.memoryStorage() });
+
+// OCR document processing
+router.post('/process-document', upload.single('document'), expenseApprovalController.processDocument.bind(expenseApprovalController));
+
+// Multi-currency support
+router.post('/convert-currency', expenseApprovalController.convertCurrency.bind(expenseApprovalController));
+router.get('/currencies', expenseApprovalController.getSupportedCurrencies.bind(expenseApprovalController));
+
+// Policy engine
+router.post('/reports/:id/evaluate-policies', expenseApprovalController.evaluateExpensePolicies.bind(expenseApprovalController));
+
 export default router;

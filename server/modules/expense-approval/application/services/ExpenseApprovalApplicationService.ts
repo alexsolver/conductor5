@@ -10,10 +10,33 @@ import { ExpenseReport, InsertExpenseReport, ExpenseFilters, ExpenseListOptions,
 import { ExpenseItem, InsertExpenseItem } from '../../domain/entities/ExpenseReport';
 import { ExpensePolicyEngine, PolicyEvaluationContext } from '../../domain/entities/ExpensePolicy';
 
+// Enterprise services imports
+import { OCRService, OCRResult } from '../../infrastructure/services/OCRService';
+import { CurrencyService, CurrencyConversionRequest, CurrencyConversionResult } from '../../domain/services/CurrencyService';
+import { CorporateCardService, ExpenseMatch, CardReconciliation } from '../../domain/services/CorporateCardService';
+import { PolicyEngineService, PolicyEvaluationResult } from '../../domain/services/PolicyEngineService';
+import { ExpenseWorkflowService, WorkflowExecution } from '../../domain/services/ExpenseWorkflowService';
+
 export class ExpenseApprovalApplicationService {
+  // Enterprise domain services
+  private ocrService: OCRService;
+  private currencyService: CurrencyService;
+  private corporateCardService: CorporateCardService;
+  private policyEngineService: PolicyEngineService;
+  private workflowService: ExpenseWorkflowService;
+
   constructor(
     private expenseApprovalRepository: IExpenseApprovalRepository
-  ) {}
+  ) {
+    // Initialize enterprise services
+    this.ocrService = new OCRService();
+    this.currencyService = new CurrencyService();
+    this.corporateCardService = new CorporateCardService();
+    this.policyEngineService = new PolicyEngineService();
+    this.workflowService = new ExpenseWorkflowService();
+    
+    console.log('🚀 [ExpenseApprovalApplicationService] All enterprise services initialized');
+  }
 
   async getExpenseReports(
     tenantId: string, 
@@ -371,6 +394,167 @@ export class ExpenseApprovalApplicationService {
     } catch (error) {
       console.error('❌ [ExpenseApprovalApplicationService] Error getting audit trail:', error);
       throw new Error('Failed to get audit trail');
+    }
+  }
+
+  /**
+   * =====================================
+   * NEW ENTERPRISE FEATURES - OCR PROCESSING
+   * =====================================
+   */
+  
+  /**
+   * Process document with OCR for expense extraction
+   */
+  async processExpenseDocument(
+    tenantId: string,
+    userId: string,
+    fileBuffer: Buffer,
+    fileName: string,
+    mimeType: string
+  ): Promise<OCRResult> {
+    console.log('📄 [ExpenseApprovalApplicationService] Processing expense document with OCR:', fileName);
+    
+    try {
+      const ocrResult = await this.ocrService.processDocument(fileBuffer, mimeType, fileName);
+      
+      // Check for duplicate documents
+      const isDuplicate = await this.ocrService.checkDuplicateDocument(ocrResult.documentHash, tenantId);
+      if (isDuplicate) {
+        console.warn('⚠️ [ExpenseApprovalApplicationService] Duplicate document detected');
+      }
+      
+      // Validate extracted data quality
+      const validation = this.ocrService.validateExtractedData(ocrResult.extractedData);
+      
+      // Create audit entry
+      await this.expenseApprovalRepository.createAuditEntry(tenantId, {
+        entityType: 'document_ocr',
+        entityId: null,
+        action: 'process_document',
+        userId,
+        userName: 'User',
+        metadata: {
+          fileName,
+          confidence: ocrResult.confidence,
+          processingTime: ocrResult.processingTime,
+          extractedAmount: ocrResult.extractedData.amount,
+          isDuplicate,
+          validationIssues: validation.issues
+        }
+      });
+      
+      console.log('✅ [ExpenseApprovalApplicationService] OCR processing completed with confidence:', ocrResult.confidence);
+      return ocrResult;
+      
+    } catch (error) {
+      console.error('❌ [ExpenseApprovalApplicationService] OCR processing failed:', error);
+      throw new Error(`OCR processing failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * =====================================
+   * NEW ENTERPRISE FEATURES - MULTI-CURRENCY
+   * =====================================
+   */
+
+  /**
+   * Convert currency amounts with real-time rates
+   */
+  async convertCurrency(
+    tenantId: string,
+    userId: string,
+    request: CurrencyConversionRequest
+  ): Promise<CurrencyConversionResult> {
+    console.log('💱 [ExpenseApprovalApplicationService] Converting currency:', request);
+    
+    try {
+      const result = await this.currencyService.convertCurrency(request);
+      
+      // Create audit entry
+      await this.expenseApprovalRepository.createAuditEntry(tenantId, {
+        entityType: 'currency_conversion',
+        entityId: null,
+        action: 'convert_currency',
+        userId,
+        userName: 'User',
+        metadata: {
+          fromCurrency: request.fromCurrency,
+          toCurrency: request.toCurrency,
+          amount: request.amount,
+          exchangeRate: result.exchangeRate.rate,
+          source: result.exchangeRate.source
+        }
+      });
+      
+      console.log('✅ [ExpenseApprovalApplicationService] Currency conversion completed');
+      return result;
+      
+    } catch (error) {
+      console.error('❌ [ExpenseApprovalApplicationService] Currency conversion failed:', error);
+      throw new Error(`Currency conversion failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get supported currencies
+   */
+  async getSupportedCurrencies(): Promise<any> {
+    return this.currencyService.getSupportedCurrencies();
+  }
+
+  /**
+   * =====================================
+   * NEW ENTERPRISE FEATURES - POLICY ENGINE
+   * =====================================
+   */
+
+  /**
+   * Evaluate expense report against all policies
+   */
+  async evaluateExpensePolicies(
+    tenantId: string,
+    userId: string,
+    expenseReportId: string,
+    contextData?: Record<string, any>
+  ): Promise<PolicyEvaluationResult> {
+    console.log('🔍 [ExpenseApprovalApplicationService] Evaluating expense policies for report:', expenseReportId);
+    
+    try {
+      const expenseReport = await this.expenseApprovalRepository.findExpenseReportById(tenantId, expenseReportId);
+      if (!expenseReport) {
+        throw new Error('Expense report not found');
+      }
+      
+      const evaluationResult = await this.policyEngineService.evaluateExpenseReport(expenseReport, tenantId, contextData);
+      
+      // Create audit entry
+      await this.expenseApprovalRepository.createAuditEntry(tenantId, {
+        entityType: 'policy_evaluation',
+        entityId: expenseReportId,
+        action: 'evaluate_policies',
+        userId,
+        userName: 'User',
+        metadata: {
+          isCompliant: evaluationResult.isCompliant,
+          violationsCount: evaluationResult.violations.length,
+          riskScore: evaluationResult.riskScore,
+          complianceScore: evaluationResult.complianceScore,
+          requiredActionsCount: evaluationResult.requiredActions.length
+        }
+      });
+      
+      console.log('✅ [ExpenseApprovalApplicationService] Policy evaluation completed:', {
+        compliant: evaluationResult.isCompliant,
+        riskScore: evaluationResult.riskScore
+      });
+      
+      return evaluationResult;
+      
+    } catch (error) {
+      console.error('❌ [ExpenseApprovalApplicationService] Policy evaluation failed:', error);
+      throw new Error(`Policy evaluation failed: ${error.message}`);
     }
   }
 }

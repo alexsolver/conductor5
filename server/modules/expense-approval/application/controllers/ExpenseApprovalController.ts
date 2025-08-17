@@ -423,4 +423,178 @@ export class ExpenseApprovalController {
       });
     }
   }
+
+  /**
+   * =====================================
+   * NEW ENTERPRISE ENDPOINTS - OCR PROCESSING
+   * =====================================
+   */
+
+  /**
+   * Process document with OCR
+   * POST /api/expense-approval/process-document
+   */
+  async processDocument(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.userId || req.user?.id;
+      
+      if (!tenantId || !userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+      
+      // Validate file upload
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: 'No file uploaded'
+        });
+        return;
+      }
+      
+      const result = await this.expenseApprovalApplicationService.processExpenseDocument(
+        tenantId,
+        userId,
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      );
+      
+      res.status(200).json({
+        success: true,
+        message: 'Document processed successfully with OCR',
+        data: result
+      });
+    } catch (error) {
+      console.error('❌ [ExpenseApprovalController] Document processing error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to process document',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
+   * =====================================
+   * NEW ENTERPRISE ENDPOINTS - MULTI-CURRENCY
+   * =====================================
+   */
+
+  /**
+   * Convert currency
+   * POST /api/expense-approval/convert-currency
+   */
+  async convertCurrency(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.userId || req.user?.id;
+      
+      if (!tenantId || !userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+      
+      const { amount, fromCurrency, toCurrency, conversionDate, rateType } = req.body;
+      
+      // Validate required fields
+      if (!amount || !fromCurrency || !toCurrency) {
+        res.status(400).json({
+          success: false,
+          message: 'Amount, fromCurrency, and toCurrency are required'
+        });
+        return;
+      }
+      
+      const result = await this.expenseApprovalApplicationService.convertCurrency(tenantId, userId, {
+        amount: parseFloat(amount),
+        fromCurrency,
+        toCurrency,
+        conversionDate: conversionDate ? new Date(conversionDate) : undefined,
+        rateType
+      });
+      
+      res.status(200).json({
+        success: true,
+        message: 'Currency conversion completed successfully',
+        data: result
+      });
+    } catch (error) {
+      console.error('❌ [ExpenseApprovalController] Currency conversion error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to convert currency',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
+   * Get supported currencies
+   * GET /api/expense-approval/currencies
+   */
+  async getSupportedCurrencies(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const currencies = await this.expenseApprovalApplicationService.getSupportedCurrencies();
+      
+      res.status(200).json({
+        success: true,
+        message: 'Supported currencies retrieved successfully',
+        data: currencies
+      });
+    } catch (error) {
+      console.error('❌ [ExpenseApprovalController] Get currencies error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to get currencies',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
+   * =====================================
+   * NEW ENTERPRISE ENDPOINTS - POLICY ENGINE
+   * =====================================
+   */
+
+  /**
+   * Evaluate expense policies
+   * POST /api/expense-approval/:id/evaluate-policies
+   */
+  async evaluateExpensePolicies(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.userId || req.user?.id;
+      
+      if (!tenantId || !userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+      
+      const { id: expenseReportId } = req.params;
+      const { contextData } = req.body;
+      
+      const result = await this.expenseApprovalApplicationService.evaluateExpensePolicies(
+        tenantId,
+        userId,
+        expenseReportId,
+        contextData
+      );
+      
+      res.status(200).json({
+        success: true,
+        message: 'Policy evaluation completed successfully',
+        data: result
+      });
+    } catch (error) {
+      console.error('❌ [ExpenseApprovalController] Policy evaluation error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to evaluate policies',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 }
