@@ -110,9 +110,9 @@ export default function UserProfile() {
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
-      email: user?.email || "",
+      firstName: "",
+      lastName: "",
+      email: "",
       phone: "",
       department: "",
       position: "",
@@ -124,6 +124,26 @@ export default function UserProfile() {
     },
   });
 
+  // Update form when profile data loads following 1qa.md patterns
+  React.useEffect(() => {
+    if (profile) {
+      console.log('[PROFILE-FORM] Updating form with profile data:', profile);
+      form.reset({
+        firstName: profile.firstName || "",
+        lastName: profile.lastName || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        department: profile.department || "",
+        position: profile.position || "",
+        bio: profile.bio || "",
+        location: profile.location || "",
+        timezone: profile.timezone || "",
+        dateOfBirth: profile.dateOfBirth || "",
+        address: profile.address || "",
+      });
+    }
+  }, [profile, form]);
+
   // Update profile mutation following 1qa.md patterns
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
@@ -134,15 +154,16 @@ export default function UserProfile() {
       }
       return response.json();
     },
-    onSuccess: () => {
-      console.log('[PROFILE-UPDATE] Success');
+    onSuccess: (updatedData) => {
+      console.log('[PROFILE-UPDATE] Success with data:', updatedData);
       toast({
         title: "Perfil atualizado",
         description: "Suas informações foram salvas com sucesso.",
       });
       setIsEditing(false);
-      // Invalidate queries without triggering auth loops
+      // Invalidate queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error: any) => {
       console.error('[PROFILE-UPDATE] Error details:', error);
@@ -155,6 +176,7 @@ export default function UserProfile() {
   });
 
   const onSubmit = (data: ProfileFormData) => {
+    console.log('[PROFILE-FORM] Submitting form data:', data);
     updateProfileMutation.mutate(data);
   };
 
