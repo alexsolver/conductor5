@@ -26,10 +26,10 @@ export class ExpenseApprovalApplicationService {
     try {
       const result = await this.expenseApprovalRepository.findExpenseReports(tenantId, filters, options);
       
-      // Create audit entry for data access
+      // Create audit entry for data access - using NULL for list operations
       await this.expenseApprovalRepository.createAuditEntry(tenantId, {
         entityType: 'expense_report',
-        entityId: 'list',
+        entityId: null, // NULL for list operations to avoid UUID constraint
         action: 'view_list',
         userId,
         userName: 'User', // Would be populated from user context
