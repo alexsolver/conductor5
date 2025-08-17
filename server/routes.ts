@@ -1722,7 +1722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           u.position,
           u.created_at as "createdAt",
           u.updated_at as "updatedAt",
-          u.avatar_url,
+          u.avatar_url as avatar_url,
           NULL as bio,
           NULL as location,
           NULL as timezone,
@@ -1940,23 +1940,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      // Update user avatar in database (simplified for now) 
+      // Update user avatar in database following 1qa.md patterns
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       console.log('[PROFILE-PHOTO] Avatar upload completed:', { objectPath, userId, tenantId });
       
-      // For now, just log the successful upload
+      // Update avatar_url in user record following 1qa.md database patterns
       await pool.query(`
         UPDATE "${schemaName}".users 
-        SET updated_at = NOW()
-        WHERE id = $1 AND tenant_id = $2
-      `, [userId, tenantId]);
+        SET avatar_url = $1, updated_at = NOW()
+        WHERE id = $2 AND tenant_id = $3
+      `, [objectPath, userId, tenantId]);
 
       res.json({
         success: true,
-        data: { avatarURL: objectPath },
+        data: { 
+          avatarURL: objectPath,
+          avatar_url: objectPath 
+        },
         message: 'Profile photo updated successfully'
       });
 
@@ -2135,7 +2138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Update user preferences (simplified for now)
+      // Update user preferences following 1qa.md patterns  
       await pool.query(`
         UPDATE "${schemaName}".users 
         SET updated_at = NOW()

@@ -124,7 +124,7 @@ export default function UserProfile() {
     },
   });
 
-  // Update profile mutation
+  // Update profile mutation following 1qa.md patterns
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
       const response = await apiRequest('PUT', '/api/user/profile', data);
@@ -136,7 +136,9 @@ export default function UserProfile() {
         description: "Suas informações foram salvas com sucesso.",
       });
       setIsEditing(false);
+      // Invalidate all related queries to ensure name updates in avatar following 1qa.md
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: () => {
       toast({
@@ -151,18 +153,20 @@ export default function UserProfile() {
     updateProfileMutation.mutate(data);
   };
 
-  // Profile photo upload mutation
+  // Profile photo upload mutation following 1qa.md patterns
   const uploadPhotoMutation = useMutation({
     mutationFn: async (avatarURL: string) => {
       const response = await apiRequest('PUT', '/api/user/profile/photo', { avatarURL });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
+      // Invalidate all related queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: () => {
       toast({
@@ -302,7 +306,7 @@ export default function UserProfile() {
               <Avatar className="h-20 w-20">
                 <AvatarImage src={(profile as any)?.avatar_url || (profile as any)?.avatar || ""} />
                 <AvatarFallback className="text-lg">
-                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                  {(profile as any)?.firstName?.charAt(0) || user?.firstName?.charAt(0)}{(profile as any)?.lastName?.charAt(0) || user?.lastName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <ObjectUploader
