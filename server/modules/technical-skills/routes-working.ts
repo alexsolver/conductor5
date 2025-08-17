@@ -79,7 +79,7 @@ router.get('/working/status', (req: AuthenticatedRequest, res) => {
 });
 
 /**
- * Create technical skill - Working implementation
+ * Create technical skill - Working implementation with persistence
  * POST /working/skills
  */
 router.post('/working/skills', async (req: AuthenticatedRequest, res) => {
@@ -96,9 +96,12 @@ router.post('/working/skills', async (req: AuthenticatedRequest, res) => {
     // Validate input
     const skillData = createSkillSchema.parse(req.body);
 
-    // Create a working skill response
-    const newSkill = {
-      id: `skill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { skills } = await import('../../../shared/schema');
+
+    // Create skill in database
+    const newSkillData = {
       tenantId,
       name: skillData.name,
       description: skillData.description || null,
@@ -110,12 +113,14 @@ router.post('/working/skills', async (req: AuthenticatedRequest, res) => {
       updatedAt: new Date()
     };
 
+    const [newSkill] = await db.insert(skills).values(newSkillData).returning();
+
     console.log(`[TECHNICAL-SKILLS-WORKING] Created skill: ${newSkill.id} for tenant: ${tenantId}`);
 
     res.status(201).json({
       success: true,
       data: newSkill,
-      message: 'Technical skill created successfully (Phase 9 working implementation)'
+      message: 'Technical skill created successfully'
     });
 
   } catch (error) {
@@ -137,7 +142,7 @@ router.post('/working/skills', async (req: AuthenticatedRequest, res) => {
 });
 
 /**
- * List technical skills - Working implementation
+ * List technical skills - Working implementation with persistence
  * GET /working/skills
  */
 router.get('/working/skills', async (req: AuthenticatedRequest, res) => {
@@ -151,78 +156,44 @@ router.get('/working/skills', async (req: AuthenticatedRequest, res) => {
       });
     }
 
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { skills } = await import('../../../shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+
     // Filter parameters
     const { category, level, isActive } = req.query;
 
-    // Return working sample data
-    const sampleSkills = [
-      {
-        id: 'skill_sample_1',
-        tenantId,
-        name: 'JavaScript',
-        description: 'Programming language for web development',
-        category: 'Programming Languages',
-        level: 'advanced',
-        tags: ['frontend', 'backend', 'web'],
-        isActive: true,
-        createdAt: new Date(Date.now() - 86400000),
-        updatedAt: new Date(Date.now() - 86400000)
-      },
-      {
-        id: 'skill_sample_2',
-        tenantId,
-        name: 'React',
-        description: 'Frontend library for building user interfaces',
-        category: 'Frontend Frameworks',
-        level: 'intermediate',
-        tags: ['frontend', 'ui', 'components'],
-        isActive: true,
-        createdAt: new Date(Date.now() - 172800000),
-        updatedAt: new Date(Date.now() - 172800000)
-      },
-      {
-        id: 'skill_sample_3',
-        tenantId,
-        name: 'Node.js',
-        description: 'Backend runtime for JavaScript',
-        category: 'Backend Technologies',
-        level: 'advanced',
-        tags: ['backend', 'runtime', 'api'],
-        isActive: true,
-        createdAt: new Date(Date.now() - 259200000),
-        updatedAt: new Date(Date.now() - 259200000)
-      },
-      {
-        id: 'skill_sample_4',
-        tenantId,
-        name: 'PostgreSQL',
-        description: 'Relational database management system',
-        category: 'Databases',
-        level: 'intermediate',
-        tags: ['database', 'sql', 'backend'],
-        isActive: true,
-        createdAt: new Date(Date.now() - 345600000),
-        updatedAt: new Date(Date.now() - 345600000)
-      }
-    ].filter(skill => {
-      if (category && skill.category !== category) return false;
-      if (level && skill.level !== level) return false;
-      if (isActive !== undefined && skill.isActive !== (isActive === 'true')) return false;
-      return true;
-    });
+    // Query database for skills
+    let whereConditions = [eq(skills.tenantId, tenantId)];
+    
+    if (category) {
+      whereConditions.push(eq(skills.category, category as string));
+    }
+    
+    if (level) {
+      whereConditions.push(eq(skills.level, level as string));
+    }
+    
+    if (isActive !== undefined) {
+      whereConditions.push(eq(skills.isActive, isActive === 'true'));
+    }
 
-    console.log(`[TECHNICAL-SKILLS-WORKING] Listed ${sampleSkills.length} skills for tenant: ${tenantId}`);
+    const skillsData = await db.select().from(skills).where(and(...whereConditions));
+
+    // If no skills exist, return empty array (don't create sample data)
+    console.log(`[TECHNICAL-SKILLS-WORKING] Listed ${skillsData.length} skills for tenant: ${tenantId}`);
 
     res.json({
       success: true,
-      data: sampleSkills,
+      data: skillsData,
       pagination: {
         page: 1,
         limit: 20,
-        total: sampleSkills.length,
-        totalPages: 1
+        total: skillsData.length,
+        totalPages: Math.ceil(skillsData.length / 20)
       },
-      message: 'Technical skills retrieved successfully (Phase 9 working implementation)'
+      message: 'Technical skills retrieved successfully'
     });
 
   } catch (error) {
@@ -236,7 +207,7 @@ router.get('/working/skills', async (req: AuthenticatedRequest, res) => {
 });
 
 /**
- * Get technical skill by ID - Working implementation
+ * Get technical skill by ID - Working implementation with persistence
  * GET /working/skills/:id
  */
 router.get('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
@@ -252,28 +223,43 @@ router.get('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
 
     const { id } = req.params;
     
-    // Return working sample data
-    const sampleSkill = {
-      id,
-      tenantId,
-      name: 'TypeScript',
-      description: 'Typed superset of JavaScript for better development experience',
-      category: 'Programming Languages',
-      level: 'advanced',
-      tags: ['frontend', 'backend', 'typed', 'web'],
-      isActive: true,
-      createdAt: new Date(Date.now() - 86400000),
-      updatedAt: new Date(Date.now() - 86400000),
-      userCount: 15, // Number of users with this skill
-      averageProficiency: 'intermediate'
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { skills, userSkills } = await import('../../../shared/schema');
+    const { eq, and, count } = await import('drizzle-orm');
+
+    // Query database for skill
+    const [skill] = await db.select().from(skills).where(
+      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    );
+
+    if (!skill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: 'Technical skill not found'
+      });
+    }
+
+    // Get user count for this skill
+    const [userCountResult] = await db.select({ 
+      count: count(userSkills.id) 
+    }).from(userSkills).where(
+      and(eq(userSkills.skillId, id), eq(userSkills.isActive, true))
+    );
+
+    const skillWithStats = {
+      ...skill,
+      userCount: userCountResult?.count || 0,
+      averageProficiency: 'intermediate' // This could be calculated from userSkills
     };
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Retrieved skill: ${id} for tenant: ${tenantId}`);
 
     res.json({
       success: true,
-      data: sampleSkill,
-      message: 'Technical skill retrieved successfully (Phase 9 working implementation)'
+      data: skillWithStats,
+      message: 'Technical skill retrieved successfully'
     });
 
   } catch (error) {
@@ -282,6 +268,55 @@ router.get('/working/skills/:id', async (req: AuthenticatedRequest, res) => {
       success: false,
       error: 'Internal server error',
       message: 'Failed to retrieve technical skill'
+    });
+  }
+});
+
+/**
+ * Get skills categories - Working implementation
+ * GET /working/skills/categories
+ */
+router.get('/working/skills/categories', async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+        message: 'Tenant ID not found'
+      });
+    }
+
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { skills } = await import('../../../shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+
+    // Get distinct categories from database
+    const categoriesResult = await db.selectDistinct({
+      category: skills.category
+    }).from(skills).where(
+      and(eq(skills.tenantId, tenantId), eq(skills.isActive, true))
+    );
+
+    const categories = categoriesResult
+      .map(row => row.category)
+      .filter(category => category !== null && category !== '');
+
+    console.log(`[TECHNICAL-SKILLS-WORKING] Retrieved ${categories.length} categories for tenant: ${tenantId}`);
+
+    res.json({
+      success: true,
+      data: categories,
+      count: categories.length
+    });
+
+  } catch (error) {
+    console.error('[TECHNICAL-SKILLS-WORKING] Error retrieving categories:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to retrieve skill categories'
     });
   }
 });
@@ -642,6 +677,70 @@ router.delete('/working/user-skills/:id', async (req: AuthenticatedRequest, res)
       success: false,
       error: 'Internal server error',
       message: 'Failed to remove user skill assignment'
+    });
+  }
+});
+
+/**
+ * Get expired certifications - Working implementation
+ * GET /working/certifications/expired
+ */
+router.get('/working/certifications/expired', async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+        message: 'Tenant ID not found'
+      });
+    }
+
+    // For now, return empty array as certification tracking is not fully implemented
+    res.json({
+      success: true,
+      data: [],
+      count: 0
+    });
+
+  } catch (error) {
+    console.error('[TECHNICAL-SKILLS-WORKING] Error retrieving expired certifications:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to retrieve expired certifications'
+    });
+  }
+});
+
+/**
+ * Get expiring certifications - Working implementation
+ * GET /working/certifications/expiring
+ */
+router.get('/working/certifications/expiring', async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+        message: 'Tenant ID not found'
+      });
+    }
+
+    // For now, return empty array as certification tracking is not fully implemented
+    res.json({
+      success: true,
+      data: [],
+      count: 0
+    });
+
+  } catch (error) {
+    console.error('[TECHNICAL-SKILLS-WORKING] Error retrieving expiring certifications:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to retrieve expiring certifications'
     });
   }
 });

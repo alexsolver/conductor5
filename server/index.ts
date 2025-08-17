@@ -50,17 +50,17 @@ async function ensurePostgreSQLRunning() {
 
 async function validateDatabaseConnection() {
   const { Pool } = await import('pg');
-  
+
   // CRITICAL FIX: Enhanced environment detection for external production
   const isProduction = process.env.NODE_ENV === 'production';
   const isReplit = !!process.env.REPL_ID || !!process.env.REPL_SLUG;
   const isExternalDeploy = isProduction && !isReplit;
-  
+
   console.log(`🔍 [DATABASE] Environment detection: production=${isProduction}, replit=${isReplit}, external=${isExternalDeploy}`);
-  
+
   // CRITICAL FIX: Progressive SSL configuration with multiple fallback strategies
   let sslConfig = {};
-  
+
   if (isExternalDeploy) {
     // External production - completely disable SSL validation
     sslConfig = {
@@ -94,10 +94,10 @@ async function validateDatabaseConnection() {
     return true;
   } catch (error) {
     console.error("❌ [DATABASE] Initial connection failed:", error);
-    
+
     if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
       console.error("🔒 [SSL ERROR] Certificate validation failed. Applying ultimate SSL bypass...");
-      
+
       try {
         // ULTIMATE FALLBACK: Complete SSL bypass with all certificates ignored
         const ultimateFallbackPool = new Pool({
@@ -107,7 +107,7 @@ async function validateDatabaseConnection() {
           // Remove any SSL-related query parameters from connection string
           options: '--disable-ssl'
         });
-        
+
         console.log("🔄 [DATABASE] Trying ultimate SSL bypass...");
         await ultimateFallbackPool.query('SELECT 1');
         await ultimateFallbackPool.end();
@@ -115,7 +115,7 @@ async function validateDatabaseConnection() {
         return true;
       } catch (ultimateError) {
         console.error("❌ [DATABASE] Ultimate fallback also failed:", ultimateError);
-        
+
         // Final attempt with modified connection string
         try {
           let modifiedUrl = process.env.DATABASE_URL;
@@ -123,12 +123,12 @@ async function validateDatabaseConnection() {
             modifiedUrl = modifiedUrl.split('?')[0]; // Remove all query parameters
           }
           modifiedUrl += '?sslmode=disable'; // Force SSL disable
-          
+
           const finalPool = new Pool({
             connectionString: modifiedUrl,
             connectionTimeoutMillis: 25000
           });
-          
+
           console.log("🔄 [DATABASE] Final attempt with modified connection string...");
           await finalPool.query('SELECT 1');
           await finalPool.end();
@@ -139,12 +139,12 @@ async function validateDatabaseConnection() {
         }
       }
     }
-    
+
     // Enhanced error message for external deployments
     const errorMessage = isExternalDeploy 
       ? "Database connection failed in external production. Verify DATABASE_URL and ensure PostgreSQL server accepts non-SSL connections."
       : "Database connection failed. Ensure DATABASE_URL is correctly set and SSL certificates are valid.";
-    
+
     throw new Error(errorMessage);
   }
 }
@@ -160,6 +160,8 @@ import { userGroupsRouter } from './routes/userGroups';
 import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
 import automationRulesRoutes from './routes/automationRules';
+import technicalSkillsIntegrationRoutes from './routes/technicalSkillsIntegrationRoutes';
+import technicalSkillsWorkingRoutes from './routes/technicalSkillsWorkingRoutes';
 
 const app = express();
 
@@ -270,6 +272,13 @@ app.use((req, res, next) => {
 
   // 🤖 Automation Rules Routes
   app.use('/api/automation-rules', automationRulesRoutes);
+
+  // Technical Skills Integration Routes (Phase 9 - Clean Architecture)
+  app.use('/api/technical-skills-integration', technicalSkillsIntegrationRoutes);
+
+  // Technical Skills Working Routes (Direct API access)
+  app.use('/api/technical-skills', technicalSkillsWorkingRoutes);
+
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
