@@ -50,28 +50,107 @@ router.get('/stats/assets', (req, res) => assetController.getAssetStats(req, res
 router.get('/assets/maintenance/needed', (req, res) => assetController.getAssetsNeedingMaintenance(req, res));
 
 // === MAINTENANCE PLANS ROUTES ===
-// TODO: Implementar quando MaintenancePlanController estiver pronto
 
-// // Criar plano de manutenção
-// router.post('/maintenance-plans', (req, res) => maintenancePlanController.createPlan(req, res));
+// Inicializar dependências para MaintenancePlan
+import { MaintenancePlanApplicationService } from './application/services/MaintenancePlanApplicationService';
+import { MaintenancePlanController } from './application/controllers/MaintenancePlanController';
+import { DrizzleMaintenancePlanRepository } from './infrastructure/repositories/DrizzleMaintenancePlanRepository';
 
-// // Listar planos de manutenção
-// router.get('/maintenance-plans', (req, res) => maintenancePlanController.getPlans(req, res));
+const maintenancePlanRepository = new DrizzleMaintenancePlanRepository();
+const maintenancePlanApplicationService = new MaintenancePlanApplicationService(maintenancePlanRepository, assetRepository);
+const maintenancePlanController = new MaintenancePlanController(maintenancePlanApplicationService);
 
-// // Obter plano por ID
-// router.get('/maintenance-plans/:id', (req, res) => maintenancePlanController.getPlanById(req, res));
+// Criar plano de manutenção
+router.post('/maintenance-plans', (req, res) => maintenancePlanController.createMaintenancePlan(req, res));
 
-// // Atualizar plano
-// router.put('/maintenance-plans/:id', (req, res) => maintenancePlanController.updatePlan(req, res));
+// Listar planos de manutenção
+router.get('/maintenance-plans', (req, res) => maintenancePlanController.getMaintenancePlans(req, res));
 
-// // Deletar plano
-// router.delete('/maintenance-plans/:id', (req, res) => maintenancePlanController.deletePlan(req, res));
+// Obter plano por ID
+router.get('/maintenance-plans/:id', (req, res) => maintenancePlanController.getMaintenancePlanById(req, res));
 
-// // Gerar ordem de serviço a partir do plano
-// router.post('/maintenance-plans/:id/generate', (req, res) => maintenancePlanController.generateWorkOrder(req, res));
+// Obter planos por ativo
+router.get('/assets/:assetId/maintenance-plans', (req, res) => maintenancePlanController.getMaintenancePlansByAsset(req, res));
+
+// Atualizar plano
+router.put('/maintenance-plans/:id', (req, res) => maintenancePlanController.updateMaintenancePlan(req, res));
+
+// Deletar plano
+router.delete('/maintenance-plans/:id', (req, res) => maintenancePlanController.deleteMaintenancePlan(req, res));
+
+// Ativar plano
+router.put('/maintenance-plans/:id/activate', (req, res) => maintenancePlanController.activateMaintenancePlan(req, res));
+
+// Desativar plano
+router.put('/maintenance-plans/:id/deactivate', (req, res) => maintenancePlanController.deactivateMaintenancePlan(req, res));
+
+// Gerar ordem de serviço a partir do plano
+router.post('/maintenance-plans/:id/generate', (req, res) => maintenancePlanController.generateWorkOrder(req, res));
+
+// Listar planos que precisam gerar OS
+router.get('/maintenance-plans/generation/needed', (req, res) => maintenancePlanController.getPlansNeedingGeneration(req, res));
+
+// Processar geração programada
+router.post('/maintenance-plans/generation/process', (req, res) => maintenancePlanController.processScheduledGeneration(req, res));
+
+// Estatísticas de planos
+router.get('/stats/maintenance-plans', (req, res) => maintenancePlanController.getMaintenancePlanStatistics(req, res));
 
 // === WORK ORDERS ROUTES ===
-// TODO: Implementar quando WorkOrderController estiver pronto
+
+// Inicializar dependências para WorkOrder
+import { WorkOrderApplicationService } from './application/services/WorkOrderApplicationService';
+import { WorkOrderController } from './application/controllers/WorkOrderController';
+import { DrizzleWorkOrderRepository } from './infrastructure/repositories/DrizzleWorkOrderRepository';
+
+const workOrderRepository = new DrizzleWorkOrderRepository();
+const workOrderApplicationService = new WorkOrderApplicationService(workOrderRepository, assetRepository, maintenancePlanRepository);
+const workOrderController = new WorkOrderController(workOrderApplicationService);
+
+// Criar ordem de serviço
+router.post('/work-orders', (req, res) => workOrderController.createWorkOrder(req, res));
+
+// Listar ordens de serviço
+router.get('/work-orders', (req, res) => workOrderController.getWorkOrders(req, res));
+
+// Obter ordem por ID
+router.get('/work-orders/:id', (req, res) => workOrderController.getWorkOrderById(req, res));
+
+// Obter ordens por ativo
+router.get('/assets/:assetId/work-orders', (req, res) => workOrderController.getWorkOrdersByAsset(req, res));
+
+// Atualizar ordem
+router.put('/work-orders/:id', (req, res) => workOrderController.updateWorkOrder(req, res));
+
+// Deletar ordem
+router.delete('/work-orders/:id', (req, res) => workOrderController.deleteWorkOrder(req, res));
+
+// Atualizar status
+router.put('/work-orders/:id/status', (req, res) => workOrderController.updateWorkOrderStatus(req, res));
+
+// Atualizar progresso
+router.put('/work-orders/:id/progress', (req, res) => workOrderController.updateWorkOrderProgress(req, res));
+
+// Agendar ordem
+router.put('/work-orders/:id/schedule', (req, res) => workOrderController.scheduleWorkOrder(req, res));
+
+// Atribuir técnico
+router.put('/work-orders/:id/assign-technician', (req, res) => workOrderController.assignTechnician(req, res));
+
+// Iniciar ordem
+router.post('/work-orders/:id/start', (req, res) => workOrderController.startWorkOrder(req, res));
+
+// Finalizar ordem
+router.post('/work-orders/:id/complete', (req, res) => workOrderController.completeWorkOrder(req, res));
+
+// Ordens atrasadas
+router.get('/work-orders/overdue/list', (req, res) => workOrderController.getOverdueWorkOrders(req, res));
+
+// Estatísticas de ordens
+router.get('/stats/work-orders', (req, res) => workOrderController.getWorkOrderStatistics(req, res));
+
+// Métricas do dashboard
+router.get('/dashboard/work-orders', (req, res) => workOrderController.getDashboardMetrics(req, res));
 
 // // Criar ordem de serviço
 // router.post('/work-orders', (req, res) => workOrderController.createWorkOrder(req, res));
