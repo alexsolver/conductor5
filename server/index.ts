@@ -160,8 +160,7 @@ import { userGroupsRouter } from './routes/userGroups';
 import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
 import automationRulesRoutes from './routes/automationRules';
-import technicalSkillsIntegrationRoutes from './routes/technicalSkillsIntegrationRoutes';
-const { technicalSkillsWorkingRoutes } = require('./modules/technical-skills/routes-working');
+// Technical Skills routes moved to routes.ts - 1qa.md compliance
 
 const app = express();
 
@@ -274,10 +273,9 @@ app.use((req, res, next) => {
   app.use('/api/automation-rules', automationRulesRoutes);
 
   // Technical Skills Integration Routes (Phase 9 - Clean Architecture)
-  app.use('/api/technical-skills-integration', technicalSkillsIntegrationRoutes);
+  // Technical Skills routes moved to routes.ts - 1qa.md compliance
 
-  // Technical Skills Working Routes (Direct API access)
-  app.use('/api/technical-skills', technicalSkillsWorkingRoutes);
+  // Technical Skills routes moved to routes.ts - 1qa.md compliance
 
 
   app.get('/health', async (req, res) => {
