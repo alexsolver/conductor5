@@ -11,6 +11,21 @@ import { Pool } from 'pg';
 export * from "./schema-master";
 export * from "./schema-activity-planner";
 
+// Selective export from contracts to avoid conflicts - Export only enums
+export {
+  contractTypeEnum,
+  contractStatusEnum,
+  contractPriorityEnum,
+  documentTypeEnum,
+  accessLevelEnum,
+  signatureStatusEnum,
+  measurementPeriodEnum,
+  billingCycleEnum,
+  paymentStatusEnum,
+  renewalTypeEnum,
+  equipmentStatusEnum,
+} from "./schema-contracts";
+
 // ✅ DRIZZLE ORM SETUP - 1QA.MD PATTERNS
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,

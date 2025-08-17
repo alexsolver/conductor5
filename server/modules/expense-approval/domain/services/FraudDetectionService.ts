@@ -525,18 +525,18 @@ export class FraudDetectionService {
     const alerts: FraudAlert[] = [];
 
     // Check for expenses in different cities on the same day
-    const expensesByDate = new Map();
+    const expensesByDate = new Map<string, any[]>();
     
     for (const item of request.expenseItems) {
       const dateKey = item.expenseDate;
       if (!expensesByDate.has(dateKey)) {
         expensesByDate.set(dateKey, []);
       }
-      expensesByDate.get(dateKey).push(item);
+      expensesByDate.get(dateKey)!.push(item);
     }
 
-    for (const [date, items] of expensesByDate) {
-      const locations = new Set(items.filter(item => item.location).map(item => item.location.city));
+    for (const [date, items] of expensesByDate.entries()) {
+      const locations = new Set(items.filter((item: any) => item.location).map((item: any) => item.location.city));
       
       if (locations.size > 1) {
         alerts.push({

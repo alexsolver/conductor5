@@ -1,158 +1,167 @@
-/**
- * Contract Entity - Entidade de domínio para contratos
- * Seguindo Clean Architecture e 1qa.md compliance
- */
+// ✅ 1QA.MD COMPLIANCE: Contract Entity - Clean Architecture Domain Layer
+// Pure business logic without external dependencies
 
-export interface Contract {
-  id: string;
-  tenantId: string;
-  contractNumber: string;
-  title: string;
-  contractType: 'service' | 'supply' | 'maintenance' | 'rental' | 'sla';
-  status: 'draft' | 'analysis' | 'approved' | 'active' | 'terminated';
-  priority: 'low' | 'medium' | 'high' | 'critical' | 'emergency';
-  customerCompanyId?: string;
-  managerId: string;
-  technicalManagerId?: string;
-  locationId?: string;
-  startDate: Date;
-  endDate: Date;
-  renewalDate?: Date;
-  totalValue: number;
-  monthlyValue: number;
-  currency: string;
-  paymentTerms?: number;
-  description?: string;
-  termsConditions?: string;
-  autoRenewal: boolean;
-  renewalPeriodMonths: number;
-  createdAt: Date;
-  updatedAt: Date;
-  createdById: string;
-  updatedById: string;
-  isActive: boolean;
-}
+import { contractStatusEnum, contractTypeEnum, contractPriorityEnum } from '@shared/schema';
 
-export interface InsertContract {
-  tenantId: string;
-  contractNumber: string;
-  title: string;
-  contractType: 'service' | 'supply' | 'maintenance' | 'rental' | 'sla';
-  status?: 'draft' | 'analysis' | 'approved' | 'active' | 'terminated';
-  priority?: 'low' | 'medium' | 'high' | 'critical' | 'emergency';
-  customerCompanyId?: string;
-  managerId: string;
-  technicalManagerId?: string;
-  locationId?: string;
-  startDate: Date;
-  endDate: Date;
-  renewalDate?: Date;
-  totalValue: number;
-  monthlyValue: number;
-  currency?: string;
-  paymentTerms?: number;
-  description?: string;
-  termsConditions?: string;
-  autoRenewal?: boolean;
-  renewalPeriodMonths?: number;
-  createdById: string;
-  updatedById: string;
-  isActive?: boolean;
-}
+// Type definitions from enum values
+export type ContractStatus = typeof contractStatusEnum.enumValues[number];
+export type ContractType = typeof contractTypeEnum.enumValues[number]; 
+export type ContractPriority = typeof contractPriorityEnum.enumValues[number];
 
-export interface ContractDocument {
-  id: string;
-  tenantId: string;
-  contractId: string;
-  documentName: string;
-  documentType: 'contract' | 'addendum' | 'proposal' | 'invoice' | 'receipt';
-  fileName?: string;
-  filePath?: string;
-  fileSize?: number;
-  mimeType?: string;
-  versionNumber: number;
-  isCurrentVersion: boolean;
-  description?: string;
-  accessLevel: 'internal' | 'client' | 'public';
-  requiresSignature: boolean;
-  signatureStatus: 'pending' | 'signed' | 'rejected';
-  uploadedById: string;
-  createdAt: Date;
-  isActive: boolean;
-}
+export class Contract {
+  constructor(
+    public readonly id: string,
+    public readonly tenantId: string,
+    public readonly contractNumber: string,
+    public readonly title: string,
+    public readonly contractType: ContractType,
+    public readonly status: ContractStatus,
+    public readonly priority: ContractPriority,
+    public readonly customerCompanyId: string | null,
+    public readonly managerId: string | null,
+    public readonly technicalManagerId: string | null,
+    public readonly locationId: string | null,
+    public readonly startDate: Date,
+    public readonly endDate: Date,
+    public readonly renewalDate: Date | null,
+    public readonly totalValue: number | null,
+    public readonly monthlyValue: number | null,
+    public readonly currency: string,
+    public readonly paymentTerms: number | null,
+    public readonly description: string | null,
+    public readonly termsConditions: string | null,
+    public readonly autoRenewal: boolean,
+    public readonly renewalPeriodMonths: number | null,
+    public readonly metadata: Record<string, any> | null,
+    public readonly createdAt: Date,
+    public readonly updatedAt: Date,
+    public readonly createdById: string | null,
+    public readonly updatedById: string | null,
+    public readonly isActive: boolean
+  ) {
+    this.validateBusinessRules();
+  }
 
-export interface ContractSla {
-  id: string;
-  tenantId: string;
-  contractId: string;
-  slaName: string;
-  slaType: 'availability' | 'response_time' | 'resolution_time' | 'performance';
-  serviceDescription?: string;
-  targetResolutionTime?: number;
-  escalationTime?: number;
-  penaltyPercentage?: number;
-  penaltyAmount?: number;
-  measurementPeriod: 'daily' | 'weekly' | 'monthly' | 'quarterly';
-  availabilityTarget?: number;
-  performanceTarget?: number;
-  isActive: boolean;
-  createdAt: Date;
-}
+  private validateBusinessRules(): void {
+    if (!this.tenantId) {
+      throw new Error('Contract must belong to a tenant');
+    }
 
-export interface ContractBilling {
-  id: string;
-  tenantId: string;
-  contractId: string;
-  billingCycle: 'monthly' | 'quarterly' | 'annually' | 'one_time';
-  billingDay: number;
-  billingPeriodStart: Date;
-  billingPeriodEnd: Date;
-  amount: number;
-  currency: string;
-  invoiceNumber?: string;
-  dueDate: Date;
-  paymentStatus: 'pending' | 'paid' | 'overdue' | 'cancelled';
-  paymentDate?: Date;
-  paymentMethod?: string;
-  notes?: string;
-  generatedById: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+    if (!this.contractNumber) {
+      throw new Error('Contract number is required');
+    }
 
-export interface ContractRenewal {
-  id: string;
-  tenantId: string;
-  contractId: string;
-  renewalType: 'automatic' | 'manual' | 'negotiated';
-  renewalDate: Date;
-  newEndDate: Date;
-  newValue?: number;
-  valueAdjustmentPercentage?: number;
-  termsChanges?: string;
-  approvalStatus: 'pending' | 'approved' | 'rejected';
-  approvedById?: string;
-  approvalDate?: Date;
-  notes?: string;
-  requestedById: string;
-  createdAt: Date;
-}
+    if (!this.title || this.title.trim().length === 0) {
+      throw new Error('Contract title is required');
+    }
 
-export interface ContractEquipment {
-  id: string;
-  tenantId: string;
-  contractId: string;
-  equipmentName: string;
-  equipmentType?: string;
-  serialNumber?: string;
-  model?: string;
-  manufacturer?: string;
-  warrantyStartDate?: Date;
-  warrantyEndDate?: Date;
-  maintenanceSchedule?: string;
-  location?: string;
-  status: 'active' | 'inactive' | 'maintenance' | 'decommissioned';
-  notes?: string;
-  createdAt: Date;
-  isActive: boolean;
+    if (this.startDate >= this.endDate) {
+      throw new Error('Contract start date must be before end date');
+    }
+
+    if (this.totalValue !== null && this.totalValue < 0) {
+      throw new Error('Contract value cannot be negative');
+    }
+
+    if (this.monthlyValue !== null && this.monthlyValue < 0) {
+      throw new Error('Monthly value cannot be negative');
+    }
+
+    if (this.paymentTerms !== null && this.paymentTerms < 0) {
+      throw new Error('Payment terms cannot be negative');
+    }
+
+    if (this.renewalPeriodMonths !== null && this.renewalPeriodMonths < 1) {
+      throw new Error('Renewal period must be at least 1 month');
+    }
+  }
+
+  public isExpired(): boolean {
+    return new Date() > this.endDate;
+  }
+
+  public isExpiringSoon(daysThreshold: number = 30): boolean {
+    const thresholdDate = new Date();
+    thresholdDate.setDate(thresholdDate.getDate() + daysThreshold);
+    return this.endDate <= thresholdDate && this.endDate > new Date();
+  }
+
+  public canBeRenewed(): boolean {
+    return this.status === 'active' && this.isExpiringSoon();
+  }
+
+  public isAutoRenewable(): boolean {
+    return this.autoRenewal && this.renewalPeriodMonths !== null;
+  }
+
+  public calculateRemainingDays(): number {
+    const today = new Date();
+    const timeDiff = this.endDate.getTime() - today.getTime();
+    return Math.ceil(timeDiff / (1000 * 3600 * 24));
+  }
+
+  public getDurationInDays(): number {
+    const timeDiff = this.endDate.getTime() - this.startDate.getTime();
+    return Math.ceil(timeDiff / (1000 * 3600 * 24));
+  }
+
+  public canTransitionTo(newStatus: ContractStatus): boolean {
+    const allowedTransitions: Record<ContractStatus, ContractStatus[]> = {
+      'draft': ['analysis', 'canceled'],
+      'analysis': ['approved', 'draft', 'canceled'],
+      'approved': ['active', 'analysis', 'canceled'],
+      'active': ['finished', 'canceled'],
+      'finished': [],
+      'canceled': []
+    };
+
+    return allowedTransitions[this.status]?.includes(newStatus) || false;
+  }
+
+  public updateStatus(newStatus: ContractStatus): void {
+    if (!this.canTransitionTo(newStatus)) {
+      throw new Error(`Invalid status transition from ${this.status} to ${newStatus}`);
+    }
+  }
+
+  public generateNextRenewalDate(): Date | null {
+    if (!this.renewalPeriodMonths) return null;
+    
+    const nextRenewal = new Date(this.endDate);
+    nextRenewal.setMonth(nextRenewal.getMonth() + this.renewalPeriodMonths);
+    return nextRenewal;
+  }
+
+  public toJSON(): Record<string, any> {
+    return {
+      id: this.id,
+      tenantId: this.tenantId,
+      contractNumber: this.contractNumber,
+      title: this.title,
+      contractType: this.contractType,
+      status: this.status,
+      priority: this.priority,
+      customerCompanyId: this.customerCompanyId,
+      managerId: this.managerId,
+      technicalManagerId: this.technicalManagerId,
+      locationId: this.locationId,
+      startDate: this.startDate,
+      endDate: this.endDate,
+      renewalDate: this.renewalDate,
+      totalValue: this.totalValue,
+      monthlyValue: this.monthlyValue,
+      currency: this.currency,
+      paymentTerms: this.paymentTerms,
+      description: this.description,
+      termsConditions: this.termsConditions,
+      autoRenewal: this.autoRenewal,
+      renewalPeriodMonths: this.renewalPeriodMonths,
+      metadata: this.metadata,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      createdById: this.createdById,
+      updatedById: this.updatedById,
+      isActive: this.isActive
+    };
+  }
 }

@@ -1,53 +1,64 @@
-/**
- * IContractRepository - Interface do repositório de contratos
- * Seguindo Clean Architecture e 1qa.md compliance
- */
+// ✅ 1QA.MD COMPLIANCE: Contract Repository Interface - Clean Architecture Domain Layer
+// Pure interface without implementation details
 
-import { Contract, InsertContract } from '../entities/Contract';
+import { Contract } from '../entities/Contract';
+import { contractStatusEnum, contractTypeEnum, contractPriorityEnum } from '@shared/schema';
+
+// Type definitions from enum values
+export type ContractStatus = typeof contractStatusEnum.enumValues[number];
+export type ContractType = typeof contractTypeEnum.enumValues[number]; 
+export type ContractPriority = typeof contractPriorityEnum.enumValues[number];
 
 export interface ContractFilters {
-  status?: string;
-  contractType?: string;
-  priority?: string;
-  managerId?: string;
+  status?: ContractStatus;
+  contractType?: ContractType;
+  priority?: ContractPriority;
   customerCompanyId?: string;
+  managerId?: string;
+  locationId?: string;
+  startDateFrom?: Date;
+  startDateTo?: Date;
+  endDateFrom?: Date;
+  endDateTo?: Date;
   search?: string;
-  startDateFrom?: string;
-  startDateTo?: string;
-  endDateFrom?: string;
-  endDateTo?: string;
-  totalValueMin?: number;
-  totalValueMax?: number;
+  isActive?: boolean;
 }
 
-export interface ContractListOptions {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+export interface ContractSummary {
+  totalContracts: number;
+  activeContracts: number;
+  expiringSoonContracts: number;
+  totalValue: number;
+  monthlyRecurringRevenue: number;
 }
 
 export interface IContractRepository {
-  create(tenantId: string, contractData: InsertContract): Promise<Contract>;
-  findById(tenantId: string, id: string): Promise<Contract | null>;
-  findByNumber(tenantId: string, contractNumber: string): Promise<Contract | null>;
-  findMany(
-    tenantId: string, 
-    filters?: ContractFilters, 
-    options?: ContractListOptions
-  ): Promise<{ contracts: Contract[], total: number, page: number, limit: number }>;
-  findByCustomer(tenantId: string, customerCompanyId: string): Promise<Contract[]>;
-  findByManager(tenantId: string, managerId: string): Promise<Contract[]>;
-  findExpiringSoon(tenantId: string, days: number): Promise<Contract[]>;
-  findByStatus(tenantId: string, status: string): Promise<Contract[]>;
-  update(tenantId: string, id: string, updateData: Partial<InsertContract>, updatedBy: string): Promise<Contract>;
-  delete(tenantId: string, id: string): Promise<void>;
-  count(tenantId: string, filters?: ContractFilters): Promise<number>;
-  generateContractNumber(tenantId: string, year: number): Promise<string>;
-  getFinancialSummary(tenantId: string, filters?: ContractFilters): Promise<{
-    totalValue: number;
-    monthlyRecurring: number;
-    averageValue: number;
-    totalContracts: number;
-  }>;
+  // ✅ Basic CRUD Operations
+  findById(id: string, tenantId: string): Promise<Contract | null>;
+  findAll(tenantId: string, filters?: ContractFilters): Promise<Contract[]>;
+  create(contract: Contract, tenantId: string): Promise<Contract>;
+  update(contract: Contract, tenantId: string): Promise<Contract>;
+  delete(id: string, tenantId: string): Promise<void>;
+
+  // ✅ Business Queries
+  findByContractNumber(contractNumber: string, tenantId: string): Promise<Contract | null>;
+  findExpiring(tenantId: string, daysThreshold?: number): Promise<Contract[]>;
+  findByCustomer(customerCompanyId: string, tenantId: string): Promise<Contract[]>;
+  findByManager(managerId: string, tenantId: string): Promise<Contract[]>;
+  findByStatus(status: ContractStatus, tenantId: string): Promise<Contract[]>;
+
+  // ✅ Analytics & Reporting
+  getSummary(tenantId: string): Promise<ContractSummary>;
+  getContractsByMonth(tenantId: string, year: number): Promise<Record<string, number>>;
+  getRevenueByMonth(tenantId: string, year: number): Promise<Record<string, number>>;
+
+  // ✅ Audit Trail (Required by 1qa.md)
+  createAuditEntry(
+    tenantId: string,
+    userId: string,
+    action: string,
+    entityId: string,
+    oldValues?: Record<string, any>,
+    newValues?: Record<string, any>
+  ): Promise<void>;
 }
