@@ -1720,16 +1720,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           u.email,
           u.phone,
           u.role,
-          u.department,
+          u.tenant_id as "tenantId",
+          COALESCE(u.department_id, '') as "department",
           u.position,
           u.created_at as "createdAt",
           u.updated_at as "updatedAt",
-          u.avatar_url as avatar_url,
-          NULL as bio,
-          NULL as location,
-          NULL as timezone,
-          NULL as "dateOfBirth",
-          NULL as address
+          u.avatar_url as avatar,
+          COALESCE(u.time_zone, 'America/Sao_Paulo') as "timezone",
+          '' as bio,
+          '' as location,
+          '' as "dateOfBirth",
+          '' as address
         FROM "public".users u
         WHERE u.id = $1 AND u.tenant_id = $2
       `, [userId, tenantId]);
@@ -1793,9 +1794,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email, 
           phone, 
           role,
-          department_id as "department",
+          tenant_id as "tenantId",
+          COALESCE(department_id, '') as "department",
           position,
-          time_zone as "timezone",
+          COALESCE(time_zone, 'America/Sao_Paulo') as "timezone",
           avatar_url,
           updated_at as "updatedAt"
       `, [firstName, lastName, phone, department, position, timezone, userId, tenantId]);
