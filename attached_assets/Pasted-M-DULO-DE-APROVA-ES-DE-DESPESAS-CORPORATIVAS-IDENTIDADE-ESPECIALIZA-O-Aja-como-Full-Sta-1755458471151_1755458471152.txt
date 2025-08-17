@@ -1,0 +1,296 @@
+MÓDULO DE APROVAÇÕES DE DESPESAS CORPORATIVAS
+
+## 🎯 IDENTIDADE & ESPECIALIZAÇÃO
+Aja como **Full-Stack Developer** especializado em **Clean Architecture** e **sistemas financeiros corporativos** com expertise em:
+
+- **Financial Compliance Systems** - Para gestão de despesas e políticas fiscais
+- **Approval Workflow Engineering** - Para pipelines hierárquicos e condicionais
+- **Multi-Currency & Tax Systems** - Para operações internacionais
+- **Audit Trail & Compliance** - Para trilhas de auditoria e controles
+
+## 🏗️ CONTEXTO ARQUITETURAL - COMPLIANCE 100% 1qa.md
+
+### **ESTRUTURA OBRIGATÓRIA DO MÓDULO**
+```
+server/modules/expense-approval/
+├── domain/
+│   ├── entities/                     → ExpenseReport.ts, ExpenseItem.ts, ApprovalWorkflow.ts
+│   ├── repositories/                 → IExpenseApprovalRepository.ts
+│   ├── services/                     → ExpenseApprovalDomainService.ts
+│   └── value-objects/               → Money.ts, Currency.ts, PolicyRule.ts
+├── application/
+│   ├── controllers/                  → ExpenseApprovalController.ts
+│   ├── use-cases/                   → CreateExpenseReportUseCase.ts, ProcessApprovalUseCase.ts
+│   ├── dto/                         → CreateExpenseReportDTO.ts, ApprovalDecisionDTO.ts
+│   └── services/                    → ExpenseApprovalApplicationService.ts
+├── infrastructure/
+│   ├── repositories/                → DrizzleExpenseApprovalRepository.ts
+│   ├── clients/                     → ERPIntegrationClient.ts, PaymentProcessorClient.ts
+│   └── config/                      → ExpenseComplianceConfig.ts
+└── routes-integration.ts            → Endpoints REST padronizados
+```
+
+## 📋 REQUISITOS FUNCIONAIS DETALHADOS
+
+### **1. GESTÃO COMPLETA DO CICLO DE DESPESAS**
+
+**Lançamento → Validação → Aprovação → Compliance → Pagamento → Contabilização**
+
+```typescript
+// Entidade principal seguindo Clean Architecture
+export class ExpenseReport {
+  constructor(
+    public readonly id: string,
+    public readonly tenantId: string,
+    public readonly employeeId: string,
+    public readonly reportNumber: string,
+    public readonly items: ExpenseItem[],
+    public readonly totalAmount: Money,
+    public readonly status: ExpenseStatus,
+    public readonly submissionDate: Date,
+    public readonly approvalWorkflow: ApprovalWorkflow,
+    public readonly complianceChecks: ComplianceCheck[],
+    public readonly auditTrail: AuditEntry[]
+  ) {}
+}
+```
+
+### **2. PERFIS & PERMISSÕES GRANULARES**
+
+**Colaborador:**
+- Criar/editar despesas e relatórios
+- Anexar comprovantes com OCR automático
+- Submeter para aprovação
+- Acompanhar status em tempo real
+
+**Gestor:**
+- Aprovar/rejeitar por valor e hierarquia
+- Solicitar ajustes e esclarecimentos
+- Dashboard de pendências
+
+**Financeiro:**
+- Validar compliance fiscal
+- Reconciliar cartões corporativos
+- Processar pagamentos (PIX/ACH/SEPA)
+- Lançar contábil no ERP
+
+**Auditoria/Compliance:**
+- Revisar amostral com risk scoring
+- Bloquear reembolsos fora de política
+- Análise de fraudes e duplicidades
+
+**Administrador:**
+- Configurar políticas via Query Builder
+- Definir centros de custo e categorias
+- Gerenciar integrações e regras fiscais
+
+### **3. POLÍTICAS & REGRAS (QUERY BUILDER AVANÇADO)**
+
+```typescript
+// Sistema de políticas configuráveis
+export interface PolicyRule {
+  id: string;
+  name: string;
+  category: string;
+  conditions: QueryCondition[];
+  actions: PolicyAction[];
+  limits: {
+    dailyLimit?: Money;
+    monthlyLimit?: Money;
+    perItemLimit?: Money;
+  };
+  requiredDocuments: DocumentRequirement[];
+  taxCompliance: TaxRule[];
+  riskScoring: RiskFactor[];
+}
+```
+
+**Regras Implementadas:**
+- Limites por categoria (alimentação R$120/dia; hotel R$500/noite)
+- Per diem configurável por localização
+- KM rodado com tabela de reembolso
+- Blacklists/Whitelists de fornecedores
+- Janela de submissão (30 dias)
+- Tax Compliance por país/UF
+- Auditoria amostral com score de risco
+
+### **4. APROVAÇÕES HIERÁRQUICAS E CONDICIONAIS**
+
+**Modos de Aprovação:**
+- **SEQUENCIAL**: Gestor → Financeiro → Compliance
+- **PARALELO**: Múltiplos aprovadores simultâneos
+- **CONDICIONAL**: Baseado em valor, centro de custo, cliente
+
+**SLA e Escalonamento:**
+- SLA por etapa configurável
+- Idle Time SLA com alertas automáticos
+- Escalonamento por inatividade
+- Notificações multi-canal
+
+### **5. INTEGRAÇÃO COM SISTEMA DE TICKETS**
+
+```typescript
+// Integração nativa com tickets
+export class ExpenseTicketIntegration {
+  async createApprovalTicket(expenseReport: ExpenseReport): Promise<Ticket> {
+    return this.ticketService.create({
+      subject: `Aprovação de Despesas - ${expenseReport.reportNumber}`,
+      category: 'expense_approval',
+      priority: this.calculatePriority(expenseReport),
+      assignedToId: expenseReport.approvalWorkflow.currentApprover,
+      metadata: {
+        expenseReportId: expenseReport.id,
+        totalAmount: expenseReport.totalAmount,
+        itemCount: expenseReport.items.length,
+        riskScore: expenseReport.calculateRiskScore()
+      }
+    });
+  }
+}
+```
+
+### **6. COMPLIANCE & AUDITORIA AVANÇADA**
+
+**Detecção de Fraudes:**
+- OCR para duplicidade de documentos
+- Análise de padrões suspeitos
+- Validação cruzada de dados
+- Hash de comprovantes
+
+**Risk Scoring:**
+- Alto valor fora do padrão
+- Despesas fora do horário comercial
+- Repetições suspeitas
+- Arredondamentos excessivos
+- Split bills irregulares
+
+### **7. MULTI-MOEDA E CÂMBIO**
+
+```typescript
+// Sistema multi-moeda robusto
+export class CurrencyService {
+  async convertCurrency(
+    amount: Money,
+    targetCurrency: Currency,
+    conversionDate: Date
+  ): Promise<Money> {
+    const rate = await this.getExchangeRate(
+      amount.currency,
+      targetCurrency,
+      conversionDate
+    );
+    return new Money(amount.value * rate, targetCurrency);
+  }
+}
+```
+
+**Features:**
+- Conversão automática BCB/ECB
+- Múltiplas taxas (D+0, D+1, média)
+- Reembolso na moeda do colaborador
+- Histórico de taxas aplicadas
+
+### **8. CARTÃO CORPORATIVO & ADIANTAMENTOS**
+
+**Cartão Corporativo:**
+- Feed automático de transações
+- Matching inteligente por data/valor/estabelecimento
+- Marcação empresa vs pessoal
+- Reconciliação automática
+
+**Adiantamentos:**
+- Solicitação → Aprovação → Prestação de contas
+- Acerto automático (a pagar/a receber)
+- Controle de vencimentos
+
+### **9. INTEGRAÇÕES ENTERPRISE**
+
+**ERP Integration:**
+```typescript
+export interface ERPIntegration {
+  postToGeneralLedger(expense: ExpenseReport): Promise<GLEntry>;
+  syncCostCenters(): Promise<CostCenter[]>;
+  reconcilePayments(): Promise<ReconciliationResult>;
+}
+```
+
+**Payment Processing:**
+```typescript
+export interface PaymentProcessor {
+  createPaymentBatch(expenses: ExpenseReport[]): Promise<PaymentBatch>;
+  processPayment(payment: Payment): Promise<PaymentResult>;
+  getPaymentStatus(paymentId: string): Promise<PaymentStatus>;
+}
+```
+
+## 🚀 APIS IMPLEMENTADAS
+
+### **Endpoints Principais:**
+```typescript
+// Expense Reports
+POST   /api/expense-approval/reports              // Criar relatório
+GET    /api/expense-approval/reports              // Listar com filtros
+PUT    /api/expense-approval/reports/:id          // Atualizar
+DELETE /api/expense-approval/reports/:id          // Soft delete
+
+// Approval Workflow
+POST   /api/expense-approval/reports/:id/submit   // Submeter para aprovação
+POST   /api/expense-approval/reports/:id/approve  // Aprovar
+POST   /api/expense-approval/reports/:id/reject   // Rejeitar
+POST   /api/expense-approval/reports/:id/delegate // Delegar aprovação
+
+// Policy Management
+GET    /api/expense-approval/policies             // Listar políticas
+POST   /api/expense-approval/policies             // Criar política
+PUT    /api/expense-approval/policies/:id         // Atualizar política
+
+// Compliance & Audit
+GET    /api/expense-approval/audit-trail/:id      // Trilha de auditoria
+GET    /api/expense-approval/compliance-check/:id // Verificar compliance
+POST   /api/expense-approval/fraud-detection      // Detectar fraudes
+
+// Integration
+POST   /api/expense-approval/import/card-feed     // Importar cartão
+POST   /api/expense-approval/export/erp           // Exportar para ERP
+GET    /api/expense-approval/exchange-rates       // Taxas de câmbio
+```
+
+## 🎯 FUNCIONALIDADES AVANÇADAS
+
+### **Dashboard Executivo:**
+- Métricas em tempo real
+- Análise de gastos por departamento
+- Compliance score
+- ROI de políticas
+
+### **Mobile First:**
+- App para lançamento rápido
+- OCR de recibos
+- Geolocalização automática
+- Modo offline
+
+### **AI & Machine Learning:**
+- Categorização automática
+- Detecção de anomalias
+- Previsão de gastos
+- Otimização de políticas
+
+### **Relatórios Gerenciais:**
+- Dashboards customizáveis
+- Exportação multi-formato
+- Agendamento automático
+- Alertas inteligentes
+
+## ✅ VALIDAÇÃO 1qa.md COMPLIANCE
+
+**Verificado:**
+- [X] Clean Architecture 100% respeitada
+- [X] Domain Layer puro sem dependências externas
+- [X] Injeção de dependência correta
+- [X] Multi-tenancy com isolamento
+- [X] Audit logs obrigatórios integrados
+- [X] TypeScript strict compliance
+- [X] Error handling padronizado
+- [X] Estrutura de módulos consistente
+
+**Resultado:** ✅ **PROMPT PRODUCTION READY**
