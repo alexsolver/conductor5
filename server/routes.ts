@@ -1812,7 +1812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set({
           firstName: firstName,
           lastName: lastName,
-          email: email, // ✅ Permitir atualização do email seguindo 1qa.md
+          ...(req.user?.role === 'saas_admin' ? { email: email } : {}), // ✅ Apenas saas_admin pode alterar email seguindo 1qa.md
           phone: phone,
           departmentId: department || null,
           position: position,
@@ -1839,7 +1839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: updatedUser.id,
           firstName: updatedUser.firstName || '',
           lastName: updatedUser.lastName || '',
-          email: email || updatedUser.email, // ✅ Permitir atualização do email seguindo 1qa.md
+          email: req.user?.role === 'saas_admin' ? (email || updatedUser.email) : updatedUser.email, // ✅ Apenas saas_admin pode alterar email seguindo 1qa.md
           phone: updatedUser.phone || '',
           role: updatedUser.role,
           tenantId: updatedUser.tenantId,
@@ -4070,6 +4070,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating user group:', error);
       res.status(500).json({ success: false, message: 'Failed to create user group' });
+    }
+  });
+
+  // ==============================
+  // TEAM MANAGEMENT ROUTES
+  // ==============================
+
+  // Update team member
+  app.put('/api/team-management/members/:memberId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { memberId } = req.params;
+      const tenantId = req.user?.tenantId;
+      const userRole = req.user?.role;
+
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const {
+        firstName,
+        lastName,
+        email,
+        phone,
+        cellPhone,
+        alternativeEmail,
+        ramal,
+        cpfCnpj,
+        integrationCode,
+        vehicleType,
+        timeZone,
+        // Address
+        cep,
+        country,
+        state,
+        city,
+        streetAddress,
+        houseType,
+        houseNumber,
+        complement,
+        neighborhood,
+        // HR data
+        employeeCode,
+        pis,
+        cargo,
+        ctps,
+        serieNumber,
+        admissionDate,
+        costCenter,
+        employmentType,
+        // System
+        role,
+        groupIds
+      } = req.body;
+
+      console.log(`🔧 [TEAM-MEMBER-UPDATE] Updating member ${memberId} - Role check: user(${userRole}) can edit email: ${userRole === 'tenant_admin' || userRole === 'saas_admin'}`);
+
+      // ✅ Estrutura de update seguindo 1qa.md - apenas tenant_admin pode alterar email
+      const updateData: any = {
+        firstName: firstName || null,
+        lastName: lastName || null,
+        phone: phone || null,
+        cellPhone: cellPhone || null,
+        alternativeEmail: alternativeEmail || null,
+        ramal: ramal || null,
+        cpfCnpj: cpfCnpj || null,
+        integrationCode: integrationCode || null,
+        vehicleType: vehicleType || 'nenhum',
+        timeZone: timeZone || 'America/Sao_Paulo',
+        // Address
+        cep: cep || null,
+        country: country || 'Brasil',
+        state: state || null,
+        city: city || null,
+        streetAddress: streetAddress || null,
+        houseType: houseType || null,
+        houseNumber: houseNumber || null,
+        complement: complement || null,
+        neighborhood: neighborhood || null,
+        // HR data
+        employeeCode: employeeCode || null,
+        pis: pis || null,
+        position: cargo || null,
+        ctps: ctps || null,
+        serieNumber: serieNumber || null,
+        admissionDate: admissionDate ? new Date(admissionDate) : null,
+        costCenter: costCenter || null,
+        employmentType: employmentType || 'clt',
+        role: role || null,
+        updatedAt: sql`NOW()`
+      };
+
+      // ✅ Apenas tenant_admin ou saas_admin podem alterar email seguindo 1qa.md
+      if (userRole === 'tenant_admin' || userRole === 'saas_admin') {
+        updateData.email = email;
+        console.log(`✅ [TEAM-MEMBER-UPDATE] Email update allowed for role: ${userRole}`);
+      } else {
+        console.log(`🚫 [TEAM-MEMBER-UPDATE] Email update restricted for role: ${userRole}`);
+      }
+
+      // Update user in public.users table with tenant isolation
+      const result = await db
+        .update(users)
+        .set(updateData)
+        .where(
+          and(
+            eq(users.id, memberId),
+            eq(users.tenantId, tenantId)
+          )
+        )
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Membro não encontrado ou sem permissão para editar'
+        });
+      }
+
+      const updatedUser = result[0];
+
+      console.log(`✅ [TEAM-MEMBER-UPDATE] Member updated successfully: ${updatedUser.firstName} ${updatedUser.lastName}`);
+
+      const responseData = {
+        id: updatedUser.id,
+        firstName: updatedUser.firstName || '',
+        lastName: updatedUser.lastName || '',
+        email: updatedUser.email,
+        phone: updatedUser.phone || '',
+        role: updatedUser.role,
+        tenantId: updatedUser.tenantId,
+        updatedAt: updatedUser.updatedAt
+      };
+
+      res.json({
+        success: true,
+        data: responseData,
+        message: 'Membro atualizado com sucesso'
+      });
+
+    } catch (error) {
+      console.error('❌ [TEAM-MEMBER-UPDATE] Error updating team member:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Falha ao atualizar membro da equipe'
+      });
     }
   });
 

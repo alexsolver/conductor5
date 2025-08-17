@@ -4,6 +4,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/hooks/useAuth';
 
 import {
   Dialog,
@@ -45,6 +46,10 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  
+  // ✅ Verificar se usuário é tenant_admin para editar emails seguindo 1qa.md
+  const canEditEmail = user?.role === 'tenant_admin' || user?.role === 'saas_admin';
 
   const form = useForm({
     defaultValues: {
@@ -292,8 +297,14 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                     {...form.register('email')}
                     className="pl-10"
                     placeholder="email@exemplo.com"
+                    disabled={!canEditEmail}
                   />
                 </div>
+                {!canEditEmail && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Apenas administradores podem alterar emails de usuários
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="phone">Telefone</Label>

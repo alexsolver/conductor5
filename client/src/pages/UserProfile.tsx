@@ -456,10 +456,12 @@ export default function UserProfile() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditing} type="email" />
+                            <Input {...field} disabled={!isEditing || user?.role !== 'saas_admin'} type="email" />
                           </FormControl>
                           <FormDescription>
-                            {!isEditing ? "Clique em 'Editar Perfil' para alterar o email" : "Digite seu email"}
+                            {user?.role !== 'saas_admin' 
+                              ? "Apenas administradores podem alterar o email" 
+                              : (!isEditing ? "Clique em 'Editar Perfil' para alterar o email" : "Digite seu email")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
