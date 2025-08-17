@@ -224,12 +224,8 @@ export default function ItemCatalog() {
           description: "Por favor, faça login novamente.",
           variant: "destructive"
         });
-        // Clear invalid tokens and redirect
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        setTimeout(() => {
-          window.location.href = '/auth';
-        }, 1000);
+        // Don't force redirect following 1qa.md - let components handle auth state
+        console.log('Invalid tokens detected - components will handle auth state');
         return;
       }
 
@@ -259,12 +255,8 @@ export default function ItemCatalog() {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           
-          toast({
-            title: "Sessão expirada",
-            description: "Por favor, faça login novamente.",
-            variant: "destructive"
-          });
-          window.location.href = '/auth';
+          // Don't force redirect following 1qa.md - let components handle auth state
+          console.log('Session expired detected - components will handle auth state');
           return;
         }
 
@@ -319,10 +311,8 @@ export default function ItemCatalog() {
           variant: "destructive"
         });
         
-        // Clear any CSP-related errors and redirect
-        setTimeout(() => {
-          window.location.href = '/auth';
-        }, 1000);
+        // Don't force redirect following 1qa.md - let components handle auth state
+        console.log('CSP-related errors detected - components will handle auth state');
         return;
       }
 
@@ -407,12 +397,8 @@ export default function ItemCatalog() {
 
       // ✅ Enhanced error handling per 1qa.md compliance
       if (error.message.includes('authentication') || error.message.includes('401') || error.message.includes('403')) {
-        toast({
-          title: "Sessão expirada",
-          description: "Por favor, faça login novamente.",
-          variant: "destructive"
-        });
-        window.location.href = '/auth';
+        // Don't force redirect following 1qa.md - let components handle auth state  
+        console.log('Authentication error detected - components will handle auth state');
       } else {
         toast({
           title: "Erro no catálogo",

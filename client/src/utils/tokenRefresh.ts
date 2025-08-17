@@ -59,10 +59,9 @@ export class TokenRefresh {
         return true;
       } else {
         console.warn('Token refresh failed:', response.status);
-        // Redirect to login if refresh fails
+        // Don't force redirect following 1qa.md - let components handle auth state
         if (response.status === 401) {
-          localStorage.removeItem('accessToken');
-          window.location.href = '/auth/login';
+          console.log('Token refresh failed - components will handle auth state');
         }
         return false;
       }

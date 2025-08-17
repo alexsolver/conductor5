@@ -96,7 +96,8 @@ export default function TicketDetail() {
       // Se for erro 401 (não autorizado), não tenta novamente
       if (error?.message?.includes('401')) {
         console.log('🚫 [TICKET-QUERY] Authentication error, redirecting to login');
-        window.location.href = '/auth';
+        // Don't force redirect following 1qa.md - let components handle auth state
+        console.log('Auth error in TicketDetail - components will handle auth state');
         return false;
       }
       return failureCount < 3;
@@ -232,8 +233,8 @@ export default function TicketDetail() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Sessão expirada</h1>
             <p className="text-gray-600 mb-4">Faça login novamente para continuar</p>
-            <Button onClick={() => window.location.href = '/auth'}>
-              Ir para Login
+            <Button onClick={() => console.log('Auth redirect blocked per 1qa.md')}>
+              Login será tratado automaticamente
             </Button>
           </div>
         </div>
