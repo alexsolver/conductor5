@@ -1,0 +1,110 @@
+🎯 objetivo
+
+orquestrar manutenção preventiva, corretiva e preditiva em ativos e locais, com planos, ordens de serviço (OS), checklists, calendários/turnos, alocação de equipes, SLA/tempo ocioso, aprovações, peças/estoque e app móvel com offline.
+
+⸻
+
+🔁 fluxos principais
+	1.	catálogo de ativos & locais
+	•	hierarquia (site > prédio > área > linha > máquina > componente)
+	•	medidores/horímetros, criticidade, MTBF/MTTR, códigos de falha
+	2.	planos de manutenção (PM)
+	•	preventivas por tempo (dias, semanas, meses), por uso (contador), ou condição (sensor/inspeção)
+	•	planos→tarefas→checklists com padrões, torque, binários, anexos e EPIs/permits
+	3.	geração de OS
+	•	por PM, por avaria (chamado), por condição (IoT/análise), ou manual
+	•	aplica SLA (resposta/resolução) e Idle Time SLA (parado sem ação)
+	4.	programação & alocação
+	•	motor de scheduling (ver abaixo): habilidades, certificações, turnos, rotas, proximidade e prioridade/SLA
+	•	modos: automático (otimizado), assistido (sugestões), manual (drag & drop)
+	5.	execução (campo ou oficina)
+	•	app móvel (offline-first), ordem rígida/flexível de tarefas, autosave por etapa,
+validações de dependência (intertravamentos), fotos, medições, assinatura do cliente
+	6.	fechamento & custos
+	•	tempo (timesheets), peças/serviços, aprovações, laudo, códigos de falha, retorno ao estoque, notas fiscais
+	7.	análise & melhoria
+	•	indicadores: cumprimento de PM, backlog, SLA, tempo ocioso, MTBF/MTTR, custo por ativo, Pareto de falhas
+
+⸻
+
+🧠 motor de scheduling (programação)
+	•	inputs: OS com prioridade/SLA, janelas do local, turnos/escala (ex.: 3x1, 5x2, 12x36), habilidades/certificações, carga atual, distância/rota, dependências
+	•	regras:
+	•	hard: certificação obrigatória, janela do cliente/local, bloqueios de segurança
+	•	soft: proximidade, balanceamento de carga, preferências de técnico/cliente
+	•	algoritmo: “score” multi-critério + busca local (greedy + melhoria) com reotimização quando há faltas/atrasos
+	•	saídas: agenda (Gantt/Calendário), rotas consolidadas (integra com seu módulo Aria), ETA e notificações
+	•	SLA & idle: alerta antecipado, replanejamento automático, escalonamento
+
+⸻
+
+📐 modelo de dados (mínimo)
+
+assets(id, location_id, tag, model, criticality, meters_json, …)
+locations(id, timezone, business_hours, holidays)
+maintenance_plans(id, trigger_type: time|meter|condition, frequency_json, tasks_template_json)
+work_orders(id, asset_id, origin: pm|incident|manual|condition, priority, status, sla_target_at, idle_policy, …)
+wo_tasks(id, wo_id, seq, required_skill, required_cert, checklist_json, status)
+schedules(id, wo_id, technician_id, start, end, route_seq)
+shifts(id, pattern: 3x1|5x2|12x36, calendar)
+technicians(id, skills_json, certs_json, shift_id, home_base_location)
+time_entries(id, wo_id, tech_id, start, end, type: travel|work|wait)
+parts_reservations(id, wo_id, part_id, qty, status)
+inventory_tx(id, part_id, qty, from_loc, to_loc, wo_id)
+approvals(instances/steps/approvers – reutiliza motor de aprovações)
+sla_policies(id, scope, start/pause/stop_conditions, calendars)
+risk_permits(id, wo_id, type: LOTO|altura|NR10|NR35, status)
+audit_logs(tenant_id, user_id, action_type, snapshots, created_at)
+
+reforça requisitos prévios do Conductor: SLA por local e feriados (itens #70–71), auditoria (#49).
+
+⸻
+
+⚙️ regras & automações
+	•	query builder em tickets/OS (condições para PM, aprovações, escalonamento)
+	•	pausas de SLA: aguardando cliente/peça/janela
+	•	Idle Time SLA por etapa/tarefa (ex.: sem atualização por 4h ⇒ lembrete ⇒ 8h ⇒ reatribuir)
+	•	aprovação: bloqueios por risco, custo, parada de linha; cliente pode aprovar
+	•	peças: reserva automática por BOM do plano; substitutos/equivalências
+	•	segurança: permits (LOTO, NR10/NR35) e listas de EPI obrigatórias
+
+⸻
+
+🖥️ ui (principal)
+	•	Planejamento: Calendário (dia/semana) + Gantt + mapa (clusters); drag & drop; conflitos e sobreposições
+	•	Backlog: Kanban por status/criticidade; sugestões do motor
+	•	Execução (móvel): passo a passo, checklist com validação, fotos, medição, assinatura
+	•	Peças & Estoque: reserva/baixa, alternativas, nível mínimo
+	•	Relatórios: SLA, idle, MTTR/MTBF, Pareto, eficácia de PM, custo por ativo
+	•	Configurações: planos, turnos/escalas, skills/certs, políticas de SLA/idle, query builder
+
+⸻
+
+🔌 api (exemplos)
+
+POST /api/maintenance-plans – cria plano (tempo/medidor)
+POST /api/work-orders – cria OS (com origem e SLA)
+POST /api/work-orders/{id}/schedule – atribui/agenda (auto/assistido)
+POST /api/work-orders/{id}/start|pause|complete – execução de OS
+POST /api/work-orders/{id}/tasks/{taskId}/checklist – marca itens, anexa evidências
+POST /api/work-orders/{id}/approve – integra motor de aprovações
+GET /api/schedule?from=&to=&tech= – agenda consolidada
+POST /api/parts/reserve – reserva de peça para OS
+GET /api/kpis/maintenance – métricas (SLA, idle, MTTR, backlog)
+
+⸻
+
+🧭 máquinas de estado
+
+OS: drafted → scheduled → in_progress → waiting(parts|window|client) → completed → approved → closed
+→ rejected / canceled (ramificações)
+tarefa: pending → doing → blocked → done → verified
+
+⸻
+
+🔒 qualidade & compliance
+	•	Clean Architecture (Domain/Application/Infrastructure)
+	•	Testes unitários/integração (≥ 80%)
+	•	Acessibilidade WCAG 2.1 AA nas telas
+	•	Observabilidade: métricas (aging, cumprimento de PM), logs estruturados, tracing
+	•	Auditoria completa (cada transição + payload)
