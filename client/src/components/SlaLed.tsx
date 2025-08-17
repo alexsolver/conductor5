@@ -121,6 +121,7 @@ export function SlaLed({
   className = ''
 }: SlaLedProps) {
   console.log(`🔍 [SLA-LED] Rendering for ticket: ${ticketId}`);
+  console.log(`🔍 [SLA-LED] Component loaded and executing`);
   
   // Para demonstração, vamos simular um SLA em andamento baseado no ticketId
   const demoSlaExpiration = new Date();
