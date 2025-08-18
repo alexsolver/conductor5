@@ -79,6 +79,9 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
   next();
 };
 
+// Import necessary middleware for tenant enforcement
+import { databaseOperationInterceptor, runtimeSchemaValidator } from './middleware/tenantSchemaEnforcer';
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
@@ -351,10 +354,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (err) return next(err);
           databaseOperationInterceptor()(req, res, (err) => {
             if (err) return next(err);
-            queryPatternAnalyzer()(req, res, (err) => {
-              if (err) return next(err);
-              runtimeSchemaValidator()(req, res, next);
-            });
+            // No need to call queryPatternAnalyzer and runtimeSchemaValidator here as they are already included in tenantSchemaEnforcer()
+            next();
           });
         });
       });
@@ -373,22 +374,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
   const ticketsRoutes = (await import('./modules/tickets/routes')).default;
-  app.use('/api/tickets', ticketsRoutes);
+  app.use('/api/tickets', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketsRoutes);
   console.log('✅ [TICKETS-CLEAN-ARCH] Tickets Clean Architecture routes configured successfully');
 
   // ✅ NOTIFICATIONS & ALERTS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...');
-  app.use('/api', notificationRoutes);
+  app.use('/api/notifications', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), notificationRoutes);
   console.log('✅ [NOTIFICATIONS-ALERTS] Clean Architecture module registered at /api/notifications');
 
   // ✅ SLA MANAGEMENT CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [SLA-MANAGEMENT] Initializing SLA Management Clean Architecture module...');
-  app.use('/api/sla', slaRoutes);
+  app.use('/api/sla', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), slaRoutes);
   console.log('✅ [SLA-MANAGEMENT] Clean Architecture module registered at /api/sla');
 
   // ✅ REPORTS & DASHBOARDS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [REPORTS-DASHBOARDS] Initializing Reports & Dashboards Clean Architecture module...');
-  app.use('/api/reports-dashboards', reportsRoutes);
+  app.use('/api/reports-dashboards', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), reportsRoutes);
   console.log('✅ [REPORTS-DASHBOARDS] Clean Architecture module registered at /api/reports-dashboards');
 
   // ✅ Dashboard Governance routes - following 1qa.md Clean Architecture
@@ -396,22 +397,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { DashboardGovernanceController } = await import('./modules/dashboards/infrastructure/DashboardGovernanceController');
   const governanceController = new DashboardGovernanceController();
 
-  app.get('/api/dashboards/governance/data-sources', (req, res) => 
+  app.get('/api/dashboards/governance/data-sources', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), (req, res) => 
     governanceController.getDataSources(req, res)
   );
-  app.get('/api/dashboards/governance/kpis/:dataSourceId', (req, res) => 
+  app.get('/api/dashboards/governance/kpis/:dataSourceId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), (req, res) => 
     governanceController.getKPIs(req, res)
   );
-  app.post('/api/dashboards/kpi/:kpiId', (req, res) => 
+  app.post('/api/dashboards/kpi/:kpiId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), (req, res) => 
     governanceController.calculateKPI(req, res)
   );
-  app.post('/api/dashboards/governance/validate-card', (req, res) => 
+  app.post('/api/dashboards/governance/validate-card', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), (req, res) => 
     governanceController.validateCard(req, res)
   );
-  app.post('/api/dashboards/governance/generate-dynamic', (req, res) => 
+  app.post('/api/dashboards/governance/generate-dynamic', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), (req, res) => 
     governanceController.generateDynamicCard(req, res)
   );
-  app.get('/api/dashboards/governance/permissions/:cardId', (req, res) => 
+  app.get('/api/dashboards/governance/permissions/:cardId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), (req, res) => 
     governanceController.checkPermissions(req, res)
   );
   console.log('✅ [DASHBOARD-GOVERNANCE] Clean Architecture module registered at /api/dashboards/governance');
@@ -419,18 +420,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GDPR Compliance Module - Clean Architecture
   console.log('🏗️ [GDPR-COMPLIANCE] Initializing GDPR Compliance Clean Architecture module...');
   const { gdprRoutes } = await import('./modules/gdpr-compliance/routes/gdprRoutes');
-  app.use('/api/gdpr-compliance', gdprRoutes);
+  app.use('/api/gdpr-compliance', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), gdprRoutes);
   console.log('✅ [GDPR-COMPLIANCE] Clean Architecture module registered at /api/gdpr-compliance');
 
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');
-  app.use('/api/beneficiaries', beneficiariesRoutes);
+  app.use('/api/beneficiaries', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), beneficiariesRoutes);
   console.log('✅ [BENEFICIARIES-CLEAN-ARCH] Beneficiaries Clean Architecture routes configured successfully');
 
   // ✅ Priority 4: Customers routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [CUSTOMERS-CLEAN-ARCH] Initializing Customers Clean Architecture routes...');
   const customersRoutes = (await import('./modules/customers/routes')).default;
-  app.use('/api/customers', customersRoutes);
+  app.use('/api/customers', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), customersRoutes);
   console.log('✅ [CUSTOMERS-CLEAN-ARCH] Customers Clean Architecture routes configured successfully');
 
   // ✅ Priority 5: Users routes - CLEAN ARCHITECTURE per 1qa.md
@@ -442,7 +443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Priority 7: Materials-Services routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [MATERIALS-SERVICES-CLEAN-ARCH] Initializing Materials-Services Clean Architecture routes...');
   const materialsServicesRoutes = (await import('./modules/materials-services/routes')).default;
-  app.use('/api/materials-services', materialsServicesRoutes);
+  app.use('/api/materials-services', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), materialsServicesRoutes);
   console.log('✅ [MATERIALS-SERVICES-CLEAN-ARCH] Materials-Services Clean Architecture routes configured successfully');
 
   // ✅ Priority 8: Locations routes - CLEAN ARCHITECTURE per 1qa.md
@@ -452,7 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ TICKET RELATIONSHIPS - Clean Architecture Implementation per 1qa.md
   const ticketRelationshipsRoutes = (await import('./modules/ticket-relationships/routes')).default;
-  app.use('/api/ticket-relationships', ticketRelationshipsRoutes);
+  app.use('/api/ticket-relationships', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketRelationshipsRoutes);
 
   // ✅ LEGACY TICKET RELATIONSHIPS ENDPOINTS REMOVED - Clean Architecture only per 1qa.md
   console.log('✅ [CLEAN-ARCHITECTURE] All modules using Clean Architecture pattern');
@@ -470,39 +471,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const metadataController = new TicketMetadataController();
 
   // Field configurations
-  app.get('/api/tickets/metadata/field-configurations', jwtAuth, metadataController.getFieldConfigurations.bind(metadataController));
-  app.get('/api/tickets/metadata/field-configurations/:fieldName', jwtAuth, metadataController.getFieldConfiguration.bind(metadataController));
-  app.post('/api/tickets/metadata/field-configurations', jwtAuth, metadataController.createFieldConfiguration.bind(metadataController));
-  app.put('/api/tickets/metadata/field-configurations/:fieldName', jwtAuth, metadataController.updateFieldConfiguration.bind(metadataController));
+  app.get('/api/tickets/metadata/field-configurations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.getFieldConfigurations.bind(metadataController));
+  app.get('/api/tickets/metadata/field-configurations/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.getFieldConfiguration.bind(metadataController));
+  app.post('/api/tickets/metadata/field-configurations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.createFieldConfiguration.bind(metadataController));
+  app.put('/api/tickets/metadata/field-configurations/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.updateFieldConfiguration.bind(metadataController));
 
   // Field options
-  app.get('/api/tickets/metadata/field-options/:fieldName', jwtAuth, metadataController.getFieldOptions.bind(metadataController));
-  app.post('/api/tickets/metadata/field-options/:fieldName', jwtAuth, metadataController.createFieldOption.bind(metadataController));
-  app.put('/api/tickets/metadata/field-options/:optionId', jwtAuth, metadataController.updateFieldOption.bind(metadataController));
-  app.delete('/api/tickets/metadata/field-options/:optionId', jwtAuth, metadataController.deleteFieldOption.bind(metadataController));
+  app.get('/api/tickets/metadata/field-options/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.getFieldOptions.bind(metadataController));
+  app.post('/api/tickets/metadata/field-options/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.createFieldOption.bind(metadataController));
+  app.put('/api/tickets/metadata/field-options/:optionId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.updateFieldOption.bind(metadataController));
+  app.delete('/api/tickets/metadata/field-options/:optionId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.deleteFieldOption.bind(metadataController));
 
   // Style configurations
-  app.get('/api/tickets/metadata/style-configurations', jwtAuth, metadataController.getStyleConfigurations.bind(metadataController));
-  app.get('/api/tickets/metadata/style-configurations/:fieldName', jwtAuth, metadataController.getStyleConfiguration.bind(metadataController));
-  app.post('/api/tickets/metadata/style-configurations', jwtAuth, metadataController.createStyleConfiguration.bind(metadataController));
-  app.put('/api/tickets/metadata/style-configurations/:fieldName', jwtAuth, metadataController.updateStyleConfiguration.bind(metadataController));
+  app.get('/api/tickets/metadata/style-configurations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.getStyleConfigurations.bind(metadataController));
+  app.get('/api/tickets/metadata/style-configurations/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.getStyleConfiguration.bind(metadataController));
+  app.post('/api/tickets/metadata/style-configurations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.createStyleConfiguration.bind(metadataController));
+  app.put('/api/tickets/metadata/style-configurations/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.updateStyleConfiguration.bind(metadataController));
 
   // Default configurations
-  app.get('/api/tickets/metadata/default-configurations', jwtAuth, metadataController.getDefaultConfigurations.bind(metadataController));
-  app.put('/api/tickets/metadata/default-configurations/:fieldName', jwtAuth, metadataController.updateDefaultConfiguration.bind(metadataController));
+  app.get('/api/tickets/metadata/default-configurations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.getDefaultConfigurations.bind(metadataController));
+  app.put('/api/tickets/metadata/default-configurations/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.updateDefaultConfiguration.bind(metadataController));
 
   // Utility endpoints
-  app.post('/api/tickets/metadata/initialize-defaults', jwtAuth, metadataController.initializeDefaults.bind(metadataController));
-  app.get('/api/tickets/metadata/dynamic-schema', jwtAuth, metadataController.generateDynamicSchema.bind(metadataController));
+  app.post('/api/tickets/metadata/initialize-defaults', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.initializeDefaults.bind(metadataController));
+  app.get('/api/tickets/metadata/dynamic-schema', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), metadataController.generateDynamicSchema.bind(metadataController));
 
   // ✅ LEGACY PEOPLEROUTER REMOVED - Clean Architecture only per 1qa.md
-  app.use('/api/integrity', integrityRoutes);
-  app.use('/api/system', systemScanRoutes);
+  app.use('/api/integrity', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), integrityRoutes);
+  app.use('/api/system', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), systemScanRoutes);
 
   // === CUSTOMERSROUTES - Standardized to use /api/customers ===
 
   // Main customers route with associated companies
-  app.get('/api/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/customers', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
         return res.status(400).json({ message: "User not associated with a tenant" });
@@ -636,7 +637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === CUSTOMER COMPANIES ROUTES ===
   // Get all companies
-  app.get('/api/customers/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/customers/companies', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
@@ -677,7 +678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get customers by company
-  app.get('/api/companies/:companyId/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/companies/:companyId/customers', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -746,7 +747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/customers/companies", jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/customers/companies", jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
         return res.status(401).json({ message: 'Tenant context required' });
@@ -794,7 +795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Delete customer company - temporary implementation to fix deletion issue
   // PUT /api/customers/companies/:id - Update a company
-  app.put('/api/customers/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/customers/companies/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
       const { 
@@ -876,7 +877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/customers/companies/:companyId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.delete('/api/customers/companies/:companyId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
 
@@ -955,7 +956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get customers already associated with a company
-  app.get('/api/customers/companies/:companyId/associated', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/customers/companies/:companyId/associated', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
 
@@ -1015,7 +1016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get available customers for company association - temporary implementation
-  app.get('/api/customers/companies/:companyId/available', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/customers/companies/:companyId/available', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
 
@@ -1088,7 +1089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/customers/companies/:companyId/associate-multiple - Associate multiple customers to a company
-  app.post('/api/customers/companies/:companyId/associate-multiple', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/customers/companies/:companyId/associate-multiple', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
       const { customerIds, isPrimary = false } = req.body;
@@ -1208,7 +1209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create customer - temporary implementation
-  app.post('/api/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/customers', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
@@ -1302,7 +1303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update customer - temporary implementation
-  app.patch('/api/customers/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.patch('/api/customers/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
@@ -1449,31 +1450,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import and mount localization routes
   const localizationRoutes = await import('./routes/localization');
-  app.use('/api/localization', localizationRoutes.default);
+  app.use('/api/localization', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), localizationRoutes.default);
 
   // Removed multilocation routes - replaced with new locations module
 
   // Import and mount tenant provisioning routes
   const tenantProvisioningRoutes = await import('./routes/tenant-provisioning');
-  app.use('/api/tenant-provisioning', tenantProvisioningRoutes.default);
+  app.use('/api/tenant-provisioning', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), tenantProvisioningRoutes.default);
 
   // Import and mount translations routes
   const translationsRoutes = await import('./routes/translations');
-  app.use('/api/translations', translationsRoutes.default);
+  app.use('/api/translations', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), translationsRoutes.default);
 
   // Import and mount validation routes
   const validationRoutes = await import('./routes/validation');
-  app.use('/api/validation', validationRoutes.default);
+  app.use('/api/validation', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), validationRoutes.default);
 
   // Import and mount auth security routes
   const authSecurityRoutes = await import('./routes/authSecurity');
-  app.use('/api/auth-security', authSecurityRoutes.default);
+  app.use('/api/auth-security', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), authSecurityRoutes.default);
 
   // Import and mount template routes
   const templateRoutes = await import('./routes/templateRoutes');
-  app.use('/api/templates', templateRoutes.default);
+  app.use('/api/templates', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), templateRoutes.default);
 
-  // ✅ SaaS Admin Integrations Routes - Following Clean Architecture per 1qa.md
+  // ✅ SaaS Admin Integrations Routes - Following 1qa.md patterns
   app.get('/api/saas-admin/integrations', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const userRole = req.user?.role;
@@ -1708,17 +1709,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Apply webhook routes BEFORE auth middleware 
   const webhooksRoutes = await import('./routes/webhooks');
-  app.use('/api/webhooks', webhooksRoutes.default);
+  app.use('/api/webhooks', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), webhooksRoutes.default);
 
   // Mount tenant integrations routes
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
-  app.use('/api/tenant-admin/integrations', tenantIntegrationsRoutes.default);
+  app.use('/api/tenant-admin/integrations', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), tenantIntegrationsRoutes.default);
 
   // Removed: journey API routes - functionality eliminated from system
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
 
   // Tenant endpoint for fetching tenant details
-  app.get('/api/tenants/:tenantId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/tenants/:tenantId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { tenantId } = req.params;
 
@@ -1749,7 +1750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Schema management (admin only)
-  app.post("/api/admin/init-schema/:tenantId", jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/admin/init-schema/:tenantId", jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
@@ -1771,13 +1772,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // app.use('/api/ticket-config', ticketConfigRoutes);
 
   // User management routes
-  app.use('/api/user-management', userManagementRoutes);
+  app.use('/api/user-management', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), userManagementRoutes);
 
   // User profile routes - DISABLED MOCK ROUTES per 1qa.md
   // app.use('/api/user', jwtAuth, userProfileRoutes);
 
   // Team management routes
-  app.use('/api/team-management', jwtAuth, teamManagementRoutes);
+  app.use('/api/team-management', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), teamManagementRoutes);
 
   // Hierarchical ticket metadata routes
   try {
@@ -1786,7 +1787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
     // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
     // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
-    app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
+    app.use('/api/ticket-field-options', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketFieldOptionsRoutes);
 
     const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController'); // Re-import for clarity within this block
     const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');    
@@ -1797,48 +1798,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Customer-specific configuration routes - only bind if methods exist
     if (hierarchicalController.getCustomerConfiguration) {
-      app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.getCustomerConfiguration.bind(hierarchicalController));
+      app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), hierarchicalController.getCustomerConfiguration.bind(hierarchicalController));
     }
     if (hierarchicalController.createCustomerConfiguration) {
-      app.post('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.createCustomerConfiguration.bind(hierarchicalController));
+      app.post('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), hierarchicalController.createCustomerConfiguration.bind(hierarchicalController));
     }
     if (hierarchicalController.updateCustomerConfiguration) {
-      app.put('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, hierarchicalController.updateCustomerConfiguration.bind(hierarchicalController));
+      app.put('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), hierarchicalController.updateCustomerConfiguration.bind(hierarchicalController));
     }
     if (hierarchicalController.deleteCustomerConfiguration) {
-      app.delete('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, hierarchicalController.deleteCustomerConfiguration.bind(hierarchicalController));
+      app.delete('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), hierarchicalController.deleteCustomerConfiguration.bind(hierarchicalController));
     }
 
     // Field resolution routes - only bind if methods exist
     if (hierarchicalController.resolveFieldForCustomer) {
-      app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForCustomer.bind(hierarchicalController));
+      app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), hierarchicalController.resolveFieldForCustomer.bind(hierarchicalController));
     }
     if (hierarchicalController.resolveFieldForTenant) {
-      app.get('/api/ticket-metadata-hierarchical/tenant/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForTenant.bind(hierarchicalController));
+      app.get('/api/ticket-metadata-hierarchical/tenant/field/:fieldName', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), hierarchicalController.resolveFieldForTenant.bind(hierarchicalController));
     }
 
     // Category Hierarchy Routes (Categoria → Subcategoria → Ação)
 
     // Categories (Nível 1)
-    app.get('/api/ticket-hierarchy/categories', jwtAuth, categoryHierarchyController.getCategories.bind(categoryHierarchyController));
-    app.post('/api/ticket-hierarchy/categories', jwtAuth, categoryHierarchyController.createCategory.bind(categoryHierarchyController));
-    app.put('/api/ticket-hierarchy/categories/:id', jwtAuth, categoryHierarchyController.updateCategory.bind(categoryHierarchyController));
-    app.delete('/api/ticket-hierarchy/categories/:id', jwtAuth, categoryHierarchyController.deleteCategory.bind(categoryHierarchyController));
+    app.get('/api/ticket-hierarchy/categories', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.getCategories.bind(categoryHierarchyController));
+    app.post('/api/ticket-hierarchy/categories', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.createCategory.bind(categoryHierarchyController));
+    app.put('/api/ticket-hierarchy/categories/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.updateCategory.bind(categoryHierarchyController));
+    app.delete('/api/ticket-hierarchy/categories/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.deleteCategory.bind(categoryHierarchyController));
 
     // Subcategories (Nível 2)
-    app.get('/api/ticket-hierarchy/categories/:categoryId/subcategories', jwtAuth, categoryHierarchyController.getSubcategories.bind(categoryHierarchyController));
-    app.post('/api/ticket-hierarchy/categories/:categoryId/subcategories', jwtAuth, categoryHierarchyController.createSubcategory.bind(categoryHierarchyController));
-    app.put('/api/ticket-hierarchy/subcategories/:id', jwtAuth, categoryHierarchyController.updateSubcategory.bind(categoryHierarchyController));
-    app.delete('/api/ticket-hierarchy/subcategories/:id', jwtAuth, categoryHierarchyController.deleteSubcategory.bind(categoryHierarchyController));
+    app.get('/api/ticket-hierarchy/categories/:categoryId/subcategories', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.getSubcategories.bind(categoryHierarchyController));
+    app.post('/api/ticket-hierarchy/categories/:categoryId/subcategories', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.createSubcategory.bind(categoryHierarchyController));
+    app.put('/api/ticket-hierarchy/subcategories/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.updateSubcategory.bind(categoryHierarchyController));
+    app.delete('/api/ticket-hierarchy/subcategories/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.deleteSubcategory.bind(categoryHierarchyController));
 
     // Actions (Nível 3)
-    app.get('/api/ticket-hierarchy/subcategories/:subcategoryId/actions', jwtAuth, categoryHierarchyController.getActions.bind(categoryHierarchyController));
-    app.post('/api/ticket-hierarchy/subcategories/:subcategoryId/actions', jwtAuth, categoryHierarchyController.createAction.bind(categoryHierarchyController));
-    app.put('/api/ticket-hierarchy/actions/:id', jwtAuth, categoryHierarchyController.updateAction.bind(categoryHierarchyController));
-    app.delete('/api/ticket-hierarchy/actions/:id', jwtAuth, categoryHierarchyController.deleteAction.bind(categoryHierarchyController));
+    app.get('/api/ticket-hierarchy/subcategories/:subcategoryId/actions', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.getActions.bind(categoryHierarchyController));
+    app.post('/api/ticket-hierarchy/subcategories/:subcategoryId/actions', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.createAction.bind(categoryHierarchyController));
+    app.put('/api/ticket-hierarchy/actions/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.updateAction.bind(categoryHierarchyController));
+    app.delete('/api/ticket-hierarchy/actions/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.deleteAction.bind(categoryHierarchyController));
 
     // Full hierarchy visualization
-    app.get('/api/ticket-hierarchy/full', jwtAuth, categoryHierarchyController.getFullHierarchy.bind(categoryHierarchyController));
+    app.get('/api/ticket-hierarchy/full', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), categoryHierarchyController.getFullHierarchy.bind(categoryHierarchyController));
 
     console.log('✅ Hierarchical ticket metadata routes registered');
     console.log('✅ Category hierarchy routes registered');
@@ -1848,43 +1849,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // ========================================
 
     // Simplified routes (show all public templates)
-    app.get('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    app.get('/api/ticket-templates', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
       req.params = { ...req.params, companyId: 'all' };
       return await ticketTemplateController.getTemplatesByCompany(req, res);
     });
-    app.post('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    app.post('/api/ticket-templates', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
       req.params = { ...req.params, companyId: 'all' };
       return await ticketTemplateController.createTemplate(req, res);
     });
-    app.get('/api/ticket-templates/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {  
+    app.get('/api/ticket-templates/stats', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {  
       req.params = { ...req.params, companyId: 'all' };
       return await ticketTemplateController.getTemplateStats(req, res);
     });
-    app.get('/api/ticket-templates/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    app.get('/api/ticket-templates/categories', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
       req.params = { ...req.params, companyId: 'all' };
       return await ticketTemplateController.getTemplateCategories(req, res);
     });
 
     // Templates por empresa
-    app.get('/api/ticket-templates/company/:companyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
-    app.post('/api/ticket-templates/company/:companyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
+    app.get('/api/ticket-templates/company/:companyId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
+    app.post('/api/ticket-templates/company/:companyId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
 
     // CRUD individual de templates
-    app.get('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.getTemplateById.bind(ticketTemplateController));
-    app.put('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.updateTemplate.bind(ticketTemplateController));
-    app.delete('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.deleteTemplate.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/:templateId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.getTemplateById.bind(ticketTemplateController));
+    app.put('/api/ticket-templates/:templateId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.updateTemplate.bind(ticketTemplateController));
+    app.delete('/api/ticket-templates/:templateId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.deleteTemplate.bind(ticketTemplateController));
 
     // Busca e filtros
-    app.get('/api/ticket-templates/company/:companyId/search', jwtAuth, ticketTemplateController.searchTemplates.bind(ticketTemplateController));
-    app.get('/api/ticket-templates/company/:companyId/categories', jwtAuth, ticketTemplateController.getTemplateCategories.bind(ticketTemplateController));
-    app.get('/api/ticket-templates/company/:companyId/popular', jwtAuth, ticketTemplateController.getPopularTemplates.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:companyId/search', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.searchTemplates.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:companyId/categories', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.getTemplateCategories.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:companyId/popular', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.getPopularTemplates.bind(ticketTemplateController));
 
     // Aplicar template e preview
-    app.post('/api/ticket-templates/:templateId/apply', jwtAuth, ticketTemplateController.applyTemplate.bind(ticketTemplateController));
-    app.get('/api/ticket-templates/:templateId/preview', jwtAuth, ticketTemplateController.previewTemplate.bind(ticketTemplateController));
+    app.post('/api/ticket-templates/:templateId/apply', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.applyTemplate.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/:templateId/preview', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.previewTemplate.bind(ticketTemplateController));
 
     // Estatísticas
-    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, ticketTemplateController.getTemplateStats.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketTemplateController.getTemplateStats.bind(ticketTemplateController));
 
     console.log('✅ Ticket Templates routes registered');
   } catch (error) {
@@ -1896,7 +1897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
 
   // Demonstration route for Default company template usage
-  app.get('/api/deployment/default-template-info', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/deployment/default-template-info', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { DEFAULT_COMPANY_TEMPLATE } = await import('./templates/default-company-template');
 
@@ -1935,7 +1936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check if tenant has template applied
-  app.get('/api/deployment/template-status/:tenantId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/deployment/template-status/:tenantId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { tenantId } = req.params;
       const { TenantTemplateService } = await import('./services/TenantTemplateService');
@@ -1960,7 +1961,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Apply default template to new tenant
-  app.post('/api/deployment/apply-default-template', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/deployment/apply-default-template', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { newTenantId } = req.body;
 
@@ -2014,8 +2015,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log('✅ Tenant deployment template routes registered');
 
-  // 🔐 USER PROFILE ROUTES - Following 1qa.md Clean Architecture patterns
-  app.get('/api/user/profile', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  // 🔐 USER PROFILE ROUTES - Following 1qa.md authentication patterns
+  app.get('/api/user/profile', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -2085,7 +2086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/user/profile', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/user/profile', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     console.log('🔥 [PROFILE-UPDATE] PUT /api/user/profile - REAL ENDPOINT HIT!');
     console.log('🔥 [PROFILE-UPDATE] Request body:', req.body);
     console.log('🔥 [PROFILE-UPDATE] User from token:', req.user);
@@ -2184,7 +2185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/user/activity', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user/activity', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -2247,7 +2248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/user/skills', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user/skills', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -2276,7 +2277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 📷 PROFILE PHOTO UPLOAD ROUTES - Following Object Storage + 1qa.md patterns
-  app.post('/api/user/profile/photo/upload', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/user/profile/photo/upload', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -2293,7 +2294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
 
       res.json({ 
-        success: true,
+        success: true, 
         uploadURL 
       });
 
@@ -2306,7 +2307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/user/profile/photo', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/user/profile/photo', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -2366,7 +2367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 🔐 SECURITY ROUTES - Following 1qa.md authentication patterns
-  app.put('/api/user/security/password', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/user/security/password', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -2431,7 +2432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/user/security/sessions', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user/security/sessions', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
 
@@ -2466,7 +2467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ⚙️ USER PREFERENCES ROUTES - Following 1qa.md patterns
-  app.get('/api/user/preferences', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user/preferences', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -2516,7 +2517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/user/preferences', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/user/preferences', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
       const tenantId = req.user?.tenantId;
@@ -2636,11 +2637,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ LEGACY ROUTES ELIMINATED - Using Clean Architecture exclusively per 1qa.md
 
   // Customer-Location relationship routes
-  app.get('/api/customers/:customerId/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/customers/:customerId/locations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { customerId } = req.params;
       const tenantId = req.user?.tenantId;
-
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -2648,7 +2648,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Note: Customer locations functionality requires implementation of customerLocations table in schema
       // For now, return locations associated with the tenant
       const locations = await unifiedStorage.getLocations ? await unifiedStorage.getLocations(tenantId) : [];
-
       res.json({ locations });
     } catch (error) {
       console.error('Error fetching customer locations:', error);
@@ -2656,7 +2655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/customers/:customerId/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/customers/:customerId/locations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { customerId } = req.params;
       const { locationId, isPrimary } = req.body;
@@ -2677,7 +2676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/customers/:customerId/locations/:locationId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.delete('/api/customers/:customerId/locations/:locationId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { customerId, locationId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -2707,7 +2706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ LEGACY Holiday routes eliminated per 1qa.md
 
   // Global multilocation API endpoints
-  app.get('/api/multilocation/markets', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/multilocation/markets', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       const pool = schemaManager.getPool();
@@ -2731,7 +2730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/multilocation/config/:marketCode', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/multilocation/config/:marketCode', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { marketCode } = req.params;
       const tenantId = req.user?.tenantId;
@@ -2765,7 +2764,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Currency conversion endpoint
-  app.post('/api/geolocation/convert-currency', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/geolocation/convert-currency', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { amount, from, to } = req.body;
 
@@ -2808,23 +2807,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register new locations module routes
   try {
     const { locationsRouter } = await import('./modules/locations/routes');
-    app.use('/api/locations', locationsRouter);
+    app.use('/api/locations', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), locationsRouter);
   } catch (error) {
     console.warn('Locations module not available:', error);
   }
 
-  // ✅ LOCATIONS NEW MODULE per 1qa.md Clean Architecture
+  // ✅ LEGACY LOCATIONS ROUTES ELIMINATED - Clean Architecture only per 1qa.md
+  console.log('🏗️ [CLEAN-ARCHITECTURE] Legacy locations routes eliminated');
+
+  // === Locations NEW MODULE per 1qa.md Clean Architecture
   try {
     const { default: locationsNewRouter } = await import('./modules/locations/routes-new');
     console.log('✅ [LOCATIONS-NEW-MODULE] Successfully imported locations-new module');
-    app.use('/api/locations-new', locationsNewRouter);
+    app.use('/api/locations-new', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), locationsNewRouter);
     console.log('✅ [LOCATIONS-NEW-MODULE] Locations-new routes registered at /api/locations-new');
   } catch (error) {
     console.error('❌ [LOCATIONS-NEW-MODULE] Failed to load locations-new module:', error);
     console.error('❌ [LOCATIONS-NEW-MODULE] Error details:', error.message);
   }
-
-  // Removed OmniBridge routes - now defined earlier before middleware
 
   // Helper functions for channel transformation
   function getChannelIcon(type: string): string {
@@ -2875,7 +2875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Locations API routes
-  app.get('/api/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/locations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -2894,7 +2894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/locations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -2984,7 +2984,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Email Templates routes  
   const { emailTemplatesRouter } = await import('./routes/emailTemplates');
-  app.use('/api/email-templates', emailTemplatesRouter);
+  app.use('/api/email-templates', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), emailTemplatesRouter);
 
   // Removed: External Contacts routes - functionality eliminated
 
@@ -2993,7 +2993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes temporarily removed due to syntax issues
 
   // Channel toggle endpoint for OmniBridge
-  app.put('/api/tenant-admin-integration/integrations/:channelId/toggle', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/tenant-admin-integration/integrations/:channelId/toggle', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { channelId } = req.params;
       const { enabled } = req.body;
@@ -3041,7 +3041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Tenant Admin Integrations API Route - Primary endpoint for OmniBridge
-  app.get('/api/tenant-admin-integration/integrations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/tenant-admin-integration/integrations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3171,7 +3171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Email Configuration API Routes - For OmniBridge integration
-  app.get('/api/email-config/integrations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/email-config/integrations', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3209,7 +3209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/email-config/inbox', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/email-config/inbox', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3260,7 +3260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/email-config/monitoring/status', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/email-config/monitoring/status', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3287,7 +3287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/email-config/monitoring/start', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/email-config/monitoring/start', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3330,7 +3330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/email-config/monitoring/stop', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/email-config/monitoring/stop', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3369,49 +3369,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // OmniBridge Module temporarily removed
 
   // Timecard Routes - Essential for CLT compliance
-  app.use('/api/timecard', timecardRoutes);
+  app.use('/api/timecard', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardRoutes);
 
   // Timecard Approval Routes
   const timecardApprovalController = new TimecardApprovalController();
 
   // Approval Groups
-  app.get('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.getApprovalGroups);
-  app.post('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.createApprovalGroup);
-  app.put('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.updateApprovalGroup);
-  app.delete('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.deleteApprovalGroup);
+  app.get('/api/timecard/approval/groups', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.getApprovalGroups);
+  app.post('/api/timecard/approval/groups', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.createApprovalGroup);
+  app.put('/api/timecard/approval/groups/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.updateApprovalGroup);
+  app.delete('/api/timecard/approval/groups/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.deleteApprovalGroup);
 
   // Group Members
-  app.get('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.getGroupMembers);
-  app.put('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.addGroupMember);
-  app.delete('/api/timecard/approval/groups/:groupId/members/:memberId', jwtAuth, timecardApprovalController.removeGroupMember);
+  app.get('/api/timecard/approval/groups/:groupId/members', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.getGroupMembers);
+  app.put('/api/timecard/approval/groups/:groupId/members', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.addGroupMember);
+  app.delete('/api/timecard/approval/groups/:groupId/members/:memberId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.removeGroupMember);
 
   // Approval Settings
-  app.get('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.getApprovalSettings);
-  app.put('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.updateApprovalSettings);
+  app.get('/api/timecard/approval/settings', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.getApprovalSettings);
+  app.put('/api/timecard/approval/settings', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.updateApprovalSettings);
 
   // Approval Actions
-  app.get('/api/timecard/approval/pending', jwtAuth, timecardApprovalController.getPendingApprovals);
-  app.post('/api/timecard/approval/approve/:entryId', jwtAuth, timecardApprovalController.approveTimecard);
-  app.post('/api/timecard/approval/reject/:entryId', jwtAuth, timecardApprovalController.rejectTimecard);
-  app.post('/api/timecard/approval/bulk-approve', jwtAuth, timecardApprovalController.bulkApproveTimecards);
+  app.get('/api/timecard/approval/pending', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.getPendingApprovals);
+  app.post('/api/timecard/approval/approve/:entryId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.approveTimecard);
+  app.post('/api/timecard/approval/reject/:entryId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.rejectTimecard);
+  app.post('/api/timecard/approval/bulk-approve', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.bulkApproveTimecards);
 
   // Utility Routes
-  app.get('/api/timecard/approval/users', jwtAuth, timecardApprovalController.getAvailableUsers);
+  app.get('/api/timecard/approval/users', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), timecardApprovalController.getAvailableUsers);
 
   // 🔴 CLT COMPLIANCEROUTES - OBRIGATÓRIAS POR LEI
   // Verificação de integridade da cadeia CLT
-  app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/integrity-check', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.checkIntegrity.bind(cltComplianceController));
 
   // Trilha de auditoria completa
-  app.get('/api/timecard/compliance/audit-log', jwtAuth, cltComplianceController.getAuditLog.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/audit-log', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.getAuditLog.bind(cltComplianceController));
 
   // Relatórios de compliance para fiscalização
-  app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
-  app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
-  app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
+  app.post('/api/timecard/compliance/generate-report', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.generateComplianceReport.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/reports', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.listComplianceReports.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
 
   // Direct CLT Reports - Bypass routing conflicts
-  app.get('/api/timecard/reports/attendance/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/timecard/reports/attendance/:period', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { period } = req.params;
       const tenantId = req.user?.tenantId;
@@ -3438,17 +3438,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Status dos backups
-  app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
-  app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/backups', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.getBackupStatus.bind(cltComplianceController));
+  app.post('/api/timecard/compliance/verify-backup', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.verifyBackup.bind(cltComplianceController));
 
   // Status das chaves de assinatura digital
-  app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/keys', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.getDigitalKeys.bind(cltComplianceController));
 
   // Reconstituição da cadeia de integridade
-  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
+  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
 
   // Contract Management routes - Gestão de Contratos
-  app.use('/api/contracts', contractRoutes);
+  app.use('/api/contracts', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), contractRoutes);
 
   // ✅ LEGACY MATERIALS SERVICES ROUTES REMOVED - Clean Architecture only per 1qa.md
 
@@ -3458,9 +3458,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import and use ticket configuration routes
   const ticketConfigRoutes = await import('./routes/ticketConfigRoutes');
-  app.use('/api/ticket-config', ticketConfigRoutes.default);
+  app.use('/api/ticket-config', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketConfigRoutes.default);
 
-  app.post('/api/ticket-config/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/ticket-config/categories', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3499,7 +3499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Status endpoints
-  app.get('/api/ticket-config/statuses', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/ticket-config/statuses', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3532,7 +3532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ticket-config/statuses', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/ticket-config/statuses', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3572,7 +3572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Priorities endpoints
-  app.get('/api/ticket-config/priorities', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/ticket-config/priorities', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3605,7 +3605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ticket-config/priorities', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/ticket-config/priorities', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3653,7 +3653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Legacy Companies Routes - Fixed to work with Clean Architecture integration
   // 🎯 [1QA-COMPLIANCE] GET single company by ID - Required for ticket details
-  app.get('/api/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/companies/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -3713,7 +3713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/companies', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3765,7 +3765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get customer companies for a specific customer
-  app.get('/api/customers/:customerId/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/customers/:customerId/companies', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { customerId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -3825,7 +3825,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add customer to company
-  app.post('/api/customers/:customerId/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/customers/:customerId/companies', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { customerId } = req.params;
       const { companyId, relationshipType = 'client', isPrimary = false } = req.body;
@@ -3894,7 +3894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Remove customer from company
-  app.delete('/api/customers/:customerId/companies/:companyId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.delete('/api/customers/:customerId/companies/:companyId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { customerId, companyId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -3927,7 +3927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Debug endpoint to check table existence
-  app.get('/api/ticket-metadata/debug', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/ticket-metadata/debug', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3963,7 +3963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Ticket Metadata API Routes using direct SQL
-  app.get("/api/ticket-metadata/field-configurations", jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/ticket-metadata/field-configurations", jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -3998,7 +3998,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/ticket-metadata/field-options", jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/ticket-metadata/field-options", jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -4042,7 +4042,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Initialize ticket metadata endpoint - criar dados de exemplo
-  app.post("/api/admin/initialize-ticket-metadata", jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/admin/initialize-ticket-metadata", jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -4104,7 +4104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
   // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
   // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
-  app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
+  app.use('/api/ticket-field-options', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketFieldOptionsRoutes);
 
   // ========================================
   // HIERARCHICAL TICKET METADATAROUTES - HANDLED ABOVE
@@ -4123,7 +4123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
 
   // TICKET HISTORYROUTES - DIRECT INTEGRATION FOR REAL DATA
-  app.get('/api/ticket-history/tickets/:ticketId/history', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/ticket-history/tickets/:ticketId/history', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { ticketId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -4176,7 +4176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
   // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
   // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
-  app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
+  app.use('/api/ticket-field-options', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketFieldOptionsRoutes);
 
   // ========================================
   // TICKET VIEWSROUTES - Sistema de Visualizações Customizáveis
@@ -4184,29 +4184,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const ticketViewsController = new TicketViewsController();
 
   // Listar visualizações disponíveis para o usuário
-  app.get('/api/ticket-views', jwtAuth, ticketViewsController.getViews.bind(ticketViewsController));
+  app.get('/api/ticket-views', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketViewsController.getViews.bind(ticketViewsController));
 
   // Buscar visualização específica
-  app.get('/api/ticket-views/:id', jwtAuth, ticketViewsController.getViewById.bind(ticketViewsController));
+  app.get('/api/ticket-views/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketViewsController.getViewById.bind(ticketViewsController));
 
   // Criar nova visualização
-  app.post('/api/ticket-views', jwtAuth, ticketViewsController.createView.bind(ticketViewsController));
+  app.post('/api/ticket-views', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketViewsController.createView.bind(ticketViewsController));
 
   // Atualizar visualização existente
-  app.put('/api/ticket-views/:id', jwtAuth, ticketViewsController.updateView.bind(ticketViewsController));
+  app.put('/api/ticket-views/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketViewsController.updateView.bind(ticketViewsController));
 
   // Deletar visualização
-  app.delete('/api/ticket-views/:id', ticketViewsController.deleteView.bind(ticketViewsController));
+  app.delete('/api/ticket-views/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketViewsController.deleteView.bind(ticketViewsController));
 
   // Definir visualização ativa para o usuário
-  app.post('/api/ticket-views/:id/set-active', jwtAuth, ticketViewsController.setActiveView.bind(ticketViewsController));
+  app.post('/api/ticket-views/:id/set-active', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketViewsController.setActiveView.bind(ticketViewsController));
 
   // Preferências do usuário
-  app.get('/api/ticket-views/user/preferences', jwtAuth, ticketViewsController.getUserPreferences.bind(ticketViewsController));
-  app.put('/api/ticket-views/user/settings', jwtAuth, ticketViewsController.updatePersonalSettings.bind(ticketViewsController));
+  app.get('/api/ticket-views/user/preferences', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketViewsController.getUserPreferences.bind(ticketViewsController));
+  app.put('/api/ticket-views/user/settings', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), ticketViewsController.updatePersonalSettings.bind(ticketViewsController));
 
   // Users endpoint for team member selection
-  app.get('/api/users', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/users', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -4256,7 +4256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==============================
 
   // Get all user groups
-  app.get('/api/user-groups', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user-groups', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -4289,7 +4289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get users in a specific group
-  app.get('/api/user-groups/:groupId/members', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user-groups/:groupId/members', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -4323,7 +4323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create user group
-  app.post('/api/user-groups', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/user-groups', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { name, description } = req.body;
       const tenantId = req.user?.tenantId;
@@ -4355,7 +4355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==============================
 
   // Update team member
-  app.put('/api/team-management/members/:memberId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/team-management/members/:memberId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { memberId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -4499,7 +4499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     const { omniBridgeRoutes } = await import('./modules/omnibridge/routes');
     if (omniBridgeRoutes) {
-      app.use('/api/omnibridge', omniBridgeRoutes);
+      app.use('/api/omnibridge', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), omniBridgeRoutes);
       console.log('✅ [OMNIBRIDGE] Routes registered successfully');
     } else {
       console.warn('⚠️ [OMNIBRIDGE] Routes module not properly exported, skipping registration');
@@ -4513,7 +4513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     const { approvalRoutes } = await import('./modules/approvals/routes/approvalRoutes');
     if (approvalRoutes) {
-      app.use('/api/approvals', approvalRoutes);
+      app.use('/api/approvals', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), approvalRoutes);
       console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
     } else {
       console.warn('⚠️ [APPROVAL-MANAGEMENT] Routes module not properly exported, skipping registration');
@@ -4527,7 +4527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     const contractRoutes = await import('./modules/contracts/routes');
     if (contractRoutes.default) {
-      app.use('/api/contracts', jwtAuth, contractRoutes.default);
+      app.use('/api/contracts', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), contractRoutes.default);
       console.log('✅ [CONTRACT-MANAGEMENT] Routes registered successfully at /api/contracts');
     } else {
       console.warn('⚠️ [CONTRACT-MANAGEMENT] Routes module not properly exported, skipping registration');
@@ -4537,7 +4537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Corporate Expense Management Routes - Complete expense approval workflow system
     const expenseApprovalRoutes = await import('./modules/expense-approval/routes/expenseApprovalRoutes');
     if (expenseApprovalRoutes.default) {
-      app.use('/api/expense-approval', jwtAuth, expenseApprovalRoutes.default);
+      app.use('/api/expense-approval', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), expenseApprovalRoutes.default);
       console.log('✅ [EXPENSE-APPROVAL] Routes registered successfully at /api/expense-approval');
     } else {
       console.warn('⚠️ [EXPENSE-APPROVAL] Routes module not properly exported, skipping registration');

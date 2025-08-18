@@ -443,4 +443,10 @@ app.use((req, res, next) => {
       console.error('❌ [CLT-COMPLIANCE] Erro ao inicializar serviços:', error);
     }
   });
+
+  // CRITICAL: Start tenant schema monitoring
+  import { tenantSchemaMonitor } from './services/TenantSchemaMonitor';
+  await tenantSchemaMonitor.startMonitoring();
+  console.log('🔄 [TENANT-SCHEMA-MONITOR] Continuous monitoring ACTIVATED');
+
 })();
