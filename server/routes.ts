@@ -1845,7 +1845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: lastName,
           ...(req.user?.role === 'saas_admin' ? { email: email } : {}), // ✅ Apenas saas_admin pode alterar email seguindo 1qa.md
           phone: phone,
-          departmentId: department || null,
+          departmentId: (department && department !== 'Admin' && department.length === 36) ? department : null, // ✅ Fix UUID error - seguindo 1qa.md
           position: position,
           timeZone: timezone,
           updatedAt: sql`NOW()`
