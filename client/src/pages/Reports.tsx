@@ -1612,6 +1612,7 @@ function ReportCard({ report }: { report: Report }) {
   const { toast } = useToast();
   const ChartIcon = chartTypeIcons[report.chartType as keyof typeof chartTypeIcons];
 
+  // Execute Report Mutation
   const executeReport = useMutation({
     mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/execute`),
     onSuccess: () => {
@@ -1623,13 +1624,79 @@ function ReportCard({ report }: { report: Report }) {
     },
   });
 
+  // Toggle Favorite Mutation
   const toggleFavorite = useMutation({
     mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/favorite`),
     onSuccess: () => {
       toast({ title: report.isFavorite ? "Removed from favorites" : "Added to favorites" });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
     },
+    onError: (error) => {
+      toast({ title: "Error updating favorite status", description: error.message, variant: "destructive" });
+    },
   });
+
+  // Delete Report Mutation
+  const deleteReport = useMutation({
+    mutationFn: () => apiRequest("DELETE", `/api/reports-dashboards/reports/${report.id}`),
+    onSuccess: () => {
+      toast({ title: "Report deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
+    },
+    onError: (error) => {
+      toast({ title: "Error deleting report", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Duplicate Report Mutation
+  const duplicateReport = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/duplicate`),
+    onSuccess: () => {
+      toast({ title: "Report duplicated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
+    },
+    onError: (error) => {
+      toast({ title: "Error duplicating report", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Handler Functions following 1qa.md patterns
+  const handleViewReport = () => {
+    // Navigate to report view or open modal - implementing placeholder for now
+    toast({ title: "Opening report view", description: `Viewing ${report.name}` });
+    // TODO: Implement navigation to report details page
+  };
+
+  const handleViewDetails = () => {
+    // Show detailed report information
+    toast({ title: "Showing report details", description: `Details for ${report.name}` });
+    // TODO: Implement details modal or navigation
+  };
+
+  const handleEditReport = () => {
+    // Navigate to edit mode
+    toast({ title: "Opening report editor", description: `Editing ${report.name}` });
+    // TODO: Implement navigation to edit page
+  };
+
+  const handleShareReport = () => {
+    // Open share dialog
+    toast({ title: "Opening share options", description: `Sharing ${report.name}` });
+    // TODO: Implement share functionality
+  };
+
+  const handleExportReport = () => {
+    // Export report in various formats
+    toast({ title: "Exporting report", description: `Exporting ${report.name}` });
+    // TODO: Implement export functionality
+  };
+
+  const handleDeleteReport = () => {
+    // Confirm deletion before executing
+    if (window.confirm(`Are you sure you want to delete "${report.name}"? This action cannot be undone.`)) {
+      deleteReport.mutate();
+    }
+  };
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
@@ -1672,48 +1739,77 @@ function ReportCard({ report }: { report: Report }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => executeReport.mutate()}>
+              <DropdownMenuItem 
+                onClick={() => executeReport.mutate()}
+                disabled={executeReport.isPending}
+                data-testid={`menu-execute-${report.id}`}
+              >
                 <Play className="w-4 h-4 mr-2" />
-                Execute Now
+                {executeReport.isPending ? "Executing..." : "Execute Now"}
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleViewDetails}
+                data-testid={`menu-view-details-${report.id}`}
+              >
                 <Eye className="w-4 h-4 mr-2" />
                 View Details
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleEditReport}
+                data-testid={`menu-edit-${report.id}`}
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Report
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => duplicateReport.mutate()}
+                disabled={duplicateReport.isPending}
+                data-testid={`menu-duplicate-${report.id}`}
+              >
                 <Copy className="w-4 h-4 mr-2" />
-                Duplicate
+                {duplicateReport.isPending ? "Duplicating..." : "Duplicate"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleShareReport}
+                data-testid={`menu-share-${report.id}`}
+              >
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleExportReport}
+                data-testid={`menu-export-${report.id}`}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => toggleFavorite.mutate()}>
+              <DropdownMenuItem 
+                onClick={() => toggleFavorite.mutate()}
+                disabled={toggleFavorite.isPending}
+                data-testid={`menu-favorite-${report.id}`}
+              >
                 {report.isFavorite ? (
                   <>
                     <StarOff className="w-4 h-4 mr-2" />
-                    Remove Favorite
+                    {toggleFavorite.isPending ? "Removing..." : "Remove Favorite"}
                   </>
                 ) : (
                   <>
                     <Star className="w-4 h-4 mr-2" />
-                    Add Favorite
+                    {toggleFavorite.isPending ? "Adding..." : "Add Favorite"}
                   </>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem 
+                className="text-red-600"
+                onClick={handleDeleteReport}
+                disabled={deleteReport.isPending}
+                data-testid={`menu-delete-${report.id}`}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete
+                {deleteReport.isPending ? "Deleting..." : "Delete"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1753,7 +1849,12 @@ function ReportCard({ report }: { report: Report }) {
               <Play className="w-3 h-3 mr-1" />
               {executeReport.isPending ? "Running..." : "Execute"}
             </Button>
-            <Button variant="outline" size="sm" data-testid={`button-view-${report.id}`}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleViewReport}
+              data-testid={`button-view-${report.id}`}
+            >
               <Eye className="w-3 h-3 mr-1" />
               View
             </Button>
