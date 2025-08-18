@@ -217,12 +217,12 @@ export default function DashboardView() {
     ]
   };
 
-  // ✅ 1QA.MD COMPLIANCE: All useEffect hooks called unconditionally - fixing hooks order issue  
+  // ✅ 1QA.MD COMPLIANCE: useEffect with controlled dependencies to prevent infinite loop
   useEffect(() => {
-    if (isEditMode && dashboard?.widgets) {
+    if (isEditMode && dashboard?.widgets && editableWidgets.length === 0) {
       setEditableWidgets([...dashboard.widgets]);
     }
-  }, [isEditMode, dashboard]); // Fixed dependency to avoid infinite loop
+  }, [isEditMode, dashboard?.widgets]); // Fixed dependencies to avoid infinite loop
 
   // Early returns after all hooks are called
   if (isLoading) {
