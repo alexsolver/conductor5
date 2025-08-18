@@ -1217,6 +1217,50 @@ function PrivacyGdprTab() {
             <p className="text-gray-500 text-center py-4">Nenhuma solicitação encontrada</p>
           )}
         </div>
+
+        {/* ✅ Dialog para exibir política completa - Seguindo 1qa.md */}
+        <Dialog open={showPolicyDialog} onOpenChange={setShowPolicyDialog}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Política de Privacidade - Versão {policyData.version || "1.0"}
+              </DialogTitle>
+              <DialogDescription>
+                Efetiva desde: {policyData.effectiveDate ? 
+                  new Date(policyData.effectiveDate).toLocaleDateString('pt-BR') : 
+                  new Date().toLocaleDateString('pt-BR')
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              <div 
+                className="prose prose-sm max-w-none dark:prose-invert"
+                dangerouslySetInnerHTML={{ 
+                  __html: policyData.content || 
+                    `<h2>Política de Privacidade</h2>
+                     <p>Esta política descreve como coletamos, usamos e protegemos seus dados pessoais conforme GDPR/LGPD.</p>
+                     <h3>1. Dados Coletados</h3>
+                     <p>Coletamos informações que você fornece diretamente, como nome, email e dados de perfil.</p>
+                     <h3>2. Uso dos Dados</h3>
+                     <p>Utilizamos seus dados para fornecer nossos serviços e melhorar sua experiência.</p>
+                     <h3>3. Seus Direitos</h3>
+                     <p>Você tem direito ao acesso, correção, exclusão e portabilidade de seus dados.</p>` 
+                }}
+              />
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPolicyDialog(false)}
+                data-testid="button-close-policy-dialog"
+              >
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </CardContent>
     </Card>
   );
