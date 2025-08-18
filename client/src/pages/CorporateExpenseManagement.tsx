@@ -49,7 +49,7 @@ const getStatusBadge = (status: string) => {
     paid: 'bg-purple-100 text-purple-700 border-purple-200',
     cancelled: 'bg-gray-100 text-gray-500 border-gray-200'
   };
-  
+
   const labels = {
     draft: 'Rascunho',
     submitted: 'Submetido',
@@ -129,7 +129,7 @@ function CreateExpenseReportDialog() {
             Configure os dados básicos do relatório de despesas corporativas
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -149,7 +149,7 @@ function CreateExpenseReportDialog() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -167,7 +167,7 @@ function CreateExpenseReportDialog() {
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -193,7 +193,7 @@ function CreateExpenseReportDialog() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="costCenterId"
@@ -218,7 +218,7 @@ function CreateExpenseReportDialog() {
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="projectId"
@@ -241,7 +241,7 @@ function CreateExpenseReportDialog() {
                 </FormItem>
               )}
             />
-            
+
             <div className="flex justify-end space-x-2 pt-4">
               <Button 
                 type="button" 
@@ -380,7 +380,7 @@ function ExpenseReportsList() {
         ...(statusFilter !== 'all' && { status: statusFilter }),
         limit: '20'
       });
-      
+
       const response = await apiRequest('GET', `/api/expense-approval/reports?${params}`);
       if (!response.ok) {
         throw new Error('Falha ao carregar relatórios de despesas');
@@ -437,7 +437,7 @@ function ExpenseReportsList() {
               {filteredReports.length} relatório(s) encontrado(s)
             </CardDescription>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
@@ -449,7 +449,7 @@ function ExpenseReportsList() {
                 data-testid="input-search-reports"
               />
             </div>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-[150px]" data-testid="select-status-filter">
                 <SelectValue placeholder="Status" />
@@ -467,7 +467,7 @@ function ExpenseReportsList() {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {filteredReports.length === 0 ? (
           <div className="text-center py-8">
@@ -507,7 +507,7 @@ function ExpenseReportsList() {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between items-center text-sm text-gray-500">
                   <span>
                     Criado em {new Date(report.createdAt || new Date()).toLocaleDateString('pt-BR')}
@@ -548,7 +548,9 @@ export default function CorporateExpenseManagement() {
             Sistema completo de aprovação e gerenciamento de despesas empresariais seguindo 1qa.md
           </p>
         </div>
-        <CreateExpenseReportDialog />
+        <div className="flex space-x-2">
+          <CreateExpenseReportDialog />
+        </div>
       </div>
 
       {/* Dashboard Metrics */}
