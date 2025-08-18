@@ -467,12 +467,14 @@ export default function DashboardView() {
         )}
 
         <div className="grid grid-cols-12 gap-4">
-          {((isEditMode ? editableWidgets : dashboard.widgets) || []).length > 0 ? (
-            (isEditMode ? editableWidgets : dashboard.widgets) || []
-              .filter(widget => widget.isVisible)
-              .map((widget) => {
-                const IconComponent = widgetTypeIcons[widget.type];
-                return (
+          {(() => {
+            const widgets = isEditMode ? editableWidgets : (dashboard.widgets || []);
+            return widgets.length > 0 ? (
+              widgets
+                .filter(widget => widget.isVisible)
+                .map((widget) => {
+                  const IconComponent = widgetTypeIcons[widget.type];
+                  return (
                   <Card
                     key={widget.id}
                     className={`bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow ${
@@ -521,23 +523,29 @@ export default function DashboardView() {
                       </div>
                     </CardContent>
                   </Card>
-                );
-              })
-          ) : (
-            <div className="col-span-12 text-center py-12">
-              <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                No widgets configured
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
-                This dashboard doesn't have any widgets yet. Add some widgets to get started.
-              </p>
-              <Button onClick={() => setLocation(`/dashboards/${id}/edit`)}>
-                <Settings className="w-4 h-4 mr-2" />
-                Configure Dashboard
-              </Button>
-            </div>
-          )}
+                  );
+                })
+            ) : (
+              <div className="col-span-12 text-center py-12">
+                <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  {isEditMode ? "Empty Dashboard" : "No widgets configured"}
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  {isEditMode 
+                    ? "Start building your dashboard by adding widgets" 
+                    : "This dashboard doesn't have any widgets yet. Add some widgets to get started."
+                  }
+                </p>
+                {!isEditMode && (
+                  <Button onClick={() => setLocation(`/dashboard/${id}/edit`)}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Configure Dashboard
+                  </Button>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
