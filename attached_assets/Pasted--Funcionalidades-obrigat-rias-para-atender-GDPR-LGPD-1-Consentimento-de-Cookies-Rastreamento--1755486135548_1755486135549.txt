@@ -1,0 +1,42 @@
+ Funcionalidades obrigatórias para atender GDPR/LGPD
+	1.	Consentimento de Cookies & Rastreamento
+	•	Banner de cookies com opção granular (necessários, estatísticos, marketing).
+	•	Registro do consentimento com data/hora e versão da política aceita.
+	•	Possibilidade de revogar consentimento a qualquer momento.
+	2.	Gestão de Consentimento de Dados Pessoais
+	•	Checkboxes claros em formulários (ex.: “Aceito receber comunicações”).
+	•	Histórico do consentimento do usuário (quem, quando, como).
+	•	Portal do cliente com opção de visualizar e atualizar preferências.
+	3.	Direito de Acesso
+	•	Usuário pode visualizar todos os dados pessoais armazenados sobre ele.
+	•	Exportação em formato legível (JSON, CSV, PDF).
+	4.	Direito de Portabilidade
+	•	Usuário pode baixar seus dados e transferi-los para outro serviço.
+	•	Exportação em formatos padrão (CSV, XML, JSON).
+	5.	Direito ao Esquecimento
+	•	Usuário pode solicitar exclusão de dados pessoais.
+	•	Workflow de exclusão total ou anonimização.
+	•	Registro da solicitação (com auditoria de cumprimento).
+	6.	Correção de Dados (Retificação)
+	•	Usuário pode atualizar dados incorretos diretamente no portal.
+	•	Ou abrir uma solicitação para revisão manual.
+	7.	Restrição de Processamento
+	•	Usuário pode pedir para limitar o uso dos dados sem excluir.
+	•	Exemplo: bloquear marketing, mas manter dados contratuais.
+	8.	Auditoria e Log de Ações Sensíveis
+	•	Log de quem acessou, exportou ou alterou dados pessoais.
+	•	Logs imutáveis, vinculados a usuário, IP e timestamp.
+	9.	Política de Privacidade & Termos de Uso
+	•	Publicação clara, acessível no portal.
+	•	Versões versionadas (guardar histórico das alterações).
+	•	Usuário deve aceitar explicitamente novas versões relevantes.
+	10.	Notificações de Incidentes de Segurança
+	•	Mecanismo para notificar clientes em caso de vazamento (conforme exigido pelo GDPR).
+	•	Registro da comunicação feita ao cliente.
+	11.	Segurança e Criptografia
+	•	Dados sensíveis criptografados em repouso e em trânsito.
+	•	Proteção contra acessos não autorizados (MFA, RBAC).
+	•	Timeout de sessão configurável.
+	12.	Gestão de Retenção de Dados
+	•	Políticas de retenção definidas (ex.: logs guardados 5 anos).
+	•	Exclusão/anonimização automática após expiração.

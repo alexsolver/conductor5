@@ -1583,6 +1583,213 @@ export default function ActivityPlanner() {
     </div>
   );
 
+  const renderAnalytics = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Analytics & Relatórios</h2>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" data-testid="button-export-analytics">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar
+          </Button>
+          <Button variant="outline" size="sm" data-testid="button-refresh-analytics">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">MTBF Médio</CardTitle>
+            <BarChart3 className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">127h</div>
+            <p className="text-xs text-muted-foreground">
+              +12% vs mês anterior
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">MTTR Médio</CardTitle>
+            <Clock className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">2.4h</div>
+            <p className="text-xs text-muted-foreground">
+              -18% vs mês anterior
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Disponibilidade</CardTitle>
+            <CheckCircle className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">98.7%</div>
+            <p className="text-xs text-muted-foreground">
+              +2.1% vs mês anterior
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Custos Total</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">R$ 24.7k</div>
+            <p className="text-xs text-muted-foreground">
+              -8% vs mês anterior
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts and Reports */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Tendência de Manutenções</CardTitle>
+            <CardDescription>Preventivas vs Corretivas (últimos 6 meses)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded">
+              <div className="text-center">
+                <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500">Gráfico de tendências</p>
+                <p className="text-xs text-gray-400">Dados simulados para demonstração</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Distribuição por Criticidade</CardTitle>
+            <CardDescription>Ativos por nível de criticidade</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <span className="text-sm">Crítica</span>
+                </div>
+                <span className="text-sm font-medium">24%</span>
+              </div>
+              <Progress value={24} className="h-2" />
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <span className="text-sm">Alta</span>
+                </div>
+                <span className="text-sm font-medium">38%</span>
+              </div>
+              <Progress value={38} className="h-2" />
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <span className="text-sm">Média</span>
+                </div>
+                <span className="text-sm font-medium">26%</span>
+              </div>
+              <Progress value={26} className="h-2" />
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm">Baixa</span>
+                </div>
+                <span className="text-sm font-medium">12%</span>
+              </div>
+              <Progress value={12} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Performance Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Performance por Ativo</CardTitle>
+          <CardDescription>Métricas detalhadas dos principais ativos</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Ativo</TableHead>
+                <TableHead>Disponibilidade</TableHead>
+                <TableHead>MTBF</TableHead>
+                <TableHead>MTTR</TableHead>
+                <TableHead>Últimas OS</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">EQ-001 - Compressor Principal</TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <span>99.2%</span>
+                    <Badge variant="outline" className="bg-green-50 text-green-700">Excelente</Badge>
+                  </div>
+                </TableCell>
+                <TableCell>145h</TableCell>
+                <TableCell>1.8h</TableCell>
+                <TableCell>3</TableCell>
+                <TableCell>
+                  <Badge className="bg-green-100 text-green-800">Operacional</Badge>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">EQ-002 - Bomba Hidráulica</TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <span>97.8%</span>
+                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Bom</Badge>
+                  </div>
+                </TableCell>
+                <TableCell>98h</TableCell>
+                <TableCell>3.2h</TableCell>
+                <TableCell>5</TableCell>
+                <TableCell>
+                  <Badge className="bg-orange-100 text-orange-800">Manutenção</Badge>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">EQ-003 - Motor Elétrico</TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <span>94.5%</span>
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700">Regular</Badge>
+                  </div>
+                </TableCell>
+                <TableCell>76h</TableCell>
+                <TableCell>4.1h</TableCell>
+                <TableCell>7</TableCell>
+                <TableCell>
+                  <Badge className="bg-red-100 text-red-800">Atenção</Badge>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="mb-8">
