@@ -32,7 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const integrationConfigSchema = z.object({
   apiKey: z.string().min(1, "API Key é obrigatória"),
-  baseUrl: z.string().url("URL deve ser válida").optional(),
+  baseUrl: z.string().url("URL deve ser válida").optional().or(z.literal("")),
   maxTokens: z.number().min(1).max(32000).optional(),
   temperature: z.number().min(0).max(2).optional(),
   enabled: z.boolean().default(true)
@@ -364,7 +364,7 @@ export default function SaasAdminIntegrations() {
                     <FormLabel>Base URL (Opcional)</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="https://api.openai.com/v1" 
+                        placeholder="Opcional - Ex: https://api.openai.com/v1" 
                         {...field} 
                       />
                     </FormControl>
