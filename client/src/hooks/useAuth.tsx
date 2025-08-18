@@ -50,10 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
-      // ✅ 1QA.MD: Validação menos restritiva para evitar logout automático
       const token = localStorage.getItem('accessToken');
 
-      // ✅ CRITICAL FIX: Se não há token, retornar null sem fazer request
       if (!token ||
           token === 'null' ||
           token === 'undefined' ||
@@ -75,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!response.ok) {
           console.warn(`⚠️ [AUTH-QUERY] Auth check failed: ${response.status}`);
-          // Return null but don't clear tokens - let API interceptor handle refresh
           return null;
         }
 
@@ -83,24 +80,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('✅ [AUTH-QUERY] Auth check successful');
         return userData || null;
       } catch (error) {
-        console.warn('⚠️ [AUTH-QUERY] Auth query error:', error.message);
-        // Don't clear tokens on network errors following 1qa.md patterns
+        console.warn('⚠️ [AUTH-QUERY] Auth query error:', (error as Error).message);
         return null;
       }
     },
     retry: false,
-    staleTime: 60 * 60 * 1000, // Increase stale time to 1 hour to prevent refetching during profile operations
-    gcTime: 2 * 60 * 60 * 1000, // Increase garbage collection time to 2 hours
-    refetchOnWindowFocus: false, // Disable refetch on window focus to prevent logout during profile operations
-    refetchOnMount: false, // Only fetch on mount if no data exists
-    refetchOnReconnect: false, // Disable refetch on reconnect to prevent logout during operations
+    staleTime: 60 * 60 * 1000,
+    gcTime: 2 * 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
-  // Token refresh mechanism - ✅ 1QA.MD compliance
   const attemptTokenRefresh = async (): Promise<boolean> => {
     const refreshToken = localStorage.getItem('refreshToken');
 
-    // ✅ CRITICAL FIX: Validação rigorosa do refresh token
     if (!refreshToken ||
         refreshToken === 'null' ||
         refreshToken === 'undefined' ||
@@ -110,7 +104,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // ✅ Validar formato JWT do refresh token
     const tokenParts = refreshToken.split('.');
     if (tokenParts.length !== 3) {
       console.error('❌ [REFRESH] Invalid refresh token JWT format');
@@ -134,7 +127,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const responseData = await response.json();
         console.log('🔍 [REFRESH] Response structure:', Object.keys(responseData));
 
-        // ✅ 1QA.MD: Handle backend response structure
         if (responseData.success && responseData.data?.tokens) {
           const { accessToken, refreshToken: newRefreshToken } = responseData.data.tokens;
 
@@ -144,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               accessToken.trim() !== '') {
 
             localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('access_token', accessToken); // ✅ Dual format following 1qa.md
+            localStorage.setItem('access_token', accessToken);
             if (newRefreshToken &&
                 newRefreshToken !== 'null' &&
                 newRefreshToken !== 'undefined') {
@@ -155,7 +147,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // Fallback for direct token response
         if (responseData.accessToken &&
             responseData.accessToken !== 'null' &&
             responseData.accessToken !== 'undefined') {
@@ -171,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         console.error('❌ [REFRESH] Invalid refresh response structure:', responseData);
         localStorage.removeItem('accessToken');
-        localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
+        localStorage.removeItem('access_token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('tenantId');
         return false;
@@ -179,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ [REFRESH] Refresh failed:', response.status, errorData.message || response.statusText);
         localStorage.removeItem('accessToken');
-        localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
+        localStorage.removeItem('access_token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('tenantId');
         return false;
@@ -187,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('❌ [REFRESH] Token refresh error:', error);
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
+      localStorage.removeItem('access_token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('tenantId');
       return false;
@@ -199,7 +190,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('🔐 [LOGIN] Starting login process...');
 
       try {
-        // ✅ CRITICAL FIX: Fazer request direto sem usar apiRequest que pode ter problemas
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
@@ -226,9 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const responseData = await response.json();
         console.log('🔍 [LOGIN] Response data structure:', Object.keys(responseData));
 
-        // ✅ CRITICAL FIX - Handle multiple response formats
         if (responseData.success && responseData.data) {
-          // Structured response
           console.log('✅ [LOGIN] Using structured response format');
           return {
             user: responseData.data.user,
@@ -237,7 +225,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             session: responseData.data.session
           };
         } else if (responseData.user && responseData.accessToken) {
-          // Direct response format
           console.log('✅ [LOGIN] Using direct response format');
           return {
             user: responseData.user,
@@ -257,7 +244,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (result: { user: User; accessToken: string; refreshToken?: string; session?: any }) => {
       console.log('✅ [LOGIN-SUCCESS] Storing tokens and user data');
 
-      // ✅ CRITICAL FIX: Validar tokens antes de armazenar
       if (!result.accessToken || result.accessToken === 'null' || result.accessToken === 'undefined') {
         console.error('❌ [LOGIN-SUCCESS] Invalid access token received');
         toast({
@@ -269,7 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       localStorage.setItem('accessToken', result.accessToken);
-      localStorage.setItem('access_token', result.accessToken); // ✅ Dual format following 1qa.md
+      localStorage.setItem('access_token', result.accessToken);
       console.log('📦 [LOGIN-SUCCESS] Access token stored');
 
       if (result.refreshToken && result.refreshToken !== 'null' && result.refreshToken !== 'undefined') {
@@ -277,7 +263,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('📦 [LOGIN-SUCCESS] Refresh token stored');
       }
 
-      // Store tenantId for quick access by components
       if (result.user?.tenantId) {
         localStorage.setItem('tenantId', result.user.tenantId);
         console.log('📦 [LOGIN-SUCCESS] Tenant ID stored:', result.user.tenantId);
@@ -317,8 +302,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (result: { user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }) => {
       localStorage.setItem('accessToken', result.accessToken);
-      localStorage.setItem('access_token', result.accessToken); // ✅ Dual format following 1qa.md
-      // Store tenantId for quick access by components
+      localStorage.setItem('access_token', result.accessToken);
       if (result.user?.tenantId) {
         localStorage.setItem('tenantId', result.user.tenantId);
       }
@@ -356,12 +340,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await apiRequest('POST', '/api/auth/logout');
       } catch (error) {
         console.warn('Logout API call failed:', error);
-        // Continue with logout even if API call fails
       }
     },
     onSuccess: () => {
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
+      localStorage.removeItem('access_token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('tenantId');
       queryClient.setQueryData(['/api/auth/user'], null);
@@ -373,7 +356,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       console.error('Logout error:', error);
-      // Still clear local state on error
       localStorage.removeItem('accessToken');
       queryClient.setQueryData(['/api/auth/user'], null);
       queryClient.clear();
@@ -398,234 +380,5 @@ export function useAuth() {
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-
-  const [token, setToken] = React.useState(localStorage.getItem('accessToken'));
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
-  // Mock user and error states for the sake of the example.
-  // In a real app, these would come from context or a global state.
-  const [user, setUser] = React.useState<User | null>(null);
-
-  const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('tenantId');
-    queryClient.setQueryData(['/api/auth/user'], null);
-    queryClient.clear();
-    setToken(null);
-    setUser(null);
-    setIsLoading(false);
-    setError(null);
-    // Optionally redirect to login page
-    // window.location.href = '/login';
-  };
-
-
-  // ✅ 1QA.MD: Auto refresh automático para evitar logout - versão menos agressiva
-  React.useEffect(() => {
-    // ✅ CRITICAL FIX: Não executar verificações automáticas logo após login
-    if (!context.user) {
-      return; // Não fazer nada se não há usuário autenticado
-    }
-
-    const checkTokenExpiry = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        if (!token || token === 'null' || token === 'undefined') {
-          console.log('🔍 [AUTO-REFRESH] No valid token found, skipping check');
-          return;
-        }
-
-        // Decode token to check expiry (without verification)
-        const tokenParts = token.split('.');
-        if (tokenParts.length !== 3) {
-          console.warn('⚠️ [AUTO-REFRESH] Invalid token format');
-          return;
-        }
-
-        const payload = JSON.parse(atob(tokenParts[1]));
-        if (!payload.exp) {
-          console.warn('⚠️ [AUTO-REFRESH] Token without expiration');
-          return;
-        }
-
-        const expiresAt = payload.exp * 1000;
-        const now = Date.now();
-        const timeToExpiry = expiresAt - now;
-
-        // Check if token is expired
-        if (timeToExpiry <= 0) {
-          console.log('⏰ [AUTO-REFRESH] Token expired, attempting refresh...');
-          try {
-            await refreshToken();
-          } catch (refreshError) {
-            console.warn('❌ [AUTO-REFRESH] Failed to refresh expired token:', refreshError.message);
-            // Don't force logout here, let the interceptor handle it
-          }
-          return;
-        }
-
-        // ✅ Auto-refresh if token expires in less than 10 minutes
-        if (timeToExpiry < 10 * 60 * 1000) {
-          console.log('🔄 [AUTO-REFRESH] Token expiring soon, refreshing...', {
-            timeToExpiry: Math.round(timeToExpiry / 1000 / 60), // minutes
-            expiresAt: new Date(expiresAt).toISOString()
-          });
-          try {
-            await refreshToken();
-          } catch (refreshError) {
-            console.warn('❌ [AUTO-REFRESH] Failed to refresh token:', refreshError.message);
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ [AUTO-REFRESH] Error checking token expiry:', error.message);
-        // Don't break the flow, let the system continue
-      }
-    };
-
-    // ✅ CRITICAL FIX: Aguardar 2 minutos antes de começar verificações automáticas - evitar logout durante operações
-    const initialDelay = setTimeout(() => {
-      checkTokenExpiry();
-    }, 120000); // 2 minutos
-
-    // ✅ Verificar a cada 10 minutos após o delay inicial para evitar logout durante operações
-    const interval = setInterval(checkTokenExpiry, 10 * 60 * 1000);
-
-    return () => {
-      clearTimeout(initialDelay);
-      clearInterval(interval);
-    };
-  }, [context.user, refreshToken]);
-
-
-  const refreshToken = async () => {
-    try {
-      setIsRefreshing(true);
-      console.log('🔄 [REFRESH] Starting token refresh...');
-
-      const refreshTokenValue = localStorage.getItem('refreshToken');
-      if (!refreshTokenValue || refreshTokenValue === 'null' || refreshTokenValue === 'undefined') {
-        console.log('❌ [REFRESH] No valid refresh token available');
-        logout();
-        return;
-      }
-
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken: refreshTokenValue }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        console.log('❌ [REFRESH] Refresh failed:', {
-          status: response.status,
-          error: errorData.message || 'Unknown error'
-        });
-
-        // Only logout on certain error codes
-        if (response.status === 401 || response.status === 403) {
-          logout();
-        }
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data.tokens && data.tokens.accessToken) {
-        localStorage.setItem('accessToken', data.tokens.accessToken);
-        if (data.tokens.refreshToken) {
-          localStorage.setItem('refreshToken', data.tokens.refreshToken);
-        }
-        setUser(data.user || user); // Keep existing user or update
-        console.log('✅ [REFRESH] Token refresh successful');
-      } else {
-        console.log('❌ [REFRESH] Invalid refresh response structure:', data);
-        logout();
-      }
-    } catch (error) {
-      console.error('❌ [REFRESH] Token refresh error:', error);
-      // Don't immediately logout on network errors
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        console.log('🌐 [REFRESH] Network error, will retry later');
-      } else {
-        logout();
-      }
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  // Re-implementing login function to use local state and context
-  const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      console.log('🔐 [LOGIN] Starting login process...');
-
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      console.log('🔍 [LOGIN] Response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
-        console.log('❌ [LOGIN] Error response:', errorData);
-
-        const errorMessage = errorData.message || `Login failed (${response.status})`;
-        setError(errorMessage);
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-
-      // Handle different response structures
-      if (data.success && data.data && data.data.tokens) {
-        // Clean Architecture response structure
-        localStorage.setItem('accessToken', data.data.tokens.accessToken);
-        localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
-        setUser(data.data.user);
-        console.log('✅ [LOGIN] Login successful (Clean Architecture format)');
-      } else if (data.tokens) {
-        // Legacy response structure
-        localStorage.setItem('accessToken', data.tokens.accessToken);
-        localStorage.setItem('refreshToken', data.tokens.refreshToken);
-        setUser(data.user);
-        console.log('✅ [LOGIN] Login successful (Legacy format)');
-      } else {
-        console.log('❌ [LOGIN] Invalid response structure:', data);
-        throw new Error('Invalid login response format');
-      }
-
-      setError(null);
-    } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-
-  return {
-    ...context,
-    refreshToken,
-    token,
-    login,
-    logout,
-    isLoading,
-    error,
-    user
-  };
+  return context;
 }
