@@ -1,0 +1,89 @@
+🧑‍💻 Jornada do Usuário (Cliente/Portal)
+
+1. Entrada no Portal
+	•	Ao primeiro acesso, o usuário encontra:
+✅ Banner de Cookies (necessários / estatísticos / marketing).
+✅ Link rápido para Política de Privacidade e Termos de Uso.
+✅ Botão “Gerenciar consentimento”.
+
+👉 Registro: sistema grava versão da política aceita, data/hora, IP.
+
+⸻
+
+2. Gestão de Consentimento
+	•	Usuário acessa a área “Privacidade e Dados”:
+✅ Consegue ver que tipos de dados são coletados.
+✅ Pode ativar/desativar consentimento para:
+	•	Comunicação de marketing
+	•	Compartilhamento com parceiros
+	•	Uso para estatísticas
+
+👉 Registro: sistema mantém histórico (cada alteração com timestamp).
+
+⸻
+
+3. Direitos do Usuário
+	•	Usuário tem um painel “Meus Dados” com:
+✅ Visualizar Dados → exibe dados cadastrais, tickets, contratos.
+✅ Baixar Meus Dados → exporta JSON/CSV/PDF.
+✅ Corrigir Dados → botão editar ou abrir solicitação de retificação.
+✅ Limitar Uso → suspende tratamento de marketing mas mantém contratos.
+✅ Excluir Meus Dados (Esquecimento) → abre solicitação de exclusão/anonimização.
+
+👉 Após solicitar exclusão, o usuário recebe:
+	•	Confirmação da solicitação.
+	•	Notificação quando concluído (com prazo máximo estipulado pela lei).
+
+⸻
+
+4. Notificações ao Usuário
+	•	Caso haja incidente de segurança, o portal exibe aviso:
+“Seus dados podem ter sido afetados, veja detalhes aqui.”
+	•	Usuário recebe e-mail com orientação.
+
+⸻
+
+🛠️ Jornada do Admin SaaS (Gestor da Plataforma)
+
+1. Configuração de Políticas
+	•	Admin define no painel de controle:
+✅ Versão da Política de Privacidade vigente.
+✅ Templates de consentimento (cookies, comunicações, contratos).
+✅ Prazos de retenção (ex.: excluir dados de tickets após 5 anos).
+
+👉 Cada versão é versionada e arquivada.
+
+⸻
+
+2. Auditoria e Logs
+	•	Admin tem dashboards de conformidade:
+✅ Quem aceitou qual política e quando.
+✅ Histórico de consentimentos de cada usuário.
+✅ Logs de acessos, exportações e downloads de dados.
+
+👉 Exportável para relatórios internos ou para auditoria externa.
+
+⸻
+
+3. Gestão de Solicitações (DSAR – Data Subject Access Request)
+	•	Quando usuário solicita acesso, correção, portabilidade ou esquecimento:
+✅ Admin recebe notificação (fila de solicitações).
+✅ Pode aprovar, executar ou recusar (com justificativa).
+✅ Sistema executa a ação automática (ex.: exportar dados).
+✅ Registro da resposta enviado ao usuário dentro do prazo legal.
+
+⸻
+
+4. Resposta a Incidentes de Segurança
+	•	Em caso de vazamento, admin aciona:
+✅ Notificação em massa para usuários afetados.
+✅ Relatório automático com: data do incidente, tipo de dado, medidas tomadas.
+✅ Registro de comunicação para fins de auditoria.
+
+⸻
+
+5. Monitoramento de Retenção e Exclusão
+	•	Admin define políticas de retenção automática:
+✅ Exemplo: tickets fechados há +5 anos → anonimizar.
+✅ Logs com dados pessoais → apagar após 2 anos.
+	•	Sistema executa automaticamente e registra a exclusão.
