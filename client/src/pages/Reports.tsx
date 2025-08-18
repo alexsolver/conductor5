@@ -1200,9 +1200,9 @@ function CreateReportDialog({ open, onOpenChange, onReportCreated }: CreateRepor
   const { toast } = useToast();
 
   const steps = [
-    { id: 'type', title: 'Tipo de Relatório', description: 'Escolha como criar seu relatório' },
-    { id: 'config', title: 'Configuração', description: 'Configure os dados e visualização' },
-    { id: 'preview', title: 'Preview', description: 'Visualize antes de salvar' }
+    { id: 'type', title: 'Tipo de Relatório', description: 'Escolha como criar seu relatório', icon: FileText },
+    { id: 'config', title: 'Configuração', description: 'Configure os dados e visualização', icon: Settings },
+    { id: 'preview', title: 'Preview', description: 'Visualize antes de salvar', icon: Eye }
   ];
 
   const handleCreateReport = async () => {
@@ -1406,7 +1406,11 @@ function CreateReportDialog({ open, onOpenChange, onReportCreated }: CreateRepor
 
             {reportType === 'wysiwyg' && (
               <div className="h-96 overflow-auto">
-                <AdvancedWYSIWYGDesigner />
+                <AdvancedWYSIWYGDesigner onSave={(report) => {
+                  console.log('WYSIWYG report saved:', report);
+                  setReportName(report.name || reportName);
+                  setReportDescription(report.description || reportDescription);
+                }} />
               </div>
             )}
           </div>
@@ -1520,7 +1524,7 @@ function CreateReportDialog({ open, onOpenChange, onReportCreated }: CreateRepor
                 if (canAdvanceToNextStep()) {
                   setActiveStep(activeStep + 1);
                 } else {
-                  toast({ title: "Please complete the current step", variant: "warning" });
+                  toast({ title: "Please complete the current step", variant: "destructive" });
                 }
               }}
               data-testid="button-next"
@@ -1560,8 +1564,8 @@ function ReportCard({ report }: { report: Report }) {
       console.log('✅ [REPORT-EXECUTION] Success:', result);
 
       // ✅ 1QA.MD COMPLIANCE: Show execution results instead of just success message
-      if (result?.data?.results) {
-        setExecutionResult(result.data);
+      if (result?.results) {
+        setExecutionResult(result);
         setShowResultDialog(true);
         toast({ title: "Report executed successfully" });
       } else {
