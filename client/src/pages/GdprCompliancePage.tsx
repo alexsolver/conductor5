@@ -289,8 +289,8 @@ export default function GdprCompliancePage() {
           <TabsTrigger value="incidents" data-testid="tab-incidents">
             Incidentes
           </TabsTrigger>
-          <TabsTrigger value="preferences" data-testid="tab-preferences">
-            Preferências
+          <TabsTrigger value="preferences" data-testid="tab-policies">
+            Políticas
           </TabsTrigger>
           <TabsTrigger value="reports" data-testid="tab-reports">
             Relatórios

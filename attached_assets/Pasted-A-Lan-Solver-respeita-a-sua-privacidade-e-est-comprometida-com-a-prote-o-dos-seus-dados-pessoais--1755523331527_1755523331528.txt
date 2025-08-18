@@ -1,0 +1,112 @@
+A Lan Solver respeita a sua privacidade e está comprometida com a proteção dos seus dados pessoais. Este documento explica como coletamos, utilizamos, armazenamos e protegemos as informações dos usuários, em conformidade com a Lei Geral de Proteção de Dados (LGPD – Lei nº 13.709/2018) e o Regulamento Geral de Proteção de Dados da União Europeia (GDPR – UE 2016/679).
+
+⸻
+
+1. Quem Somos
+
+A Lan Solver é uma plataforma SaaS de gestão de chamados, contratos, locais e SLAs, que auxilia empresas na organização e monitoramento de seus processos de atendimento.
+
+⸻
+
+2. Dados Pessoais que Coletamos
+
+Podemos coletar os seguintes dados, de acordo com o uso da plataforma:
+	•	Dados de Identificação: nome, e-mail, telefone, cargo/função, CPF/CNPJ (quando aplicável).
+	•	Dados de Acesso: login, senha, autenticação multifator, registros de sessão.
+	•	Dados de Uso: tickets abertos, ações realizadas no sistema, interações com o portal.
+	•	Dados de Localização: informações de unidade/filial para gestão de SLAs por local.
+	•	Dados Técnicos: endereço IP, logs de auditoria, cookies e dados de navegação.
+
+⸻
+
+3. Como Utilizamos os Dados
+
+Os dados coletados são utilizados para:
+	•	Viabilizar o acesso e uso do sistema Lan Solver.
+	•	Executar a gestão de chamados, contratos, SLAs e locais.
+	•	Garantir segurança, autenticação e prevenção contra fraudes.
+	•	Cumprir obrigações legais e regulatórias.
+	•	Melhorar a experiência do usuário no portal.
+	•	Enviar comunicações operacionais, notificações e relatórios (quando autorizado).
+
+⸻
+
+4. Base Legal para o Tratamento
+
+O tratamento de dados pessoais ocorre com base em:
+	•	Execução de contrato (prestação de serviços contratados).
+	•	Cumprimento de obrigação legal/regulatória.
+	•	Legítimo interesse (segurança, melhoria contínua).
+	•	Consentimento (ex.: envio de comunicações de marketing).
+
+⸻
+
+5. Direitos dos Usuários
+
+Nos termos da LGPD/GDPR, os usuários têm direito a:
+	•	Confirmar a existência de tratamento.
+	•	Acessar os dados armazenados.
+	•	Corrigir informações incompletas, inexatas ou desatualizadas.
+	•	Solicitar a portabilidade dos dados.
+	•	Solicitar a exclusão ou anonimização dos dados pessoais.
+	•	Revogar consentimento a qualquer momento.
+	•	Solicitar a limitação do uso ou oposição ao tratamento de dados.
+
+Essas solicitações podem ser feitas diretamente na área Configurações de Perfil ou pelo canal de contato indicado nesta política.
+
+⸻
+
+6. Compartilhamento de Dados
+
+Os dados poderão ser compartilhados apenas com:
+	•	Parceiros tecnológicos (provedores de nuvem, segurança, analytics), sempre com cláusulas contratuais de proteção de dados.
+	•	Órgãos reguladores ou autoridades judiciais, quando exigido por lei.
+	•	Empresas do mesmo grupo econômico, exclusivamente para finalidades operacionais.
+
+Nunca vendemos dados pessoais a terceiros.
+
+⸻
+
+7. Armazenamento e Segurança
+	•	Os dados são armazenados em servidores seguros, com criptografia em trânsito e em repouso.
+	•	Aplicamos autenticação multifator (MFA), RBAC (controle de acesso por perfil) e logs de auditoria.
+	•	Mantemos políticas de retenção de dados conforme exigência legal e finalidades contratuais.
+	•	Em caso de incidente de segurança que possa acarretar risco, notificaremos o titular e a autoridade competente conforme previsto na LGPD/GDPR.
+
+⸻
+
+8. Retenção e Exclusão
+	•	Dados vinculados a contratos e obrigações legais serão retidos pelo período necessário para cumprimento regulatório.
+	•	Após o prazo, os dados serão anonimizados ou excluídos de forma segura.
+	•	O usuário pode solicitar exclusão imediata de dados pessoais não essenciais, conforme direito ao esquecimento.
+
+⸻
+
+9. Cookies e Tecnologias de Rastreamento
+
+O portal utiliza cookies para:
+	•	Necessários: autenticação e funcionamento básico.
+	•	Estatísticos: análise de uso da plataforma.
+	•	Marketing (opcional): comunicações segmentadas.
+
+O usuário pode gerenciar consentimento de cookies a qualquer momento pelo banner de preferências.
+
+⸻
+
+10. Transferências Internacionais
+
+Seus dados podem ser processados em servidores localizados fora do Brasil/UE, sempre garantindo nível adequado de proteção e cláusulas contratuais padrão de transferência internacional de dados.
+
+⸻
+
+11. Canal de Contato
+
+Para exercer seus direitos ou esclarecer dúvidas, entre em contato com nosso Encarregado de Proteção de Dados (DPO):
+	•	E-mail: dpo@lansolver.com
+	•	Endereço: Av. Marcos Penteado de Ulhoa Rodrigues, 				1119 - cj 1311/1312 - Alphaville Industrial, Barueri - SP, 			06460-040
+
+⸻
+
+12. Alterações desta Política
+
+Esta Política de Privacidade pode ser atualizada periodicamente. A versão vigente estará sempre disponível no portal, com registro da data de atualização.
