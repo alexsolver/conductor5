@@ -447,6 +447,10 @@ app.use((req, res, next) => {
   });
 
   // CRITICAL: Start tenant schema monitoring will be handled in startup
-  console.log('🔄 [TENANT-SCHEMA-MONITOR] Monitoring will be activated during startup');
+  console.log('// Ativar monitoramento de schema tenant
+import { TenantSchemaMonitor } from './services/TenantSchemaMonitor';
+const tenantMonitor = TenantSchemaMonitor.getInstance();
+await tenantMonitor.startMonitoring();
+console.log('✅ [TENANT-SCHEMA-MONITOR] Continuous monitoring ACTIVATED');');
 
 })();
