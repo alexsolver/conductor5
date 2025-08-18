@@ -35,6 +35,33 @@ export class TenantSchemaMonitor {
     this.startSchemaDriftDetection();
   }
 
+  private async performImmediateAudit(): Promise<void> {
+    try {
+      console.log('🔍 [IMMEDIATE-AUDIT] Running startup tenant schema audit...');
+      
+      const auditResult = await tenantSchemaAuditor.auditCompleteSystem();
+      
+      const criticalViolations = auditResult.violations.filter(v => 
+        v.severity === 'critical' || 
+        v.violations?.some((vv: any) => vv.severity === 'critical')
+      );
+
+      if (criticalViolations.length > 0) {
+        console.error(`🚨 [STARTUP-CRITICAL] ${criticalViolations.length} critical tenant schema violations detected at startup!`);
+        
+        // Log each critical violation for immediate attention
+        criticalViolations.forEach((violation, index) => {
+          console.error(`🚨 [CRITICAL-${index + 1}] ${violation.file || violation.type} - ${violation.severity}`);
+        });
+      } else {
+        console.log(`✅ [STARTUP-AUDIT] No critical violations found - system clean`);
+      }
+      
+    } catch (error) {
+      console.error('❌ [IMMEDIATE-AUDIT] Error during startup audit:', error);
+    }
+  }
+
   private schedulePeriodicAudits(): void {
     // Run full audit every hour
     setInterval(async () => {

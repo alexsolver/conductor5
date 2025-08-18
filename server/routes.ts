@@ -4,7 +4,7 @@ import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
 import { jwtAuth } from "./middleware/jwtAuth";
 import { enhancedTenantValidator } from './middleware/tenantValidator';
-import { tenantSchemaEnforcer } from './middleware/tenantSchemaEnforcer';
+import { tenantSchemaEnforcer, databaseOperationInterceptor, runtimeSchemaValidator } from './middleware/tenantSchemaEnforcer';
 import { employmentDetectionMiddleware } from './middleware/employmentDetectionMiddleware';
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
 import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
@@ -80,8 +80,7 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
 };
 
 // Import necessary middleware for tenant enforcement
-import { databaseOperationInterceptor, runtimeSchemaValidator } from './middleware/tenantSchemaEnforcer';
-import { DependencyContainer } from './application/services/DependencyContainer';
+// import { databaseOperationInterceptor, runtimeSchemaValidator } from './middleware/tenantSchemaEnforcer'; // Already imported at the top
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -97,7 +96,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', (req, res, next) => {
     // Force Express to handle ALL API routes, not Vite
     res.setHeader('X-API-Route', 'true');
-    res.setHeader('Content-Type', 'application/json');
     next();
   });
 
@@ -106,7 +104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     jwtAuth,                          // 1. Authenticate user and set req.user
     enhancedTenantValidator,         // 2. Validate tenant context  
     tenantSchemaEnforcer(),          // 3. Enforce schema isolation
-    employmentDetectionMiddleware    // 4. Add employment type info (after user is set)
+    databaseOperationInterceptor(),  // 4. Intercept database operations
+    runtimeSchemaValidator(),        // 5. Validate runtime schema
+    employmentDetectionMiddleware    // 6. Add employment type info (after user is set)
   );
 
   // CRITICAL FIX: Bypass tickets/id/relationships endpoint
@@ -222,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/csp', requirePermission('platform', 'manage_security'), createCSPManagementRoutes());
 
   // Feature flags routes
-  app.get('/api/feature-flags', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/feature-flags', jwtAuth, enhancedTenantValidator(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { featureFlagService } = await import('./services/featureFlagService');
       const context = {
@@ -239,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/feature-flags/:flagId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/feature-flags/:flagId', jwtAuth, enhancedTenantValidator(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
     try {
       const { featureFlagService } = await import('./services/featureFlagService');
       const context = {
@@ -293,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ ACTIVITY PLANNER MODULE - Following Clean Architecture
   try {
     const activityPlannerRoutes = await import('./modules/activity-planner/routes');
-    app.use('/api/activity-planner', activityPlannerRoutes.default);
+    app.use('/api/activity-planner', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), activityPlannerRoutes.default);
     console.log('✅ [ACTIVITY-PLANNER] Routes registered successfully at /api/activity-planner');
   } catch (error) {
     console.error('❌ [ACTIVITY-PLANNER] Failed to load routes:', error);
@@ -302,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ GDPR COMPLIANCE MODULE - Following Clean Architecture per 1qa.md
   try {
     const { gdprComplianceCleanRoutes } = await import('./modules/gdpr-compliance/routes-orm-clean');
-    app.use('/api/gdpr-compliance', gdprComplianceCleanRoutes);
+    app.use('/api/gdpr-compliance', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), gdprComplianceCleanRoutes);
     console.log('✅ [GDPR-COMPLIANCE-ORM] Clean ORM routes registered successfully at /api/gdpr-compliance');
   } catch (error) {
     console.error('❌ [GDPR-COMPLIANCE] Failed to load routes:', error);
@@ -340,109 +340,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ CRITICAL ORDER - Apply JSON middleware BEFORE routes per 1qa.md
   app.use(ensureJSONResponse);
 
-  // ✅ CRITICAL - Simple login endpoint that bypasses ALL middleware  
-  app.post('/login-direct', async (req: any, res) => {
-    try {
-      const { email, password } = req.body;
-      
-      if (!email || !password) {
-        return res.status(400).json({ success: false, message: 'Email and password required' });
-      }
-
-      // Check user in database
-      const userRepository = DependencyContainer.getInstance().userRepository;
-      const user = await userRepository.findByEmail(email);
-      
-      if (!user) {
-        return res.status(401).json({ success: false, message: 'Invalid credentials' });
-      }
-
-      // Generate token for existing users (bypassing password check for demo)
-      const { tokenManager } = await import('./utils/tokenManager');
-      const accessToken = tokenManager.generateAccessToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        tenantId: user.tenantId
-      });
-      
-      console.log('✅ [AUTH-LOGIN] Login successful for:', email);
-      
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: {
-          user: {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            tenantId: user.tenantId
-          },
-          tokens: { accessToken }
-        }
-      });
-    } catch (error) {
-      console.error('❌ [AUTH-LOGIN] Login error:', error);
-      res.status(500).json({ success: false, message: 'Login failed' });
-    }
-  });
-
-  // ✅ CRITICAL - Generate working token for immediate access
-  (async () => {
-    try {
-      const userRepository = DependencyContainer.getInstance().userRepository;
-      const user = await userRepository.findByEmail('admin@conductor.com');
-      
-      if (user) {
-        const { tokenManager } = await import('./utils/tokenManager');
-        const accessToken = tokenManager.generateAccessToken({
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          tenantId: user.tenantId
-        });
-        
-        // Save token to file for immediate use
-        const fs = await import('fs');
-        fs.writeFileSync('access_token_current.txt', accessToken);
-        console.log('✅ Access token generated and saved to access_token_current.txt');
-        console.log('🔑 Use this token:', accessToken);
-      }
-    } catch (error) {
-      console.error('❌ Token generation failed:', error);
-    }
-  })();
-
-  // ✅ REMOVED DUPLICATE LOGIN ENDPOINTS - Only one remains above
-
-  // Apply JWT authentication ONLY to non-auth routes
-  app.use((req, res, next) => {
-    // Completely skip JWT middleware for auth routes
-    if (req.path === '/api/auth/login' || req.path === '/api/auth/refresh' || req.path === '/api/auth/register') {
-      console.log(`✅ [AUTH-BYPASS] Bypassing middleware for: ${req.path}`);
+  // Apply JWT authentication and comprehensive tenant schema validation to all routes EXCEPT auth routes
+  app.use('/api', (req, res, next) => {
+    // Skip ALL authentication and validation for auth routes
+    if (req.path.startsWith('/api/auth/')) {
       return next();
     }
-    
-    // Apply JWT only to /api routes (except auth)
-    if (req.path.startsWith('/api/')) {
-      jwtAuth(req, res, (err) => {
+    // Apply JWT auth and all validators for other routes
+    jwtAuth(req, res, (err) => {
+      if (err) return next(err);
+      enhancedTenantValidator()(req, res, (err) => {
         if (err) return next(err);
-        enhancedTenantValidator()(req, res, (err) => {
+        tenantSchemaEnforcer()(req, res, (err) => {
           if (err) return next(err);
-          tenantSchemaEnforcer()(req, res, (err) => {
+          databaseOperationInterceptor()(req, res, (err) => {
             if (err) return next(err);
-            databaseOperationInterceptor()(req, res, (err) => {
-              if (err) return next(err);
-              // No need to call queryPatternAnalyzer and runtimeSchemaValidator here as they are already included in tenantSchemaEnforcer()
-              next();
-            });
+            // No need to call queryPatternAnalyzer and runtimeSchemaValidator here as they are already included in tenantSchemaEnforcer()
+            next();
           });
         });
       });
-    } else {
-      // For non-/api routes, just continue
-      next();
-    }
+    });
   });
 
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
@@ -451,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
   const authRoutes = (await import('./modules/auth/routes-clean')).default;
-  app.use('/api/auth', authRoutes);
+  app.use('/api/auth', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
 
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
@@ -2213,18 +2131,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[PROFILE-UPDATE] Current user data BEFORE update:', existingUser[0] || 'USER NOT FOUND');
 
       // ✅ CORRETO - Update com tenant isolation usando Drizzle ORM
+      const updateData: any = {
+        firstName: firstName,
+        lastName: lastName,
+        ...(req.user?.role === 'saas_admin' ? { email: email } : {}), // ✅ Apenas saas_admin pode alterar email seguindo 1qa.md
+        phone: phone,
+        departmentId: (department && department !== 'Admin' && department.length === 36) ? department : null, // ✅ Fix UUID error - seguindo 1qa.md
+        position: position,
+        timeZone: timezone,
+        updatedAt: sql`NOW()`
+      };
+
       const result = await db
         .update(users)
-        .set({
-          firstName: firstName,
-          lastName: lastName,
-          ...(req.user?.role === 'saas_admin' ? { email: email } : {}), // ✅ Apenas saas_admin pode alterar email seguindo 1qa.md
-          phone: phone,
-          departmentId: (department && department !== 'Admin' && department.length === 36) ? department : null, // ✅ Fix UUID error - seguindo 1qa.md
-          position: position,
-          timeZone: timezone,
-          updatedAt: sql`NOW()`
-        })
+        .set(updateData)
         .where(
           and(
             eq(users.id, userId),
@@ -3724,461 +3644,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating priority:', error);
       res.status(500).json({ message: 'Failed to create priority' });
-    }
-  });
-
-  // Customer companies direct route for testing
-  // =============================
-  // Companies Routes - CLEAN ARCHITECTURE IMPLEMENTATION (Phase 5)
-  // =============================
-  // ✅ LEGACY companies routes-integration eliminated per 1qa.md
-  console.log('✅ Companies Clean Architecture routes registered at /api/companies-integration & /api/companies-integration/v2');
-
-  // Legacy Companies Routes - Fixed to work with Clean Architecture integration
-  // 🎯 [1QA-COMPLIANCE] GET single company by ID - Required for ticket details
-  app.get('/api/companies/:id', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Tenant ID is required'
-        });
-      }
-
-      console.log(`🏢 [COMPANY-GET] Fetching company ${id} for tenant ${tenantId}`);
-
-      const { schemaManager } = await import('./db');
-      const pool = schemaManager.getPool();
-      const schemaName = schemaManager.getSchemaName(tenantId);
-
-      const result = await pool.query(`
-        SELECT * FROM "${schemaName}".companies 
-        WHERE id = $1 AND tenant_id = $2 AND is_active = true
-      `, [id, tenantId]);
-
-      if (result.rows.length === 0) {
-        console.log(`🏢 [COMPANY-GET] Company not found: ${id}`);
-        return res.status(404).json({
-          success: false,
-          message: 'Company not found'
-        });
-      }
-
-      const company = result.rows[0];
-      const formattedCompany = {
-        id: company.id,
-        name: company.name,
-        document: company.document,
-        email: company.email,
-        phone: company.phone,
-        address: company.address,
-        isActive: company.is_active,
-        createdAt: company.created_at,
-        updatedAt: company.updated_at
-      };
-
-      console.log(`✅ [COMPANY-GET] Company found:`, formattedCompany.name);
-
-      res.json({
-        success: true,
-        data: formattedCompany
-      });
-
-    } catch (error) {
-      console.error('❌ [COMPANY-GET] Error fetching company:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch company'
-      });
-    }
-  });
-
-  app.get('/api/companies', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
-      }
-
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const schemaName = schemaManager.getSchemaName(tenantId);
-
-      // Get all customer companies using direct SQL with proper field mapping
-      const result = await tenantDb.execute(sql`
-        SELECT 
-          id,
-          name,
-          display_name as "displayName",
-          description,
-          industry,
-          website,
-          phone,
-          email,
-          address,
-          size,
-          subscription_tier as "subscriptionTier",
-          status,
-          is_active as "isActive",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-        FROM ${sql.identifier(schemaName)}.companies
-        WHERE is_active = true
-        ORDER BY 
-          CASE WHEN name ILIKE '%default%' THEN 0 ELSE 1 END,
-          status = 'active' DESC,
-          name ASC
-      `);
-
-      const companies = result.rows;
-      console.log('✅ [/api/companies] Found companies:', companies.length, 'for tenant:', tenantId);
-      console.log('📊 [/api/companies] Company names:', companies.map(c => ({ name: c.name, displayName: c.displayName })));
-
-      // Return the companies array directly (CustomerCompanies.tsx expects this format)
-      res.json(companies);
-    } catch (error) {
-      console.error('Error fetching customer companies via compatibility route:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch customer companies' 
-      });
-    }
-  });
-
-  // Get customer companies for a specific customer
-  app.get('/api/customers/:customerId/companies', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const { customerId } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      console.log(`[CUSTOMER-COMPANIES] Request for customer: ${customerId}, tenant: ${tenantId}`);
-
-      if (!tenantId) {
-        console.log('[CUSTOMER-COMPANIES] No tenant ID found');
-        return res.status(401).json({ message: 'Tenant required' });
-      }
-
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const schemaName = schemaManager.getSchemaName(tenantId);
-
-      console.log(`[CUSTOMER-COMPANIES] Using schema: ${schemaName}`);
-
-      // Get companies associated with this specific customer through the customer_companies relationship table
-      const companies = await tenantDb.execute(sql`
-        SELECT 
-          c.id as company_id,
-          c.name as company_name,
-          c.display_name,
-          c.cnpj,
-          c.industry,
-          c.website,
-          c.phone,
-          c.email,
-          c.status,
-          c.subscription_tier,
-          c.created_at,
-          c.updated_at,
-          cr.relationship_type as role,
-          cr.start_date,
-          cr.end_date,
-          cr.is_primary
-        FROM ${sql.identifier(schemaName)}.companies_relationships cr
-        INNER JOIN ${sql.identifier(schemaName)}.companies c ON cr.company_id = c.id
-        WHERE cr.customer_id = ${customerId} 
-          AND cr.is_active = true
-          AND c.is_active = true
-        ORDER BY c.name
-      `);
-
-      console.log(`[CUSTOMER-COMPANIES] Found ${companies.rows.length} companies for customer ${customerId}:`, companies.rows);
-
-      res.json({
-        success: true,
-        data: companies.rows
-      });
-    } catch (error) {
-      console.error('Error fetching customer companies:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch customer companies' 
-      });
-    }
-  });
-
-  // Add customer to company
-  app.post('/api/customers/:customerId/companies', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const { customerId } = req.params;
-      const { companyId, relationshipType = 'client', isPrimary = false } = req.body;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
-      }
-
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const schemaName = schemaManager.getSchemaName(tenantId);
-
-      // Check if relationship already exists (including inactive ones)
-      const existing = await tenantDb.execute(sql`
-        SELECT id, is_active FROM ${sql.identifier(schemaName)}.companies_relationships
-        WHERE customer_id = ${customerId} AND company_id = ${companyId}
-      `);
-
-      if (existing.rows.length > 0) {
-        const existingRelation = existing.rows[0];
-
-        if (existingRelation.is_active) {
-          return res.status(400).json({ 
-            success: false, 
-            message: 'Cliente já está associado a esta empresa' 
-          });
-        } else {
-          // Reactivate existing relationship
-          const reactivated = await tenantDb.execute(sql`
-            UPDATE ${sql.identifier(schemaName)}.companies_relationships
-            SET is_active = true, relationship_type = ${relationshipType}, 
-                is_primary = ${isPrimary}, start_date = CURRENT_DATE, 
-                updated_at = CURRENT_TIMESTAMP, end_date = NULL
-            WHERE id = ${existingRelation.id}
-            RETURNING *
-          `);
-
-          return res.status(200).json({
-            success: true,
-            message: 'Associação reativada com sucesso',
-            data: reactivated.rows[0]
-          });
-        }
-      }
-
-      // Create new customer-company relationship
-      const relationship = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.companies_relationships 
-        (customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
-        VALUES (${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        RETURNING *
-      `);
-
-      res.status(201).json({
-        success: true,
-        message: 'Cliente associado à empresa com sucesso',
-        data: relationship.rows[0]
-      });
-    } catch (error) {
-      console.error('Error adding customer to company:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Erro ao associar cliente à empresa' 
-      });
-    }
-  });
-
-  // Remove customer from company
-  app.delete('/api/customers/:customerId/companies/:companyId', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const { customerId, companyId } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant required' });
-      }
-
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const schemaName = schemaManager.getSchemaName(tenantId);
-
-      // Soft delete the customer-company relationship
-      await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.companies_relationships
-        SET is_active = false, end_date = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP
-        WHERE customer_id = ${customerId} AND company_id = ${companyId}
-      `);
-
-      res.json({
-        success: true,
-        message: 'Customer removed from company'
-      });
-    } catch (error) {
-      console.error('Error removing customer from company:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to remove customer from company' 
-      });
-    }
-  });
-
-  // Debug endpoint to check table existence
-  app.get('/api/ticket-metadata/debug', jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(400).json({ error: 'Tenant ID required' });
-      }
-
-      try {
-        const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-
-        // Try simple select to check if tables exist
-        const configTest = await tenantDb.select().from(ticketFieldConfigurations).limit(1);
-        const optionsTest = await tenantDb.select().from(ticketFieldOptions).limit(1);
-
-        res.json({ 
-          success: true, 
-          message: 'Tables accessible',
-          tenantId: tenantId,
-          configRows: configTest.length,
-          optionsRows: optionsTest.length
-        });
-      } catch (tableError) {
-        res.json({ 
-          success: false, 
-          error: tableError.message,
-          tenantId: tenantId,
-          details: 'Tables may not exist in tenant schema'
-        });
-      }
-    } catch (error) {
-      console.error('Debug error:', error);
-      res.status(500).json({ error: 'Debug failed', details: error.message });
-    }
-  });
-
-  // Ticket Metadata API Routes using direct SQL
-  app.get("/api/ticket-metadata/field-configurations", jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(400).json({ error: 'Tenant ID required' });
-      }
-
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      const result = await tenantDb.execute(`
-        SELECT * FROM "${tenantSchema}".ticket_field_configurations 
-        WHERE tenant_id = '${tenantId}' AND is_active = true 
-        ORDER BY sort_order
-      `);
-
-      // Return only the rows array with mapped field names
-      const mappedData = result.rows.map((row: any) => ({
-        id: row.id,
-        fieldName: row.field_name,
-        label: row.display_name,
-        fieldType: row.field_type,
-        isRequired: row.is_required,
-        isSystem: row.is_system_field,
-        displayOrder: row.sort_order,
-        isActive: row.is_active
-      }));
-
-      res.json({ success: true, data: mappedData });
-    } catch (error) {
-      console.error('Error fetching field configurations:', error);
-      res.status(500).json({ error: 'Failed to fetch field configurations' });
-    }
-  });
-
-  app.get("/api/ticket-metadata/field-options", jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(400).json({ error: 'Tenant ID required' });
-      }
-
-      const fieldName = req.query.fieldName as string;
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      let query = `
-        SELECT * FROM "${tenantSchema}".ticket_field_options 
-        WHERE tenant_id = '${tenantId}' AND active = true
-      `;
-
-      if (fieldName) {
-        query += ` AND fieldname = '${fieldName}'`;
-      }
-
-      query += ` ORDER BY sort_order`;
-
-      const result = await tenantDb.execute(query);
-
-      // Return only the rows array with mapped field names
-      const mappedData = result.rows.map((row: any) => ({
-        id: row.id,
-        fieldName: row.fieldname,
-        optionValue: row.option_value,
-        optionLabel: row.display_label,
-        bgColor: `bg-[${row.color_hex}]`,
-        textColor: 'text-white',
-        sortOrder: row.sort_order,
-        isActive: row.active
-      }));
-
-      res.json({ success: true, data: mappedData });
-    } catch (error) {
-      console.error('Error fetching field options:', error);
-      res.status(500).json({ error: 'Failed to fetch field options' });
-    }
-  });
-
-  // Initialize ticket metadata endpoint - criar dados de exemplo
-  app.post("/api/admin/initialize-ticket-metadata", jwtAuth, tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(400).json({ error: 'Tenant ID required' });
-      }
-
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-
-      // Clear existing data
-      await tenantDb.delete(ticketFieldConfigurations).where(eq(ticketFieldConfigurations.tenantId, tenantId));
-      await tenantDb.delete(ticketFieldOptions).where(eq(ticketFieldOptions.tenantId, tenantId));
-      await tenantDb.delete(ticketDefaultConfigurations).where(eq(ticketDefaultConfigurations.tenantId, tenantId));
-
-      // Field configurations
-      const fieldConfigs = [
-        { tenantId, fieldName: 'priority', displayName: 'Prioridade', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 1 },
-        { tenantId, fieldName: 'status', displayName: 'Status', fieldType: 'select', isRequired: true, isSystemField: true, sortOrder: 2 },
-        { tenantId, fieldName: 'environment', displayName: 'Ambiente', fieldType: 'select', isRequired: false, isSystemField: false, sortOrder: 5 },
-        { tenantId, fieldName: 'category', displayName: 'Categoria', fieldType: 'select', isRequired: false, isSystemField: false, sortOrder: 6 }
-      ];
-
-      // Insert field configurations
-      await tenantDb.insert(ticketFieldConfigurations).values(fieldConfigs);
-
-      // Field options
-      const fieldOptions = [
-        // Priority options
-        { tenantId, optionValue: 'low', displayLabel: 'Baixa', colorHex: '#10B981', sortOrder: 1 },
-        { tenantId, optionValue: 'medium', displayLabel: 'Média', colorHex: '#F59E0B', sortOrder: 2, isDefault: true },
-        { tenantId, optionValue: 'high', displayLabel: 'Alta', colorHex: '#F97316', sortOrder: 3 },
-        { tenantId, optionValue: 'critical', displayLabel: 'Crítica', colorHex: '#EF4444', sortOrder: 4 },
-
-        // Status options
-        { tenantId, optionValue: 'open', displayLabel: 'Aberto', colorHex: '#2563EB', sortOrder: 1, isDefault: true },
-        { tenantId, optionValue: 'in_progress', displayLabel: 'Em Andamento', colorHex: '#F59E0B', sortOrder: 2 },
-        { tenantId, optionValue: 'resolved', displayLabel: 'Resolvido', colorHex: '#10B981', sortOrder: 3 },
-        { tenantId, optionValue: 'closed', displayLabel: 'Fechado', colorHex: '#6B7280', sortOrder: 4 }
-      ];
-
-      // Insert field options
-      await tenantDb.insert(ticketFieldOptions).values(fieldOptions);
-
-      res.json({ 
-        success: true, 
-        message: 'Ticket metadata initialized successfully',
-        counts: {
-          fieldConfigurations: fieldConfigs.length,
-          fieldOptions: fieldOptions.length
-        }
-      });
-    } catch (error) {
-      console.error('Error initializing ticket metadata:', error);
-      res.status(500).json({ error: 'Failed to initialize ticket metadata' });
     }
   });
 

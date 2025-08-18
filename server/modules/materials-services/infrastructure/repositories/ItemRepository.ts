@@ -8,13 +8,10 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as crypto from 'crypto';
 
 // Mock TenantValidator for demonstration purposes. In a real scenario, this would be imported and properly configured.
-class TenantValidator {
-  isValidTenantId(tenantId: string): boolean {
-    // Basic validation: checks if tenantId is a non-empty string.
-    // Replace with your actual tenant ID validation logic.
-    return typeof tenantId === 'string' && tenantId.length > 0;
-  }
-}
+import { TenantValidator } from '../../../database/TenantValidator';
+
+// CRITICAL: Use standardized tenant validation across all repositories
+// Remove local TenantValidator class and use enterprise-grade validation
 
 // Mock db object for demonstration purposes. In a real scenario, this would be imported from your database configuration.
 const db: any = {
