@@ -2,7 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
-import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
+import { jwtAuth } from "./middleware/jwtAuth";
+import { enhancedTenantValidator } from './middleware/tenantValidator';
+import { 
+  tenantSchemaEnforcer, 
+  databaseOperationInterceptor, 
+  runtimeSchemaValidator,
+  queryPatternAnalyzer 
+} from './middleware/tenantSchemaEnforcer';
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
 import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
@@ -324,6 +331,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ CRITICAL ORDER - Apply JSON middleware BEFORE routes per 1qa.md
   app.use(ensureJSONResponse);
+
+  // Apply JWT authentication and comprehensive tenant schema validation to all routes
+  app.use('/api', jwtAuth, enhancedTenantValidator(), tenantSchemaEnforcer(), databaseOperationInterceptor(), queryPatternAnalyzer(), runtimeSchemaValidator());
 
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
@@ -1416,7 +1426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/saas-admin/integrations', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const userRole = req.user?.role;
-      
+
       if (userRole !== 'saas_admin') {
         return res.status(403).json({
           success: false,
@@ -4043,6 +4053,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
   // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
   // ✅ LEGACY fieldLayoutRoutes eliminated per 1qa.md
+  app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
 
   // ========================================
   // HIERARCHICAL TICKET METADATAROUTES - HANDLED ABOVE
