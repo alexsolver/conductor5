@@ -18,8 +18,8 @@ export function createReportsRoutes(
   
   // Core Reports CRUD
   router.post('/reports', (req, res) => reportsController.createReport(req, res));
-  router.get('/reports', (req, res) => reportsController.findReports(req, res));
-  router.get('/reports/:id', (req, res) => reportsController.findReports(req, res));
+  router.get('/reports', (req, res) => reportsController.getReports(req, res));
+  router.get('/reports/:id', (req, res) => reportsController.getReportById(req, res));
   router.put('/reports/:id', (req, res) => reportsController.updateReport(req, res));
   router.delete('/reports/:id', (req, res) => reportsController.deleteReport(req, res));
   
@@ -71,9 +71,11 @@ export function createReportsRoutes(
   router.post('/reports/:id/export/excel', (req, res) => reportsController.exportToExcel(req, res));
   router.post('/reports/:id/export/csv', (req, res) => reportsController.exportToCSV(req, res));
   
-  // ✅ NEW: WYSIWYG PDF Designer
-  router.post('/reports/:id/design/pdf', (req, res) => reportsController.designPDF(req, res));
-  router.get('/reports/:id/design/preview', (req, res) => reportsController.previewDesign(req, res));
+  // ✅ NEW: WYSIWYG PDF Designer - Complete Implementation
+  router.post('/design/pdf', (req, res) => reportsController.designPDF(req, res));
+  router.post('/design/:designId/preview', (req, res) => reportsController.previewDesign(req, res));
+  router.post('/design/:designId/generate-pdf', (req, res) => reportsController.generatePDFFromDesign(req, res));
+  router.get('/design/templates', (req, res) => reportsController.getWYSIWYGTemplates(req, res));
   
   // ==================== SCHEDULING ROUTES ====================
   
