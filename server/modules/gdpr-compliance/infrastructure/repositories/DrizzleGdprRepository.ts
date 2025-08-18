@@ -380,11 +380,17 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
 
       console.log(`[DrizzleGdprRepository] Creating GDPR preferences for user ${data.userId} in tenant ${data.tenantId}`);
       
+      // ✅ Correção seguindo padrão 1qa.md - usar apenas campos válidos do schema
       const preferencesData = {
-        ...data,
-        id: data.id || crypto.randomUUID(),
-        createdAt: data.createdAt || new Date(),
-        updatedAt: data.updatedAt || new Date()
+        userId: data.userId,
+        tenantId: data.tenantId,
+        emailMarketing: data.emailMarketing ?? false,
+        smsMarketing: data.smsMarketing ?? false,
+        dataProcessingForAnalytics: data.dataProcessingForAnalytics ?? true,
+        profileVisibility: data.profileVisibility ?? 'private',
+        cookiePreferences: data.cookiePreferences ?? JSON.stringify({ necessary: true }),
+        communicationFrequency: data.communicationFrequency ?? 'minimal',
+        dataRetentionPreference: data.dataRetentionPreference ?? 'minimal'
       };
 
       const [result] = await db
@@ -422,23 +428,21 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
       if (results.length === 0) {
         console.log(`[DrizzleGdprRepository] No preferences found, creating default for user ${userId}`);
         
+        // ✅ Preferências padrão seguindo padrão 1qa.md
         const defaultPreferences = {
-          id: crypto.randomUUID(),
           userId: userId,
           tenantId: tenantId,
           emailMarketing: false,
           smsMarketing: false,
-          dataProcessingForAnalytics: true, // Analytics são úteis por padrão
-          profileVisibility: 'private',
+          dataProcessingForAnalytics: true,
+          profileVisibility: 'private' as const,
           cookiePreferences: JSON.stringify({
             necessary: true,
             statistical: false,
             marketing: false
           }),
-          communicationFrequency: 'minimal',
-          dataRetentionPreference: 'minimal',
-          createdAt: new Date(),
-          updatedAt: new Date()
+          communicationFrequency: 'minimal' as const,
+          dataRetentionPreference: 'minimal' as const
         };
 
         const [created] = await db
@@ -466,10 +470,15 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
 
       console.log(`[DrizzleGdprRepository] Updating GDPR preferences ${id}`);
       
-      const updateData = {
-        ...data,
-        updatedAt: new Date()
-      };
+      // ✅ Usar apenas campos válidos do schema
+      const updateData: Partial<InsertGdprUserPreferences> = {};
+      if (data.emailMarketing !== undefined) updateData.emailMarketing = data.emailMarketing;
+      if (data.smsMarketing !== undefined) updateData.smsMarketing = data.smsMarketing;
+      if (data.dataProcessingForAnalytics !== undefined) updateData.dataProcessingForAnalytics = data.dataProcessingForAnalytics;
+      if (data.profileVisibility !== undefined) updateData.profileVisibility = data.profileVisibility;
+      if (data.cookiePreferences !== undefined) updateData.cookiePreferences = data.cookiePreferences;
+      if (data.communicationFrequency !== undefined) updateData.communicationFrequency = data.communicationFrequency;
+      if (data.dataRetentionPreference !== undefined) updateData.dataRetentionPreference = data.dataRetentionPreference;
 
       const [result] = await db
         .update(gdprUserPreferences)
