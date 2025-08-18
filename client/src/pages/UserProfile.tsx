@@ -944,11 +944,7 @@ function PrivacyGdprTab() {
 
   // ✅ Mutations for user actions
   const updatePreferencesMutation = useMutation({
-    mutationFn: (preferences: any) => apiRequest('/api/gdpr-compliance/user-preferences', {
-      method: 'PUT',
-      body: JSON.stringify(preferences),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: (preferences: any) => apiRequest('/api/gdpr-compliance/user-preferences', 'PUT', preferences),
     onSuccess: () => {
       toast({ title: "Preferências atualizadas com sucesso" });
       refetchPreferences();
@@ -956,44 +952,28 @@ function PrivacyGdprTab() {
   });
 
   const exportDataMutation = useMutation({
-    mutationFn: () => apiRequest('/api/gdpr-compliance/export-my-data', {
-      method: 'POST',
-      body: JSON.stringify({ format: 'json' }),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: () => apiRequest('/api/gdpr-compliance/export-my-data', 'POST', { format: 'json' }),
     onSuccess: () => {
       toast({ title: "Solicitação de exportação criada", description: "Você receberá um e-mail com seus dados" });
     }
   });
 
   const deleteDataMutation = useMutation({
-    mutationFn: () => apiRequest('/api/gdpr-compliance/request-data-deletion', {
-      method: 'POST',
-      body: JSON.stringify({ requestType: 'erasure', requestDetails: 'Direito ao esquecimento' }),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: () => apiRequest('/api/gdpr-compliance/request-data-deletion', 'POST', { requestType: 'erasure', requestDetails: 'Direito ao esquecimento' }),
     onSuccess: () => {
       toast({ title: "Solicitação de exclusão criada", description: "Processaremos sua solicitação em até 30 dias" });
     }
   });
 
   const correctDataMutation = useMutation({
-    mutationFn: () => apiRequest('/api/gdpr-compliance/request-data-correction', {
-      method: 'POST', 
-      body: JSON.stringify({ requestType: 'rectification', requestDetails: 'Correção de dados pessoais' }),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: () => apiRequest('/api/gdpr-compliance/request-data-correction', 'POST', { requestType: 'rectification', requestDetails: 'Correção de dados pessoais' }),
     onSuccess: () => {
       toast({ title: "Solicitação de correção criada", description: "Analisaremos sua solicitação" });
     }
   });
 
   const limitUsageMutation = useMutation({
-    mutationFn: () => apiRequest('/api/gdpr-compliance/limit-data-usage', {
-      method: 'POST',
-      body: JSON.stringify({ requestType: 'restriction', requestDetails: 'Limitação de uso de dados' }),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: () => apiRequest('/api/gdpr-compliance/limit-data-usage', 'POST', { requestType: 'restriction', requestDetails: 'Limitação de uso de dados' }),
     onSuccess: () => {
       toast({ title: "Limitação de uso ativada", description: "Dados serão usados apenas para contratos essenciais" });
     }
