@@ -916,6 +916,7 @@ export default function UserProfile() {
 // ✅ Componente Privacidade & GDPR/LGPD - Seguindo especificações rigorosas do 1qa.md
 function PrivacyGdprTab() {
   const { toast } = useToast();
+  const [showPolicyDialog, setShowPolicyDialog] = useState(false); // ✅ Estado para modal seguindo 1qa.md
 
   // ✅ Fetch GDPR user preferences
   const { data: gdprPreferences, refetch: refetchPreferences } = useQuery({
@@ -1020,7 +1021,12 @@ function PrivacyGdprTab() {
                 Versão aceita: {policyData.version || "1.0"} - {policyData.acceptedAt ? new Date(policyData.acceptedAt).toLocaleDateString('pt-BR') : "Primeira vez"}
               </p>
             </div>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowPolicyDialog(true)} // ✅ Handler seguindo 1qa.md
+              data-testid="button-view-full-policy"
+            >
               <FileText className="h-4 w-4 mr-2" />
               Ver Política Completa
             </Button>
