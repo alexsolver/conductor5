@@ -32,7 +32,11 @@ import { useToast } from "@/hooks/use-toast";
 
 const integrationConfigSchema = z.object({
   apiKey: z.string().min(1, "API Key é obrigatória"),
-  baseUrl: z.string().url("URL deve ser válida").optional().or(z.literal("")),
+  baseUrl: z.union([
+    z.string().url("URL deve ser válida"),
+    z.literal(""),
+    z.undefined()
+  ]).optional(),
   maxTokens: z.number().min(1).max(32000).optional(),
   temperature: z.number().min(0).max(2).optional(),
   enabled: z.boolean().default(true)
@@ -106,9 +110,10 @@ export default function SaasAdminIntegrations() {
       });
     },
     onError: (error: any) => {
+      console.error('❌ [SAAS-ADMIN-CONFIG] Erro ao salvar:', error);
       toast({
         title: "Erro ao salvar configuração",
-        description: error.message || "Ocorreu um erro inesperado.",
+        description: error?.response?.data?.message || error.message || "Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }
@@ -181,16 +186,33 @@ export default function SaasAdminIntegrations() {
   const onConfigureIntegration = (integration: Integration) => {
     setSelectedIntegration(integration);
     if (integration.config) {
-      configForm.reset(integration.config);
+      configForm.reset({
+        ...integration.config,
+        baseUrl: integration.config.baseUrl || ""
+      });
+    } else {
+      configForm.reset({
+        apiKey: "",
+        baseUrl: "",
+        maxTokens: 4000,
+        temperature: 0.7,
+        enabled: true
+      });
     }
     setIsConfigDialogOpen(true);
   };
 
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
     if (selectedIntegration) {
+      // Limpar baseUrl se for string vazia
+      const cleanedData = {
+        ...data,
+        baseUrl: data.baseUrl === "" ? undefined : data.baseUrl
+      };
+      
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
-        config: data
+        config: cleanedData
       });
     }
   };

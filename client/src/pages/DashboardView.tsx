@@ -11,6 +11,8 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface DashboardWidget {
   id: string;
@@ -59,6 +61,91 @@ const widgetTypeIcons = {
   text: FileText,
   image: Monitor,
 };
+
+// Simple Widget Designer Component - following 1qa.md patterns
+function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) => void; dashboardId: string }) {
+  const [widgetConfig, setWidgetConfig] = useState({
+    name: "",
+    type: "chart" as const,
+    position: { x: 0, y: 0, width: 6, height: 4 },
+    config: {
+      dataSource: "tickets",
+      chartType: "bar",
+    },
+  });
+
+  const handleSave = () => {
+    if (!widgetConfig.name.trim()) {
+      return;
+    }
+    onSave(widgetConfig);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-medium">Widget Name</label>
+          <Input
+            value={widgetConfig.name}
+            onChange={(e) => setWidgetConfig(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="Enter widget name..."
+            data-testid="input-widget-name"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Widget Type</label>
+          <Select 
+            value={widgetConfig.type} 
+            onValueChange={(value: any) => setWidgetConfig(prev => ({ ...prev, type: value }))}
+          >
+            <SelectTrigger data-testid="select-widget-type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="chart">Chart</SelectItem>
+              <SelectItem value="table">Data Table</SelectItem>
+              <SelectItem value="metric">KPI Metric</SelectItem>
+              <SelectItem value="gauge">Gauge</SelectItem>
+              <SelectItem value="text">Text Block</SelectItem>
+              <SelectItem value="image">Image</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Data Source</label>
+          <Select 
+            value={widgetConfig.config.dataSource} 
+            onValueChange={(value) => setWidgetConfig(prev => ({
+              ...prev,
+              config: { ...prev.config, dataSource: value }
+            }))}
+          >
+            <SelectTrigger data-testid="select-widget-datasource">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tickets">Tickets</SelectItem>
+              <SelectItem value="customers">Customers</SelectItem>
+              <SelectItem value="users">Users</SelectItem>
+              <SelectItem value="materials">Materials</SelectItem>
+              <SelectItem value="timecard">Timecard</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-end">
+          <Button onClick={handleSave} disabled={!widgetConfig.name.trim()} data-testid="button-save-widget">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Add Widget
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardView() {
   const { id } = useParams<{ id: string }>();
@@ -380,8 +467,8 @@ export default function DashboardView() {
         )}
 
         <div className="grid grid-cols-12 gap-4">
-          {(isEditMode ? editableWidgets : dashboard.widgets) && (isEditMode ? editableWidgets : dashboard.widgets).length > 0 ? (
-            (isEditMode ? editableWidgets : dashboard.widgets)
+          {((isEditMode ? editableWidgets : dashboard.widgets) || []).length > 0 ? (
+            (isEditMode ? editableWidgets : dashboard.widgets) || []
               .filter(widget => widget.isVisible)
               .map((widget) => {
                 const IconComponent = widgetTypeIcons[widget.type];
