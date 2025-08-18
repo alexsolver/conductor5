@@ -444,9 +444,7 @@ app.use((req, res, next) => {
     }
   });
 
-  // CRITICAL: Start tenant schema monitoring
-  import { tenantSchemaMonitor } from './services/TenantSchemaMonitor';
-  await tenantSchemaMonitor.startMonitoring();
-  console.log('🔄 [TENANT-SCHEMA-MONITOR] Continuous monitoring ACTIVATED');
+  // CRITICAL: Start tenant schema monitoring will be handled in startup
+  console.log('🔄 [TENANT-SCHEMA-MONITOR] Monitoring will be activated during startup');
 
 })();
