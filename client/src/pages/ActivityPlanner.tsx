@@ -193,27 +193,829 @@ const priorityColors = {
 export default function ActivityPlanner() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
-  // Queries para dados
+  // Additional data queries
+  const { data: locations } = useQuery({
+    queryKey: ['/api/locations'],
+  });
+
+  const { data: assetCategories } = useQuery({
+    queryKey: ['/api/activity-planner/asset-categories'],
+  });
+
+  const { data: technicians } = useQuery({
+    queryKey: ['/api/users'],
+  });
+
+  // Main data queries
   const { data: assetStats, isLoading: loadingAssetStats } = useQuery({
     queryKey: ['/api/activity-planner/stats/assets'],
     enabled: activeTab === 'dashboard'
   });
 
-  const { data: assets, isLoading: loadingAssets } = useQuery({
+  const { data: assets, isLoading: loadingAssets } = useQuery<{ success: boolean; data: Asset[] }>({
     queryKey: ['/api/activity-planner/assets'],
     enabled: activeTab === 'assets'
   });
 
-  const { data: maintenancePlans, isLoading: loadingPlans } = useQuery({
+  const { data: maintenancePlans, isLoading: loadingPlans } = useQuery<{ success: boolean; data: MaintenancePlan[] }>({
     queryKey: ['/api/activity-planner/maintenance-plans'],
     enabled: activeTab === 'plans'
   });
 
-  const { data: workOrders, isLoading: loadingWorkOrders } = useQuery({
+  const { data: workOrders, isLoading: loadingWorkOrders } = useQuery<{ success: boolean; data: WorkOrder[] }>({
     queryKey: ['/api/activity-planner/work-orders'],
     enabled: activeTab === 'workorders'
   });
+
+  // 🛠️ **CONTROLES CRÍTICOS AUSENTES** - Implementando conforme 1qa.md
+
+  // 📋 **1. FORMULÁRIOS DE CRIAÇÃO COMPLETOS**
+
+  // Asset Creation Dialog
+  function CreateAssetDialog({ onSuccess }: { onSuccess: () => void }) {
+    const [open, setOpen] = useState(false);
+    
+    const form = useForm<AssetFormData>({
+      resolver: zodResolver(assetSchema),
+      defaultValues: {
+        tag: "",
+        name: "",
+        description: "",
+        locationId: "",
+        categoryId: "",
+        criticality: "medium",
+        serialNumber: "",
+        manufacturer: "",
+        model: "",
+        purchaseDate: "",
+        warrantyExpiry: "",
+        installationDate: "",
+      },
+    });
+
+    const createAssetMutation = useMutation({
+      mutationFn: (data: AssetFormData) => apiRequest("POST", "/api/activity-planner/assets", data),
+      onSuccess: () => {
+        toast({ title: "Ativo criado com sucesso" });
+        queryClient.invalidateQueries({ queryKey: ["/api/activity-planner/assets"] });
+        setOpen(false);
+        form.reset();
+        onSuccess();
+      },
+      onError: (error) => {
+        toast({ 
+          title: "Erro ao criar ativo", 
+          description: error.message,
+          variant: "destructive" 
+        });
+      },
+    });
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button data-testid="button-create-asset" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Ativo
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Criar Novo Ativo</DialogTitle>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((data) => createAssetMutation.mutate(data))} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="tag"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tag do Ativo</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="EX: COMP-001" data-testid="input-asset-tag" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Ativo</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nome descritivo..." data-testid="input-asset-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="locationId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Localização</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-asset-location">
+                            <SelectValue placeholder="Selecione uma localização" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(locations as any)?.data?.map((location: Location) => (
+                            <SelectItem key={location.id} value={location.id}>{location.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-asset-category">
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(assetCategories as any)?.data?.map((category: AssetCategory) => (
+                            <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="criticality"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Criticidade</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-asset-criticality">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="critical">Crítica</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="serialNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número de Série</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="SN123456..." data-testid="input-asset-serial" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="manufacturer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fabricante</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nome do fabricante..." data-testid="input-asset-manufacturer" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="model"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Modelo</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Modelo do equipamento..." data-testid="input-asset-model" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="purchaseDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data de Compra</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} data-testid="input-asset-purchase-date" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="warrantyExpiry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vencimento da Garantia</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} data-testid="input-asset-warranty" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="installationDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data de Instalação</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} data-testid="input-asset-installation" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Descrição detalhada do ativo..." data-testid="input-asset-description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createAssetMutation.isPending}
+                  data-testid="button-submit-asset"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  {createAssetMutation.isPending ? "Criando..." : "Criar Ativo"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Maintenance Plan Creation Dialog
+  function CreateMaintenancePlanDialog({ onSuccess }: { onSuccess: () => void }) {
+    const [open, setOpen] = useState(false);
+    
+    const form = useForm<MaintenancePlanFormData>({
+      resolver: zodResolver(maintenancePlanSchema),
+      defaultValues: {
+        name: "",
+        description: "",
+        assetId: "",
+        triggerType: "time",
+        triggerValue: "",
+        priority: "medium",
+        estimatedDuration: 1,
+        instructions: "",
+        requiredSkills: [],
+        isActive: true,
+      },
+    });
+
+    const createPlanMutation = useMutation({
+      mutationFn: (data: MaintenancePlanFormData) => apiRequest("POST", "/api/activity-planner/maintenance-plans", data),
+      onSuccess: () => {
+        toast({ title: "Plano de manutenção criado com sucesso" });
+        queryClient.invalidateQueries({ queryKey: ["/api/activity-planner/maintenance-plans"] });
+        setOpen(false);
+        form.reset();
+        onSuccess();
+      },
+      onError: (error) => {
+        toast({ 
+          title: "Erro ao criar plano", 
+          description: error.message,
+          variant: "destructive" 
+        });
+      },
+    });
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button data-testid="button-create-plan" className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Plano
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Criar Plano de Manutenção</DialogTitle>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((data) => createPlanMutation.mutate(data))} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Plano</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nome descritivo..." data-testid="input-plan-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="assetId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ativo</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-plan-asset">
+                            <SelectValue placeholder="Selecione um ativo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {assets?.data && Array.isArray(assets.data) && assets.data.map((asset: Asset) => (
+                            <SelectItem key={asset.id} value={asset.id}>{asset.tag} - {asset.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="triggerType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Gatilho</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-plan-trigger">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="time">Tempo</SelectItem>
+                          <SelectItem value="meter">Medidor</SelectItem>
+                          <SelectItem value="condition">Condição</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="triggerValue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor do Gatilho</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: 30 dias, 1000 horas..." data-testid="input-plan-trigger-value" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prioridade</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-plan-priority">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="critical">Crítica</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="estimatedDuration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Duração Estimada (horas)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          {...field} 
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          data-testid="input-plan-duration" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Descrição detalhada do plano..." data-testid="input-plan-description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="instructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instruções de Execução</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Passo a passo para execução..." data-testid="input-plan-instructions" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Plano Ativo</FormLabel>
+                      <div className="text-sm text-muted-foreground">
+                        Ativar agendamento automático de manutenções
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="switch-plan-active"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createPlanMutation.isPending}
+                  data-testid="button-submit-plan"
+                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                >
+                  {createPlanMutation.isPending ? "Criando..." : "Criar Plano"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Work Order Creation Dialog
+  function CreateWorkOrderDialog({ onSuccess }: { onSuccess: () => void }) {
+    const [open, setOpen] = useState(false);
+    
+    const form = useForm<WorkOrderFormData>({
+      resolver: zodResolver(workOrderSchema),
+      defaultValues: {
+        title: "",
+        description: "",
+        assetId: "",
+        maintenancePlanId: "",
+        priority: "medium",
+        type: "corrective",
+        scheduledStart: "",
+        estimatedDuration: 1,
+        assignedTechnicianId: "",
+        instructions: "",
+        requiredParts: [],
+      },
+    });
+
+    const createWorkOrderMutation = useMutation({
+      mutationFn: (data: WorkOrderFormData) => apiRequest("POST", "/api/activity-planner/work-orders", data),
+      onSuccess: () => {
+        toast({ title: "Ordem de serviço criada com sucesso" });
+        queryClient.invalidateQueries({ queryKey: ["/api/activity-planner/work-orders"] });
+        setOpen(false);
+        form.reset();
+        onSuccess();
+      },
+      onError: (error) => {
+        toast({ 
+          title: "Erro ao criar ordem de serviço", 
+          description: error.message,
+          variant: "destructive" 
+        });
+      },
+    });
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button data-testid="button-create-workorder" className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Nova OS
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Criar Ordem de Serviço</DialogTitle>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((data) => createWorkOrderMutation.mutate(data))} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título da OS</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Título descritivo..." data-testid="input-wo-title" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="assetId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ativo</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-wo-asset">
+                            <SelectValue placeholder="Selecione um ativo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {assets?.data && Array.isArray(assets.data) && assets.data.map((asset: Asset) => (
+                            <SelectItem key={asset.id} value={asset.id}>{asset.tag} - {asset.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Manutenção</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-wo-type">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="preventive">Preventiva</SelectItem>
+                          <SelectItem value="corrective">Corretiva</SelectItem>
+                          <SelectItem value="emergency">Emergência</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prioridade</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-wo-priority">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="critical">Crítica</SelectItem>
+                          <SelectItem value="emergency">Emergência</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="scheduledStart"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data/Hora de Início</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" {...field} data-testid="input-wo-scheduled" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="estimatedDuration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Duração Estimada (horas)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          {...field} 
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          data-testid="input-wo-duration" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="assignedTechnicianId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Técnico Responsável</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-wo-technician">
+                            <SelectValue placeholder="Selecione um técnico" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(technicians as any)?.data?.map((tech: Technician) => (
+                            <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="maintenancePlanId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plano de Manutenção (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-wo-plan">
+                            <SelectValue placeholder="Selecione um plano" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum plano</SelectItem>
+                          {maintenancePlans?.data && Array.isArray(maintenancePlans.data) && maintenancePlans.data.map((plan: MaintenancePlan) => (
+                            <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Descrição detalhada do problema..." data-testid="input-wo-description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="instructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instruções de Execução</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Procedimentos e instruções..." data-testid="input-wo-instructions" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createWorkOrderMutation.isPending}
+                  data-testid="button-submit-wo"
+                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                >
+                  {createWorkOrderMutation.isPending ? "Criando..." : "Criar OS"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const renderDashboard = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -224,10 +1026,10 @@ export default function ActivityPlanner() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-blue-600">
-            {assetStats?.data?.total || 0}
+            {(assetStats as any)?.data?.total || 0}
           </div>
           <p className="text-xs text-muted-foreground">
-            {assetStats?.data?.needingMaintenance || 0} precisam manutenção
+            {(assetStats as any)?.data?.needingMaintenance || 0} precisam manutenção
           </p>
         </CardContent>
       </Card>
@@ -320,7 +1122,7 @@ export default function ActivityPlanner() {
               </CardContent>
             </Card>
           ))
-        ) : assets?.data?.length > 0 ? (
+        ) : assets?.data && Array.isArray(assets.data) && assets.data.length > 0 ? (
           assets.data.map((asset: Asset) => (
             <Card key={asset.id} className="hover:shadow-md transition-shadow" data-testid={`card-asset-${asset.id}`}>
               <CardHeader>
