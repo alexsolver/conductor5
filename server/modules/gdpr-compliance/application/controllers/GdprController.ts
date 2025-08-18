@@ -24,7 +24,7 @@ export class GdprController {
   // ✅ 1. Cookie Consent Management
   async createCookieConsent(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.user?.tenantId || req.headers['x-tenant-id'] as string;
       const userId = req.user?.id;
 
       if (!tenantId) {
@@ -91,7 +91,7 @@ export class GdprController {
   // ✅ 3-7. Data Subject Requests (Direitos GDPR)
   async createDataSubjectRequest(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.user?.tenantId || req.headers['x-tenant-id'] as string;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
@@ -122,7 +122,7 @@ export class GdprController {
 
   async getDataSubjectRequests(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.user?.tenantId || req.headers['x-tenant-id'] as string;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
@@ -249,7 +249,7 @@ export class GdprController {
   // ✅ 10. Security Incidents
   async createSecurityIncident(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.user?.tenantId || req.headers['x-tenant-id'] as string;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
@@ -323,7 +323,7 @@ export class GdprController {
   // ✅ 12. User Preferences Portal
   async getUserPreferences(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.user?.tenantId || req.headers['x-tenant-id'] as string;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
@@ -397,7 +397,7 @@ export class GdprController {
   // ✅ Compliance Metrics & Dashboard
   async getComplianceMetrics(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.user?.tenantId || req.headers['x-tenant-id'] as string;
 
       if (!tenantId) {
         res.status(400).json({
