@@ -1454,10 +1454,7 @@ export default function ActivityPlanner() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Planos de Manutenção</h2>
-        <Button data-testid="button-create-plan">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Plano
-        </Button>
+        <CreateMaintenancePlanDialog onSuccess={() => {}} />
       </div>
       
       <Card>
@@ -1480,25 +1477,109 @@ export default function ActivityPlanner() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Ordens de Serviço</h2>
-        <Button data-testid="button-create-workorder">
-          <Plus className="h-4 w-4 mr-2" />
-          Nova OS
-        </Button>
+        <CreateWorkOrderDialog onSuccess={() => {}} />
       </div>
-      
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center py-8">
-            <Wrench className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              Nenhuma ordem de serviço
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Crie ordens de serviço para gerenciar trabalhos de manutenção.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+
+      <div className="grid gap-6">
+        {workOrders?.data && Array.isArray(workOrders.data) && workOrders.data.length > 0 ? (
+          workOrders.data.map((workOrder: WorkOrder) => (
+            <Card key={workOrder.id} className="hover:shadow-md transition-shadow" data-testid={`card-workorder-${workOrder.id}`}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-3">
+                      <Badge 
+                        variant={workOrder.priority === 'high' || workOrder.priority === 'critical' ? 'destructive' : 'default'}
+                        className="text-xs"
+                      >
+                        {workOrder.priority === 'low' ? 'Baixa' :
+                         workOrder.priority === 'medium' ? 'Média' :
+                         workOrder.priority === 'high' ? 'Alta' :
+                         workOrder.priority === 'critical' ? 'Crítica' : 'Emergência'}
+                      </Badge>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs ${
+                          workOrder.type === 'preventive' ? 'bg-green-50 text-green-700' :
+                          workOrder.type === 'corrective' ? 'bg-orange-50 text-orange-700' : 
+                          'bg-red-50 text-red-700'
+                        }`}
+                      >
+                        {workOrder.type === 'preventive' ? 'Preventiva' :
+                         workOrder.type === 'corrective' ? 'Corretiva' : 'Emergência'}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg">{workOrder.title}</CardTitle>
+                    <CardDescription className="line-clamp-2">
+                      {workOrder.description}
+                    </CardDescription>
+                  </div>
+                  <WorkOrderWorkflow workOrder={workOrder} />
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <Settings className="h-4 w-4 text-gray-500" />
+                    <span className="text-muted-foreground">Ativo:</span>
+                    <span className="font-medium">Ativo-{workOrder.assetId}</span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <span className="text-muted-foreground">Técnico:</span>
+                    <span className="font-medium">
+                      {workOrder.assignedTechnicianId ? 'Atribuído' : 'Não atribuído'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="text-muted-foreground">Duração:</span>
+                    <span className="font-medium">{workOrder.estimatedDuration}h</span>
+                  </div>
+                </div>
+
+                {workOrder.scheduledStart && (
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <span className="text-muted-foreground">Agendado:</span>
+                    <span className="font-medium">
+                      {new Date(workOrder.scheduledStart).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-2">
+                  <Button size="sm" variant="outline" data-testid={`button-view-workorder-${workOrder.id}`}>
+                    <Eye className="w-3 h-3 mr-1" />
+                    Ver Detalhes
+                  </Button>
+                  <Button size="sm" variant="outline" data-testid={`button-edit-workorder-${workOrder.id}`}>
+                    <Edit className="w-3 h-3 mr-1" />
+                    Editar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center py-8">
+                <Wrench className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  Nenhuma ordem de serviço
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Crie ordens de serviço para gerenciar trabalhos de manutenção.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 
@@ -1514,7 +1595,7 @@ export default function ActivityPlanner() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:grid-cols-7">
           <TabsTrigger value="dashboard" data-testid="tab-dashboard">
             Dashboard
           </TabsTrigger>
@@ -1525,7 +1606,16 @@ export default function ActivityPlanner() {
             Planos
           </TabsTrigger>
           <TabsTrigger value="workorders" data-testid="tab-workorders">
-            Ordens de Serviço
+            OS
+          </TabsTrigger>
+          <TabsTrigger value="technicians" data-testid="tab-technicians">
+            Técnicos
+          </TabsTrigger>
+          <TabsTrigger value="scheduler" data-testid="tab-scheduler">
+            Agenda
+          </TabsTrigger>
+          <TabsTrigger value="analytics" data-testid="tab-analytics">
+            Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -1543,6 +1633,18 @@ export default function ActivityPlanner() {
 
         <TabsContent value="workorders" className="mt-6">
           {renderWorkOrders()}
+        </TabsContent>
+
+        <TabsContent value="technicians" className="mt-6">
+          <TechnicianAllocationPanel />
+        </TabsContent>
+
+        <TabsContent value="scheduler" className="mt-6">
+          <MaintenanceScheduler />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <ActivityAnalytics />
         </TabsContent>
       </Tabs>
     </div>
