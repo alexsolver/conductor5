@@ -936,6 +936,12 @@ function PrivacyGdprTab() {
     enabled: true,
   });
 
+  // ✅ Fetch admin privacy policies (ativa) - Seguindo 1qa.md
+  const { data: adminPolicies } = useQuery({
+    queryKey: ['/api/gdpr-compliance/admin/privacy-policies'],
+    enabled: true,
+  });
+
   // ✅ Mutations for user actions
   const updatePreferencesMutation = useMutation({
     mutationFn: (preferences: any) => apiRequest('/api/gdpr-compliance/user-preferences', {
@@ -995,6 +1001,10 @@ function PrivacyGdprTab() {
 
   const preferences = (gdprPreferences as any)?.data || {};
   const policyData = (privacyPolicy as any)?.data || {};
+  
+  // ✅ Buscar política ativa do admin - Seguindo 1qa.md
+  const activePolicyFromAdmin = (adminPolicies as any)?.data?.find((policy: any) => policy.isActive) || 
+                                (adminPolicies as any)?.data?.[0] || {};
 
   return (
     <Card>
@@ -1018,7 +1028,7 @@ function PrivacyGdprTab() {
                 <span>Política de Privacidade</span>
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Versão aceita: {policyData.version || "1.0"} - {policyData.acceptedAt ? new Date(policyData.acceptedAt).toLocaleDateString('pt-BR') : "Primeira vez"}
+                Versão ativa: {activePolicyFromAdmin.version || policyData.version || "1.0"} - {activePolicyFromAdmin.effectiveDate ? new Date(activePolicyFromAdmin.effectiveDate).toLocaleDateString('pt-BR') : (policyData.acceptedAt ? new Date(policyData.acceptedAt).toLocaleDateString('pt-BR') : "Primeira vez")}
               </p>
             </div>
             <Button 
@@ -1224,12 +1234,15 @@ function PrivacyGdprTab() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Política de Privacidade - Versão {policyData.version || "1.0"}
+                {activePolicyFromAdmin.title || "Política de Privacidade"} - Versão {activePolicyFromAdmin.version || policyData.version || "1.0"}
               </DialogTitle>
               <DialogDescription>
-                Efetiva desde: {policyData.effectiveDate ? 
-                  new Date(policyData.effectiveDate).toLocaleDateString('pt-BR') : 
-                  new Date().toLocaleDateString('pt-BR')
+                Efetiva desde: {activePolicyFromAdmin.effectiveDate ? 
+                  new Date(activePolicyFromAdmin.effectiveDate).toLocaleDateString('pt-BR') : 
+                  (policyData.effectiveDate ? 
+                    new Date(policyData.effectiveDate).toLocaleDateString('pt-BR') : 
+                    new Date().toLocaleDateString('pt-BR')
+                  )
                 }
               </DialogDescription>
             </DialogHeader>
@@ -1237,7 +1250,7 @@ function PrivacyGdprTab() {
               <div 
                 className="prose prose-sm max-w-none dark:prose-invert"
                 dangerouslySetInnerHTML={{ 
-                  __html: policyData.content || 
+                  __html: activePolicyFromAdmin.content || policyData.content || 
                     `<h2>Política de Privacidade</h2>
                      <p>Esta política descreve como coletamos, usamos e protegemos seus dados pessoais conforme GDPR/LGPD.</p>
                      <h3>1. Dados Coletados</h3>
