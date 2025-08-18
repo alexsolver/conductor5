@@ -53,7 +53,7 @@ export class DashboardsController {
       }
 
       const dashboard = {
-        id: crypto.randomUUID(),
+        id: require('crypto').randomUUID(),
         tenantId: user.tenantId,
         name,
         description,
@@ -81,7 +81,7 @@ export class DashboardsController {
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
       });
     }
   }
