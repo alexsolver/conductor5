@@ -5,8 +5,8 @@
  * Runs all security tools to detect and fix tenant isolation violations
  */
 
-import { TenantSchemaUsageAuditor } from './TenantSchemaUsageAuditor';
-import { TenantSchemaMonitor } from '../services/TenantSchemaMonitor';
+import { TenantSchemaUsageAuditor } from './TenantSchemaUsageAuditor.js';
+import { TenantSchemaMonitor } from '../services/TenantSchemaMonitor.js';
 
 async function runCriticalSecurityAudit() {
   console.log('🚨 [CRITICAL-SECURITY] Starting comprehensive tenant isolation audit...');

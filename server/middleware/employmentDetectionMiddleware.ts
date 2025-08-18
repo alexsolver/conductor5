@@ -34,24 +34,14 @@ export function employmentDetectionMiddleware(
   // CRITICAL FIX APPLIED: Now runs after jwtAuth, so user should always exist
   console.log('[EMPLOYMENT-DETECTION] Input user:', user ? `{id: ${user.id}, tenantId: ${user.tenantId}}` : 'MISSING');
 
-  // CRITICAL: Validate tenant context before employment detection
-  if (!req.user?.tenantId) {
-    console.error('[EMPLOYMENT-DETECTION] Missing tenant context - user:', req.user);
-    return res.status(400).json({
-      success: false,
-      message: 'Tenant context required for employment detection',
-      code: 'MISSING_TENANT_CONTEXT'
-    });
-  }
-
   // CRITICAL FIX: Always provide valid user object for tenant context
   if (!user || !user.tenantId) {
     console.warn('[EMPLOYMENT-DETECTION] Missing user or tenant context');
-
+    
     // Skip authentication for public routes and auth endpoints
     const publicPaths = ['/api/auth/', '/api/health', '/api/ping', '/api/csp-report'];
     const isPublicPath = publicPaths.some(path => req.path.includes(path));
-
+    
     if (!isPublicPath && req.path.includes('/api/')) {
       console.error('[EMPLOYMENT-DETECTION] Blocking API request without tenant context:', req.path);
       return res.status(401).json({
@@ -60,7 +50,7 @@ export function employmentDetectionMiddleware(
         code: 'MISSING_USER_CONTEXT'
       });
     }
-
+    
     // For non-API routes or public endpoints, continue with defaults
     req.employmentType = 'clt';
     req.terminology = getTerminologyForType('clt');
@@ -75,7 +65,7 @@ export function employmentDetectionMiddleware(
 
     // Add terminology based on employment type
     req.terminology = getTerminologyForType(employmentType);
-
+    
     console.log('[EMPLOYMENT-DEBUG] User data:', { detectedType: employmentType });
   } else {
     // CRITICAL FIX: Default values when user is missing

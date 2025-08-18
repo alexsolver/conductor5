@@ -2,7 +2,7 @@
 import { Router, Request, Response } from "express";
 import { DependencyContainer } from "../../application/services/DependencyContainer";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "../../services/redisRateLimitService";
+import { createRateLimitMiddleware, recordLoginAttempt } from "../../middleware/rateLimitMiddleware";
 import { authSecurityService } from "../../services/authSecurityService";
 import { tokenManager } from "../../utils/tokenManager";
 import { z } from "zod";
@@ -11,13 +11,11 @@ const authRouter = Router();
 const container = DependencyContainer.getInstance();
 
 // Rate limiting middleware - more permissive for development
-const authRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN);
-
-// Simple function to record login attempts
-const recordLoginAttempt = (req: Request, res: Response, next: any) => {
-  console.log(`Login attempt from IP: ${req.ip || 'unknown'} at ${new Date().toISOString()}`);
-  next();
-};
+const authRateLimit = createRateLimitMiddleware({
+  windowMs: 2 * 60 * 1000, // 2 minutes
+  maxAttempts: 50, // More permissive for development
+  blockDurationMs: 1 * 60 * 1000 // 1 minute
+});
 
 // Refresh Token Endpoint
 authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) => {

@@ -18,29 +18,6 @@ export interface AuthenticatedRequest extends Request {
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // ✅ CRITICAL FIX - Skip authentication for login/register endpoints
-    const skipAuthPaths = [
-      '/api/auth/login',
-      '/api/auth/register', 
-      '/api/auth/refresh',
-      '/api/auth/refresh-token',
-      '/auth/login',
-      '/auth/register',
-      '/auth/refresh',
-      '/health',
-      '/api/health'
-    ];
-
-    // Check if the request path should skip authentication
-    const shouldSkipAuth = skipAuthPaths.some(path => 
-      req.path === path || req.path.endsWith(path)
-    );
-
-    if (shouldSkipAuth) {
-      console.log('✅ [JWT-AUTH] Skipping authentication for:', req.path);
-      return next();
-    }
-
     // ✅ CRITICAL FIX - Force API response headers per 1qa.md compliance
     if (req.path.includes('/api/')) {
       res.setHeader('Content-Type', 'application/json');
@@ -98,35 +75,11 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     }
 
     // Verify JWT token using enhanced token manager
-    let payload;
-    try {
-      payload = tokenManager.verifyAccessToken(token);
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        console.log('⏰ [JWT-AUTH] Token expired, client should refresh');
-        res.setHeader('Content-Type', 'application/json');
-        res.status(401).json({
-          success: false,
-          message: 'Token expired',
-          code: 'TOKEN_EXPIRED',
-          needsRefresh: true,
-          timestamp: new Date().toISOString()
-        });
-        return;
-      } else {
-        console.log('❌ [JWT-AUTH] Token verification failed:', error.message);
-        res.setHeader('Content-Type', 'application/json');
-        res.status(401).json({
-          success: false,
-          message: 'Invalid token',
-          code: 'INVALID_TOKEN',
-          timestamp: new Date().toISOString()
-        });
-        return;
-      }
-    }
+    const payload = tokenManager.verifyAccessToken(token);
 
     // Check if payload is valid before proceeding
+    // The original code had a check for decoded, but it's more robust to check payload directly.
+    // Also, ensuring it's an object and has userId.
     if (!payload || typeof payload !== 'object' || !payload.userId) {
       console.log('❌ [JWT-AUTH] Invalid token structure or missing userId');
 

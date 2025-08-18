@@ -95,7 +95,7 @@ async function validateDatabaseConnection() {
   } catch (error) {
     console.error("❌ [DATABASE] Initial connection failed:", error);
 
-    if ((error as any)?.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
+    if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
       console.error("🔒 [SSL ERROR] Certificate validation failed. Applying ultimate SSL bypass...");
 
       try {
@@ -119,12 +119,10 @@ async function validateDatabaseConnection() {
         // Final attempt with modified connection string
         try {
           let modifiedUrl = process.env.DATABASE_URL;
-          if (modifiedUrl && modifiedUrl.includes('?')) {
+          if (modifiedUrl.includes('?')) {
             modifiedUrl = modifiedUrl.split('?')[0]; // Remove all query parameters
           }
-          if (modifiedUrl) {
-            modifiedUrl += '?sslmode=disable'; // Force SSL disable
-          }
+          modifiedUrl += '?sslmode=disable'; // Force SSL disable
 
           const finalPool = new Pool({
             connectionString: modifiedUrl,
@@ -445,8 +443,4 @@ app.use((req, res, next) => {
       console.error('❌ [CLT-COMPLIANCE] Erro ao inicializar serviços:', error);
     }
   });
-
-  // CRITICAL: Start tenant schema monitoring will be handled in startup
-  console.log('🔧 [TENANT-SCHEMA-MONITOR] Schema monitoring ready for activation');
-
 })();
