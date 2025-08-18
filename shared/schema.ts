@@ -13,6 +13,9 @@ export * from "./schema-master";
 // Reports & Dashboards Module Schema
 export * from "./schema-reports";
 
+// GDPR Compliance Module Schema
+export * from "./schema-gdpr-compliance";
+
 // Selective export from contracts to avoid conflicts - Export only enums
 export {
   contractTypeEnum,
