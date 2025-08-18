@@ -1017,6 +1017,285 @@ export default function ActivityPlanner() {
     );
   }
 
+  // 🔧 **2. GESTÃO DE TÉCNICOS E ALOCAÇÃO** 
+  function TechnicianAllocationPanel() {
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Alocação de Técnicos</h3>
+          <div className="flex space-x-2">
+            <Input 
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              data-testid="input-allocation-date"
+              className="w-40"
+            />
+            <Button variant="outline" size="sm" data-testid="button-refresh-allocation">
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {(technicians as any)?.data?.map((tech: Technician) => (
+            <Card key={tech.id} className="hover:shadow-md transition-shadow" data-testid={`card-technician-${tech.id}`}>
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-sm">{tech.name}</CardTitle>
+                    <p className="text-xs text-muted-foreground">{tech.email}</p>
+                  </div>
+                  <Badge variant={tech.availability === 'available' ? 'default' : 'secondary'}>
+                    {tech.availability === 'available' ? 'Disponível' : 
+                     tech.availability === 'busy' ? 'Ocupado' : 'Offline'}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Habilidades:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {tech.skills?.map((skill, idx) => (
+                      <Badge key={idx} variant="outline" className="text-xs">{skill}</Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">OS do Dia:</p>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span>OS-001 (09:00-11:00)</span>
+                      <Badge variant="outline" className="text-xs">Em Andamento</Badge>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>OS-002 (14:00-16:00)</span>
+                      <Badge variant="secondary" className="text-xs">Agendada</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline" className="flex-1" data-testid={`button-view-technician-${tech.id}`}>
+                    <Eye className="w-3 h-3 mr-1" />
+                    Ver
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1" data-testid={`button-allocate-technician-${tech.id}`}>
+                    <Calendar className="w-3 h-3 mr-1" />
+                    Alocar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 📅 **3. SISTEMA DE AGENDAMENTO AVANÇADO**
+  function MaintenanceScheduler() {
+    const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+    const [selectedWeek, setSelectedWeek] = useState(new Date().toISOString().split('T')[0]);
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Cronograma de Manutenções</h3>
+          <div className="flex space-x-2">
+            <Select value={viewMode} onValueChange={(value: 'calendar' | 'list') => setViewMode(value)}>
+              <SelectTrigger className="w-32" data-testid="select-schedule-view">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="calendar">Calendário</SelectItem>
+                <SelectItem value="list">Lista</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input 
+              type="week" 
+              value={selectedWeek}
+              onChange={(e) => setSelectedWeek(e.target.value)}
+              data-testid="input-schedule-week"
+              className="w-40"
+            />
+            <Button data-testid="button-schedule-maintenance" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              <CalendarDays className="w-4 h-4 mr-2" />
+              Agendar
+            </Button>
+          </div>
+        </div>
+
+        {viewMode === 'calendar' ? (
+          <div className="bg-white dark:bg-gray-900 rounded-lg border p-4">
+            <div className="grid grid-cols-8 gap-2 mb-4">
+              <div className="font-medium text-center text-sm">Horário</div>
+              {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(day => (
+                <div key={day} className="font-medium text-center text-sm">{day}</div>
+              ))}
+            </div>
+            
+            {Array.from({ length: 12 }, (_, hour) => (
+              <div key={hour} className="grid grid-cols-8 gap-2 h-12 border-b border-gray-100 dark:border-gray-800">
+                <div className="text-xs text-center py-2">{(hour + 8).toString().padStart(2, '0')}:00</div>
+                {Array.from({ length: 7 }, (_, day) => (
+                  <div 
+                    key={day} 
+                    className="border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                    data-testid={`calendar-slot-${day}-${hour}`}
+                  >
+                    {/* Sample maintenance blocks */}
+                    {(day === 1 && hour === 2) && (
+                      <div className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs p-1 rounded m-1">
+                        OS-001
+                      </div>
+                    )}
+                    {(day === 3 && hour === 4) && (
+                      <div className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs p-1 rounded m-1">
+                        OS-002
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="hover:shadow-md transition-shadow" data-testid={`schedule-item-${i}`}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">OS-00{i}</Badge>
+                        <span className="font-medium">Manutenção Preventiva - Equipamento {i}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        📍 Localização: Setor {i} | 👨‍🔧 Técnico: João Silva
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        ⏰ {new Date(Date.now() + i * 24 * 60 * 60 * 1000).toLocaleDateString()} às 09:00 - 11:00
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button size="sm" variant="outline" data-testid={`button-edit-schedule-${i}`}>
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button size="sm" variant="outline" data-testid={`button-delete-schedule-${i}`}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // 🏃‍♂️ **5. WORKFLOW DE ORDENS DE SERVIÇO**
+  function WorkOrderWorkflow({ workOrder }: { workOrder: WorkOrder }) {
+    const updateWorkOrderMutation = useMutation({
+      mutationFn: ({ id, data }: { id: string; data: Partial<WorkOrder> }) => 
+        apiRequest("PATCH", `/api/activity-planner/work-orders/${id}`, data),
+      onSuccess: () => {
+        toast({ title: "Status atualizado com sucesso" });
+        queryClient.invalidateQueries({ queryKey: ["/api/activity-planner/work-orders"] });
+      },
+      onError: (error) => {
+        toast({ 
+          title: "Erro ao atualizar status", 
+          description: error.message,
+          variant: "destructive" 
+        });
+      },
+    });
+
+    const handleStatusChange = (newStatus: WorkOrder['status']) => {
+      updateWorkOrderMutation.mutate({ 
+        id: workOrder.id, 
+        data: { 
+          status: newStatus,
+          actualStart: newStatus === 'in_progress' ? new Date().toISOString() : workOrder.actualStart,
+          actualEnd: newStatus === 'completed' ? new Date().toISOString() : undefined
+        }
+      });
+    };
+
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case 'draft': return 'bg-gray-500';
+        case 'scheduled': return 'bg-blue-500';
+        case 'in_progress': return 'bg-orange-500';
+        case 'paused': return 'bg-yellow-500';
+        case 'completed': return 'bg-green-500';
+        case 'cancelled': return 'bg-red-500';
+        default: return 'bg-gray-500';
+      }
+    };
+
+    return (
+      <div className="flex items-center space-x-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              data-testid={`button-workflow-${workOrder.id}`}
+              disabled={updateWorkOrderMutation.isPending}
+            >
+              <div className={`w-2 h-2 rounded-full ${getStatusColor(workOrder.status)} mr-2`}></div>
+              {workOrder.status === 'draft' ? 'Rascunho' :
+               workOrder.status === 'scheduled' ? 'Agendada' :
+               workOrder.status === 'in_progress' ? 'Em Andamento' :
+               workOrder.status === 'paused' ? 'Pausada' :
+               workOrder.status === 'completed' ? 'Concluída' : 'Cancelada'}
+              <MoreHorizontal className="w-3 h-3 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {workOrder.status === 'draft' && (
+              <DropdownMenuItem onClick={() => handleStatusChange('scheduled')}>
+                <Calendar className="w-3 h-3 mr-2" />
+                Agendar
+              </DropdownMenuItem>
+            )}
+            {(workOrder.status === 'scheduled' || workOrder.status === 'paused') && (
+              <DropdownMenuItem onClick={() => handleStatusChange('in_progress')}>
+                <PlayCircle className="w-3 h-3 mr-2" />
+                Iniciar
+              </DropdownMenuItem>
+            )}
+            {workOrder.status === 'in_progress' && (
+              <>
+                <DropdownMenuItem onClick={() => handleStatusChange('paused')}>
+                  <PauseCircle className="w-3 h-3 mr-2" />
+                  Pausar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('completed')}>
+                  <CheckSquare className="w-3 h-3 mr-2" />
+                  Concluir
+                </DropdownMenuItem>
+              </>
+            )}
+            {workOrder.status !== 'completed' && workOrder.status !== 'cancelled' && (
+              <DropdownMenuItem onClick={() => handleStatusChange('cancelled')}>
+                <StopCircle className="w-3 h-3 mr-2" />
+                Cancelar
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  }
+
   const renderDashboard = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
