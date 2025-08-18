@@ -23,7 +23,41 @@ import { IActivityPlannerRepository, ActivityFilters, ActivitySummary } from '..
 import type { ActivityInstance } from '../../domain/entities/ActivityInstance';
 
 export class DrizzleActivityPlannerRepository implements IActivityPlannerRepository {
-  
+
+  // Type Mappers to ensure consistency between domain entities and schema types
+  private mapEntityToSchema(instance: Omit<ActivityInstance, 'id' | 'createdAt' | 'updatedAt'>): Omit<ActivityInstanceType, 'id' | 'createdAt' | 'updatedAt'> {
+    // This is a placeholder. In a real scenario, you would map properties here.
+    // Ensure that null/undefined mismatches are handled.
+    // Example: if domain uses 'undefined' for optional fields and schema uses 'null'
+    return {
+      ...instance,
+      title: instance.title ?? null,
+      description: instance.description ?? null,
+      assignedUserId: instance.assignedUserId ?? null,
+      assignedTeamId: instance.assignedTeamId ?? null,
+      assetId: instance.assetId ?? null,
+      locationId: instance.locationId ?? null,
+      qualityScore: instance.qualityScore ?? null,
+      actualDuration: instance.actualDuration ?? null,
+      workOrderNumber: instance.workOrderNumber ?? null,
+      parentInstanceId: instance.parentInstanceId ?? null,
+    };
+  }
+
+  private mapSchemaToEntity(instance: ActivityInstanceType): ActivityInstance {
+    // This is a placeholder. In a real scenario, you would map properties here.
+    return {
+      ...instance,
+      createdAt: instance.createdAt ? new Date(instance.createdAt) : new Date(),
+      updatedAt: instance.updatedAt ? new Date(instance.updatedAt) : new Date(),
+      scheduledDate: instance.scheduledDate ? new Date(instance.scheduledDate) : new Date(),
+      dueDate: instance.dueDate ? new Date(instance.dueDate) : new Date(),
+      completedAt: instance.completedAt ? new Date(instance.completedAt) : null,
+      actualDuration: instance.actualDuration ?? null,
+      qualityScore: instance.qualityScore ?? null,
+    };
+  }
+
   // Activity Categories
   async createCategory(category: Omit<ActivityCategory, 'id' | 'createdAt' | 'updatedAt'>): Promise<ActivityCategory> {
     const [created] = await db.insert(activityCategories).values({
@@ -40,7 +74,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .set({ ...category, updatedAt: new Date() })
       .where(and(eq(activityCategories.id, id), eq(activityCategories.tenantId, tenantId)))
       .returning();
-    
+
     if (!updated) {
       throw new Error('Activity category not found');
     }
@@ -58,13 +92,13 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .select()
       .from(activityCategories)
       .where(and(eq(activityCategories.id, id), eq(activityCategories.tenantId, tenantId)));
-    
+
     return category || null;
   }
 
   async getCategories(tenantId: string, filters?: { parentId?: string; isActive?: boolean }): Promise<ActivityCategory[]> {
     const conditions = [eq(activityCategories.tenantId, tenantId)];
-    
+
     if (filters?.parentId !== undefined) {
       if (filters.parentId) {
         conditions.push(eq(activityCategories.parentId, filters.parentId));
@@ -72,11 +106,11 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
         conditions.push(isNull(activityCategories.parentId));
       }
     }
-    
+
     if (filters?.isActive !== undefined) {
       conditions.push(eq(activityCategories.isActive, filters.isActive));
     }
-    
+
     return await db
       .select()
       .from(activityCategories)
@@ -100,7 +134,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .set({ ...template, updatedAt: new Date() })
       .where(and(eq(activityTemplates.id, id), eq(activityTemplates.tenantId, tenantId)))
       .returning();
-    
+
     if (!updated) {
       throw new Error('Activity template not found');
     }
@@ -118,25 +152,25 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .select()
       .from(activityTemplates)
       .where(and(eq(activityTemplates.id, id), eq(activityTemplates.tenantId, tenantId)));
-    
+
     return template || null;
   }
 
   async getTemplates(tenantId: string, filters?: { categoryId?: string; activityType?: string; isActive?: boolean }): Promise<ActivityTemplate[]> {
     const conditions = [eq(activityTemplates.tenantId, tenantId)];
-    
+
     if (filters?.categoryId) {
       conditions.push(eq(activityTemplates.categoryId, filters.categoryId));
     }
-    
+
     if (filters?.activityType) {
       conditions.push(eq(activityTemplates.activityType, filters.activityType as any));
     }
-    
+
     if (filters?.isActive !== undefined) {
       conditions.push(eq(activityTemplates.isActive, filters.isActive));
     }
-    
+
     return await db
       .select()
       .from(activityTemplates)
@@ -160,7 +194,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .set({ ...schedule, updatedAt: new Date() })
       .where(and(eq(activitySchedules.id, id), eq(activitySchedules.tenantId, tenantId)))
       .returning();
-    
+
     if (!updated) {
       throw new Error('Activity schedule not found');
     }
@@ -178,7 +212,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .select()
       .from(activitySchedules)
       .where(and(eq(activitySchedules.id, id), eq(activitySchedules.tenantId, tenantId)));
-    
+
     return schedule || null;
   }
 
@@ -190,27 +224,27 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
     frequency?: string;
   }): Promise<ActivitySchedule[]> {
     const conditions = [eq(activitySchedules.tenantId, tenantId)];
-    
+
     if (filters?.templateId) {
       conditions.push(eq(activitySchedules.templateId, filters.templateId));
     }
-    
+
     if (filters?.assetId) {
       conditions.push(eq(activitySchedules.assetId, filters.assetId));
     }
-    
+
     if (filters?.locationId) {
       conditions.push(eq(activitySchedules.locationId, filters.locationId));
     }
-    
+
     if (filters?.isActive !== undefined) {
       conditions.push(eq(activitySchedules.isActive, filters.isActive));
     }
-    
+
     if (filters?.frequency) {
       conditions.push(eq(activitySchedules.frequency, filters.frequency as any));
     }
-    
+
     return await db
       .select()
       .from(activitySchedules)
@@ -235,26 +269,24 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
   }
 
   // Activity Instances
-  async createInstance(instance: Omit<ActivityInstanceType, 'id' | 'createdAt' | 'updatedAt'>): Promise<ActivityInstanceType> {
+  async createInstance(instance: Omit<ActivityInstance, 'id' | 'createdAt' | 'updatedAt'>): Promise<ActivityInstance> {
+    const schemaData = this.mapEntityToSchema(instance);
     const [created] = await db.insert(activityInstances).values({
-      ...instance,
+      ...schemaData,
       createdAt: new Date(),
       updatedAt: new Date()
     }).returning();
-    return created;
+    return this.mapSchemaToEntity(created);
   }
 
-  async updateInstance(id: string, tenantId: string, instance: Partial<ActivityInstanceType>): Promise<ActivityInstanceType> {
-    const [updated] = await db
-      .update(activityInstances)
-      .set({ ...instance, updatedAt: new Date() })
+  async updateInstance(id: string, tenantId: string, instance: Partial<ActivityInstance>): Promise<ActivityInstance> {
+    const schemaData = this.mapEntityToSchema(instance);
+    const [updated] = await db.update(activityInstances)
+      .set({ ...schemaData, updatedAt: new Date() })
       .where(and(eq(activityInstances.id, id), eq(activityInstances.tenantId, tenantId)))
       .returning();
-    
-    if (!updated) {
-      throw new Error('Activity instance not found');
-    }
-    return updated;
+
+    return this.mapSchemaToEntity(updated);
   }
 
   async deleteInstance(id: string, tenantId: string): Promise<void> {
@@ -263,101 +295,95 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .where(and(eq(activityInstances.id, id), eq(activityInstances.tenantId, tenantId)));
   }
 
-  async getInstanceById(id: string, tenantId: string): Promise<ActivityInstanceType | null> {
-    const [instance] = await db
-      .select()
+  async getInstanceById(id: string, tenantId: string): Promise<ActivityInstance | null> {
+    const [instance] = await db.select()
       .from(activityInstances)
       .where(and(eq(activityInstances.id, id), eq(activityInstances.tenantId, tenantId)));
-    
-    return instance || null;
+
+    return instance ? this.mapSchemaToEntity(instance) : null;
   }
 
-  async getInstances(tenantId: string, filters?: ActivityFilters): Promise<ActivityInstanceType[]> {
+  async getInstances(tenantId: string, filters?: ActivityFilters): Promise<ActivityInstance[]> {
+    let query = db.select().from(activityInstances)
+      .where(eq(activityInstances.tenantId, tenantId));
+
+    // Apply filters
     const conditions = [eq(activityInstances.tenantId, tenantId)];
-    
-    if (filters?.status?.length) {
-      conditions.push(inArray(activityInstances.status, filters.status as any));
+
+    if (filters?.status && filters.status.length > 0) {
+      conditions.push(inArray(activityInstances.status, filters.status as any[]));
     }
-    
-    if (filters?.activityType?.length) {
-      conditions.push(inArray(activityInstances.activityType, filters.activityType as any));
+
+    if (filters?.activityType && filters.activityType.length > 0) {
+      conditions.push(inArray(activityInstances.activityType, filters.activityType as any[]));
     }
-    
-    if (filters?.priority?.length) {
-      conditions.push(inArray(activityInstances.priority, filters.priority as any));
+
+    if (filters?.priority && filters.priority.length > 0) {
+      conditions.push(inArray(activityInstances.priority, filters.priority as any[]));
     }
-    
+
     if (filters?.assignedUserId) {
       conditions.push(eq(activityInstances.assignedUserId, filters.assignedUserId));
     }
-    
+
     if (filters?.assignedTeamId) {
       conditions.push(eq(activityInstances.assignedTeamId, filters.assignedTeamId));
     }
-    
+
     if (filters?.scheduledDateFrom) {
       conditions.push(gte(activityInstances.scheduledDate, filters.scheduledDateFrom));
     }
-    
+
     if (filters?.scheduledDateTo) {
       conditions.push(lte(activityInstances.scheduledDate, filters.scheduledDateTo));
     }
-    
+
     if (filters?.dueDateFrom && filters?.dueDateTo) {
-      conditions.push(
-        and(
-          gte(activityInstances.dueDate, filters.dueDateFrom),
-          lte(activityInstances.dueDate, filters.dueDateTo)
-        )
-      );
+      conditions.push(between(activityInstances.dueDate, filters.dueDateFrom, filters.dueDateTo));
     }
-    
+
     if (filters?.assetId) {
       conditions.push(eq(activityInstances.assetId, filters.assetId));
     }
-    
+
     if (filters?.locationId) {
       conditions.push(eq(activityInstances.locationId, filters.locationId));
     }
-    
+
     if (filters?.isOverdue !== undefined) {
       conditions.push(eq(activityInstances.isOverdue, filters.isOverdue));
     }
-    
-    if (filters?.templateId) {
-      conditions.push(eq(activityInstances.templateId, filters.templateId));
-    }
-    
+
     if (filters?.search) {
       conditions.push(
         or(
           like(activityInstances.title, `%${filters.search}%`),
-          like(activityInstances.description, `%${filters.search}%`),
-          like(activityInstances.workOrderNumber, `%${filters.search}%`)
+          like(activityInstances.description, `%${filters.search}%`)
         )
       );
     }
-    
-    const query = db
-      .select()
-      .from(activityInstances)
-      .where(and(...conditions))
-      .orderBy(desc(activityInstances.scheduledDate));
-    
+
+    query = query.where(and(...conditions));
+
+    // Apply ordering
+    query = query.orderBy(desc(activityInstances.scheduledDate));
+
+    // Apply pagination
     if (filters?.limit) {
-      query.limit(filters.limit);
+      query = query.limit(filters.limit);
     }
-    
+
     if (filters?.offset) {
-      query.offset(filters.offset);
+      query = query.offset(filters.offset);
     }
-    
-    return await query;
+
+    const instances = await query;
+    return instances.map(instance => this.mapSchemaToEntity(instance));
   }
 
   async getInstancesByIds(ids: string[], tenantId: string): Promise<ActivityInstanceType[]> {
     if (!ids.length) return [];
-    
+
     return await db
       .select()
       .from(activityInstances)
@@ -368,37 +394,33 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
   }
 
   // Instance Management Methods
-  async getOverdueInstances(tenantId: string): Promise<ActivityInstanceType[]> {
-    return await db
-      .select()
+  async getOverdueInstances(tenantId: string): Promise<ActivityInstance[]> {
+    const instances = await db.select()
       .from(activityInstances)
-      .where(
-        and(
-          eq(activityInstances.tenantId, tenantId),
-          eq(activityInstances.isOverdue, true),
-          inArray(activityInstances.status, ['scheduled', 'in_progress'])
-        )
-      )
-      .orderBy(desc(activityInstances.dueDate));
+      .where(and(
+        eq(activityInstances.tenantId, tenantId),
+        eq(activityInstances.isOverdue, true)
+      ))
+      .orderBy(desc(activityInstances.overdueBy));
+
+    return instances.map(instance => this.mapSchemaToEntity(instance));
   }
 
-  async getUpcomingInstances(tenantId: string, days: number = 7): Promise<ActivityInstanceType[]> {
-    const fromDate = new Date();
-    const toDate = new Date();
-    toDate.setDate(toDate.getDate() + days);
-    
-    return await db
-      .select()
+  async getUpcomingInstances(tenantId: string, days: number = 7): Promise<ActivityInstance[]> {
+    const now = new Date();
+    const future = new Date();
+    future.setDate(now.getDate() + days);
+
+    const instances = await db.select()
       .from(activityInstances)
-      .where(
-        and(
-          eq(activityInstances.tenantId, tenantId),
-          eq(activityInstances.status, 'scheduled'),
-          gte(activityInstances.scheduledDate, fromDate),
-          lte(activityInstances.scheduledDate, toDate)
-        )
-      )
+      .where(and(
+        eq(activityInstances.tenantId, tenantId),
+        between(activityInstances.scheduledDate, now, future),
+        inArray(activityInstances.status, ['scheduled', 'in_progress'])
+      ))
       .orderBy(asc(activityInstances.scheduledDate));
+
+    return instances.map(instance => this.mapSchemaToEntity(instance));
   }
 
   async getInstancesByUser(userId: string, tenantId: string, filters?: ActivityFilters): Promise<ActivityInstanceType[]> {
@@ -427,31 +449,31 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
     locationId?: string;
   }): Promise<ActivitySummary> {
     const conditions = [eq(activityInstances.tenantId, tenantId)];
-    
+
     if (filters?.dateFrom) {
       conditions.push(gte(activityInstances.scheduledDate, filters.dateFrom));
     }
-    
+
     if (filters?.dateTo) {
       conditions.push(lte(activityInstances.scheduledDate, filters.dateTo));
     }
-    
+
     if (filters?.assignedUserId) {
       conditions.push(eq(activityInstances.assignedUserId, filters.assignedUserId));
     }
-    
+
     if (filters?.assignedTeamId) {
       conditions.push(eq(activityInstances.assignedTeamId, filters.assignedTeamId));
     }
-    
+
     if (filters?.assetId) {
       conditions.push(eq(activityInstances.assetId, filters.assetId));
     }
-    
+
     if (filters?.locationId) {
       conditions.push(eq(activityInstances.locationId, filters.locationId));
     }
-    
+
     const [summary] = await db
       .select({
         totalActivities: count(),
@@ -470,11 +492,11 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       })
       .from(activityInstances)
       .where(and(...conditions));
-    
+
     const completionRate = summary.totalActivities > 0 
       ? (Number(summary.completedActivities) / summary.totalActivities) * 100 
       : 0;
-    
+
     // Get average duration and quality score for completed activities
     const [metrics] = await db
       .select({
@@ -489,7 +511,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
           sql`${activityInstances.actualDuration} IS NOT NULL`
         )
       );
-    
+
     return {
       totalActivities: summary.totalActivities,
       completedActivities: Number(summary.completedActivities || 0),
@@ -547,7 +569,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .set({ ...workflow, updatedAt: new Date() })
       .where(and(eq(activityWorkflows.id, id), eq(activityWorkflows.tenantId, tenantId)))
       .returning();
-    
+
     if (!updated) {
       throw new Error('Activity workflow not found');
     }
@@ -559,7 +581,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .select()
       .from(activityWorkflows)
       .where(and(eq(activityWorkflows.id, id), eq(activityWorkflows.tenantId, tenantId)));
-    
+
     return workflow || null;
   }
 
@@ -576,11 +598,11 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       eq(activityWorkflows.tenantId, tenantId),
       eq(activityWorkflows.status, 'pending')
     ];
-    
+
     if (approverId) {
       conditions.push(eq(activityWorkflows.currentApprover, approverId));
     }
-    
+
     return await db
       .select()
       .from(activityWorkflows)
@@ -603,7 +625,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       .set(resource)
       .where(and(eq(activityResources.id, id), eq(activityResources.tenantId, tenantId)))
       .returning();
-    
+
     if (!updated) {
       throw new Error('Activity resource not found');
     }
@@ -662,7 +684,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
       createdAt: now,
       updatedAt: now
     }));
-    
+
     return await db.insert(activityInstances).values(instancesToInsert).returning();
   }
 
@@ -684,11 +706,11 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
 
   async bulkAssignInstances(instanceIds: string[], tenantId: string, assignedUserId?: string, assignedTeamId?: string, updatedBy?: string): Promise<void> {
     const updateData: any = { updatedAt: new Date() };
-    
+
     if (assignedUserId) updateData.assignedUserId = assignedUserId;
     if (assignedTeamId) updateData.assignedTeamId = assignedTeamId;
     if (updatedBy) updateData.updatedBy = updatedBy;
-    
+
     await db
       .update(activityInstances)
       .set(updateData)
@@ -723,7 +745,7 @@ export class DrizzleActivityPlannerRepository implements IActivityPlannerReposit
           eq(activityInstances.isOverdue, false)
         )
       );
-    
+
     return result.rowCount || 0;
   }
 

@@ -9,7 +9,7 @@ import {
   ActivityWorkflow,
   ActivityResource,
   ActivityHistory
-} from '../entities/ActivityInstance';
+} from '@shared/schema-activity-planner';
 
 export interface ActivityFilters {
   status?: string[];
