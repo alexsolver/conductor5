@@ -1,399 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
-import { useRoute, useLocation } from 'wouter';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, X } from 'lucide-react';
-
-// ✅ 1QA.MD COMPLIANCE: Schema validation for report editing
-const editReportSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
-  description: z.string().optional(),
-  dataSource: z.string().min(1, 'Fonte de dados é obrigatória'),
-  category: z.enum(['operational', 'analytical', 'compliance', 'financial', 'executive']),
-  chartType: z.enum(['bar', 'line', 'pie', 'gauge', 'table', 'scatter']),
-  isPublic: z.boolean().default(false),
-  accessLevel: z.enum(['public', 'team', 'private']).default('private'),
-});
-
-type EditReportFormData = z.infer<typeof editReportSchema>;
-
-interface Report {
-  id: string;
-  name: string;
-  description?: string;
-  dataSource: string;
-  category: string;
-  chartType: string;
-  isPublic: boolean;
-  accessLevel: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ✅ 1QA.MD COMPLIANCE: API request helper following patterns
-const apiRequest = async (method: string, url: string, data?: any) => {
-  const token = localStorage.getItem('accessToken');
-  const response = await fetch(`/api${url}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: data ? JSON.stringify(data) : undefined,
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return response.json();
-};
-
-export default function ReportEdit() {
-  const [match, params] = useRoute('/reports/:id/edit');
-  const id = params?.id;
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  console.log('✅ [REPORT-EDIT] Editing report ID:', id);
-
-  // ✅ 1QA.MD COMPLIANCE: Data fetching with error handling
-  const { data: reportData, isLoading, error } = useQuery({
-    queryKey: [`/api/reports-dashboards/reports/${id}`],
-    queryFn: () => apiRequest('GET', `/reports-dashboards/reports/${id}`),
-    enabled: !!id,
-    retry: false,
-  });
-
-  const report: Report | undefined = reportData?.data;
-
-  // ✅ 1QA.MD COMPLIANCE: Form setup with validation
-  const form = useForm<EditReportFormData>({
-    resolver: zodResolver(editReportSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      dataSource: '',
-      category: 'operational',
-      chartType: 'bar',
-      isPublic: false,
-      accessLevel: 'private',
-    },
-  });
-
-  // ✅ 1QA.MD COMPLIANCE: Update form when data loads
-  useEffect(() => {
-    if (report) {
-      console.log('✅ [REPORT-EDIT] Loading report data into form:', report);
-      form.reset({
-        name: report.name,
-        description: report.description || '',
-        dataSource: report.dataSource,
-        category: report.category as any,
-        chartType: report.chartType as any,
-        isPublic: report.isPublic,
-        accessLevel: report.accessLevel as any,
-      });
-    }
-  }, [report, form]);
-
-  // ✅ 1QA.MD COMPLIANCE: Update mutation with error handling
-  const updateMutation = useMutation({
-    mutationFn: (data: EditReportFormData) => {
-      console.log('✅ [REPORT-EDIT] Updating report with data:', data);
-      return apiRequest('PUT', `/reports-dashboards/reports/${id}`, data);
-    },
-    onSuccess: () => {
-      console.log('✅ [REPORT-EDIT] Report updated successfully');
-      toast({
-        title: 'Relatório atualizado',
-        description: 'O relatório foi atualizado com sucesso.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/reports-dashboards/reports'] });
-      setLocation('/reports');
-    },
-    onError: (error: any) => {
-      console.error('❌ [REPORT-EDIT] Error updating report:', error);
-      toast({
-        title: 'Erro ao atualizar relatório',
-        description: error.message || 'Ocorreu um erro ao atualizar o relatório.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // ✅ 1QA.MD COMPLIANCE: Form submission handler
-  const onSubmit = (data: EditReportFormData) => {
-    console.log('✅ [REPORT-EDIT] Form submitted with data:', data);
-    updateMutation.mutate(data);
-  };
-
-  // ✅ 1QA.MD COMPLIANCE: Loading state
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Carregando relatório...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // ✅ 1QA.MD COMPLIANCE: Error state
-  if (error || !report) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Relatório não encontrado
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
-                O relatório solicitado não foi encontrado ou você não tem permissão para editá-lo.
-              </p>
-              <Button onClick={() => setLocation('/reports')} variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar aos Relatórios
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      {/* ✅ 1QA.MD COMPLIANCE: Header with navigation */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLocation('/reports')}
-            data-testid="button-back-to-reports"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Editar Relatório
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              Edite as configurações do relatório "{report.name}"
-            </p>
-          </div>
-        </div>
-        <Badge variant={report.status === 'active' ? 'default' : 'secondary'}>
-          {report.status === 'active' ? 'Ativo' : 'Inativo'}
-        </Badge>
-      </div>
-
-      {/* ✅ 1QA.MD COMPLIANCE: Edit form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações do Relatório</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Nome */}
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Relatório *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Digite o nome do relatório"
-                          {...field}
-                          data-testid="input-report-name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Fonte de Dados */}
-                <FormField
-                  control={form.control}
-                  name="dataSource"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fonte de Dados *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-data-source">
-                            <SelectValue placeholder="Selecione a fonte de dados" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="tickets">Tickets</SelectItem>
-                          <SelectItem value="customers">Clientes</SelectItem>
-                          <SelectItem value="users">Usuários</SelectItem>
-                          <SelectItem value="timecard">Cartão de Ponto</SelectItem>
-                          <SelectItem value="materials">Materiais</SelectItem>
-                          <SelectItem value="contracts">Contratos</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Categoria */}
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Categoria *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-category">
-                            <SelectValue placeholder="Selecione a categoria" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="operational">Operacional</SelectItem>
-                          <SelectItem value="analytical">Analítico</SelectItem>
-                          <SelectItem value="compliance">Compliance</SelectItem>
-                          <SelectItem value="financial">Financeiro</SelectItem>
-                          <SelectItem value="executive">Executivo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Tipo de Gráfico */}
-                <FormField
-                  control={form.control}
-                  name="chartType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Gráfico *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-chart-type">
-                            <SelectValue placeholder="Selecione o tipo de gráfico" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="bar">Barras</SelectItem>
-                          <SelectItem value="line">Linha</SelectItem>
-                          <SelectItem value="pie">Pizza</SelectItem>
-                          <SelectItem value="gauge">Gauge</SelectItem>
-                          <SelectItem value="table">Tabela</SelectItem>
-                          <SelectItem value="scatter">Dispersão</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Nível de Acesso */}
-                <FormField
-                  control={form.control}
-                  name="accessLevel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nível de Acesso *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-access-level">
-                            <SelectValue placeholder="Selecione o nível de acesso" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="private">Privado</SelectItem>
-                          <SelectItem value="team">Equipe</SelectItem>
-                          <SelectItem value="public">Público</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Descrição */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Digite uma descrição para o relatório (opcional)"
-                        className="min-h-[100px]"
-                        {...field}
-                        data-testid="textarea-description"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Botões de Ação */}
-              <div className="flex justify-end space-x-4 pt-6 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setLocation('/reports')}
-                  disabled={updateMutation.isPending}
-                  data-testid="button-cancel-edit"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={updateMutation.isPending}
-                  data-testid="button-save-report"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {updateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-import { useState, useEffect } from "react";
-import { useLocation, useRoute } from 'wouter';
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { useLocation } from 'wouter';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
 import { 
-  ArrowLeft, Save, Eye, Settings, Database, Palette, Trash2,
-  BarChart3, LineChart, PieChart, Grid, TrendingUp, CheckCircle2, Loader2
+  Plus, ArrowLeft, Save, Eye, Settings, Database, Palette, FileText,
+  BarChart3, LineChart, PieChart, Grid, TrendingUp, CheckCircle2
 } from "lucide-react";
 import AdvancedWYSIWYGDesigner from '@/components/reports/AdvancedWYSIWYGDesigner';
 import AdvancedQueryBuilder from '@/components/reports/AdvancedQueryBuilder';
@@ -404,43 +18,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
-// Schema for report editing
+// Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
   name: z.string().min(1, "Report name is required"),
   description: z.string().optional(),
   dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard", "locations", "omnibridge"]),
   category: z.enum(["operational", "analytical", "compliance", "financial", "hr", "strategic"]),
   chartType: z.enum(["bar", "line", "pie", "table", "gauge", "area", "scatter", "heatmap"]),
+  filters: z.string().optional(),
   schedulingEnabled: z.boolean().default(false),
   scheduleType: z.enum(["cron", "interval", "event_driven", "threshold"]).optional(),
   scheduleConfig: z.string().optional(),
+  isPublic: z.boolean().default(false),
   accessLevel: z.enum(["private", "team", "company", "public"]).default("private"),
 });
 
 type ReportFormData = z.infer<typeof reportSchema>;
 
-export default function ReportEdit() {
+export default function ReportCreate() {
   const [, setLocation] = useLocation();
-  const [match, params] = useRoute('/reports/:id/edit');
   const [activeTab, setActiveTab] = useState("basic");
   const [reportType, setReportType] = useState<'standard' | 'advanced' | 'wysiwyg'>('standard');
   const [query, setQuery] = useState<any>({});
   const [wysiwygDesign, setWysiwygDesign] = useState<any>({});
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const { toast } = useToast();
-  const reportId = params?.id;
-
-  // Fetch existing report data
-  const { data: reportData, isLoading, error } = useQuery({
-    queryKey: ["/api/reports-dashboards/reports", reportId],
-    queryFn: () => apiRequest("GET", `/api/reports-dashboards/reports/${reportId}`),
-    enabled: !!reportId,
-  });
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
@@ -449,39 +57,11 @@ export default function ReportEdit() {
       chartType: "table",
       accessLevel: "private",
       schedulingEnabled: false,
+      isPublic: false,
     },
   });
 
-  // Update form when data is loaded
-  useEffect(() => {
-    if (reportData?.data) {
-      const report = reportData.data;
-      form.reset({
-        name: report.name,
-        description: report.description,
-        dataSource: report.dataSource,
-        category: report.category,
-        chartType: report.chartType,
-        accessLevel: report.accessLevel,
-        schedulingEnabled: !!report.scheduleConfig,
-        scheduleType: report.scheduleConfig?.type,
-        scheduleConfig: report.scheduleConfig ? JSON.stringify(report.scheduleConfig) : undefined,
-      });
-
-      // Determine report type based on existing data
-      if (report.wysiwygDesign) {
-        setReportType('wysiwyg');
-        setWysiwygDesign(report.wysiwygDesign);
-      } else if (report.query) {
-        setReportType('advanced');
-        setQuery(report.query);
-      } else {
-        setReportType('standard');
-      }
-    }
-  }, [reportData, form]);
-
-  const updateReportMutation = useMutation({
+  const createReportMutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
       const reportData = {
         ...data,
@@ -489,32 +69,12 @@ export default function ReportEdit() {
         wysiwygDesign: reportType === 'wysiwyg' ? wysiwygDesign : undefined,
         reportType,
       };
-      return apiRequest("PUT", `/api/reports-dashboards/reports/${reportId}`, reportData);
+      return apiRequest("POST", "/api/reports-dashboards/reports", reportData);
     },
     onSuccess: () => {
       toast({
         title: "Sucesso!",
-        description: "Relatório atualizado com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports", reportId] });
-      setLocation("/reports");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error?.message || "Falha ao atualizar relatório.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteReportMutation = useMutation({
-    mutationFn: () => apiRequest("DELETE", `/api/reports-dashboards/reports/${reportId}`),
-    onSuccess: () => {
-      toast({
-        title: "Sucesso!",
-        description: "Relatório excluído com sucesso.",
+        description: "Relatório criado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
       setLocation("/reports");
@@ -522,24 +82,18 @@ export default function ReportEdit() {
     onError: (error: any) => {
       toast({
         title: "Erro",
-        description: error?.message || "Falha ao excluir relatório.",
+        description: error?.message || "Falha ao criar relatório.",
         variant: "destructive",
       });
     },
   });
 
-  const handleUpdateReport = async (data: ReportFormData) => {
-    setIsUpdating(true);
+  const handleCreateReport = async (data: ReportFormData) => {
+    setIsCreating(true);
     try {
-      await updateReportMutation.mutateAsync(data);
+      await createReportMutation.mutateAsync(data);
     } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleDeleteReport = () => {
-    if (window.confirm('Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.')) {
-      deleteReportMutation.mutate();
+      setIsCreating(false);
     }
   };
 
@@ -551,47 +105,29 @@ export default function ReportEdit() {
   const handleWysiwygSave = (design: any) => {
     console.log('✅ [WYSIWYG] Design saved:', design);
     setWysiwygDesign(design);
-    if (design.name && design.name !== form.getValues('name')) {
+    if (design.name) {
       form.setValue('name', design.name);
     }
-    if (design.description && design.description !== form.getValues('description')) {
+    if (design.description) {
       form.setValue('description', design.description);
     }
   };
 
-  if (!match) {
-    setLocation("/reports");
-    return null;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p>Carregando relatório...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-red-600">Erro ao carregar relatório: {error.message}</p>
-            <Button
-              onClick={() => setLocation("/reports")}
-              className="mt-4"
-            >
-              Voltar aos Relatórios
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const canCreateReport = () => {
+    const formData = form.getValues();
+    if (!formData.name?.trim()) return false;
+    
+    if (reportType === 'advanced') {
+      return query.dataSource && query.selectedTables?.length > 0;
+    }
+    if (reportType === 'standard') {
+      return formData.dataSource;
+    }
+    if (reportType === 'wysiwyg') {
+      return wysiwygDesign.elements?.length > 0;
+    }
+    return true;
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-7xl">
@@ -608,10 +144,10 @@ export default function ReportEdit() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Editar Relatório
+              Criar Novo Relatório
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              {reportData?.data?.name || 'Carregando...'}
+              Configure seu relatório com todas as funcionalidades avançadas
             </p>
           </div>
         </div>
@@ -625,24 +161,15 @@ export default function ReportEdit() {
             Preview
           </Button>
           <Button
-            variant="destructive"
-            onClick={handleDeleteReport}
-            disabled={deleteReportMutation.isPending}
-            data-testid="button-delete-report"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            {deleteReportMutation.isPending ? "Excluindo..." : "Excluir"}
-          </Button>
-          <Button
-            onClick={form.handleSubmit(handleUpdateReport)}
-            disabled={isUpdating}
+            onClick={form.handleSubmit(handleCreateReport)}
+            disabled={isCreating || !canCreateReport()}
             data-testid="button-save-report"
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
-            {isUpdating ? "Salvando..." : (
+            {isCreating ? "Criando..." : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                Salvar Alterações
+                Criar Relatório
               </>
             )}
           </Button>
@@ -651,14 +178,19 @@ export default function ReportEdit() {
 
       <Separator />
 
-      {/* Report Type Display */}
+      {/* Report Type Selection */}
       <Card>
         <CardHeader>
           <CardTitle>Tipo de Relatório</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className={reportType === 'standard' ? 'ring-2 ring-primary' : 'opacity-50'}>
+            <Card 
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                reportType === 'standard' ? 'ring-2 ring-primary' : ''
+              }`}
+              onClick={() => setReportType('standard')}
+            >
               <CardContent className="p-6 text-center">
                 <BarChart3 className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="font-semibold mb-2">Relatório Padrão</h4>
@@ -668,7 +200,12 @@ export default function ReportEdit() {
               </CardContent>
             </Card>
 
-            <Card className={reportType === 'advanced' ? 'ring-2 ring-primary' : 'opacity-50'}>
+            <Card 
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                reportType === 'advanced' ? 'ring-2 ring-primary' : ''
+              }`}
+              onClick={() => setReportType('advanced')}
+            >
               <CardContent className="p-6 text-center">
                 <Database className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="font-semibold mb-2">Query Builder Avançado</h4>
@@ -678,7 +215,12 @@ export default function ReportEdit() {
               </CardContent>
             </Card>
 
-            <Card className={reportType === 'wysiwyg' ? 'ring-2 ring-primary' : 'opacity-50'}>
+            <Card 
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                reportType === 'wysiwyg' ? 'ring-2 ring-primary' : ''
+              }`}
+              onClick={() => setReportType('wysiwyg')}
+            >
               <CardContent className="p-6 text-center">
                 <Palette className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <h4 className="font-semibold mb-2">WYSIWYG Designer</h4>
@@ -727,7 +269,7 @@ export default function ReportEdit() {
         </TabsList>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleUpdateReport)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleCreateReport)} className="space-y-6">
             {/* Basic Configuration Tab */}
             <TabsContent value="basic" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -110,6 +110,9 @@ import TicketAdvancedConfiguration from "./pages/TicketAdvancedConfiguration";
 
 // Assuming ReportEdit is in the same directory
 import ReportEdit from "./pages/ReportEdit";
+// Assuming ReportCreate is in the same directory
+import ReportCreate from "./pages/ReportCreate";
+
 
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -233,7 +236,9 @@ function AppRouter() {
         <Route path="/productivity-reports" component={ProductivityReports} />
         <Route path="/notifications" component={NotificationsPage} />
         <Route path="/reports" component={Reports} />
+        <Route path="/reports/create" component={ReportCreate} />
         <Route path="/reports/:id/edit" component={ReportEdit} />
+        <Route path="/report-edit" component={ReportEdit} />
         <Route path="/dashboards" component={Dashboards} />
         <Route path="/dashboard/:id" component={DashboardView} />
         <Route path="/dashboard/:id/edit" component={DashboardView} />
