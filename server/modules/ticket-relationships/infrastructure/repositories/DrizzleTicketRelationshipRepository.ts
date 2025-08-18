@@ -21,7 +21,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
 
   async findRelationshipsByTicketId(ticketId: string, tenantId: string): Promise<TicketRelationshipWithDetails[]> {
     console.log('🔍 [DrizzleTicketRelationshipRepository] Finding relationships for ticket:', ticketId);
-    
+
     const { schemaManager } = await import('../../../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(tenantId);
@@ -45,11 +45,19 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
         ORDER BY tr.created_at DESC
       `, [ticketId]);
 
+      console.log(`🔗 [RELATIONSHIP-REPOSITORY] Found ${result.rows.length} relationships for ticket ${ticketId}`);
+      console.log(`🔗 [RELATIONSHIP-REPOSITORY] Raw query results:`, result.rows);
+
+      if (result.rows.length === 0) {
+        console.log(`🔗 [RELATIONSHIP-REPOSITORY] No relationships found for ticket ${ticketId}`);
+        return [];
+      }
+
       // For each relationship, get current ticket data to ensure accuracy
       const relationshipsWithDetails = await Promise.all(
         result.rows.map(async (row) => {
           const relatedTicketId = row.direction === 'outgoing' ? row.target_ticket_id : row.source_ticket_id;
-          
+
           try {
             // Get fresh ticket data to avoid stale information
             const ticketResult = await pool.query(`
@@ -59,7 +67,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
             `, [relatedTicketId]);
 
             const relatedTicket = ticketResult.rows[0];
-            
+
             return {
               ...row,
               related_ticket_id: relatedTicketId,
@@ -87,7 +95,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
       );
 
       console.log('✅ [DrizzleTicketRelationshipRepository] Found relationships:', relationshipsWithDetails.length);
-      
+
       return relationshipsWithDetails.map(row => ({
         id: row.id,
         tenantId: row.tenant_id,
@@ -114,7 +122,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
 
   async countRelationshipsByTicketId(ticketId: string, tenantId: string): Promise<number> {
     console.log('📊 [DrizzleTicketRelationshipRepository] Counting relationships for ticket:', ticketId);
-    
+
     const { schemaManager } = await import('../../../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(tenantId);
@@ -138,7 +146,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
 
   async create(relationship: Omit<TicketRelationship, 'id' | 'createdAt' | 'updatedAt'>): Promise<TicketRelationship> {
     console.log('📝 [DrizzleTicketRelationshipRepository] Creating relationship');
-    
+
     const { schemaManager } = await import('../../../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(relationship.tenantId);
@@ -162,7 +170,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
       ]);
 
       console.log('✅ [DrizzleTicketRelationshipRepository] Relationship created:', relationshipId);
-      
+
       const row = result.rows[0];
       return {
         id: row.id,
@@ -185,7 +193,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
 
   async findById(id: string, tenantId: string): Promise<TicketRelationship | null> {
     console.log('🔍 [DrizzleTicketRelationshipRepository] Finding relationship by ID:', id);
-    
+
     const { schemaManager } = await import('../../../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(tenantId);
@@ -203,7 +211,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
 
       const row = result.rows[0];
       console.log('✅ [DrizzleTicketRelationshipRepository] Relationship found:', id);
-      
+
       return {
         id: row.id,
         tenantId: row.tenant_id,
@@ -225,7 +233,7 @@ export class DrizzleTicketRelationshipRepository implements ITicketRelationshipR
 
   async delete(id: string, tenantId: string): Promise<boolean> {
     console.log('🗑️ [DrizzleTicketRelationshipRepository] Deleting relationship:', id);
-    
+
     const { schemaManager } = await import('../../../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(tenantId);

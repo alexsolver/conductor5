@@ -100,7 +100,7 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
         const hasValidTicket = isSourceRelationship ? 
           (row.target_ticket_id) : 
           (row.source_ticket_id);
-        
+
         if (!hasValidTicket) {
           logInfo('Filtering out relationship without valid ticket data', { 
             row, 
@@ -108,7 +108,7 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
             ticketId: id 
           });
         }
-        
+
         return hasValidTicket;
       })
       .map(row => {
@@ -155,13 +155,13 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
           // ✅ [1QA-COMPLIANCE] Explicit ticket ID for frontend navigation
           ticketId: targetTicket.id
         };
-        
+
         logInfo('Relationship data structure', { 
           relationshipId: row.id, 
           targetTicketId: targetTicket.id,
           relationshipType: row.relationship_type
         });
-        
+
         return relationshipData;
       });
 
@@ -172,7 +172,15 @@ router.get('/:id/relationships', async (req: AuthenticatedRequest, res) => {
       validRelationships: relationships.length 
     });
 
-    return sendSuccess(res as any, relationships, "Ticket relationships retrieved successfully");
+    console.log(`🔗 [API-RESPONSE] Sending ${relationships.length} relationships:`, relationships);
+
+    res.json({
+      success: true,
+      data: relationships,
+      relationships: relationships, // Add duplicate key for compatibility
+      results: relationships, // Add another duplicate key for compatibility
+      total: relationships.length
+    });
   } catch (error) {
     logError('Error fetching ticket relationships', error as any, { tenantId: req.user?.tenantId, ticketId: req.params.id });
     return sendError(res as any, error as any, "Failed to fetch ticket relationships", 500);

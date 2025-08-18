@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link2, ExternalLink } from 'lucide-react';
@@ -58,7 +57,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
   }
 
   if (error) {
-    console.error('🔗 [RELATED-TICKETS] Error loading relationships:', error);
+    console.error('🔗 [RELATED-TICKETS] Error fetching relationships:', error);
     return (
       <div className="p-4 bg-gray-50 border-t">
         <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
@@ -66,53 +65,43 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
           Tickets Vinculados
         </h4>
         <div className="text-center py-4 text-red-500 text-sm">
-          Erro ao carregar tickets vinculados
+          Erro ao carregar tickets vinculados: {error.message}
         </div>
       </div>
     );
   }
 
-  // Extract relationships from API response with enhanced validation
-  const relationships: RelatedTicket[] = relatedTicketsData?.success 
-    ? (relatedTicketsData.data || []).filter((rel: any) => {
-        // Enhanced validation - check multiple ID sources
-        const targetTicket = rel.targetTicket || rel;
-        const possibleIds = [
-          targetTicket?.id,
-          rel.targetTicketId, 
-          rel.ticketId,
-          rel.id
-        ];
-        
-        const validId = possibleIds.find(id => 
-          id && typeof id === 'string' && id.trim() !== '' && id !== 'UNKNOWN'
-        );
-        
-        if (!validId) {
-          console.warn('🔗 [RELATED-TICKETS] Filtering out relationship without valid ticket ID:', {
-            rel,
-            targetTicket,
-            possibleIds,
-            relationshipId: rel.id
-          });
-          return false;
-        }
-        
-        console.log('🔗 [RELATED-TICKETS] Valid relationship found:', {
-          relationshipId: rel.id,
-          validTicketId: validId,
-          relationshipType: rel.relationshipType || rel.relationship_type
-        });
-        
-        return true;
-      })
-    : [];
+  // Add comprehensive debugging
+  if (relatedTicketsData) {
+    console.log('🔗 [RELATED-TICKETS] Full API response debug:', {
+      dataType: typeof relatedTicketsData,
+      isArray: Array.isArray(relatedTicketsData),
+      keys: Object.keys(relatedTicketsData || {}),
+      data: relatedTicketsData,
+      dataProperty: relatedTicketsData?.data,
+      relationshipsProperty: relatedTicketsData?.relationships,
+      resultsProperty: relatedTicketsData?.results
+    });
+  }
 
-  console.log('🔗 [RELATED-TICKETS] Processed relationships:', {
-    originalData: relatedTicketsData,
-    processedRelationships: relationships,
-    count: relationships.length,
-    filteredCount: relatedTicketsData?.data?.length || 0
+  // Extract relationships from API response with better error handling
+  let relationships = [];
+
+  if (relatedTicketsData) {
+    console.log('🔗 [RELATED-TICKETS] Raw data structure:', relatedTicketsData);
+
+    // Try different possible data structures
+    relationships = relatedTicketsData.data ||
+                   relatedTicketsData.relationships ||
+                   relatedTicketsData.results ||
+                   (Array.isArray(relatedTicketsData) ? relatedTicketsData : []);
+  }
+
+  console.log('🔗 [RELATED-TICKETS] Processing relationships:', {
+    hasData: !!relatedTicketsData,
+    relationships,
+    relationshipsLength: relationships.length || 0,
+    firstRelationship: relationships[0] || null
   });
 
   return (
@@ -121,33 +110,57 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
         <Link2 className="h-4 w-4" />
         Tickets Vinculados ({relationships.length})
       </h4>
-      
+
       {relationships.length > 0 ? (
         <div className="space-y-2">
           {relationships.map((rel: RelatedTicket, index: number) => {
+            console.log('🔗 [RELATED-TICKETS] Processing relationship item:', rel);
+
             // Extract ticket data with improved fallbacks following 1qa.md patterns
-            const relatedTicket = rel.targetTicket || rel;
-            
+            const relatedTicket = rel.targetTicket || rel.relatedTicket || rel;
+
             // ✅ [1QA-COMPLIANCE] Critical fix: Use actual ticket data, not relationship ID
-            const ticketId = rel.relatedTicketId || rel.targetTicketId || relatedTicket.id;
-            
-            const ticketNumber = rel.relatedTicketNumber || 
-                               relatedTicket.number || 
+            const ticketId = rel.relatedTicketId ||
+                           rel.targetTicketId ||
+                           relatedTicket.id ||
+                           rel.target_ticket_id ||
+                           rel.source_ticket_id;
+
+            const ticketNumber = rel.relatedTicketNumber ||
+                               rel.targetTicketNumber ||
+                               relatedTicket.number ||
                                rel.number ||
-                               `T-${ticketId?.slice(0, 8) || 'UNKNOWN'}`;
-            const ticketSubject = rel.relatedTicketSubject || 
-                                relatedTicket.subject || 
-                                rel.subject || 
+                               rel.target_ticket_number ||
+                               rel.source_ticket_number ||
+                               `T-${String(ticketId || '').slice(0, 8) || 'UNKNOWN'}`;
+
+            const ticketSubject = rel.relatedTicketSubject ||
+                                rel.targetTicketSubject ||
+                                relatedTicket.subject ||
+                                rel.subject ||
+                                rel.target_ticket_subject ||
+                                rel.source_ticket_subject ||
                                 'Ticket relacionado';
-            const ticketStatus = rel.relatedTicketStatus || 
-                               relatedTicket.status || 
-                               rel.status || 
+
+            const ticketStatus = rel.relatedTicketStatus ||
+                               rel.targetTicketStatus ||
+                               relatedTicket.status ||
+                               rel.status ||
+                               rel.target_ticket_status ||
+                               rel.source_ticket_status ||
                                'open';
-            const ticketPriority = relatedTicket.priority || 
-                                 rel.priority || 
+
+            const ticketPriority = rel.relatedTicketPriority ||
+                                 rel.targetTicketPriority ||
+                                 relatedTicket.priority ||
+                                 rel.priority ||
+                                 rel.target_ticket_priority ||
+                                 rel.source_ticket_priority ||
                                  'medium';
-            const relationshipType = rel.relationshipType || 
-                                   rel.relationship_type || 
+
+            const relationshipType = rel.relationshipType ||
+                                   rel.relationship_type ||
+                                   rel.type ||
                                    'related';
 
             // Map relationship types to Portuguese following 1qa.md
@@ -165,9 +178,11 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                 'parent_of': 'Pai de',
                 'child_of': 'Filho de',
                 'follows': 'Segue',
-                'precedes': 'Precede'
+                'precedes': 'Precede',
+                'outgoing': 'Relacionado',
+                'incoming': 'Relacionado'
               };
-              return typeMap[type.toLowerCase()] || type;
+              return typeMap[type?.toLowerCase()] || type || 'Relacionado';
             };
 
             console.log('🔗 [RELATED-TICKETS] Rendering relationship:', {
@@ -180,13 +195,25 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
               ticketStatus,
               ticketPriority,
               relationshipType,
-              originalTargetTicketId: relatedTicket.id,
-              extractedTicketId: ticketId
+              finalData: {
+                ticketId,
+                ticketNumber,
+                ticketSubject,
+                ticketStatus,
+                ticketPriority,
+                relationshipType
+              }
             });
 
+            // Skip if we don't have minimum required data
+            if (!ticketId && !ticketNumber) {
+              console.warn('🔗 [RELATED-TICKETS] Skipping relationship due to missing data:', rel);
+              return null;
+            }
+
             return (
-              <div 
-                key={`rel-${rel.id || relatedTicket.id || index}`} 
+              <div
+                key={`rel-${rel.id || relatedTicket.id || ticketId || index}`}
                 className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -226,7 +253,7 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                 </div>
               </div>
             );
-          })}
+          }).filter(Boolean)}
         </div>
       ) : (
         <div className="text-center py-4 text-gray-500 text-sm">

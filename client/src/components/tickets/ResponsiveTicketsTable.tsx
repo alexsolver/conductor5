@@ -264,7 +264,7 @@ export const ResponsiveTicketsTable = ({
               /* Expanded relationships - using RelatedTicketsExpansion component for real data */
               currentExpandedTickets.has(ticket.id) && (
                 <TableRow key={`relationships-${ticket.id}`} className="bg-blue-50">
-                  <TableCell colSpan={8} className="p-0">
+                  <TableCell colSpan={9} className="p-0">
                     <RelatedTicketsExpansion ticketId={ticket.id} />
                   </TableCell>
                 </TableRow>
