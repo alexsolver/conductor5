@@ -144,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               accessToken.trim() !== '') {
             
             localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('access_token', accessToken); // ✅ Dual format following 1qa.md
             if (newRefreshToken && 
                 newRefreshToken !== 'null' && 
                 newRefreshToken !== 'undefined') {
@@ -170,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         console.error('❌ [REFRESH] Invalid refresh response structure:', responseData);
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('tenantId');
         return false;
@@ -177,6 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ [REFRESH] Refresh failed:', response.status, errorData.message || response.statusText);
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('tenantId');
         return false;
@@ -184,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('❌ [REFRESH] Token refresh error:', error);
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('tenantId');
       return false;
@@ -265,6 +269,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       localStorage.setItem('accessToken', result.accessToken);
+      localStorage.setItem('access_token', result.accessToken); // ✅ Dual format following 1qa.md
       console.log('📦 [LOGIN-SUCCESS] Access token stored');
       
       if (result.refreshToken && result.refreshToken !== 'null' && result.refreshToken !== 'undefined') {
@@ -312,6 +317,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (result: { user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }) => {
       localStorage.setItem('accessToken', result.accessToken);
+      localStorage.setItem('access_token', result.accessToken); // ✅ Dual format following 1qa.md
       // Store tenantId for quick access by components
       if (result.user?.tenantId) {
         localStorage.setItem('tenantId', result.user.tenantId);
@@ -355,6 +361,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('tenantId');
       queryClient.setQueryData(['/api/auth/user'], null);

@@ -790,16 +790,30 @@ function PrivacyPolicyManagement() {
     }
   });
 
-  // ✅ Create new policy mutation - Fixed following 1qa.md
+  // ✅ Create new policy mutation - Fixed token issue following 1qa.md
   const createPolicyMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('🔍 [CREATE-POLICY] Sending data:', data);
+      
+      // Get token from localStorage - try multiple key formats following 1qa.md
+      let token = localStorage.getItem('access_token') || 
+                  localStorage.getItem('accessToken') || 
+                  localStorage.getItem('token');
+      console.log('🔍 [CREATE-POLICY] Token status:', { 
+        hasToken: !!token, 
+        tokenLength: token?.length,
+        tokenStart: token?.substring(0, 20)
+      });
+      
+      if (!token) {
+        throw new Error('No access token found. Please login again.');
+      }
       
       const response = await fetch('/api/gdpr-compliance/admin/privacy-policies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(data)
       });
@@ -829,12 +843,32 @@ function PrivacyPolicyManagement() {
     }
   });
 
-  // ✅ Activate policy mutation
+  // ✅ Activate policy mutation - Fixed token issue following 1qa.md
   const activatePolicyMutation = useMutation({
-    mutationFn: (policyId: string) => apiRequest(`/api/gdpr-compliance/admin/privacy-policies/${policyId}/activate`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: async (policyId: string) => {
+      const token = localStorage.getItem('access_token') || 
+                    localStorage.getItem('accessToken') || 
+                    localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No access token found. Please login again.');
+      }
+      
+      const response = await fetch(`/api/gdpr-compliance/admin/privacy-policies/${policyId}/activate`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to activate policy');
+      }
+
+      return result;
+    },
     onSuccess: () => {
       toast({ title: "Política ativada com sucesso" });
       refetchPolicies();
