@@ -103,6 +103,813 @@ const statusColors = {
   scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
 };
 
+// Template Library Component - Biblioteca de Relatórios Prontos
+function TemplateLibrary({ onClose }: { onClose: () => void }) {
+  const templateCategories = [
+    { id: "sla", name: "SLA & Performance", icon: TrendingUp, templates: [
+      { id: "sla-dashboard", name: "SLA Performance Dashboard", description: "Monitor ticket SLA compliance and response times" },
+      { id: "response-time", name: "Response Time Analysis", description: "Track average response times by priority and category" },
+      { id: "resolution-trends", name: "Resolution Trends", description: "Analyze ticket resolution patterns over time" },
+    ]},
+    { id: "tickets", name: "Tickets & Support", icon: AlertTriangle, templates: [
+      { id: "ticket-volume", name: "Ticket Volume Report", description: "Daily, weekly, and monthly ticket creation trends" },
+      { id: "agent-performance", name: "Agent Performance", description: "Individual agent productivity and quality metrics" },
+      { id: "customer-satisfaction", name: "Customer Satisfaction", description: "CSAT scores and feedback analysis" },
+    ]},
+    { id: "contracts", name: "Contratos", icon: FileText, templates: [
+      { id: "contract-overview", name: "Contract Overview", description: "Active contracts, renewals, and revenue tracking" },
+      { id: "billing-summary", name: "Billing Summary", description: "Monthly billing cycles and payment status" },
+      { id: "sla-compliance", name: "Contract SLA Compliance", description: "SLA metrics by contract and customer" },
+    ]},
+    { id: "financial", name: "Financeiro", icon: BarChart3, templates: [
+      { id: "revenue-report", name: "Revenue Analysis", description: "Monthly and quarterly revenue breakdown" },
+      { id: "cost-analysis", name: "Cost Analysis", description: "Operational costs and profitability metrics" },
+      { id: "expense-tracking", name: "Expense Tracking", description: "Corporate expense management and approval workflows" },
+    ]},
+    { id: "consumption", name: "Consumo", icon: PieChart, templates: [
+      { id: "resource-usage", name: "Resource Usage", description: "System resource consumption and optimization" },
+      { id: "api-consumption", name: "API Consumption", description: "API usage patterns and rate limiting" },
+      { id: "storage-analytics", name: "Storage Analytics", description: "Data storage trends and capacity planning" },
+    ]},
+    { id: "attendance", name: "Atendimento", icon: Users, templates: [
+      { id: "channel-performance", name: "Channel Performance", description: "Omnichannel performance across email, chat, phone" },
+      { id: "first-contact", name: "First Contact Resolution", description: "FCR rates and improvement opportunities" },
+      { id: "escalation-analysis", name: "Escalation Analysis", description: "Ticket escalation patterns and resolution paths" },
+    ]},
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Choose from 20+ Professional Templates</h3>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {templateCategories.map((category) => (
+          <Card key={category.id}>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <category.icon className="w-5 h-5 mr-2" />
+                {category.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {category.templates.map((template) => (
+                  <div key={template.id} className="border rounded p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                    <h4 className="font-medium text-sm">{template.name}</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{template.description}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <Button size="sm" variant="outline">Use Template</Button>
+                      <Button size="sm" variant="ghost">Preview</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Drag-Drop Visual Builder Component - Construtor Visual
+function DragDropReportBuilder({ onClose }: { onClose: () => void }) {
+  const [selectedFields, setSelectedFields] = useState<any[]>([]);
+  const [availableMetrics, setAvailableMetrics] = useState([
+    { id: "ticket_count", name: "Ticket Count", type: "numeric" },
+    { id: "avg_response_time", name: "Average Response Time", type: "duration" },
+    { id: "customer_satisfaction", name: "Customer Satisfaction", type: "percentage" },
+    { id: "resolution_time", name: "Resolution Time", type: "duration" },
+    { id: "agent_workload", name: "Agent Workload", type: "numeric" },
+  ]);
+
+  const [chartConfig, setChartConfig] = useState({
+    type: "bar",
+    groupBy: "",
+    aggregation: "sum",
+    timeRange: "last_30_days",
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Visual Report Builder - No SQL Required</h3>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Available Fields */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Available Metrics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {availableMetrics.map((metric) => (
+                <div
+                  key={metric.id}
+                  className="p-2 border rounded cursor-move hover:bg-blue-50 dark:hover:bg-blue-900"
+                  draggable
+                  onDragStart={(e) => e.dataTransfer.setData("text/plain", metric.id)}
+                >
+                  <div className="font-medium text-sm">{metric.name}</div>
+                  <div className="text-xs text-gray-500">{metric.type}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Report Canvas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Report Canvas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-64 text-center"
+              onDrop={(e) => {
+                e.preventDefault();
+                const fieldId = e.dataTransfer.getData("text/plain");
+                const field = availableMetrics.find(m => m.id === fieldId);
+                if (field) {
+                  setSelectedFields([...selectedFields, field]);
+                }
+              }}
+              onDragOver={(e) => e.preventDefault()}
+            >
+              {selectedFields.length === 0 ? (
+                <div className="text-gray-500 mt-8">
+                  <Grid className="w-12 h-12 mx-auto mb-4" />
+                  <p>Drag metrics here to build your report</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {selectedFields.map((field, index) => (
+                    <div key={index} className="bg-blue-100 dark:bg-blue-900 p-2 rounded flex items-center justify-between">
+                      <span className="text-sm">{field.name}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSelectedFields(selectedFields.filter((_, i) => i !== index))}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Chart Configuration */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Visualization Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Chart Type</label>
+              <Select value={chartConfig.type} onValueChange={(value) => setChartConfig({...chartConfig, type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bar">Bar Chart</SelectItem>
+                  <SelectItem value="line">Line Chart</SelectItem>
+                  <SelectItem value="pie">Pie Chart</SelectItem>
+                  <SelectItem value="table">Table</SelectItem>
+                  <SelectItem value="heatmap">Heatmap</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium">Time Range</label>
+              <Select value={chartConfig.timeRange} onValueChange={(value) => setChartConfig({...chartConfig, timeRange: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+                  <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+                  <SelectItem value="last_3_months">Last 3 Months</SelectItem>
+                  <SelectItem value="last_year">Last Year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button className="w-full">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Generate Report
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Advanced Filters Manager Component - Filtros Avançados
+function AdvancedFiltersManager({ savedFilters, onSaveFilter, onClose }: { 
+  savedFilters: any[], 
+  onSaveFilter: (filter: any) => void, 
+  onClose: () => void 
+}) {
+  const [currentFilter, setCurrentFilter] = useState({
+    name: "",
+    conditions: [],
+    period: { start: "", end: "" },
+    customer: "",
+    location: "",
+    sla: "",
+    agent: "",
+    category: "",
+    priority: "",
+  });
+
+  const filterOptions = {
+    customers: ["All Customers", "Customer A", "Customer B", "Customer C"],
+    locations: ["All Locations", "São Paulo", "Rio de Janeiro", "Belo Horizonte"],
+    slaLevels: ["All SLAs", "Bronze", "Silver", "Gold", "Platinum"],
+    agents: ["All Agents", "Agent 1", "Agent 2", "Agent 3"],
+    categories: ["All Categories", "Technical", "Billing", "General"],
+    priorities: ["All Priorities", "Low", "Medium", "High", "Critical"],
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Advanced Filters & Saved Presets</h3>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Filter Builder */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Build Custom Filter</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Filter Name</label>
+              <Input
+                value={currentFilter.name}
+                onChange={(e) => setCurrentFilter({...currentFilter, name: e.target.value})}
+                placeholder="e.g., High Priority Last Week"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Start Date</label>
+                <Input
+                  type="date"
+                  value={currentFilter.period.start}
+                  onChange={(e) => setCurrentFilter({
+                    ...currentFilter,
+                    period: {...currentFilter.period, start: e.target.value}
+                  })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">End Date</label>
+                <Input
+                  type="date"
+                  value={currentFilter.period.end}
+                  onChange={(e) => setCurrentFilter({
+                    ...currentFilter,
+                    period: {...currentFilter.period, end: e.target.value}
+                  })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Customer</label>
+                <Select value={currentFilter.customer} onValueChange={(value) => setCurrentFilter({...currentFilter, customer: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filterOptions.customers.map(customer => (
+                      <SelectItem key={customer} value={customer}>{customer}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Location</label>
+                <Select value={currentFilter.location} onValueChange={(value) => setCurrentFilter({...currentFilter, location: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filterOptions.locations.map(location => (
+                      <SelectItem key={location} value={location}>{location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">SLA Level</label>
+                <Select value={currentFilter.sla} onValueChange={(value) => setCurrentFilter({...currentFilter, sla: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="SLA" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filterOptions.slaLevels.map(sla => (
+                      <SelectItem key={sla} value={sla}>{sla}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Category</label>
+                <Select value={currentFilter.category} onValueChange={(value) => setCurrentFilter({...currentFilter, category: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filterOptions.categories.map(category => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Priority</label>
+                <Select value={currentFilter.priority} onValueChange={(value) => setCurrentFilter({...currentFilter, priority: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filterOptions.priorities.map(priority => (
+                      <SelectItem key={priority} value={priority}>{priority}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Button 
+              className="w-full"
+              onClick={() => {
+                if (currentFilter.name) {
+                  onSaveFilter({...currentFilter, id: Date.now()});
+                  setCurrentFilter({
+                    name: "",
+                    conditions: [],
+                    period: { start: "", end: "" },
+                    customer: "",
+                    location: "",
+                    sla: "",
+                    agent: "",
+                    category: "",
+                    priority: "",
+                  });
+                }
+              }}
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Save Filter
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Saved Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Saved Filters ({savedFilters.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {savedFilters.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  <Filter className="w-8 h-8 mx-auto mb-2" />
+                  <p>No saved filters yet</p>
+                </div>
+              ) : (
+                savedFilters.map((filter) => (
+                  <div key={filter.id} className="p-3 border rounded hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-sm">{filter.name}</h4>
+                      <div className="flex items-center space-x-1">
+                        <Button size="sm" variant="outline">Apply</Button>
+                        <Button size="sm" variant="ghost">
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {filter.period.start} to {filter.period.end} | {filter.customer} | {filter.priority}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Execution Queue Manager Component - Fila de Execução Inteligente
+function ExecutionQueueManager({ queue, onClose }: { queue: any[], onClose: () => void }) {
+  const [queueItems, setQueueItems] = useState([
+    {
+      id: 1,
+      reportName: "SLA Performance Dashboard",
+      status: "running",
+      priority: "high",
+      estimatedTime: "2 min",
+      progress: 65,
+      startedAt: "2025-08-18T00:45:00Z",
+      queuePosition: 1,
+    },
+    {
+      id: 2,
+      reportName: "Customer Satisfaction Trends",
+      status: "queued",
+      priority: "medium",
+      estimatedTime: "5 min",
+      progress: 0,
+      queuePosition: 2,
+    },
+    {
+      id: 3,
+      reportName: "CLT Compliance Report",
+      status: "scheduled",
+      priority: "low",
+      estimatedTime: "8 min",
+      progress: 0,
+      scheduledFor: "2025-08-18T02:00:00Z",
+      queuePosition: 3,
+    },
+  ]);
+
+  const statusColors = {
+    running: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    queued: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    completed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    failed: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    scheduled: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Intelligent Execution Queue</h3>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Running</p>
+                <p className="text-2xl font-bold">{queueItems.filter(item => item.status === 'running').length}</p>
+              </div>
+              <Play className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Queued</p>
+                <p className="text-2xl font-bold">{queueItems.filter(item => item.status === 'queued').length}</p>
+              </div>
+              <Clock className="w-8 h-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Scheduled</p>
+                <p className="text-2xl font-bold">{queueItems.filter(item => item.status === 'scheduled').length}</p>
+              </div>
+              <Calendar className="w-8 h-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Queue Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {queueItems.map((item) => (
+              <div key={item.id} className="border rounded p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h4 className="font-medium">{item.reportName}</h4>
+                    <p className="text-sm text-gray-500">Position #{item.queuePosition} | Est. {item.estimatedTime}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge className={statusColors[item.status as keyof typeof statusColors]}>
+                      {item.status}
+                    </Badge>
+                    <Button size="sm" variant="outline">
+                      <ExternalLink className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {item.status === 'running' && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Progress</span>
+                      <span>{item.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {item.scheduledFor && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Scheduled for: {new Date(item.scheduledFor).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Security Profiles Manager Component - Segurança e Perfis de Acesso
+function SecurityProfilesManager({ onClose }: { onClose: () => void }) {
+  const [profiles, setProfiles] = useState([
+    {
+      id: 1,
+      name: "Customer Self-Service",
+      description: "Customers can only view reports related to their own data",
+      rules: ["own_data_only", "no_aggregated_metrics", "limited_export"],
+      reportsVisible: 5,
+      usersCount: 150,
+    },
+    {
+      id: 2,
+      name: "Team Manager",
+      description: "Managers can view team performance and department metrics",
+      rules: ["team_data", "department_metrics", "export_allowed"],
+      reportsVisible: 25,
+      usersCount: 12,
+    },
+    {
+      id: 3,
+      name: "Executive Dashboard",
+      description: "C-level access to all metrics and strategic reports",
+      rules: ["all_data", "financial_reports", "strategic_metrics"],
+      reportsVisible: 47,
+      usersCount: 5,
+    },
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Security Profiles & Access Control</h3>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {profiles.map((profile) => (
+          <Card key={profile.id}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{profile.name}</span>
+                <Badge variant="outline">{profile.usersCount} users</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">{profile.description}</p>
+              
+              <div>
+                <label className="text-sm font-medium">Access Rules</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {profile.rules.map((rule) => (
+                    <Badge key={rule} variant="secondary" className="text-xs">
+                      {rule.replace(/_/g, ' ')}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Reports Visible:</span>
+                <span className="font-medium">{profile.reportsVisible}/47</span>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Button size="sm" variant="outline">
+                  <Settings className="w-3 h-3 mr-1" />
+                  Configure
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Users className="w-3 h-3 mr-1" />
+                  Manage Users
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Access Logs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[
+              { user: "customer@example.com", report: "SLA Dashboard", action: "viewed", time: "2 min ago" },
+              { user: "manager@company.com", report: "Team Performance", action: "exported", time: "15 min ago" },
+              { user: "exec@company.com", report: "Financial Overview", action: "downloaded", time: "1 hour ago" },
+            ].map((log, index) => (
+              <div key={index} className="flex items-center justify-between text-sm">
+                <div>
+                  <span className="font-medium">{log.user}</span>
+                  <span className="text-gray-500 ml-2">{log.action}</span>
+                  <span className="text-blue-600 ml-1">"{log.report}"</span>
+                </div>
+                <span className="text-gray-400">{log.time}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Version History Manager Component - Versões & Histórico
+function VersionHistoryManager({ versions, onClose }: { versions: any[], onClose: () => void }) {
+  const [mockVersions] = useState([
+    {
+      id: 1,
+      reportName: "SLA Performance Dashboard",
+      version: "v2.3",
+      author: "admin@company.com",
+      changes: "Added new SLA threshold indicators and response time breakdown",
+      createdAt: "2025-08-18T00:30:00Z",
+      status: "current",
+    },
+    {
+      id: 2,
+      reportName: "SLA Performance Dashboard",
+      version: "v2.2",
+      author: "manager@company.com",
+      changes: "Updated color scheme and added customer satisfaction metrics",
+      createdAt: "2025-08-15T14:20:00Z",
+      status: "archived",
+    },
+    {
+      id: 3,
+      reportName: "SLA Performance Dashboard",
+      version: "v2.1",
+      author: "admin@company.com",
+      changes: "Initial template with basic SLA tracking",
+      createdAt: "2025-08-10T09:15:00Z",
+      status: "archived",
+    },
+  ]);
+
+  const statusColors = {
+    current: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    archived: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+    draft: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Report Versions & History</h3>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </div>
+      
+      <div className="space-y-4">
+        {mockVersions.map((version) => (
+          <Card key={version.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="font-medium">{version.reportName}</h4>
+                  <p className="text-sm text-gray-500">
+                    {version.version} by {version.author}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge className={statusColors[version.status as keyof typeof statusColors]}>
+                    {version.status}
+                  </Badge>
+                  <span className="text-sm text-gray-400">
+                    {new Date(version.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                {version.changes}
+              </p>
+
+              <div className="flex items-center space-x-2">
+                {version.status === 'current' ? (
+                  <Button size="sm" variant="outline" disabled>
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Current Version
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline">
+                    <Copy className="w-3 h-3 mr-1" />
+                    Restore
+                  </Button>
+                )}
+                <Button size="sm" variant="outline">
+                  <Eye className="w-3 h-3 mr-1" />
+                  Preview
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Download className="w-3 h-3 mr-1" />
+                  Download
+                </Button>
+                {version.status !== 'current' && (
+                  <Button size="sm" variant="ghost">
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Compare Versions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">Version A</label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select version" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="v2.3">v2.3 (current)</SelectItem>
+                  <SelectItem value="v2.2">v2.2</SelectItem>
+                  <SelectItem value="v2.1">v2.1</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Version B</label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select version" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="v2.3">v2.3 (current)</SelectItem>
+                  <SelectItem value="v2.2">v2.2</SelectItem>
+                  <SelectItem value="v2.1">v2.1</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Button className="w-full mt-4">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Compare Side by Side
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // WYSIWYG Report Designer Component
 function WYSIWYGDesigner({ onSave, initialData }: { onSave: (config: any) => void; initialData?: any }) {
   const [designConfig, setDesignConfig] = useState(initialData || {
@@ -956,6 +1763,17 @@ export default function Reports() {
   const [activeTab, setActiveTab] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
+  // Enhanced state management for advanced features
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [showDragDropBuilder, setShowDragDropBuilder] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showSecurityProfiles, setShowSecurityProfiles] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showExecutionQueue, setShowExecutionQueue] = useState(false);
+  const [savedFilters, setSavedFilters] = useState<any[]>([]);
+  const [reportVersions, setReportVersions] = useState<any[]>([]);
+  const [executionQueue, setExecutionQueue] = useState<any[]>([]);
+
   // Fetch reports
   const { data: reportsData, isLoading } = useQuery({
     queryKey: ["/api/reports-dashboards/reports"],
@@ -1042,13 +1860,29 @@ export default function Reports() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline" data-testid="button-templates">
+          <Button variant="outline" onClick={() => setShowTemplateLibrary(true)} data-testid="button-template-library">
             <FileText className="w-4 h-4 mr-2" />
-            Templates
+            Template Library
           </Button>
-          <Button variant="outline" data-testid="button-analytics">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Analytics
+          <Button variant="outline" onClick={() => setShowDragDropBuilder(true)} data-testid="button-visual-builder">
+            <Grid className="w-4 h-4 mr-2" />
+            Visual Builder
+          </Button>
+          <Button variant="outline" onClick={() => setShowAdvancedFilters(true)} data-testid="button-advanced-filters">
+            <Filter className="w-4 h-4 mr-2" />
+            Advanced Filters
+          </Button>
+          <Button variant="outline" onClick={() => setShowExecutionQueue(true)} data-testid="button-execution-queue">
+            <Clock className="w-4 h-4 mr-2" />
+            Execution Queue
+          </Button>
+          <Button variant="outline" onClick={() => setShowSecurityProfiles(true)} data-testid="button-security-profiles">
+            <Users className="w-4 h-4 mr-2" />
+            Security
+          </Button>
+          <Button variant="outline" onClick={() => setShowVersionHistory(true)} data-testid="button-version-history">
+            <Calendar className="w-4 h-4 mr-2" />
+            Versions
           </Button>
           <CreateReportDialog onSuccess={() => {}} />
         </div>
@@ -1132,6 +1966,83 @@ export default function Reports() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Advanced Features Dialogs */}
+      {showTemplateLibrary && (
+        <Dialog open={showTemplateLibrary} onOpenChange={setShowTemplateLibrary}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Template Library</DialogTitle>
+            </DialogHeader>
+            <TemplateLibrary onClose={() => setShowTemplateLibrary(false)} />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {showDragDropBuilder && (
+        <Dialog open={showDragDropBuilder} onOpenChange={setShowDragDropBuilder}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Visual Report Builder</DialogTitle>
+            </DialogHeader>
+            <DragDropReportBuilder onClose={() => setShowDragDropBuilder(false)} />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {showAdvancedFilters && (
+        <Dialog open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Advanced Filters</DialogTitle>
+            </DialogHeader>
+            <AdvancedFiltersManager
+              savedFilters={savedFilters}
+              onSaveFilter={(filter) => setSavedFilters([...savedFilters, filter])}
+              onClose={() => setShowAdvancedFilters(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {showExecutionQueue && (
+        <Dialog open={showExecutionQueue} onOpenChange={setShowExecutionQueue}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Intelligent Execution Queue</DialogTitle>
+            </DialogHeader>
+            <ExecutionQueueManager
+              queue={executionQueue}
+              onClose={() => setShowExecutionQueue(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {showSecurityProfiles && (
+        <Dialog open={showSecurityProfiles} onOpenChange={setShowSecurityProfiles}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Security Profiles & Access Control</DialogTitle>
+            </DialogHeader>
+            <SecurityProfilesManager onClose={() => setShowSecurityProfiles(false)} />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {showVersionHistory && (
+        <Dialog open={showVersionHistory} onOpenChange={setShowVersionHistory}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Report Versions & History</DialogTitle>
+            </DialogHeader>
+            <VersionHistoryManager 
+              versions={reportVersions}
+              onClose={() => setShowVersionHistory(false)} 
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
