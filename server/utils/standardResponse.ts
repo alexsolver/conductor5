@@ -61,7 +61,7 @@ export const sendSuccess = (res: any, data: any, message: string = 'Success', st
   });
 };
 
-export function sendError(res: Response, error: any, message: string = "Internal server error", statusCode: number = 500) {
+export function sendError(res: any, error: any, message: string = "Internal server error", statusCode: number = 500) {
   console.error('Request failed', {
     error: error?.message || error,
     stack: error?.stack,
@@ -101,4 +101,18 @@ export function sendValidationError(
 
   console.error('[Validation Error]:', response);
   return res.status(400).json(response);
+}
+
+// ✅ Legacy compatibility function for existing code
+export function standardResponse<T = any>(
+  success: boolean,
+  message: string,
+  data?: T | null
+): StandardAPIResponse<T> {
+  return {
+    success,
+    message,
+    data: data === null ? undefined : data,
+    timestamp: new Date().toISOString()
+  };
 }
