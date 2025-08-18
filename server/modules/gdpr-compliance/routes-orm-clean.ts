@@ -182,10 +182,15 @@ router.get('/admin/privacy-policies', jwtAuth, async (req: any, res: any) => {
 
 router.post('/admin/privacy-policies', jwtAuth, async (req: any, res: any) => {
   try {
+    console.log('🔍 [PRIVACY-POLICIES] POST Request received');
+    console.log('🔍 [PRIVACY-POLICIES] Request body:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 [PRIVACY-POLICIES] User info:', { userId: req.user?.id, tenantId: req.user?.tenantId });
+    
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
     
     if (!tenantId || !userId) {
+      console.log('❌ [PRIVACY-POLICIES] Missing auth info:', { tenantId: !!tenantId, userId: !!userId });
       return res.status(400).json({ 
         success: false, 
         message: 'Authentication required' 
@@ -193,12 +198,25 @@ router.post('/admin/privacy-policies', jwtAuth, async (req: any, res: any) => {
     }
 
     const { title, content, version, policyType, effectiveDate, requiresAcceptance } = req.body;
+    console.log('🔍 [PRIVACY-POLICIES] Extracted fields:', { 
+      title: !!title, 
+      content: !!content, 
+      version: !!version, 
+      policyType: !!policyType 
+    });
 
-    // Validate required fields
+    // Validate required fields rigorously following 1qa.md
     if (!title || !content || !version || !policyType) {
+      console.log('❌ [PRIVACY-POLICIES] Validation failed - missing required fields');
       return res.status(400).json({
         success: false,
-        message: 'Title, content, version, and policy type are required'
+        message: 'Title, content, version, and policy type are required',
+        details: {
+          title: !!title,
+          content: !!content,
+          version: !!version,
+          policyType: !!policyType
+        }
       });
     }
 
@@ -221,12 +239,14 @@ router.post('/admin/privacy-policies', jwtAuth, async (req: any, res: any) => {
 
     console.log('🔍 [PRIVACY-POLICIES] Attempting to create policy with data:', JSON.stringify(policyData, null, 2));
 
+    console.log('🔍 [PRIVACY-POLICIES] Executing database insert...');
     const [policy] = await db
       .insert(privacyPolicies)
       .values(policyData)
       .returning();
 
-    console.log('✅ [PRIVACY-POLICIES] Policy created successfully:', policy.id);
+    console.log('✅ [PRIVACY-POLICIES] Policy created successfully:', policy?.id || 'NO_ID');
+    console.log('✅ [PRIVACY-POLICIES] Created policy data:', JSON.stringify(policy, null, 2));
     
     res.json({
       success: true,

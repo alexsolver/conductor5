@@ -790,21 +790,42 @@ function PrivacyPolicyManagement() {
     }
   });
 
-  // ✅ Create new policy mutation
+  // ✅ Create new policy mutation - Fixed following 1qa.md
   const createPolicyMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/gdpr-compliance/admin/privacy-policies', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: async (data: any) => {
+      console.log('🔍 [CREATE-POLICY] Sending data:', data);
+      
+      const response = await fetch('/api/gdpr-compliance/admin/privacy-policies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      console.log('🔍 [CREATE-POLICY] Response:', result);
+
+      if (!response.ok) {
+        throw new Error(result.message || `HTTP ${response.status}: Failed to create policy`);
+      }
+
+      return result;
+    },
     onSuccess: () => {
       toast({ title: "Política criada com sucesso" });
       setShowCreateForm(false);
       policyForm.reset();
       refetchPolicies();
     },
-    onError: () => {
-      toast({ title: "Erro ao criar política", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('❌ [CREATE-POLICY] Error:', error);
+      toast({ 
+        title: "Erro ao criar política", 
+        description: error.message || 'Erro desconhecido',
+        variant: "destructive" 
+      });
     }
   });
 
