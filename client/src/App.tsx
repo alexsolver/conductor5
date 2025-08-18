@@ -210,7 +210,6 @@ function AppRouter() {
         <Route path="/contracts" component={ContractManagement} />
         <Route path="/expense-management" component={CorporateExpenseManagement} />
         <Route path="/corporate-expenses" component={CorporateExpenseManagement} />
-        <Route path="/expense-reports" component={ExpenseReportsPage} />
 
         <Route path="/item-catalog" component={ItemCatalog} />
         <Route path="/tickets/:id/materials" component={TicketMaterials} />
