@@ -54,21 +54,21 @@ export default function GdprCompliancePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // ✅ Fetch compliance metrics
+  // ✅ Fetch compliance metrics - ADMIN ONLY
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['/api/gdpr-compliance/metrics'],
     enabled: true,
   });
 
-  // ✅ Fetch user preferences
-  const { data: userPreferences } = useQuery({
-    queryKey: ['/api/gdpr-compliance/user-preferences'],
+  // ✅ Fetch admin data subject requests - ALL USERS
+  const { data: dataRequests } = useQuery({
+    queryKey: ['/api/gdpr-compliance/admin/data-subject-requests'],
     enabled: true,
   });
 
-  // ✅ Fetch data subject requests
-  const { data: dataRequests } = useQuery({
-    queryKey: ['/api/gdpr-compliance/data-subject-requests'],
+  // ✅ Fetch security incidents - ADMIN ONLY
+  const { data: securityIncidents } = useQuery({
+    queryKey: ['/api/gdpr-compliance/security-incidents'],
     enabled: true,
   });
 
@@ -605,72 +605,33 @@ export default function GdprCompliancePage() {
           </Card>
         </TabsContent>
 
-        {/* ✅ 12. User Preferences Tab */}
+        {/* ✅ Admin Dashboard Tab */}
         <TabsContent value="preferences" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Portal de Preferências do Usuário</CardTitle>
+              <CardTitle>Painel Administrativo GDPR/LGPD</CardTitle>
               <CardDescription>
-                Funcionalidade 12: Gestão de Preferências de Privacidade
+                Funcionalidade ADMIN: Gestão Global de Compliance
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="text-sm text-gray-600 dark:text-gray-300">
-                  Configure suas preferências de privacidade e comunicação
+                  Painel administrativo para monitoramento e gestão de compliance
                 </div>
                 
-                {userPreferences?.data ? (
-                  <div className="grid grid-cols-1 gap-6">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <Label className="text-base font-medium">Email Marketing</Label>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Receber emails promocionais</p>
-                      </div>
-                      <Switch 
-                        checked={userPreferences.data.emailMarketing || false}
-                        data-testid="switch-email-marketing"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <Label className="text-base font-medium">SMS Marketing</Label>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Receber SMS promocionais</p>
-                      </div>
-                      <Switch 
-                        checked={userPreferences.data.smsMarketing || false}
-                        data-testid="switch-sms-marketing"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <Label className="text-base font-medium">Analytics</Label>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Permitir processamento para analytics</p>
-                      </div>
-                      <Switch 
-                        checked={userPreferences.data.dataProcessingForAnalytics || false}
-                        data-testid="switch-analytics-processing"
-                      />
-                    </div>
-                    
-                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-green-600" />
-                        <span className="font-medium text-green-800 dark:text-green-200">Preferências Carregadas</span>
-                      </div>
-                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                        Suas preferências estão sendo gerenciadas conforme GDPR/LGPD
-                      </p>
-                    </div>
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-blue-800 dark:text-blue-200">Funcionalidade Movida</span>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Carregando preferências do usuário...
-                    </p>
-                  </div>
-                )}
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    As preferências do usuário foram movidas para a aba "Privacidade & GDPR/LGPD" na página de perfil do usuário.
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    Esta página agora contém apenas funcionalidades administrativas conforme especificação do 1qa.md.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

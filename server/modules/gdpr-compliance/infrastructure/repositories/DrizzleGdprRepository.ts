@@ -105,6 +105,7 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
   }
 
   async findDataSubjectRequestsByUser(userId: string, tenantId: string): Promise<DataSubjectRequest[]> {
+    // ✅ Correção seguindo 1qa.md - usar apenas campos existentes
     const results = await db
       .select()
       .from(dataSubjectRequests)

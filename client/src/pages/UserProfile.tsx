@@ -35,7 +35,11 @@ import {
   Camera,
   Edit,
   Save,
-  X
+  X,
+  Download,
+  Trash2,
+  FileText,
+  AlertTriangle
 } from "lucide-react";
 import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
 import { ObjectUploader } from "@/components/ObjectUploader";
@@ -408,7 +412,7 @@ export default function UserProfile() {
 
       {/* Tabs Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="personal" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span>Pessoal</span>
@@ -424,6 +428,10 @@ export default function UserProfile() {
           <TabsTrigger value="security" className="flex items-center space-x-2">
             <Shield className="h-4 w-4" />
             <span>Segurança</span>
+          </TabsTrigger>
+          <TabsTrigger value="privacy-gdpr" className="flex items-center space-x-2">
+            <Lock className="h-4 w-4" />
+            <span>Privacidade & GDPR/LGPD</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="flex items-center space-x-2">
             <Settings className="h-4 w-4" />
@@ -895,7 +903,315 @@ export default function UserProfile() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Privacy & GDPR/LGPD Tab - Seguindo 1qa.md */}
+        <TabsContent value="privacy-gdpr">
+          <PrivacyGdprTab />
+        </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// ✅ Componente Privacidade & GDPR/LGPD - Seguindo especificações rigorosas do 1qa.md
+function PrivacyGdprTab() {
+  const { toast } = useToast();
+
+  // ✅ Fetch GDPR user preferences
+  const { data: gdprPreferences, refetch: refetchPreferences } = useQuery({
+    queryKey: ['/api/gdpr-compliance/user-preferences'],
+    enabled: true,
+  });
+
+  // ✅ Fetch data subject requests
+  const { data: dataRequests } = useQuery({
+    queryKey: ['/api/gdpr-compliance/data-subject-requests'],
+    enabled: true,
+  });
+
+  // ✅ Fetch current privacy policy version
+  const { data: privacyPolicy } = useQuery({
+    queryKey: ['/api/gdpr-compliance/current-privacy-policy'],
+    enabled: true,
+  });
+
+  // ✅ Mutations for user actions
+  const updatePreferencesMutation = useMutation({
+    mutationFn: (preferences: any) => apiRequest('/api/gdpr-compliance/user-preferences', {
+      method: 'PUT',
+      body: JSON.stringify(preferences),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      toast({ title: "Preferências atualizadas com sucesso" });
+      refetchPreferences();
+    }
+  });
+
+  const exportDataMutation = useMutation({
+    mutationFn: () => apiRequest('/api/gdpr-compliance/export-my-data', {
+      method: 'POST',
+      body: JSON.stringify({ format: 'json' }),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      toast({ title: "Solicitação de exportação criada", description: "Você receberá um e-mail com seus dados" });
+    }
+  });
+
+  const deleteDataMutation = useMutation({
+    mutationFn: () => apiRequest('/api/gdpr-compliance/request-data-deletion', {
+      method: 'POST',
+      body: JSON.stringify({ requestType: 'erasure', requestDetails: 'Direito ao esquecimento' }),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      toast({ title: "Solicitação de exclusão criada", description: "Processaremos sua solicitação em até 30 dias" });
+    }
+  });
+
+  const correctDataMutation = useMutation({
+    mutationFn: () => apiRequest('/api/gdpr-compliance/request-data-correction', {
+      method: 'POST', 
+      body: JSON.stringify({ requestType: 'rectification', requestDetails: 'Correção de dados pessoais' }),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      toast({ title: "Solicitação de correção criada", description: "Analisaremos sua solicitação" });
+    }
+  });
+
+  const limitUsageMutation = useMutation({
+    mutationFn: () => apiRequest('/api/gdpr-compliance/limit-data-usage', {
+      method: 'POST',
+      body: JSON.stringify({ requestType: 'restriction', requestDetails: 'Limitação de uso de dados' }),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      toast({ title: "Limitação de uso ativada", description: "Dados serão usados apenas para contratos essenciais" });
+    }
+  });
+
+  const preferences = (gdprPreferences as any)?.data || {};
+  const policyData = (privacyPolicy as any)?.data || {};
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Lock className="h-5 w-5" />
+          <span>Privacidade & GDPR/LGPD</span>
+        </CardTitle>
+        <CardDescription>
+          Gerencie suas preferências de privacidade e direitos de proteção de dados
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        
+        {/* ✅ Política de Privacidade Atual */}
+        <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span>Política de Privacidade</span>
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Versão aceita: {policyData.version || "1.0"} - {policyData.acceptedAt ? new Date(policyData.acceptedAt).toLocaleDateString('pt-BR') : "Primeira vez"}
+              </p>
+            </div>
+            <Button variant="outline" size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              Ver Política Completa
+            </Button>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* ✅ Gerenciar Consentimento */}
+        <div className="space-y-4">
+          <h4 className="font-medium">Gerenciar Consentimento</h4>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <Label className="font-medium">Cookies de Marketing</Label>
+                <p className="text-sm text-gray-600">Permitir cookies para personalização de anúncios</p>
+              </div>
+              <Switch
+                checked={preferences.emailMarketing || false}
+                onCheckedChange={(checked) => 
+                  updatePreferencesMutation.mutate({ ...preferences, emailMarketing: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <Label className="font-medium">Comunicação por SMS</Label>
+                <p className="text-sm text-gray-600">Receber comunicações de marketing por SMS</p>
+              </div>
+              <Switch
+                checked={preferences.smsMarketing || false}
+                onCheckedChange={(checked) => 
+                  updatePreferencesMutation.mutate({ ...preferences, smsMarketing: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <Label className="font-medium">Análise de Dados</Label>
+                <p className="text-sm text-gray-600">Permitir análise para melhoria de serviços</p>
+              </div>
+              <Switch
+                checked={preferences.dataProcessingForAnalytics || false}
+                onCheckedChange={(checked) => 
+                  updatePreferencesMutation.mutate({ ...preferences, dataProcessingForAnalytics: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <Label className="font-medium">Visibilidade do Perfil</Label>
+                <p className="text-sm text-gray-600">Controlar visibilidade das informações do perfil</p>
+              </div>
+              <Select
+                value={preferences.profileVisibility || 'private'}
+                onValueChange={(value) => 
+                  updatePreferencesMutation.mutate({ ...preferences, profileVisibility: value })
+                }
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Privado</SelectItem>
+                  <SelectItem value="public">Público</SelectItem>
+                  <SelectItem value="restricted">Restrito</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* ✅ Direitos do Usuário */}
+        <div className="space-y-4">
+          <h4 className="font-medium">Seus Direitos de Proteção de Dados</h4>
+          <p className="text-sm text-gray-600">
+            Conforme GDPR/LGPD, você tem os seguintes direitos sobre seus dados pessoais:
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Baixar Meus Dados */}
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-medium">Baixar Meus Dados</h5>
+                  <p className="text-sm text-gray-600">Exportar todos os seus dados (JSON/CSV/PDF)</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => exportDataMutation.mutate()}
+                  disabled={exportDataMutation.isPending}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Corrigir Dados */}
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-medium">Corrigir Dados</h5>
+                  <p className="text-sm text-gray-600">Solicitar correção de informações incorretas</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => correctDataMutation.mutate()}
+                  disabled={correctDataMutation.isPending}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Limitar Uso */}
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-medium">Limitar Uso</h5>
+                  <p className="text-sm text-gray-600">Suspender marketing, manter contratos essenciais</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => limitUsageMutation.mutate()}
+                  disabled={limitUsageMutation.isPending}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Excluir Meus Dados */}
+            <div className="p-4 border rounded-lg border-red-200 dark:border-red-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-medium text-red-600 dark:text-red-400">Excluir Meus Dados</h5>
+                  <p className="text-sm text-gray-600">Direito ao esquecimento (ação irreversível)</p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm("Tem certeza? Esta ação é irreversível.")) {
+                      deleteDataMutation.mutate();
+                    }
+                  }}
+                  disabled={deleteDataMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ✅ Histórico de Solicitações */}
+        <Separator />
+        <div className="space-y-4">
+          <h4 className="font-medium">Histórico de Solicitações</h4>
+          
+          {(dataRequests as any)?.data && (dataRequests as any).data.length > 0 ? (
+            <div className="space-y-2">
+              {(dataRequests as any).data.map((request: any) => (
+                <div key={request.id} className="p-3 border rounded-lg flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{request.requestType}</p>
+                    <p className="text-sm text-gray-600">
+                      {new Date(request.createdAt).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                  <Badge variant={request.status === 'completed' ? 'default' : 'secondary'}>
+                    {request.status === 'pending' ? 'Pendente' : 
+                     request.status === 'processing' ? 'Processando' : 'Concluído'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-4">Nenhuma solicitação encontrada</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
