@@ -225,9 +225,10 @@ export default function Timecard() {
         title: 'Ponto registrado com sucesso!',
         description: 'Seu registro foi salvo e processado.',
       });
-      // Invalidar cache e forçar nova busca para atualizar status
-      queryClient.invalidateQueries({ queryKey: ['/api/timecard/current-status'] });
-      queryClient.refetchQueries({ queryKey: ['/api/timecard/current-status'] });
+      // CRITICAL FIX: Debounced cache invalidation to prevent loops
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/timecard/current-status'] });
+      }, 5000); // 5-second delay before invalidating
     },
     onError: (error: any) => {
       console.error('Erro ao registrar ponto:', error);

@@ -35,16 +35,26 @@ export function employmentDetectionMiddleware(
 
   // CRITICAL FIX: Always provide valid user object for tenant context
   if (!user || !user.tenantId) {
-    console.warn('[EMPLOYMENT-DETECTION] Missing user or tenant context, using default');
+    console.warn('[EMPLOYMENT-DETECTION] Missing user or tenant context');
     
-    // Don't proceed without proper user context in tenant operations
-    if (req.path.includes('/api/') && !req.path.includes('/auth/')) {
+    // Skip authentication for public routes and auth endpoints
+    const publicPaths = ['/api/auth/', '/api/health', '/api/ping', '/api/csp-report'];
+    const isPublicPath = publicPaths.some(path => req.path.includes(path));
+    
+    if (!isPublicPath && req.path.includes('/api/')) {
+      console.error('[EMPLOYMENT-DETECTION] Blocking API request without tenant context:', req.path);
       return res.status(401).json({
         success: false,
         message: 'User authentication required for tenant operations',
         code: 'MISSING_USER_CONTEXT'
       });
     }
+    
+    // For non-API routes or public endpoints, continue with defaults
+    req.employmentType = 'clt';
+    req.terminology = getTerminologyForType('clt');
+    console.log('[EMPLOYMENT-DEBUG] Using default for public/non-API route');
+    return next();
   }
 
   if (user) {
