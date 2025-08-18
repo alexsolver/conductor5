@@ -1,60 +1,93 @@
-#!/usr/bin/env node
 
-/**
- * CRITICAL SECURITY SCRIPT: Execute comprehensive tenant schema audit
- * Runs all security tools to detect and fix tenant isolation violations
- */
+import { tenantSchemaAuditor } from './TenantSchemaUsageAuditor';
 
-import { TenantSchemaUsageAuditor } from './TenantSchemaUsageAuditor.js';
-import { TenantSchemaMonitor } from '../services/TenantSchemaMonitor.js';
-
-async function runCriticalSecurityAudit() {
-  console.log('🚨 [CRITICAL-SECURITY] Starting comprehensive tenant isolation audit...');
+async function runCompleteAudit() {
+  console.log('🔍 [TENANT-SCHEMA-AUDIT] Iniciando auditoria completa do sistema...');
   
   try {
-    // 1. Execute usage auditor for violations
-    console.log('🔍 [STEP-1] Running TenantSchemaUsageAuditor...');
-    const auditor = TenantSchemaUsageAuditor.getInstance();
-    const auditResult = await auditor.auditCompleteSystem();
+    // 1. Run complete system audit
+    const auditResult = await tenantSchemaAuditor.auditCompleteSystem();
     
-    console.log('\n📊 [AUDIT-RESULTS] Security Status:');
-    console.log('- Critical Violations:', auditResult.summary?.critical || 0);
-    console.log('- High Violations:', auditResult.summary?.high || 0);
-    console.log('- Total Violations:', auditResult.summary?.total || 0);
+    // 2. Display results
+    console.log('\n📊 [AUDIT-RESULTS] Resultado da Auditoria:');
+    console.log('===============================================');
+    console.log(`Total de violações: ${auditResult.summary.total}`);
+    console.log(`Críticas: ${auditResult.summary.critical}`);
+    console.log(`Altas: ${auditResult.summary.high}`);
+    console.log(`Médias: ${auditResult.summary.medium}`);
+    console.log(`Baixas: ${auditResult.summary.low}`);
     
-    if (auditResult.violations?.length > 0) {
-      console.log('\n🚨 [VIOLATIONS-FOUND]:');
-      auditResult.violations.slice(0, 5).forEach((violation, i) => {
-        console.log(`${i + 1}. ${violation.file || violation.type} - ${violation.severity}`);
-      });
+    console.log('\n📝 [VIOLATIONS-BY-TYPE] Violações por tipo:');
+    for (const [type, count] of Object.entries(auditResult.summary.types)) {
+      console.log(`  ${type}: ${count}`);
     }
     
-    // 2. Activate continuous monitoring
-    console.log('\n🔄 [STEP-2] Activating TenantSchemaMonitor...');
-    const monitor = TenantSchemaMonitor.getInstance();
-    await monitor.startMonitoring();
-    console.log('✅ [MONITOR] Continuous tenant schema monitoring ACTIVATED');
+    // 3. Show detailed violations
+    if (auditResult.violations.length > 0) {
+      console.log('\n⚠️ [DETAILED-VIOLATIONS] Violações detalhadas:');
+      console.log('===============================================');
+      
+      for (const violation of auditResult.violations.slice(0, 10)) { // Show first 10
+        console.log(`\n${violation.type}:`);
+        if (violation.file) {
+          console.log(`  Arquivo: ${violation.file}`);
+        }
+        if (violation.violations) {
+          for (const subViolation of violation.violations) {
+            console.log(`    - Linha ${subViolation.line}: ${subViolation.match} (${subViolation.severity})`);
+          }
+        }
+      }
+      
+      if (auditResult.violations.length > 10) {
+        console.log(`\n... e mais ${auditResult.violations.length - 10} violações`);
+      }
+    }
     
-    // 3. Report final status
-    const status = auditResult.summary?.total === 0 ? '✅ SECURE' : '🚨 VIOLATIONS DETECTED';
-    console.log(`\n${status} [FINAL-STATUS] Tenant isolation audit complete`);
+    // 4. Show fixes
+    if (auditResult.fixes.length > 0) {
+      console.log('\n🔧 [SUGGESTED-FIXES] Correções sugeridas:');
+      console.log('===============================================');
+      
+      for (const fix of auditResult.fixes.slice(0, 15)) { // Show first 15
+        console.log(`  - ${fix}`);
+      }
+      
+      if (auditResult.fixes.length > 15) {
+        console.log(`\n... e mais ${auditResult.fixes.length - 15} correções sugeridas`);
+      }
+    }
     
-    if (auditResult.fixes?.length > 0) {
-      console.log('\n🔧 [RECOMMENDED-FIXES]:');
-      auditResult.fixes.slice(0, 3).forEach((fix, i) => {
-        console.log(`${i + 1}. ${fix}`);
-      });
+    // 5. Install prevention measures
+    console.log('\n🛡️ [PREVENTION] Instalando medidas preventivas...');
+    await tenantSchemaAuditor.installPreventionMeasures();
+    
+    // 6. Start continuous monitoring
+    console.log('\n🔄 [MONITORING] Iniciando monitoramento contínuo...');
+    await tenantSchemaAuditor.startContinuousMonitoring();
+    
+    // 7. Final summary
+    console.log('\n✅ [AUDIT-COMPLETE] Auditoria completa finalizada!');
+    console.log('===============================================');
+    
+    if (auditResult.summary.critical > 0) {
+      console.log(`🚨 AÇÃO NECESSÁRIA: ${auditResult.summary.critical} violações críticas precisam ser corrigidas IMEDIATAMENTE!`);
+      process.exit(1);
+    } else if (auditResult.summary.high > 0) {
+      console.log(`⚠️ ATENÇÃO: ${auditResult.summary.high} violações de alta prioridade precisam ser corrigidas.`);
+    } else if (auditResult.violations.length === 0) {
+      console.log('🎉 PERFEITO: Nenhuma violação de schema tenant encontrada!');
     }
     
   } catch (error) {
-    console.error('❌ [AUDIT-ERROR] Failed to complete security audit:', error);
+    console.error('❌ [AUDIT-ERROR] Erro durante auditoria:', error);
     process.exit(1);
   }
 }
 
-// Execute if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runCriticalSecurityAudit();
+// Execute if called directly
+if (require.main === module) {
+  runCompleteAudit();
 }
 
-export { runCriticalSecurityAudit };
+export { runCompleteAudit };
