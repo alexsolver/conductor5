@@ -18,6 +18,19 @@ export interface AuthenticatedRequest extends Request {
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // ✅ CRITICAL FIX - Skip authentication for login/register endpoints
+    const skipAuthPaths = [
+      '/api/auth/login',
+      '/api/auth/register', 
+      '/api/auth/refresh-token',
+      '/health',
+      '/api/health'
+    ];
+
+    if (skipAuthPaths.includes(req.path)) {
+      return next();
+    }
+
     // ✅ CRITICAL FIX - Force API response headers per 1qa.md compliance
     if (req.path.includes('/api/')) {
       res.setHeader('Content-Type', 'application/json');
