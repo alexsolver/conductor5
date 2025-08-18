@@ -1367,16 +1367,26 @@ export default function Dashboards() {
     },
   ];
 
-  // ✅ 1QA.MD COMPLIANCE: Use real data when available, fallback to mock only for development
+  // ✅ 1QA.MD COMPLIANCE: Use real data when available, correct data structure
   const dashboards = (() => {
     if (error) {
       console.error('❌ [DASHBOARDS-FRONTEND] API Error:', error);
       return mockDashboards;
     }
     
-    if (dashboardsData?.success && dashboardsData?.data) {
+    if (dashboardsData?.success && Array.isArray(dashboardsData?.data) && dashboardsData.data.length > 0) {
       console.log('✅ [DASHBOARDS-FRONTEND] Using real data:', dashboardsData.data.length, 'dashboards');
       return dashboardsData.data;
+    }
+    
+    if (dashboardsData?.data && Array.isArray(dashboardsData.data) && dashboardsData.data.length === 0) {
+      console.log('📊 [DASHBOARDS-FRONTEND] Real API response but empty data');
+      return [];
+    }
+    
+    // Debug: Check what we actually received
+    if (dashboardsData) {
+      console.log('🔍 [DASHBOARDS-FRONTEND] Unexpected response structure:', dashboardsData);
     }
     
     // Fallback to mock data only during development
