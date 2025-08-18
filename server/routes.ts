@@ -332,8 +332,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ CRITICAL ORDER - Apply JSON middleware BEFORE routes per 1qa.md
   app.use(ensureJSONResponse);
 
-  // Apply JWT authentication and comprehensive tenant schema validation to all routes
-  app.use('/api', jwtAuth, enhancedTenantValidator(), tenantSchemaEnforcer(), databaseOperationInterceptor(), queryPatternAnalyzer(), runtimeSchemaValidator());
+  // Apply JWT authentication and comprehensive tenant schema validation to all routes EXCEPT auth routes
+  app.use('/api', (req, res, next) => {
+    // Skip ALL authentication and validation for auth routes
+    if (req.path.startsWith('/auth/')) {
+      return next();
+    }
+    // Apply JWT auth and all validators for other routes
+    jwtAuth(req, res, (err) => {
+      if (err) return next(err);
+      enhancedTenantValidator()(req, res, (err) => {
+        if (err) return next(err);
+        tenantSchemaEnforcer()(req, res, (err) => {
+          if (err) return next(err);
+          databaseOperationInterceptor()(req, res, (err) => {
+            if (err) return next(err);
+            queryPatternAnalyzer()(req, res, (err) => {
+              if (err) return next(err);
+              runtimeSchemaValidator()(req, res, next);
+            });
+          });
+        });
+      });
+    });
+  });
 
   // ✅ CRITICAL ORDER - Mount Clean Architecture routes FIRST per 1qa.md
   console.log('🏗️ [CLEAN-ARCHITECTURE] Mounting all Clean Architecture routes...');
