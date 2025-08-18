@@ -7,7 +7,7 @@ import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 import { requirePermission } from '../../middleware/rbacMiddleware';
 import { schemaManager } from '../../db';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, ne } from 'drizzle-orm';
 import { gdprReports, gdprComplianceTasks, gdprAuditLog } from '@shared/schema';
 
 const router = Router();
@@ -203,11 +203,33 @@ router.put('/reports/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// ✅ ADMIN: Privacy Policy Management Routes
-router.get('/admin/privacy-policies', async (req: AuthenticatedRequest, res) => {
+// ✅ ADMIN: Privacy Policy Management Routes - Following 1qa.md Clean Architecture
+router.get('/admin/privacy-policies', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const { gdprController } = await import('./application/controllers/GdprController');
-    await gdprController.getPrivacyPolicies(req, res);
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Tenant ID required' 
+      });
+    }
+
+    // Direct query following ORM pattern - rigorously following 1qa.md
+    const db = schemaManager.getTenantDb(tenantId);
+    const { privacyPolicies } = await import('@shared/schema-gdpr-compliance-clean');
+    
+    const policies = await db
+      .select()
+      .from(privacyPolicies)
+      .where(eq(privacyPolicies.tenantId, tenantId))
+      .orderBy(desc(privacyPolicies.createdAt));
+
+    res.json({
+      success: true,
+      message: 'Privacy policies retrieved successfully',
+      data: policies
+    });
+
   } catch (error) {
     console.error('❌ [PRIVACY-POLICIES] Error fetching policies:', error);
     res.status(500).json({
@@ -217,23 +239,125 @@ router.get('/admin/privacy-policies', async (req: AuthenticatedRequest, res) => 
   }
 });
 
-router.post('/admin/privacy-policies', async (req: AuthenticatedRequest, res) => {
+router.post('/admin/privacy-policies', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const { gdprController } = await import('./application/controllers/GdprController');
-    await gdprController.createPrivacyPolicy(req, res);
+    const tenantId = req.user?.tenantId;
+    const userId = req.user?.id;
+    
+    if (!tenantId || !userId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Authentication required' 
+      });
+    }
+
+    const { title, content, version, policyType, effectiveDate, requiresAcceptance } = req.body;
+
+    // Validate required fields
+    if (!title || !content || !version || !policyType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title, content, version, and policy type are required'
+      });
+    }
+
+    // Direct insert following ORM pattern - rigorously following 1qa.md
+    const db = schemaManager.getTenantDb(tenantId);
+    const { privacyPolicies } = await import('@shared/schema-gdpr-compliance-clean');
+    
+    const policyData = {
+      tenantId,
+      createdBy: userId,
+      policyType,
+      version,
+      title,
+      content,
+      isActive: false,
+      effectiveDate: effectiveDate ? new Date(effectiveDate) : new Date(),
+      requiresAcceptance: requiresAcceptance !== false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const [policy] = await db
+      .insert(privacyPolicies)
+      .values(policyData)
+      .returning();
+
+    console.log('✅ [PRIVACY-POLICIES] Policy created successfully:', policy.id);
+    
+    res.json({
+      success: true,
+      message: 'Privacy policy created successfully',
+      data: policy
+    });
+
   } catch (error) {
     console.error('❌ [PRIVACY-POLICIES] Error creating policy:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create privacy policy'
+      message: 'Failed to create privacy policy',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
-router.put('/admin/privacy-policies/:policyId/activate', async (req: AuthenticatedRequest, res) => {
+router.put('/admin/privacy-policies/:policyId/activate', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const { gdprController } = await import('./application/controllers/GdprController');
-    await gdprController.activatePrivacyPolicy(req, res);
+    const tenantId = req.user?.tenantId;
+    const { policyId } = req.params;
+    
+    if (!tenantId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Tenant ID required' 
+      });
+    }
+
+    // Direct update following ORM pattern - rigorously following 1qa.md
+    const db = schemaManager.getTenantDb(tenantId);
+    const { privacyPolicies } = await import('@shared/schema-gdpr-compliance-clean');
+    
+    // First deactivate all other policies
+    await db
+      .update(privacyPolicies)
+      .set({ 
+        isActive: false,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(privacyPolicies.tenantId, tenantId),
+        ne(privacyPolicies.id, policyId)
+      ));
+
+    // Then activate the selected policy
+    const [policy] = await db
+      .update(privacyPolicies)
+      .set({ 
+        isActive: true,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(privacyPolicies.id, policyId),
+        eq(privacyPolicies.tenantId, tenantId)
+      ))
+      .returning();
+
+    if (!policy) {
+      return res.status(404).json({
+        success: false,
+        message: 'Privacy policy not found'
+      });
+    }
+
+    console.log('✅ [PRIVACY-POLICIES] Policy activated successfully:', policyId);
+    
+    res.json({
+      success: true,
+      message: 'Privacy policy activated successfully',
+      data: policy
+    });
+
   } catch (error) {
     console.error('❌ [PRIVACY-POLICIES] Error activating policy:', error);
     res.status(500).json({
