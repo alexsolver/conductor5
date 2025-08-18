@@ -124,11 +124,14 @@ export function createReportsRoutes(): Router {
     }
   });
 
+  router.get('/reports/:id', reportsController.findById.bind(reportsController));
+  router.post('/reports', reportsController.create.bind(reportsController));
+
   // ✅ 1QA.MD COMPLIANCE: Report Execution - WITH PROPER TYPING
   router.post('/reports/:id/execute', async (req: Request, res: Response) => {
     try {
       console.log(`✅ [REPORTS-EXECUTE] POST /reports/${req.params.id}/execute called`);
-      
+
       // Mock successful execution following 1qa.md patterns
       const result = {
         success: true,
@@ -165,7 +168,7 @@ export function createReportsRoutes(): Router {
   router.get('/reports/:id/executions', async (req: Request, res: Response) => {
     try {
       console.log(`✅ [REPORTS-EXECUTIONS] GET /reports/${req.params.id}/executions called`);
-      
+
       // Mock executions history
       const executions = [
         {
@@ -196,7 +199,7 @@ export function createReportsRoutes(): Router {
   router.get('/modules/data-sources', async (req: Request, res: Response) => {
     try {
       console.log('✅ [REPORTS-MODULES] GET /modules/data-sources called');
-      
+
       const dataSources = [
         { id: 'tickets', name: 'Tickets', description: 'Customer support tickets', tables: ['tickets', 'ticket_history'] },
         { id: 'customers', name: 'Customers', description: 'Customer information', tables: ['customers', 'customer_companies'] },
@@ -220,7 +223,7 @@ export function createReportsRoutes(): Router {
   router.post('/modules/query', async (req: Request, res: Response) => {
     try {
       console.log('✅ [REPORTS-MODULES] POST /modules/query called');
-      
+
       const result = {
         success: true,
         data: {
@@ -245,7 +248,7 @@ export function createReportsRoutes(): Router {
     try {
       const { moduleName } = req.params;
       console.log(`✅ [REPORTS-MODULES] GET /modules/${moduleName}/templates called`);
-      
+
       const templates = [
         { id: '1', name: 'Basic Report Template', module: moduleName },
         { id: '2', name: 'Advanced Analytics Template', module: moduleName }
@@ -309,7 +312,7 @@ export function createReportsRoutes(): Router {
   router.get('/dashboards', async (req, res) => {
     try {
       console.log('✅ [DASHBOARDS-ORM] GET /dashboards called');
-      
+
       // ✅ 1QA.MD COMPLIANCE: Use real authentication data when available
       const user = (req as any).user || { 
         id: '550e8400-e29b-41d4-a716-446655440001', 
@@ -380,7 +383,7 @@ export function createReportsRoutes(): Router {
     try {
       const { id } = req.params;
       console.log(`✅ [DASHBOARDS-ORM] GET /dashboards/${id} called`);
-      
+
       // ✅ 1QA.MD COMPLIANCE: Use real authentication data when available
       const user = (req as any).user || { 
         id: '550e8400-e29b-41d4-a716-446655440001', 
@@ -391,7 +394,7 @@ export function createReportsRoutes(): Router {
 
       // For now, simulate a dashboard retrieval using sample data following 1qa.md patterns
       console.log(`✅ [DASHBOARDS-ORM] Fetching dashboard ${id} for tenant: ${user.tenantId}`);
-      
+
       // Sample dashboard data that matches the frontend expectations
       const dashboard = {
         id: id,
@@ -478,7 +481,7 @@ export function createReportsRoutes(): Router {
     try {
       const { id } = req.params;
       console.log(`✅ [DASHBOARDS-ORM] PUT /dashboards/${id} called`);
-      
+
       // ✅ 1QA.MD COMPLIANCE: Use real authentication data when available
       const user = (req as any).user || { 
         id: '550e8400-e29b-41d4-a716-446655440001', 
@@ -489,7 +492,7 @@ export function createReportsRoutes(): Router {
 
       const updateData = req.body;
       console.log(`✅ [DASHBOARDS-ORM] Updating dashboard ${id} for tenant: ${user.tenantId}`, updateData);
-      
+
       // For now, simulate a successful update
       const updatedDashboard = {
         id: id,

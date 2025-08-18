@@ -160,6 +160,126 @@ export class ReportsController {
     }
   }
 
+  // GET /reports/:id - Get single report by ID
+  async findById(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('✅ [REPORTS-ORM] GET /reports/:id called');
+
+      const { id } = req.params;
+
+      // Mock data for now - following 1qa.md patterns
+      const mockReports = [
+        {
+          id: "1",
+          name: "SLA Performance Dashboard",
+          description: "Monitor ticket SLA compliance and response times",
+          dataSource: "tickets",
+          category: "operational",
+          chartType: "bar",
+          isPublic: false,
+          accessLevel: "team",
+          status: "active",
+          createdBy: "user1",
+          createdAt: "2025-08-15T10:00:00Z",
+          updatedAt: "2025-08-18T21:00:00Z"
+        },
+        {
+          id: "2",
+          name: "Customer Satisfaction Trends",
+          description: "Track customer satisfaction scores over time",
+          dataSource: "customers",
+          category: "analytical",
+          chartType: "line",
+          isPublic: true,
+          accessLevel: "public",
+          status: "active",
+          createdBy: "user2",
+          createdAt: "2025-08-14T15:30:00Z",
+          updatedAt: "2025-08-18T20:00:00Z"
+        }
+      ];
+
+      const report = mockReports.find(r => r.id === id);
+
+      if (!report) {
+        res.status(404).json({
+          success: false,
+          message: 'Report not found',
+          data: null
+        });
+        return;
+      }
+
+      console.log(`✅ [DB-OPERATION] Schema ${req.schema}: GET /reports/${id}`);
+
+      res.status(200).json({
+        success: true,
+        message: 'Report retrieved successfully',
+        data: report
+      });
+    } catch (error) {
+      console.error('❌ [REPORTS-ORM] Error in findById:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  }
+
+  // GET /reports - List all reports with filters
+  async findAll(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('✅ [REPORTS-ORM] GET /reports called');
+
+      // Logic for finding all reports with filters would go here
+      // For now, returning mock data
+      const mockReports = [
+        {
+          id: "1",
+          name: "SLA Performance Dashboard",
+          description: "Monitor ticket SLA compliance and response times",
+          dataSource: "tickets",
+          category: "operational",
+          chartType: "bar",
+          isPublic: false,
+          accessLevel: "team",
+          status: "active",
+          createdBy: "user1",
+          createdAt: "2025-08-15T10:00:00Z",
+          updatedAt: "2025-08-18T21:00:00Z"
+        },
+        {
+          id: "2",
+          name: "Customer Satisfaction Trends",
+          description: "Track customer satisfaction scores over time",
+          dataSource: "customers",
+          category: "analytical",
+          chartType: "line",
+          isPublic: true,
+          accessLevel: "public",
+          status: "active",
+          createdBy: "user2",
+          createdAt: "2025-08-14T15:30:00Z",
+          updatedAt: "2025-08-18T20:00:00Z"
+        }
+      ];
+
+      res.status(200).json({
+        success: true,
+        message: 'Reports retrieved successfully',
+        data: mockReports
+      });
+    } catch (error) {
+      console.error('❌ [REPORTS-ORM] Error in findAll:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        data: null
+      });
+    }
+  }
+
   async getReportById(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;

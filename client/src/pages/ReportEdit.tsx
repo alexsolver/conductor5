@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'wouter';
-import { useLocation } from 'wouter';
+import { useRoute, useLocation } from 'wouter';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -63,7 +62,8 @@ const apiRequest = async (method: string, url: string, data?: any) => {
 };
 
 export default function ReportEdit() {
-  const { id } = useParams<{ id: string }>();
+  const [match, params] = useRoute('/reports/:id/edit');
+  const id = params?.id;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
