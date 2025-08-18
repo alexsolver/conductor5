@@ -21,11 +21,15 @@ export class AuthController {
 
   async login(req: Request, res: Response): Promise<void> {
     try {
+      console.log('🔑 [AUTH-CONTROLLER] Login request received:', { email: req.body?.email, hasPassword: !!req.body?.password });
+      
       const dto: LoginDTO = req.body;
       const ipAddress = this.getClientIP(req);
       const userAgent = req.headers['user-agent'];
 
+      console.log('🔑 [AUTH-CONTROLLER] Executing login use case...');
       const result = await this.loginUseCase.execute(dto, ipAddress, userAgent);
+      console.log('🔑 [AUTH-CONTROLLER] Login use case completed successfully');
 
       // Set refresh token as httpOnly cookie
       res.cookie('refreshToken', result.tokens.refreshToken, {
@@ -41,6 +45,9 @@ export class AuthController {
         data: result
       });
     } catch (error: any) {
+      console.error('❌ [AUTH-CONTROLLER] Login error:', error);
+      console.error('❌ [AUTH-CONTROLLER] Error stack:', error.stack);
+      
       const statusCode = error.message.includes('Invalid') || error.message.includes('deactivated') ? 401 : 400;
       
       res.status(statusCode).json({
