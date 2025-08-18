@@ -22,12 +22,22 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const skipAuthPaths = [
       '/api/auth/login',
       '/api/auth/register', 
+      '/api/auth/refresh',
       '/api/auth/refresh-token',
+      '/auth/login',
+      '/auth/register',
+      '/auth/refresh',
       '/health',
       '/api/health'
     ];
 
-    if (skipAuthPaths.includes(req.path)) {
+    // Check if the request path should skip authentication
+    const shouldSkipAuth = skipAuthPaths.some(path => 
+      req.path === path || req.path.endsWith(path)
+    );
+
+    if (shouldSkipAuth) {
+      console.log('✅ [JWT-AUTH] Skipping authentication for:', req.path);
       return next();
     }
 

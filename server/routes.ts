@@ -343,7 +343,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply JWT authentication and comprehensive tenant schema validation to all routes EXCEPT auth routes
   app.use('/api', (req, res, next) => {
     // Skip ALL authentication and validation for auth routes
-    if (req.path.startsWith('/api/auth/')) {
+    if (req.path.startsWith('/api/auth/') || req.path.startsWith('/auth/')) {
+      console.log('✅ [GLOBAL-MIDDLEWARE] Skipping auth for:', req.path);
       return next();
     }
     // Apply JWT auth and all validators for other routes
