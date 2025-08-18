@@ -1,0 +1,646 @@
+/**
+ * GDPR Compliance Management Page
+ * Interface para gerenciamento completo de compliance GDPR/LGPD
+ * Following 1qa.md enterprise standards
+ */
+
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { Shield, FileText, AlertTriangle, Settings, BarChart3, Download, Trash2 } from 'lucide-react';
+import { z } from 'zod';
+
+// Schemas de validação
+const cookieConsentSchema = z.object({
+  consentType: z.enum(['cookies_necessary', 'cookies_statistics', 'cookies_marketing', 'data_processing', 'communications', 'profiling', 'third_party_sharing']),
+  granted: z.boolean(),
+  consentVersion: z.string().min(1),
+  sessionId: z.string().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+});
+
+const dataSubjectRequestSchema = z.object({
+  requestType: z.enum(['access', 'portability', 'rectification', 'erasure', 'restriction', 'objection', 'complaint']),
+  requestDetails: z.string().optional(),
+});
+
+const securityIncidentSchema = z.object({
+  incidentType: z.string().min(1),
+  severity: z.enum(['minimal', 'low', 'medium', 'high', 'very_high']),
+  title: z.string().min(1),
+  description: z.string().min(1),
+  affectedUserCount: z.number().optional(),
+});
+
+type CookieConsentForm = z.infer<typeof cookieConsentSchema>;
+type DataSubjectRequestForm = z.infer<typeof dataSubjectRequestSchema>;
+type SecurityIncidentForm = z.infer<typeof securityIncidentSchema>;
+
+export default function GdprCompliancePage() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // ✅ Fetch compliance metrics
+  const { data: metrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ['/api/gdpr-compliance/metrics'],
+    enabled: true,
+  });
+
+  // ✅ Fetch user preferences
+  const { data: userPreferences } = useQuery({
+    queryKey: ['/api/gdpr-compliance/user-preferences'],
+    enabled: true,
+  });
+
+  // ✅ Fetch data subject requests
+  const { data: dataRequests } = useQuery({
+    queryKey: ['/api/gdpr-compliance/data-subject-requests'],
+    enabled: true,
+  });
+
+  // ✅ Cookie Consent Form
+  const cookieForm = useForm<CookieConsentForm>({
+    resolver: zodResolver(cookieConsentSchema),
+    defaultValues: {
+      consentType: 'cookies_necessary',
+      granted: true,
+      consentVersion: '1.0',
+    },
+  });
+
+  // ✅ Data Subject Request Form
+  const requestForm = useForm<DataSubjectRequestForm>({
+    resolver: zodResolver(dataSubjectRequestSchema),
+    defaultValues: {
+      requestType: 'access',
+    },
+  });
+
+  // ✅ Security Incident Form
+  const incidentForm = useForm<SecurityIncidentForm>({
+    resolver: zodResolver(securityIncidentSchema),
+    defaultValues: {
+      severity: 'medium',
+    },
+  });
+
+  // ✅ Mutations
+  const createCookieConsent = useMutation({
+    mutationFn: (data: CookieConsentForm) => apiRequest('/api/gdpr-compliance/cookie-consents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    onSuccess: () => {
+      toast({ title: "Consentimento de Cookie registrado com sucesso" });
+      queryClient.invalidateQueries({ queryKey: ['/api/gdpr-compliance'] });
+      cookieForm.reset();
+    },
+    onError: () => {
+      toast({ title: "Erro ao registrar consentimento", variant: "destructive" });
+    },
+  });
+
+  const createDataSubjectRequest = useMutation({
+    mutationFn: (data: DataSubjectRequestForm) => apiRequest('/api/gdpr-compliance/data-subject-requests', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    onSuccess: () => {
+      toast({ title: "Solicitação GDPR criada com sucesso" });
+      queryClient.invalidateQueries({ queryKey: ['/api/gdpr-compliance'] });
+      requestForm.reset();
+    },
+    onError: () => {
+      toast({ title: "Erro ao criar solicitação", variant: "destructive" });
+    },
+  });
+
+  const createSecurityIncident = useMutation({
+    mutationFn: (data: SecurityIncidentForm) => apiRequest('/api/gdpr-compliance/security-incidents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    onSuccess: () => {
+      toast({ title: "Incidente de segurança reportado com sucesso" });
+      queryClient.invalidateQueries({ queryKey: ['/api/gdpr-compliance'] });
+      incidentForm.reset();
+    },
+    onError: () => {
+      toast({ title: "Erro ao reportar incidente", variant: "destructive" });
+    },
+  });
+
+  const exportUserData = useMutation({
+    mutationFn: () => apiRequest('/api/gdpr-compliance/export-user-data'),
+    onSuccess: (data) => {
+      toast({ title: "Dados exportados com sucesso" });
+      // Download or show export data
+      console.log('Exported data:', data);
+    },
+    onError: () => {
+      toast({ title: "Erro ao exportar dados", variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="container mx-auto py-6 space-y-6" data-testid="gdpr-compliance-page">
+      <div className="flex items-center gap-4">
+        <Shield className="w-8 h-8 text-blue-600" />
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Compliance GDPR/LGPD
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Sistema completo de gestão e compliance para GDPR e LGPD
+          </p>
+        </div>
+      </div>
+
+      {/* ✅ Compliance Dashboard */}
+      {metrics?.data && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card data-testid="card-total-requests">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                Total de Solicitações
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {metrics.data.requests.total}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-pending-requests">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                Pendentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {metrics.data.requests.pending}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-overdue-requests">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                Em Atraso
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {metrics.data.requests.overdue}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-compliance-score">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                Score de Compliance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {metrics.data.compliance.score}%
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Tabs defaultValue="consents" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="consents" data-testid="tab-consents">
+            Consentimentos
+          </TabsTrigger>
+          <TabsTrigger value="requests" data-testid="tab-requests">
+            Direitos GDPR
+          </TabsTrigger>
+          <TabsTrigger value="incidents" data-testid="tab-incidents">
+            Incidentes
+          </TabsTrigger>
+          <TabsTrigger value="preferences" data-testid="tab-preferences">
+            Preferências
+          </TabsTrigger>
+          <TabsTrigger value="export" data-testid="tab-export">
+            Exportar/Deletar
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ✅ 1. Cookie Consents Tab */}
+        <TabsContent value="consents" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Registrar Consentimento de Cookies</CardTitle>
+              <CardDescription>
+                Funcionalidade 1: Consentimento de Cookies & Rastreamento
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...cookieForm}>
+                <form 
+                  onSubmit={cookieForm.handleSubmit((data) => createCookieConsent.mutate(data))}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={cookieForm.control}
+                    name="consentType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Consentimento</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-consent-type">
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="cookies_necessary">Cookies Necessários</SelectItem>
+                            <SelectItem value="cookies_statistics">Cookies Estatísticas</SelectItem>
+                            <SelectItem value="cookies_marketing">Cookies Marketing</SelectItem>
+                            <SelectItem value="data_processing">Processamento de Dados</SelectItem>
+                            <SelectItem value="communications">Comunicações</SelectItem>
+                            <SelectItem value="profiling">Perfilamento</SelectItem>
+                            <SelectItem value="third_party_sharing">Compartilhamento com Terceiros</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={cookieForm.control}
+                    name="granted"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="switch-consent-granted"
+                          />
+                        </FormControl>
+                        <FormLabel>Consentimento Concedido</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={cookieForm.control}
+                    name="consentVersion"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Versão do Consentimento</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="1.0" data-testid="input-consent-version" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={createCookieConsent.isPending}
+                    data-testid="button-create-consent"
+                  >
+                    {createCookieConsent.isPending ? 'Registrando...' : 'Registrar Consentimento'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ✅ 3-7. Data Subject Requests Tab */}
+        <TabsContent value="requests" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Nova Solicitação GDPR</CardTitle>
+              <CardDescription>
+                Funcionalidades 3-7: Direitos do Titular dos Dados
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...requestForm}>
+                <form 
+                  onSubmit={requestForm.handleSubmit((data) => createDataSubjectRequest.mutate(data))}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={requestForm.control}
+                    name="requestType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Solicitação</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-request-type">
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="access">Acesso aos Dados</SelectItem>
+                            <SelectItem value="portability">Portabilidade de Dados</SelectItem>
+                            <SelectItem value="rectification">Retificação de Dados</SelectItem>
+                            <SelectItem value="erasure">Esquecimento/Exclusão</SelectItem>
+                            <SelectItem value="restriction">Restrição de Processamento</SelectItem>
+                            <SelectItem value="objection">Oposição ao Processamento</SelectItem>
+                            <SelectItem value="complaint">Reclamação</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={requestForm.control}
+                    name="requestDetails"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Detalhes da Solicitação</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            {...field} 
+                            placeholder="Descreva sua solicitação em detalhes..."
+                            data-testid="textarea-request-details"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={createDataSubjectRequest.isPending}
+                    data-testid="button-create-request"
+                  >
+                    {createDataSubjectRequest.isPending ? 'Criando...' : 'Criar Solicitação'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+
+          {/* ✅ List existing requests */}
+          {dataRequests?.data && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Minhas Solicitações GDPR</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {dataRequests.data.map((request: any) => (
+                    <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <div className="font-medium">{request.requestType}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
+                          Criado em: {new Date(request.createdAt).toLocaleDateString('pt-BR')}
+                        </div>
+                      </div>
+                      <Badge variant={request.status === 'completed' ? 'default' : 'secondary'}>
+                        {request.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* ✅ 10. Security Incidents Tab */}
+        <TabsContent value="incidents" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Reportar Incidente de Segurança</CardTitle>
+              <CardDescription>
+                Funcionalidade 10: Notificações de Incidentes de Segurança
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...incidentForm}>
+                <form 
+                  onSubmit={incidentForm.handleSubmit((data) => createSecurityIncident.mutate(data))}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={incidentForm.control}
+                    name="incidentType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Incidente</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ex: Vazamento de dados" data-testid="input-incident-type" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={incidentForm.control}
+                    name="severity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Severidade</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-incident-severity">
+                              <SelectValue placeholder="Selecione a severidade" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="minimal">Mínima</SelectItem>
+                            <SelectItem value="low">Baixa</SelectItem>
+                            <SelectItem value="medium">Média</SelectItem>
+                            <SelectItem value="high">Alta</SelectItem>
+                            <SelectItem value="very_high">Muito Alta</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={incidentForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Título</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Resumo do incidente" data-testid="input-incident-title" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={incidentForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            {...field} 
+                            placeholder="Descreva o incidente em detalhes..."
+                            data-testid="textarea-incident-description"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={incidentForm.control}
+                    name="affectedUserCount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número de Usuários Afetados (opcional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="number" 
+                            placeholder="0" 
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                            data-testid="input-affected-users"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={createSecurityIncident.isPending}
+                    data-testid="button-create-incident"
+                  >
+                    {createSecurityIncident.isPending ? 'Reportando...' : 'Reportar Incidente'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ✅ 12. User Preferences Tab */}
+        <TabsContent value="preferences" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Portal de Preferências do Usuário</CardTitle>
+              <CardDescription>
+                Funcionalidade 12: Gestão de Preferências de Privacidade
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  Configure suas preferências de privacidade e comunicação
+                </div>
+                
+                {userPreferences?.data ? (
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Email Marketing</Label>
+                      <Switch 
+                        checked={userPreferences.data.emailMarketing}
+                        data-testid="switch-email-marketing"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label>SMS Marketing</Label>
+                      <Switch 
+                        checked={userPreferences.data.smsMarketing}
+                        data-testid="switch-sms-marketing"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Processamento para Analytics</Label>
+                      <Switch 
+                        checked={userPreferences.data.dataProcessingForAnalytics}
+                        data-testid="switch-analytics-processing"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-gray-600 dark:text-gray-300">
+                      Carregando preferências do usuário...
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ✅ Export/Delete Data Tab */}
+        <TabsContent value="export" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Direitos GDPR - Exportar e Deletar Dados</CardTitle>
+              <CardDescription>
+                Exercer seus direitos de acesso e esquecimento dos dados
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={() => exportUserData.mutate()}
+                disabled={exportUserData.isPending}
+                className="w-full"
+                data-testid="button-export-data"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {exportUserData.isPending ? 'Exportando...' : 'Exportar Meus Dados (Direito de Acesso)'}
+              </Button>
+
+              <div className="border-t pt-4">
+                <div className="text-sm text-red-600 dark:text-red-400 mb-4">
+                  ⚠️ Ação irreversível: Esta ação deletará todos os seus dados permanentemente
+                </div>
+                <Button 
+                  variant="destructive"
+                  className="w-full"
+                  data-testid="button-delete-data"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Deletar Meus Dados (Direito ao Esquecimento)
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

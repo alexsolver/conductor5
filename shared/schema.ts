@@ -13,8 +13,8 @@ export * from "./schema-master";
 // Reports & Dashboards Module Schema
 export * from "./schema-reports";
 
-// GDPR Compliance Module Schema
-export * from "./schema-gdpr-compliance";
+// GDPR Compliance Module Schema - Clean Version
+export * from "./schema-gdpr-compliance-clean";
 
 // Selective export from contracts to avoid conflicts - Export only enums
 export {

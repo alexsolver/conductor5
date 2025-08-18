@@ -73,6 +73,7 @@ import ContractManagement from "./pages/ContractManagement";
 import CorporateExpenseManagement from "./pages/CorporateExpenseManagement";
 
 import ItemCatalog from "./pages/ItemCatalog";
+import GdprCompliancePage from "./pages/GdprCompliancePage";
 import TicketMaterials from "./pages/TicketMaterials";
 import { ApprovalManagement } from "./pages/ApprovalManagement";
 import ActivityPlanner from "./pages/ActivityPlanner";
@@ -222,7 +223,7 @@ function AppRouter() {
 
         <Route path="/asset-management" component={AssetManagement} />
         <Route path="/compliance-management" component={ComplianceManagement} />
-        <Route path="/gdpr-compliance" component={GdprCompliance} />
+        <Route path="/gdpr-compliance" component={GdprCompliancePage} />
 
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
         <Route path="/drag-drop-demo" component={DragDropDemo} />

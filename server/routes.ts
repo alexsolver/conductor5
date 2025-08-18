@@ -355,6 +355,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/reports-dashboards', reportsRoutes);
   console.log('✅ [REPORTS-DASHBOARDS] Clean Architecture module registered at /api/reports-dashboards');
 
+  // GDPR Compliance Module - Clean Architecture
+  console.log('🏗️ [GDPR-COMPLIANCE] Initializing GDPR Compliance Clean Architecture module...');
+  const { gdprRoutes } = await import('./modules/gdpr-compliance/routes/gdprRoutes');
+  app.use('/api/gdpr-compliance', gdprRoutes);
+  console.log('✅ [GDPR-COMPLIANCE] Clean Architecture module registered at /api/gdpr-compliance');
+
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...');
   app.use('/api/beneficiaries', beneficiariesRoutes);
