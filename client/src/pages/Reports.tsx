@@ -6,6 +6,8 @@ import {
   Database, Code, Palette, FileText, Grid, Layout, Monitor, Smartphone, Tablet,
   TrendingUp, AlertTriangle, CheckCircle, XCircle, MoreHorizontal, Copy, ExternalLink
 } from "lucide-react";
+import AdvancedWYSIWYGDesigner from '@/components/reports/AdvancedWYSIWYGDesigner';
+import AdvancedQueryBuilder from '@/components/reports/AdvancedQueryBuilder';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -910,8 +912,14 @@ function VersionHistoryManager({ versions, onClose }: { versions: any[], onClose
   );
 }
 
-// WYSIWYG Report Designer Component
+// WYSIWYG Report Designer Component - Using Advanced Canvas
 function WYSIWYGDesigner({ onSave, initialData }: { onSave: (config: any) => void; initialData?: any }) {
+  // Use the advanced WYSIWYG designer with A4 canvas
+  return <AdvancedWYSIWYGDesigner onSave={onSave} initialDesign={initialData} />;
+}
+
+// Legacy WYSIWYG Designer - Kept for reference
+function LegacyWYSIWYGDesigner({ onSave, initialData }: { onSave: (config: any) => void; initialData?: any }) {
   const [designConfig, setDesignConfig] = useState(initialData || {
     layout: "grid",
     styling: {
@@ -1036,8 +1044,20 @@ function WYSIWYGDesigner({ onSave, initialData }: { onSave: (config: any) => voi
   );
 }
 
-// Visual Query Builder Component
+// Visual Query Builder Component - Using Advanced Builder
 function QueryBuilder({ onSave, initialQuery }: { onSave: (query: any) => void; initialQuery?: any }) {
+  // Use the advanced query builder with intuitive interface
+  return (
+    <AdvancedQueryBuilder 
+      onQueryChange={onSave}
+      onExecute={onSave}
+      initialQuery={initialQuery}
+    />
+  );
+}
+
+// Legacy Query Builder - Kept for reference
+function LegacyQueryBuilder({ onSave, initialQuery }: { onSave: (query: any) => void; initialQuery?: any }) {
   const [query, setQuery] = useState(initialQuery || {
     dataSource: "",
     fields: [],
