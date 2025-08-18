@@ -5,12 +5,25 @@
  */
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Progress } from '@/components/ui/progress';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
   Settings, 
   Wrench, 
@@ -23,39 +36,143 @@ import {
   Plus,
   Filter,
   Download,
-  RefreshCw
+  RefreshCw,
+  Edit,
+  Trash2,
+  Eye,
+  Users,
+  BarChart3,
+  CalendarDays,
+  User,
+  PlayCircle,
+  PauseCircle,
+  StopCircle,
+  MoreHorizontal,
+  CheckSquare
 } from 'lucide-react';
+
+// Form Schemas following 1qa.md patterns
+const assetSchema = z.object({
+  tag: z.string().min(1, 'Tag é obrigatório'),
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().optional(),
+  locationId: z.string().min(1, 'Localização é obrigatória'),
+  categoryId: z.string().min(1, 'Categoria é obrigatória'),
+  criticality: z.enum(['low', 'medium', 'high', 'critical']),
+  serialNumber: z.string().optional(),
+  manufacturer: z.string().optional(),
+  model: z.string().optional(),
+  purchaseDate: z.string().optional(),
+  warrantyExpiry: z.string().optional(),
+  installationDate: z.string().optional(),
+});
+
+const maintenancePlanSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().optional(),
+  assetId: z.string().min(1, 'Ativo é obrigatório'),
+  triggerType: z.enum(['time', 'meter', 'condition']),
+  triggerValue: z.string().min(1, 'Valor do gatilho é obrigatório'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']),
+  estimatedDuration: z.number().min(1, 'Duração estimada é obrigatória'),
+  instructions: z.string().optional(),
+  requiredSkills: z.array(z.string()).optional(),
+  isActive: z.boolean().default(true),
+});
+
+const workOrderSchema = z.object({
+  title: z.string().min(1, 'Título é obrigatório'),
+  description: z.string().optional(),
+  assetId: z.string().min(1, 'Ativo é obrigatório'),
+  maintenancePlanId: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'critical', 'emergency']),
+  type: z.enum(['preventive', 'corrective', 'emergency']),
+  scheduledStart: z.string().min(1, 'Data de início é obrigatória'),
+  estimatedDuration: z.number().min(1, 'Duração estimada é obrigatória'),
+  assignedTechnicianId: z.string().optional(),
+  instructions: z.string().optional(),
+  requiredParts: z.array(z.string()).optional(),
+});
+
+type AssetFormData = z.infer<typeof assetSchema>;
+type MaintenancePlanFormData = z.infer<typeof maintenancePlanSchema>;
+type WorkOrderFormData = z.infer<typeof workOrderSchema>;
 
 interface Asset {
   id: string;
   tag: string;
   name: string;
+  description?: string;
   criticality: 'low' | 'medium' | 'high' | 'critical';
   status: 'active' | 'inactive' | 'maintenance' | 'decommissioned';
   locationId: string;
+  categoryId: string;
+  serialNumber?: string;
+  manufacturer?: string;
+  model?: string;
+  purchaseDate?: string;
+  warrantyExpiry?: string;
+  installationDate?: string;
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;
+  location?: { name: string };
+  category?: { name: string };
 }
 
 interface MaintenancePlan {
   id: string;
   name: string;
+  description?: string;
   assetId: string;
   triggerType: 'time' | 'meter' | 'condition';
+  triggerValue: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
+  estimatedDuration: number;
+  instructions?: string;
+  requiredSkills?: string[];
   isActive: boolean;
   nextScheduledAt?: string;
+  asset?: { tag: string; name: string };
 }
 
 interface WorkOrder {
   id: string;
   title: string;
+  description?: string;
   assetId: string;
+  maintenancePlanId?: string;
   priority: 'low' | 'medium' | 'high' | 'critical' | 'emergency';
-  status: string;
-  scheduledStart?: string;
+  type: 'preventive' | 'corrective' | 'emergency';
+  status: 'draft' | 'scheduled' | 'in_progress' | 'paused' | 'completed' | 'cancelled';
+  scheduledStart: string;
+  scheduledEnd?: string;
+  actualStart?: string;
+  actualEnd?: string;
+  estimatedDuration: number;
   assignedTechnicianId?: string;
+  instructions?: string;
+  requiredParts?: string[];
   completionPercentage: number;
+  asset?: { tag: string; name: string };
+  assignedTechnician?: { name: string };
+}
+
+interface Technician {
+  id: string;
+  name: string;
+  email: string;
+  skills: string[];
+  availability: 'available' | 'busy' | 'offline';
+}
+
+interface Location {
+  id: string;
+  name: string;
+}
+
+interface AssetCategory {
+  id: string;
+  name: string;
 }
 
 const criticalityColors = {
