@@ -173,6 +173,7 @@ const adminNavigation = [
       { name: "Branding & Personalização", href: "/tenant-admin/branding", icon: Palette },
       { name: "Relatórios & Analytics", href: "/tenant-admin/reports", icon: PieChart },
       { name: "Relatórios & Dashboards", href: "/reports", icon: BarChart3 },
+      { name: "Dashboards Interativos", href: "/dashboards", icon: Activity },
     ]
   },
 ];
