@@ -34,7 +34,7 @@ class DailySchemaChecker {
       if (unhealthyTenants.length > 0) {
         console.log(`   ⚠️  Found ${unhealthyTenants.length} unhealthy connections`);
         unhealthyTenants.forEach(tenant => {
-          console.log(`      - ${tenant.tenantId}: ${tenant.lastError}`);
+          console.log(`      - ${tenant.tenantId}: connection failed health check`);
         });
       }
 

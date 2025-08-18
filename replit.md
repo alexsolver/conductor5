@@ -27,6 +27,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles. Cor
 - **API Design**: RESTful endpoints with structured error handling.
 - **Architecture Pattern**: Clean Architecture with Domain, Application, and Infrastructure layers.
 - **Multi-tenancy**: True schema separation where each tenant has a dedicated PostgreSQL schema (`tenant_{uuid}`).
+- **Schema Validation System**: Comprehensive multi-layer system preventing schema misuse with automatic interceptors, health checks, auditing tools, and daily monitoring. Ensures complete tenant data isolation and GDPR compliance through real-time validation and automated corrections.
 - **Employment Type System**: Supports dual employment types (CLT/Autonomous) with automatic detection, terminology mapping, and route redirection.
 - **Key Features**:
     - **Authentication & Authorization**: Local JWT with access/refresh tokens, bcrypt hashing, and a four-tier RBAC system with granular permissions and tenant isolation.

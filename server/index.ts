@@ -12,7 +12,7 @@ import {
   databaseQueryMonitor, 
   moduleSpecificValidator, 
   databaseConnectionCleanup 
-} from './middleware/databaseSchemaInterceptor';
+} from './middleware/simpleDatabaseInterceptor';
 import { tenantSchemaManager } from './utils/tenantSchemaValidator';
 import { dailySchemaChecker } from './scripts/dailySchemaCheck';
 

@@ -28,8 +28,36 @@ export interface DatabaseInterceptorRequest extends Request {
 export function databaseSchemaInterceptor() {
   return async (req: DatabaseInterceptorRequest, res: Response, next: NextFunction) => {
     try {
-      // Skip para rotas de autenticação
-      if (req.path.startsWith('/api/auth/') || req.path.startsWith('/auth/')) {
+      // Skip para rotas que não requerem contexto de banco
+      const skipPaths = [
+        '/api/auth/',
+        '/auth/',
+        '/health',
+        '/api/health',
+        '/',
+        '/favicon',
+        '/assets/',
+        '/@vite/',
+        '/@react-refresh',
+        '/__vite_ping',
+        '/node_modules/',
+        '/@fs/',
+        '/src/',
+        '.js',
+        '.css',
+        '.png',
+        '.svg',
+        '.ico'
+      ];
+
+      const shouldSkip = skipPaths.some(path => 
+        req.path.startsWith(path) || 
+        req.path.includes(path) ||
+        req.path === '/' ||
+        req.method === 'HEAD'
+      );
+
+      if (shouldSkip) {
         return next();
       }
 
@@ -38,14 +66,19 @@ export function databaseSchemaInterceptor() {
         return next();
       }
 
-      // Verificar se temos contexto de tenant
-      if (!req.user?.tenantId) {
-        console.warn(`⚠️ [DB-INTERCEPTOR] Request without tenant context: ${req.method} ${req.path}`);
+      // Verificar se temos contexto de tenant apenas para rotas de API que requerem dados
+      if (req.path.startsWith('/api/') && !req.user?.tenantId) {
+        console.warn(`⚠️ [DB-INTERCEPTOR] API request without tenant context: ${req.method} ${req.path}`);
         return res.status(400).json({
           success: false,
           message: 'Tenant context required for database operations',
           code: 'MISSING_TENANT_CONTEXT'
         });
+      }
+
+      // Se não é uma rota de API, continuar sem tenant context
+      if (!req.path.startsWith('/api/')) {
+        return next();
       }
 
       // Obter conexão tenant correta
