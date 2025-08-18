@@ -1,0 +1,59 @@
+✅ [SCHEDULER] Daily schema checks scheduled successfully
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] The symbol "apiRequest" has already been declared
+
+    client/src/pages/ReportEdit.tsx:409:9:
+      409 │ import { apiRequest, queryClient } from "@/lib/queryClient";
+          ╵          ~~~~~~~~~~
+
+  The symbol "apiRequest" was originally declared here:
+
+    client/src/pages/ReportEdit.tsx:46:6:
+      46 │ const apiRequest = async (method: string, url: string, data?: any)...
+         ╵       ~~~~~~~~~~
+
+
+✘ [ERROR] Multiple exports with the same name "default"
+
+    client/src/pages/ReportEdit.tsx:426:7:
+      426 │ export default function ReportEdit() {
+          ╵        ~~~~~~~
+
+  The name "default" was originally exported here:
+
+    client/src/pages/ReportEdit.tsx:64:7:
+      64 │ export default function ReportEdit() {
+         ╵        ~~~~~~~
+
+
+✘ [ERROR] The symbol "ReportEdit" has already been declared
+
+    client/src/pages/ReportEdit.tsx:426:24:
+      426 │ export default function ReportEdit() {
+          ╵                         ~~~~~~~~~~
+
+  The symbol "ReportEdit" was originally declared here:
+
+    client/src/pages/ReportEdit.tsx:64:24:
+      64 │ export default function ReportEdit() {
+         ╵                         ~~~~~~~~~~
+
+  Duplicate top-level function declarations are not allowed in an ECMAScript module. This file is considered to be an ECMAScript module because of the "export" keyword here:
+
+    client/src/pages/ReportEdit.tsx:426:0:
+      426 │ export default function ReportEdit() {
+          ╵ ~~~~~~
+
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/home/runner/workspace/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/home/runner/workspace/node_modules/esbuild/lib/main.js:924:7)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:936:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/home/runner/workspace/node_modules/esbuild/lib/main.js:935:54)
+    at handleRequest (/home/runner/workspace/node_modules/esbuild/lib/main.js:628:17)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:653:7)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)
