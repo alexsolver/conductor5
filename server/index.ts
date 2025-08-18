@@ -7,6 +7,14 @@ import { enhancedWebsocketStability, configureServerForStability } from "./middl
 import { initializeCleanup } from "./utils/temporaryFilesCleaner";
 import { connectionStabilizer } from "./utils/connectionStabilizer";
 import { productionInitializer } from './utils/productionInitializer';
+import { 
+  databaseSchemaInterceptor, 
+  databaseQueryMonitor, 
+  moduleSpecificValidator, 
+  databaseConnectionCleanup 
+} from './middleware/databaseSchemaInterceptor';
+import { tenantSchemaManager } from './utils/tenantSchemaValidator';
+import { dailySchemaChecker } from './scripts/dailySchemaCheck';
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
@@ -172,6 +180,12 @@ app.use(express.json({ limit: '10mb' })); // Increased limit for stability
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());
 
+// CRITICAL: Schema validation and tenant isolation middleware
+app.use(databaseSchemaInterceptor());
+app.use(databaseQueryMonitor());
+app.use(moduleSpecificValidator());
+app.use(databaseConnectionCleanup());
+
 // CRITICAL FIX: Optimized logging middleware to reduce I/O operations
 app.use((req, res, next) => {
   const start = Date.now();
@@ -277,6 +291,48 @@ app.use((req, res, next) => {
 
   // Technical Skills routes moved to routes.ts - 1qa.md compliance
 
+
+  // CRITICAL: Schema monitoring endpoint for administrators
+  app.get('/api/admin/schema-status', async (req, res) => {
+    try {
+      // Basic authentication check for admin routes
+      const user = (req as any).user;
+      if (!user || user.role !== 'saas_admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin access required'
+        });
+      }
+
+      console.log('🔍 [ADMIN] Schema status check initiated');
+      
+      // Get health check for all tenant connections
+      const healthCheck = await tenantSchemaManager.healthCheck();
+      
+      // Get basic system info
+      const systemInfo = {
+        timestamp: new Date().toISOString(),
+        totalConnections: healthCheck.length,
+        healthyConnections: healthCheck.filter(h => h.isHealthy).length,
+        unhealthyConnections: healthCheck.filter(h => !h.isHealthy).length
+      };
+
+      res.json({
+        success: true,
+        data: {
+          systemInfo,
+          connectionHealth: healthCheck
+        }
+      });
+    } catch (error) {
+      console.error('❌ [ADMIN] Schema status check failed:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Schema status check failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
@@ -430,7 +486,7 @@ app.use((req, res, next) => {
     reusePort: true,
     keepAlive: true,
     keepAliveInitialDelay: 0
-  }, () => {
+  }, async () => {
     log(`serving on port ${port}`);
 
     // 🔴 INICIALIZA SERVIÇOS CLT OBRIGATÓRIOS
@@ -439,6 +495,18 @@ app.use((req, res, next) => {
       // Inicia backup automático diário
       backupService.scheduleDaily();
       console.log('✅ [CLT-COMPLIANCE] Backup automático iniciado com sucesso');
+      
+      // CRITICAL: Initialize tenant schema monitoring
+      console.log('🔍 [SCHEMA-VALIDATION] Inicializando monitoramento de schemas...');
+      
+      // Verificar saúde dos schemas na inicialização
+      const healthCheck = await tenantSchemaManager.healthCheck();
+      console.log(`🏥 [SCHEMA-VALIDATION] Health check: ${healthCheck.length} tenant connections monitored`);
+      
+      // Initialize daily schema checker
+      console.log('⏰ [SCHEMA-VALIDATION] Configurando verificações diárias...');
+      await dailySchemaChecker.scheduleRecurring();
+      
     } catch (error) {
       console.error('❌ [CLT-COMPLIANCE] Erro ao inicializar serviços:', error);
     }
