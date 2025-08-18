@@ -61,7 +61,7 @@ export function tenantSchemaEnforcer() {
       console.debug(`🔐 [SCHEMA-CONTEXT] Request using schema: ${schemaName} for path: ${req.path}`);
 
       next();
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [TENANT-SCHEMA-ENFORCER] Error enforcing tenant schema:', error);
       
       return res.status(500).json({

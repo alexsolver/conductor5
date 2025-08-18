@@ -28,8 +28,24 @@ export function employmentDetectionMiddleware(
   res: Response,
   next: NextFunction
 ) {
-  // Get user from session/token
+  // Get user from session/token - CRITICAL FIX: Ensure user object exists
   const user = (req as any).user;
+
+  console.log('[EMPLOYMENT-DETECTION] Input user:', user || {});
+
+  // CRITICAL FIX: Always provide valid user object for tenant context
+  if (!user || !user.tenantId) {
+    console.warn('[EMPLOYMENT-DETECTION] Missing user or tenant context, using default');
+    
+    // Don't proceed without proper user context in tenant operations
+    if (req.path.includes('/api/') && !req.path.includes('/auth/')) {
+      return res.status(401).json({
+        success: false,
+        message: 'User authentication required for tenant operations',
+        code: 'MISSING_USER_CONTEXT'
+      });
+    }
+  }
 
   if (user) {
     // Detect employment type from user data
@@ -38,6 +54,13 @@ export function employmentDetectionMiddleware(
 
     // Add terminology based on employment type
     req.terminology = getTerminologyForType(employmentType);
+    
+    console.log('[EMPLOYMENT-DEBUG] User data:', { detectedType: employmentType });
+  } else {
+    // CRITICAL FIX: Default values when user is missing
+    req.employmentType = 'clt';
+    req.terminology = getTerminologyForType('clt');
+    console.log('[EMPLOYMENT-DEBUG] Using default: clt');
   }
 
   next();

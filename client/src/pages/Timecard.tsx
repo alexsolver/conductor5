@@ -144,7 +144,7 @@ export default function Timecard() {
     refetchOnWindowFocus: false,
   });
 
-  // Query para obter status atual
+  // Query para obter status atual - CRITICAL FIX: Debounced to prevent infinite loops
   const { data: statusData, isLoading: statusLoading, error: statusError } = useQuery({
     queryKey: ['/api/timecard/current-status'],
     queryFn: async () => {
@@ -153,7 +153,9 @@ export default function Timecard() {
       return data;
     },
     enabled: true,
-    refetchInterval: 30000, // Atualizar a cada 30 segundos
+    refetchInterval: 60000, // CRITICAL FIX: Increased to 60 seconds to prevent loops
+    refetchOnWindowFocus: false, // CRITICAL FIX: Prevent refetch on focus
+    staleTime: 30000, // CRITICAL FIX: Consider data fresh for 30 seconds
   });
 
   // Atualizar estado local quando dados chegarem
