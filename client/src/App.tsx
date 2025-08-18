@@ -230,8 +230,8 @@ function AppRouter() {
         <Route path="/productivity-reports" component={ProductivityReports} />
         <Route path="/notifications" component={NotificationsPage} />
         <Route path="/reports" component={Reports} />
-        <Route path="/dashboards" element={<Dashboards />} />
-          <Route path="/dashboard/:id" element={<DashboardView />} />
+        <Route path="/dashboards" component={Dashboards} />
+        <Route path="/dashboard/:id" component={DashboardView} />
 
         <Route path="/companies" component={Companies} />
         <Route component={NotFound} />
