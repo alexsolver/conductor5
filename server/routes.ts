@@ -370,8 +370,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Priority 1: Auth routes MUST be processed first - CLEAN ARCHITECTURE per 1qa.md
   console.log('🏗️ [AUTH-CLEAN-ARCH] Initializing Auth Clean Architecture routes...');
   const authRoutes = (await import('./modules/auth/routes-clean')).default;
-  app.use('/api/auth', tenantSchemaEnforcer(), databaseOperationInterceptor(), runtimeSchemaValidator(), authRoutes);
+  // Auth routes should NOT have tenant validation as they are used for login/register
+  app.use('/api/auth', authRoutes);
   console.log('✅ [AUTH-CLEAN-ARCH] Auth Clean Architecture routes configured successfully');
+
+
 
   // ✅ Priority 2: Tickets routes - CLEAN ARCHITECTURE per 1qa.md  
   console.log('🏗️ [TICKETS-CLEAN-ARCH] Initializing Tickets Clean Architecture routes...');
