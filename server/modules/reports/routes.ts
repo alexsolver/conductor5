@@ -6,14 +6,17 @@ import { ReportsController } from './application/controllers/ReportsController';
 import { DashboardsController } from './application/controllers/DashboardsController';
 import { jwtAuth } from '../../middleware/jwtAuth';
 
+// ✅ 1QA.MD COMPLIANCE: SIMPLIFIED DRIZZLE ORM DEPENDENCY INJECTION
+import { SimplifiedDrizzleReportsRepository } from './infrastructure/repositories/SimplifiedDrizzleReportsRepository';
+
 // Initialize routers
 const router = Router();
 
-// Factory function to create routes with dependency injection
-export function createReportsRoutes(
-  reportsController: ReportsController,
-  dashboardsController: DashboardsController
-): Router {
+// ✅ 1QA.MD COMPLIANCE: FACTORY WITH SIMPLIFIED ORM COMPLIANCE
+export function createReportsRoutes(): Router {
+  
+  // Initialize Simplified Drizzle ORM Repository
+  const simplifiedRepository = new SimplifiedDrizzleReportsRepository();
   
   // ==================== REPORTS ROUTES ====================
   

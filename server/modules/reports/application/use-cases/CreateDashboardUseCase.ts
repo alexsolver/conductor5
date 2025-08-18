@@ -1,128 +1,81 @@
-// ✅ 1QA.MD COMPLIANCE: APPLICATION USE CASE - BUSINESS LOGIC ORCHESTRATION
-// Application Layer - Coordinates domain services and repositories
+// ✅ 1QA.MD COMPLIANCE: CREATE DASHBOARD USE CASE
+// Application Layer - Business Logic for Dashboard Creation
 
-import { IDashboardsRepository } from '../../domain/repositories/IDashboardsRepository';
-import { Dashboard, DashboardDomain } from '../../domain/entities/Dashboard';
-import { CreateDashboardDTO } from '../dto/CreateDashboardDTO';
+import type { IReportsRepository } from '../../domain/repositories/IReportsRepository';
+import { dashboards } from '../../../../../shared/schema-reports';
 
-export interface CreateDashboardUseCaseRequest {
-  data: CreateDashboardDTO;
+// ✅ 1QA.MD COMPLIANCE: TYPE FROM SCHEMA
+type Dashboard = typeof dashboards.$inferSelect;
+
+interface CreateDashboardRequest {
+  data: {
+    name: string;
+    description?: string;
+    layout: any;
+    isPublic?: boolean;
+    allowedRoles?: string[];
+    refreshInterval?: number;
+    metadata?: any;
+  };
   userId: string;
   userRoles: string[];
   tenantId: string;
 }
 
-export interface CreateDashboardUseCaseResponse {
+interface CreateDashboardResponse {
   success: boolean;
   data?: Dashboard;
   errors?: string[];
-  warnings?: string[];
+  message: string;
 }
 
 export class CreateDashboardUseCase {
-  constructor(
-    private dashboardsRepository: IDashboardsRepository
-  ) {}
+  constructor(private reportsRepository: IReportsRepository) {}
 
-  async execute(request: CreateDashboardUseCaseRequest): Promise<CreateDashboardUseCaseResponse> {
+  async execute(request: CreateDashboardRequest): Promise<CreateDashboardResponse> {
     try {
-      const { data, userId, userRoles, tenantId } = request;
-
-      // Validate business rules
-      const validationErrors = DashboardDomain.validateDashboardCreation({
-        ...data,
-        ownerId: userId,
-        tenantId
-      });
-
-      if (validationErrors.length > 0) {
+      // Validate tenant isolation
+      if (!request.tenantId) {
         return {
           success: false,
-          errors: validationErrors
+          message: 'Tenant ID is required',
+          errors: ['Multi-tenant isolation violation']
         };
       }
 
-      // Check name uniqueness
-      const isNameUnique = await this.dashboardsRepository.isDashboardNameUnique(data.name, tenantId);
-      if (!isNameUnique) {
+      // Validate user authorization
+      if (!request.userId) {
         return {
           success: false,
-          errors: ['Dashboard name must be unique within the tenant']
+          message: 'User ID is required',
+          errors: ['User authentication required']
         };
       }
 
-      // Generate share token if public
-      let shareToken: string | undefined;
-      if (data.isPublic) {
-        shareToken = DashboardDomain.generateShareToken();
-      }
-
-      // Prepare dashboard data
-      const dashboardData: Omit<Dashboard, 'id' | 'createdAt' | 'updatedAt'> = {
-        tenantId,
-        name: data.name,
-        description: data.description,
-        layoutType: data.layoutType || 'grid',
-        status: 'draft',
-        layoutConfig: data.layoutConfig || {},
-        themeConfig: data.themeConfig || {},
-        styleConfig: data.styleConfig || {},
-        ownerId: userId,
-        isPublic: data.isPublic || false,
-        shareToken,
-        shareExpiresAt: undefined,
-        accessLevel: data.accessLevel || 'view_only',
-        allowedRoles: data.allowedRoles || [],
-        allowedUsers: data.allowedUsers || [],
-        isRealTime: data.isRealTime || false,
-        refreshInterval: data.refreshInterval || 300,
-        autoRefresh: data.autoRefresh !== false,
-        mobileConfig: data.mobileConfig || {},
-        tabletConfig: data.tabletConfig || {},
-        desktopConfig: data.desktopConfig || {},
-        isFavorite: false,
-        viewCount: 0,
-        lastViewedAt: undefined,
-        tags: data.tags || [],
-        metadata: {
-          ...data.metadata,
-          createdBy: userId,
-          createdAt: new Date().toISOString()
-        },
-        version: 1,
-        createdBy: userId,
-        updatedBy: undefined
+      // Create dashboard data
+      const dashboardData = {
+        ...request.data,
+        ownerId: request.userId,
+        isPublic: request.data.isPublic ?? false,
+        refreshInterval: request.data.refreshInterval ?? 300,
+        metadata: request.data.metadata ?? {}
       };
 
-      // Create dashboard
-      const createdDashboard = await this.dashboardsRepository.create(dashboardData);
-
-      // Generate warnings if applicable
-      const warnings: string[] = [];
-      
-      if (data.refreshInterval && data.refreshInterval < 30) {
-        warnings.push('Refresh interval is very low, may impact performance');
-      }
-
-      if (data.isRealTime && data.refreshInterval > 60) {
-        warnings.push('Real-time dashboards should have shorter refresh intervals');
-      }
-
-      if (data.isPublic && !shareToken) {
-        warnings.push('Public dashboard created without share token');
-      }
+      // Execute repository operation
+      const dashboard = await this.reportsRepository.createDashboard(dashboardData, request.tenantId);
 
       return {
         success: true,
-        data: createdDashboard,
-        warnings: warnings.length > 0 ? warnings : undefined
+        message: 'Dashboard created successfully',
+        data: dashboard
       };
 
-    } catch (error) {
-      console.error('[CreateDashboardUseCase] Error creating dashboard:', error);
+    } catch (error: unknown) {
+      console.error('[CreateDashboardUseCase] Error:', error);
       return {
         success: false,
-        errors: ['Failed to create dashboard. Please try again.']
+        message: 'Failed to create dashboard',
+        errors: ['Internal server error during dashboard creation']
       };
     }
   }
