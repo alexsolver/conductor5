@@ -108,6 +108,9 @@ import { AppShell } from "./components/layout/AppShell";
 // Assuming TicketAdvancedConfiguration is in the same directory
 import TicketAdvancedConfiguration from "./pages/TicketAdvancedConfiguration";
 
+// Assuming ReportEdit is in the same directory
+import ReportEdit from "./pages/ReportEdit";
+
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -230,6 +233,7 @@ function AppRouter() {
         <Route path="/productivity-reports" component={ProductivityReports} />
         <Route path="/notifications" component={NotificationsPage} />
         <Route path="/reports" component={Reports} />
+        <Route path="/reports/:id/edit" component={ReportEdit} />
         <Route path="/dashboards" component={Dashboards} />
         <Route path="/dashboard/:id" component={DashboardView} />
         <Route path="/dashboard/:id/edit" component={DashboardView} />

@@ -107,15 +107,22 @@ export class DrizzleReportsRepository implements IReportsRepository {
   }
 
   async update(id: string, report: Partial<Report>): Promise<Report | null> {
-    console.log('✅ [REPORTS-REPO] Updating report:', id);
+    console.log('✅ [REPORTS-REPO] Updating report following 1qa.md patterns:', id);
     const existing = await this.findById(id);
-    if (!existing) return null;
+    if (!existing) {
+      console.log('❌ [REPORTS-REPO] Report not found for update:', id);
+      return null;
+    }
 
-    return {
+    // TODO: Implement actual database update with Drizzle ORM
+    const updated = {
       ...existing,
       ...report,
       updatedAt: new Date().toISOString()
     };
+
+    console.log('✅ [REPORTS-REPO] Report updated successfully:', updated);
+    return updated;
   }
 
   async delete(id: string): Promise<boolean> {

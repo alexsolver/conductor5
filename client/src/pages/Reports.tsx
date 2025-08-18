@@ -31,6 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from 'react-router-dom';
 
 // Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
@@ -148,7 +149,7 @@ function TemplateLibrary({ onClose }: { onClose: () => void }) {
         <h3 className="text-lg font-semibold">Choose from 20+ Professional Templates</h3>
         <Button variant="outline" onClick={onClose}>Close</Button>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templateCategories.map((category) => (
           <Card key={category.id}>
@@ -203,7 +204,7 @@ function DragDropReportBuilder({ onClose }: { onClose: () => void }) {
         <h3 className="text-lg font-semibold">Visual Report Builder - No SQL Required</h3>
         <Button variant="outline" onClick={onClose}>Close</Button>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Available Fields */}
         <Card>
@@ -291,7 +292,7 @@ function DragDropReportBuilder({ onClose }: { onClose: () => void }) {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <label className="text-sm font-medium">Time Range</label>
               <Select value={chartConfig.timeRange} onValueChange={(value) => setChartConfig({...chartConfig, timeRange: value})}>
@@ -351,7 +352,7 @@ function AdvancedFiltersManager({ savedFilters, onSaveFilter, onClose }: {
         <h3 className="text-lg font-semibold">Advanced Filters & Saved Presets</h3>
         <Button variant="outline" onClick={onClose}>Close</Button>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Filter Builder */}
         <Card>
@@ -611,7 +612,7 @@ function ExecutionQueueManager({ queue, onClose }: { queue: any[], onClose: () =
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Queue Status</CardTitle>
@@ -634,7 +635,7 @@ function ExecutionQueueManager({ queue, onClose }: { queue: any[], onClose: () =
                     </Button>
                   </div>
                 </div>
-                
+
                 {item.status === 'running' && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
@@ -699,7 +700,7 @@ function SecurityProfilesManager({ onClose }: { onClose: () => void }) {
         <h3 className="text-lg font-semibold">Security Profiles & Access Control</h3>
         <Button variant="outline" onClick={onClose}>Close</Button>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {profiles.map((profile) => (
           <Card key={profile.id}>
@@ -711,7 +712,7 @@ function SecurityProfilesManager({ onClose }: { onClose: () => void }) {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">{profile.description}</p>
-              
+
               <div>
                 <label className="text-sm font-medium">Access Rules</label>
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -814,7 +815,7 @@ function VersionHistoryManager({ versions, onClose }: { versions: any[], onClose
         <h3 className="text-lg font-semibold">Report Versions & History</h3>
         <Button variant="outline" onClick={onClose}>Close</Button>
       </div>
-      
+
       <div className="space-y-4">
         {mockVersions.map((version) => (
           <Card key={version.id}>
@@ -835,7 +836,7 @@ function VersionHistoryManager({ versions, onClose }: { versions: any[], onClose
                   </span>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 {version.changes}
               </p>
@@ -1183,7 +1184,7 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const { toast } = useToast();
-  
+
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
@@ -1282,7 +1283,7 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
             }} 
             className="space-y-6"
           >
-            
+
             {/* Step 0: Basic Info */}
             {currentStep === 0 && (
               <div className="space-y-4">
@@ -1299,7 +1300,7 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="description"
@@ -1593,7 +1594,7 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
               >
                 Previous
               </Button>
-              
+
               {currentStep < steps.length - 1 ? (
                 <Button
                   type="button"
@@ -1624,6 +1625,7 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
 function ReportCard({ report }: { report: Report }) {
   const { toast } = useToast();
   const ChartIcon = chartTypeIcons[report.chartType as keyof typeof chartTypeIcons];
+  const navigate = useNavigate(); // Use useNavigate hook
 
   // Execute Report Mutation
   const [executionResult, setExecutionResult] = useState<any>(null);
@@ -1633,7 +1635,7 @@ function ReportCard({ report }: { report: Report }) {
     mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/execute`),
     onSuccess: (result) => {
       console.log('✅ [REPORT-EXECUTION] Success:', result);
-      
+
       // ✅ 1QA.MD COMPLIANCE: Show execution results instead of just success message
       if (result?.data?.results) {
         setExecutionResult(result.data);
@@ -1642,7 +1644,7 @@ function ReportCard({ report }: { report: Report }) {
       } else {
         toast({ title: "Report executed but no data returned" });
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
     },
     onError: (error) => {
@@ -1702,8 +1704,9 @@ function ReportCard({ report }: { report: Report }) {
 
   const handleEditReport = () => {
     // Navigate to edit mode
+    // TODO: Implement navigation to edit page: navigate(`/reports/${report.id}/edit`);
     toast({ title: "Opening report editor", description: `Editing ${report.name}` });
-    // TODO: Implement navigation to edit page
+    navigate(`/reports/${report.id}/edit`); // Navigate to the edit page
   };
 
   const handleShareReport = () => {
@@ -1759,7 +1762,7 @@ function ReportCard({ report }: { report: Report }) {
               </div>
             </div>
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" data-testid={`button-menu-${report.id}`}>
@@ -1843,7 +1846,7 @@ function ReportCard({ report }: { report: Report }) {
           </DropdownMenu>
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
@@ -1887,7 +1890,7 @@ function ReportCard({ report }: { report: Report }) {
               View
             </Button>
           </div>
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -2001,7 +2004,7 @@ export default function Reports() {
                       (activeTab === "favorites" && report.isFavorite) ||
                       (activeTab === "scheduled" && report.scheduleConfig) ||
                       (activeTab === "public" && report.isPublic);
-    
+
     return matchesSearch && matchesCategory && matchesTab;
   });
 
