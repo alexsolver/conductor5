@@ -55,8 +55,9 @@ export const apiRequest = async (method: string, url: string, data?: any): Promi
 
   console.log(`🌐 [API-REQUEST] ${method} ${url}`);
 
-  // ✅ CRITICAL FIX: Para login/register, não verificar token
-  if (url.includes('/login') || url.includes('/register')) {
+  // ✅ 1QA.MD COMPLIANCE: Para login/register, não verificar token
+  const urlString = typeof url === 'string' ? url : String(url);
+  if (urlString.includes('/login') || urlString.includes('/register')) {
     console.log('🔐 [API-REQUEST] Auth endpoint, proceeding without token validation');
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

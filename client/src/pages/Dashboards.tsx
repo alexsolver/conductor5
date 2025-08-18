@@ -1283,8 +1283,11 @@ export default function Dashboards() {
     queryFn: async () => {
       console.log('🔍 [DASHBOARDS-FRONTEND] Fetching dashboards...');
       const response = await apiRequest("GET", "/api/reports-dashboards/dashboards");
-      console.log('📊 [DASHBOARDS-FRONTEND] Response received:', response);
-      return response;
+      const jsonData = await response.json();
+      console.log('📊 [DASHBOARDS-FRONTEND] Response received:', jsonData);
+      console.log('📊 [DASHBOARDS-FRONTEND] Response type:', typeof jsonData);
+      console.log('📊 [DASHBOARDS-FRONTEND] Response keys:', jsonData ? Object.keys(jsonData) : 'null');
+      return jsonData;
     },
   });
 
