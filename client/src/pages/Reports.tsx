@@ -5,7 +5,7 @@ import {
   Eye, Edit, Trash2, Play, Settings, Clock, Users, Star, StarOff, Calendar, 
   Database, Code, Palette, FileText, Grid, Layout, Monitor, Smartphone, Tablet,
   TrendingUp, AlertTriangle, CheckCircle, XCircle, MoreHorizontal, Copy, ExternalLink,
-  RefreshCw, AlertTriangle, CheckCircle2
+  RefreshCw, CheckCircle2
 } from "lucide-react";
 import AdvancedWYSIWYGDesigner from '@/components/reports/AdvancedWYSIWYGDesigner';
 import AdvancedQueryBuilder from '@/components/reports/AdvancedQueryBuilder';
