@@ -99,16 +99,13 @@ export default function SaasAdminIntegrations() {
 
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
-    mutationFn: (data: { integrationId: string; config: z.infer<typeof integrationConfigSchema> }) => {
-      console.log(`🔧 [SAAS-ADMIN-CONFIG] Salvando configuração:`, {
-        integrationId: data.integrationId,
-        hasApiKey: !!data.config.apiKey,
-        baseUrl: data.config.baseUrl
-      });
-      
-      return apiRequest(`/api/saas-admin/integrations/${data.integrationId}/config`, { 
+    mutationFn: async ({ integrationId, config }: { integrationId: string; config: any }) => {
+      console.log('🔧 [SAAS-ADMIN-CONFIG] Salvando configuração:', { integrationId, hasApiKey: !!config.apiKey });
+
+      const url = `/api/saas-admin/integrations/${integrationId}/config`;
+      return apiRequest(url, { 
         method: 'PUT', 
-        body: JSON.stringify(data.config),
+        body: JSON.stringify(config),
         headers: {
           'Content-Type': 'application/json'
         }
@@ -132,10 +129,10 @@ export default function SaasAdminIntegrations() {
         message: error?.message,
         stack: error?.stack
       });
-      
+
       // Extrair mensagem de erro mais específica
       let errorMessage = "Verifique os dados e tente novamente.";
-      
+
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
@@ -143,7 +140,7 @@ export default function SaasAdminIntegrations() {
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-      
+
       toast({
         title: "Erro ao salvar configuração",
         description: errorMessage,
@@ -154,9 +151,10 @@ export default function SaasAdminIntegrations() {
 
   // Mutation para testar integração
   const testIntegrationMutation = useMutation({
-    mutationFn: (integrationId: string) => {
+    mutationFn: async (integrationId: string) => {
       console.log(`🧪 [SAAS-ADMIN-TEST] Testando integração: ${integrationId}`);
-      return apiRequest(`/api/saas-admin/integrations/${integrationId}/test`, { 
+      const url = `/api/saas-admin/integrations/${integrationId}/test`;
+      return apiRequest(url, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -166,7 +164,7 @@ export default function SaasAdminIntegrations() {
     onSuccess: (data) => {
       console.log('✅ [SAAS-ADMIN-TEST] Teste concluído:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
-      
+
       if (data.success) {
         toast({
           title: "Teste bem-sucedido",
@@ -182,14 +180,14 @@ export default function SaasAdminIntegrations() {
     },
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-TEST] Erro no teste:', error);
-      
+
       let errorMessage = "Erro ao testar integração";
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       toast({
         title: "Erro no teste",
         description: errorMessage,
@@ -272,7 +270,7 @@ export default function SaasAdminIntegrations() {
         ...data,
         baseUrl: data.baseUrl === "" ? undefined : data.baseUrl
       };
-      
+
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
         config: cleanedData
@@ -372,7 +370,7 @@ export default function SaasAdminIntegrations() {
                 <p className="text-sm text-gray-600 mb-4">
                   {integration.description}
                 </p>
-                
+
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-medium">API Key:</span>
                   <Badge variant={integration.apiKeyConfigured ? "default" : "secondary"}>
@@ -389,7 +387,7 @@ export default function SaasAdminIntegrations() {
                     <Settings className="h-4 w-4 mr-1" />
                     Configurar
                   </Button>
-                  
+
                   <Button 
                     size="sm" 
                     variant="outline"
@@ -420,7 +418,7 @@ export default function SaasAdminIntegrations() {
               Configurar {selectedIntegration?.name}
             </DialogTitle>
           </DialogHeader>
-          
+
           <Form {...configForm}>
             <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="space-y-4">
               <FormField
