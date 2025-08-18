@@ -32,11 +32,15 @@ import { useToast } from "@/hooks/use-toast";
 
 const integrationConfigSchema = z.object({
   apiKey: z.string().min(1, "API Key é obrigatória"),
-  baseUrl: z.union([
-    z.string().url("URL deve ser válida"),
-    z.literal(""),
-    z.undefined()
-  ]).optional(),
+  baseUrl: z.string().optional().refine((val) => {
+    if (!val || val === "") return true;
+    try {
+      new URL(val);
+      return true;
+    } catch {
+      return false;
+    }
+  }, "URL deve ser válida"),
   maxTokens: z.number().min(1).max(32000).optional(),
   temperature: z.number().min(0).max(2).optional(),
   enabled: z.boolean().default(true)
@@ -122,6 +126,12 @@ export default function SaasAdminIntegrations() {
     },
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-CONFIG] Erro ao salvar:', error);
+      console.error('❌ [SAAS-ADMIN-CONFIG] Error details:', {
+        status: error?.status,
+        response: error?.response?.data,
+        message: error?.message,
+        stack: error?.stack
+      });
       
       // Extrair mensagem de erro mais específica
       let errorMessage = "Verifique os dados e tente novamente.";
