@@ -95,7 +95,7 @@ async function validateDatabaseConnection() {
   } catch (error) {
     console.error("❌ [DATABASE] Initial connection failed:", error);
 
-    if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
+    if ((error as any)?.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
       console.error("🔒 [SSL ERROR] Certificate validation failed. Applying ultimate SSL bypass...");
 
       try {
@@ -119,10 +119,12 @@ async function validateDatabaseConnection() {
         // Final attempt with modified connection string
         try {
           let modifiedUrl = process.env.DATABASE_URL;
-          if (modifiedUrl.includes('?')) {
+          if (modifiedUrl && modifiedUrl.includes('?')) {
             modifiedUrl = modifiedUrl.split('?')[0]; // Remove all query parameters
           }
-          modifiedUrl += '?sslmode=disable'; // Force SSL disable
+          if (modifiedUrl) {
+            modifiedUrl += '?sslmode=disable'; // Force SSL disable
+          }
 
           const finalPool = new Pool({
             connectionString: modifiedUrl,
