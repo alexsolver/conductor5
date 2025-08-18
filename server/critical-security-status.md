@@ -72,10 +72,13 @@ Tenant validation successful
 ```
 
 ### Key Fixes Applied:
-1. **Empty User Objects**: Fixed employment detection middleware to handle missing user context
-2. **Infinite Loops**: Implemented 60-second debouncing + 5-second cache invalidation delay
-3. **Schema Enforcement**: Applied to all `/api/*` routes with automatic tenant validation
-4. **Public Route Handling**: Proper separation of public vs tenant-scoped endpoints
+1. **CRITICAL FIX - Middleware Chain Order**: Fixed employment detection to run AFTER JWT auth
+   - employmentDetectionMiddleware now receives valid user object from jwtAuth
+   - Middleware order: jwtAuth → tenantValidator → schemaEnforcer → employmentDetection
+2. **Empty User Objects**: Fixed employment detection middleware to handle missing user context  
+3. **Infinite Loops**: Implemented 60-second debouncing + 5-second cache invalidation delay
+4. **Schema Enforcement**: Applied to all `/api/*` routes with automatic tenant validation
+5. **Public Route Handling**: Proper separation of public vs tenant-scoped endpoints
 
 ---
 **STATUS**: 🟢 FULLY SECURED - Zero violations, complete tenant isolation active

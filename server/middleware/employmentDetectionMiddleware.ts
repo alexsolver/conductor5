@@ -31,7 +31,8 @@ export function employmentDetectionMiddleware(
   // Get user from session/token - CRITICAL FIX: Ensure user object exists
   const user = (req as any).user;
 
-  console.log('[EMPLOYMENT-DETECTION] Input user:', user || {});
+  // CRITICAL FIX APPLIED: Now runs after jwtAuth, so user should always exist
+  console.log('[EMPLOYMENT-DETECTION] Input user:', user ? `{id: ${user.id}, tenantId: ${user.tenantId}}` : 'MISSING');
 
   // CRITICAL FIX: Always provide valid user object for tenant context
   if (!user || !user.tenantId) {
