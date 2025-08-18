@@ -22,7 +22,7 @@ localPort = 5432
 PORT = "5000"
 
 [workflows]
-runButton = "Tenant Schema Audit"
+runButton = "Start application"
 
 [[workflows.workflow]]
 name = "Project"
