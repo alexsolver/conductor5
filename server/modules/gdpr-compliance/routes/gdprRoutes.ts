@@ -38,8 +38,18 @@ router.put('/user-preferences', (req, res) => gdprController.updateUserPreferenc
 // ✅ Compliance Dashboard & Metrics Routes
 router.get('/metrics', (req, res) => gdprController.getComplianceMetrics(req, res));
 
-// ✅ GDPR Rights Implementation Routes
+// ✅ GDPR Rights Implementation Routes - Seguindo rigorosamente 1qa.md
 router.get('/export-user-data', (req, res) => gdprController.exportUserData(req, res));
 router.delete('/delete-user-data', (req, res) => gdprController.deleteUserData(req, res));
+
+// ✅ USER RIGHTS SPECIFIC ROUTES - Matching frontend button calls following 1qa.md
+router.post('/export-my-data', (req, res) => gdprController.createDataSubjectRequest(req, res));
+router.post('/request-data-correction', (req, res) => gdprController.createDataSubjectRequest(req, res));
+router.post('/limit-data-usage', (req, res) => gdprController.createDataSubjectRequest(req, res));
+router.post('/request-data-deletion', (req, res) => gdprController.createDataSubjectRequest(req, res));
+
+// ✅ Privacy Policy Routes - User facing
+router.get('/current-privacy-policy', (req, res) => gdprController.getCurrentPrivacyPolicy(req, res));
+router.get('/admin/privacy-policies', (req, res) => gdprController.getAdminPrivacyPolicies(req, res));
 
 export { router as gdprRoutes };

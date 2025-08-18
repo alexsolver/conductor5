@@ -601,4 +601,65 @@ export class GdprController {
       });
     }
   }
+
+  // ✅ USER FACING: Get current active privacy policy
+  async getCurrentPrivacyPolicy(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          error: 'Tenant ID required'
+        });
+        return;
+      }
+
+      const policies = await this.gdprRepository.findAllPrivacyPolicies(tenantId);
+      const activePolicy = policies.find(p => p.isActive) || policies[0];
+
+      res.json({
+        success: true,
+        message: 'Current privacy policy retrieved successfully',
+        data: activePolicy || null
+      });
+
+    } catch (error) {
+      console.error('[GdprController] getCurrentPrivacyPolicy error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // ✅ ADMIN FACING: Get all privacy policies for admin
+  async getAdminPrivacyPolicies(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          error: 'Tenant ID required'
+        });
+        return;
+      }
+
+      const policies = await this.gdprRepository.findAllPrivacyPolicies(tenantId);
+
+      res.json({
+        success: true,
+        message: 'Privacy policies retrieved successfully',
+        data: policies
+      });
+
+    } catch (error) {
+      console.error('[GdprController] getAdminPrivacyPolicies error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
 }
