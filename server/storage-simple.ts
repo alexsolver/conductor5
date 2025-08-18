@@ -162,8 +162,16 @@ export class DatabaseStorage implements IStorage {
 
   async getUser(id: number): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.id, String(id)));
-      return user || undefined;
+      // ✅ SECURITY FIX: Use public schema connection explicitly for user management
+      // Users table is in public schema and requires system-level access
+      const result = await db.execute(sql`
+        SELECT id, email, tenant_id, role, is_active, password_hash, created_at, updated_at
+        FROM public.users 
+        WHERE id = ${String(id)} AND is_active = true
+        LIMIT 1
+      `);
+      
+      return result.rows[0] || undefined;
     } catch (error) {
       logError('Error fetching user', error, { userId: id });
       throw error;
@@ -176,8 +184,16 @@ export class DatabaseStorage implements IStorage {
         throw new Error('Username is required');
       }
 
-      const [user] = await db.select().from(users).where(eq(users.email, username));
-      return user || undefined;
+      // ✅ SECURITY FIX: Use public schema connection explicitly for user authentication
+      // Users table is in public schema and requires system-level access
+      const result = await db.execute(sql`
+        SELECT id, email, tenant_id, role, is_active, password_hash, created_at, updated_at
+        FROM public.users 
+        WHERE email = ${username} AND is_active = true
+        LIMIT 1
+      `);
+
+      return result.rows[0] || undefined;
     } catch (error) {
       logError('Error fetching user by username', error, { username });
       throw error;
@@ -2053,20 +2069,21 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTicketRelationship(relationshipId: string): Promise<boolean> {
     try {
-      // Get relationship details first to determine tenant
-      const publicResult = await db.execute(sql`
-        SELECT tenant_id FROM ticket_relationships WHERE id = ${relationshipId}
-        LIMIT 1
-      `);
+      // ⚠️ CRITICAL SECURITY FIX: This method needs tenant context!
+      // Cannot safely delete without knowing which tenant this relationship belongs to
+      throw new Error('SECURITY: deleteTicketRelationship requires explicit tenant context. Use deleteTicketRelationshipWithTenant(tenantId, relationshipId) instead.');
+    } catch (error) {
+      logError('Error deleting ticket relationship - security violation prevented', error, { relationshipId });
+      throw error;
+    }
+  }
 
-      if (!publicResult.rows?.[0]) {
-        return false;
-      }
-
-      const tenantId = String(publicResult.rows[0].tenant_id);
+  // ✅ SECURITY FIX: New safe method with explicit tenant context
+  async deleteTicketRelationshipWithTenant(tenantId: string, relationshipId: string): Promise<boolean> {
+    try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const { db: tenantDb } = await schemaManager.getTenantDb(validatedTenantId);
+      const schemaName = schemaManager.getSchemaName(validatedTenantId);
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.ticket_relationships
@@ -2080,7 +2097,7 @@ export class DatabaseStorage implements IStorage {
 
       return deleted;
     } catch (error) {
-      logError('Error deleting ticket relationship', error, { relationshipId });
+      logError('Error deleting ticket relationship', error, { tenantId, relationshipId });
       throw error;
     }
   }

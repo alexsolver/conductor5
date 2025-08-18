@@ -31,13 +31,23 @@ export function employmentDetectionMiddleware(
   // Get user from session/token
   const user = (req as any).user;
 
-  if (user) {
+  // Debug logging to trace the empty user object issue
+  console.log('[EMPLOYMENT-DETECTION] Input user:', user);
+  
+  if (user && Object.keys(user).length > 0) {
     // Detect employment type from user data
     const employmentType = detectEmploymentTypeFromUser(user);
     req.employmentType = employmentType;
 
     // Add terminology based on employment type
     req.terminology = getTerminologyForType(employmentType);
+    
+    console.log('[EMPLOYMENT-DEBUG] User data:', { detectedType: employmentType });
+  } else {
+    // Fallback quando user está vazio ou não existe
+    req.employmentType = 'clt';
+    req.terminology = getTerminologyForType('clt');
+    console.log('[EMPLOYMENT-DETECTION] Using default: clt');
   }
 
   next();

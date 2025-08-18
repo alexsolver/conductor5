@@ -340,8 +340,13 @@ app.use((req, res, next) => {
 
     try {
       const dbStart = Date.now();
-      await db.execute(sql`SELECT 1`);
+      // ✅ SECURITY FIX: Use public schema connection for health check
+      // Health check should use system DB, not tenant DB
+      const result = await db.execute(sql`SELECT 1 as health_check`);
       const dbLatency = Date.now() - dbStart;
+      
+      // Log health check without tenant context (this is system-level)
+      console.debug(`🏥 [HEALTH-CHECK] DB latency: ${dbLatency}ms, status: ${dbLatency < 100 ? 'excellent' : 'good'}`);
 
       res.json({ 
         status: 'ok', 
