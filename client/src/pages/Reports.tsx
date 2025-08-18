@@ -31,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 // Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
@@ -1625,7 +1625,7 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
 function ReportCard({ report }: { report: Report }) {
   const { toast } = useToast();
   const ChartIcon = chartTypeIcons[report.chartType as keyof typeof chartTypeIcons];
-  const navigate = useNavigate(); // Use useNavigate hook
+  const [, setLocation] = useLocation(); // Use wouter's useLocation hook
 
   // Execute Report Mutation
   const [executionResult, setExecutionResult] = useState<any>(null);
@@ -1706,7 +1706,7 @@ function ReportCard({ report }: { report: Report }) {
     // Navigate to edit mode
     // TODO: Implement navigation to edit page: navigate(`/reports/${report.id}/edit`);
     toast({ title: "Opening report editor", description: `Editing ${report.name}` });
-    navigate(`/reports/${report.id}/edit`); // Navigate to the edit page
+    setLocation(`/reports/${report.id}/edit`); // Navigate to the edit page
   };
 
   const handleShareReport = () => {
