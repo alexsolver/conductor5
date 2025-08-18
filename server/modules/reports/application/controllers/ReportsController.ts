@@ -91,7 +91,7 @@ export class ReportsController {
         warnings: result.warnings
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[ReportsController] Error in createReport:', error);
       res.status(500).json({
         success: false,
@@ -167,7 +167,7 @@ export class ReportsController {
         warnings: result.warnings
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[ReportsController] Error in executeReport:', error);
       res.status(500).json({
         success: false,
@@ -219,7 +219,7 @@ export class ReportsController {
         }
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[ReportsController] Error in getReports:', error);
       res.status(500).json({
         success: false,
@@ -267,7 +267,7 @@ export class ReportsController {
         data: report[0]
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[ReportsController] Error in getReportById:', error);
       res.status(500).json({
         success: false,
@@ -322,7 +322,7 @@ export class ReportsController {
         data: { id: reportId, ...validation.data }
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[ReportsController] Error in updateReport:', error);
       res.status(500).json({
         success: false,
@@ -349,7 +349,7 @@ export class ReportsController {
         success: true,
         message: 'Report deleted successfully'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: 'Internal server error'
@@ -383,12 +383,12 @@ export class ReportsController {
         success: true,
         data: result
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error getting module data sources:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
       });
     }
   }
@@ -438,12 +438,12 @@ export class ReportsController {
         success: true,
         data: result
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error executing module query:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
       });
     }
   }
@@ -479,12 +479,12 @@ export class ReportsController {
         success: true,
         data: templates
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error getting module templates:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
       });
     }
   }

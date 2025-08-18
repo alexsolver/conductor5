@@ -76,7 +76,7 @@ export class DashboardsController {
         data: dashboard,
         message: 'Dashboard created successfully'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error creating dashboard:', error);
       res.status(500).json({
         success: false,
@@ -159,7 +159,7 @@ export class DashboardsController {
           totalPages: 1
         }
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error finding dashboards:', error);
       res.status(500).json({
         success: false,
@@ -209,7 +209,7 @@ export class DashboardsController {
         data: { id, ...updates },
         message: 'Dashboard updated successfully'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error updating dashboard:', error);
       res.status(500).json({
         success: false,
@@ -248,7 +248,7 @@ export class DashboardsController {
         success: true,
         message: 'Dashboard deleted successfully'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error deleting dashboard:', error);
       res.status(500).json({
         success: false,
@@ -304,7 +304,7 @@ export class DashboardsController {
         data: widget,
         message: 'Widget added successfully'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error adding widget:', error);
       res.status(500).json({
         success: false,
@@ -345,7 +345,7 @@ export class DashboardsController {
         data: { id: widgetId, dashboardId, ...updates },
         message: 'Widget updated successfully'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error updating widget:', error);
       res.status(500).json({
         success: false,
@@ -384,7 +384,7 @@ export class DashboardsController {
         success: true,
         message: 'Widget removed successfully'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error removing widget:', error);
       res.status(500).json({
         success: false,
@@ -431,7 +431,7 @@ export class DashboardsController {
         success: true,
         data: realTimeData
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error getting real-time data:', error);
       res.status(500).json({
         success: false,
@@ -485,7 +485,7 @@ export class DashboardsController {
         shareUrl: `/api/reports-dashboards/dashboards/shared/${shareToken}`,
         message: 'Dashboard shared successfully'
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error sharing dashboard:', error);
       res.status(500).json({
         success: false,
@@ -526,7 +526,7 @@ export class DashboardsController {
         success: true,
         data: sharedDashboard
       });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Error accessing shared dashboard:', error);
       res.status(500).json({
         success: false,

@@ -321,7 +321,7 @@ export const SYSTEM_MODULE_SOURCES: Record<string, ModuleDataSource> = {
       maxRecordsPerQuery: 15000,
       supportedFormats: ['json', 'csv', 'pdf']
     }
-  }
+  },
 
   users: {
     module: 'users',
@@ -483,7 +483,7 @@ export const SYSTEM_MODULE_SOURCES: Record<string, ModuleDataSource> = {
           defaultFilters: { country: ['Brazil'] },
           defaultGrouping: ['state', 'city'],
           defaultSorting: [{ field: 'name', direction: 'asc' }],
-          chartConfig: { type: 'map', xAxis: 'coordinates', yAxis: ['count'], colors: ['#22c55e'] },
+          chartConfig: { type: 'area', xAxis: 'coordinates', yAxis: ['count'], colors: ['#22c55e'] },
           metricsConfig: {
             kpis: [
               { name: 'Total Locations', calculation: 'count', format: 'number' },
@@ -747,5 +747,4 @@ export const SYSTEM_MODULE_SOURCES: Record<string, ModuleDataSource> = {
   }
 
   // Continue with remaining modules as needed...
-};
 };
