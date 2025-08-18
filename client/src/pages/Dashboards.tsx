@@ -540,7 +540,9 @@ function CreateDashboardDialog({ onSuccess }: { onSuccess: () => void }) {
   });
 
   const onSubmit = (data: DashboardFormData) => {
-    createDashboardMutation.mutate(data);
+    if (currentStep === steps.length - 1) {
+      createDashboardMutation.mutate(data);
+    }
   };
 
   const steps = [
@@ -584,7 +586,16 @@ function CreateDashboardDialog({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form 
+            onSubmit={(e) => {
+              if (currentStep !== steps.length - 1) {
+                e.preventDefault();
+                return;
+              }
+              form.handleSubmit(onSubmit)(e);
+            }} 
+            className="space-y-6"
+          >
             
             {/* Step 0: Basic Info */}
             {currentStep === 0 && (
