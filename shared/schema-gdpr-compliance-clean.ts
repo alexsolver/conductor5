@@ -204,25 +204,23 @@ export const dataRetentionPolicies = pgTable('data_retention_policies', {
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-// ✅ 12. User Preferences (Portal do Cliente)
+// ✅ 12. User Preferences (Portal do Cliente) - CORRIGIDO seguindo 1qa.md
 export const gdprUserPreferences = pgTable('gdpr_user_preferences', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').notNull(),
-  
-  emailMarketing: boolean('email_marketing').default(false).notNull(),
-  emailSupport: boolean('email_support').default(true).notNull(),
-  smsMarketing: boolean('sms_marketing').default(false).notNull(),
-  phoneMarketing: boolean('phone_marketing').default(false).notNull(),
-  
-  dataProcessingForMarketing: boolean('data_processing_for_marketing').default(false).notNull(),
-  dataProcessingForAnalytics: boolean('data_processing_for_analytics').default(false).notNull(),
-  profileSharing: boolean('profile_sharing').default(false).notNull(),
-  
   tenantId: uuid('tenant_id').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
   
-  lastReviewedAt: timestamp('last_reviewed_at')
+  // ✅ Campos exatos conforme criados no banco de dados
+  emailMarketing: boolean('email_marketing'),
+  smsMarketing: boolean('sms_marketing'), 
+  dataProcessingForAnalytics: boolean('data_processing_for_analytics'),
+  profileVisibility: varchar('profile_visibility', { length: 255 }),
+  cookiePreferences: jsonb('cookie_preferences'),
+  communicationFrequency: varchar('communication_frequency', { length: 255 }),
+  dataRetentionPreference: varchar('data_retention_preference', { length: 255 }),
+  
+  createdAt: timestamp('created_at'),
+  updatedAt: timestamp('updated_at')
 });
 
 // ✅ Zod Schemas for Validation

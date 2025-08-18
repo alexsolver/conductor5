@@ -221,15 +221,15 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
   }
 
   async findIncidentsRequiringNotification(tenantId: string): Promise<SecurityIncident[]> {
+    // ✅ Correção seguindo padrão 1qa.md - usar campos existentes no schema
     const results = await db
       .select()
       .from(securityIncidents)
       .where(and(
         eq(securityIncidents.tenantId, tenantId),
-        sql`${securityIncidents.severity} IN ('high', 'very_high')`,
         eq(securityIncidents.authorityNotified, false)
       ))
-      .orderBy(desc(securityIncidents.discoveredAt));
+      .orderBy(desc(securityIncidents.createdAt));
     
     return results.map((result: any) => SecurityIncident.create(result));
   }
