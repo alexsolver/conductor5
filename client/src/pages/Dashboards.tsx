@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { 
   Plus, Search, Filter, Grid, Layout, Eye, Edit, Trash2, Share2, Star, StarOff,
   Monitor, Tablet, Smartphone, Settings, Clock, Users, TrendingUp, AlertTriangle,
@@ -959,6 +960,7 @@ function CreateDashboardDialog({ onSuccess }: { onSuccess: () => void }) {
 
 // Dashboard Card Component
 function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const LayoutIcon = layoutTypeIcons[dashboard.layoutType as keyof typeof layoutTypeIcons];
 
@@ -1027,9 +1029,8 @@ function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
   };
 
   const handleEditDashboard = () => {
-    // Navigate to dashboard edit mode
-    toast({ title: "Opening dashboard editor", description: `Editing ${dashboard.name}` });
-    // TODO: Implement navigation to dashboard edit page
+    // Navigate to dashboard edit mode using wouter
+    setLocation(`/dashboard/${dashboard.id}/edit`);
   };
 
   const handleViewDetails = () => {
@@ -1271,6 +1272,7 @@ function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
 
 // Main Dashboards Page Component
 export default function Dashboards() {
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [layoutFilter, setLayoutFilter] = useState("all");
