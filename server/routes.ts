@@ -387,6 +387,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/reports-dashboards', reportsRoutes);
   console.log('✅ [REPORTS-DASHBOARDS] Clean Architecture module registered at /api/reports-dashboards');
 
+  // ✅ Dashboard Governance routes - following 1qa.md Clean Architecture
+  console.log('🏗️ [DASHBOARD-GOVERNANCE] Initializing Dashboard Governance Clean Architecture module...');
+  const { DashboardGovernanceController } = await import('./modules/dashboards/infrastructure/DashboardGovernanceController');
+  const governanceController = new DashboardGovernanceController();
+
+  app.get('/api/dashboards/governance/data-sources', (req, res) => 
+    governanceController.getDataSources(req, res)
+  );
+  app.get('/api/dashboards/governance/kpis/:dataSourceId', (req, res) => 
+    governanceController.getKPIs(req, res)
+  );
+  app.post('/api/dashboards/kpi/:kpiId', (req, res) => 
+    governanceController.calculateKPI(req, res)
+  );
+  app.post('/api/dashboards/governance/validate-card', (req, res) => 
+    governanceController.validateCard(req, res)
+  );
+  app.post('/api/dashboards/governance/generate-dynamic', (req, res) => 
+    governanceController.generateDynamicCard(req, res)
+  );
+  app.get('/api/dashboards/governance/permissions/:cardId', (req, res) => 
+    governanceController.checkPermissions(req, res)
+  );
+  console.log('✅ [DASHBOARD-GOVERNANCE] Clean Architecture module registered at /api/dashboards/governance');
+
   // GDPR Compliance Module - Clean Architecture
   console.log('🏗️ [GDPR-COMPLIANCE] Initializing GDPR Compliance Clean Architecture module...');
   const { gdprRoutes } = await import('./modules/gdpr-compliance/routes/gdprRoutes');
