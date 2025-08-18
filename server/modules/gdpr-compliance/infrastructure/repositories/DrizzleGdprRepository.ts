@@ -138,15 +138,19 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
   }
 
   async findOverdueRequests(tenantId: string): Promise<DataSubjectRequest[]> {
+    // ✅ Correção seguindo padrão 1qa.md - usar campos existentes no schema
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
     const results = await db
       .select()
       .from(dataSubjectRequests)
       .where(and(
         eq(dataSubjectRequests.tenantId, tenantId),
-        lte(dataSubjectRequests.dueDate, new Date()),
-        isNull(dataSubjectRequests.completedAt)
+        lte(dataSubjectRequests.createdAt, thirtyDaysAgo),
+        eq(dataSubjectRequests.status, 'pending')
       ))
-      .orderBy(desc(dataSubjectRequests.dueDate));
+      .orderBy(desc(dataSubjectRequests.createdAt));
     
     return results.map((result: any) => DataSubjectRequest.create(result));
   }
