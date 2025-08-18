@@ -1,11 +1,10 @@
-
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, Settings, Share2, RefreshCw, Maximize, BarChart3, 
+import {
+  ArrowLeft, RefreshCw, Share2, Maximize, BarChart3, Settings,
   PieChart, LineChart, Table, FileText, Monitor, Edit, Save, X, Plus, Grid, Trash2, CheckCircle
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface DashboardWidget {
   id: string;
   name: string;
-  type: "chart" | "table" | "metric" | "gauge" | "text" | "image";
+  type: 'chart' | 'table' | 'metric' | 'gauge' | 'text' | 'image';
   position: {
     x: number;
     y: number;
@@ -27,9 +26,7 @@ interface DashboardWidget {
   config: {
     dataSource: string;
     chartType?: string;
-    fields?: string[];
-    filters?: any;
-    styling?: any;
+    [key: string]: any;
   };
   isVisible: boolean;
 }
@@ -45,7 +42,6 @@ interface Dashboard {
   tags: string[];
   createdBy: string;
   createdAt: string;
-  lastViewedAt?: string;
   viewCount: number;
   isFavorite: boolean;
   widgetCount: number;
@@ -156,12 +152,12 @@ export default function DashboardView() {
   const currentPath = window.location.pathname;
   const isEditMode = currentPath.endsWith('/edit');
   
-  // Edit mode state management - following 1qa.md patterns
+  // All state hooks called unconditionally - fixing hooks order issue
   const [editableWidgets, setEditableWidgets] = useState<DashboardWidget[]>([]);
   const [showWidgetDesigner, setShowWidgetDesigner] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
 
-  // Following 1qa.md patterns for data fetching
+  // Following 1qa.md patterns for data fetching - called unconditionally
   const { data: dashboardResponse, isLoading, error } = useQuery({
     queryKey: [`/api/reports-dashboards/dashboards/${id}`],
     queryFn: () => apiRequest("GET", `/api/reports-dashboards/dashboards/${id}`),
@@ -169,41 +165,7 @@ export default function DashboardView() {
     retry: false,
   });
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-64"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !dashboardResponse) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-            Dashboard not found
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            The dashboard you're looking for doesn't exist or you don't have permission to view it.
-          </p>
-          <Button onClick={() => setLocation('/dashboards')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboards
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Extract dashboard from standardResponse format following 1qa.md patterns
+  // Extract dashboard from response - moved before useEffect
   const dashboard: Dashboard = (dashboardResponse as any)?.data || {
     id: id || '',
     name: 'Sample Dashboard',
@@ -255,12 +217,47 @@ export default function DashboardView() {
     ]
   };
 
-  // Initialize editable widgets when entering edit mode - following 1qa.md patterns
+  // All useEffect hooks called unconditionally - fixing hooks order issue  
   useEffect(() => {
-    if (isEditMode && dashboard.widgets) {
+    if (isEditMode && dashboard?.widgets) {
       setEditableWidgets([...dashboard.widgets]);
     }
-  }, [isEditMode, dashboard.widgets]);
+  }, [isEditMode, dashboard?.widgets]);
+
+  // Early returns after all hooks are called
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-64"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !dashboardResponse) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            Dashboard not found
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            The dashboard you're looking for doesn't exist or you don't have permission to view it.
+          </p>
+          <Button onClick={() => setLocation('/dashboards')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboards
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Edit mode functions - following 1qa.md patterns
   const addWidget = (widgetConfig: any) => {
@@ -308,14 +305,15 @@ export default function DashboardView() {
     }
   };
 
+  // Dashboard handlers following 1qa.md patterns
   const handleRefresh = () => {
-    toast({ title: "Refreshing dashboard", description: "Updating all widgets..." });
-    // Implement refresh logic
+    window.location.reload();
   };
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast({ title: "Link copied", description: "Dashboard link copied to clipboard" });
+    const dashboardUrl = `${window.location.origin}/dashboard/${id}`;
+    navigator.clipboard.writeText(dashboardUrl);
+    toast({ title: "Link copied", description: "Dashboard link copied to clipboard." });
   };
 
   const handleFullscreen = () => {
