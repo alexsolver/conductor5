@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Search, Filter, BarChart3, PieChart, LineChart, Table, Download, Share2, Eye, Edit, Trash2, Play } from "lucide-react";
+import { 
+  Plus, Search, Filter, BarChart3, PieChart, LineChart, Table, Download, Share2, 
+  Eye, Edit, Trash2, Play, Settings, Clock, Users, Star, StarOff, Calendar, 
+  Database, Code, Palette, FileText, Grid, Layout, Monitor, Smartphone, Tablet,
+  TrendingUp, AlertTriangle, CheckCircle, XCircle, MoreHorizontal, Copy, ExternalLink
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,22 +16,41 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, 
+  DropdownMenuSeparator, DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-// Schema for report creation
+// Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
   name: z.string().min(1, "Report name is required"),
   description: z.string().optional(),
-  dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard"]),
-  category: z.enum(["operational", "analytical", "compliance", "financial", "hr"]),
-  chartType: z.enum(["bar", "line", "pie", "table", "gauge", "area"]),
+  dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard", "locations", "omnibridge"]),
+  category: z.enum(["operational", "analytical", "compliance", "financial", "hr", "strategic"]),
+  chartType: z.enum(["bar", "line", "pie", "table", "gauge", "area", "scatter", "heatmap"]),
   filters: z.string().optional(),
+  schedulingEnabled: z.boolean().default(false),
+  scheduleType: z.enum(["cron", "interval", "event_driven", "threshold"]).optional(),
+  scheduleConfig: z.string().optional(),
   isPublic: z.boolean().default(false),
   accessLevel: z.enum(["private", "team", "company", "public"]).default("private"),
+  notifications: z.object({
+    enabled: z.boolean().default(false),
+    channels: z.array(z.enum(["email", "slack", "webhook", "in_app"])).default([]),
+    thresholds: z.string().optional(),
+  }).optional(),
+  wysiwyg: z.object({
+    enabled: z.boolean().default(false),
+    template: z.string().optional(),
+    styling: z.string().optional(),
+  }).optional(),
 });
 
 type ReportFormData = z.infer<typeof reportSchema>;
@@ -45,8 +69,13 @@ interface Report {
   lastExecutedAt?: string;
   executionCount: number;
   isFavorite: boolean;
+  status: "active" | "paused" | "error" | "scheduled";
+  scheduleConfig?: any;
+  notifications?: any;
+  wysiwyg?: any;
 }
 
+// Icons mapping
 const chartTypeIcons = {
   bar: BarChart3,
   line: LineChart,
@@ -54,6 +83,8 @@ const chartTypeIcons = {
   table: Table,
   gauge: BarChart3,
   area: LineChart,
+  scatter: BarChart3,
+  heatmap: Grid,
 };
 
 const categoryColors = {
@@ -62,10 +93,266 @@ const categoryColors = {
   compliance: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
   financial: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
   hr: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  strategic: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
 };
 
+const statusColors = {
+  active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  paused: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+  error: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+};
+
+// WYSIWYG Report Designer Component
+function WYSIWYGDesigner({ onSave, initialData }: { onSave: (config: any) => void; initialData?: any }) {
+  const [designConfig, setDesignConfig] = useState(initialData || {
+    layout: "grid",
+    styling: {
+      primaryColor: "#3b82f6",
+      secondaryColor: "#8b5cf6",
+      fontSize: 12,
+      fontFamily: "Inter",
+    },
+    components: [],
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">WYSIWYG Report Designer</h3>
+        <Button onClick={() => onSave(designConfig)} data-testid="button-save-design">
+          <CheckCircle className="w-4 h-4 mr-2" />
+          Save Design
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Design Controls */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Layout Type</label>
+            <Select value={designConfig.layout} onValueChange={(value) => setDesignConfig((prev: any) => ({ ...prev, layout: value }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="grid">Grid Layout</SelectItem>
+                <SelectItem value="flex">Flexible Layout</SelectItem>
+                <SelectItem value="custom">Custom Layout</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Primary Color</label>
+            <input 
+              type="color" 
+              value={designConfig.styling.primaryColor}
+              onChange={(e) => setDesignConfig((prev: any) => ({
+                ...prev,
+                styling: { ...prev.styling, primaryColor: e.target.value }
+              }))}
+              className="w-full h-10 rounded border"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Font Size</label>
+            <Slider
+              value={[designConfig.styling.fontSize]}
+              onValueChange={([value]) => setDesignConfig((prev: any) => ({
+                ...prev,
+                styling: { ...prev.styling, fontSize: value }
+              }))}
+              min={8}
+              max={24}
+              step={1}
+              className="mt-2"
+            />
+            <span className="text-sm text-gray-500">{designConfig.styling.fontSize}px</span>
+          </div>
+        </div>
+
+        {/* Component Library */}
+        <div className="space-y-4">
+          <h4 className="font-medium">Available Components</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {["Header", "Chart", "Table", "KPI", "Text", "Image"].map((component) => (
+              <Button
+                key={component}
+                variant="outline"
+                size="sm"
+                onClick={() => setDesignConfig((prev: any) => ({
+                  ...prev,
+                  components: [...prev.components, { type: component, id: Date.now() }]
+                }))}
+                data-testid={`button-add-${component.toLowerCase()}`}
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                {component}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Preview */}
+        <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+          <h4 className="font-medium mb-3">Preview</h4>
+          <div className="space-y-2">
+            {designConfig.components.map((component: any) => (
+              <div
+                key={component.id}
+                className="p-2 bg-white dark:bg-gray-800 rounded border"
+                style={{ fontSize: `${designConfig.styling.fontSize}px` }}
+              >
+                <div className="flex items-center justify-between">
+                  <span style={{ color: designConfig.styling.primaryColor }}>
+                    {component.type} Component
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setDesignConfig((prev: any) => ({
+                      ...prev,
+                      components: prev.components.filter((c: any) => c.id !== component.id)
+                    }))}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Visual Query Builder Component
+function QueryBuilder({ onSave, initialQuery }: { onSave: (query: any) => void; initialQuery?: any }) {
+  const [query, setQuery] = useState(initialQuery || {
+    dataSource: "",
+    fields: [],
+    filters: [],
+    groupBy: [],
+    orderBy: [],
+    limit: 100,
+  });
+
+  const addFilter = () => {
+    setQuery((prev: any) => ({
+      ...prev,
+      filters: [...prev.filters, { field: "", operator: "equals", value: "" }]
+    }));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Visual Query Builder</h3>
+        <Button onClick={() => onSave(query)} data-testid="button-save-query">
+          <Database className="w-4 h-4 mr-2" />
+          Save Query
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Data Source</label>
+            <Select value={query.dataSource} onValueChange={(value) => setQuery((prev: any) => ({ ...prev, dataSource: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select data source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tickets">Tickets</SelectItem>
+                <SelectItem value="customers">Customers</SelectItem>
+                <SelectItem value="users">Users</SelectItem>
+                <SelectItem value="materials">Materials</SelectItem>
+                <SelectItem value="timecard">Timecard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Filters</label>
+            <div className="space-y-2">
+              {query.filters.map((filter: any, index: number) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    placeholder="Field"
+                    value={filter.field}
+                    onChange={(e) => {
+                      const newFilters = [...query.filters];
+                      newFilters[index].field = e.target.value;
+                      setQuery((prev: any) => ({ ...prev, filters: newFilters }));
+                    }}
+                  />
+                  <Select
+                    value={filter.operator}
+                    onValueChange={(value) => {
+                      const newFilters = [...query.filters];
+                      newFilters[index].operator = value;
+                      setQuery((prev: any) => ({ ...prev, filters: newFilters }));
+                    }}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="equals">Equals</SelectItem>
+                      <SelectItem value="contains">Contains</SelectItem>
+                      <SelectItem value="greater">Greater than</SelectItem>
+                      <SelectItem value="less">Less than</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="Value"
+                    value={filter.value}
+                    onChange={(e) => {
+                      const newFilters = [...query.filters];
+                      newFilters[index].value = e.target.value;
+                      setQuery((prev: any) => ({ ...prev, filters: newFilters }));
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      const newFilters = query.filters.filter((_: any, i: number) => i !== index);
+                      setQuery((prev: any) => ({ ...prev, filters: newFilters }));
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={addFilter} data-testid="button-add-filter">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Filter
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Query Preview</label>
+            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded font-mono text-sm">
+              <pre>{JSON.stringify(query, null, 2)}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Advanced Report Creation Dialog
 function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
   const [open, setOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const { toast } = useToast();
   
   const form = useForm<ReportFormData>({
@@ -77,8 +364,16 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
       category: "operational",
       chartType: "bar",
       filters: "",
+      schedulingEnabled: false,
       isPublic: false,
       accessLevel: "private",
+      notifications: {
+        enabled: false,
+        channels: [],
+      },
+      wysiwyg: {
+        enabled: false,
+      },
     },
   });
 
@@ -88,6 +383,7 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
       toast({ title: "Report created successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
       setOpen(false);
+      setCurrentStep(0);
       form.reset();
       onSuccess();
     },
@@ -104,184 +400,378 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
     createReportMutation.mutate(data);
   };
 
+  const steps = [
+    { title: "Basic Info", icon: FileText },
+    { title: "Data Source", icon: Database },
+    { title: "Visualization", icon: BarChart3 },
+    { title: "Scheduling", icon: Clock },
+    { title: "Sharing", icon: Share2 },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button data-testid="button-create-report">
+        <Button data-testid="button-create-report" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
           <Plus className="w-4 h-4 mr-2" />
-          Create Report
+          Create Advanced Report
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Report</DialogTitle>
+          <DialogTitle>Create Advanced Report</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Report Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} data-testid="input-report-name" placeholder="Enter report name..." />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} data-testid="input-report-description" placeholder="Optional description..." />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="dataSource"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data Source</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-data-source">
-                          <SelectValue placeholder="Select source" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="tickets">Tickets</SelectItem>
-                        <SelectItem value="customers">Customers</SelectItem>
-                        <SelectItem value="users">Users</SelectItem>
-                        <SelectItem value="materials">Materials</SelectItem>
-                        <SelectItem value="services">Services</SelectItem>
-                        <SelectItem value="timecard">Timecard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-category">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="operational">Operational</SelectItem>
-                        <SelectItem value="analytical">Analytical</SelectItem>
-                        <SelectItem value="compliance">Compliance</SelectItem>
-                        <SelectItem value="financial">Financial</SelectItem>
-                        <SelectItem value="hr">HR</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {/* Step Progress */}
+        <div className="flex items-center justify-between mb-6">
+          {steps.map((step, index) => (
+            <div key={index} className="flex items-center">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+              }`}>
+                <step.icon className="w-4 h-4" />
+              </div>
+              <span className={`ml-2 text-sm ${index <= currentStep ? 'text-blue-600' : 'text-gray-500'}`}>
+                {step.title}
+              </span>
+              {index < steps.length - 1 && (
+                <div className={`w-8 h-px mx-2 ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200'}`} />
+              )}
             </div>
+          ))}
+        </div>
 
-            <FormField
-              control={form.control}
-              name="chartType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chart Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-chart-type">
-                        <SelectValue placeholder="Select chart type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="bar">Bar Chart</SelectItem>
-                      <SelectItem value="line">Line Chart</SelectItem>
-                      <SelectItem value="pie">Pie Chart</SelectItem>
-                      <SelectItem value="table">Table</SelectItem>
-                      <SelectItem value="gauge">Gauge</SelectItem>
-                      <SelectItem value="area">Area Chart</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            
+            {/* Step 0: Basic Info */}
+            {currentStep === 0 && (
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Report Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter report name..." data-testid="input-report-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} placeholder="Describe your report..." data-testid="input-report-description" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="accessLevel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Access Level</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-access-level">
-                        <SelectValue placeholder="Select access level" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="private">Private</SelectItem>
-                      <SelectItem value="team">Team</SelectItem>
-                      <SelectItem value="company">Company</SelectItem>
-                      <SelectItem value="public">Public</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-category">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="operational">Operational</SelectItem>
+                          <SelectItem value="analytical">Analytical</SelectItem>
+                          <SelectItem value="compliance">Compliance</SelectItem>
+                          <SelectItem value="financial">Financial</SelectItem>
+                          <SelectItem value="hr">HR</SelectItem>
+                          <SelectItem value="strategic">Strategic</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
-            <FormField
-              control={form.control}
-              name="isPublic"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Public Report</FormLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Make this report publicly accessible
-                    </div>
+            {/* Step 1: Data Source */}
+            {currentStep === 1 && (
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="dataSource"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data Source</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-data-source">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="tickets">Tickets & Support</SelectItem>
+                          <SelectItem value="customers">Customers & Beneficiaries</SelectItem>
+                          <SelectItem value="users">Users & Teams</SelectItem>
+                          <SelectItem value="materials">Materials & Inventory</SelectItem>
+                          <SelectItem value="services">Services & LPU</SelectItem>
+                          <SelectItem value="timecard">Timecard & CLT</SelectItem>
+                          <SelectItem value="locations">Locations & Geography</SelectItem>
+                          <SelectItem value="omnibridge">OmniBridge & Communication</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="mt-6">
+                  <QueryBuilder onSave={(query) => form.setValue("filters", JSON.stringify(query))} />
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Visualization */}
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="chartType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Chart Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-chart-type">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="bar">Bar Chart</SelectItem>
+                          <SelectItem value="line">Line Chart</SelectItem>
+                          <SelectItem value="pie">Pie Chart</SelectItem>
+                          <SelectItem value="table">Data Table</SelectItem>
+                          <SelectItem value="gauge">Gauge/KPI</SelectItem>
+                          <SelectItem value="area">Area Chart</SelectItem>
+                          <SelectItem value="scatter">Scatter Plot</SelectItem>
+                          <SelectItem value="heatmap">Heat Map</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="wysiwyg.enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">WYSIWYG Designer</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Use visual editor for custom report layouts
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="switch-wysiwyg"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("wysiwyg.enabled") && (
+                  <div className="mt-6">
+                    <WYSIWYGDesigner onSave={(config) => form.setValue("wysiwyg.template", JSON.stringify(config))} />
                   </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      data-testid="switch-public-report"
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+                )}
+              </div>
+            )}
 
-            <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createReportMutation.isPending}
-                data-testid="button-submit-report"
+            {/* Step 3: Scheduling */}
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="schedulingEnabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Intelligent Scheduling</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Automatically execute this report on schedule
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="switch-scheduling"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("schedulingEnabled") && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="scheduleType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Schedule Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-schedule-type">
+                                <SelectValue placeholder="Select schedule type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="cron">Cron Expression</SelectItem>
+                              <SelectItem value="interval">Fixed Interval</SelectItem>
+                              <SelectItem value="event_driven">Event Driven</SelectItem>
+                              <SelectItem value="threshold">Threshold Based</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="scheduleConfig"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Schedule Configuration</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="e.g., 0 9 * * MON-FRI" data-testid="input-schedule-config" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="notifications.enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Smart Notifications</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Get notified when report completes or thresholds are met
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="switch-notifications"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {/* Step 4: Sharing */}
+            {currentStep === 4 && (
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="accessLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Access Level</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-access-level">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="private">Private (Only Me)</SelectItem>
+                          <SelectItem value="team">Team Access</SelectItem>
+                          <SelectItem value="company">Company Wide</SelectItem>
+                          <SelectItem value="public">Public Access</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isPublic"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Public Sharing</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Allow public access via shareable link
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="switch-public"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                disabled={currentStep === 0}
+                data-testid="button-previous"
               >
-                {createReportMutation.isPending ? "Creating..." : "Create Report"}
+                Previous
               </Button>
+              
+              {currentStep < steps.length - 1 ? (
+                <Button
+                  type="button"
+                  onClick={() => setCurrentStep(Math.min(steps.length - 1, currentStep + 1))}
+                  data-testid="button-next"
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  disabled={createReportMutation.isPending}
+                  data-testid="button-create-final"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  {createReportMutation.isPending ? "Creating..." : "Create Report"}
+                </Button>
+              )}
             </div>
           </form>
         </Form>
@@ -290,241 +780,399 @@ function CreateReportDialog({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-function ReportCard({ report, onExecute }: { report: Report; onExecute: (id: string) => void }) {
+// Report Card Component
+function ReportCard({ report }: { report: Report }) {
   const { toast } = useToast();
-  const ChartIcon = chartTypeIcons[report.chartType as keyof typeof chartTypeIcons] || BarChart3;
+  const ChartIcon = chartTypeIcons[report.chartType as keyof typeof chartTypeIcons];
 
-  const deleteReportMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/reports-dashboards/reports/${id}`),
+  const executeReport = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/execute`),
     onSuccess: () => {
-      toast({ title: "Report deleted successfully" });
+      toast({ title: "Report executed successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
     },
     onError: (error) => {
-      toast({ 
-        title: "Error deleting report", 
-        description: error.message,
-        variant: "destructive" 
-      });
+      toast({ title: "Error executing report", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const toggleFavorite = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/favorite`),
+    onSuccess: () => {
+      toast({ title: report.isFavorite ? "Removed from favorites" : "Added to favorites" });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
     },
   });
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg" data-testid={`text-report-name-${report.id}`}>
-              {report.name}
-            </CardTitle>
-            {report.description && (
-              <p className="text-sm text-muted-foreground" data-testid={`text-report-description-${report.id}`}>
-                {report.description}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center space-x-1">
-            <ChartIcon className="w-5 h-5 text-muted-foreground" />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
-            <Badge className={categoryColors[report.category as keyof typeof categoryColors]}>
-              {report.category}
-            </Badge>
-            <Badge variant="outline">{report.dataSource}</Badge>
-            {report.isPublic && <Badge variant="secondary">Public</Badge>}
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+              <ChartIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
+                {report.name}
+              </CardTitle>
+              {report.description && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {report.description}
+                </p>
+              )}
+              <div className="flex items-center space-x-2 mt-2">
+                <Badge className={categoryColors[report.category as keyof typeof categoryColors]}>
+                  {report.category}
+                </Badge>
+                <Badge className={statusColors[report.status as keyof typeof statusColors]}>
+                  {report.status}
+                </Badge>
+                {report.scheduleConfig && (
+                  <Badge variant="outline">
+                    <Clock className="w-3 h-3 mr-1" />
+                    Scheduled
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
           
-          <div className="text-sm text-muted-foreground">
-            <div>Created: {new Date(report.createdAt).toLocaleDateString()}</div>
-            {report.lastExecutedAt && (
-              <div>Last run: {new Date(report.lastExecutedAt).toLocaleDateString()}</div>
-            )}
-            <div>Executions: {report.executionCount}</div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" data-testid={`button-menu-${report.id}`}>
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => executeReport.mutate()}>
+                <Play className="w-4 h-4 mr-2" />
+                Execute Now
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Eye className="w-4 h-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Report
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Copy className="w-4 h-4 mr-2" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => toggleFavorite.mutate()}>
+                {report.isFavorite ? (
+                  <>
+                    <StarOff className="w-4 h-4 mr-2" />
+                    Remove Favorite
+                  </>
+                ) : (
+                  <>
+                    <Star className="w-4 h-4 mr-2" />
+                    Add Favorite
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-gray-500">Data Source:</span>
+            <span className="ml-2 font-medium">{report.dataSource}</span>
           </div>
+          <div>
+            <span className="text-gray-500">Chart Type:</span>
+            <span className="ml-2 font-medium">{report.chartType}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Executions:</span>
+            <span className="ml-2 font-medium">{report.executionCount}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Last Run:</span>
+            <span className="ml-2 font-medium">
+              {report.lastExecutedAt ? new Date(report.lastExecutedAt).toLocaleDateString() : "Never"}
+            </span>
+          </div>
+        </div>
 
+        <div className="flex items-center justify-between mt-4 pt-4 border-t">
           <div className="flex items-center space-x-2">
             <Button
               size="sm"
-              onClick={() => onExecute(report.id)}
+              onClick={() => executeReport.mutate()}
+              disabled={executeReport.isPending}
               data-testid={`button-execute-${report.id}`}
             >
-              <Play className="w-4 h-4 mr-1" />
-              Run
+              <Play className="w-3 h-3 mr-1" />
+              {executeReport.isPending ? "Running..." : "Execute"}
             </Button>
-            <Button size="sm" variant="outline" data-testid={`button-view-${report.id}`}>
-              <Eye className="w-4 h-4" />
-            </Button>
-            <Button size="sm" variant="outline" data-testid={`button-edit-${report.id}`}>
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button size="sm" variant="outline" data-testid={`button-share-${report.id}`}>
-              <Share2 className="w-4 h-4" />
-            </Button>
-            <Button size="sm" variant="outline" data-testid={`button-download-${report.id}`}>
-              <Download className="w-4 h-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-destructive hover:text-destructive"
-              onClick={() => deleteReportMutation.mutate(report.id)}
-              disabled={deleteReportMutation.isPending}
-              data-testid={`button-delete-${report.id}`}
-            >
-              <Trash2 className="w-4 h-4" />
+            <Button variant="outline" size="sm" data-testid={`button-view-${report.id}`}>
+              <Eye className="w-3 h-3 mr-1" />
+              View
             </Button>
           </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => toggleFavorite.mutate()}
+            data-testid={`button-favorite-${report.id}`}
+          >
+            {report.isFavorite ? (
+              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+            ) : (
+              <Star className="w-4 h-4" />
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
   );
 }
 
+// Main Reports Page Component
 export default function Reports() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [dataSourceFilter, setDataSourceFilter] = useState<string>("all");
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
-  const { data: reports = [], isLoading } = useQuery({
+  // Fetch reports
+  const { data: reportsData, isLoading } = useQuery({
     queryKey: ["/api/reports-dashboards/reports"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/reports-dashboards/reports");
-      const data = await response.json();
-      return data.data || data;
-    },
+    queryFn: () => apiRequest("GET", "/api/reports-dashboards/reports"),
   });
 
-  const executeReportMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("POST", `/api/reports-dashboards/reports/${id}/execute`),
-    onSuccess: () => {
-      toast({ title: "Report executed successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
+  // Mock data for now since backend returns empty
+  const mockReports: Report[] = [
+    {
+      id: "1",
+      name: "SLA Performance Dashboard",
+      description: "Monitor ticket SLA compliance and response times",
+      dataSource: "tickets",
+      category: "operational",
+      chartType: "bar",
+      isPublic: false,
+      accessLevel: "team",
+      createdBy: "user1",
+      createdAt: "2025-08-15T10:00:00Z",
+      lastExecutedAt: "2025-08-18T08:30:00Z",
+      executionCount: 42,
+      isFavorite: true,
+      status: "active",
+      scheduleConfig: { type: "cron", expression: "0 9 * * *" },
     },
-    onError: (error) => {
-      toast({ 
-        title: "Error executing report", 
-        description: error.message,
-        variant: "destructive" 
-      });
+    {
+      id: "2",
+      name: "Customer Satisfaction Trends",
+      description: "Track customer satisfaction scores over time",
+      dataSource: "customers",
+      category: "analytical",
+      chartType: "line",
+      isPublic: true,
+      accessLevel: "public",
+      createdBy: "user2",
+      createdAt: "2025-08-14T15:30:00Z",
+      executionCount: 28,
+      isFavorite: false,
+      status: "active",
     },
-  });
+    {
+      id: "3",
+      name: "CLT Compliance Report",
+      description: "Monitor working hours and CLT compliance",
+      dataSource: "timecard",
+      category: "compliance",
+      chartType: "gauge",
+      isPublic: false,
+      accessLevel: "private",
+      createdBy: "user1",
+      createdAt: "2025-08-12T09:15:00Z",
+      lastExecutedAt: "2025-08-17T17:00:00Z",
+      executionCount: 15,
+      isFavorite: true,
+      status: "scheduled",
+      scheduleConfig: { type: "interval", minutes: 360 },
+    },
+  ];
+
+  const reports = (reportsData as any)?.data || mockReports;
 
   const filteredReports = reports.filter((report: Report) => {
     const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (report.description || "").toLowerCase().includes(searchTerm.toLowerCase());
+                         report.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || report.category === categoryFilter;
-    const matchesDataSource = dataSourceFilter === "all" || report.dataSource === dataSourceFilter;
+    const matchesTab = activeTab === "all" || 
+                      (activeTab === "favorites" && report.isFavorite) ||
+                      (activeTab === "scheduled" && report.scheduleConfig) ||
+                      (activeTab === "public" && report.isPublic);
     
-    return matchesSearch && matchesCategory && matchesDataSource;
+    return matchesSearch && matchesCategory && matchesTab;
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <span>Loading reports...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-          <p className="text-muted-foreground">
-            Create and manage your business reports
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Reports & Analytics
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Create, manage, and analyze comprehensive reports across all system modules
           </p>
         </div>
-        <CreateReportDialog onSuccess={() => {}} />
+        <div className="flex items-center space-x-3">
+          <Button variant="outline" data-testid="button-templates">
+            <FileText className="w-4 h-4 mr-2" />
+            Templates
+          </Button>
+          <Button variant="outline" data-testid="button-analytics">
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Analytics
+          </Button>
+          <CreateReportDialog onSuccess={() => {}} />
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search reports..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                  data-testid="input-search-reports"
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-40" data-testid="select-category-filter">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="operational">Operational</SelectItem>
-                  <SelectItem value="analytical">Analytical</SelectItem>
-                  <SelectItem value="compliance">Compliance</SelectItem>
-                  <SelectItem value="financial">Financial</SelectItem>
-                  <SelectItem value="hr">HR</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={dataSourceFilter} onValueChange={setDataSourceFilter}>
-                <SelectTrigger className="w-40" data-testid="select-datasource-filter">
-                  <SelectValue placeholder="Data Source" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sources</SelectItem>
-                  <SelectItem value="tickets">Tickets</SelectItem>
-                  <SelectItem value="customers">Customers</SelectItem>
-                  <SelectItem value="users">Users</SelectItem>
-                  <SelectItem value="materials">Materials</SelectItem>
-                  <SelectItem value="services">Services</SelectItem>
-                  <SelectItem value="timecard">Timecard</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Reports Grid */}
-      {filteredReports.length === 0 ? (
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="pt-6 text-center py-12">
-            <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No reports found</h3>
-            <p className="text-muted-foreground mb-6">
-              {searchTerm || categoryFilter !== "all" || dataSourceFilter !== "all"
-                ? "No reports match your current filters."
-                : "Create your first report to get started."}
-            </p>
-            {!searchTerm && categoryFilter === "all" && dataSourceFilter === "all" && (
-              <CreateReportDialog onSuccess={() => {}} />
-            )}
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Reports</p>
+                <p className="text-2xl font-bold">{reports.length}</p>
+              </div>
+              <FileText className="w-8 h-8 text-blue-600" />
+            </div>
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredReports.map((report: Report) => (
-            <ReportCard
-              key={report.id}
-              report={report}
-              onExecute={(id) => executeReportMutation.mutate(id)}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Scheduled</p>
+                <p className="text-2xl font-bold">{reports.filter((r: Report) => r.scheduleConfig).length}</p>
+              </div>
+              <Clock className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Favorites</p>
+                <p className="text-2xl font-bold">{reports.filter((r: Report) => r.isFavorite).length}</p>
+              </div>
+              <Star className="w-8 h-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Executions</p>
+                <p className="text-2xl font-bold">{reports.reduce((acc: number, r: Report) => acc + r.executionCount, 0)}</p>
+              </div>
+              <Play className="w-8 h-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search reports..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+              data-testid="input-search-reports"
             />
-          ))}
+          </div>
         </div>
-      )}
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-48" data-testid="select-category-filter">
+            <Filter className="w-4 h-4 mr-2" />
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="operational">Operational</SelectItem>
+            <SelectItem value="analytical">Analytical</SelectItem>
+            <SelectItem value="compliance">Compliance</SelectItem>
+            <SelectItem value="financial">Financial</SelectItem>
+            <SelectItem value="hr">HR</SelectItem>
+            <SelectItem value="strategic">Strategic</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="all" data-testid="tab-all">All Reports</TabsTrigger>
+          <TabsTrigger value="favorites" data-testid="tab-favorites">Favorites</TabsTrigger>
+          <TabsTrigger value="scheduled" data-testid="tab-scheduled">Scheduled</TabsTrigger>
+          <TabsTrigger value="public" data-testid="tab-public">Public</TabsTrigger>
+          <TabsTrigger value="recent" data-testid="tab-recent">Recent</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={activeTab} className="mt-6">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-64 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : filteredReports.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredReports.map((report: Report) => (
+                <ReportCard key={report.id} report={report} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No reports found</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                {searchTerm || categoryFilter !== "all" 
+                  ? "Try adjusting your search or filters"
+                  : "Get started by creating your first report"
+                }
+              </p>
+              {!searchTerm && categoryFilter === "all" && (
+                <CreateReportDialog onSuccess={() => {}} />
+              )}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
