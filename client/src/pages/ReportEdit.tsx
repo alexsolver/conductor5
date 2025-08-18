@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'wouter';
+import { useLocation } from 'wouter';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -63,7 +64,7 @@ const apiRequest = async (method: string, url: string, data?: any) => {
 
 export default function ReportEdit() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -122,7 +123,7 @@ export default function ReportEdit() {
         description: 'O relatório foi atualizado com sucesso.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/reports-dashboards/reports'] });
-      navigate('/reports');
+      setLocation('/reports');
     },
     onError: (error: any) => {
       console.error('❌ [REPORT-EDIT] Error updating report:', error);
@@ -164,7 +165,7 @@ export default function ReportEdit() {
               <p className="text-gray-500 dark:text-gray-400 mb-4">
                 O relatório solicitado não foi encontrado ou você não tem permissão para editá-lo.
               </p>
-              <Button onClick={() => navigate('/reports')} variant="outline">
+              <Button onClick={() => setLocation('/reports')} variant="outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Voltar aos Relatórios
               </Button>
@@ -183,7 +184,7 @@ export default function ReportEdit() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/reports')}
+            onClick={() => setLocation('/reports')}
             data-testid="button-back-to-reports"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -361,7 +362,7 @@ export default function ReportEdit() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/reports')}
+                  onClick={() => setLocation('/reports')}
                   disabled={updateMutation.isPending}
                   data-testid="button-cancel-edit"
                 >
