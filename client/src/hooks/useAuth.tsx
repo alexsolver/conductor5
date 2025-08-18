@@ -52,11 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<User | null> => {
       // ✅ 1QA.MD: Validação menos restritiva para evitar logout automático
       const token = localStorage.getItem('accessToken');
-      
+
       // ✅ CRITICAL FIX: Se não há token, retornar null sem fazer request
-      if (!token || 
-          token === 'null' || 
-          token === 'undefined' || 
+      if (!token ||
+          token === 'null' ||
+          token === 'undefined' ||
           token.trim() === '') {
         console.log('🚫 [AUTH-QUERY] No valid token found, skipping auth check');
         return null;
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         console.log('🔍 [AUTH-QUERY] Making auth check request...');
-        
+
         const response = await fetch('/api/auth/user', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -99,11 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Token refresh mechanism - ✅ 1QA.MD compliance
   const attemptTokenRefresh = async (): Promise<boolean> => {
     const refreshToken = localStorage.getItem('refreshToken');
-    
+
     // ✅ CRITICAL FIX: Validação rigorosa do refresh token
-    if (!refreshToken || 
-        refreshToken === 'null' || 
-        refreshToken === 'undefined' || 
+    if (!refreshToken ||
+        refreshToken === 'null' ||
+        refreshToken === 'undefined' ||
         refreshToken.trim() === '' ||
         refreshToken === 'false') {
       console.log('❌ [REFRESH] No valid refresh token available');
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       console.log('🔄 [REFRESH] Attempting token refresh...');
-      
+
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
@@ -133,20 +133,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const responseData = await response.json();
         console.log('🔍 [REFRESH] Response structure:', Object.keys(responseData));
-        
+
         // ✅ 1QA.MD: Handle backend response structure
         if (responseData.success && responseData.data?.tokens) {
           const { accessToken, refreshToken: newRefreshToken } = responseData.data.tokens;
-          
-          if (accessToken && 
-              accessToken !== 'null' && 
-              accessToken !== 'undefined' && 
+
+          if (accessToken &&
+              accessToken !== 'null' &&
+              accessToken !== 'undefined' &&
               accessToken.trim() !== '') {
-            
+
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('access_token', accessToken); // ✅ Dual format following 1qa.md
-            if (newRefreshToken && 
-                newRefreshToken !== 'null' && 
+            if (newRefreshToken &&
+                newRefreshToken !== 'null' &&
                 newRefreshToken !== 'undefined') {
               localStorage.setItem('refreshToken', newRefreshToken);
             }
@@ -154,21 +154,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return true;
           }
         }
-        
+
         // Fallback for direct token response
-        if (responseData.accessToken && 
-            responseData.accessToken !== 'null' && 
+        if (responseData.accessToken &&
+            responseData.accessToken !== 'null' &&
             responseData.accessToken !== 'undefined') {
           localStorage.setItem('accessToken', responseData.accessToken);
-          if (responseData.refreshToken && 
-              responseData.refreshToken !== 'null' && 
+          if (responseData.refreshToken &&
+              responseData.refreshToken !== 'null' &&
               responseData.refreshToken !== 'undefined') {
             localStorage.setItem('refreshToken', responseData.refreshToken);
           }
           console.log('✅ [REFRESH] Token refreshed (fallback)');
           return true;
         }
-        
+
         console.error('❌ [REFRESH] Invalid refresh response structure:', responseData);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
@@ -197,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       console.log('🔐 [LOGIN] Starting login process...');
-      
+
       try {
         // ✅ CRITICAL FIX: Fazer request direto sem usar apiRequest que pode ter problemas
         const response = await fetch('/api/auth/login', {
@@ -208,9 +208,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify(credentials),
           credentials: 'include',
         });
-        
+
         console.log('🔍 [LOGIN] Response status:', response.status);
-        
+
         if (!response.ok) {
           let errorMessage = 'Login failed';
           try {
@@ -222,10 +222,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           throw new Error(errorMessage);
         }
-        
+
         const responseData = await response.json();
         console.log('🔍 [LOGIN] Response data structure:', Object.keys(responseData));
-        
+
         // ✅ CRITICAL FIX - Handle multiple response formats
         if (responseData.success && responseData.data) {
           // Structured response
@@ -246,7 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             session: null
           };
         }
-        
+
         console.error('❌ [LOGIN] Invalid response structure:', responseData);
         throw new Error('Invalid login response format');
       } catch (error) {
@@ -256,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (result: { user: User; accessToken: string; refreshToken?: string; session?: any }) => {
       console.log('✅ [LOGIN-SUCCESS] Storing tokens and user data');
-      
+
       // ✅ CRITICAL FIX: Validar tokens antes de armazenar
       if (!result.accessToken || result.accessToken === 'null' || result.accessToken === 'undefined') {
         console.error('❌ [LOGIN-SUCCESS] Invalid access token received');
@@ -267,25 +267,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return;
       }
-      
+
       localStorage.setItem('accessToken', result.accessToken);
       localStorage.setItem('access_token', result.accessToken); // ✅ Dual format following 1qa.md
       console.log('📦 [LOGIN-SUCCESS] Access token stored');
-      
+
       if (result.refreshToken && result.refreshToken !== 'null' && result.refreshToken !== 'undefined') {
         localStorage.setItem('refreshToken', result.refreshToken);
         console.log('📦 [LOGIN-SUCCESS] Refresh token stored');
       }
-      
+
       // Store tenantId for quick access by components
       if (result.user?.tenantId) {
         localStorage.setItem('tenantId', result.user.tenantId);
         console.log('📦 [LOGIN-SUCCESS] Tenant ID stored:', result.user.tenantId);
       }
-      
+
       queryClient.setQueryData(['/api/auth/user'], result.user);
       console.log('✅ [LOGIN-SUCCESS] Login completed successfully');
-      
+
       toast({
         title: 'Login successful',
         description: `Welcome back, ${result.user.firstName || result.user.email}!`,
@@ -293,7 +293,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       console.error('Login error:', error);
-      const errorMessage = error.message?.includes('400:') 
+      const errorMessage = error.message?.includes('400:')
         ? error.message.split('400:')[1]?.trim() || 'Invalid credentials'
         : error.message || 'Please check your credentials and try again.';
 
@@ -338,7 +338,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       console.error('Registration error:', error);
-      const errorMessage = error.message?.includes('400:') 
+      const errorMessage = error.message?.includes('400:')
         ? error.message.split('400:')[1]?.trim() || 'Registration failed'
         : error.message || 'Please try again with a different email.';
 
@@ -400,7 +400,30 @@ export function useAuth() {
   }
 
   const [token, setToken] = React.useState(localStorage.getItem('accessToken'));
-  
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  // Mock user and error states for the sake of the example.
+  // In a real app, these would come from context or a global state.
+  const [user, setUser] = React.useState<User | null>(null);
+
+  const logout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('tenantId');
+    queryClient.setQueryData(['/api/auth/user'], null);
+    queryClient.clear();
+    setToken(null);
+    setUser(null);
+    setIsLoading(false);
+    setError(null);
+    // Optionally redirect to login page
+    // window.location.href = '/login';
+  };
+
+
   // ✅ 1QA.MD: Auto refresh automático para evitar logout - versão menos agressiva
   React.useEffect(() => {
     // ✅ CRITICAL FIX: Não executar verificações automáticas logo após login
@@ -409,28 +432,20 @@ export function useAuth() {
     }
 
     const checkTokenExpiry = async () => {
-      const currentToken = localStorage.getItem('accessToken');
-      
-      // ✅ CRITICAL FIX: Validação menos restritiva para evitar logout automático
-      if (!currentToken || 
-          currentToken === 'null' || 
-          currentToken === 'undefined' || 
-          currentToken.trim() === '') {
-        
-        console.warn('⚠️ [AUTO-REFRESH] No valid token found');
-        // ✅ Não forçar logout imediatamente, aguardar próxima verificação
-        return;
-      }
-      
       try {
-        // ✅ Validar formato JWT antes de decodificar
-        const tokenParts = currentToken.split('.');
-        if (tokenParts.length !== 3) {
-          console.warn('⚠️ [AUTO-REFRESH] Invalid JWT format, will refresh on next API call');
-          return; // Deixar o refresh ser tratado pelo interceptor de API
+        const token = localStorage.getItem('accessToken');
+        if (!token || token === 'null' || token === 'undefined') {
+          console.log('🔍 [AUTO-REFRESH] No valid token found, skipping check');
+          return;
         }
 
-        // Decodificar token para verificar expiração
+        // Decode token to check expiry (without verification)
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) {
+          console.warn('⚠️ [AUTO-REFRESH] Invalid token format');
+          return;
+        }
+
         const payload = JSON.parse(atob(tokenParts[1]));
         if (!payload.exp) {
           console.warn('⚠️ [AUTO-REFRESH] Token without expiration');
@@ -440,21 +455,34 @@ export function useAuth() {
         const expiresAt = payload.exp * 1000;
         const now = Date.now();
         const timeToExpiry = expiresAt - now;
-        
-        // ✅ 1QA.MD: Só renovar se expira em menos de 2 horas (menos agressivo)
-        if (timeToExpiry < 2 * 60 * 60 * 1000 && timeToExpiry > 5 * 60 * 1000) {
+
+        // Check if token is expired
+        if (timeToExpiry <= 0) {
+          console.log('⏰ [AUTO-REFRESH] Token expired, attempting refresh...');
+          try {
+            await refreshToken();
+          } catch (refreshError) {
+            console.warn('❌ [AUTO-REFRESH] Failed to refresh expired token:', refreshError.message);
+            // Don't force logout here, let the interceptor handle it
+          }
+          return;
+        }
+
+        // ✅ Auto-refresh if token expires in less than 10 minutes
+        if (timeToExpiry < 10 * 60 * 1000) {
           console.log('🔄 [AUTO-REFRESH] Token expiring soon, refreshing...', {
-            timeToExpiry: Math.round(timeToExpiry / 1000 / 60), // minutos
+            timeToExpiry: Math.round(timeToExpiry / 1000 / 60), // minutes
             expiresAt: new Date(expiresAt).toISOString()
           });
-          await refreshToken();
-        } else if (timeToExpiry <= 0) {
-          console.log('⏰ [AUTO-REFRESH] Token expired, will refresh on next API call');
-          // Não forçar logout, deixar o interceptor tratar
+          try {
+            await refreshToken();
+          } catch (refreshError) {
+            console.warn('❌ [AUTO-REFRESH] Failed to refresh token:', refreshError.message);
+          }
         }
       } catch (error) {
         console.warn('⚠️ [AUTO-REFRESH] Error checking token expiry:', error.message);
-        // Não fazer nada, deixar o sistema continuar funcionando
+        // Don't break the flow, let the system continue
       }
     };
 
@@ -465,79 +493,139 @@ export function useAuth() {
 
     // ✅ Verificar a cada 10 minutos após o delay inicial para evitar logout durante operações
     const interval = setInterval(checkTokenExpiry, 10 * 60 * 1000);
-    
+
     return () => {
       clearTimeout(initialDelay);
       clearInterval(interval);
     };
-  }, [context.user]);
+  }, [context.user, refreshToken]);
+
 
   const refreshToken = async () => {
     try {
-      const refresh = localStorage.getItem('refreshToken');
-      
-      // ✅ CRITICAL FIX: Validação menos agressiva
-      if (!refresh || refresh === 'null' || refresh === 'undefined' || refresh.trim() === '') {
-        console.warn('❌ [REFRESH-TOKEN] No valid refresh token available');
-        return false; // Não forçar logout, apenas retornar false
-      }
+      setIsRefreshing(true);
+      console.log('🔄 [REFRESH] Starting token refresh...');
 
-      console.log('🔄 [REFRESH-TOKEN] Attempting token refresh...');
+      const refreshTokenValue = localStorage.getItem('refreshToken');
+      if (!refreshTokenValue || refreshTokenValue === 'null' || refreshTokenValue === 'undefined') {
+        console.log('❌ [REFRESH] No valid refresh token available');
+        logout();
+        return;
+      }
 
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ refreshToken: refresh }),
-        credentials: 'include',
+        body: JSON.stringify({ refreshToken: refreshTokenValue }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('🔍 [REFRESH-TOKEN] Response structure:', Object.keys(data));
-        
-        // ✅ 1QA.MD: Handle backend response structure
-        let newAccessToken = null;
-        let newRefreshToken = null;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.log('❌ [REFRESH] Refresh failed:', {
+          status: response.status,
+          error: errorData.message || 'Unknown error'
+        });
 
-        if (data.success && data.data?.tokens) {
-          // Structured response from backend
-          newAccessToken = data.data.tokens.accessToken;
-          newRefreshToken = data.data.tokens.refreshToken;
-        } else if (data.accessToken) {
-          // Direct response fallback
-          newAccessToken = data.accessToken;
-          newRefreshToken = data.refreshToken;
+        // Only logout on certain error codes
+        if (response.status === 401 || response.status === 403) {
+          logout();
         }
+        return;
+      }
 
-        if (newAccessToken && newAccessToken !== 'null' && newAccessToken !== 'undefined') {
-          localStorage.setItem('accessToken', newAccessToken);
-          if (newRefreshToken && newRefreshToken !== 'null' && newRefreshToken !== 'undefined') {
-            localStorage.setItem('refreshToken', newRefreshToken);
-          }
-          setToken(newAccessToken);
-          console.log('✅ [REFRESH-TOKEN] Token refreshed successfully');
-          return true;
-        } else {
-          console.error('❌ [REFRESH-TOKEN] Invalid token received from server');
-          return false; // Não forçar logout
+      const data = await response.json();
+
+      if (data.tokens && data.tokens.accessToken) {
+        localStorage.setItem('accessToken', data.tokens.accessToken);
+        if (data.tokens.refreshToken) {
+          localStorage.setItem('refreshToken', data.tokens.refreshToken);
         }
+        setUser(data.user || user); // Keep existing user or update
+        console.log('✅ [REFRESH] Token refresh successful');
       } else {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        console.warn('⚠️ [REFRESH-TOKEN] Failed to refresh token:', response.status, errorText);
-        return false; // Não forçar logout, apenas retornar false
+        console.log('❌ [REFRESH] Invalid refresh response structure:', data);
+        logout();
       }
     } catch (error) {
-      console.warn('⚠️ [REFRESH-TOKEN] Error refreshing token:', error.message);
-      return false; // Não forçar logout em caso de erro
+      console.error('❌ [REFRESH] Token refresh error:', error);
+      // Don't immediately logout on network errors
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.log('🌐 [REFRESH] Network error, will retry later');
+      } else {
+        logout();
+      }
+    } finally {
+      setIsRefreshing(false);
     }
   };
+
+  // Re-implementing login function to use local state and context
+  const login = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('🔐 [LOGIN] Starting login process...');
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      console.log('🔍 [LOGIN] Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        console.log('❌ [LOGIN] Error response:', errorData);
+
+        const errorMessage = errorData.message || `Login failed (${response.status})`;
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      // Handle different response structures
+      if (data.success && data.data && data.data.tokens) {
+        // Clean Architecture response structure
+        localStorage.setItem('accessToken', data.data.tokens.accessToken);
+        localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+        setUser(data.data.user);
+        console.log('✅ [LOGIN] Login successful (Clean Architecture format)');
+      } else if (data.tokens) {
+        // Legacy response structure
+        localStorage.setItem('accessToken', data.tokens.accessToken);
+        localStorage.setItem('refreshToken', data.tokens.refreshToken);
+        setUser(data.user);
+        console.log('✅ [LOGIN] Login successful (Legacy format)');
+      } else {
+        console.log('❌ [LOGIN] Invalid response structure:', data);
+        throw new Error('Invalid login response format');
+      }
+
+      setError(null);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setError(error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return {
     ...context,
     refreshToken,
-    token
+    token,
+    login,
+    logout,
+    isLoading,
+    error,
+    user
   };
 }
-

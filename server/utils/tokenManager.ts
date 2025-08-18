@@ -75,7 +75,7 @@ export class TokenManager {
       if (!token || 
           typeof token !== 'string' || 
           token.trim() === '' ||
-          token.length < 20) { // JWT básico tem muito mais de 20 caracteres
+          token.length < 20) {
         console.error('❌ [TOKEN-MANAGER] Invalid token provided:', { 
           tokenType: typeof token, 
           tokenLength: token?.length,
@@ -86,7 +86,7 @@ export class TokenManager {
         return null;
       }
 
-      // Check for obvious invalid tokens - mais restritivo
+      // Check for obvious invalid tokens
       if (token === 'null' || 
           token === 'undefined' || 
           token === 'false' ||
@@ -119,19 +119,30 @@ export class TokenManager {
         algorithms: ['HS256']
       }) as TokenPayload;
 
-      if (decoded.type !== 'access') {
+      if (decoded.type && decoded.type !== 'access') {
         console.warn('❌ [TOKEN-MANAGER] Token type mismatch - expected access token, got:', decoded.type);
         return null;
       }
 
-      // ✅ Validate required fields
-      if (!decoded.userId && !decoded.sub) {
-        console.error('❌ [TOKEN-MANAGER] Token missing userId/sub field');
+      // ✅ Validate required fields - handle both userId and sub
+      const userId = decoded.userId || decoded.sub;
+      if (!userId) {
+        console.error('❌ [TOKEN-MANAGER] Token missing userId/sub field:', {
+          hasUserId: !!decoded.userId,
+          hasSub: !!decoded.sub,
+          payload: decoded
+        });
         return null;
       }
 
-      // Check if token is close to expiry (within 4 hours para 24h token)
-      if (decoded.exp && (decoded.exp * 1000) < (Date.now() + 4 * 60 * 60 * 1000)) {
+      // Check if token is expired
+      if (decoded.exp && (decoded.exp * 1000) < Date.now()) {
+        console.log('⏰ [TOKEN-MANAGER] Access token expired, needs refresh');
+        throw new jwt.TokenExpiredError('Token expired', new Date(decoded.exp * 1000));
+      }
+
+      // Check if token is close to expiry (within 2 hours for 24h token)
+      if (decoded.exp && (decoded.exp * 1000) < (Date.now() + 2 * 60 * 60 * 1000)) {
         const minutesToExpiry = Math.round(((decoded.exp * 1000) - Date.now()) / 1000 / 60);
         console.log('🔄 [TOKEN-MANAGER] Token will expire soon:', {
           minutesToExpiry,
@@ -140,10 +151,10 @@ export class TokenManager {
       }
 
       const result = {
-        userId: decoded.userId || decoded.sub, // ✅ CRITICAL FIX - Handle both userId and sub per 1qa.md
-        email: decoded.email,
-        role: decoded.role,
-        tenantId: decoded.tenantId
+        userId: userId,
+        email: decoded.email || '',
+        role: decoded.role || '',
+        tenantId: decoded.tenantId || null
       };
 
       console.log('✅ [TOKEN-MANAGER] Token verified successfully:', {
@@ -156,6 +167,7 @@ export class TokenManager {
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         console.log('⏰ [TOKEN-MANAGER] Access token expired - refresh needed');
+        throw error; // Re-throw to allow proper handling upstream
       } else if (error instanceof jwt.JsonWebTokenError) {
         console.warn('⚠️ [TOKEN-MANAGER] Token validation failed:', error.message);
       } else {
