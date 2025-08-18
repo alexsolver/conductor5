@@ -32,7 +32,7 @@ export function GovernedWidgetRenderer({ card, tenantId, userId }: GovernedWidge
       return response.json();
     },
     enabled: card.is_active,
-    refetchInterval: card.refresh_rules.mode === 'real_time' ? 5000 : card.refresh_rules.interval * 1000,
+    refetchInterval: card.refresh_rules.mode === 'real_time' ? 5000 : (card.refresh_rules.interval || 300) * 1000,
     retry: false,
   });
 

@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // ✅ INTEGRAÇÃO DO SISTEMA DE GOVERNANÇA DE DASHBOARDS
 import { GovernedWidgetRenderer } from "@/components/dashboard/GovernedWidgetRenderer";
 import type { GovernedCard } from "@shared/dashboard-governance-schema";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardWidget {
   id: string;
@@ -359,6 +360,9 @@ function DashboardView() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  // ✅ Authentication context for user and tenant information
+  const { user } = useAuth();
   
   // Detect edit mode from URL - following 1qa.md patterns
   const currentPath = window.location.pathname;
@@ -828,11 +832,14 @@ function DashboardView() {
                   )}
                   <div className="p-4">
                     {/* ✅ WIDGET GOVERNADO: Usando GovernedWidgetRenderer */}
-                    <GovernedWidgetRenderer governedCard={governedCard} />
+                    <GovernedWidgetRenderer 
+                      card={governedCard} 
+                      tenantId={user?.tenantId || ''} 
+                      userId={user?.id || ''} 
+                    />
                   </div>
                 </div>
               ))
-            )
             ) : (
               <div className="col-span-12 text-center py-12">
                 <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -858,4 +865,6 @@ function DashboardView() {
       </div>
     </div>
   );
-}export default DashboardView;
+}
+
+export default DashboardView;
