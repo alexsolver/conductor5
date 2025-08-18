@@ -1280,15 +1280,6 @@ export default function Dashboards() {
   // ✅ 1QA.MD COMPLIANCE: Fetch dashboards with proper error handling
   const { data: dashboardsData, isLoading, error } = useQuery({
     queryKey: ["/api/reports-dashboards/dashboards"],
-    queryFn: async () => {
-      console.log('🔍 [DASHBOARDS-FRONTEND] Fetching dashboards...');
-      const response = await apiRequest("GET", "/api/reports-dashboards/dashboards");
-      const jsonData = await response.json();
-      console.log('📊 [DASHBOARDS-FRONTEND] Response received:', jsonData);
-      console.log('📊 [DASHBOARDS-FRONTEND] Response type:', typeof jsonData);
-      console.log('📊 [DASHBOARDS-FRONTEND] Response keys:', jsonData ? Object.keys(jsonData) : 'null');
-      return jsonData;
-    },
   });
 
   // Mock data for comprehensive demonstration
@@ -1373,27 +1364,18 @@ export default function Dashboards() {
   // ✅ 1QA.MD COMPLIANCE: Use real data when available, correct data structure
   const dashboards = (() => {
     if (error) {
-      console.error('❌ [DASHBOARDS-FRONTEND] API Error:', error);
       return mockDashboards;
     }
     
     if (dashboardsData?.success && Array.isArray(dashboardsData?.data) && dashboardsData.data.length > 0) {
-      console.log('✅ [DASHBOARDS-FRONTEND] Using real data:', dashboardsData.data.length, 'dashboards');
       return dashboardsData.data;
     }
     
     if (dashboardsData?.data && Array.isArray(dashboardsData.data) && dashboardsData.data.length === 0) {
-      console.log('📊 [DASHBOARDS-FRONTEND] Real API response but empty data');
       return [];
     }
     
-    // Debug: Check what we actually received
-    if (dashboardsData) {
-      console.log('🔍 [DASHBOARDS-FRONTEND] Unexpected response structure:', dashboardsData);
-    }
-    
     // Fallback to mock data only during development
-    console.warn('⚠️ [DASHBOARDS-FRONTEND] No real data available, using mock data');
     return mockDashboards;
   })();
 
