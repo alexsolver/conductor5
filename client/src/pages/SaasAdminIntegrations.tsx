@@ -95,12 +95,23 @@ export default function SaasAdminIntegrations() {
 
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
-    mutationFn: (data: { integrationId: string; config: z.infer<typeof integrationConfigSchema> }) => 
-      apiRequest(`/api/saas-admin/integrations/${data.integrationId}/config`, { 
+    mutationFn: (data: { integrationId: string; config: z.infer<typeof integrationConfigSchema> }) => {
+      console.log(`🔧 [SAAS-ADMIN-CONFIG] Salvando configuração:`, {
+        integrationId: data.integrationId,
+        hasApiKey: !!data.config.apiKey,
+        baseUrl: data.config.baseUrl
+      });
+      
+      return apiRequest(`/api/saas-admin/integrations/${data.integrationId}/config`, { 
         method: 'PUT', 
-        body: JSON.stringify(data.config) 
-      }),
-    onSuccess: () => {
+        body: JSON.stringify(data.config),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    },
+    onSuccess: (data) => {
+      console.log('✅ [SAAS-ADMIN-CONFIG] Configuração salva com sucesso:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
       setIsConfigDialogOpen(false);
       configForm.reset();
@@ -111,9 +122,21 @@ export default function SaasAdminIntegrations() {
     },
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-CONFIG] Erro ao salvar:', error);
+      
+      // Extrair mensagem de erro mais específica
+      let errorMessage = "Verifique os dados e tente novamente.";
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
       toast({
         title: "Erro ao salvar configuração",
-        description: error?.response?.data?.message || error.message || "Verifique os dados e tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -121,16 +144,46 @@ export default function SaasAdminIntegrations() {
 
   // Mutation para testar integração
   const testIntegrationMutation = useMutation({
-    mutationFn: (integrationId: string) => 
-      apiRequest(`/api/saas-admin/integrations/${integrationId}/test`, { 
-        method: 'POST'
-      }),
+    mutationFn: (integrationId: string) => {
+      console.log(`🧪 [SAAS-ADMIN-TEST] Testando integração: ${integrationId}`);
+      return apiRequest(`/api/saas-admin/integrations/${integrationId}/test`, { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    },
     onSuccess: (data) => {
+      console.log('✅ [SAAS-ADMIN-TEST] Teste concluído:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
+      
+      if (data.success) {
+        toast({
+          title: "Teste bem-sucedido",
+          description: `Integração funcionando corretamente. Tempo de resposta: ${data.result?.responseTime || 'N/A'}ms`,
+        });
+      } else {
+        toast({
+          title: "Teste falhou",
+          description: data.error || data.message || "Erro na integração",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      console.error('❌ [SAAS-ADMIN-TEST] Erro no teste:', error);
+      
+      let errorMessage = "Erro ao testar integração";
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Teste realizado",
-        description: data.success ? "Integração funcionando corretamente." : "Erro na integração: " + data.error,
-        variant: data.success ? "default" : "destructive",
+        title: "Erro no teste",
+        description: errorMessage,
+        variant: "destructive",
       });
     }
   });
