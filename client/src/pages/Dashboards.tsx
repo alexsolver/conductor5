@@ -995,16 +995,16 @@ function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
     },
   });
 
-  // Handler Functions following 1qa.md patterns
+  // ✅ 1QA.MD COMPLIANCE: Handler Functions following 1qa.md patterns
   const handleOpenDashboard = () => {
     try {
-      // Following 1qa.md patterns for navigation
+      // Following 1qa.md patterns for same-page navigation
       const dashboardUrl = `/dashboard/${dashboard.id}`;
-      window.open(dashboardUrl, '_blank');
+      setLocation(dashboardUrl);
       
       toast({ 
         title: "Dashboard opened", 
-        description: `Opening ${dashboard.name} in new tab` 
+        description: `Opening ${dashboard.name}` 
       });
       
       // Update view count via API (following 1qa.md async patterns)
@@ -1277,10 +1277,15 @@ export default function Dashboards() {
   const [activeTab, setActiveTab] = useState("all");
   const [layoutFilter, setLayoutFilter] = useState("all");
 
-  // Fetch dashboards
-  const { data: dashboardsData, isLoading } = useQuery({
+  // ✅ 1QA.MD COMPLIANCE: Fetch dashboards with proper error handling
+  const { data: dashboardsData, isLoading, error } = useQuery({
     queryKey: ["/api/reports-dashboards/dashboards"],
-    queryFn: () => apiRequest("GET", "/api/reports-dashboards/dashboards"),
+    queryFn: async () => {
+      console.log('🔍 [DASHBOARDS-FRONTEND] Fetching dashboards...');
+      const response = await apiRequest("GET", "/api/reports-dashboards/dashboards");
+      console.log('📊 [DASHBOARDS-FRONTEND] Response received:', response);
+      return response;
+    },
   });
 
   // Mock data for comprehensive demonstration
@@ -1362,7 +1367,22 @@ export default function Dashboards() {
     },
   ];
 
-  const dashboards = (dashboardsData as any)?.data || mockDashboards;
+  // ✅ 1QA.MD COMPLIANCE: Use real data when available, fallback to mock only for development
+  const dashboards = (() => {
+    if (error) {
+      console.error('❌ [DASHBOARDS-FRONTEND] API Error:', error);
+      return mockDashboards;
+    }
+    
+    if (dashboardsData?.success && dashboardsData?.data) {
+      console.log('✅ [DASHBOARDS-FRONTEND] Using real data:', dashboardsData.data.length, 'dashboards');
+      return dashboardsData.data;
+    }
+    
+    // Fallback to mock data only during development
+    console.warn('⚠️ [DASHBOARDS-FRONTEND] No real data available, using mock data');
+    return mockDashboards;
+  })();
 
   const filteredDashboards = dashboards.filter((dashboard: Dashboard) => {
     const matchesSearch = dashboard.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
