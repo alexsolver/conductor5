@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, FileText, DollarSign, Calendar, Users } from 'lucide-react';
+import { Plus, Search, Filter, FileText, DollarSign, Calendar, Users, Edit, Trash2, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { CreateContractDialog } from '@/components/forms/CreateContractDialog';
+import { EditContractDialog } from '@/components/forms/EditContractDialog';
+import { ContractViewDialog } from '@/components/forms/ContractViewDialog';
 
 // Tipos de contrato
 const contractTypes = [
@@ -188,8 +190,16 @@ export default function ContractManagement() {
         {/* Dialog para criar novo contrato */}
         <CreateContractDialog 
           open={isCreateDialogOpen} 
-          onOpenChange={setIsCreateDialogOpen} 
-        />
+          onOpenChange={setIsCreateDialogOpen}
+        >
+          <Button 
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            data-testid="button-create-contract-trigger"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Contrato
+          </Button>
+        </CreateContractDialog>
 
         {/* Métricas do Dashboard */}
         {dashboardMetrics?.data && (
@@ -201,7 +211,7 @@ export default function ContractManagement() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600" data-testid="metric-active-contracts">
-                  {dashboardMetrics.data.totalActive}
+                  {(dashboardMetrics as any)?.data?.totalActive || 0}
                 </div>
               </CardContent>
             </Card>
@@ -213,7 +223,7 @@ export default function ContractManagement() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-600" data-testid="metric-draft-contracts">
-                  {dashboardMetrics.data.totalDraft}
+                  {(dashboardMetrics as any)?.data?.totalDraft || 0}
                 </div>
               </CardContent>
             </Card>
@@ -225,7 +235,7 @@ export default function ContractManagement() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600" data-testid="metric-expiring-contracts">
-                  {dashboardMetrics.data.totalExpiringSoon}
+                  {(dashboardMetrics as any)?.data?.totalExpiringSoon || 0}
                 </div>
               </CardContent>
             </Card>
@@ -237,7 +247,7 @@ export default function ContractManagement() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600" data-testid="metric-monthly-revenue">
-                  {formatCurrency(dashboardMetrics.data.monthlyRevenue)}
+                  {formatCurrency((dashboardMetrics as any)?.data?.monthlyRevenue || 0)}
                 </div>
               </CardContent>
             </Card>
@@ -249,7 +259,7 @@ export default function ContractManagement() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600" data-testid="metric-total-revenue">
-                  {formatCurrency(dashboardMetrics.data.totalRevenue)}
+                  {formatCurrency((dashboardMetrics as any)?.data?.totalRevenue || 0)}
                 </div>
               </CardContent>
             </Card>
@@ -392,13 +402,26 @@ export default function ContractManagement() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          data-testid={`button-edit-${contract.id}`}
-                        >
-                          Editar
-                        </Button>
+                        <ContractViewDialog contractId={contract.id}>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            data-testid={`button-view-${contract.id}`}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver
+                          </Button>
+                        </ContractViewDialog>
+                        <EditContractDialog contractId={contract.id}>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            data-testid={`button-edit-${contract.id}`}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Editar
+                          </Button>
+                        </EditContractDialog>
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -406,6 +429,7 @@ export default function ContractManagement() {
                           disabled={deleteContractMutation.isPending}
                           data-testid={`button-delete-${contract.id}`}
                         >
+                          <Trash2 className="h-4 w-4 mr-1" />
                           Excluir
                         </Button>
                       </div>

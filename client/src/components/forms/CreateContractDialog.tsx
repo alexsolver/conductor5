@@ -43,10 +43,10 @@ const createContractSchema = z.object({
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   contractType: z.enum(['service', 'supply', 'maintenance', 'rental', 'sla']),
   priority: z.enum(['low', 'medium', 'high', 'critical', 'emergency']).default('medium'),
-  customerCompanyId: z.string().uuid('ID da empresa cliente é obrigatório'),
-  managerId: z.string().uuid('Gerente responsável é obrigatório'),
-  technicalManagerId: z.string().uuid().optional(),
-  locationId: z.string().uuid().optional(),
+  customerCompanyId: z.string().min(1, 'Empresa cliente é obrigatória'),
+  managerId: z.string().min(1, 'Gerente responsável é obrigatório'),
+  technicalManagerId: z.string().optional(),
+  locationId: z.string().optional(),
   startDate: z.string().min(1, 'Data de início é obrigatória'),
   endDate: z.string().min(1, 'Data de fim é obrigatória'),
   totalValue: z.string().transform(val => parseFloat(val)).refine(val => val >= 0, 'Valor total deve ser positivo'),
@@ -270,6 +270,78 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                           className="min-h-[100px]"
                           {...field} 
                           data-testid="textarea-description"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="customerCompanyId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Empresa Cliente *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="ID da empresa cliente" 
+                          {...field} 
+                          data-testid="input-customer-company"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="managerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gerente Responsável *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="ID do gerente responsável" 
+                          {...field} 
+                          data-testid="input-manager"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="technicalManagerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gerente Técnico</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="ID do gerente técnico (opcional)" 
+                          {...field} 
+                          data-testid="input-technical-manager"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="locationId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Localização</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="ID da localização (opcional)" 
+                          {...field} 
+                          data-testid="input-location"
                         />
                       </FormControl>
                       <FormMessage />
