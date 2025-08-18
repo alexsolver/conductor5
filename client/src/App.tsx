@@ -93,6 +93,7 @@ import TimecardApprovals from './pages/TimecardApprovals';
 import NotificationsPage from './pages/NotificationsPage';
 import Reports from './pages/Reports';
 import Dashboards from './pages/Dashboards';
+import GdprCompliance from './pages/GdprCompliance';
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Customers from "./pages/Customers";
@@ -221,6 +222,7 @@ function AppRouter() {
 
         <Route path="/asset-management" component={AssetManagement} />
         <Route path="/compliance-management" component={ComplianceManagement} />
+        <Route path="/gdpr-compliance" component={GdprCompliance} />
 
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
         <Route path="/drag-drop-demo" component={DragDropDemo} />

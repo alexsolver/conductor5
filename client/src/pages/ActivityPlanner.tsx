@@ -1644,7 +1644,7 @@ export default function ActivityPlanner() {
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
-          <ActivityAnalytics />
+          {renderAnalytics()}
         </TabsContent>
       </Tabs>
     </div>
