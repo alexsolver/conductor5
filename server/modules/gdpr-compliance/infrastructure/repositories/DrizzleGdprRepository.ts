@@ -6,6 +6,7 @@
 
 import { eq, and, gte, lte, isNull, desc, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
+import crypto from 'crypto';
 
 import type { IGdprComplianceRepository } from '../../domain/repositories/IGdprComplianceRepository';
 import { CookieConsent } from '../../domain/entities/CookieConsent';
@@ -368,26 +369,121 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
   }
 
   async createGdprUserPreferences(data: InsertGdprUserPreferences): Promise<GdprUserPreferences> {
-    const [result] = await db.insert(gdprUserPreferences).values(data).returning();
-    return result;
+    try {
+      // ✅ Seguindo padrão 1qa.md - validar constraints existentes
+      if (!data.tenantId) throw new Error('Tenant ID required');
+      if (!data.userId) throw new Error('User ID required');
+
+      console.log(`[DrizzleGdprRepository] Creating GDPR preferences for user ${data.userId} in tenant ${data.tenantId}`);
+      
+      const preferencesData = {
+        ...data,
+        id: data.id || crypto.randomUUID(),
+        createdAt: data.createdAt || new Date(),
+        updatedAt: data.updatedAt || new Date()
+      };
+
+      const [result] = await db
+        .insert(gdprUserPreferences)
+        .values(preferencesData)
+        .returning();
+        
+      console.log(`[DrizzleGdprRepository] GDPR preferences created successfully with ID ${result.id}`);
+      return result;
+      
+    } catch (error) {
+      console.error('[DrizzleGdprRepository] createGdprUserPreferences error:', error);
+      throw error;
+    }
   }
 
   async findGdprUserPreferencesByUser(userId: string, tenantId: string): Promise<GdprUserPreferences | null> {
-    const results = await db
-      .select()
-      .from(gdprUserPreferences)
-      .where(and(eq(gdprUserPreferences.userId, userId), eq(gdprUserPreferences.tenantId, tenantId)))
-      .limit(1);
-    return results.length > 0 ? results[0] : null;
+    try {
+      // ✅ Seguindo padrão 1qa.md - validar constraints existentes
+      if (!tenantId) throw new Error('Tenant ID required');
+      if (!userId) throw new Error('User ID required');
+
+      console.log(`[DrizzleGdprRepository] Finding GDPR preferences for user ${userId} in tenant ${tenantId}`);
+      
+      const results = await db
+        .select()
+        .from(gdprUserPreferences)
+        .where(and(
+          eq(gdprUserPreferences.userId, userId), 
+          eq(gdprUserPreferences.tenantId, tenantId)
+        ))
+        .limit(1);
+
+      // ✅ Se não existir, criar preferências padrão conforme 1qa.md
+      if (results.length === 0) {
+        console.log(`[DrizzleGdprRepository] No preferences found, creating default for user ${userId}`);
+        
+        const defaultPreferences = {
+          id: crypto.randomUUID(),
+          userId: userId,
+          tenantId: tenantId,
+          emailMarketing: false,
+          smsMarketing: false,
+          dataProcessingForAnalytics: true, // Analytics são úteis por padrão
+          profileVisibility: 'private',
+          cookiePreferences: JSON.stringify({
+            necessary: true,
+            statistical: false,
+            marketing: false
+          }),
+          communicationFrequency: 'minimal',
+          dataRetentionPreference: 'minimal',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        const [created] = await db
+          .insert(gdprUserPreferences)
+          .values(defaultPreferences)
+          .returning();
+          
+        console.log(`[DrizzleGdprRepository] Created default preferences for user ${userId}`);
+        return created;
+      }
+      
+      console.log(`[DrizzleGdprRepository] Found existing preferences for user ${userId}`);
+      return results[0];
+      
+    } catch (error) {
+      console.error('[DrizzleGdprRepository] findGdprUserPreferencesByUser error:', error);
+      throw error;
+    }
   }
 
   async updateGdprUserPreferences(id: string, data: Partial<InsertGdprUserPreferences>): Promise<GdprUserPreferences> {
-    const [result] = await db
-      .update(gdprUserPreferences)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(gdprUserPreferences.id, id))
-      .returning();
-    return result;
+    try {
+      // ✅ Seguindo padrão 1qa.md - validar constraints existentes
+      if (!id) throw new Error('Preference ID required');
+
+      console.log(`[DrizzleGdprRepository] Updating GDPR preferences ${id}`);
+      
+      const updateData = {
+        ...data,
+        updatedAt: new Date()
+      };
+
+      const [result] = await db
+        .update(gdprUserPreferences)
+        .set(updateData)
+        .where(eq(gdprUserPreferences.id, id))
+        .returning();
+        
+      if (!result) {
+        throw new Error(`GDPR preferences with ID ${id} not found`);
+      }
+        
+      console.log(`[DrizzleGdprRepository] GDPR preferences ${id} updated successfully`);
+      return result;
+      
+    } catch (error) {
+      console.error('[DrizzleGdprRepository] updateGdprUserPreferences error:', error);
+      throw error;
+    }
   }
 
   async deleteGdprUserPreferences(userId: string, tenantId: string): Promise<void> {

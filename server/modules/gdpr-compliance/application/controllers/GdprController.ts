@@ -320,21 +320,36 @@ export class GdprController {
     }
   }
 
-  // ✅ 12. User Preferences Portal
+  // ✅ 12. User Preferences Portal - Funcionalidade 12: Gestão de Preferências de Privacidade
   async getUserPreferences(req: Request, res: Response): Promise<void> {
     try {
+      // ✅ Seguindo padrão 1qa.md - extrair informações do JWT
       const tenantId = req.user?.tenantId || req.headers['x-tenant-id'] as string;
-      const userId = req.user?.id;
+      const userId = req.user?.userId || req.user?.id;
+
+      console.log(`[GdprController] getUserPreferences - userId: ${userId}, tenantId: ${tenantId}`);
+      console.log(`[GdprController] req.user:`, req.user);
 
       if (!tenantId || !userId) {
+        console.error('[GdprController] Missing required authentication data');
         res.status(400).json({
           success: false,
-          error: 'Tenant ID and user authentication required'
+          error: 'Tenant ID and user authentication required',
+          details: {
+            hasUser: !!req.user,
+            hasTenantId: !!tenantId,
+            hasUserId: !!userId
+          }
         });
         return;
       }
 
+      console.log(`[GdprController] Fetching GDPR preferences for user ${userId} in tenant ${tenantId}`);
+      
+      // ✅ Buscar preferências usando repository conforme Clean Architecture
       const preferences = await this.gdprRepository.findGdprUserPreferencesByUser(userId, tenantId);
+
+      console.log(`[GdprController] GDPR preferences result:`, preferences ? 'Found' : 'Not found');
 
       res.json({
         success: true,
@@ -346,17 +361,22 @@ export class GdprController {
       console.error('[GdprController] getUserPreferences error:', error);
       res.status(500).json({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   }
 
   async updateUserPreferences(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.user?.id;
+      // ✅ Seguindo padrão 1qa.md - extrair informações do JWT
+      const tenantId = req.user?.tenantId || req.headers['x-tenant-id'] as string;
+      const userId = req.user?.userId || req.user?.id;
+
+      console.log(`[GdprController] updateUserPreferences - userId: ${userId}, tenantId: ${tenantId}`);
 
       if (!tenantId || !userId) {
+        console.error('[GdprController] Missing required authentication data for update');
         res.status(400).json({
           success: false,
           error: 'Tenant ID and user authentication required'
@@ -364,20 +384,26 @@ export class GdprController {
         return;
       }
 
-      // Tentar encontrar preferências existentes
+      console.log(`[GdprController] Updating GDPR preferences for user ${userId}`, req.body);
+
+      // ✅ Tentar encontrar preferências existentes conforme Clean Architecture
       let preferences = await this.gdprRepository.findGdprUserPreferencesByUser(userId, tenantId);
 
       if (preferences) {
         // Atualizar existentes
+        console.log(`[GdprController] Updating existing preferences for user ${userId}`);
         preferences = await this.gdprRepository.updateGdprUserPreferences(preferences.id, req.body);
       } else {
         // Criar novas preferências
+        console.log(`[GdprController] Creating new preferences for user ${userId}`);
         preferences = await this.gdprRepository.createGdprUserPreferences({
           ...req.body,
           userId,
           tenantId
         });
       }
+
+      console.log(`[GdprController] GDPR preferences updated successfully for user ${userId}`);
 
       res.json({
         success: true,
@@ -389,7 +415,8 @@ export class GdprController {
       console.error('[GdprController] updateUserPreferences error:', error);
       res.status(500).json({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   }
