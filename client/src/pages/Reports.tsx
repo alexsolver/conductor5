@@ -34,6 +34,221 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from 'wouter';
 
+// Create Report Dialog Component
+function CreateReportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const form = useForm<ReportFormData>({
+    resolver: zodResolver(reportSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      dataSource: "tickets",
+      category: "operational", 
+      chartType: "bar",
+      schedulingEnabled: false,
+      isPublic: false,
+      accessLevel: "private",
+      notifications: {
+        enabled: false,
+        channels: [],
+      },
+      wysiwyg: {
+        enabled: false,
+      },
+    },
+  });
+
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  const createReport = useMutation({
+    mutationFn: (data: ReportFormData) => apiRequest("POST", "/api/reports-dashboards/reports", data),
+    onSuccess: () => {
+      toast({ title: "Relatório criado com sucesso!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
+      onOpenChange(false);
+      form.reset();
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Erro ao criar relatório", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const handleCreateReport = (data: ReportFormData) => {
+    createReport.mutate(data);
+  };
+
+  const handleCreateWithWYSIWYG = () => {
+    const basicData = form.getValues();
+    // Navigate to the full-page creation flow
+    setLocation("/reports/create");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Criar Novo Relatório</DialogTitle>
+        </DialogHeader>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleCreateReport)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Relatório</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Dashboard de Performance" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="operational">Operacional</SelectItem>
+                        <SelectItem value="analytical">Analítico</SelectItem>
+                        <SelectItem value="compliance">Compliance</SelectItem>
+                        <SelectItem value="financial">Financeiro</SelectItem>
+                        <SelectItem value="hr">Recursos Humanos</SelectItem>
+                        <SelectItem value="strategic">Estratégico</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Descreva o objetivo e conteúdo do relatório..." 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="dataSource"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fonte de Dados</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a fonte" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="tickets">Tickets</SelectItem>
+                        <SelectItem value="customers">Clientes</SelectItem>
+                        <SelectItem value="users">Usuários</SelectItem>
+                        <SelectItem value="materials">Materiais</SelectItem>
+                        <SelectItem value="services">Serviços</SelectItem>
+                        <SelectItem value="timecard">Timecard</SelectItem>
+                        <SelectItem value="locations">Locais</SelectItem>
+                        <SelectItem value="omnibridge">OmniBridge</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="chartType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Gráfico</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="bar">Gráfico de Barras</SelectItem>
+                        <SelectItem value="line">Gráfico de Linha</SelectItem>
+                        <SelectItem value="pie">Gráfico de Pizza</SelectItem>
+                        <SelectItem value="table">Tabela</SelectItem>
+                        <SelectItem value="gauge">Velocímetro</SelectItem>
+                        <SelectItem value="area">Gráfico de Área</SelectItem>
+                        <SelectItem value="scatter">Dispersão</SelectItem>
+                        <SelectItem value="heatmap">Mapa de Calor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCreateWithWYSIWYG}
+                data-testid="button-create-advanced"
+              >
+                <Palette className="w-4 h-4 mr-2" />
+                Criar com Editor Avançado
+              </Button>
+              
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createReport.isPending}
+                  data-testid="button-create-simple"
+                >
+                  {createReport.isPending ? "Criando..." : "Criar Relatório"}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
   name: z.string().min(1, "Report name is required"),
@@ -1365,7 +1580,6 @@ export default function Reports() {
             <Calendar className="w-4 h-4 mr-2" />
             Versions
           </Button>
-          {/* Correctly instantiate the dialog here */}
           <Button onClick={() => setShowCreateReportDialog(true)} data-testid="button-create-report" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
             <Plus className="w-4 h-4 mr-2" />
             Create Advanced Report
@@ -1529,6 +1743,12 @@ export default function Reports() {
         </Dialog>
       )}
 
+      {/* Create Report Dialog */}
+      <CreateReportDialog 
+        open={showCreateReportDialog} 
+        onOpenChange={setShowCreateReportDialog}
+      />
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
@@ -1563,7 +1783,7 @@ export default function Reports() {
                 }
               </p>
               {!searchTerm && categoryFilter === "all" && (
-                <Button onClick={() => setShowCreateReportDialog(true)} data-testid="button-create-report" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Button onClick={() => setShowCreateReportDialog(true)} data-testid="button-create-first-report" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Advanced Report
                 </Button>
