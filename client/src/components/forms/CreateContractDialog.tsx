@@ -1,9 +1,7 @@
-/**
- * CreateContractDialog - Dialog para criação de novos contratos
- * Seguindo 1qa.md compliance e Clean Architecture patterns
- */
+// ✅ 1QA.MD COMPLIANCE: CREATE CONTRACT DIALOG
+// Clean Architecture - Frontend Form Component
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +12,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -23,9 +23,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -33,46 +33,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
-// Schema de validação para criação de contrato
+// ✅ 1QA.MD COMPLIANCE: ZOD SCHEMA VALIDATION
 const createContractSchema = z.object({
   contractNumber: z.string().min(1, 'Número do contrato é obrigatório'),
-  title: z.string().min(1, 'Título é obrigatório'),
+  title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   contractType: z.enum(['service', 'supply', 'maintenance', 'rental', 'sla']),
-  status: z.enum(['draft', 'analysis', 'approved', 'active', 'terminated']).default('draft'),
   priority: z.enum(['low', 'medium', 'high', 'critical', 'emergency']).default('medium'),
-  managerId: z.string().min(1, 'Gerente é obrigatório'),
+  customerCompanyId: z.string().uuid('ID da empresa cliente é obrigatório'),
+  managerId: z.string().uuid('Gerente responsável é obrigatório'),
+  technicalManagerId: z.string().uuid().optional(),
+  locationId: z.string().uuid().optional(),
   startDate: z.string().min(1, 'Data de início é obrigatória'),
   endDate: z.string().min(1, 'Data de fim é obrigatória'),
-  totalValue: z.number().min(0, 'Valor total deve ser maior que zero'),
-  monthlyValue: z.number().min(0, 'Valor mensal deve ser maior ou igual a zero'),
+  totalValue: z.string().transform(val => parseFloat(val)).refine(val => val >= 0, 'Valor total deve ser positivo'),
+  monthlyValue: z.string().transform(val => parseFloat(val)).refine(val => val >= 0, 'Valor mensal deve ser positivo'),
   currency: z.string().default('BRL'),
+  paymentTerms: z.string().transform(val => parseInt(val)).optional(),
   description: z.string().optional(),
+  termsConditions: z.string().optional(),
+  autoRenewal: z.boolean().default(false),
+  renewalPeriodMonths: z.string().transform(val => parseInt(val)).optional(),
 });
 
 type CreateContractFormData = z.infer<typeof createContractSchema>;
 
-interface CreateContractDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
+// Opções para os selects
 const contractTypes = [
   { value: 'service', label: 'Serviço' },
   { value: 'supply', label: 'Fornecimento' },
   { value: 'maintenance', label: 'Manutenção' },
   { value: 'rental', label: 'Locação' },
   { value: 'sla', label: 'SLA' },
-];
-
-const contractStatuses = [
-  { value: 'draft', label: 'Rascunho' },
-  { value: 'analysis', label: 'Análise' },
-  { value: 'approved', label: 'Aprovado' },
-  { value: 'active', label: 'Ativo' },
-  { value: 'terminated', label: 'Encerrado' },
 ];
 
 const priorities = [
@@ -83,53 +78,62 @@ const priorities = [
   { value: 'emergency', label: 'Emergencial' },
 ];
 
-export function CreateContractDialog({ open, onOpenChange }: CreateContractDialogProps) {
+const currencies = [
+  { value: 'BRL', label: 'Real (BRL)' },
+  { value: 'USD', label: 'Dólar (USD)' },
+  { value: 'EUR', label: 'Euro (EUR)' },
+];
+
+interface CreateContractDialogProps {
+  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function CreateContractDialog({ children, open, onOpenChange }: CreateContractDialogProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<CreateContractFormData>({
     resolver: zodResolver(createContractSchema),
     defaultValues: {
-      contractNumber: '',
-      title: '',
       contractType: 'service',
-      status: 'draft',
       priority: 'medium',
-      managerId: '550e8400-e29b-41d4-a716-446655440001', // Default manager ID
-      startDate: '',
-      endDate: '',
-      totalValue: 0,
-      monthlyValue: 0,
       currency: 'BRL',
-      description: '',
+      autoRenewal: false,
     },
   });
 
+  // ✅ 1QA.MD COMPLIANCE: MUTATION WITH PROPER ERROR HANDLING
   const createContractMutation = useMutation({
-    mutationFn: (data: CreateContractFormData) => 
-      apiRequest('/api/contracts', {
+    mutationFn: async (data: CreateContractFormData) => {
+      const response = await apiRequest('/api/contracts', {
         method: 'POST',
         body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }),
-    onSuccess: () => {
+      });
+      return response;
+    },
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
       toast({
-        title: 'Sucesso',
-        description: 'Contrato criado com sucesso',
+        title: "Sucesso",
+        description: "Contrato criado com sucesso",
       });
       form.reset();
-      onOpenChange(false);
+      if (onOpenChange) {
+        onOpenChange(false);
+      } else {
+        setIsOpen(false);
+      }
     },
     onError: (error: any) => {
-      console.error('Erro ao criar contrato:', error);
+      console.error('Error creating contract:', error);
       toast({
-        title: 'Erro',
-        description: error.message || 'Falha ao criar contrato',
-        variant: 'destructive',
+        title: "Erro",
+        description: error?.message || "Falha ao criar contrato",
+        variant: "destructive",
       });
     },
   });
@@ -138,257 +142,341 @@ export function CreateContractDialog({ open, onOpenChange }: CreateContractDialo
     createContractMutation.mutate(data);
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    } else {
+      setIsOpen(newOpen);
+    }
+  };
+
+  const isDialogOpen = open !== undefined ? open : isOpen;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild data-testid="button-create-contract">
+        {children}
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-create-contract">
         <DialogHeader>
-          <DialogTitle>Novo Contrato</DialogTitle>
+          <DialogTitle data-testid="title-create-contract">Criar Novo Contrato</DialogTitle>
           <DialogDescription>
-            Crie um novo contrato preenchendo as informações abaixo.
+            Preencha os dados do novo contrato. Todos os campos marcados com * são obrigatórios.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="contractNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número do Contrato *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Ex: CONT-2025-0001" 
-                        {...field} 
-                        data-testid="input-contract-number"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="contractType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Contrato *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Informações Básicas */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-muted-foreground">Informações Básicas</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="contractNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número do Contrato *</FormLabel>
                       <FormControl>
-                        <SelectTrigger data-testid="select-contract-type">
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
+                        <Input 
+                          placeholder="CTR-2024-001" 
+                          {...field} 
+                          data-testid="input-contract-number"
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {contractTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Título *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Ex: Contrato de Suporte Técnico" 
-                      {...field} 
-                      data-testid="input-contract-title"
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título do Contrato *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Contrato de Manutenção Predial" 
+                          {...field} 
+                          data-testid="input-contract-title"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="contractType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Contrato *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-contract-type">
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {contractTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prioridade</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-priority">
+                            <SelectValue placeholder="Selecione a prioridade" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {priorities.map((priority) => (
+                            <SelectItem key={priority.value} value={priority.value}>
+                              {priority.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Descrição detalhada do contrato..." 
+                          className="min-h-[100px]"
+                          {...field} 
+                          data-testid="textarea-description"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Informações Comerciais e Datas */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-muted-foreground">Dados Comerciais</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data de Início *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="date" 
+                            {...field} 
+                            data-testid="input-start-date"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data de Término *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="date" 
+                            {...field} 
+                            data-testid="input-end-date"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="totalValue"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor Total *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.01" 
+                            placeholder="0.00" 
+                            {...field} 
+                            data-testid="input-total-value"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="monthlyValue"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor Mensal *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.01" 
+                            placeholder="0.00" 
+                            {...field} 
+                            data-testid="input-monthly-value"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Moeda</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-currency">
+                            <SelectValue placeholder="Selecione a moeda" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {currencies.map((currency) => (
+                            <SelectItem key={currency.value} value={currency.value}>
+                              {currency.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="paymentTerms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prazo de Pagamento (dias)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="30" 
+                          {...field} 
+                          data-testid="input-payment-terms"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="autoRenewal"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Renovação Automática</FormLabel>
+                          <div className="text-sm text-muted-foreground">
+                            Renovar automaticamente o contrato
+                          </div>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="switch-auto-renewal"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {form.watch('autoRenewal') && (
+                    <FormField
+                      control={form.control}
+                      name="renewalPeriodMonths"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Período de Renovação (meses)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="12" 
+                              {...field} 
+                              data-testid="input-renewal-period"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  )}
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormField
+                  control={form.control}
+                  name="termsConditions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Termos e Condições</FormLabel>
                       <FormControl>
-                        <SelectTrigger data-testid="select-contract-status">
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
+                        <Textarea 
+                          placeholder="Termos e condições específicas do contrato..." 
+                          className="min-h-[100px]"
+                          {...field} 
+                          data-testid="textarea-terms"
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {contractStatuses.map((status) => (
-                          <SelectItem key={status.value} value={status.value}>
-                            {status.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prioridade</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-contract-priority">
-                          <SelectValue placeholder="Selecione a prioridade" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {priorities.map((priority) => (
-                          <SelectItem key={priority.value} value={priority.value}>
-                            {priority.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de Início *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        data-testid="input-start-date"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de Fim *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        data-testid="input-end-date"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="totalValue"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Total *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        data-testid="input-total-value"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="monthlyValue"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Mensal</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        data-testid="input-monthly-value"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="currency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Moeda</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="BRL" 
-                        {...field} 
-                        data-testid="input-currency"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Descrição detalhada do contrato..."
-                      rows={3}
-                      {...field} 
-                      data-testid="textarea-description"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end space-x-2">
+            <DialogFooter className="gap-2">
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleOpenChange(false)}
                 data-testid="button-cancel-contract"
               >
                 Cancelar
@@ -396,12 +484,11 @@ export function CreateContractDialog({ open, onOpenChange }: CreateContractDialo
               <Button 
                 type="submit" 
                 disabled={createContractMutation.isPending}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                 data-testid="button-save-contract"
               >
-                {createContractMutation.isPending ? 'Salvando...' : 'Salvar Contrato'}
+                {createContractMutation.isPending ? 'Salvando...' : 'Criar Contrato'}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
