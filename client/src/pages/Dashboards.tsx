@@ -965,7 +965,66 @@ function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
       toast({ title: "Dashboard duplicated successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/dashboards"] });
     },
+    onError: (error) => {
+      toast({ title: "Error duplicating dashboard", description: error.message, variant: "destructive" });
+    },
   });
+
+  // Delete Dashboard Mutation following 1qa.md patterns
+  const deleteDashboard = useMutation({
+    mutationFn: () => apiRequest("DELETE", `/api/reports-dashboards/dashboards/${dashboard.id}`),
+    onSuccess: () => {
+      toast({ title: "Dashboard deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/dashboards"] });
+    },
+    onError: (error) => {
+      toast({ title: "Error deleting dashboard", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Handler Functions following 1qa.md patterns
+  const handleOpenDashboard = () => {
+    // Navigate to dashboard view or open modal - implementing placeholder for now
+    toast({ title: "Opening dashboard", description: `Viewing ${dashboard.name}` });
+    // TODO: Implement navigation to dashboard view page
+  };
+
+  const handleEditDashboard = () => {
+    // Navigate to dashboard edit mode
+    toast({ title: "Opening dashboard editor", description: `Editing ${dashboard.name}` });
+    // TODO: Implement navigation to dashboard edit page
+  };
+
+  const handleViewDetails = () => {
+    // Show detailed dashboard information
+    toast({ title: "Showing dashboard details", description: `Details for ${dashboard.name}` });
+    // TODO: Implement details modal or navigation
+  };
+
+  const handleWidgetManager = () => {
+    // Open widget management interface
+    toast({ title: "Opening widget manager", description: `Managing widgets for ${dashboard.name}` });
+    // TODO: Implement widget manager functionality
+  };
+
+  const handleShareDashboard = () => {
+    // Open share dialog
+    toast({ title: "Opening share options", description: `Sharing ${dashboard.name}` });
+    // TODO: Implement share functionality
+  };
+
+  const handleExportDashboard = () => {
+    // Export dashboard in various formats
+    toast({ title: "Exporting dashboard", description: `Exporting ${dashboard.name}` });
+    // TODO: Implement export functionality
+  };
+
+  const handleDeleteDashboard = () => {
+    // Confirm deletion before executing
+    if (window.confirm(`Are you sure you want to delete "${dashboard.name}"? This action cannot be undone.`)) {
+      deleteDashboard.mutate();
+    }
+  };
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 border-l-4 border-l-purple-500">
@@ -1029,48 +1088,76 @@ function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleViewDetails}
+                data-testid={`menu-view-details-${dashboard.id}`}
+              >
                 <Eye className="w-4 h-4 mr-2" />
-                View Dashboard
+                View Details
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleEditDashboard}
+                data-testid={`menu-edit-dashboard-${dashboard.id}`}
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Dashboard
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleWidgetManager}
+                data-testid={`menu-widget-manager-${dashboard.id}`}
+              >
                 <Settings className="w-4 h-4 mr-2" />
                 Widget Manager
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => duplicateDashboard.mutate()}>
+              <DropdownMenuItem 
+                onClick={() => duplicateDashboard.mutate()}
+                disabled={duplicateDashboard.isPending}
+                data-testid={`menu-duplicate-${dashboard.id}`}
+              >
                 <Copy className="w-4 h-4 mr-2" />
-                Duplicate
+                {duplicateDashboard.isPending ? "Duplicating..." : "Duplicate"}
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleExportDashboard}
+                data-testid={`menu-export-${dashboard.id}`}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleShareDashboard}
+                data-testid={`menu-share-${dashboard.id}`}
+              >
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => toggleFavorite.mutate()}>
+              <DropdownMenuItem 
+                onClick={() => toggleFavorite.mutate()}
+                disabled={toggleFavorite.isPending}
+                data-testid={`menu-favorite-${dashboard.id}`}
+              >
                 {dashboard.isFavorite ? (
                   <>
                     <StarOff className="w-4 h-4 mr-2" />
-                    Remove Favorite
+                    {toggleFavorite.isPending ? "Removing..." : "Remove Favorite"}
                   </>
                 ) : (
                   <>
                     <Star className="w-4 h-4 mr-2" />
-                    Add Favorite
+                    {toggleFavorite.isPending ? "Adding..." : "Add Favorite"}
                   </>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem 
+                className="text-red-600"
+                onClick={handleDeleteDashboard}
+                disabled={deleteDashboard.isPending}
+                data-testid={`menu-delete-${dashboard.id}`}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete
+                {deleteDashboard.isPending ? "Deleting..." : "Delete"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1103,11 +1190,20 @@ function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
 
         <div className="flex items-center justify-between mt-4 pt-4 border-t">
           <div className="flex items-center space-x-2">
-            <Button size="sm" data-testid={`button-open-dashboard-${dashboard.id}`}>
+            <Button 
+              size="sm" 
+              onClick={handleOpenDashboard}
+              data-testid={`button-open-dashboard-${dashboard.id}`}
+            >
               <ExternalLink className="w-3 h-3 mr-1" />
               Open
             </Button>
-            <Button variant="outline" size="sm" data-testid={`button-edit-dashboard-${dashboard.id}`}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleEditDashboard}
+              data-testid={`button-edit-dashboard-${dashboard.id}`}
+            >
               <Edit className="w-3 h-3 mr-1" />
               Edit
             </Button>
@@ -1120,6 +1216,7 @@ function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
               variant="ghost"
               size="sm"
               onClick={() => toggleFavorite.mutate()}
+              disabled={toggleFavorite.isPending}
               data-testid={`button-favorite-dashboard-${dashboard.id}`}
             >
               {dashboard.isFavorite ? (
