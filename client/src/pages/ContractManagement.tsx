@@ -79,28 +79,30 @@ export default function ContractManagement() {
   // Buscar métricas do dashboard
   const { data: dashboardMetrics } = useQuery({
     queryKey: ['/api/contracts/dashboard-metrics'],
-    queryFn: () => apiRequest('/api/contracts/dashboard-metrics'),
   });
 
   // Buscar contratos
   const { data: contractsData, isLoading } = useQuery({
     queryKey: ['/api/contracts', filters],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value && value !== 'all') params.append(key, value);
       });
-      return apiRequest(`/api/contracts?${params.toString()}`);
+      const response = await fetch(`/api/contracts?${params.toString()}`);
+      return response.json();
     },
   });
 
-  const contracts = contractsData?.data?.contracts || [];
-  const total = contractsData?.data?.total || 0;
+  const contracts = contractsData?.contracts || contractsData?.data?.contracts || [];
+  const total = contractsData?.total || contractsData?.data?.total || 0;
 
   // Mutation para deletar contrato
   const deleteContractMutation = useMutation({
-    mutationFn: (contractId: string) => 
-      apiRequest(`/api/contracts/${contractId}`, { method: 'DELETE' }),
+    mutationFn: async (contractId: string) => {
+      const response = await fetch(`/api/contracts/${contractId}`, { method: 'DELETE' });
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
