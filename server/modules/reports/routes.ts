@@ -20,61 +20,85 @@ export function createReportsRoutes(): Router {
   
   // ==================== REPORTS ROUTES ====================
   
-  // Core Reports CRUD - TEMPORARILY WITHOUT AUTH FOR TESTING
-  router.post('/reports', (req, res) => {
-    console.log('✅ [REPORTS] POST /reports called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    reportsController.createReport(req, res);
+  // Core Reports CRUD - WITH REAL ORM DATABASE
+  router.post('/reports', async (req, res) => {
+    try {
+      console.log('✅ [REPORTS-ORM] POST /reports called');
+      // Mock user for testing
+      const user = { 
+        id: '550e8400-e29b-41d4-a716-446655440001', 
+        tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
+        email: 'test@example.com',
+        roles: ['admin']
+      };
+      
+      const reportData = {
+        name: req.body.name || 'Novo Relatório',
+        description: req.body.description,
+        dataSource: req.body.dataSource || 'tickets',
+        reportType: req.body.reportType || 'table',
+        status: 'draft',
+        ownerId: user.id,
+        createdBy: user.id,
+        config: req.body.config || {}
+      };
+      
+      const report = await simplifiedRepository.createReport(reportData, user.tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Report created successfully',
+        data: report
+      });
+    } catch (error) {
+      console.error('[REPORTS-ORM] Error creating report:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create report',
+        error: error.message
+      });
+    }
   });
-  router.get('/reports', (req, res) => {
-    console.log('✅ [REPORTS] GET /reports called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    reportsController.getReports(req, res);
-  });
-  router.get('/reports/:id', (req, res) => {
-    console.log('✅ [REPORTS] GET /reports/:id called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    reportsController.getReportById(req, res);
-  });
-  router.put('/reports/:id', (req, res) => {
-    console.log('✅ [REPORTS] PUT /reports/:id called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    reportsController.updateReport(req, res);
-  });
-  router.delete('/reports/:id', (req, res) => {
-    console.log('✅ [REPORTS] DELETE /reports/:id called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    reportsController.deleteReport(req, res);
+  
+  router.get('/reports', async (req, res) => {
+    try {
+      console.log('✅ [REPORTS-ORM] GET /reports called');
+      // Mock user for testing
+      const user = { 
+        id: '550e8400-e29b-41d4-a716-446655440001', 
+        tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
+        email: 'test@example.com',
+        roles: ['admin']
+      };
+      
+      const filters = {
+        name: req.query.name as string,
+        status: req.query.status as string,
+        sortBy: req.query.sortBy as string || 'createdAt',
+        sortOrder: req.query.sortOrder as string || 'desc',
+        limit: parseInt(req.query.limit as string) || 20,
+        offset: parseInt(req.query.offset as string) || 0
+      };
+      
+      const result = await simplifiedRepository.findReports(filters, user.tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Reports retrieved successfully',
+        data: {
+          reports: result,
+          limit: filters.limit,
+          offset: filters.offset
+        }
+      });
+    } catch (error) {
+      console.error('[REPORTS-ORM] Error retrieving reports:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve reports',
+        error: error.message
+      });
+    }
   });
   
   // Report Execution - WITH JWT AUTH
@@ -88,61 +112,84 @@ export function createReportsRoutes(): Router {
   
   // ==================== DASHBOARDS ROUTES ====================
   
-  // Core Dashboards CRUD - TEMPORARILY WITHOUT AUTH FOR TESTING
-  router.post('/dashboards', (req, res) => {
-    console.log('✅ [DASHBOARDS] POST /dashboards called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    dashboardsController.createDashboard(req, res);
+  // Core Dashboards CRUD - WITH REAL ORM DATABASE
+  router.post('/dashboards', async (req, res) => {
+    try {
+      console.log('✅ [DASHBOARDS-ORM] POST /dashboards called');
+      // Mock user for testing
+      const user = { 
+        id: '550e8400-e29b-41d4-a716-446655440001', 
+        tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
+        email: 'test@example.com',
+        roles: ['admin']
+      };
+      
+      const dashboardData = {
+        name: req.body.name || 'Novo Dashboard',
+        description: req.body.description,
+        layout: req.body.layout || { widgets: [], grid: { columns: 12, rows: 8 } },
+        ownerId: user.id,
+        isPublic: req.body.isPublic || false,
+        refreshInterval: req.body.refreshInterval || 300
+      };
+      
+      const dashboard = await simplifiedRepository.createDashboard(dashboardData, user.tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Dashboard created successfully',
+        data: dashboard
+      });
+    } catch (error) {
+      console.error('[DASHBOARDS-ORM] Error creating dashboard:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create dashboard',
+        error: error.message
+      });
+    }
   });
-  router.get('/dashboards', (req, res) => {
-    console.log('✅ [DASHBOARDS] GET /dashboards called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    dashboardsController.findDashboards(req, res);
-  });
-  router.get('/dashboards/:id', (req, res) => {
-    console.log('✅ [DASHBOARDS] GET /dashboards/:id called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    dashboardsController.findDashboards(req, res);
-  });
-  router.put('/dashboards/:id', (req, res) => {
-    console.log('✅ [DASHBOARDS] PUT /dashboards/:id called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    dashboardsController.updateDashboard(req, res);
-  });
-  router.delete('/dashboards/:id', (req, res) => {
-    console.log('✅ [DASHBOARDS] DELETE /dashboards/:id called without auth');
-    // Mock user for testing
-    req.user = { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
-      email: 'test@example.com',
-      roles: ['admin']
-    };
-    dashboardsController.deleteDashboard(req, res);
+  
+  router.get('/dashboards', async (req, res) => {
+    try {
+      console.log('✅ [DASHBOARDS-ORM] GET /dashboards called');
+      // Mock user for testing
+      const user = { 
+        id: '550e8400-e29b-41d4-a716-446655440001', 
+        tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
+        email: 'test@example.com',
+        roles: ['admin']
+      };
+      
+      const filters = {
+        name: req.query.name as string,
+        isPublic: req.query.isPublic === 'true' ? true : (req.query.isPublic === 'false' ? false : undefined),
+        sortBy: req.query.sortBy as string || 'createdAt',
+        sortOrder: req.query.sortOrder as string || 'desc',
+        limit: parseInt(req.query.limit as string) || 10,
+        offset: parseInt(req.query.offset as string) || 0
+      };
+      
+      const result = await simplifiedRepository.findDashboards(filters, user.tenantId);
+      
+      res.json({
+        success: true,
+        data: result.dashboards,
+        pagination: {
+          page: Math.floor(filters.offset / filters.limit) + 1,
+          limit: filters.limit,
+          total: result.total,
+          totalPages: Math.ceil(result.total / filters.limit)
+        }
+      });
+    } catch (error) {
+      console.error('[DASHBOARDS-ORM] Error retrieving dashboards:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve dashboards',
+        error: error.message
+      });
+    }
   });
   
   // Dashboard Widgets
