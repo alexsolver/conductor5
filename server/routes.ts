@@ -286,7 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ GDPR COMPLIANCE MODULE - Following Clean Architecture per 1qa.md
   try {
-    const { gdprComplianceRoutes } = await import('./modules/gdpr-compliance/routes');
+    const { gdprComplianceRoutes } = await import('./modules/gdpr-compliance/routes-simple');
     app.use('/api/gdpr-compliance', gdprComplianceRoutes);
     console.log('✅ [GDPR-COMPLIANCE] Routes registered successfully at /api/gdpr-compliance');
   } catch (error) {

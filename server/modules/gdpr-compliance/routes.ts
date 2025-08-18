@@ -11,7 +11,8 @@ import { GetGdprReportsUseCase } from './application/use-cases/GetGdprReportsUse
 import { UpdateGdprReportUseCase } from './application/use-cases/UpdateGdprReportUseCase';
 import { GetGdprComplianceMetricsUseCase } from './application/use-cases/GetGdprComplianceMetricsUseCase';
 import { DrizzleGdprReportRepository } from './infrastructure/repositories/DrizzleGdprReportRepository';
-import { authenticateToken, authorizePermissions } from '../../middleware/auth';
+import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
+import { requirePermission } from '../../middleware/rbacMiddleware';
 
 const router = Router();
 
@@ -35,53 +36,53 @@ const gdprComplianceController = new GdprComplianceController(
 // ✅ GDPR Reports CRUD Routes
 router.post(
   '/reports',
-  authenticateToken,
-  authorizePermissions(['gdpr:create']),
-  (req, res) => gdprComplianceController.createReport(req, res)
+  jwtAuth,
+  requirePermission('gdpr', 'create'),
+  (req: AuthenticatedRequest, res) => gdprComplianceController.createReport(req, res)
 );
 
 router.get(
   '/reports',
-  authenticateToken,
-  authorizePermissions(['gdpr:read']),
-  (req, res) => gdprComplianceController.getReports(req, res)
+  jwtAuth,
+  requirePermission('gdpr', 'read'),
+  (req: AuthenticatedRequest, res) => gdprComplianceController.getReports(req, res)
 );
 
 router.get(
   '/reports/:id',
-  authenticateToken,
-  authorizePermissions(['gdpr:read']),
-  (req, res) => gdprComplianceController.getReportById(req, res)
+  jwtAuth,
+  requirePermission('gdpr', 'read'),
+  (req: AuthenticatedRequest, res) => gdprComplianceController.getReportById(req, res)
 );
 
 router.put(
   '/reports/:id',
-  authenticateToken,
-  authorizePermissions(['gdpr:update']),
-  (req, res) => gdprComplianceController.updateReport(req, res)
+  jwtAuth,
+  requirePermission('gdpr', 'update'),
+  (req: AuthenticatedRequest, res) => gdprComplianceController.updateReport(req, res)
 );
 
 router.delete(
   '/reports/:id',
-  authenticateToken,
-  authorizePermissions(['gdpr:delete']),
-  (req, res) => gdprComplianceController.deleteReport(req, res)
+  jwtAuth,
+  requirePermission('gdpr', 'delete'),
+  (req: AuthenticatedRequest, res) => gdprComplianceController.deleteReport(req, res)
 );
 
 // ✅ GDPR Analytics & Metrics Routes
 router.get(
   '/metrics',
-  authenticateToken,
-  authorizePermissions(['gdpr:read']),
-  (req, res) => gdprComplianceController.getMetrics(req, res)
+  jwtAuth,
+  requirePermission('gdpr', 'read'),
+  (req: AuthenticatedRequest, res) => gdprComplianceController.getMetrics(req, res)
 );
 
 // ✅ GDPR Report Workflow Routes
 router.post(
   '/reports/:id/submit',
-  authenticateToken,
-  authorizePermissions(['gdpr:update']),
-  async (req, res) => {
+  jwtAuth,
+  requirePermission('gdpr', 'update'),
+  async (req: AuthenticatedRequest, res) => {
     req.body = { status: 'in_progress' };
     gdprComplianceController.updateReport(req, res);
   }
@@ -89,9 +90,9 @@ router.post(
 
 router.post(
   '/reports/:id/approve',
-  authenticateToken,
-  authorizePermissions(['gdpr:approve']),
-  async (req, res) => {
+  jwtAuth,
+  requirePermission('gdpr', 'approve'),
+  async (req: AuthenticatedRequest, res) => {
     req.body = { status: 'approved' };
     gdprComplianceController.updateReport(req, res);
   }
@@ -99,9 +100,9 @@ router.post(
 
 router.post(
   '/reports/:id/publish',
-  authenticateToken,
-  authorizePermissions(['gdpr:publish']),
-  async (req, res) => {
+  jwtAuth,
+  requirePermission('gdpr', 'publish'),
+  async (req: AuthenticatedRequest, res) => {
     req.body = { status: 'published' };
     gdprComplianceController.updateReport(req, res);
   }
