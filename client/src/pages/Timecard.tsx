@@ -144,7 +144,7 @@ export default function Timecard() {
     refetchOnWindowFocus: false,
   });
 
-  // Query para obter status atual - CRITICAL FIX: Debounced to prevent infinite loops
+  // Query para obter status atual
   const { data: statusData, isLoading: statusLoading, error: statusError } = useQuery({
     queryKey: ['/api/timecard/current-status'],
     queryFn: async () => {
@@ -153,9 +153,7 @@ export default function Timecard() {
       return data;
     },
     enabled: true,
-    refetchInterval: 60000, // CRITICAL FIX: Increased to 60 seconds to prevent loops
-    refetchOnWindowFocus: false, // CRITICAL FIX: Prevent refetch on focus
-    staleTime: 30000, // CRITICAL FIX: Consider data fresh for 30 seconds
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
   });
 
   // Atualizar estado local quando dados chegarem
@@ -225,10 +223,9 @@ export default function Timecard() {
         title: 'Ponto registrado com sucesso!',
         description: 'Seu registro foi salvo e processado.',
       });
-      // CRITICAL FIX: Debounced cache invalidation to prevent loops
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/timecard/current-status'] });
-      }, 5000); // 5-second delay before invalidating
+      // Invalidar cache e forçar nova busca para atualizar status
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/current-status'] });
+      queryClient.refetchQueries({ queryKey: ['/api/timecard/current-status'] });
     },
     onError: (error: any) => {
       console.error('Erro ao registrar ponto:', error);

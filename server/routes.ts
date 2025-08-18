@@ -4,8 +4,12 @@ import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
 import { jwtAuth } from "./middleware/jwtAuth";
 import { enhancedTenantValidator } from './middleware/tenantValidator';
-import { tenantSchemaEnforcer } from './middleware/tenantSchemaEnforcer';
-import { employmentDetectionMiddleware } from './middleware/employmentDetectionMiddleware';
+import { 
+  tenantSchemaEnforcer, 
+  databaseOperationInterceptor, 
+  runtimeSchemaValidator,
+  queryPatternAnalyzer 
+} from './middleware/tenantSchemaEnforcer';
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
 import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
@@ -96,14 +100,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader('Content-Type', 'application/json');
     next();
   });
-
-  // 🔐 CRITICAL: Apply complete middleware chain for tenant-scoped API routes
-  app.use('/api', 
-    jwtAuth,                          // 1. Authenticate user and set req.user
-    enhancedTenantValidator,         // 2. Validate tenant context  
-    tenantSchemaEnforcer(),          // 3. Enforce schema isolation
-    employmentDetectionMiddleware    // 4. Add employment type info (after user is set)
-  );
 
   // CRITICAL FIX: Bypass tickets/id/relationships endpoint
   app.post('/bypass/tickets/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
