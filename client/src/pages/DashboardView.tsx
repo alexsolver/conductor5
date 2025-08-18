@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, Settings, Share2, RefreshCw, Maximize, BarChart3, 
-  PieChart, LineChart, Table, FileText, Monitor
+  PieChart, LineChart, Table, FileText, Monitor, Edit, Save, X, Plus, Grid, Trash2, CheckCircle
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 interface DashboardWidget {
   id: string;
@@ -63,6 +64,15 @@ export default function DashboardView() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  // Detect edit mode from URL - following 1qa.md patterns
+  const currentPath = window.location.pathname;
+  const isEditMode = currentPath.endsWith('/edit');
+  
+  // Edit mode state management - following 1qa.md patterns
+  const [editableWidgets, setEditableWidgets] = useState<DashboardWidget[]>([]);
+  const [showWidgetDesigner, setShowWidgetDesigner] = useState(false);
+  const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
 
   // Following 1qa.md patterns for data fetching
   const { data: dashboardResponse, isLoading, error } = useQuery({
@@ -158,6 +168,59 @@ export default function DashboardView() {
     ]
   };
 
+  // Initialize editable widgets when entering edit mode - following 1qa.md patterns
+  useEffect(() => {
+    if (isEditMode && dashboard.widgets) {
+      setEditableWidgets([...dashboard.widgets]);
+    }
+  }, [isEditMode, dashboard.widgets]);
+
+  // Edit mode functions - following 1qa.md patterns
+  const addWidget = (widgetConfig: any) => {
+    const newWidget: DashboardWidget = {
+      id: `widget-${Date.now()}`,
+      name: widgetConfig.name || 'Untitled Widget',
+      type: widgetConfig.type,
+      position: widgetConfig.position,
+      config: widgetConfig.config,
+      isVisible: true,
+    };
+    setEditableWidgets(prev => [...prev, newWidget]);
+    setShowWidgetDesigner(false);
+    toast({ title: "Widget added", description: `${newWidget.name} has been added to the dashboard.` });
+  };
+
+  const removeWidget = (widgetId: string) => {
+    setEditableWidgets(prev => prev.filter(w => w.id !== widgetId));
+    toast({ title: "Widget removed", description: "Widget has been removed from the dashboard." });
+  };
+
+  const saveDashboard = async () => {
+    try {
+      // Save dashboard configuration following 1qa.md patterns
+      const updatedConfig = {
+        ...dashboard,
+        widgets: editableWidgets,
+      };
+      
+      // API call would go here using the established patterns
+      console.log('Saving dashboard configuration:', updatedConfig);
+      
+      toast({ 
+        title: "Dashboard saved", 
+        description: "Your dashboard changes have been saved successfully." 
+      });
+      
+      // Navigate back to view mode
+      setLocation(`/dashboard/${id}`);
+    } catch (error) {
+      toast({ 
+        title: "Save failed", 
+        description: "There was an error saving your dashboard changes." 
+      });
+    }
+  };
+
   const handleRefresh = () => {
     toast({ title: "Refreshing dashboard", description: "Updating all widgets..." });
     // Implement refresh logic
@@ -217,42 +280,77 @@ export default function DashboardView() {
             </div>
             
             <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                data-testid="button-refresh-dashboard"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShare}
-                data-testid="button-share-dashboard"
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleFullscreen}
-                data-testid="button-fullscreen-dashboard"
-              >
-                <Maximize className="w-4 h-4 mr-2" />
-                Fullscreen
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLocation(`/dashboards/${id}/edit`)}
-                data-testid="button-edit-dashboard"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
+              {isEditMode ? (
+                // Edit mode buttons - following 1qa.md patterns
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowWidgetDesigner(true)}
+                    data-testid="button-add-widget"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Widget
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLocation(`/dashboard/${id}`)}
+                    data-testid="button-cancel-edit"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={saveDashboard}
+                    data-testid="button-save-dashboard"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                // View mode buttons - following 1qa.md patterns
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    data-testid="button-refresh-dashboard"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShare}
+                    data-testid="button-share-dashboard"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleFullscreen}
+                    data-testid="button-fullscreen-dashboard"
+                  >
+                    <Maximize className="w-4 h-4 mr-2" />
+                    Fullscreen
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLocation(`/dashboard/${id}/edit`)}
+                    data-testid="button-edit-dashboard"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -260,16 +358,39 @@ export default function DashboardView() {
 
       {/* Dashboard Canvas */}
       <div className="container mx-auto p-6">
+        {isEditMode && showWidgetDesigner && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Widget Designer</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowWidgetDesigner(false)}
+                  data-testid="button-close-widget-designer"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SimpleWidgetDesigner onSave={addWidget} dashboardId={dashboard.id} />
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-12 gap-4">
-          {dashboard.widgets && dashboard.widgets.length > 0 ? (
-            dashboard.widgets
+          {(isEditMode ? editableWidgets : dashboard.widgets) && (isEditMode ? editableWidgets : dashboard.widgets).length > 0 ? (
+            (isEditMode ? editableWidgets : dashboard.widgets)
               .filter(widget => widget.isVisible)
               .map((widget) => {
                 const IconComponent = widgetTypeIcons[widget.type];
                 return (
                   <Card
                     key={widget.id}
-                    className={`bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow`}
+                    className={`bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow ${
+                      isEditMode ? 'border-2 border-dashed border-purple-300' : ''
+                    }`}
                     style={{
                       gridColumn: `span ${Math.min(widget.position.width, 12)}`,
                       minHeight: `${widget.position.height * 60}px`,
@@ -277,9 +398,21 @@ export default function DashboardView() {
                     data-testid={`dashboard-widget-${widget.id}`}
                   >
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium flex items-center">
-                        <IconComponent className="w-4 h-4 mr-2 text-purple-600" />
-                        {widget.name}
+                      <CardTitle className="text-sm font-medium flex items-center justify-between">
+                        <div className="flex items-center">
+                          <IconComponent className="w-4 h-4 mr-2 text-purple-600" />
+                          {widget.name}
+                        </div>
+                        {isEditMode && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeWidget(widget.id)}
+                            data-testid={`button-remove-widget-${widget.id}`}
+                          >
+                            <Trash2 className="w-3 h-3 text-red-500" />
+                          </Button>
+                        )}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>

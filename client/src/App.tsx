@@ -232,6 +232,7 @@ function AppRouter() {
         <Route path="/reports" component={Reports} />
         <Route path="/dashboards" component={Dashboards} />
         <Route path="/dashboard/:id" component={DashboardView} />
+        <Route path="/dashboard/:id/edit" component={DashboardView} />
 
         <Route path="/companies" component={Companies} />
         <Route component={NotFound} />
