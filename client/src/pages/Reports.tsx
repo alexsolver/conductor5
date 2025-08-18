@@ -1854,9 +1854,16 @@ export default function Reports() {
   const [showSecurityProfiles, setShowSecurityProfiles] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showExecutionQueue, setShowExecutionQueue] = useState(false);
+  const [showCreateReportDialog, setShowCreateReportDialog] = useState(false); // State for the dialog
   const [savedFilters, setSavedFilters] = useState<any[]>([]);
   const [reportVersions, setReportVersions] = useState<any[]>([]);
   const [executionQueue, setExecutionQueue] = useState<any[]>([]);
+
+  // Handler for when a report is created
+  const handleReportCreated = () => {
+    console.log("Report created, refreshing list...");
+    // Optionally invalidate queries or fetch again
+  };
 
   // Fetch reports
   const { data: reportsData, isLoading } = useQuery({
@@ -1968,7 +1975,12 @@ export default function Reports() {
             <Calendar className="w-4 h-4 mr-2" />
             Versions
           </Button>
-          <CreateReportDialog open={false} onOpenChange={() => {}} onSuccess={() => {}} />
+          {/* Correctly instantiate the dialog here */}
+          <CreateReportDialog 
+            open={showCreateReportDialog} 
+            onOpenChange={setShowCreateReportDialog} 
+            onReportCreated={handleReportCreated}
+          />
         </div>
       </div>
 
@@ -2162,7 +2174,11 @@ export default function Reports() {
                 }
               </p>
               {!searchTerm && categoryFilter === "all" && (
-                <CreateReportDialog open={false} onOpenChange={() => {}} onSuccess={() => {}} />
+                <CreateReportDialog 
+                  open={showCreateReportDialog} 
+                  onOpenChange={setShowCreateReportDialog} 
+                  onReportCreated={handleReportCreated}
+                />
               )}
             </div>
           )}
