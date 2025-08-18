@@ -508,4 +508,97 @@ export class GdprController {
       });
     }
   }
+
+  // ✅ ADMIN: Privacy Policy Management
+  async getPrivacyPolicies(req: Request, res: Response) {
+    try {
+      const { tenantId } = req.user!;
+      console.log('[GdprController] getPrivacyPolicies - tenantId:', tenantId);
+
+      const policies = await this.gdprRepository.findAllPrivacyPolicies(tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Privacy policies retrieved successfully',
+        data: policies
+      });
+
+    } catch (error) {
+      console.log('[GdprController] getPrivacyPolicies error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve privacy policies',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async createPrivacyPolicy(req: Request, res: Response) {
+    try {
+      const { tenantId, id: userId } = req.user!;
+      const { title, content, version, policyType, effectiveDate, requiresAcceptance } = req.body;
+
+      console.log('[GdprController] createPrivacyPolicy - data:', { title, version, policyType });
+
+      const policyData = {
+        id: undefined,
+        tenantId,
+        createdBy: userId,
+        policyType,
+        version,
+        title,
+        content,
+        isActive: false,
+        effectiveDate: effectiveDate ? new Date(effectiveDate) : new Date(),
+        requiresAcceptance: requiresAcceptance || true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const policy = await this.gdprRepository.createPrivacyPolicy(policyData);
+      
+      res.json({
+        success: true,
+        message: 'Privacy policy created successfully',
+        data: policy
+      });
+
+    } catch (error) {
+      console.log('[GdprController] createPrivacyPolicy error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create privacy policy',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async activatePrivacyPolicy(req: Request, res: Response) {
+    try {
+      const { tenantId } = req.user!;
+      const { policyId } = req.params;
+
+      console.log('[GdprController] activatePrivacyPolicy - policyId:', policyId);
+
+      // Deactivate all other policies of the same type first
+      await this.gdprRepository.deactivateOtherPolicies(policyId, tenantId);
+      
+      // Activate the selected policy
+      const policy = await this.gdprRepository.activatePrivacyPolicy(policyId, tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Privacy policy activated successfully',
+        data: policy
+      });
+
+    } catch (error) {
+      console.log('[GdprController] activatePrivacyPolicy error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to activate privacy policy',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 }

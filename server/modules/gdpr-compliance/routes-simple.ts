@@ -203,6 +203,46 @@ router.put('/reports/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// ✅ ADMIN: Privacy Policy Management Routes
+router.get('/admin/privacy-policies', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { gdprController } = await import('./application/controllers/GdprController');
+    await gdprController.getPrivacyPolicies(req, res);
+  } catch (error) {
+    console.error('❌ [PRIVACY-POLICIES] Error fetching policies:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch privacy policies'
+    });
+  }
+});
+
+router.post('/admin/privacy-policies', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { gdprController } = await import('./application/controllers/GdprController');
+    await gdprController.createPrivacyPolicy(req, res);
+  } catch (error) {
+    console.error('❌ [PRIVACY-POLICIES] Error creating policy:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create privacy policy'
+    });
+  }
+});
+
+router.put('/admin/privacy-policies/:policyId/activate', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { gdprController } = await import('./application/controllers/GdprController');
+    await gdprController.activatePrivacyPolicy(req, res);
+  } catch (error) {
+    console.error('❌ [PRIVACY-POLICIES] Error activating policy:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to activate privacy policy'
+    });
+  }
+});
+
 console.log('✅ [GDPR-COMPLIANCE-SIMPLE] Routes initialized following 1qa.md ORM patterns');
 
 export { router as gdprComplianceRoutes };

@@ -20,7 +20,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Shield, FileText, AlertTriangle, Settings, BarChart3, Download, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { FormDescription } from '@/components/ui/form';
+import { Shield, FileText, AlertTriangle, Settings, BarChart3, Download, Trash2, Edit } from 'lucide-react';
 import { z } from 'zod';
 
 // Schemas de validação
@@ -620,18 +622,8 @@ export default function GdprCompliancePage() {
                   Painel administrativo para monitoramento e gestão de compliance
                 </div>
                 
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium text-blue-800 dark:text-blue-200">Funcionalidade Movida</span>
-                  </div>
-                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                    As preferências do usuário foram movidas para a aba "Privacidade & GDPR/LGPD" na página de perfil do usuário.
-                  </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                    Esta página agora contém apenas funcionalidades administrativas conforme especificação do 1qa.md.
-                  </p>
-                </div>
+                {/* ✅ Gestão de Políticas de Privacidade - Admin */}
+                <PrivacyPolicyManagement />
               </div>
             </CardContent>
           </Card>
@@ -756,6 +748,291 @@ export default function GdprCompliancePage() {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// ✅ Componente para Gestão de Políticas de Privacidade - ADMIN ONLY
+function PrivacyPolicyManagement() {
+  const { toast } = useToast();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  // ✅ Fetch current privacy policies
+  const { data: policies, refetch: refetchPolicies } = useQuery({
+    queryKey: ['/api/gdpr-compliance/admin/privacy-policies'],
+    enabled: true,
+  });
+
+  // ✅ Form for creating new policy
+  const policyForm = useForm<{
+    title: string;
+    content: string;
+    version: string;
+    policyType: string;
+    effectiveDate: string;
+    requiresAcceptance: boolean;
+  }>({
+    resolver: zodResolver(z.object({
+      title: z.string().min(5, "Título deve ter pelo menos 5 caracteres"),
+      content: z.string().min(100, "Conteúdo deve ter pelo menos 100 caracteres"),
+      version: z.string().min(1, "Versão é obrigatória"),
+      policyType: z.enum(['privacy_policy', 'terms_of_use', 'cookie_policy']),
+      effectiveDate: z.string().min(1, "Data de vigência é obrigatória"),
+      requiresAcceptance: z.boolean().default(true)
+    })),
+    defaultValues: {
+      title: "",
+      content: "",
+      version: "1.0",
+      policyType: "privacy_policy",
+      effectiveDate: new Date().toISOString().split('T')[0],
+      requiresAcceptance: true
+    }
+  });
+
+  // ✅ Create new policy mutation
+  const createPolicyMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('/api/gdpr-compliance/admin/privacy-policies', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      toast({ title: "Política criada com sucesso" });
+      setShowCreateForm(false);
+      policyForm.reset();
+      refetchPolicies();
+    },
+    onError: () => {
+      toast({ title: "Erro ao criar política", variant: "destructive" });
+    }
+  });
+
+  // ✅ Activate policy mutation
+  const activatePolicyMutation = useMutation({
+    mutationFn: (policyId: string) => apiRequest(`/api/gdpr-compliance/admin/privacy-policies/${policyId}/activate`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      toast({ title: "Política ativada com sucesso" });
+      refetchPolicies();
+    }
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* ✅ Header e Controles */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-medium">Gestão de Políticas de Privacidade</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Gerencie políticas de privacidade, termos de uso e políticas de cookies
+          </p>
+        </div>
+        <Button 
+          onClick={() => setShowCreateForm(true)}
+          className="flex items-center gap-2"
+        >
+          <FileText className="h-4 w-4" />
+          Nova Política
+        </Button>
+      </div>
+
+      {/* ✅ Lista de Políticas Existentes */}
+      <div className="space-y-4">
+        {(policies as any)?.data && (policies as any).data.length > 0 ? (
+          (policies as any).data.map((policy: any) => (
+            <Card key={policy.id} className="p-4">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-medium">{policy.title}</h4>
+                    <Badge variant={policy.isActive ? "default" : "secondary"}>
+                      {policy.isActive ? "Ativa" : "Inativa"}
+                    </Badge>
+                    <Badge variant="outline">v{policy.version}</Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    Tipo: {policy.policyType === 'privacy_policy' ? 'Política de Privacidade' : 
+                           policy.policyType === 'terms_of_use' ? 'Termos de Uso' : 'Política de Cookies'}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Data de criação: {new Date(policy.createdAt).toLocaleDateString('pt-BR')}
+                  </p>
+                  {policy.effectiveDate && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Vigência: {new Date(policy.effectiveDate).toLocaleDateString('pt-BR')}
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  {!policy.isActive && (
+                    <Button 
+                      size="sm"
+                      onClick={() => activatePolicyMutation.mutate(policy.id)}
+                      disabled={activatePolicyMutation.isPending}
+                    >
+                      Ativar
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))
+        ) : (
+          <Card className="p-6 text-center">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h4 className="font-medium mb-2">Nenhuma política encontrada</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Crie sua primeira política de privacidade
+            </p>
+            <Button onClick={() => setShowCreateForm(true)}>
+              Criar Política
+            </Button>
+          </Card>
+        )}
+      </div>
+
+      {/* ✅ Dialog para Criar Nova Política */}
+      <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Criar Nova Política</DialogTitle>
+            <DialogDescription>
+              Crie uma nova política de privacidade, termos de uso ou política de cookies
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...policyForm}>
+            <form onSubmit={policyForm.handleSubmit((data) => createPolicyMutation.mutate(data))} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={policyForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Política de Privacidade v2.0" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={policyForm.control}
+                  name="version"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Versão</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="1.0" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={policyForm.control}
+                  name="policyType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Política</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="privacy_policy">Política de Privacidade</SelectItem>
+                          <SelectItem value="terms_of_use">Termos de Uso</SelectItem>
+                          <SelectItem value="cookie_policy">Política de Cookies</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={policyForm.control}
+                  name="effectiveDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data de Vigência</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={policyForm.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Conteúdo da Política</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        rows={8}
+                        placeholder="Digite o conteúdo completo da política..."
+                        className="min-h-[200px]"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Conteúdo completo da política em HTML ou texto simples
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={policyForm.control}
+                name="requiresAcceptance"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Requer Aceitação</FormLabel>
+                      <FormDescription>
+                        Usuários precisarão aceitar esta política explicitamente
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createPolicyMutation.isPending}>
+                  {createPolicyMutation.isPending ? "Criando..." : "Criar Política"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

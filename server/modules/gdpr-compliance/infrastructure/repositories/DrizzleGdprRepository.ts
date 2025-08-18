@@ -105,9 +105,20 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
   }
 
   async findDataSubjectRequestsByUser(userId: string, tenantId: string): Promise<DataSubjectRequest[]> {
-    // ✅ Correção seguindo 1qa.md - usar apenas campos existentes
+    // ✅ Correção seguindo 1qa.md - usar apenas campos existentes no schema
     const results = await db
-      .select()
+      .select({
+        id: dataSubjectRequests.id,
+        userId: dataSubjectRequests.userId,
+        tenantId: dataSubjectRequests.tenantId,
+        requestType: dataSubjectRequests.requestType,
+        requestDetails: dataSubjectRequests.requestDetails,
+        status: dataSubjectRequests.status,
+        createdAt: dataSubjectRequests.createdAt,
+        updatedAt: dataSubjectRequests.updatedAt,
+        processedAt: dataSubjectRequests.processedAt,
+        responseDetails: dataSubjectRequests.responseDetails
+      })
       .from(dataSubjectRequests)
       .where(and(eq(dataSubjectRequests.userId, userId), eq(dataSubjectRequests.tenantId, tenantId)))
       .orderBy(desc(dataSubjectRequests.createdAt));
@@ -569,5 +580,54 @@ export class DrizzleGdprRepository implements IGdprComplianceRepository {
         .set({ userId: anonymizedId })
         .where(and(eq(dataConsents.userId, userId), eq(dataConsents.tenantId, tenantId)))
     ]);
+  }
+
+  // ✅ Privacy Policy Management - ADMIN
+  async findAllPrivacyPolicies(tenantId: string): Promise<any[]> {
+    const results = await db
+      .select()
+      .from(privacyPolicies)
+      .where(eq(privacyPolicies.tenantId, tenantId))
+      .orderBy(desc(privacyPolicies.createdAt));
+    
+    return results;
+  }
+
+  async createPrivacyPolicy(data: any): Promise<any> {
+    const [result] = await db
+      .insert(privacyPolicies)
+      .values(data)
+      .returning();
+    
+    return result;
+  }
+
+  async activatePrivacyPolicy(policyId: string, tenantId: string): Promise<any> {
+    const [result] = await db
+      .update(privacyPolicies)
+      .set({ 
+        isActive: true,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(privacyPolicies.id, policyId),
+        eq(privacyPolicies.tenantId, tenantId)
+      ))
+      .returning();
+    
+    return result;
+  }
+
+  async deactivateOtherPolicies(currentPolicyId: string, tenantId: string): Promise<void> {
+    await db
+      .update(privacyPolicies)
+      .set({ 
+        isActive: false,
+        updatedAt: new Date()
+      })
+      .where(and(
+        ne(privacyPolicies.id, currentPolicyId),
+        eq(privacyPolicies.tenantId, tenantId)
+      ));
   }
 }
