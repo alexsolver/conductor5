@@ -1,5 +1,5 @@
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ const widgetTypeIcons = {
 
 export default function DashboardView() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
 
   // Following 1qa.md patterns for data fetching
@@ -97,7 +97,7 @@ export default function DashboardView() {
           <p className="text-gray-500 dark:text-gray-400 mb-6">
             The dashboard you're looking for doesn't exist or you don't have permission to view it.
           </p>
-          <Button onClick={() => navigate('/dashboards')}>
+          <Button onClick={() => setLocation('/dashboards')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboards
           </Button>
@@ -184,7 +184,7 @@ export default function DashboardView() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/dashboards')}
+                onClick={() => setLocation('/dashboards')}
                 data-testid="button-back-to-dashboards"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -247,7 +247,7 @@ export default function DashboardView() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate(`/dashboards/${id}/edit`)}
+                onClick={() => setLocation(`/dashboards/${id}/edit`)}
                 data-testid="button-edit-dashboard"
               >
                 <Settings className="w-4 h-4 mr-2" />
@@ -312,7 +312,7 @@ export default function DashboardView() {
               <p className="text-gray-500 dark:text-gray-400 mb-6">
                 This dashboard doesn't have any widgets yet. Add some widgets to get started.
               </p>
-              <Button onClick={() => navigate(`/dashboards/${id}/edit`)}>
+              <Button onClick={() => setLocation(`/dashboards/${id}/edit`)}>
                 <Settings className="w-4 h-4 mr-2" />
                 Configure Dashboard
               </Button>
