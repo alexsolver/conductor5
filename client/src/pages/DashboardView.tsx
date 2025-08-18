@@ -13,6 +13,10 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// ✅ INTEGRAÇÃO DO SISTEMA DE GOVERNANÇA DE DASHBOARDS
+import { GovernedWidgetRenderer } from "@/components/dashboard/GovernedWidgetRenderer";
+import type { GovernedCard } from "@shared/dashboard-governance-schema";
+
 interface DashboardWidget {
   id: string;
   name: string;
@@ -373,6 +377,112 @@ function DashboardView() {
     retry: false,
   });
 
+  // ✅ SISTEMA DE GOVERNANÇA ATIVO: Carregar configurações de governança
+  const { data: governanceData } = useQuery({
+    queryKey: [`/api/dashboards/governance/data-sources`],
+    enabled: !!id && !!dashboardResponse,
+  });
+
+  // ✅ GOVERNANÇA: Converter widgets antigos em cards governados
+  const generateGovernedCards = (dashboardData: any): GovernedCard[] => {
+    if (!dashboardData?.data?.widgets) return [];
+
+    return dashboardData.data.widgets.map((widget: DashboardWidget, index: number): GovernedCard => ({
+      id: widget.id,
+      name: widget.name,
+      description: `Card governado: ${widget.name}`,
+      
+      // Camada 1: Fonte de dados
+      data_source: {
+        id: widget.config.dataSource,
+        name: `Sistema de ${widget.config.dataSource}`,
+        description: `Dados reais de ${widget.config.dataSource}`,
+        type: 'database' as const,
+        fields: [],
+        refresh_interval: 300,
+        is_active: true,
+        schema: `tenant_3f99462f_3621_4b1b_bea8_782acc50d62e` // TODO: dynamic tenant
+      },
+      computed_fields: [],
+      date_dimensions: [],
+      
+      // Camada 2: KPI
+      kpi: {
+        id: `${widget.config.dataSource}_${widget.type}`,
+        name: widget.name,
+        description: `KPI governado para ${widget.name}`,
+        data_source: widget.config.dataSource,
+        formula: 'COUNT(*)',
+        aggregation: 'count' as const,
+        period: 'day' as const,
+        direction: 'neutral' as const,
+        unit: 'items',
+        format: {
+          decimals: 0,
+          prefix: '',
+          suffix: ''
+        }
+      },
+      targets: {
+        kpi_id: `${widget.config.dataSource}_${widget.type}`,
+        target: 100,
+        warning: 80,
+        critical: 50,
+        colors: {
+          good: '#10b981',
+          warning: '#f59e0b',
+          critical: '#ef4444'
+        }
+      },
+      segmentations: [],
+      
+      // Camada 3: Apresentação
+      card_type: mapWidgetTypeToCardType(widget.type),
+      layout: {
+        title: widget.name,
+        size: 'medium' as const,
+        position: widget.position
+      },
+      
+      // Camada 4: Regras
+      filters: [],
+      scope_rules: [{
+        type: 'tenant',
+        field: 'tenant_id',
+        restriction: 'own_data'
+      }],
+      permission_rules: [{
+        role: 'all',
+        actions: ['view']
+      }],
+      refresh_rules: {
+        mode: 'scheduled' as const,
+        interval: 300,
+        cache_duration: 300
+      },
+      
+      created_by: 'system',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      version: 1,
+      is_active: widget.isVisible
+    }));
+  };
+
+  const mapWidgetTypeToCardType = (widgetType: string): any => {
+    const typeMap: Record<string, any> = {
+      'metric': 'kpi_simple',
+      'chart': 'line_chart',
+      'table': 'table',
+      'gauge': 'gauge',
+      'text': 'kpi_simple',
+      'image': 'kpi_simple'
+    };
+    return typeMap[widgetType] || 'kpi_simple';
+  };
+
+  const governedCards = dashboardResponse ? generateGovernedCards(dashboardResponse) : [];
+
   // Extract dashboard from response - moved before useEffect
   const dashboard: Dashboard = (dashboardResponse as any)?.data || {
     id: id || '',
@@ -672,50 +782,57 @@ function DashboardView() {
           </Card>
         )}
 
+        {/* 🎯 SISTEMA DE GOVERNANÇA ATIVO - Cards Governados */}
         <div className="grid grid-cols-12 gap-4">
+          {isEditMode && showWidgetDesigner && (
+            <div className="col-span-12 mb-4">
+              <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded">
+                🎯 Sistema de Governança Ativo: Cards são gerenciados pelas 4 camadas de governança
+              </div>
+            </div>
+          )}
+          
           {(() => {
-            const widgets = isEditMode ? editableWidgets : (dashboard.widgets || []);
-            return widgets.length > 0 ? (
-              widgets
-                .filter(widget => widget.isVisible)
-                .map((widget) => {
-                  const IconComponent = widgetTypeIcons[widget.type];
-                  return (
-                  <Card
-                    key={widget.id}
-                    className={`bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow ${
-                      isEditMode ? 'border-2 border-dashed border-purple-300' : ''
-                    }`}
-                    style={{
-                      gridColumn: `span ${Math.min(widget.position.width, 12)}`,
-                      minHeight: `${widget.position.height * 60}px`,
-                    }}
-                    data-testid={`dashboard-widget-${widget.id}`}
-                  >
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium flex items-center justify-between">
-                        <div className="flex items-center">
-                          <IconComponent className="w-4 h-4 mr-2 text-purple-600" />
-                          {widget.name}
-                        </div>
-                        {isEditMode && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeWidget(widget.id)}
-                            data-testid={`button-remove-widget-${widget.id}`}
-                          >
-                            <Trash2 className="w-3 h-3 text-red-500" />
-                          </Button>
-                        )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <WidgetContent widget={widget} />
-                    </CardContent>
-                  </Card>
-                  );
-                })
+            // ✅ USANDO SISTEMA DE GOVERNANÇA: governedCards em vez de widgets antigos
+            const cardsToShow = isEditMode ? 
+              (governedCards.filter(card => card.is_active)) : 
+              (governedCards.filter(card => card.is_active));
+            
+            return cardsToShow.length > 0 ? (
+              cardsToShow.map((governedCard) => (
+                <div
+                  key={governedCard.id}
+                  className={`bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow rounded-lg ${
+                    isEditMode ? 'border-2 border-dashed border-purple-300' : 'border'
+                  }`}
+                  style={{
+                    gridColumn: `span ${Math.min(governedCard.layout.position?.width || 6, 12)}`,
+                    minHeight: `${(governedCard.layout.position?.height || 4) * 60}px`,
+                  }}
+                  data-testid={`governed-card-${governedCard.id}`}
+                >
+                  {isEditMode && (
+                    <div className="bg-purple-50 border-b border-purple-200 p-2 text-xs text-purple-700">
+                      <div className="flex justify-between items-center">
+                        <span>🎯 Governança: {governedCard.card_type}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeWidget(governedCard.id)}
+                          data-testid={`button-remove-governed-card-${governedCard.id}`}
+                        >
+                          <Trash2 className="w-3 h-3 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    {/* ✅ WIDGET GOVERNADO: Usando GovernedWidgetRenderer */}
+                    <GovernedWidgetRenderer governedCard={governedCard} />
+                  </div>
+                </div>
+              ))
+            )
             ) : (
               <div className="col-span-12 text-center py-12">
                 <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
