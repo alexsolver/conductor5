@@ -995,9 +995,35 @@ function DashboardCard({ dashboard }: { dashboard: Dashboard }) {
 
   // Handler Functions following 1qa.md patterns
   const handleOpenDashboard = () => {
-    // Navigate to dashboard view or open modal - implementing placeholder for now
-    toast({ title: "Opening dashboard", description: `Viewing ${dashboard.name}` });
-    // TODO: Implement navigation to dashboard view page
+    try {
+      // Following 1qa.md patterns for navigation
+      const dashboardUrl = `/dashboard/${dashboard.id}`;
+      window.open(dashboardUrl, '_blank');
+      
+      toast({ 
+        title: "Dashboard opened", 
+        description: `Opening ${dashboard.name} in new tab` 
+      });
+      
+      // Update view count via API (following 1qa.md async patterns)
+      fetch(`/api/reports-dashboards/dashboards/${dashboard.id}/view`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      }).catch(error => {
+        console.error('Failed to update view count:', error);
+      });
+      
+    } catch (error) {
+      console.error('Error opening dashboard:', error);
+      toast({ 
+        title: "Error opening dashboard", 
+        description: "Failed to open dashboard. Please try again.",
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleEditDashboard = () => {
