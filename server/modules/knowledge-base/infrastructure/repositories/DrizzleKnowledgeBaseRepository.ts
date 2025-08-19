@@ -33,7 +33,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       title: row.title,
       content: row.content,
       summary: summary,
-      slug: row.slug,
+      slug: null, // Campo removido do schema
       category: row.category || row.categoryId,
       tags: row.tags || [],
       keywords: row.keywords || [],
@@ -151,7 +151,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       // Add category filter
       if (query.category) {
-        conditions.push(eq(knowledgeBaseArticles.categoryId, query.category));
+        conditions.push(eq(knowledgeBaseArticles.category, query.category));
       }
 
       // Add status filter
@@ -194,7 +194,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           id: knowledgeBaseArticles.id,
           title: knowledgeBaseArticles.title,
           content: knowledgeBaseArticles.content,
-          categoryId: knowledgeBaseArticles.categoryId,
+          category: knowledgeBaseArticles.category,
           tags: knowledgeBaseArticles.tags,
           status: knowledgeBaseArticles.status,
           visibility: knowledgeBaseArticles.visibility,
@@ -247,7 +247,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.tenantId, tenantId),
-        eq(knowledgeBaseArticles.categoryId, category),
+        eq(knowledgeBaseArticles.category, category),
         or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
       ))
       .orderBy(desc(knowledgeBaseArticles.updatedAt));

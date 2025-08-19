@@ -40,7 +40,7 @@ export class CreateKnowledgeBaseArticleUseCase {
         throw new Error('Author ID is required');
       }
 
-      // Create article entity
+      // Create article entity - sem slug conforme schema atualizado
       const articleData: CreateKnowledgeBaseArticleData = {
         title: command.title.trim(),
         content: command.content,
