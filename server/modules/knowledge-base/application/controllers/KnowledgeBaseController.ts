@@ -16,6 +16,7 @@ export class KnowledgeBaseController {
     private approveUseCase: ApproveKnowledgeBaseArticleUseCase,
     private dashboardUseCase: GetKnowledgeBaseDashboardUseCase,
     private ticketIntegration: TicketIntegrationService,
+    private repository: any, // Add repository for direct search access
     private logger: Logger
   ) {}
 
@@ -112,6 +113,42 @@ export class KnowledgeBaseController {
       res.status(500).json({
         success: false,
         error: 'Failed to process article approval',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async searchArticles(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      const { q, category, access_level, limit = '20', offset = '0' } = req.query;
+      
+      const searchQuery = {
+        query: q as string || '',
+        category: category as string,
+        accessLevel: access_level as any,
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string)
+      };
+
+      const result = await this.repository.search(searchQuery, tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Articles retrieved successfully',
+        data: result
+      });
+
+    } catch (error) {
+      this.logger.error(`Search articles error: ${error}`);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to search articles',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }

@@ -1,0 +1,8 @@
+{
+  "title": "Como configurar o sistema Conductor",
+  "content": "<h2>Guia de Configuração</h2><p>Este artigo explica como configurar corretamente o sistema Conductor para sua empresa.</p><h3>Passos iniciais:</h3><ol><li>Acesse o painel administrativo</li><li>Configure os dados da empresa</li><li>Defina os usuários e permissões</li></ol><p><strong>Importante:</strong> Sempre faça backup antes de qualquer alteração.</p>",
+  "summary": "Guia completo para configuração inicial do sistema Conductor",
+  "category": "Configuração",
+  "tags": ["configuração", "setup", "guia", "admin"],
+  "published": true
+}

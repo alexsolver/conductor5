@@ -32,10 +32,12 @@ const controller = new KnowledgeBaseController(
   approveUseCase,
   dashboardUseCase,
   ticketIntegration,
+  repository,
   logger
 );
 
 // Article management routes
+router.get('/articles', (req, res) => controller.searchArticles(req, res));
 router.post('/articles', (req, res) => controller.createArticle(req, res));
 router.put('/articles/:id', (req, res) => controller.updateArticle(req, res));
 router.post('/articles/:id/approve', (req, res) => controller.approveArticle(req, res));
