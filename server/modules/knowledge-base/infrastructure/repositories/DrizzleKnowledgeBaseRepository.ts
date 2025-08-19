@@ -147,11 +147,14 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           tenantId: knowledgeBaseArticles.tenantId,
           title: knowledgeBaseArticles.title,
           content: knowledgeBaseArticles.content,
+          summary: knowledgeBaseArticles.summary,
+          slug: knowledgeBaseArticles.slug,
           category: knowledgeBaseArticles.category,
           tags: knowledgeBaseArticles.tags,
           authorId: knowledgeBaseArticles.authorId,
           status: knowledgeBaseArticles.status,
           visibility: knowledgeBaseArticles.visibility,
+          published: knowledgeBaseArticles.published,
           publishedAt: knowledgeBaseArticles.publishedAt,
           createdAt: knowledgeBaseArticles.createdAt,
           updatedAt: knowledgeBaseArticles.updatedAt,
@@ -172,7 +175,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       const mappedArticles = articles.map(article => ({
         ...article,
-        summary: article.content?.substring(0, 200) + '...' || undefined,
+        summary: article.summary || article.content?.substring(0, 200) + '...' || undefined,
         tags: article.tags || [],
         version: 1,
         contentType: 'rich_text' as const,
@@ -212,6 +215,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId: knowledgeBaseArticles.tenantId,
         title: knowledgeBaseArticles.title,
         content: knowledgeBaseArticles.content,
+        summary: knowledgeBaseArticles.summary,
         slug: knowledgeBaseArticles.slug,
         category: knowledgeBaseArticles.category,
         tags: knowledgeBaseArticles.tags,
@@ -219,6 +223,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         status: knowledgeBaseArticles.status,
         visibility: knowledgeBaseArticles.visibility,
         published: knowledgeBaseArticles.published,
+        publishedAt: knowledgeBaseArticles.publishedAt,
         createdAt: knowledgeBaseArticles.createdAt,
         updatedAt: knowledgeBaseArticles.updatedAt,
         viewCount: knowledgeBaseArticles.viewCount
@@ -230,7 +235,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
-      summary: article.content?.substring(0, 200) + '...' || undefined,
+      summary: article.summary || article.content?.substring(0, 200) + '...' || undefined,
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
@@ -249,6 +254,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId: knowledgeBaseArticles.tenantId,
         title: knowledgeBaseArticles.title,
         content: knowledgeBaseArticles.content,
+        summary: knowledgeBaseArticles.summary,
         slug: knowledgeBaseArticles.slug,
         category: knowledgeBaseArticles.category,
         tags: knowledgeBaseArticles.tags,
@@ -256,6 +262,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         status: knowledgeBaseArticles.status,
         visibility: knowledgeBaseArticles.visibility,
         published: knowledgeBaseArticles.published,
+        publishedAt: knowledgeBaseArticles.publishedAt,
         createdAt: knowledgeBaseArticles.createdAt,
         updatedAt: knowledgeBaseArticles.updatedAt,
         viewCount: knowledgeBaseArticles.viewCount
@@ -268,6 +275,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
+      summary: article.summary || article.content?.substring(0, 200) + '...' || undefined,
+      tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
       attachments: [] as ArticleAttachment[],
