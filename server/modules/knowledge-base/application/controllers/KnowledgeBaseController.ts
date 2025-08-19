@@ -61,6 +61,13 @@ export class KnowledgeBaseController {
 
       console.log('📝 [KB-CONTROLLER] Creating article:', { title, category, tenantId });
       console.log('📝 [KB-CONTROLLER] Article data:', articleData);
+      console.log('📝 [KB-CONTROLLER] Data being sent to Use Case:', {
+        title: articleData.title,
+        content: articleData.content,
+        category: articleData.category,
+        authorId: articleData.authorId,
+        contentType: articleData.contentType
+      });
 
       const result = await this.createUseCase.execute(articleData, tenantId);
       

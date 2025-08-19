@@ -1,5 +1,14 @@
 import React, { useRef } from 'react';
 import ReactQuill from 'react-quill';
+
+// Suprimir warning temporariamente até ReactQuill atualizar
+const originalError = console.error;
+console.error = (...args) => {
+  if (typeof args[0] === 'string' && args[0].includes('findDOMNode')) {
+    return;
+  }
+  originalError.call(console, ...args);
+};
 import 'react-quill/dist/quill.snow.css';
 
 interface RichTextEditorProps {

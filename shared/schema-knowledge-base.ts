@@ -72,10 +72,9 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // Basic Article Info - exactly matching DB types and lengths
   title: varchar("title").notNull(), // character varying
   content: text("content").notNull(),
-  slug: varchar("slug"), // character varying
   
-  // Categorization - matching exact DB structure
-  category: varchar("category").notNull(), // character varying
+  // Categorization - matching exact DB structure  
+  categoryId: varchar("category_id").notNull(), // character varying
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
   keywords: text("keywords").array(), // ARRAY type
   
