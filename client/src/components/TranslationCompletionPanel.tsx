@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Card, 
   CardContent, 
@@ -50,23 +51,23 @@ export function TranslationCompletionPanel() {
   const { data: completionReport, isLoading, refetch } = useQuery({
     queryKey: ['translation-completion-report'],
     queryFn: async () => {
-      const response = await fetch('/api/translation-completion/analyze');
+      const response = await apiRequest('GET', '/api/translation-completion/analyze');
       if (!response.ok) {
         throw new Error('Failed to fetch completion report');
       }
-      return response.json();
+      const result = await response.json();
+      return result.data;
     },
   });
 
   const autoCompleteTranslations = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/translation-completion/auto-complete-all', {
-        method: 'POST'
-      });
+      const response = await apiRequest('POST', '/api/translation-completion/auto-complete-all');
       if (!response.ok) {
         throw new Error('Failed to auto-complete translations');
       }
-      return response.json();
+      const result = await response.json();
+      return result.data;
     },
     onSuccess: (data) => {
       toast({
