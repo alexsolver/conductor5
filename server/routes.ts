@@ -4683,6 +4683,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (integrationId === 'openai') {
           // Test OpenAI API
           const baseUrl = config.baseUrl || 'https://api.openai.com/v1';
+          console.log(`🧪 [SAAS-ADMIN-TEST] Testing OpenAI with baseUrl: ${baseUrl}`);
+          console.log(`🧪 [SAAS-ADMIN-TEST] API key length: ${config.apiKey?.length || 0}`);
+          console.log(`🧪 [SAAS-ADMIN-TEST] API key starts with: ${config.apiKey?.substring(0, 7) || 'undefined'}...`);
+          
           const response = await fetch(`${baseUrl}/models`, {
             headers: {
               'Authorization': `Bearer ${config.apiKey}`,
@@ -4690,7 +4694,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
 
+          console.log(`🧪 [SAAS-ADMIN-TEST] OpenAI response status: ${response.status}`);
+          console.log(`🧪 [SAAS-ADMIN-TEST] OpenAI response ok: ${response.ok}`);
+
           if (response.ok) {
+            const models = await response.json();
+            console.log(`🧪 [SAAS-ADMIN-TEST] OpenAI models count: ${models?.data?.length || 0}`);
+            
             testResult = {
               success: true,
               message: 'Integração OpenAI funcionando corretamente',
@@ -4698,14 +4708,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 status: 'connected',
                 responseTime: Date.now() - startTime,
                 lastTested: new Date().toISOString(),
-                apiVersion: 'v1'
+                apiVersion: 'v1',
+                modelsCount: models?.data?.length || 0
               }
             };
           } else {
+            const errorText = await response.text();
+            console.error(`🧪 [SAAS-ADMIN-TEST] OpenAI error response: ${errorText}`);
+            
             testResult = {
               success: false,
               message: 'Falha na conexão com OpenAI',
-              error: `HTTP ${response.status}: ${response.statusText}`
+              error: `HTTP ${response.status}: ${response.statusText}`,
+              details: errorText
             };
           }
         } else {
