@@ -1,83 +1,84 @@
 // ✅ 1QA.MD COMPLIANCE: KNOWLEDGE BASE REPOSITORY INTERFACE - CLEAN ARCHITECTURE
-// Pure domain interface - no implementation details
+// Domain layer interface - defines contracts without implementation details
 
-import { 
-  KnowledgeBaseArticle, 
-  KnowledgeBaseSearchQuery, 
-  KnowledgeBaseSearchResult,
-  ArticleAttachment,
-  ApprovalHistoryEntry
-} from '../entities/KnowledgeBase';
+import { KnowledgeBaseArticle } from '../entities/KnowledgeBaseArticle';
+
+export interface KnowledgeBaseSearchQuery {
+  query?: string;
+  category?: string;
+  tags?: string[];
+  status?: string;
+  visibility?: string;
+  authorId?: string;
+  limit?: number;
+  offset?: number;
+  sortBy?: 'created_at' | 'updated_at' | 'title' | 'view_count';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface KnowledgeBaseSearchResult {
+  articles: KnowledgeBaseArticle[];
+  total: number;
+  hasMore: boolean;
+}
+
+export interface CreateKnowledgeBaseArticleData {
+  title: string;
+  content: string;
+  summary?: string;
+  category: string;
+  tags?: string[];
+  visibility?: string;
+  status?: string;
+  authorId: string;
+  contentType?: string;
+}
+
+export interface UpdateKnowledgeBaseArticleData {
+  title?: string;
+  content?: string;
+  summary?: string;
+  slug?: string;
+  category?: string;
+  tags?: string[];
+  visibility?: string;
+  status?: string;
+  reviewerId?: string;
+  approvalStatus?: string;
+}
 
 export interface IKnowledgeBaseRepository {
-  // Article CRUD operations
-  create(article: Omit<KnowledgeBaseArticle, 'id' | 'createdAt' | 'updatedAt' | 'version'>, tenantId: string): Promise<KnowledgeBaseArticle>;
+  // Basic CRUD operations
+  create(data: CreateKnowledgeBaseArticleData, tenantId: string): Promise<KnowledgeBaseArticle>;
   findById(id: string, tenantId: string): Promise<KnowledgeBaseArticle | null>;
-  update(id: string, updates: Partial<KnowledgeBaseArticle>, tenantId: string): Promise<KnowledgeBaseArticle>;
+  update(id: string, data: UpdateKnowledgeBaseArticleData, tenantId: string): Promise<KnowledgeBaseArticle | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
-  
-  // Search and listing
+
+  // Search and filtering
   search(query: KnowledgeBaseSearchQuery, tenantId: string): Promise<KnowledgeBaseSearchResult>;
   findByCategory(category: string, tenantId: string): Promise<KnowledgeBaseArticle[]>;
-  findByAuthor(authorId: string, tenantId: string): Promise<KnowledgeBaseArticle[]>;
   findByTags(tags: string[], tenantId: string): Promise<KnowledgeBaseArticle[]>;
-  
-  // Analytics
-  incrementViewCount(id: string, tenantId: string): Promise<void>;
-  updateRating(id: string, rating: number, tenantId: string): Promise<void>;
-  getPopularArticles(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]>;
-  
-  // Attachments
-  addAttachment(attachment: Omit<ArticleAttachment, 'id' | 'uploadedAt'>, tenantId: string): Promise<ArticleAttachment>;
-  removeAttachment(attachmentId: string, tenantId: string): Promise<boolean>;
-  getAttachments(articleId: string, tenantId: string): Promise<ArticleAttachment[]>;
-  
+  findByStatus(status: string, tenantId: string): Promise<KnowledgeBaseArticle[]>;
+  findByAuthor(authorId: string, tenantId: string): Promise<KnowledgeBaseArticle[]>;
+
+  // Publishing operations
+  publish(id: string, tenantId: string): Promise<boolean>;
+  unpublish(id: string, tenantId: string): Promise<boolean>;
+  archive(id: string, tenantId: string): Promise<boolean>;
+
   // Approval workflow
-  addApprovalHistory(entry: Omit<ApprovalHistoryEntry, 'id' | 'timestamp'>, tenantId: string): Promise<ApprovalHistoryEntry>;
-  getApprovalHistory(articleId: string, tenantId: string): Promise<ApprovalHistoryEntry[]>;
-  
-  // Batch operations
+  submitForApproval(id: string, tenantId: string): Promise<boolean>;
+  approve(id: string, reviewerId: string, tenantId: string): Promise<boolean>;
+  reject(id: string, reviewerId: string, reason: string, tenantId: string): Promise<boolean>;
+
+  // Analytics and metrics
+  incrementViewCount(id: string, tenantId: string): Promise<boolean>;
+  updateRating(id: string, rating: number, tenantId: string): Promise<boolean>;
+  addApprovalHistory(id: string, entry: any, tenantId: string): Promise<boolean>;
+
+  // Advanced queries
   findPendingApproval(tenantId: string): Promise<KnowledgeBaseArticle[]>;
-  findExpiredDrafts(daysOld: number, tenantId: string): Promise<KnowledgeBaseArticle[]>;
-  bulkUpdateStatus(articleIds: string[], status: any, tenantId: string): Promise<number>;
-  
-  // Full-text search
-  fullTextSearch(query: string, tenantId: string, options?: {
-    categories?: string[];
-    limit?: number;
-    offset?: number;
-  }): Promise<KnowledgeBaseSearchResult>;
-  
-  // Categories and tags
-  getCategories(tenantId: string): Promise<{ name: string; count: number }[]>;
-  getTags(tenantId: string): Promise<{ name: string; count: number }[]>;
-  getRelatedArticles(articleId: string, tenantId: string, limit?: number): Promise<KnowledgeBaseArticle[]>;
-  
-  // Templates
-  createTemplate(template: any): Promise<any>;
-  findTemplateByName(name: string, tenantId: string): Promise<any>;
-  findTemplateById(id: string, tenantId: string): Promise<any>;
-  listTemplates(tenantId: string): Promise<any[]>;
-  updateTemplate(id: string, updates: any, tenantId: string): Promise<any>;
-  deleteTemplate(id: string, tenantId: string): Promise<boolean>;
-  
-  // Comments
-  createComment(comment: any): Promise<any>;
-  findCommentById(id: string, tenantId: string): Promise<any>;
-  findCommentsByArticle(articleId: string, tenantId: string): Promise<any[]>;
-  updateComment(id: string, content: string, tenantId: string): Promise<any>;
-  deleteComment(id: string, tenantId: string): Promise<boolean>;
-  
-  // Versioning
-  createVersion(version: any): Promise<any>;
-  getLatestVersionNumber(articleId: string, tenantId: string): Promise<number>;
-  findVersionsByArticle(articleId: string, tenantId: string): Promise<any[]>;
-  findVersionById(id: string, tenantId: string): Promise<any>;
-  
-  // Scheduled Publications
-  createScheduledPublication(schedule: any): Promise<any>;
-  findScheduledPublicationByArticle(articleId: string, tenantId: string): Promise<any>;
-  findPendingScheduledPublications(tenantId: string): Promise<any[]>;
-  updateScheduledPublication(id: string, updates: any, tenantId: string): Promise<any>;
-  deleteScheduledPublication(id: string, tenantId: string): Promise<boolean>;
+  findExpiredDrafts(tenantId: string): Promise<KnowledgeBaseArticle[]>;
+  findPopular(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]>;
+  findRecent(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]>;
 }

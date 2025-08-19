@@ -1,94 +1,109 @@
-// ✅ 1QA.MD COMPLIANCE: DRIZZLE KNOWLEDGE BASE REPOSITORY - CLEAN ARCHITECTURE
-// Infrastructure layer - implements domain repository interface
+// ✅ 1QA.MD COMPLIANCE: KNOWLEDGE BASE DRIZZLE REPOSITORY - CLEAN ARCHITECTURE
+// Infrastructure layer implementation with proper tenant isolation
 
-import { eq, and, like, desc, sql } from 'drizzle-orm';
-import { db } from '../../../../db';
-import { 
-  knowledgeBaseArticles,
-  knowledgeBaseTemplates,
-  knowledgeBaseComments,
-  knowledgeBaseScheduledPublications,
-  knowledgeBaseArticleVersions
-} from '../../../../../shared/schema-knowledge-base';
-import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
-import {
+import { db } from '../../../../../shared/schema';
+import { knowledgeBaseArticles } from '../../../../../shared/schema-knowledge-base';
+import { eq, and, desc, asc, sql, like, inArray, isNull, or, ilike } from 'drizzle-orm';
+
+import type { 
   KnowledgeBaseArticle,
-  KnowledgeBaseSearchQuery,
-  KnowledgeBaseSearchResult,
   ArticleAttachment,
   ApprovalHistoryEntry
-} from '../../domain/entities/KnowledgeBase';
+} from '../../domain/entities/KnowledgeBaseArticle';
+
+import type {
+  IKnowledgeBaseRepository,
+  KnowledgeBaseSearchQuery,
+  KnowledgeBaseSearchResult,
+  CreateKnowledgeBaseArticleData,
+  UpdateKnowledgeBaseArticleData
+} from '../../domain/repositories/IKnowledgeBaseRepository';
 
 export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository {
-  async create(article: Omit<KnowledgeBaseArticle, 'id' | 'createdAt' | 'updatedAt' | 'version'>, tenantId: string): Promise<KnowledgeBaseArticle> {
-    const insertData = {
-      tenantId,
-      title: article.title,
-      content: article.content,
-      category: article.category as any,
-      tags: article.tags,
-      authorId: article.authorId,
-      status: article.status as any,
-      visibility: article.visibility as any,
-      reviewerId: article.reviewerId,
-      publishedAt: article.publishedAt,
-      contentType: article.contentType as any,
-      approvalStatus: article.approvalStatus as any,
-      viewCount: article.viewCount || 0,
-      ratingCount: article.ratingCount || 0
-    };
-    const [inserted] = await db
-      .insert(knowledgeBaseArticles)
-      .values(insertData)
-      .returning();
-
-    const generatedSummary = this.generateSummary(inserted.content || '');
-
+  
+  // Helper method to convert DB row to domain entity
+  private mapToKnowledgeBaseArticle(row: any): KnowledgeBaseArticle {
     return {
-      ...inserted,
-      summary: generatedSummary,
-      version: 1,
-      contentType: inserted.contentType as 'rich_text' | 'markdown' | 'html',
+      id: row.id,
+      tenantId: row.tenantId,
+      title: row.title,
+      content: row.content,
+      summary: row.summary,
+      slug: row.slug,
+      category: row.category,
+      tags: row.tags || [],
+      keywords: row.keywords || [],
+      status: row.status,
+      visibility: row.visibility,
+      accessLevel: row.accessLevel,
+      authorId: row.authorId,
+      reviewerId: row.reviewerId,
+      published: row.published,
+      publishedAt: row.publishedAt?.toISOString() || null,
+      viewCount: row.viewCount || 0,
+      helpfulCount: row.helpfulCount || 0,
+      upvoteCount: row.upvoteCount || 0,
+      isDeleted: row.isDeleted,
+      deletedAt: row.deletedAt?.toISOString() || null,
+      version: row.version || 1,
+      contentType: row.contentType || 'rich_text',
+      approvalStatus: row.approvalStatus || 'not_submitted',
+      ratingAverage: row.ratingAverage || 0,
+      ratingCount: row.ratingCount || 0,
+      attachmentCount: row.attachmentCount || 0,
+      lastViewedAt: row.lastViewedAt?.toISOString() || null,
       attachments: [] as ArticleAttachment[],
-      approvalStatus: inserted.approvalStatus as ApprovalStatus,
       approvalHistory: [] as ApprovalHistoryEntry[],
-      expiresAt: null
+      expiresAt: null,
+      createdAt: row.createdAt?.toISOString() || new Date().toISOString(),
+      updatedAt: row.updatedAt?.toISOString() || new Date().toISOString()
     };
   }
 
+  async create(data: CreateKnowledgeBaseArticleData, tenantId: string): Promise<KnowledgeBaseArticle> {
+    const [result] = await db
+      .insert(knowledgeBaseArticles)
+      .values({
+        tenantId,
+        title: data.title,
+        content: data.content,
+        summary: data.summary,
+        category: data.category,
+        tags: data.tags || [],
+        visibility: data.visibility || 'internal',
+        status: data.status || 'draft',
+        authorId: data.authorId,
+        contentType: data.contentType || 'rich_text',
+        approvalStatus: 'not_submitted',
+        viewCount: 0,
+        ratingCount: 0,
+        published: false,
+        isDeleted: false,
+        version: 1
+      })
+      .returning();
+
+    return this.mapToKnowledgeBaseArticle(result);
+  }
+
   async findById(id: string, tenantId: string): Promise<KnowledgeBaseArticle | null> {
-    const articles = await db
+    const [result] = await db
       .select()
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.id, id),
-        eq(knowledgeBaseArticles.tenantId, tenantId)
-      ))
-      .limit(1);
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ));
 
-    if (articles.length === 0) return null;
-
-    const article = articles[0];
-    return {
-      ...article,
-      summary: this.generateSummary(article.content || ''),
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    };
+    return result ? this.mapToKnowledgeBaseArticle(result) : null;
   }
 
-  async update(id: string, updates: Partial<KnowledgeBaseArticle>, tenantId: string): Promise<KnowledgeBaseArticle> {
-    const [updated] = await db
+  async update(id: string, data: UpdateKnowledgeBaseArticleData, tenantId: string): Promise<KnowledgeBaseArticle | null> {
+    const [result] = await db
       .update(knowledgeBaseArticles)
       .set({
-        title: updates.title,
-        content: updates.content,
-        tags: updates.tags,
+        ...data,
         updatedAt: new Date()
       })
       .where(and(
@@ -97,100 +112,113 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       ))
       .returning();
 
-    return {
-      ...updated,
-      tags: updated.tags || [],
-      version: 1,
-      contentType: 'rich_text',
-      attachments: [],
-      approvalStatus: 'not_submitted',
-      approvalHistory: [],
-      ratingCount: 0,
-      expiresAt: null
-    } as KnowledgeBaseArticle;
+    return result ? this.mapToKnowledgeBaseArticle(result) : null;
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
-    const result = await db
-      .delete(knowledgeBaseArticles)
+    const [result] = await db
+      .update(knowledgeBaseArticles)
+      .set({
+        isDeleted: true,
+        deletedAt: new Date()
+      })
       .where(and(
         eq(knowledgeBaseArticles.id, id),
         eq(knowledgeBaseArticles.tenantId, tenantId)
-      ));
+      ))
+      .returning();
 
-    return result.rowCount !== null && result.rowCount > 0;
+    return !!result;
   }
 
   async search(query: KnowledgeBaseSearchQuery, tenantId: string): Promise<KnowledgeBaseSearchResult> {
     try {
       console.log(`🔍 [KB-SEARCH] Starting search with:`, { tenantId, query });
 
-      const conditions = [eq(knowledgeBaseArticles.tenantId, tenantId)];
+      const conditions = [
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ];
 
-      // Only add search condition if query is provided and not empty
+      // Add text search condition
       if (query.query && query.query.trim()) {
         conditions.push(
-          sql`(${knowledgeBaseArticles.title} ILIKE ${'%' + query.query.trim() + '%'} OR ${knowledgeBaseArticles.content} ILIKE ${'%' + query.query.trim() + '%'})`
+          or(
+            ilike(knowledgeBaseArticles.title, `%${query.query.trim()}%`),
+            ilike(knowledgeBaseArticles.content, `%${query.query.trim()}%`)
+          )
         );
       }
 
+      // Add category filter
+      if (query.category) {
+        conditions.push(eq(knowledgeBaseArticles.category, query.category));
+      }
+
+      // Add status filter
+      if (query.status) {
+        conditions.push(eq(knowledgeBaseArticles.status, query.status));
+      }
+
+      // Add visibility filter
+      if (query.visibility) {
+        conditions.push(eq(knowledgeBaseArticles.visibility, query.visibility));
+      }
+
+      // Add author filter
+      if (query.authorId) {
+        conditions.push(eq(knowledgeBaseArticles.authorId, query.authorId));
+      }
+
+      // Build sort order
+      let orderBy;
+      const sortBy = query.sortBy || 'updated_at';
+      const sortOrder = query.sortOrder || 'desc';
+      
+      switch (sortBy) {
+        case 'created_at':
+          orderBy = sortOrder === 'asc' ? asc(knowledgeBaseArticles.createdAt) : desc(knowledgeBaseArticles.createdAt);
+          break;
+        case 'title':
+          orderBy = sortOrder === 'asc' ? asc(knowledgeBaseArticles.title) : desc(knowledgeBaseArticles.title);
+          break;
+        case 'view_count':
+          orderBy = sortOrder === 'asc' ? asc(knowledgeBaseArticles.viewCount) : desc(knowledgeBaseArticles.viewCount);
+          break;
+        default:
+          orderBy = sortOrder === 'asc' ? asc(knowledgeBaseArticles.updatedAt) : desc(knowledgeBaseArticles.updatedAt);
+      }
+
+      // Execute search query
       const articles = await db
-        .select({
-          id: knowledgeBaseArticles.id,
-          tenantId: knowledgeBaseArticles.tenantId,
-          title: knowledgeBaseArticles.title,
-          content: knowledgeBaseArticles.content,
-          slug: knowledgeBaseArticles.slug,
-          category: knowledgeBaseArticles.category,
-          tags: knowledgeBaseArticles.tags,
-          authorId: knowledgeBaseArticles.authorId,
-          status: knowledgeBaseArticles.status,
-          visibility: knowledgeBaseArticles.visibility,
-          publishedAt: knowledgeBaseArticles.publishedAt,
-          createdAt: knowledgeBaseArticles.createdAt,
-          updatedAt: knowledgeBaseArticles.updatedAt,
-          viewCount: knowledgeBaseArticles.viewCount
-        })
+        .select()
         .from(knowledgeBaseArticles)
         .where(and(...conditions))
-        .orderBy(desc(knowledgeBaseArticles.updatedAt))
+        .orderBy(orderBy)
         .limit(query.limit || 20)
         .offset(query.offset || 0);
 
+      // Get total count
       const [countResult] = await db
         .select({ count: sql<number>`COUNT(*)` })
         .from(knowledgeBaseArticles)
         .where(and(...conditions));
 
       const total = countResult?.count || 0;
+      const limit = query.limit || 20;
+      const offset = query.offset || 0;
 
-      const mappedArticles = articles.map(article => ({
-        ...article,
-        summary: this.generateSummary(article.content || ''),
-        tags: article.tags || [],
-        version: 1,
-        contentType: 'rich_text' as const,
-        attachments: [] as ArticleAttachment[],
-        approvalStatus: 'not_submitted' as const,
-        approvalHistory: [] as ApprovalHistoryEntry[],
-        ratingCount: 0,
-        expiresAt: null
-      }));
-
-      console.log(`🔍 [KB-SEARCH] Search successful:`, {
-        tenantId,
-        foundArticles: articles.length,
-        totalFromDB: total,
-        sampleTitles: articles.slice(0, 3).map(a => a.title)
-      });
+      console.log(`🔍 [KB-SEARCH] Found ${articles.length} articles, total: ${total}`);
 
       return {
-        articles: mappedArticles,
+        articles: articles.map(article => this.mapToKnowledgeBaseArticle(article)),
         total,
-        hasMore: articles.length === (query.limit || 20)
+        hasMore: offset + articles.length < total
       };
+
     } catch (error) {
-      console.error('18:12:35 [error]: Search articles error:', error);
+      console.error('Search articles error:', error);
+      // Return safe empty result on error
       return {
         articles: [],
         total: 0,
@@ -201,533 +229,264 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async findByCategory(category: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select({
-        id: knowledgeBaseArticles.id,
-        tenantId: knowledgeBaseArticles.tenantId,
-        title: knowledgeBaseArticles.title,
-        content: knowledgeBaseArticles.content,
-        category: knowledgeBaseArticles.category,
-        tags: knowledgeBaseArticles.tags,
-        authorId: knowledgeBaseArticles.authorId,
-        status: knowledgeBaseArticles.status,
-        visibility: knowledgeBaseArticles.visibility,
-        publishedAt: knowledgeBaseArticles.publishedAt,
-        createdAt: knowledgeBaseArticles.createdAt,
-        updatedAt: knowledgeBaseArticles.updatedAt,
-        viewCount: knowledgeBaseArticles.viewCount
-      })
+      .select()
       .from(knowledgeBaseArticles)
       .where(and(
-        eq(knowledgeBaseArticles.tenantId, tenantId)
-      ));
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        eq(knowledgeBaseArticles.category, category),
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ))
+      .orderBy(desc(knowledgeBaseArticles.updatedAt));
 
-    return articles.map(article => ({
-      ...article,
-      summary: this.generateSummary(article.content || ''),
-      tags: article.tags || [],
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    }));
-  }
-
-  async findByAuthor(authorId: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
-    const articles = await db
-      .select({
-        id: knowledgeBaseArticles.id,
-        tenantId: knowledgeBaseArticles.tenantId,
-        title: knowledgeBaseArticles.title,
-        content: knowledgeBaseArticles.content,
-        category: knowledgeBaseArticles.category,
-        tags: knowledgeBaseArticles.tags,
-        authorId: knowledgeBaseArticles.authorId,
-        status: knowledgeBaseArticles.status,
-        visibility: knowledgeBaseArticles.visibility,
-        publishedAt: knowledgeBaseArticles.publishedAt,
-        createdAt: knowledgeBaseArticles.createdAt,
-        updatedAt: knowledgeBaseArticles.updatedAt,
-        viewCount: knowledgeBaseArticles.viewCount
-      })
-      .from(knowledgeBaseArticles)
-      .where(and(
-        eq(knowledgeBaseArticles.authorId, authorId),
-        eq(knowledgeBaseArticles.tenantId, tenantId)
-      ));
-
-    return articles.map(article => ({
-      ...article,
-      summary: this.generateSummary(article.content || ''),
-      tags: article.tags || [],
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    }));
+    return articles.map(article => this.mapToKnowledgeBaseArticle(article));
   }
 
   async findByTags(tags: string[], tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select({
-        id: knowledgeBaseArticles.id,
-        tenantId: knowledgeBaseArticles.tenantId,
-        title: knowledgeBaseArticles.title,
-        content: knowledgeBaseArticles.content,
-        category: knowledgeBaseArticles.category,
-        tags: knowledgeBaseArticles.tags,
-        authorId: knowledgeBaseArticles.authorId,
-        status: knowledgeBaseArticles.status,
-        visibility: knowledgeBaseArticles.visibility,
-        publishedAt: knowledgeBaseArticles.publishedAt,
-        createdAt: knowledgeBaseArticles.createdAt,
-        updatedAt: knowledgeBaseArticles.updatedAt,
-        viewCount: knowledgeBaseArticles.viewCount
-      })
+      .select()
       .from(knowledgeBaseArticles)
       .where(and(
-        eq(knowledgeBaseArticles.tenantId, tenantId)
-      ));
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        sql`${knowledgeBaseArticles.tags} && ${tags}`, // Array overlap operator
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ))
+      .orderBy(desc(knowledgeBaseArticles.updatedAt));
 
-    return articles.map(article => ({
-      ...article,
-      summary: this.generateSummary(article.content || ''),
-      tags: article.tags || [],
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    }));
+    return articles.map(article => this.mapToKnowledgeBaseArticle(article));
   }
 
-  async incrementViewCount(id: string, tenantId: string): Promise<void> {
-    await db
+  async findByStatus(status: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
+    const articles = await db
+      .select()
+      .from(knowledgeBaseArticles)
+      .where(and(
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        eq(knowledgeBaseArticles.status, status),
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ))
+      .orderBy(desc(knowledgeBaseArticles.updatedAt));
+
+    return articles.map(article => this.mapToKnowledgeBaseArticle(article));
+  }
+
+  async findByAuthor(authorId: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
+    const articles = await db
+      .select()
+      .from(knowledgeBaseArticles)
+      .where(and(
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        eq(knowledgeBaseArticles.authorId, authorId),
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ))
+      .orderBy(desc(knowledgeBaseArticles.updatedAt));
+
+    return articles.map(article => this.mapToKnowledgeBaseArticle(article));
+  }
+
+  async publish(id: string, tenantId: string): Promise<boolean> {
+    const [result] = await db
+      .update(knowledgeBaseArticles)
+      .set({
+        status: 'published',
+        published: true,
+        publishedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(knowledgeBaseArticles.id, id),
+        eq(knowledgeBaseArticles.tenantId, tenantId)
+      ))
+      .returning();
+
+    return !!result;
+  }
+
+  async unpublish(id: string, tenantId: string): Promise<boolean> {
+    const [result] = await db
+      .update(knowledgeBaseArticles)
+      .set({
+        status: 'draft',
+        published: false,
+        publishedAt: null,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(knowledgeBaseArticles.id, id),
+        eq(knowledgeBaseArticles.tenantId, tenantId)
+      ))
+      .returning();
+
+    return !!result;
+  }
+
+  async archive(id: string, tenantId: string): Promise<boolean> {
+    const [result] = await db
+      .update(knowledgeBaseArticles)
+      .set({
+        status: 'archived',
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(knowledgeBaseArticles.id, id),
+        eq(knowledgeBaseArticles.tenantId, tenantId)
+      ))
+      .returning();
+
+    return !!result;
+  }
+
+  async submitForApproval(id: string, tenantId: string): Promise<boolean> {
+    const [result] = await db
+      .update(knowledgeBaseArticles)
+      .set({
+        status: 'pending_approval',
+        approvalStatus: 'pending',
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(knowledgeBaseArticles.id, id),
+        eq(knowledgeBaseArticles.tenantId, tenantId)
+      ))
+      .returning();
+
+    return !!result;
+  }
+
+  async approve(id: string, reviewerId: string, tenantId: string): Promise<boolean> {
+    const [result] = await db
+      .update(knowledgeBaseArticles)
+      .set({
+        status: 'approved',
+        approvalStatus: 'approved',
+        reviewerId,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(knowledgeBaseArticles.id, id),
+        eq(knowledgeBaseArticles.tenantId, tenantId)
+      ))
+      .returning();
+
+    return !!result;
+  }
+
+  async reject(id: string, reviewerId: string, reason: string, tenantId: string): Promise<boolean> {
+    const [result] = await db
+      .update(knowledgeBaseArticles)
+      .set({
+        status: 'rejected',
+        approvalStatus: 'rejected',
+        reviewerId,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(knowledgeBaseArticles.id, id),
+        eq(knowledgeBaseArticles.tenantId, tenantId)
+      ))
+      .returning();
+
+    return !!result;
+  }
+
+  async incrementViewCount(id: string, tenantId: string): Promise<boolean> {
+    const [result] = await db
       .update(knowledgeBaseArticles)
       .set({
         viewCount: sql`${knowledgeBaseArticles.viewCount} + 1`,
+        lastViewedAt: new Date(),
         updatedAt: new Date()
       })
       .where(and(
         eq(knowledgeBaseArticles.id, id),
         eq(knowledgeBaseArticles.tenantId, tenantId)
-      ));
+      ))
+      .returning();
+
+    return !!result;
   }
 
-  async addRating(id: string, rating: number, tenantId: string): Promise<void> {
-    await db
+  async updateRating(id: string, rating: number, tenantId: string): Promise<boolean> {
+    // Simple rating update - in real implementation would handle rating aggregation
+    const [result] = await db
       .update(knowledgeBaseArticles)
       .set({
+        ratingCount: sql`${knowledgeBaseArticles.ratingCount} + 1`,
+        ratingAverage: rating, // Simplified - would calculate proper average
         updatedAt: new Date()
       })
       .where(and(
         eq(knowledgeBaseArticles.id, id),
         eq(knowledgeBaseArticles.tenantId, tenantId)
-      ));
+      ))
+      .returning();
+
+    return !!result;
   }
 
-  async getPopularArticles(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]> {
-    const articles = await db
-      .select({
-        id: knowledgeBaseArticles.id,
-        tenantId: knowledgeBaseArticles.tenantId,
-        title: knowledgeBaseArticles.title,
-        content: knowledgeBaseArticles.content,
-        category: knowledgeBaseArticles.category,
-        tags: knowledgeBaseArticles.tags,
-        authorId: knowledgeBaseArticles.authorId,
-        status: knowledgeBaseArticles.status,
-        visibility: knowledgeBaseArticles.visibility,
-        publishedAt: knowledgeBaseArticles.publishedAt,
-        createdAt: knowledgeBaseArticles.createdAt,
-        updatedAt: knowledgeBaseArticles.updatedAt,
-        viewCount: knowledgeBaseArticles.viewCount
-      })
-      .from(knowledgeBaseArticles)
-      .where(eq(knowledgeBaseArticles.tenantId, tenantId))
-      .orderBy(desc(knowledgeBaseArticles.viewCount))
-      .limit(limit);
-
-    return articles.map(article => ({
-      ...article,
-      summary: this.generateSummary(article.content || ''),
-      tags: article.tags || [],
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    }));
-  }
-
-  async getAttachments(articleId: string, tenantId: string): Promise<ArticleAttachment[]> {
-    return [];
-  }
-
-  async addAttachment(attachment: Omit<ArticleAttachment, 'id' | 'uploadedAt'>, tenantId: string): Promise<ArticleAttachment> {
-    return {
-      id: 'mock-id',
-      uploadedAt: new Date(),
-      ...attachment
-    };
-  }
-
-  async removeAttachment(attachmentId: string, tenantId: string): Promise<boolean> {
+  async addApprovalHistory(id: string, entry: any, tenantId: string): Promise<boolean> {
+    // For now, return true - would integrate with approval history table
     return true;
   }
 
-  async getApprovalHistory(articleId: string, tenantId: string): Promise<ApprovalHistoryEntry[]> {
-    return [];
-  }
-
-  async addApprovalEntry(entry: Omit<ApprovalHistoryEntry, 'id' | 'timestamp'>, tenantId: string): Promise<ApprovalHistoryEntry> {
-    return {
-      id: 'mock-id',
-      timestamp: new Date(),
-      ...entry
-    };
-  }
-
-  async getByApprovalStatus(status: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
+  async findPendingApproval(tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
       .select()
       .from(knowledgeBaseArticles)
-      .where(eq(knowledgeBaseArticles.tenantId, tenantId));
+      .where(and(
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        eq(knowledgeBaseArticles.status, 'pending_approval'),
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ))
+      .orderBy(asc(knowledgeBaseArticles.createdAt));
 
-    return articles.map(article => ({
-      ...article,
-      summary: this.generateSummary(article.content || ''),
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    }));
+    return articles.map(article => this.mapToKnowledgeBaseArticle(article));
   }
 
-  async getRecentActivity(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]> {
+  async findExpiredDrafts(tenantId: string): Promise<KnowledgeBaseArticle[]> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const articles = await db
-      .select({
-        id: knowledgeBaseArticles.id,
-        tenantId: knowledgeBaseArticles.tenantId,
-        title: knowledgeBaseArticles.title,
-        content: knowledgeBaseArticles.content,
-        category: knowledgeBaseArticles.category,
-        tags: knowledgeBaseArticles.tags,
-        authorId: knowledgeBaseArticles.authorId,
-        status: knowledgeBaseArticles.status,
-        visibility: knowledgeBaseArticles.visibility,
-        publishedAt: knowledgeBaseArticles.publishedAt,
-        createdAt: knowledgeBaseArticles.createdAt,
-        updatedAt: knowledgeBaseArticles.updatedAt,
-        viewCount: knowledgeBaseArticles.viewCount
-      })
+      .select()
       .from(knowledgeBaseArticles)
-      .where(eq(knowledgeBaseArticles.tenantId, tenantId))
-      .orderBy(desc(knowledgeBaseArticles.updatedAt))
+      .where(and(
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        eq(knowledgeBaseArticles.status, 'draft'),
+        sql`${knowledgeBaseArticles.updatedAt} < ${thirtyDaysAgo}`,
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ))
+      .orderBy(asc(knowledgeBaseArticles.updatedAt));
+
+    return articles.map(article => this.mapToKnowledgeBaseArticle(article));
+  }
+
+  async findPopular(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]> {
+    const articles = await db
+      .select()
+      .from(knowledgeBaseArticles)
+      .where(and(
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        eq(knowledgeBaseArticles.published, true),
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+      ))
+      .orderBy(desc(knowledgeBaseArticles.viewCount), desc(knowledgeBaseArticles.helpfulCount))
       .limit(limit);
 
-    return articles.map(article => ({
-      ...article,
-      summary: this.generateSummary(article.content || ''),
-      tags: article.tags || [],
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    }));
+    return articles.map(article => this.mapToKnowledgeBaseArticle(article));
   }
 
-  async findAll(tenantId: string): Promise<KnowledgeBaseSearchResult> {
+  async findRecent(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
       .select()
       .from(knowledgeBaseArticles)
-      .where(eq(knowledgeBaseArticles.tenantId, tenantId))
-      .orderBy(desc(knowledgeBaseArticles.createdAt));
-
-    const enrichedArticles = articles.map(article => ({
-      ...article,
-      summary: this.generateSummary(article.content || ''),
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    }));
-
-    const total = articles.length; // Assuming total count is the length of the fetched articles for simplicity in this findAll
-    return {
-      articles: enrichedArticles,
-      total: total,
-      hasMore: false // In a real scenario, you'd need a separate count query or pagination logic
-    };
-  }
-
-  // ========================================
-  // TEMPLATE METHODS
-  // ========================================
-  
-  async createTemplate(template: any): Promise<any> {
-    const [inserted] = await db
-      .insert(knowledgeBaseTemplates)
-      .values(template)
-      .returning();
-    return inserted;
-  }
-
-  async findTemplateByName(name: string, tenantId: string): Promise<any> {
-    const [template] = await db
-      .select()
-      .from(knowledgeBaseTemplates)
       .where(and(
-        eq(knowledgeBaseTemplates.name, name),
-        eq(knowledgeBaseTemplates.tenantId, tenantId),
-        eq(knowledgeBaseTemplates.isActive, true)
-      ));
-    return template || null;
-  }
-
-  async findTemplateById(id: string, tenantId: string): Promise<any> {
-    const [template] = await db
-      .select()
-      .from(knowledgeBaseTemplates)
-      .where(and(
-        eq(knowledgeBaseTemplates.id, id),
-        eq(knowledgeBaseTemplates.tenantId, tenantId)
-      ));
-    return template || null;
-  }
-
-  async listTemplates(tenantId: string): Promise<any[]> {
-    const templates = await db
-      .select()
-      .from(knowledgeBaseTemplates)
-      .where(and(
-        eq(knowledgeBaseTemplates.tenantId, tenantId),
-        eq(knowledgeBaseTemplates.isActive, true)
+        eq(knowledgeBaseArticles.tenantId, tenantId),
+        eq(knowledgeBaseArticles.published, true),
+        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
       ))
-      .orderBy(desc(knowledgeBaseTemplates.createdAt));
-    return templates;
-  }
+      .orderBy(desc(knowledgeBaseArticles.publishedAt))
+      .limit(limit);
 
-  async updateTemplate(id: string, updates: any, tenantId: string): Promise<any> {
-    const [updated] = await db
-      .update(knowledgeBaseTemplates)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(
-        eq(knowledgeBaseTemplates.id, id),
-        eq(knowledgeBaseTemplates.tenantId, tenantId)
-      ))
-      .returning();
-    return updated;
-  }
-
-  async deleteTemplate(id: string, tenantId: string): Promise<boolean> {
-    const result = await db
-      .delete(knowledgeBaseTemplates)
-      .where(and(
-        eq(knowledgeBaseTemplates.id, id),
-        eq(knowledgeBaseTemplates.tenantId, tenantId)
-      ));
-    return result.changes > 0;
-  }
-
-  // ========================================
-  // COMMENT METHODS
-  // ========================================
-  
-  async createComment(comment: any): Promise<any> {
-    const [inserted] = await db
-      .insert(knowledgeBaseComments)
-      .values(comment)
-      .returning();
-    return inserted;
-  }
-
-  async findCommentById(id: string, tenantId: string): Promise<any> {
-    const [comment] = await db
-      .select()
-      .from(knowledgeBaseComments)
-      .where(and(
-        eq(knowledgeBaseComments.id, id),
-        eq(knowledgeBaseComments.tenantId, tenantId)
-      ));
-    return comment || null;
-  }
-
-  async findCommentsByArticle(articleId: string, tenantId: string): Promise<any[]> {
-    const comments = await db
-      .select()
-      .from(knowledgeBaseComments)
-      .where(and(
-        eq(knowledgeBaseComments.articleId, articleId),
-        eq(knowledgeBaseComments.tenantId, tenantId)
-      ))
-      .orderBy(desc(knowledgeBaseComments.createdAt));
-    return comments;
-  }
-
-  async updateComment(id: string, content: string, tenantId: string): Promise<any> {
-    const [updated] = await db
-      .update(knowledgeBaseComments)
-      .set({ 
-        content, 
-        isEdited: true,
-        updatedAt: new Date() 
-      })
-      .where(and(
-        eq(knowledgeBaseComments.id, id),
-        eq(knowledgeBaseComments.tenantId, tenantId)
-      ))
-      .returning();
-    return updated;
-  }
-
-  async deleteComment(id: string, tenantId: string): Promise<boolean> {
-    const result = await db
-      .update(knowledgeBaseComments)
-      .set({ deletedAt: new Date() })
-      .where(and(
-        eq(knowledgeBaseComments.id, id),
-        eq(knowledgeBaseComments.tenantId, tenantId)
-      ));
-    return result.changes > 0;
-  }
-
-  // ========================================
-  // VERSION METHODS
-  // ========================================
-  
-  async createVersion(version: any): Promise<any> {
-    const [inserted] = await db
-      .insert(knowledgeBaseArticleVersions)
-      .values(version)
-      .returning();
-    return inserted;
-  }
-
-  async getLatestVersionNumber(articleId: string, tenantId: string): Promise<number> {
-    const [result] = await db
-      .select({ versionNumber: knowledgeBaseArticleVersions.versionNumber })
-      .from(knowledgeBaseArticleVersions)
-      .where(and(
-        eq(knowledgeBaseArticleVersions.articleId, articleId),
-        eq(knowledgeBaseArticleVersions.tenantId, tenantId)
-      ))
-      .orderBy(desc(knowledgeBaseArticleVersions.versionNumber))
-      .limit(1);
-    
-    return result?.versionNumber || 0;
-  }
-
-  async findVersionsByArticle(articleId: string, tenantId: string): Promise<any[]> {
-    const versions = await db
-      .select()
-      .from(knowledgeBaseArticleVersions)
-      .where(and(
-        eq(knowledgeBaseArticleVersions.articleId, articleId),
-        eq(knowledgeBaseArticleVersions.tenantId, tenantId)
-      ))
-      .orderBy(desc(knowledgeBaseArticleVersions.versionNumber));
-    return versions;
-  }
-
-  async findVersionById(id: string, tenantId: string): Promise<any> {
-    const [version] = await db
-      .select()
-      .from(knowledgeBaseArticleVersions)
-      .where(and(
-        eq(knowledgeBaseArticleVersions.id, id),
-        eq(knowledgeBaseArticleVersions.tenantId, tenantId)
-      ));
-    return version || null;
-  }
-
-  // ========================================
-  // SCHEDULED PUBLICATION METHODS
-  // ========================================
-  
-  async createScheduledPublication(schedule: any): Promise<any> {
-    const [inserted] = await db
-      .insert(knowledgeBaseScheduledPublications)
-      .values(schedule)
-      .returning();
-    return inserted;
-  }
-
-  async findScheduledPublicationByArticle(articleId: string, tenantId: string): Promise<any> {
-    const [schedule] = await db
-      .select()
-      .from(knowledgeBaseScheduledPublications)
-      .where(and(
-        eq(knowledgeBaseScheduledPublications.articleId, articleId),
-        eq(knowledgeBaseScheduledPublications.tenantId, tenantId),
-        eq(knowledgeBaseScheduledPublications.status, 'scheduled')
-      ));
-    return schedule || null;
-  }
-
-  async findPendingScheduledPublications(tenantId: string): Promise<any[]> {
-    const schedules = await db
-      .select()
-      .from(knowledgeBaseScheduledPublications)
-      .where(and(
-        eq(knowledgeBaseScheduledPublications.tenantId, tenantId),
-        eq(knowledgeBaseScheduledPublications.status, 'scheduled'),
-        sql`${knowledgeBaseScheduledPublications.scheduledFor} <= NOW()`
-      ));
-    return schedules;
-  }
-
-  async updateScheduledPublication(id: string, updates: any, tenantId: string): Promise<any> {
-    const [updated] = await db
-      .update(knowledgeBaseScheduledPublications)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(
-        eq(knowledgeBaseScheduledPublications.id, id),
-        eq(knowledgeBaseScheduledPublications.tenantId, tenantId)
-      ))
-      .returning();
-    return updated;
-  }
-
-  async deleteScheduledPublication(id: string, tenantId: string): Promise<boolean> {
-    const result = await db
-      .delete(knowledgeBaseScheduledPublications)
-      .where(and(
-        eq(knowledgeBaseScheduledPublications.id, id),
-        eq(knowledgeBaseScheduledPublications.tenantId, tenantId)
-      ));
-    return result.changes > 0;
-  }
-
-  private generateSummary(content: string): string {
-    if (!content) return '';
-
-    // Remove HTML tags se existirem
-    const textContent = content.replace(/<[^>]*>/g, '');
-
-    // Pegar as primeiras 200 caracteres
-    const summary = textContent.length > 200
-      ? textContent.substring(0, 200).trim() + '...'
-      : textContent.trim();
-
-    return summary;
+    return articles.map(article => this.mapToKnowledgeBaseArticle(article));
   }
 }

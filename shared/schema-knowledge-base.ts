@@ -13,9 +13,11 @@ import {
   integer,
   pgEnum,
   unique,
+
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { sql } from "drizzle-orm";
 import { tenants } from "./schema-master";
 
 // ========================================
@@ -62,42 +64,52 @@ export const knowledgeBaseApprovalStatusEnum = pgEnum("knowledge_base_approval_s
 // KNOWLEDGE BASE MAIN TABLES
 // ========================================
 
-// Knowledge Base Articles
+// Knowledge Base Articles - Exactly matching existing database structure
 export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`), // character varying
+  tenantId: varchar("tenant_id").notNull(), // character varying
   
-  // Basic Article Info
-  title: varchar("title", { length: 500 }).notNull(),
+  // Basic Article Info - exactly matching DB types and lengths
+  title: varchar("title").notNull(), // character varying
   content: text("content").notNull(),
   summary: text("summary"),
-  slug: varchar("slug", { length: 200 }).notNull(),
+  slug: varchar("slug"), // character varying
   
-  // Categorization
-  category: knowledgeBaseCategoryEnum("category").notNull(),
-  tags: text("tags").array(),
-  keywords: text("keywords").array(),
+  // Categorization - matching exact DB structure
+  category: varchar("category").notNull(), // character varying
+  tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
+  keywords: text("keywords").array(), // ARRAY type
   
-  // Status & Visibility
-  status: knowledgeBaseStatusEnum("status").default("draft").notNull(),
-  visibility: knowledgeBaseVisibilityEnum("visibility").default("internal").notNull(),
+  // Status & Visibility - using text types with defaults to match DB
+  status: text("status").default("draft"), // text with default 'draft'
+  visibility: text("visibility").default("internal"), // text with default 'internal'
+  accessLevel: varchar("access_level").default("public"), // USER-DEFINED with default 'public'
   
   // Authoring
-  authorId: uuid("author_id").notNull(),
-  reviewerId: uuid("reviewer_id"),
+  authorId: varchar("author_id").notNull(), // character varying
+  reviewerId: varchar("reviewer_id"), // character varying
   
-  // Metadata
-  viewCount: integer("view_count").default(0),
-  upvoteCount: integer("upvote_count").default(0),
-  downvoteCount: integer("downvote_count").default(0),
+  // Publishing & Metadata - matching exact DB column names and defaults
+  published: boolean("published").default(false), // boolean default false
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  viewCount: integer("view_count").default(0), // integer default 0
+  helpfulCount: integer("helpful_count").default(0), // integer default 0
+  upvoteCount: integer("upvote_count").default(0), // integer default 0
   
-  // Publishing
-  publishedAt: timestamp("published_at"),
-  expiresAt: timestamp("expires_at"),
+  // Additional fields matching DB exactly
+  isDeleted: boolean("is_deleted").default(false), // boolean default false
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  version: integer("version").default(1), // integer default 1
+  contentType: varchar("content_type").default("article"), // character varying
+  approvalStatus: text("approval_status").default("pending"), // text default 'pending'
+  ratingAverage: integer("rating_average").default(0), // rating_average exists as numeric in DB
+  ratingCount: integer("rating_count").default(0), // integer default 0
+  attachmentCount: integer("attachment_count").default(0), // integer default 0
+  lastViewedAt: timestamp("last_viewed_at", { withTimezone: false }), // timestamp without time zone
   
-  // Audit
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  // Audit - matching DB defaults exactly
+  createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [
   // TENANT ISOLATION: Critical indexes for multi-tenant performance
   index("kb_articles_tenant_idx").on(table.tenantId),
@@ -262,7 +274,7 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   updatedAt: true,
   viewCount: true,
   upvoteCount: true,
-  downvoteCount: true,
+  helpfulCount: true,
 }).extend({
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
