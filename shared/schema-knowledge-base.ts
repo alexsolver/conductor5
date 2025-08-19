@@ -72,7 +72,6 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // Basic Article Info - exactly matching DB types and lengths
   title: varchar("title").notNull(), // character varying
   content: text("content").notNull(),
-  summary: text("summary"),
   slug: varchar("slug"), // character varying
   
   // Categorization - matching exact DB structure

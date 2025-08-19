@@ -23,14 +23,18 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   // Helper method to convert DB row to domain entity
   private mapToKnowledgeBaseArticle(row: any): KnowledgeBaseArticle {
+    // Gera summary automaticamente do conteúdo (remove HTML tags e limita caracteres)
+    const cleanContent = row.content?.replace(/<[^>]*>/g, '') || '';
+    const summary = cleanContent.length > 200 ? cleanContent.substring(0, 200) + '...' : cleanContent;
+
     return {
       id: row.id,
       tenantId: row.tenantId,
       title: row.title,
       content: row.content,
-      summary: row.content?.substring(0, 200) + '...' || '', // Gera summary do conteúdo
+      summary: summary,
       slug: row.slug,
-      category: row.categoryId,
+      category: row.category || row.categoryId,
       tags: row.tags || [],
       keywords: row.keywords || [],
       status: row.status,
@@ -67,7 +71,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId,
         title: data.title,
         content: data.content,
-        categoryId: data.category,
+        category: data.category,
         tags: data.tags || [],
         visibility: data.visibility || 'internal',
         status: data.status || 'draft',

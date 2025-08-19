@@ -137,15 +137,33 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
       createMutation.mutate(articleData);
 
     } catch (error) {
-      console.error('❌ [CREATE-ARTICLE] Error during submission preparation:', error);
-      toast({
-        title: "❌ Erro ao preparar o artigo",
-        description: "Ocorreu um erro ao preparar os dados. Tente novamente.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
+      console.error('❌ [CREATE-ARTICLE] Error:', error);
+
+      // Tratamento mais específico de erros
+      if (error instanceof Error) {
+        if (error.message.includes('column') && error.message.includes('does not exist')) {
+          toast({
+            title: "❌ Erro de configuração do banco de dados",
+            description: 'Erro de configuração do banco de dados. Contacte o suporte.',
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "❌ Erro ao criar artigo",
+            description: error.message || 'Erro interno do servidor',
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "❌ Erro interno do servidor",
+          description: 'Erro interno do servidor',
+          variant: "destructive",
+        });
+      }
     } finally {
       // The actual setIsSubmitting(false) is handled within createMutation's onError/onSuccess
+      // No explicit setIsSubmitting(false) here as it's managed by tanstack query's mutation state.
     }
   };
 
