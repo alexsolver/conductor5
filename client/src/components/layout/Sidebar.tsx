@@ -634,56 +634,25 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           </div>
         </nav>
 
-        {/* Footer - User info and logout */}
+        {/* Footer - Logout only */}
         <div className="flex-shrink-0 flex border-t border-white border-opacity-20">
           <div className="w-full">
-            <div className={`flex items-center transition-all duration-300 ${
-              collapsed ? 'justify-center p-3' : 'p-3'
-            }`}>
-              {!collapsed ? (
-                <div className="flex items-center w-full">
-                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
-                    <span className="text-sm font-medium text-purple-600">
-                      {user?.email?.charAt(0).toUpperCase() || 'U'}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
-                      {user?.email}
-                    </p>
-                    <p className="text-xs text-white text-opacity-70 truncate">
-                      {user?.role === 'saas_admin' ? 'SaaS Admin' : 
-                       user?.role === 'tenant_admin' ? 'Admin' : 
-                       user?.role === 'agent' ? 'Agente' : 'Usuário'}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => logoutMutation.mutate()}
-                    className="h-8 w-8 p-0 text-white hover:bg-white hover:bg-opacity-10"
-                    title="Fazer logout"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
+            <div className="flex items-center justify-center p-3 transition-all duration-300">
+              <div className="relative group">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => logoutMutation.mutate()}
+                  className="h-10 w-10 p-0 text-white hover:bg-white hover:bg-opacity-20 bg-white bg-opacity-10 rounded-lg transition-all duration-300"
+                  title="Fazer logout"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+                {/* Tooltip */}
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  Fazer logout
                 </div>
-              ) : (
-                <div className="relative group">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => logoutMutation.mutate()}
-                    className="h-10 w-10 p-0 text-white hover:bg-white hover:bg-opacity-20 bg-white bg-opacity-10 rounded-lg transition-all duration-300"
-                    title="Fazer logout"
-                  >
-                    <LogOut className="h-5 w-5" />
-                  </Button>
-                  {/* Tooltip for collapsed state */}
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                    Fazer logout
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
