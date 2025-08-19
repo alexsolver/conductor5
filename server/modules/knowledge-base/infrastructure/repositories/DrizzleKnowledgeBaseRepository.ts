@@ -78,7 +78,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         authorId: data.authorId,
         published: false,
         isDeleted: false,
-        version: 1
+        version: 1,
+        contentType: data.contentType || 'rich_text'
       })
       .returning();
 
@@ -192,6 +193,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       const articles = await db
         .select({
           id: knowledgeBaseArticles.id,
+          tenantId: knowledgeBaseArticles.tenantId,
           title: knowledgeBaseArticles.title,
           content: knowledgeBaseArticles.content,
           category: knowledgeBaseArticles.category,
@@ -204,6 +206,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           viewCount: knowledgeBaseArticles.viewCount,
           helpfulCount: knowledgeBaseArticles.helpfulCount,
           version: knowledgeBaseArticles.version,
+          contentType: knowledgeBaseArticles.contentType,
           createdAt: knowledgeBaseArticles.createdAt,
           updatedAt: knowledgeBaseArticles.updatedAt,
         })
