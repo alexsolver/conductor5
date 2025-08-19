@@ -65,7 +65,7 @@ import { v4 as uuidv4 } from 'uuid';
 import notificationRoutes from './modules/notifications/routes';
 import { slaRoutes } from './modules/sla/routes/slaRoutes';
 import reportsRoutes from './modules/reports/routes';
-import { createKnowledgeBaseRoutes } from './routes/knowledgeBase';
+import { createKnowledgeBaseRoutes } from './modules/knowledge-base/routes';
 
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
 // Legacy imports removed per analysis

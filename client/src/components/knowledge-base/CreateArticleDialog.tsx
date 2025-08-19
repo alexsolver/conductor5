@@ -4,13 +4,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, BookOpen, Save, AlertCircle } from "lucide-react";
+import { Plus, X, BookOpen, Save, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface CreateArticleDialogProps {
   open: boolean;
@@ -201,14 +201,11 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
             <Label htmlFor="content" className="text-sm font-medium">
               Conteúdo *
             </Label>
-            <Textarea
-              id="content"
+            <RichTextEditor
+              content={formData.content}
+              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
               placeholder="Digite o conteúdo do artigo..."
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              rows={8}
-              className="resize-none"
-              data-testid="textarea-article-content"
+              className="min-h-[300px]"
             />
           </div>
 
