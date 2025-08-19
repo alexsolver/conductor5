@@ -96,7 +96,8 @@ export function createKnowledgeBaseRoutes(): Router {
         return res.status(400).json({ success: false, message: 'Autenticação obrigatória' });
       }
 
-      console.log('🔧 [KB-API] Creating article');
+      console.log('📝 [KB-API] Creating article for tenant:', tenantId);
+      console.log('📝 [KB-API] Article data:', req.body);
 
       // Validate input data
       const articleData = insertKnowledgeBaseArticleSchema.parse({
@@ -105,7 +106,7 @@ export function createKnowledgeBaseRoutes(): Router {
       });
 
       const service = new KnowledgeBaseApplicationService(tenantId);
-      const result = await service.createArticle(articleData);
+      const result = await service.createArticle(articleData, userId);
 
       console.log('✅ [KB-API] Article created successfully');
       res.status(201).json(result);
@@ -142,7 +143,7 @@ export function createKnowledgeBaseRoutes(): Router {
       });
 
       const service = new KnowledgeBaseApplicationService(tenantId);
-      const result = await service.updateArticle(id, updateData);
+      const result = await service.updateArticle(id, updateData, userId);
 
       if (!result.success) {
         return res.status(404).json(result);
@@ -177,7 +178,7 @@ export function createKnowledgeBaseRoutes(): Router {
       console.log('🔧 [KB-API] Deleting article:', id);
 
       const service = new KnowledgeBaseApplicationService(tenantId);
-      const result = await service.deleteArticle(id);
+      const result = await service.deleteArticle(id, userId);
 
       if (!result.success) {
         return res.status(404).json(result);

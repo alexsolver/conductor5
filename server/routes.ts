@@ -421,7 +421,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ KNOWLEDGE BASE CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [KNOWLEDGE-BASE] Initializing Knowledge Base Clean Architecture module...');
-  app.use('/api/knowledge-base', knowledgeBaseRoutes);
+  const { createKnowledgeBaseRoutes } = await import('./routes/knowledgeBase');
+  app.use('/api/knowledge-base', createKnowledgeBaseRoutes());
   console.log('✅ [KNOWLEDGE-BASE] Clean Architecture module registered at /api/knowledge-base');
 
   // ✅ Priority 3: Beneficiaries routes - CLEAN ARCHITECTURE per 1qa.md
