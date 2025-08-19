@@ -1,4 +1,3 @@
-
 /**
  * Translation Completion Panel
  * Automated translation completion interface following 1qa.md patterns
@@ -22,7 +21,10 @@ import {
   Search, 
   TrendingUp,
   Globe,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  Eye,
+  Replace
 } from 'lucide-react';
 
 interface TranslationStats {
@@ -43,10 +45,26 @@ interface CompletionReport {
   }>;
 }
 
+interface HardcodedText {
+  file: string;
+  line: number;
+  text: string;
+  suggestedKey: string;
+  context: string;
+}
+
 export function TranslationCompletionPanel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [isDetectingHardcoded, setIsDetectingHardcoded] = useState(false);
+  const [isReplacingHardcoded, setIsReplacingHardcoded] = useState(false);
+  const [hardcodedTexts, setHardcodedTexts] = useState<HardcodedText[]>([]);
+  const [replacementResults, setReplacementResults] = useState<any>(null);
+
 
   // Query para análise de completude
   const { data: completionReport, isLoading: isLoadingReport, refetch } = useQuery({
@@ -106,11 +124,105 @@ export function TranslationCompletionPanel() {
     }
   });
 
-  const handleCompleteTranslations = (force: boolean = false) => {
-    completeTranslationsMutation.mutate({ 
-      force, 
-      languages: selectedLanguages 
-    });
+  // Completar traduções automaticamente
+  const handleCompleteTranslations = async (force = false) => {
+    setIsCompleting(true);
+    try {
+      const response = await apiRequest('/api/translation-completion/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ force })
+      });
+
+      if (response.success) {
+        toast({
+          title: "Traduções Completadas",
+          description: response.message,
+        });
+
+        // Atualiza os dados
+        await refetch(); // Usando refetch diretamente para revalidar
+      }
+    } catch (error: any) {
+      console.error('Error completing translations:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao completar traduções",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
+  // Detectar textos hardcoded
+  const handleDetectHardcoded = async () => {
+    setIsDetectingHardcoded(true);
+    try {
+      const response = await apiRequest('/api/translation-completion/detect-hardcoded');
+
+      if (response.success) {
+        setHardcodedTexts(response.data.hardcodedTexts || []);
+        toast({
+          title: "Detecção Completa",
+          description: `Encontrados ${response.data.summary.totalTexts} textos hardcoded em ${response.data.summary.totalFiles} arquivos`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error detecting hardcoded texts:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao detectar textos hardcoded",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDetectingHardcoded(false);
+    }
+  };
+
+  // Substituir textos hardcoded
+  const handleReplaceHardcoded = async (dryRun = true) => {
+    setIsReplacingHardcoded(true);
+    try {
+      const response = await apiRequest('/api/translation-completion/replace-hardcoded', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ dryRun })
+      });
+
+      if (response.success) {
+        setReplacementResults(response.data);
+        toast({
+          title: dryRun ? "Simulação Completa" : "Substituição Completa",
+          description: response.message,
+        });
+
+        if (!dryRun) {
+          // Atualiza dados após aplicar mudanças reais
+          queryClient.invalidateQueries({ queryKey: ['/api/translation-completion/analyze'] });
+          await handleDetectHardcoded();
+        }
+      }
+    } catch (error: any) {
+      console.error('Error replacing hardcoded texts:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao substituir textos hardcoded",
+        variant: "destructive",
+      });
+    } finally {
+      setIsReplacingHardcoded(false);
+    }
+  };
+
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true);
+    await refetch(); // Revalida os dados da análise
+    setIsAnalyzing(false);
   };
 
   const getCompletenessColor = (completeness: number): string => {
@@ -229,11 +341,11 @@ export function TranslationCompletionPanel() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="languages">Por Idioma</TabsTrigger>
-          <TabsTrigger value="modules">Por Módulo</TabsTrigger>
-          <TabsTrigger value="actions">Ações</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="gaps">Gaps por Idioma</TabsTrigger>
+            <TabsTrigger value="keys">Chaves Detectadas</TabsTrigger>
+            <TabsTrigger value="hardcoded">Textos Hardcoded</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -272,7 +384,7 @@ export function TranslationCompletionPanel() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="languages" className="space-y-4">
+        <TabsContent value="gaps" className="space-y-4">
           {report?.gaps.map((gap) => (
             <Card key={gap.language}>
               <CardHeader>
@@ -309,7 +421,7 @@ export function TranslationCompletionPanel() {
           ))}
         </TabsContent>
 
-        <TabsContent value="modules" className="space-y-4">
+        <TabsContent value="keys" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Distribuição por Módulo</CardTitle>
@@ -339,74 +451,158 @@ export function TranslationCompletionPanel() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="actions" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                Completude Automática
-              </CardTitle>
-              <CardDescription>
-                Complete automaticamente as traduções faltantes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  A completude automática usará traduções pré-definidas quando disponíveis 
-                  ou gerará fallbacks baseados nas chaves em inglês.
-                </AlertDescription>
-              </Alert>
+          {/* Aba de Textos Hardcoded */}
+          <TabsContent value="hardcoded" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Textos Hardcoded Detectados</h3>
+                <p className="text-sm text-muted-foreground">
+                  Detecta e substitui textos hardcoded por chaves de tradução
+                </p>
+              </div>
+              <div className="space-x-2">
+                <Button
+                  onClick={handleDetectHardcoded}
+                  disabled={isDetectingHardcoded}
+                  variant="outline"
+                >
+                  {isDetectingHardcoded ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Detectando...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="mr-2 h-4 w-4" />
+                      Detectar Hardcoded
+                    </>
+                  )}
+                </Button>
+                {hardcodedTexts.length > 0 && (
+                  <>
+                    <Button
+                      onClick={() => handleReplaceHardcoded(true)}
+                      disabled={isReplacingHardcoded}
+                      variant="outline"
+                    >
+                      {isReplacingHardcoded ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Simulando...
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Simular Substituição
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => handleReplaceHardcoded(false)}
+                      disabled={isReplacingHardcoded}
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      {isReplacingHardcoded ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Aplicando...
+                        </>
+                      ) : (
+                        <>
+                          <Replace className="mr-2 h-4 w-4" />
+                          Aplicar Substituições
+                        </>
+                      )}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
 
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium">Selecionar Idiomas (opcional)</label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {['pt-BR', 'es', 'fr', 'de'].map((lang) => (
-                      <Button
-                        key={lang}
-                        variant={selectedLanguages.includes(lang) ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => {
-                          setSelectedLanguages(prev => 
-                            prev.includes(lang) 
-                              ? prev.filter(l => l !== lang)
-                              : [...prev, lang]
-                          );
-                        }}
-                      >
-                        {lang}
-                      </Button>
+            {/* Resultados da Substituição */}
+            {replacementResults && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">
+                    Resultados da {replacementResults.mode === 'simulation' ? 'Simulação' : 'Aplicação'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <div className="font-medium">Arquivos Processados</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {replacementResults.summary.totalFiles}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-medium">Substituições</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {replacementResults.summary.totalReplacements}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-medium">Sucessos</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {replacementResults.summary.successfulFiles}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-medium">Erros</div>
+                      <div className="text-2xl font-bold text-red-600">
+                        {replacementResults.summary.filesWithErrors}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Lista de Textos Hardcoded */}
+            {hardcodedTexts.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">
+                    Textos Hardcoded Encontrados ({hardcodedTexts.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {hardcodedTexts.map((item, index) => (
+                      <div key={index} className="border rounded p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Badge variant="outline" className="text-xs">
+                            {item.file.split('/').pop()}:{item.line}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {item.suggestedKey}
+                          </Badge>
+                        </div>
+                        <div className="text-sm">
+                          <div className="font-medium text-red-600">"{item.text}"</div>
+                          <div className="text-muted-foreground text-xs mt-1">
+                            Contexto: {item.context}
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Deixe vazio para processar todos os idiomas
-                  </p>
-                </div>
+                </CardContent>
+              </Card>
+            )}
 
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleCompleteTranslations(false)}
-                    disabled={completeTranslationsMutation.isPending}
-                    className="flex-1"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    {completeTranslationsMutation.isPending ? 'Processando...' : 'Completar Traduções'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleCompleteTranslations(true)}
-                    disabled={completeTranslationsMutation.isPending}
-                  >
-                    <Zap className="w-4 h-4 mr-2" />
-                    Forçar Todas
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            {hardcodedTexts.length === 0 && !isDetectingHardcoded && (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <Search className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Nenhum Texto Hardcoded Detectado</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Clique em "Detectar Hardcoded" para escanear o código
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
       </Tabs>
     </div>
   );

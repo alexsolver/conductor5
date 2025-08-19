@@ -174,6 +174,97 @@ router.get('/gaps/:language', jwtAuth, async (req: AuthenticatedRequest, res) =>
 });
 
 /**
+ * GET /api/translation-completion/detect-hardcoded
+ * Detecta textos hardcoded que precisam ser traduzidos
+ */
+router.get('/detect-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({ message: 'SaaS admin access required' });
+    }
+
+    const hardcodedTexts = await translationService.detectHardcodedTexts();
+
+    // Agrupa por arquivo para melhor visualização
+    const fileGroups = hardcodedTexts.reduce((acc, item) => {
+      if (!acc[item.file]) {
+        acc[item.file] = [];
+      }
+      acc[item.file].push(item);
+      return acc;
+    }, {} as Record<string, typeof hardcodedTexts>);
+
+    const summary = {
+      totalTexts: hardcodedTexts.length,
+      totalFiles: Object.keys(fileGroups).length,
+      byModule: hardcodedTexts.reduce((acc, item) => {
+        const module = item.suggestedKey.split('.')[0];
+        acc[module] = (acc[module] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    };
+
+    res.json({
+      success: true,
+      data: {
+        summary,
+        fileGroups,
+        hardcodedTexts: hardcodedTexts.slice(0, 50) // Limita para não sobrecarregar
+      }
+    });
+
+  } catch (error) {
+    console.error('Error detecting hardcoded texts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to detect hardcoded texts'
+    });
+  }
+});
+
+/**
+ * POST /api/translation-completion/replace-hardcoded
+ * Substitui textos hardcoded por chaves de tradução
+ */
+router.post('/replace-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({ message: 'SaaS admin access required' });
+    }
+
+    const { dryRun = true } = req.body;
+
+    const results = await translationService.replaceHardcodedTexts(dryRun);
+
+    const summary = {
+      totalFiles: results.length,
+      successfulFiles: results.filter(r => r.success).length,
+      totalReplacements: results.reduce((sum, r) => sum + r.replacements, 0),
+      filesWithErrors: results.filter(r => !r.success).length
+    };
+
+    res.json({
+      success: true,
+      data: {
+        summary,
+        results,
+        mode: dryRun ? 'simulation' : 'applied'
+      },
+      message: dryRun 
+        ? `Simulation complete: ${summary.totalReplacements} replacements would be made`
+        : `Applied ${summary.totalReplacements} replacements across ${summary.successfulFiles} files`
+    });
+
+  } catch (error) {
+    console.error('Error replacing hardcoded texts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to replace hardcoded texts'
+    });
+  }
+});
+
+/**
  * POST /api/translation-completion/validate
  * Valida integridade das traduções
  */
