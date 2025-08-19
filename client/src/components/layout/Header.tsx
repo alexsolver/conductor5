@@ -6,6 +6,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 export function Header() {
   const { user, logoutMutation } = useAuth();
@@ -94,7 +95,7 @@ export function Header() {
               <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-green-500 ring-2 ring-white dark:ring-gray-800 animate-pulse"></span>
             </Button>
           )}
-          
+
           {/* Notifications */}
           <Button
             variant="ghost"
@@ -159,18 +160,11 @@ export function Header() {
                     <span>Meu Perfil</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/timecard" className="flex items-center">
-                    <Clock className="mr-2 h-4 w-4" />
-                    <span>Registro de Ponto</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Configurações</span>
-                  </Link>
-                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="px-2 py-1.5">
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Idioma</div>
+                  <LanguageSelector variant="compact" showFlag={true} />
+                </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-red-600 cursor-pointer"
