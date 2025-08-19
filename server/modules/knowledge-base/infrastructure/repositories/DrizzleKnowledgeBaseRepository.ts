@@ -21,7 +21,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId,
         title: article.title,
         content: article.content,
-        summary: article.summary || null,
         category: article.category as any,
         tags: article.tags,
         authorId: article.authorId,
@@ -73,7 +72,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .set({
         title: updates.title,
         content: updates.content,
-        summary: updates.summary,
         tags: updates.tags,
         updatedAt: new Date()
       })
