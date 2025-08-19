@@ -1,0 +1,45 @@
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] Multiple exports with the same name "TranslationCompletionPanel"
+
+    client/src/components/TranslationCompletionPanel.tsx:230:16:
+      230 │ export function TranslationCompletionPanel() {
+          ╵                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The name "TranslationCompletionPanel" was originally exported here:
+
+    client/src/components/TranslationCompletionPanel.tsx:48:16:
+      48 │ export function TranslationCompletionPanel() {
+         ╵                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] The symbol "TranslationCompletionPanel" has already been declared
+
+    client/src/components/TranslationCompletionPanel.tsx:230:16:
+      230 │ export function TranslationCompletionPanel() {
+          ╵                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The symbol "TranslationCompletionPanel" was originally declared here:
+
+    client/src/components/TranslationCompletionPanel.tsx:48:16:
+      48 │ export function TranslationCompletionPanel() {
+         ╵                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Duplicate top-level function declarations are not allowed in an ECMAScript module. This file is considered to be an ECMAScript module because of the "export" keyword here:
+
+    client/src/components/TranslationCompletionPanel.tsx:230:0:
+      230 │ export function TranslationCompletionPanel() {
+          ╵ ~~~~~~
+
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/home/runner/workspace/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/home/runner/workspace/node_modules/esbuild/lib/main.js:924:7)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:936:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/home/runner/workspace/node_modules/esbuild/lib/main.js:935:54)
+    at handleRequest (/home/runner/workspace/node_modules/esbuild/lib/main.js:628:17)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:653:7)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)
