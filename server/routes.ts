@@ -4588,13 +4588,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const integrations = [];
       for (const baseIntegration of baseIntegrations) {
         try {
+          console.log(`🔍 [SAAS-ADMIN-INTEGRATIONS] Checking config for ${baseIntegration.id}`);
+          
           const configResult = await pool.query(`
             SELECT config FROM "public"."system_integrations" 
             WHERE integration_id = $1
           `, [baseIntegration.id]);
 
+          console.log(`🔍 [SAAS-ADMIN-INTEGRATIONS] Query result for ${baseIntegration.id}:`, {
+            rowCount: configResult.rows.length,
+            hasConfig: !!configResult.rows[0]?.config,
+            configKeys: configResult.rows[0]?.config ? Object.keys(configResult.rows[0].config) : []
+          });
+
           const savedConfig = configResult.rows[0]?.config || {};
           const hasApiKey = savedConfig?.apiKey && savedConfig.apiKey.length > 0;
+
+          console.log(`✅ [SAAS-ADMIN-INTEGRATIONS] Final config for ${baseIntegration.id}:`, {
+            hasApiKey,
+            status: hasApiKey ? 'connected' : 'disconnected',
+            configNotEmpty: Object.keys(savedConfig).length > 0
+          });
 
           integrations.push({
             ...baseIntegration,
@@ -4604,6 +4618,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastTested: savedConfig?.lastTested || null
           });
         } catch (error) {
+          console.error(`❌ [SAAS-ADMIN-INTEGRATIONS] Error loading config for ${baseIntegration.id}:`, error);
+          
           // If no config found, use defaults
           integrations.push({
             ...baseIntegration,
