@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, X, BookOpen, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { RichTextEditor } from "./RichTextEditorFixed";
+import { ModernRichTextEditor } from "./ModernRichTextEditor";
 
 interface CreateArticleDialogProps {
   isOpen: boolean;
@@ -238,8 +238,8 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
             <Label htmlFor="content" className="text-sm font-medium">
               Conteúdo *
             </Label>
-            <RichTextEditor
-              content={content}
+            <ModernRichTextEditor
+              value={content}
               onChange={setContent}
               placeholder="Digite o conteúdo do artigo..."
               className="min-h-[300px]"

@@ -35,7 +35,7 @@ export const knowledgeBaseStatusEnum = pgEnum("knowledge_base_status", [
 
 export const knowledgeBaseCategoryEnum = pgEnum("knowledge_base_category", [
   "technical_support",
-  "troubleshooting",
+  "troubleshooting", 
   "user_guide",
   "faq",
   "policy",
@@ -43,6 +43,7 @@ export const knowledgeBaseCategoryEnum = pgEnum("knowledge_base_category", [
   "training",
   "announcement",
   "best_practice",
+  "configuration",
   "other"
 ]);
 

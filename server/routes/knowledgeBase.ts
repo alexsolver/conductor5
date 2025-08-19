@@ -30,15 +30,15 @@ export function createKnowledgeBaseRoutes(): Router {
 
       console.log('🔍 [KB-API] Searching articles');
       
-      // Validate search parameters
+      // Validate search parameters with default values
       const searchParams = knowledgeBaseSearchSchema.parse({
-        query: req.query.q || req.query.query,
+        query: req.query.q || req.query.query || '', // Provide default empty string
         category: req.query.category,
         tags: req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags : [req.query.tags]) : undefined,
         visibility: req.query.visibility,
         status: req.query.status,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
+        offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
       });
 
       const service = new KnowledgeBaseApplicationService(tenantId);
