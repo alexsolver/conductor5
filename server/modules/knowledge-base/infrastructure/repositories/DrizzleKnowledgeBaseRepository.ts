@@ -37,19 +37,19 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       category: row.categoryId || row.category,
       tags: row.tags || [],
       keywords: [],
-      status: row.status,
+      status: row.status || 'draft',
       visibility: 'internal', // Default since accessLevel column doesn't exist in DB
       accessLevel: 'internal', // Default since accessLevel column doesn't exist in DB
       authorId: row.authorId,
-      reviewerId: row.reviewerId,
-      published: row.published,
+      reviewerId: row.reviewerId || null, // Handle missing column
+      published: row.published || false, // Handle missing column with default
       publishedAt: row.publishedAt?.toISOString() || null,
       viewCount: row.viewCount || 0,
       helpfulCount: row.helpfulCount || 0,
       upvoteCount: row.upvoteCount || 0,
-      isDeleted: row.isDeleted,
+      isDeleted: row.isDeleted || false, // Handle missing column with default
       deletedAt: row.deletedAt?.toISOString() || null,
-      version: row.version || 1,
+      version: row.version || 1, // Handle missing column with default
       contentType: row.contentType || 'rich_text',
       approvalStatus: row.approvalStatus || 'not_submitted',
       ratingAverage: row.ratingAverage || 0,
@@ -75,9 +75,10 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tags: data.tags || [],
         status: data.status || 'draft',
         authorId: data.authorId,
-        published: false,
-        isDeleted: false,
-        version: 1,
+        // Remove fields that don't exist in current DB schema
+        // published: false, - column doesn't exist
+        // isDeleted: false, - column doesn't exist  
+        // version: 1, - column doesn't exist
         contentType: data.contentType || 'rich_text'
       })
       .returning();
@@ -91,8 +92,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.id, id),
-        eq(knowledgeBaseArticles.tenantId, tenantId),
-        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+        eq(knowledgeBaseArticles.tenantId, tenantId)
+        // Remove isDeleted condition since column doesn't exist
       ));
 
     return result ? this.mapToKnowledgeBaseArticle(result) : null;
@@ -115,11 +116,12 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
+    // Since isDeleted and deletedAt columns don't exist, we'll use status instead
     const [result] = await db
       .update(knowledgeBaseArticles)
       .set({
-        isDeleted: true,
-        deletedAt: new Date()
+        status: 'archived', // Use archived status instead of soft delete
+        updatedAt: new Date()
       })
       .where(and(
         eq(knowledgeBaseArticles.id, id),
@@ -136,8 +138,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       console.log(`🔍 [KB-SEARCH] Starting search with:`, { tenantId: effectiveTenantId, query });
 
       const conditions = [
-        eq(knowledgeBaseArticles.tenantId, effectiveTenantId),
-        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+        eq(knowledgeBaseArticles.tenantId, effectiveTenantId)
+        // Remove isDeleted condition since column doesn't exist in current schema
       ];
 
       // Add text search condition
@@ -190,7 +192,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           orderBy = sortOrder === 'asc' ? asc(knowledgeBaseArticles.updatedAt) : desc(knowledgeBaseArticles.updatedAt);
       }
 
-      // Execute search query
+      // Execute search query - only select columns that exist in DB
       const articles = await db
         .select({
           id: knowledgeBaseArticles.id,
@@ -201,11 +203,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           tags: knowledgeBaseArticles.tags,
           status: knowledgeBaseArticles.status,
           authorId: knowledgeBaseArticles.authorId,
-          published: knowledgeBaseArticles.published,
-          publishedAt: knowledgeBaseArticles.publishedAt,
-          viewCount: knowledgeBaseArticles.viewCount,
-          helpfulCount: knowledgeBaseArticles.helpfulCount,
-          version: knowledgeBaseArticles.version,
+          // Only include columns that actually exist in the database
           contentType: knowledgeBaseArticles.contentType,
           createdAt: knowledgeBaseArticles.createdAt,
           updatedAt: knowledgeBaseArticles.updatedAt,
@@ -250,8 +248,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.tenantId, tenantId),
-        eq(knowledgeBaseArticles.categoryId, category),
-        or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
+        eq(knowledgeBaseArticles.categoryId, category)
       ))
       .orderBy(desc(knowledgeBaseArticles.updatedAt));
 
@@ -305,8 +302,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .update(knowledgeBaseArticles)
       .set({
         status: 'published',
-        published: true,
-        publishedAt: new Date(),
+        // Only update columns that exist in the database
         updatedAt: new Date()
       })
       .where(and(
@@ -323,8 +319,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .update(knowledgeBaseArticles)
       .set({
         status: 'draft',
-        published: false,
-        publishedAt: null,
+        // Only update columns that exist in the database
         updatedAt: new Date()
       })
       .where(and(
@@ -374,8 +369,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .update(knowledgeBaseArticles)
       .set({
         status: 'approved',
-        approvalStatus: 'approved',
-        reviewerId,
+        // Only update columns that exist in the database
         updatedAt: new Date()
       })
       .where(and(
@@ -392,8 +386,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .update(knowledgeBaseArticles)
       .set({
         status: 'rejected',
-        approvalStatus: 'rejected',
-        reviewerId,
+        // Only update columns that exist in the database
         updatedAt: new Date()
       })
       .where(and(
