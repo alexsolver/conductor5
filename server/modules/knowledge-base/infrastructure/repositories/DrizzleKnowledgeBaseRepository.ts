@@ -47,7 +47,22 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async findById(id: string, tenantId: string): Promise<KnowledgeBaseArticle | null> {
     const [article] = await db
-      .select()
+      .select({
+        id: knowledgeBaseArticles.id,
+        tenantId: knowledgeBaseArticles.tenantId,
+        title: knowledgeBaseArticles.title,
+        content: knowledgeBaseArticles.content,
+        slug: knowledgeBaseArticles.slug,
+        category: knowledgeBaseArticles.category,
+        tags: knowledgeBaseArticles.tags,
+        authorId: knowledgeBaseArticles.authorId,
+        status: knowledgeBaseArticles.status,
+        visibility: knowledgeBaseArticles.visibility,
+        published: knowledgeBaseArticles.published,
+        createdAt: knowledgeBaseArticles.createdAt,
+        updatedAt: knowledgeBaseArticles.updatedAt,
+        viewCount: knowledgeBaseArticles.viewCount
+      })
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.id, id),
@@ -124,7 +139,22 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       }
 
       const articles = await db
-        .select()
+        .select({
+          id: knowledgeBaseArticles.id,
+          tenantId: knowledgeBaseArticles.tenantId,
+          title: knowledgeBaseArticles.title,
+          content: knowledgeBaseArticles.content,
+          slug: knowledgeBaseArticles.slug,
+          category: knowledgeBaseArticles.category,
+          tags: knowledgeBaseArticles.tags,
+          authorId: knowledgeBaseArticles.authorId,
+          status: knowledgeBaseArticles.status,
+          visibility: knowledgeBaseArticles.visibility,
+          published: knowledgeBaseArticles.published,
+          createdAt: knowledgeBaseArticles.createdAt,
+          updatedAt: knowledgeBaseArticles.updatedAt,
+          viewCount: knowledgeBaseArticles.viewCount
+        })
         .from(knowledgeBaseArticles)
         .where(and(...conditions))
         .orderBy(desc(knowledgeBaseArticles.updatedAt))
