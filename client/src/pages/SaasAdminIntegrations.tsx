@@ -102,8 +102,21 @@ export default function SaasAdminIntegrations() {
     mutationFn: async ({ integrationId, config }: { integrationId: string; config: any }) => {
       console.log('🔧 [SAAS-ADMIN-CONFIG] Salvando configuração:', { integrationId, hasApiKey: !!config.apiKey });
 
+      // Sanitizar dados antes de enviar
+      const sanitizedConfig = {
+        ...config,
+        apiKey: config.apiKey ? config.apiKey.toString().trim() : '',
+        baseUrl: config.baseUrl ? config.baseUrl.toString().trim() : '',
+        maxTokens: Number(config.maxTokens) || 4000,
+        temperature: Number(config.temperature) || 0.7,
+        enabled: Boolean(config.enabled)
+      };
+
       const url = `/api/saas-admin/integrations/${integrationId}/config`;
-      return apiRequest('PUT', url, config);
+      return apiRequest(url, {
+        method: 'PUT',
+        body: JSON.stringify(sanitizedConfig),
+      });
     },
     onSuccess: (data) => {
       console.log('✅ [SAAS-ADMIN-CONFIG] Configuração salva com sucesso:', data);
