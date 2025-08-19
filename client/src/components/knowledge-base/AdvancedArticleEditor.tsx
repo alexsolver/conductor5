@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { RichTextEditor } from './RichTextEditor';
+import { RichTextEditor } from './RichTextEditorFixed';
 import { TemplateSelector } from './TemplateSelector';
 import { CommentsSection } from './CommentsSection';
 import { PublicationScheduler } from './PublicationScheduler';
@@ -38,7 +38,7 @@ interface Article {
   content: string;
   category: string;
   tags: string[];
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'pending_approval' | 'approved' | 'published' | 'archived' | 'rejected';
   visibility: 'public' | 'private' | 'internal';
   summary?: string;
   authorId?: string;
@@ -103,14 +103,18 @@ export function AdvancedArticleEditor({ articleId, onSave, onCancel }: AdvancedA
         : '/api/knowledge-base/articles';
       const method = articleId ? 'PUT' : 'POST';
       
-      return await apiRequest(endpoint, method, articleData);
+      return await apiRequest(method, endpoint, articleData);
     },
     onSuccess: (data) => {
       toast({
         title: "Sucesso",
         description: articleId ? "Artigo atualizado" : "Artigo criado"
       });
-      onSave?.(data.data);
+      if (data && typeof data === 'object' && 'data' in data) {
+        onSave?.(data.data);
+      } else {
+        onSave?.(data);
+      }
       queryClient.invalidateQueries({ 
         queryKey: ['/api/knowledge-base/articles'] 
       });

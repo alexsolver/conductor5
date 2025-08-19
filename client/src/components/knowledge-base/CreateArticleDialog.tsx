@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, X, BookOpen, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { RichTextEditor } from "./RichTextEditor";
+import { RichTextEditor } from "./RichTextEditorFixed";
 
 interface CreateArticleDialogProps {
   isOpen: boolean;
