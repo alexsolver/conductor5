@@ -5,9 +5,9 @@ import { eq, and, like, desc, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { knowledgeBaseArticles } from '../../../../../shared/schema-knowledge-base';
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
-import { 
-  KnowledgeBaseArticle, 
-  KnowledgeBaseSearchQuery, 
+import {
+  KnowledgeBaseArticle,
+  KnowledgeBaseSearchQuery,
   KnowledgeBaseSearchResult,
   ArticleAttachment,
   ApprovalHistoryEntry
@@ -29,7 +29,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         visibility: 'internal'
       })
       .returning();
-    
+
     return {
       ...created,
       summary: created.content?.substring(0, 200) + '...' || undefined,
@@ -58,7 +58,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         authorId: knowledgeBaseArticles.authorId,
         status: knowledgeBaseArticles.status,
         visibility: knowledgeBaseArticles.visibility,
-        published: knowledgeBaseArticles.published,
+        publishedAt: knowledgeBaseArticles.publishedAt,
         createdAt: knowledgeBaseArticles.createdAt,
         updatedAt: knowledgeBaseArticles.updatedAt,
         viewCount: knowledgeBaseArticles.viewCount
@@ -128,7 +128,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
   async search(query: KnowledgeBaseSearchQuery, tenantId: string): Promise<KnowledgeBaseSearchResult> {
     try {
       console.log(`🔍 [KB-SEARCH] Starting search with:`, { tenantId, query });
-      
+
       const conditions = [eq(knowledgeBaseArticles.tenantId, tenantId)];
 
       // Only add search condition if query is provided and not empty
@@ -150,7 +150,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           authorId: knowledgeBaseArticles.authorId,
           status: knowledgeBaseArticles.status,
           visibility: knowledgeBaseArticles.visibility,
-          published: knowledgeBaseArticles.published,
+          publishedAt: knowledgeBaseArticles.publishedAt,
           createdAt: knowledgeBaseArticles.createdAt,
           updatedAt: knowledgeBaseArticles.updatedAt,
           viewCount: knowledgeBaseArticles.viewCount
@@ -187,7 +187,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         totalFromDB: total,
         sampleTitles: articles.slice(0, 3).map(a => a.title)
       });
-      
+
       return {
         articles: mappedArticles,
         total,
