@@ -202,7 +202,22 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async findByCategory(category: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select()
+      .select({
+        id: knowledgeBaseArticles.id,
+        tenantId: knowledgeBaseArticles.tenantId,
+        title: knowledgeBaseArticles.title,
+        content: knowledgeBaseArticles.content,
+        slug: knowledgeBaseArticles.slug,
+        category: knowledgeBaseArticles.category,
+        tags: knowledgeBaseArticles.tags,
+        authorId: knowledgeBaseArticles.authorId,
+        status: knowledgeBaseArticles.status,
+        visibility: knowledgeBaseArticles.visibility,
+        published: knowledgeBaseArticles.published,
+        createdAt: knowledgeBaseArticles.createdAt,
+        updatedAt: knowledgeBaseArticles.updatedAt,
+        viewCount: knowledgeBaseArticles.viewCount
+      })
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.tenantId, tenantId)
@@ -210,6 +225,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
+      summary: article.content?.substring(0, 200) + '...' || undefined,
+      tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
       attachments: [] as ArticleAttachment[],
@@ -222,7 +239,22 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async findByAuthor(authorId: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select()
+      .select({
+        id: knowledgeBaseArticles.id,
+        tenantId: knowledgeBaseArticles.tenantId,
+        title: knowledgeBaseArticles.title,
+        content: knowledgeBaseArticles.content,
+        slug: knowledgeBaseArticles.slug,
+        category: knowledgeBaseArticles.category,
+        tags: knowledgeBaseArticles.tags,
+        authorId: knowledgeBaseArticles.authorId,
+        status: knowledgeBaseArticles.status,
+        visibility: knowledgeBaseArticles.visibility,
+        published: knowledgeBaseArticles.published,
+        createdAt: knowledgeBaseArticles.createdAt,
+        updatedAt: knowledgeBaseArticles.updatedAt,
+        viewCount: knowledgeBaseArticles.viewCount
+      })
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.authorId, authorId),
@@ -243,7 +275,22 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async findByTags(tags: string[], tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select()
+      .select({
+        id: knowledgeBaseArticles.id,
+        tenantId: knowledgeBaseArticles.tenantId,
+        title: knowledgeBaseArticles.title,
+        content: knowledgeBaseArticles.content,
+        slug: knowledgeBaseArticles.slug,
+        category: knowledgeBaseArticles.category,
+        tags: knowledgeBaseArticles.tags,
+        authorId: knowledgeBaseArticles.authorId,
+        status: knowledgeBaseArticles.status,
+        visibility: knowledgeBaseArticles.visibility,
+        published: knowledgeBaseArticles.published,
+        createdAt: knowledgeBaseArticles.createdAt,
+        updatedAt: knowledgeBaseArticles.updatedAt,
+        viewCount: knowledgeBaseArticles.viewCount
+      })
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.tenantId, tenantId)
@@ -288,7 +335,22 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async getPopularArticles(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select()
+      .select({
+        id: knowledgeBaseArticles.id,
+        tenantId: knowledgeBaseArticles.tenantId,
+        title: knowledgeBaseArticles.title,
+        content: knowledgeBaseArticles.content,
+        slug: knowledgeBaseArticles.slug,
+        category: knowledgeBaseArticles.category,
+        tags: knowledgeBaseArticles.tags,
+        authorId: knowledgeBaseArticles.authorId,
+        status: knowledgeBaseArticles.status,
+        visibility: knowledgeBaseArticles.visibility,
+        published: knowledgeBaseArticles.published,
+        createdAt: knowledgeBaseArticles.createdAt,
+        updatedAt: knowledgeBaseArticles.updatedAt,
+        viewCount: knowledgeBaseArticles.viewCount
+      })
       .from(knowledgeBaseArticles)
       .where(eq(knowledgeBaseArticles.tenantId, tenantId))
       .orderBy(desc(knowledgeBaseArticles.viewCount))
@@ -336,7 +398,22 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async getByApprovalStatus(status: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select()
+      .select({
+        id: knowledgeBaseArticles.id,
+        tenantId: knowledgeBaseArticles.tenantId,
+        title: knowledgeBaseArticles.title,
+        content: knowledgeBaseArticles.content,
+        slug: knowledgeBaseArticles.slug,
+        category: knowledgeBaseArticles.category,
+        tags: knowledgeBaseArticles.tags,
+        authorId: knowledgeBaseArticles.authorId,
+        status: knowledgeBaseArticles.status,
+        visibility: knowledgeBaseArticles.visibility,
+        published: knowledgeBaseArticles.published,
+        createdAt: knowledgeBaseArticles.createdAt,
+        updatedAt: knowledgeBaseArticles.updatedAt,
+        viewCount: knowledgeBaseArticles.viewCount
+      })
       .from(knowledgeBaseArticles)
       .where(eq(knowledgeBaseArticles.tenantId, tenantId));
 
@@ -354,7 +431,22 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async getRecentActivity(limit: number, tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select()
+      .select({
+        id: knowledgeBaseArticles.id,
+        tenantId: knowledgeBaseArticles.tenantId,
+        title: knowledgeBaseArticles.title,
+        content: knowledgeBaseArticles.content,
+        slug: knowledgeBaseArticles.slug,
+        category: knowledgeBaseArticles.category,
+        tags: knowledgeBaseArticles.tags,
+        authorId: knowledgeBaseArticles.authorId,
+        status: knowledgeBaseArticles.status,
+        visibility: knowledgeBaseArticles.visibility,
+        published: knowledgeBaseArticles.published,
+        createdAt: knowledgeBaseArticles.createdAt,
+        updatedAt: knowledgeBaseArticles.updatedAt,
+        viewCount: knowledgeBaseArticles.viewCount
+      })
       .from(knowledgeBaseArticles)
       .where(eq(knowledgeBaseArticles.tenantId, tenantId))
       .orderBy(desc(knowledgeBaseArticles.updatedAt))
