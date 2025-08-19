@@ -47,7 +47,9 @@ interface CompletionReport {
 export function TranslationCompletionPanel() {
   const { toast } = useToast();
   const [isCompleting, setIsCompleting] = useState(false);
-  
+  const [isScanningKeys, setIsScanningKeys] = useState(false);
+  const [isCompletingTranslations, setIsCompletingTranslations] = useState(false);
+
   const { data: completionReport, isLoading, refetch } = useQuery({
     queryKey: ['translation-completion-report'],
     queryFn: async () => {
@@ -62,6 +64,7 @@ export function TranslationCompletionPanel() {
 
   const autoCompleteTranslations = useMutation({
     mutationFn: async () => {
+      setIsCompletingTranslations(true);
       const response = await apiRequest('POST', '/api/translation-completion/auto-complete-all');
       if (!response.ok) {
         throw new Error('Failed to auto-complete translations');
@@ -83,8 +86,50 @@ export function TranslationCompletionPanel() {
         variant: "destructive"
       });
       console.error('Auto-completion error:', error);
+    },
+    onSettled: () => {
+      setIsCompletingTranslations(false);
     }
   });
+
+  const scanKeys = useMutation({
+    mutationFn: async () => {
+      setIsScanningKeys(true);
+      const response = await apiRequest('POST', '/api/translation-completion/scan-keys');
+      if (!response.ok) {
+        throw new Error('Failed to scan keys');
+      }
+      const result = await response.json();
+      return result.data;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "✅ Varredura de Chaves Concluída!",
+        description: data.message,
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro na Varredura de Chaves",
+        description: "Falha ao varrer as chaves do sistema",
+        variant: "destructive"
+      });
+      console.error('Scan keys error:', error);
+    },
+    onSettled: () => {
+      setIsScanningKeys(false);
+    }
+  });
+
+  const handleScanKeys = () => {
+    scanKeys.mutate();
+  };
+
+  const handleCompleteTranslations = () => {
+    autoCompleteTranslations.mutate();
+  };
+
 
   if (isLoading) {
     return (
