@@ -32,6 +32,7 @@ export interface CreateKnowledgeBaseArticleData {
   status?: string;
   authorId: string;
   contentType?: string;
+  accessLevel?: string;
 }
 
 export interface UpdateKnowledgeBaseArticleData {

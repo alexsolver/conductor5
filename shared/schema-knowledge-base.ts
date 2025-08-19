@@ -76,11 +76,9 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // Categorization - matching exact DB structure  
   categoryId: varchar("category_id").notNull(), // character varying
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
-  keywords: text("keywords").array(), // ARRAY type
   
   // Status & Visibility - using text types with defaults to match DB
   status: text("status").default("draft"), // text with default 'draft'
-  visibility: text("visibility").default("internal"), // text with default 'internal'
   accessLevel: varchar("access_level").default("public"), // USER-DEFINED with default 'public'
   
   // Authoring

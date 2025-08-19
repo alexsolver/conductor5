@@ -36,9 +36,9 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       slug: null, // Campo removido do schema
       category: row.categoryId || row.category,
       tags: row.tags || [],
-      keywords: row.keywords || [],
+      keywords: [],
       status: row.status,
-      visibility: row.visibility,
+      visibility: row.accessLevel || 'internal',
       accessLevel: row.accessLevel,
       authorId: row.authorId,
       reviewerId: row.reviewerId,
@@ -73,7 +73,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         content: data.content,
         categoryId: data.category,
         tags: data.tags || [],
-        visibility: data.visibility || 'internal',
+        accessLevel: data.visibility || 'public',
         status: data.status || 'draft',
         authorId: data.authorId,
         published: false,
@@ -131,12 +131,13 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
     return !!result;
   }
 
-  async search(query: KnowledgeBaseSearchQuery, tenantId: string): Promise<KnowledgeBaseSearchResult> {
+  async search(query: KnowledgeBaseSearchQuery & { tenantId?: string }): Promise<KnowledgeBaseSearchResult> {
     try {
-      console.log(`🔍 [KB-SEARCH] Starting search with:`, { tenantId, query });
+      const effectiveTenantId = query.tenantId || (query as any).tenantId;
+      console.log(`🔍 [KB-SEARCH] Starting search with:`, { tenantId: effectiveTenantId, query });
 
       const conditions = [
-        eq(knowledgeBaseArticles.tenantId, tenantId),
+        eq(knowledgeBaseArticles.tenantId, effectiveTenantId),
         or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
       ];
 
@@ -160,9 +161,9 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         conditions.push(eq(knowledgeBaseArticles.status, query.status));
       }
 
-      // Add visibility filter
+      // Add access level filter (visibility mapped to accessLevel)
       if (query.visibility) {
-        conditions.push(eq(knowledgeBaseArticles.visibility, query.visibility));
+        conditions.push(eq(knowledgeBaseArticles.accessLevel, query.visibility));
       }
 
       // Add author filter
@@ -199,7 +200,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           categoryId: knowledgeBaseArticles.categoryId,
           tags: knowledgeBaseArticles.tags,
           status: knowledgeBaseArticles.status,
-          visibility: knowledgeBaseArticles.visibility,
+          accessLevel: knowledgeBaseArticles.accessLevel,
           authorId: knowledgeBaseArticles.authorId,
           published: knowledgeBaseArticles.published,
           publishedAt: knowledgeBaseArticles.publishedAt,

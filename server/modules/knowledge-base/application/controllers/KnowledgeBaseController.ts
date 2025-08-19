@@ -51,7 +51,7 @@ export class KnowledgeBaseController {
         authorId: userId,
         tenantId,
         status: req.body.status || 'draft',
-        visibility: req.body.visibility || 'internal',
+        visibility: req.body.access_level || req.body.visibility || 'internal',
         published: false,
         viewCount: 0,
         helpfulCount: 0,
@@ -140,16 +140,12 @@ export class KnowledgeBaseController {
         tenantId
       };
 
-      const articles = await this.repository.search(searchParams as any);
+      const result = await this.repository.search(searchParams as any);
       
       res.json({
         success: true,
         message: 'Articles retrieved successfully',
-        data: {
-          articles,
-          total: articles.length,
-          hasMore: false
-        }
+        data: result
       });
     } catch (error) {
       this.logger.error('Error searching articles:', error);
