@@ -275,7 +275,7 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
 }).extend({
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
-  category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "other"]),
+  category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]),
   visibility: z.enum(["public", "internal", "restricted", "private"]).optional(),
   tags: z.array(z.string()).optional(),
   keywords: z.array(z.string()).optional(),
@@ -313,7 +313,7 @@ export const insertKnowledgeBaseRelationSchema = createInsertSchema(knowledgeBas
 
 // Search schema
 export const knowledgeBaseSearchSchema = z.object({
-  query: z.string().min(1, "Query é obrigatória"),
+  query: z.string().optional(), // Query opcional para permitir busca geral
   category: z.string().optional(),
   tags: z.array(z.string()).optional(),
   visibility: z.enum(["public", "internal", "restricted", "private"]).optional(),

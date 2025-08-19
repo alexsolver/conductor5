@@ -1,6 +1,8 @@
+// ✅ 1QA.MD COMPLIANCE: TICKET DESCRIPTION EDITOR - Clean Architecture
+// ModernRichTextEditor sem findDOMNode
+
 import React from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { ModernRichTextEditor } from './knowledge-base/ModernRichTextEditor';
 
 interface TicketDescriptionEditorProps {
   content: string;
@@ -15,24 +17,6 @@ export function TicketDescriptionEditor({
   placeholder = "Digite a descrição do ticket...",
   readOnly = false
 }: TicketDescriptionEditorProps) {
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],
-      ['link', 'image', 'blockquote', 'code-block'],
-      [{ 'color': [] }, { 'background': [] }],
-      ['clean']
-    ],
-  };
-
-  const formats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent', 'link', 'image', 'blockquote',
-    'code-block', 'color', 'background'
-  ];
-
   if (readOnly) {
     return (
       <div
@@ -44,18 +28,13 @@ export function TicketDescriptionEditor({
 
   return (
     <div className="ticket-description-editor">
-      <ReactQuill
-        theme="snow"
+      <ModernRichTextEditor
         value={content}
         onChange={onChange}
-        modules={modules}
-        formats={formats}
         placeholder={placeholder}
         readOnly={readOnly}
-        style={{
-          minHeight: '200px',
-        }}
-        className="border rounded-md bg-white"
+        className="min-h-[200px]"
+        data-testid="ticket-description-editor"
       />
     </div>
   );
