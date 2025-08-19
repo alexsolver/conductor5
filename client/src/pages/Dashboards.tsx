@@ -8,7 +8,7 @@ import {
   CheckCircle, XCircle, MoreHorizontal, Copy, ExternalLink, Maximize, Minimize,
   RefreshCw, Download, Upload, Calendar, BarChart3, PieChart, LineChart, Table, FileText,
   ChevronDown, ChevronRight, Home, Folder, Zap, Target, Activity, ArrowUpRight,
-  BookOpen, PlayCircle, Pause, Bookmark, Globe, Lock, ChevronLeft, HelpCircle
+  BookOpen, PlayCircle, Pause, Bookmark, Globe, Lock, ChevronLeft, HelpCircle, List
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
