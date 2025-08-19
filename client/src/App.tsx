@@ -102,6 +102,9 @@ import Customers from "./pages/Customers";
 // OmniBridge Module - New Import
 import OmniBridge from "./pages/OmniBridge";
 
+// Knowledge Base Module
+import KnowledgeBase from "./pages/KnowledgeBase";
+
 // Components
 import { AppShell } from "./components/layout/AppShell";
 
@@ -146,6 +149,7 @@ function AppRouter() {
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/tickets/:id" component={TicketDetails} />
+        <Route path="/knowledge-base" component={KnowledgeBase} />
         <Route path="/customers" component={Customers} />
         <Route path="/tenant-admin/solicitantes" component={Customers} />
         <Route path="/tenant-admin/beneficiaries" component={Beneficiaries} />

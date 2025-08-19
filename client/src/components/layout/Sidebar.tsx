@@ -77,6 +77,7 @@ const baseNavigation: Array<{
 }> = [
   { name: "Clientes", href: "/customers", icon: Users },
   { name: "Tickets", href: "/tickets", icon: Ticket },
+  { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
   {
     name: "Controle de Jornadas",
     icon: Clock,
