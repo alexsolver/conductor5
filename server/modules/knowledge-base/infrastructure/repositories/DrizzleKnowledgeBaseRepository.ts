@@ -111,9 +111,10 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
     try {
       const conditions = [eq(knowledgeBaseArticles.tenantId, tenantId)];
 
-      if (query.query) {
+      // Only add search condition if query is provided and not empty
+      if (query.query && query.query.trim()) {
         conditions.push(
-          sql`(${knowledgeBaseArticles.title} ILIKE ${'%' + query.query + '%'} OR ${knowledgeBaseArticles.content} ILIKE ${'%' + query.query + '%'})`
+          sql`(${knowledgeBaseArticles.title} ILIKE ${'%' + query.query.trim() + '%'} OR ${knowledgeBaseArticles.content} ILIKE ${'%' + query.query.trim() + '%'})`
         );
       }
 
