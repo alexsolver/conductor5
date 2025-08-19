@@ -15,6 +15,8 @@ import {
 } from './middleware/simpleDatabaseInterceptor';
 import { tenantSchemaManager } from './utils/tenantSchemaValidator';
 import { dailySchemaChecker } from './scripts/dailySchemaCheck';
+import translationsRoutes from './routes/translations';
+import translationCompletionRoutes from './routes/translationCompletion';
 
 // PostgreSQL Local startup helper - 1qa.md Compliance
 async function ensurePostgreSQLRunning() {
@@ -291,6 +293,9 @@ app.use((req, res, next) => {
 
   // Technical Skills routes moved to routes.ts - 1qa.md compliance
 
+  // 🚀 Translation Manager routes
+  app.use('/api/translations', translationsRoutes);
+  app.use('/api/translation-completion', translationCompletionRoutes);
 
   // CRITICAL: Schema monitoring endpoint for administrators
   app.get('/api/admin/schema-status', async (req, res) => {
@@ -305,10 +310,10 @@ app.use((req, res, next) => {
       }
 
       console.log('🔍 [ADMIN] Schema status check initiated');
-      
+
       // Get health check for all tenant connections
       const healthCheck = await tenantSchemaManager.healthCheck();
-      
+
       // Get basic system info
       const systemInfo = {
         timestamp: new Date().toISOString(),
@@ -344,7 +349,7 @@ app.use((req, res, next) => {
       // Health check should use system DB, not tenant DB
       const result = await db.execute(sql`SELECT 1 as health_check`);
       const dbLatency = Date.now() - dbStart;
-      
+
       // Log health check without tenant context (this is system-level)
       console.debug(`🏥 [HEALTH-CHECK] DB latency: ${dbLatency}ms, status: ${dbLatency < 100 ? 'excellent' : 'good'}`);
 
@@ -500,18 +505,18 @@ app.use((req, res, next) => {
       // Inicia backup automático diário
       backupService.scheduleDaily();
       console.log('✅ [CLT-COMPLIANCE] Backup automático iniciado com sucesso');
-      
+
       // CRITICAL: Initialize tenant schema monitoring
       console.log('🔍 [SCHEMA-VALIDATION] Inicializando monitoramento de schemas...');
-      
+
       // Verificar saúde dos schemas na inicialização
       const healthCheck = await tenantSchemaManager.healthCheck();
       console.log(`🏥 [SCHEMA-VALIDATION] Health check: ${healthCheck.length} tenant connections monitored`);
-      
+
       // Initialize daily schema checker
       console.log('⏰ [SCHEMA-VALIDATION] Configurando verificações diárias...');
       await dailySchemaChecker.scheduleRecurring();
-      
+
     } catch (error) {
       console.error('❌ [CLT-COMPLIANCE] Erro ao inicializar serviços:', error);
     }

@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { TranslationCompletionPanel } from '@/components/TranslationCompletionPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -264,72 +265,119 @@ export default function TranslationManager() {
         </CardContent>
       </Card>
 
-      {/* Translation Editor */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Edit3 className="w-5 h-5" />
-            Editor de Traduções - {selectedLanguage}
-          </CardTitle>
-          <CardDescription>
-            {translationData?.lastModified && (
-              <span>Última modificação: {new Date(translationData.lastModified).toLocaleString()}</span>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoadingTranslations ? (
-            <div className="text-center py-8">Carregando traduções...</div>
-          ) : (
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {filteredKeys.map((key: string) => {
-                    const currentValue = getNestedValue(form.watch('translations'), key);
-                    return (
-                      <div key={key} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {key}
-                          </Label>
-                          <Badge variant="secondary" className="text-xs">
-                            {typeof currentValue === 'string' ? 'Texto' : 'Objeto'}
-                          </Badge>
-                        </div>
-                        
-                        {typeof currentValue === 'string' ? (
-                          <Textarea
-                            value={currentValue || ''}
-                            onChange={(e) => {
-                              const newTranslations = { ...form.getValues('translations') };
-                              setNestedValue(newTranslations, key, e.target.value);
-                              form.setValue('translations', newTranslations);
-                            }}
-                            placeholder={`Tradução para ${key}`}
-                            className="min-h-20"
-                          />
-                        ) : (
-                          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
-                            <pre className="text-sm text-gray-600 dark:text-gray-400">
-                              {JSON.stringify(currentValue, null, 2)}
-                            </pre>
+      {/* Translation Tabs */}
+      <Tabs defaultValue="editor" className="flex-1">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="editor">Editor de Traduções</TabsTrigger>
+            <TabsTrigger value="completion">Completude Automática</TabsTrigger>
+            <TabsTrigger value="keys">Todas as Chaves</TabsTrigger>
+          </TabsList>
+
+        {/* Translation Editor Tab */}
+        <TabsContent value="editor" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5" />
+                Editor de Traduções - {selectedLanguage}
+              </CardTitle>
+              <CardDescription>
+                {translationData?.lastModified && (
+                  <span>Última modificação: {new Date(translationData.lastModified).toLocaleString()}</span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingTranslations ? (
+                <div className="text-center py-8">Carregando traduções...</div>
+              ) : (
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                      {filteredKeys.map((key: string) => {
+                        const currentValue = getNestedValue(form.watch('translations'), key);
+                        return (
+                          <div key={key} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {key}
+                              </Label>
+                              <Badge variant="secondary" className="text-xs">
+                                {typeof currentValue === 'string' ? 'Texto' : 'Objeto'}
+                              </Badge>
+                            </div>
+
+                            {typeof currentValue === 'string' ? (
+                              <Textarea
+                                value={currentValue || ''}
+                                onChange={(e) => {
+                                  const newTranslations = { ...form.getValues('translations') };
+                                  setNestedValue(newTranslations, key, e.target.value);
+                                  form.setValue('translations', newTranslations);
+                                }}
+                                placeholder={`Tradução para ${key}`}
+                                className="min-h-20"
+                              />
+                            ) : (
+                              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                                <pre className="text-sm text-gray-600 dark:text-gray-400">
+                                  {JSON.stringify(currentValue, null, 2)}
+                                </pre>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        );
+                      })}
+                    </div>
+
+                    {filteredKeys.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        {searchTerm ? 'Nenhuma chave encontrada para a busca' : 'Nenhuma tradução encontrada'}
                       </div>
-                    );
-                  })}
-                </div>
-                
-                {filteredKeys.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    {searchTerm ? 'Nenhuma chave encontrada para a busca' : 'Nenhuma tradução encontrada'}
+                    )}
+                  </form>
+                </Form>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+          <TabsContent value="completion" className="space-y-4">
+            <TranslationCompletionPanel />
+          </TabsContent>
+
+          <TabsContent value="keys" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Todas as Chaves de Tradução
+                </CardTitle>
+                <CardDescription>
+                  Visualize e gerencie todas as chaves de tradução do sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingKeys ? (
+                  <div className="text-center py-8">Carregando chaves...</div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {allKeysData?.keys?.map((key: string) => (
+                      <div key={key} className="border rounded-lg p-4 flex items-center justify-between">
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {key}
+                        </Label>
+                        <Badge variant="outline" className="text-xs">
+                          {key.split('.').length > 1 ? 'Aninhada' : 'Nível Superior'}
+                        </Badge>
+                      </div>
+                    ))}
                   </div>
                 )}
-              </form>
-            </Form>
-          )}
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+      </Tabs>
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
