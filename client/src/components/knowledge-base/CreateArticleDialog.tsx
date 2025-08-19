@@ -13,8 +13,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "./RichTextEditor";
 
 interface CreateArticleDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const categories = [
@@ -34,7 +34,7 @@ const accessLevels = [
   { value: 'restricted', label: 'Restrito' }
 ];
 
-export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogProps) {
+export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
@@ -71,7 +71,7 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
         setAccessLevel('public');
         setPublished(false);
         setTags('');
-        onOpenChange(false);
+        onClose();
       } else {
         toast({
           title: "❌ Erro ao criar artigo",
@@ -150,7 +150,7 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="create-article-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -279,7 +279,7 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel">
+            <Button type="button" variant="outline" onClick={onClose} data-testid="button-cancel">
               Cancelar
             </Button>
             <Button

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -122,7 +121,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!currentTemplate.name.trim() || !currentTemplate.category) {
       toast({
         title: "Erro de validação",
@@ -133,19 +132,19 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Here you would make an API call to save the workflow
       console.log('💼 [WORKFLOW] Saving workflow:', currentTemplate);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       toast({
         title: "Workflow configurado com sucesso!",
         description: "O workflow foi salvo e está pronto para uso.",
       });
-      
+
       // Reset form and close dialog
       setCurrentTemplate({
         id: '',
@@ -171,7 +170,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -193,7 +192,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
                 required
               />
             </div>
-            
+
             <div>
               <Label htmlFor="category">Categoria *</Label>
               <Select 
@@ -237,7 +236,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
           {/* Workflow Steps */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Passos do Workflow</h3>
-            
+
             {/* Existing Steps */}
             {currentTemplate.steps.length > 0 && (
               <div className="space-y-2">
@@ -272,7 +271,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
             {/* Add New Step */}
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 space-y-4">
               <h4 className="font-medium">Adicionar Novo Passo</h4>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="step-name">Nome do Passo</Label>
@@ -283,7 +282,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
                     placeholder="Ex: Aprovação do Supervisor"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="step-type">Tipo</Label>
                   <Select 
@@ -302,7 +301,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="assignee-type">Responsável</Label>
                   <Select 
@@ -332,7 +331,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
                   />
                   <Label htmlFor="step-required">Passo obrigatório</Label>
                 </div>
-                
+
                 <Button type="button" onClick={addStep} variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Passo

@@ -30,7 +30,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       content: row.content,
       summary: row.summary,
       slug: row.slug,
-      category: row.category,
+      category: row.categoryId,
       tags: row.tags || [],
       keywords: row.keywords || [],
       status: row.status,
@@ -68,7 +68,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         title: data.title,
         content: data.content,
         summary: data.summary,
-        category: data.category,
+        categoryId: data.category,
         tags: data.tags || [],
         visibility: data.visibility || 'internal',
         status: data.status || 'draft',
@@ -148,7 +148,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       // Add category filter
       if (query.category) {
-        conditions.push(eq(knowledgeBaseArticles.category, query.category));
+        conditions.push(eq(knowledgeBaseArticles.categoryId, query.category));
       }
 
       // Add status filter
@@ -191,7 +191,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           id: knowledgeBaseArticles.id,
           title: knowledgeBaseArticles.title,
           content: knowledgeBaseArticles.content,
-          category: knowledgeBaseArticles.category,
+          categoryId: knowledgeBaseArticles.categoryId,
           tags: knowledgeBaseArticles.tags,
           status: knowledgeBaseArticles.status,
           visibility: knowledgeBaseArticles.visibility,
@@ -244,7 +244,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.tenantId, tenantId),
-        eq(knowledgeBaseArticles.category, category),
+        eq(knowledgeBaseArticles.categoryId, category),
         or(isNull(knowledgeBaseArticles.isDeleted), eq(knowledgeBaseArticles.isDeleted, false))
       ))
       .orderBy(desc(knowledgeBaseArticles.updatedAt));
