@@ -1,4 +1,3 @@
-
 // ✅ 1QA.MD COMPLIANCE: DRIZZLE KNOWLEDGE BASE REPOSITORY - CLEAN ARCHITECTURE
 // Infrastructure layer - implements domain repository interface
 
@@ -16,72 +15,65 @@ import {
 
 export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository {
   async create(article: Omit<KnowledgeBaseArticle, 'id' | 'createdAt' | 'updatedAt' | 'version'>, tenantId: string): Promise<KnowledgeBaseArticle> {
-    const [created] = await db
+    const insertData = {
+      tenantId,
+      title: article.title,
+      content: article.content,
+      category: article.category as any,
+      tags: article.tags,
+      authorId: article.authorId,
+      status: article.status as any,
+      visibility: article.visibility as any,
+      reviewerId: article.reviewerId,
+      publishedAt: article.publishedAt,
+      contentType: article.contentType as any,
+      approvalStatus: article.approvalStatus as any,
+      viewCount: article.viewCount || 0,
+      ratingCount: article.ratingCount || 0
+    };
+    const [inserted] = await db
       .insert(knowledgeBaseArticles)
-      .values({
-        tenantId,
-        title: article.title,
-        content: article.content,
-        slug: article.slug || article.title.toLowerCase().replace(/\s+/g, '-'),
-        category: article.category as any,
-        tags: article.tags,
-        authorId: article.authorId,
-        status: 'draft',
-        visibility: 'internal'
-      })
+      .values(insertData)
       .returning();
 
+    const generatedSummary = this.generateSummary(inserted.content || '');
+
     return {
-      ...created,
-      tags: created.tags || [],
+      ...inserted,
+      summary: generatedSummary,
       version: 1,
-      contentType: 'rich_text',
-      attachments: [],
-      approvalStatus: 'not_submitted',
-      approvalHistory: [],
-      ratingCount: 0,
-      viewCount: created.viewCount || 0,
+      contentType: inserted.contentType as 'rich_text' | 'markdown' | 'html',
+      attachments: [] as ArticleAttachment[],
+      approvalStatus: inserted.approvalStatus as ApprovalStatus,
+      approvalHistory: [] as ApprovalHistoryEntry[],
       expiresAt: null
-    } as KnowledgeBaseArticle;
+    };
   }
 
   async findById(id: string, tenantId: string): Promise<KnowledgeBaseArticle | null> {
-    const [article] = await db
-      .select({
-        id: knowledgeBaseArticles.id,
-        tenantId: knowledgeBaseArticles.tenantId,
-        title: knowledgeBaseArticles.title,
-        content: knowledgeBaseArticles.content,
-        slug: knowledgeBaseArticles.slug,
-        category: knowledgeBaseArticles.category,
-        tags: knowledgeBaseArticles.tags,
-        authorId: knowledgeBaseArticles.authorId,
-        status: knowledgeBaseArticles.status,
-        visibility: knowledgeBaseArticles.visibility,
-        publishedAt: knowledgeBaseArticles.publishedAt,
-        createdAt: knowledgeBaseArticles.createdAt,
-        updatedAt: knowledgeBaseArticles.updatedAt,
-        viewCount: knowledgeBaseArticles.viewCount
-      })
+    const articles = await db
+      .select()
       .from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.id, id),
         eq(knowledgeBaseArticles.tenantId, tenantId)
-      ));
+      ))
+      .limit(1);
 
-    if (!article) return null;
+    if (articles.length === 0) return null;
 
+    const article = articles[0];
     return {
       ...article,
-      tags: article.tags || [],
+      summary: this.generateSummary(article.content || ''),
       version: 1,
-      contentType: 'rich_text',
-      attachments: [],
-      approvalStatus: 'not_submitted',
-      approvalHistory: [],
+      contentType: 'rich_text' as const,
+      attachments: [] as ArticleAttachment[],
+      approvalStatus: 'not_submitted' as const,
+      approvalHistory: [] as ApprovalHistoryEntry[],
       ratingCount: 0,
       expiresAt: null
-    } as KnowledgeBaseArticle;
+    };
   }
 
   async update(id: string, updates: Partial<KnowledgeBaseArticle>, tenantId: string): Promise<KnowledgeBaseArticle> {
@@ -168,6 +160,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       const mappedArticles = articles.map(article => ({
         ...article,
+        summary: this.generateSummary(article.content || ''),
         tags: article.tags || [],
         version: 1,
         contentType: 'rich_text' as const,
@@ -225,6 +218,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
+      summary: this.generateSummary(article.content || ''),
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
@@ -262,6 +256,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
+      summary: this.generateSummary(article.content || ''),
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
@@ -298,6 +293,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
+      summary: this.generateSummary(article.content || ''),
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
@@ -359,6 +355,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
+      summary: this.generateSummary(article.content || ''),
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
@@ -400,28 +397,13 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async getByApprovalStatus(status: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
     const articles = await db
-      .select({
-        id: knowledgeBaseArticles.id,
-        tenantId: knowledgeBaseArticles.tenantId,
-        title: knowledgeBaseArticles.title,
-        content: knowledgeBaseArticles.content,
-        slug: knowledgeBaseArticles.slug,
-        category: knowledgeBaseArticles.category,
-        tags: knowledgeBaseArticles.tags,
-        authorId: knowledgeBaseArticles.authorId,
-        status: knowledgeBaseArticles.status,
-        visibility: knowledgeBaseArticles.visibility,
-        publishedAt: knowledgeBaseArticles.publishedAt,
-        createdAt: knowledgeBaseArticles.createdAt,
-        updatedAt: knowledgeBaseArticles.updatedAt,
-        viewCount: knowledgeBaseArticles.viewCount
-      })
+      .select()
       .from(knowledgeBaseArticles)
       .where(eq(knowledgeBaseArticles.tenantId, tenantId));
 
     return articles.map(article => ({
       ...article,
-      tags: article.tags || [],
+      summary: this.generateSummary(article.content || ''),
       version: 1,
       contentType: 'rich_text' as const,
       attachments: [] as ArticleAttachment[],
@@ -457,6 +439,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
+      summary: this.generateSummary(article.content || ''),
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
@@ -466,5 +449,46 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       ratingCount: 0,
       expiresAt: null
     }));
+  }
+
+  async findAll(tenantId: string): Promise<KnowledgeBaseSearchResult> {
+    const articles = await db
+      .select()
+      .from(knowledgeBaseArticles)
+      .where(eq(knowledgeBaseArticles.tenantId, tenantId))
+      .orderBy(desc(knowledgeBaseArticles.createdAt));
+
+    const enrichedArticles = articles.map(article => ({
+      ...article,
+      summary: this.generateSummary(article.content || ''),
+      version: 1,
+      contentType: 'rich_text' as const,
+      attachments: [] as ArticleAttachment[],
+      approvalStatus: 'not_submitted' as const,
+      approvalHistory: [] as ApprovalHistoryEntry[],
+      ratingCount: 0,
+      expiresAt: null
+    }));
+
+    const total = articles.length; // Assuming total count is the length of the fetched articles for simplicity in this findAll
+    return {
+      articles: enrichedArticles,
+      total: total,
+      hasMore: false // In a real scenario, you'd need a separate count query or pagination logic
+    };
+  }
+
+  private generateSummary(content: string): string {
+    if (!content) return '';
+
+    // Remove HTML tags se existirem
+    const textContent = content.replace(/<[^>]*>/g, '');
+
+    // Pegar as primeiras 200 caracteres
+    const summary = textContent.length > 200
+      ? textContent.substring(0, 200).trim() + '...'
+      : textContent.trim();
+
+    return summary;
   }
 }
