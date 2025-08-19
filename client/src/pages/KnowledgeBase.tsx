@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { CreateArticleDialog } from "@/components/knowledge-base/CreateArticleDialog";
 
 interface Article {
   id: string;
@@ -42,6 +43,7 @@ export default function KnowledgeBase() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedAccess, setSelectedAccess] = useState("all");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Fetch articles
   const { data: articlesData, isLoading, error } = useQuery({
@@ -155,7 +157,11 @@ export default function KnowledgeBase() {
         }
       </p>
       {(!searchQuery && selectedCategory === 'all') && (
-        <Button className="mt-4" data-testid="button-create-first-article">
+        <Button 
+          className="mt-4" 
+          onClick={() => setIsCreateDialogOpen(true)}
+          data-testid="button-create-first-article"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Criar primeiro artigo
         </Button>
@@ -177,7 +183,11 @@ export default function KnowledgeBase() {
               Encontre artigos, guias e documentação para resolver suas dúvidas.
             </p>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-create-article">
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700" 
+            onClick={() => setIsCreateDialogOpen(true)}
+            data-testid="button-create-article"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Novo Artigo
           </Button>
@@ -282,6 +292,12 @@ export default function KnowledgeBase() {
           </div>
         )}
       </div>
+
+      {/* Create Article Dialog */}
+      <CreateArticleDialog 
+        open={isCreateDialogOpen} 
+        onOpenChange={setIsCreateDialogOpen} 
+      />
     </div>
   );
 }
