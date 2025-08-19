@@ -162,16 +162,24 @@ export default function SaasAdminIntegrations() {
     },
     onSuccess: (data) => {
       console.log('✅ [SAAS-ADMIN-TEST] Teste concluído:', data);
+      console.log('✅ [SAAS-ADMIN-TEST] Data keys:', Object.keys(data || {}));
+      console.log('✅ [SAAS-ADMIN-TEST] Success field:', data?.success);
+      console.log('✅ [SAAS-ADMIN-TEST] Result field:', data?.result);
+      
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
 
-      if (data.success) {
+      // Check both data.success and success fields
+      const isSuccess = data?.success === true || data?.success === 'true';
+      
+      if (isSuccess) {
         toast({
           title: "Teste bem-sucedido",
-          description: `Integração funcionando corretamente. Tempo de resposta: ${data.result?.responseTime || 'N/A'}ms`,
+          description: data.message || `Integração funcionando corretamente. Tempo de resposta: ${data.result?.responseTime || 'N/A'}ms`,
         });
       } else {
+        console.error('❌ [SAAS-ADMIN-TEST] Test failed with data:', data);
         toast({
-          title: "Teste falhou",
+          title: "Teste falhou", 
           description: data.error || data.message || "Erro na integração",
           variant: "destructive",
         });
