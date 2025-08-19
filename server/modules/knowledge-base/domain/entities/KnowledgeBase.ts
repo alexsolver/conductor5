@@ -5,7 +5,7 @@ export interface KnowledgeBaseArticle {
   id: string;
   title: string;
   content: string;
-  summary?: string;
+  summary?: string; // Gerado automaticamente do content
   category: string;
   tags: string[];
   status: ArticleStatus;

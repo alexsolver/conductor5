@@ -44,7 +44,7 @@ interface KnowledgeBaseTicketTabProps {
 interface KnowledgeBaseArticle {
   id: string;
   title: string;
-  summary?: string;
+  content?: string;
   category: string;
   tags: string[];
   status: string;

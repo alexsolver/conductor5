@@ -44,7 +44,6 @@ export class CreateKnowledgeBaseArticleUseCase {
       const articleData: Omit<KnowledgeBaseArticle, 'id' | 'createdAt' | 'updatedAt' | 'version'> = {
         title: command.title.trim(),
         content: command.content,
-        summary: command.summary?.trim(),
         category: command.category,
         tags: command.tags || [],
         status: command.status || 'draft',
