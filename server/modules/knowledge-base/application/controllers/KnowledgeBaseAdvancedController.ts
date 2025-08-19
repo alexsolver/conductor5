@@ -1,311 +1,283 @@
-// ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - APPLICATION LAYER
-// Controller para funcionalidades avançadas seguindo padrões Domain-Driven Design
+// ✅ 1QA.MD COMPLIANCE: CONTROLLER - CLEAN ARCHITECTURE
+// Infrastructure layer controller for advanced KB features
 
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { Logger } from 'winston';
+import { DrizzleKnowledgeBaseRepository } from '../../infrastructure/repositories/DrizzleKnowledgeBaseRepository';
 import { CreateTemplateUseCase } from '../use-cases/CreateTemplateUseCase';
 import { CreateCommentUseCase } from '../use-cases/CreateCommentUseCase';
 import { SchedulePublicationUseCase } from '../use-cases/SchedulePublicationUseCase';
 import { CreateVersionUseCase } from '../use-cases/CreateVersionUseCase';
-import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 
 export class KnowledgeBaseAdvancedController {
-  constructor(
-    private knowledgeBaseRepository: IKnowledgeBaseRepository,
-    private logger: Logger
-  ) {}
+  private repository: DrizzleKnowledgeBaseRepository;
+  private createTemplateUseCase: CreateTemplateUseCase;
+  private createCommentUseCase: CreateCommentUseCase;
+  private schedulePublicationUseCase: SchedulePublicationUseCase;
+  private createVersionUseCase: CreateVersionUseCase;
 
-  // ========================================
-  // TEMPLATE ENDPOINTS
-  // ========================================
-
-  async createTemplate(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.headers['x-user-id'] as string;
-
-      if (!tenantId || !userId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID and User ID are required' 
-        });
-        return;
-      }
-
-      const useCase = new CreateTemplateUseCase(this.knowledgeBaseRepository, this.logger);
-      const result = await useCase.execute({
-        ...req.body,
-        tenantId,
-        createdBy: userId
-      });
-
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      this.logger.error(`❌ [KB-ADVANCED-CONTROLLER] Template creation error`, { 
-        error: error.message 
-      });
-      res.status(500).json({ 
-        success: false, 
-        message: 'Internal server error' 
-      });
-    }
+  constructor(private logger: Logger) {
+    this.repository = new DrizzleKnowledgeBaseRepository();
+    this.createTemplateUseCase = new CreateTemplateUseCase(this.repository, this.logger);
+    this.createCommentUseCase = new CreateCommentUseCase(this.repository, this.logger);
+    this.schedulePublicationUseCase = new SchedulePublicationUseCase(this.repository, this.logger);
+    this.createVersionUseCase = new CreateVersionUseCase(this.repository, this.logger);
   }
+
+  // ========================================
+  // TEMPLATE ENDPOINTS - CLEAN ARCHITECTURE
+  // ========================================
 
   async listTemplates(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-
-      if (!tenantId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID is required' 
-        });
-        return;
-      }
-
-      const templates = await this.knowledgeBaseRepository.listTemplates(tenantId);
+      const { tenantId } = req.body;
       
-      res.json({
-        success: true,
-        data: templates,
-        message: 'Templates retrieved successfully'
-      });
-    } catch (error: any) {
-      this.logger.error(`❌ [KB-ADVANCED-CONTROLLER] Template listing error`, { 
-        error: error.message 
-      });
-      res.status(500).json({ 
-        success: false, 
-        message: 'Internal server error' 
-      });
-    }
-  }
-
-  async getTemplate(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { id } = req.params;
-
       if (!tenantId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID is required' 
-        });
-        return;
-      }
-
-      const template = await this.knowledgeBaseRepository.findTemplateById(id, tenantId);
-      
-      if (!template) {
-        res.status(404).json({
+        res.status(400).json({
           success: false,
-          message: 'Template not found'
+          message: 'TenantId é obrigatório'
         });
         return;
       }
 
+      const templates = await this.repository.listTemplates(tenantId);
+
       res.json({
         success: true,
-        data: template,
-        message: 'Template retrieved successfully'
+        message: 'Templates listados com sucesso',
+        data: templates
       });
+
     } catch (error: any) {
-      this.logger.error(`❌ [KB-ADVANCED-CONTROLLER] Template retrieval error`, { 
-        error: error.message 
+      this.logger.error('Error listing templates', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
       });
-      res.status(500).json({ 
-        success: false, 
-        message: 'Internal server error' 
+    }
+  }
+
+  async createTemplate(req: Request, res: Response): Promise<void> {
+    try {
+      const { tenantId, user } = req.body;
+      const { name, description, category, defaultTags, structure } = req.body;
+
+      const request = {
+        name,
+        description,
+        category,
+        defaultTags: defaultTags || [],
+        structure,
+        tenantId,
+        createdBy: user?.id || 'system'
+      };
+
+      const result = await this.createTemplateUseCase.execute(request);
+
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+
+      res.status(201).json(result);
+
+    } catch (error: any) {
+      this.logger.error('Error creating template', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
       });
     }
   }
 
   // ========================================
-  // COMMENT ENDPOINTS
+  // COMMENT ENDPOINTS - CLEAN ARCHITECTURE
   // ========================================
+
+  async listComments(req: Request, res: Response): Promise<void> {
+    try {
+      const { tenantId } = req.body;
+      const { articleId } = req.params;
+
+      if (!tenantId || !articleId) {
+        res.status(400).json({
+          success: false,
+          message: 'TenantId e articleId são obrigatórios'
+        });
+        return;
+      }
+
+      const comments = await this.repository.findCommentsByArticle(articleId, tenantId);
+
+      res.json({
+        success: true,
+        message: 'Comentários listados com sucesso',
+        data: comments
+      });
+
+    } catch (error: any) {
+      this.logger.error('Error listing comments', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
+    }
+  }
 
   async createComment(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.headers['x-user-id'] as string;
-      const userName = req.headers['x-user-name'] as string || 'Anonymous';
+      const { tenantId, user } = req.body;
+      const { articleId, content, rating } = req.body;
 
-      if (!tenantId || !userId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID and User ID are required' 
-        });
-        return;
-      }
-
-      const useCase = new CreateCommentUseCase(this.knowledgeBaseRepository, this.logger);
-      const result = await useCase.execute({
-        ...req.body,
-        authorId: userId,
-        authorName: userName,
+      const request = {
+        articleId,
+        content,
+        rating,
+        authorId: user?.id || 'system',
+        authorName: user?.name || 'Sistema',
         tenantId
-      });
+      };
 
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
+      const result = await this.createCommentUseCase.execute(request);
+
+      if (!result.success) {
         res.status(400).json(result);
-      }
-    } catch (error: any) {
-      this.logger.error(`❌ [KB-ADVANCED-CONTROLLER] Comment creation error`, { 
-        error: error.message 
-      });
-      res.status(500).json({ 
-        success: false, 
-        message: 'Internal server error' 
-      });
-    }
-  }
-
-  async getComments(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { articleId } = req.params;
-
-      if (!tenantId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID is required' 
-        });
         return;
       }
 
-      const comments = await this.knowledgeBaseRepository.findCommentsByArticle(articleId, tenantId);
-      
-      res.json({
-        success: true,
-        data: comments,
-        message: 'Comments retrieved successfully'
-      });
+      res.status(201).json(result);
+
     } catch (error: any) {
-      this.logger.error(`❌ [KB-ADVANCED-CONTROLLER] Comments retrieval error`, { 
-        error: error.message 
-      });
-      res.status(500).json({ 
-        success: false, 
-        message: 'Internal server error' 
+      this.logger.error('Error creating comment', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
       });
     }
   }
 
   // ========================================
-  // SCHEDULING ENDPOINTS
+  // PUBLICATION SCHEDULING - CLEAN ARCHITECTURE
   // ========================================
 
   async schedulePublication(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.headers['x-user-id'] as string;
+      const { tenantId, user } = req.body;
+      const { articleId, scheduledAt } = req.body;
 
-      if (!tenantId || !userId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID and User ID are required' 
-        });
+      const request = {
+        articleId,
+        scheduledAt,
+        tenantId,
+        userId: user?.id || 'system'
+      };
+
+      const result = await this.schedulePublicationUseCase.execute(request);
+
+      if (!result.success) {
+        res.status(400).json(result);
         return;
       }
 
-      const useCase = new SchedulePublicationUseCase(this.knowledgeBaseRepository, this.logger);
-      const result = await useCase.execute({
-        ...req.body,
-        scheduledFor: new Date(req.body.scheduledFor),
-        scheduledBy: userId,
-        tenantId
-      });
+      res.status(200).json(result);
 
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
-        res.status(400).json(result);
-      }
     } catch (error: any) {
-      this.logger.error(`❌ [KB-ADVANCED-CONTROLLER] Publication scheduling error`, { 
-        error: error.message 
-      });
-      res.status(500).json({ 
-        success: false, 
-        message: 'Internal server error' 
+      this.logger.error('Error scheduling publication', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
       });
     }
   }
 
   // ========================================
-  // VERSION ENDPOINTS
+  // VERSION CONTROL - CLEAN ARCHITECTURE
   // ========================================
+
+  async listVersions(req: Request, res: Response): Promise<void> {
+    try {
+      const { tenantId } = req.body;
+      const { articleId } = req.params;
+
+      if (!tenantId || !articleId) {
+        res.status(400).json({
+          success: false,
+          message: 'TenantId e articleId são obrigatórios'
+        });
+        return;
+      }
+
+      const versions = await this.repository.findVersionsByArticle(articleId, tenantId);
+
+      res.json({
+        success: true,
+        message: 'Versões listadas com sucesso',
+        data: versions
+      });
+
+    } catch (error: any) {
+      this.logger.error('Error listing versions', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
+    }
+  }
 
   async createVersion(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.headers['x-user-id'] as string;
+      const { tenantId, user } = req.body;
+      const { articleId, title, changeDescription } = req.body;
 
-      if (!tenantId || !userId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID and User ID are required' 
-        });
+      const request = {
+        articleId,
+        title,
+        changeDescription,
+        authorId: user?.id || 'system',
+        authorName: user?.name || 'Sistema',
+        tenantId
+      };
+
+      const result = await this.createVersionUseCase.execute(request);
+
+      if (!result.success) {
+        res.status(400).json(result);
         return;
       }
 
-      const useCase = new CreateVersionUseCase(this.knowledgeBaseRepository, this.logger);
-      const result = await useCase.execute({
-        ...req.body,
-        createdBy: userId,
-        tenantId
-      });
+      res.status(201).json(result);
 
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
-        res.status(400).json(result);
-      }
     } catch (error: any) {
-      this.logger.error(`❌ [KB-ADVANCED-CONTROLLER] Version creation error`, { 
-        error: error.message 
-      });
-      res.status(500).json({ 
-        success: false, 
-        message: 'Internal server error' 
+      this.logger.error('Error creating version', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
       });
     }
   }
 
-  async getVersions(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { articleId } = req.params;
+  // ========================================
+  // ROUTER REGISTRATION
+  // ========================================
 
-      if (!tenantId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID is required' 
-        });
-        return;
-      }
+  getRouter(): Router {
+    const router = Router();
 
-      const versions = await this.knowledgeBaseRepository.findVersionsByArticle(articleId, tenantId);
-      
-      res.json({
-        success: true,
-        data: versions,
-        message: 'Versions retrieved successfully'
-      });
-    } catch (error: any) {
-      this.logger.error(`❌ [KB-ADVANCED-CONTROLLER] Versions retrieval error`, { 
-        error: error.message 
-      });
-      res.status(500).json({ 
-        success: false, 
-        message: 'Internal server error' 
-      });
-    }
+    // Template routes
+    router.get('/templates', this.listTemplates.bind(this));
+    router.post('/templates', this.createTemplate.bind(this));
+
+    // Comment routes
+    router.get('/articles/:articleId/comments', this.listComments.bind(this));
+    router.post('/comments', this.createComment.bind(this));
+
+    // Publication scheduling
+    router.post('/schedule-publication', this.schedulePublication.bind(this));
+
+    // Version control routes
+    router.get('/articles/:articleId/versions', this.listVersions.bind(this));
+    router.post('/versions', this.createVersion.bind(this));
+
+    return router;
   }
 }

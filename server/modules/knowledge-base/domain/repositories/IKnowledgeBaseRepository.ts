@@ -73,6 +73,19 @@ export interface IKnowledgeBaseRepository {
 
   // Analytics and metrics
   incrementViewCount(id: string, tenantId: string): Promise<boolean>;
+
+  // Template management - following Clean Architecture
+  listTemplates(tenantId: string): Promise<any[]>;
+  findTemplateById(id: string, tenantId: string): Promise<any | null>;
+  createTemplate(templateData: any, tenantId: string): Promise<any>;
+
+  // Comments system - following Domain contracts
+  findCommentsByArticle(articleId: string, tenantId: string): Promise<any[]>;
+  createComment(commentData: any, tenantId: string): Promise<any>;
+
+  // Version control - following domain rules
+  findVersionsByArticle(articleId: string, tenantId: string): Promise<any[]>;
+  createVersion(versionData: any, tenantId: string): Promise<any>;
   updateRating(id: string, rating: number, tenantId: string): Promise<boolean>;
   addApprovalHistory(id: string, entry: any, tenantId: string): Promise<boolean>;
 

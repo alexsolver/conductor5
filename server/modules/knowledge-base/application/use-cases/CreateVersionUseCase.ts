@@ -1,103 +1,103 @@
-// ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - APPLICATION LAYER  
-// Use Case para criação de versões de artigos seguindo padrões Domain-Driven Design
+// ✅ 1QA.MD COMPLIANCE: USE CASE - CLEAN ARCHITECTURE
+// Application layer use case for version creation
 
-import { IKnowledgeBaseRepository } from "../../domain/repositories/IKnowledgeBaseRepository";
-import { Logger } from "winston";
+import { Logger } from 'winston';
+import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 
 export interface CreateVersionRequest {
   articleId: string;
-  changes: string;
-  createdBy: string;
+  title: string;
+  changeDescription: string;
+  authorId: string;
+  authorName: string;
   tenantId: string;
 }
 
 export interface CreateVersionResponse {
   success: boolean;
-  version?: any;
   message: string;
+  data?: any;
 }
 
 export class CreateVersionUseCase {
   constructor(
-    private knowledgeBaseRepository: IKnowledgeBaseRepository,
+    private repository: IKnowledgeBaseRepository,
     private logger: Logger
   ) {}
 
   async execute(request: CreateVersionRequest): Promise<CreateVersionResponse> {
     try {
-      this.logger.info(`🔄 [CREATE-VERSION-UC] Creating version for article: ${request.articleId}`, {
-        tenantId: request.tenantId,
-        createdBy: request.createdBy
+      this.logger.info('Creating version', { 
+        articleId: request.articleId,
+        tenantId: request.tenantId 
       });
 
-      // Domain validation
-      if (!request.articleId) {
-        throw new Error('Article ID is required');
+      // Validate required fields
+      if (!request.articleId || !request.title || !request.tenantId) {
+        return {
+          success: false,
+          message: 'ID do artigo, título e tenant são obrigatórios'
+        };
       }
 
-      if (!request.changes?.trim()) {
-        throw new Error('Change description is required');
-      }
-
-      if (!request.createdBy) {
-        throw new Error('Creator user ID is required');
-      }
-
-      // Verify article exists
-      const article = await this.knowledgeBaseRepository.findById(
-        request.articleId,
-        request.tenantId
-      );
-
+      // Check if article exists
+      const article = await this.repository.findById(request.articleId, request.tenantId);
       if (!article) {
-        throw new Error('Article not found');
+        return {
+          success: false,
+          message: 'Artigo não encontrado'
+        };
       }
 
-      // Get the current version number
-      const lastVersion = await this.knowledgeBaseRepository.getLatestVersionNumber(
-        request.articleId,
+      // Get existing versions to determine next version number
+      const existingVersions = await this.repository.findVersionsByArticle(
+        request.articleId, 
         request.tenantId
       );
 
-      const versionNumber = (lastVersion || 0) + 1;
+      const nextVersion = existingVersions.length + 1;
 
-      // Create version with current article data
       const versionData = {
         articleId: request.articleId,
-        versionNumber,
-        title: article.title,
-        content: article.content,
-        summary: article.summary,
-        changes: request.changes.trim(),
-        createdBy: request.createdBy,
-        tenantId: request.tenantId
+        version: nextVersion,
+        title: request.title,
+        changeDescription: request.changeDescription || 'Versão criada',
+        authorId: request.authorId,
+        authorName: request.authorName,
+        content: article.content // Save current content as snapshot
       };
 
-      const version = await this.knowledgeBaseRepository.createVersion(versionData);
+      const version = await this.repository.createVersion(versionData, request.tenantId);
 
-      this.logger.info(`✅ [CREATE-VERSION-UC] Version created successfully`, {
+      // Update article version number
+      await this.repository.update(
+        request.articleId,
+        { version: nextVersion },
+        request.tenantId
+      );
+
+      this.logger.info('Version created successfully', { 
         versionId: version.id,
         articleId: request.articleId,
-        versionNumber,
-        tenantId: request.tenantId
+        version: nextVersion,
+        tenantId: request.tenantId 
       });
 
       return {
         success: true,
-        version,
-        message: `Version ${versionNumber} created successfully`
+        message: 'Versão criada com sucesso',
+        data: version
       };
 
     } catch (error: any) {
-      this.logger.error(`❌ [CREATE-VERSION-UC] Failed to create version`, {
+      this.logger.error('Error creating version', { 
         error: error.message,
-        tenantId: request.tenantId,
-        articleId: request.articleId
+        tenantId: request.tenantId 
       });
 
       return {
         success: false,
-        message: error.message || 'Failed to create version'
+        message: 'Erro interno do servidor'
       };
     }
   }

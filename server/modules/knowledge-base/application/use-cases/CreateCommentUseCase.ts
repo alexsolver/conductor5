@@ -1,14 +1,13 @@
-// ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - APPLICATION LAYER
-// Use Case para criação de comentários seguindo padrões Domain-Driven Design
+// ✅ 1QA.MD COMPLIANCE: USE CASE - CLEAN ARCHITECTURE
+// Application layer use case for comment creation
 
-import { IKnowledgeBaseRepository } from "../../domain/repositories/IKnowledgeBaseRepository";
-import { Logger } from "winston";
-import { InsertKnowledgeBaseComment } from "@shared/schema-knowledge-base";
+import { Logger } from 'winston';
+import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 
 export interface CreateCommentRequest {
   articleId: string;
   content: string;
-  parentId?: string;
+  rating?: number;
   authorId: string;
   authorName: string;
   tenantId: string;
@@ -16,95 +15,71 @@ export interface CreateCommentRequest {
 
 export interface CreateCommentResponse {
   success: boolean;
-  comment?: any;
   message: string;
+  data?: any;
 }
 
 export class CreateCommentUseCase {
   constructor(
-    private knowledgeBaseRepository: IKnowledgeBaseRepository,
+    private repository: IKnowledgeBaseRepository,
     private logger: Logger
   ) {}
 
   async execute(request: CreateCommentRequest): Promise<CreateCommentResponse> {
     try {
-      this.logger.info(`💬 [CREATE-COMMENT-UC] Creating comment for article: ${request.articleId}`, {
-        tenantId: request.tenantId,
-        authorId: request.authorId,
-        parentId: request.parentId
+      this.logger.info('Creating comment', { 
+        articleId: request.articleId,
+        tenantId: request.tenantId 
       });
 
-      // Domain validation
-      if (!request.content?.trim()) {
-        throw new Error('Comment content is required');
+      // Validate required fields
+      if (!request.articleId || !request.content || !request.tenantId) {
+        return {
+          success: false,
+          message: 'ID do artigo, conteúdo e tenant são obrigatórios'
+        };
       }
 
-      if (!request.articleId) {
-        throw new Error('Article ID is required');
-      }
-
-      if (!request.authorId) {
-        throw new Error('Author ID is required');
-      }
-
-      // Verify article exists
-      const article = await this.knowledgeBaseRepository.findById(
-        request.articleId,
-        request.tenantId
-      );
-
+      // Check if article exists
+      const article = await this.repository.findById(request.articleId, request.tenantId);
       if (!article) {
-        throw new Error('Article not found');
-      }
-
-      // If parent comment specified, verify it exists
-      if (request.parentId) {
-        const parentComment = await this.knowledgeBaseRepository.findCommentById(
-          request.parentId,
-          request.tenantId
-        );
-
-        if (!parentComment) {
-          throw new Error('Parent comment not found');
-        }
+        return {
+          success: false,
+          message: 'Artigo não encontrado'
+        };
       }
 
       const commentData = {
         articleId: request.articleId,
-        content: request.content.trim(),
-        parentId: request.parentId || null,
+        content: request.content,
+        rating: request.rating || 0,
         authorId: request.authorId,
-        authorName: request.authorName,
-        tenantId: request.tenantId,
-        isApproved: true // Auto-approve for now
+        authorName: request.authorName
       };
 
-      const comment = await this.knowledgeBaseRepository.createComment(commentData);
+      const comment = await this.repository.createComment(commentData, request.tenantId);
 
-      this.logger.info(`✅ [CREATE-COMMENT-UC] Comment created successfully`, {
+      this.logger.info('Comment created successfully', { 
         commentId: comment.id,
         articleId: request.articleId,
-        authorId: request.authorId,
-        tenantId: request.tenantId
+        tenantId: request.tenantId 
       });
 
       return {
         success: true,
-        comment,
-        message: 'Comment created successfully'
+        message: 'Comentário criado com sucesso',
+        data: comment
       };
 
     } catch (error: any) {
-      this.logger.error(`❌ [CREATE-COMMENT-UC] Failed to create comment`, {
+      this.logger.error('Error creating comment', { 
         error: error.message,
-        tenantId: request.tenantId,
-        articleId: request.articleId,
-        authorId: request.authorId
+        tenantId: request.tenantId 
       });
 
       return {
         success: false,
-        message: error.message || 'Failed to create comment'
+        message: 'Erro interno do servidor'
       };
     }
   }

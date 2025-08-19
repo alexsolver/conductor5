@@ -31,6 +31,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CreateArticleDialog } from "@/components/knowledge-base/CreateArticleDialog";
+import { TemplateCreateDialog } from "@/components/knowledge-base/TemplateCreateDialog";
+import { MediaUploadDialog } from "@/components/knowledge-base/MediaUploadDialog";
 
 interface Article {
   id: string;
@@ -354,61 +356,173 @@ export default function KnowledgeBase() {
 
         {/* Tab: Templates */}
         <TabsContent value="templates">
-          <div className="text-center py-16">
-            <Layers className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Sistema de Templates</h3>
-            <p className="text-gray-600 mb-6">
-              Crie templates reutilizáveis para padronizar artigos
-            </p>
-            <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
-              <Plus className="w-4 h-4" />
-              Criar Template
-            </Button>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-semibold">Templates Disponíveis</h3>
+                <p className="text-gray-600">Gerencie templates reutilizáveis para artigos</p>
+              </div>
+              <TemplateCreateDialog />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Layers className="h-5 w-5 text-blue-600" />
+                    Template FAQ
+                  </CardTitle>
+                  <CardDescription>
+                    Template padrão para artigos de perguntas frequentes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <Badge variant="outline">FAQ</Badge>
+                    <Button size="sm" variant="outline">Usar Template</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 
         {/* Tab: Aprovações */}
         <TabsContent value="approvals">
-          <div className="text-center py-16">
-            <CheckCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Workflow de Aprovação</h3>
-            <p className="text-gray-600 mb-6">
-              Sistema de aprovação hierárquica para garantir qualidade
-            </p>
-            <Button variant="outline" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Configurar Workflow
-            </Button>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-semibold">Workflow de Aprovação</h3>
+                <p className="text-gray-600">Gerencie artigos pendentes de aprovação</p>
+              </div>
+              <Button variant="outline" className="gap-2" data-testid="button-configure-workflow">
+                <Settings className="w-4 h-4" />
+                Configurar Workflow
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-600">0</div>
+                  <p className="text-xs text-muted-foreground">Aguardando revisão</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Aprovados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">0</div>
+                  <p className="text-xs text-muted-foreground">Prontos para publicação</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Rejeitados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">0</div>
+                  <p className="text-xs text-muted-foreground">Precisam de revisão</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="text-center py-8">
+              <CheckCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <p className="text-gray-600">Nenhum artigo pendente de aprovação no momento</p>
+            </div>
           </div>
         </TabsContent>
 
         {/* Tab: Versões */}
         <TabsContent value="versions">
-          <div className="text-center py-16">
-            <Clock className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Controle de Versões</h3>
-            <p className="text-gray-600 mb-6">
-              Histórico completo de alterações e versionamento automático
-            </p>
-            <Button variant="outline" className="gap-2">
-              <Clock className="w-4 h-4" />
-              Ver Histórico
-            </Button>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-semibold">Controle de Versões</h3>
+                <p className="text-gray-600">Histórico de alterações dos artigos</p>
+              </div>
+              <Button variant="outline" className="gap-2" data-testid="button-view-history">
+                <Clock className="w-4 h-4" />
+                Ver Histórico
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Atividade Recente</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 border rounded-lg">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Sistema inicializado</p>
+                        <p className="text-xs text-gray-500">Controle de versões ativo</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">v1.0</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 
         {/* Tab: Mídia */}
         <TabsContent value="media">
-          <div className="text-center py-16">
-            <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload de Mídia</h3>
-            <p className="text-gray-600 mb-6">
-              Faça upload de imagens, vídeos e documentos para seus artigos
-            </p>
-            <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
-              <Upload className="w-4 h-4" />
-              Fazer Upload
-            </Button>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-semibold">Biblioteca de Mídia</h3>
+                <p className="text-gray-600">Gerencie imagens, vídeos e documentos</p>
+              </div>
+              <MediaUploadDialog />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Imagens</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">0</div>
+                  <p className="text-xs text-muted-foreground">JPG, PNG, GIF</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Vídeos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-600">0</div>
+                  <p className="text-xs text-muted-foreground">MP4, WebM</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Documentos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">0</div>
+                  <p className="text-xs text-muted-foreground">PDF, DOC</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="text-center py-8">
+              <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <p className="text-gray-600">Nenhum arquivo de mídia enviado ainda</p>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

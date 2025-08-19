@@ -1,120 +1,99 @@
-// ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - APPLICATION LAYER
-// Use Case para agendamento de publicações seguindo padrões Domain-Driven Design
+// ✅ 1QA.MD COMPLIANCE: USE CASE - CLEAN ARCHITECTURE
+// Application layer use case for publication scheduling
 
-import { IKnowledgeBaseRepository } from "../../domain/repositories/IKnowledgeBaseRepository";
-import { Logger } from "winston";
-import { InsertKnowledgeBaseScheduledPublication } from "@shared/schema-knowledge-base";
+import { Logger } from 'winston';
+import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 
 export interface SchedulePublicationRequest {
   articleId: string;
-  scheduledFor: Date;
-  autoPublish?: boolean;
-  notifyUsers?: boolean;
-  scheduledBy: string;
+  scheduledAt: string;
   tenantId: string;
+  userId: string;
 }
 
 export interface SchedulePublicationResponse {
   success: boolean;
-  scheduledPublication?: any;
   message: string;
+  data?: any;
 }
 
 export class SchedulePublicationUseCase {
   constructor(
-    private knowledgeBaseRepository: IKnowledgeBaseRepository,
+    private repository: IKnowledgeBaseRepository,
     private logger: Logger
   ) {}
 
   async execute(request: SchedulePublicationRequest): Promise<SchedulePublicationResponse> {
     try {
-      this.logger.info(`📅 [SCHEDULE-PUBLICATION-UC] Scheduling publication for article: ${request.articleId}`, {
-        tenantId: request.tenantId,
-        scheduledFor: request.scheduledFor,
-        scheduledBy: request.scheduledBy
+      this.logger.info('Scheduling publication', { 
+        articleId: request.articleId,
+        scheduledAt: request.scheduledAt,
+        tenantId: request.tenantId 
       });
 
-      // Domain validation
-      if (!request.articleId) {
-        throw new Error('Article ID is required');
+      // Validate required fields
+      if (!request.articleId || !request.scheduledAt || !request.tenantId) {
+        return {
+          success: false,
+          message: 'ID do artigo, data agendada e tenant são obrigatórios'
+        };
       }
 
-      if (!request.scheduledFor) {
-        throw new Error('Scheduled date is required');
-      }
-
-      if (request.scheduledFor <= new Date()) {
-        throw new Error('Scheduled date must be in the future');
-      }
-
-      if (!request.scheduledBy) {
-        throw new Error('Scheduler user ID is required');
-      }
-
-      // Verify article exists and is in appropriate state
-      const article = await this.knowledgeBaseRepository.findById(
-        request.articleId,
-        request.tenantId
-      );
-
+      // Check if article exists
+      const article = await this.repository.findById(request.articleId, request.tenantId);
       if (!article) {
-        throw new Error('Article not found');
+        return {
+          success: false,
+          message: 'Artigo não encontrado'
+        };
       }
 
-      if (article.status === 'published') {
-        throw new Error('Article is already published');
+      // Validate scheduled date is in the future
+      const scheduledDate = new Date(request.scheduledAt);
+      if (scheduledDate <= new Date()) {
+        return {
+          success: false,
+          message: 'A data agendada deve estar no futuro'
+        };
       }
 
-      if (article.status !== 'approved' && article.status !== 'draft') {
-        throw new Error('Article must be approved or in draft status to be scheduled');
-      }
-
-      // Check if there's already a scheduled publication for this article
-      const existingSchedule = await this.knowledgeBaseRepository.findScheduledPublicationByArticle(
-        request.articleId,
-        request.tenantId
-      );
-
-      if (existingSchedule && existingSchedule.status === 'scheduled') {
-        throw new Error('Article already has a scheduled publication');
-      }
-
-      const scheduleData = {
-        articleId: request.articleId,
-        scheduledFor: request.scheduledFor,
-        autoPublish: request.autoPublish ?? true,
-        notifyUsers: request.notifyUsers ?? false,
-        scheduledBy: request.scheduledBy,
-        tenantId: request.tenantId,
-        status: 'scheduled'
+      // Update article with scheduled publication
+      const updateData = {
+        status: 'scheduled' as any,
+        scheduledAt: request.scheduledAt
       };
 
-      const scheduledPublication = await this.knowledgeBaseRepository.createScheduledPublication(scheduleData);
+      const updatedArticle = await this.repository.update(
+        request.articleId, 
+        updateData, 
+        request.tenantId
+      );
 
-      this.logger.info(`✅ [SCHEDULE-PUBLICATION-UC] Publication scheduled successfully`, {
-        scheduleId: scheduledPublication.id,
+      this.logger.info('Publication scheduled successfully', { 
         articleId: request.articleId,
-        scheduledFor: request.scheduledFor,
-        tenantId: request.tenantId
+        scheduledAt: request.scheduledAt,
+        tenantId: request.tenantId 
       });
 
       return {
         success: true,
-        scheduledPublication,
-        message: 'Publication scheduled successfully'
+        message: 'Publicação agendada com sucesso',
+        data: {
+          articleId: request.articleId,
+          scheduledAt: request.scheduledAt,
+          status: 'scheduled'
+        }
       };
 
     } catch (error: any) {
-      this.logger.error(`❌ [SCHEDULE-PUBLICATION-UC] Failed to schedule publication`, {
+      this.logger.error('Error scheduling publication', { 
         error: error.message,
-        tenantId: request.tenantId,
-        articleId: request.articleId,
-        scheduledFor: request.scheduledFor
+        tenantId: request.tenantId 
       });
 
       return {
         success: false,
-        message: error.message || 'Failed to schedule publication'
+        message: 'Erro interno do servidor'
       };
     }
   }
