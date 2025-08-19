@@ -354,3 +354,42 @@
   .gradient-secondary {
     background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
   }
+
+
+/* React Quill Custom Styles */
+.ticket-description-editor .ql-container {
+  min-height: 180px;
+  font-family: inherit;
+}
+
+.ticket-description-editor .ql-editor {
+  min-height: 180px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ticket-description-editor .ql-toolbar {
+  border-top: 1px solid #e2e8f0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: none;
+}
+
+.ticket-description-editor .ql-container {
+  border-bottom: 1px solid #e2e8f0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-top: none;
+}
+
+.ticket-description-editor .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+}
+
+/* Focus styles */
+.ticket-description-editor .ql-toolbar:focus-within,
+.ticket-description-editor .ql-container:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
