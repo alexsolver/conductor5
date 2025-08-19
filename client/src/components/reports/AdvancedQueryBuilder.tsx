@@ -407,7 +407,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                     <div className="flex items-center justify-between cursor-pointer">
                       <CardTitle className="text-base flex items-center">
                         <BarChart3 className="h-4 w-4 mr-2" />
-                        Metrics ({query.metrics.length})
+                        Metrics ({query?.metrics?.length || 0})
                       </CardTitle>
                       {expandedSections.metrics ? 
                         <ChevronDown className="h-4 w-4" /> : 
@@ -417,7 +417,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="mt-4">
-                      {query.metrics.length === 0 ? (
+                      {(!query?.metrics || query.metrics.length === 0) ? (
                         <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                           <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 mb-2">No metrics selected</p>
@@ -425,7 +425,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          {query.metrics.map((metric) => (
+                          {query?.metrics?.map((metric) => (
                             <MetricCard 
                               key={metric.id} 
                               metric={metric} 
@@ -459,7 +459,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                     <div className="flex items-center justify-between cursor-pointer">
                       <CardTitle className="text-base flex items-center">
                         <Database className="h-4 w-4 mr-2" />
-                        Attributes ({query.attributes.length})
+                        Attributes ({query?.attributes?.length || 0})
                       </CardTitle>
                       {expandedSections.attributes ? 
                         <ChevronDown className="h-4 w-4" /> : 
@@ -469,7 +469,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="mt-4">
-                      {query.attributes.length === 0 ? (
+                      {(!query?.attributes || query.attributes.length === 0) ? (
                         <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                           <Database className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 mb-2">No attributes selected</p>
@@ -477,7 +477,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          {query.attributes.map((attribute) => (
+                          {query?.attributes?.map((attribute) => (
                             <AttributeCard 
                               key={attribute.id} 
                               attribute={attribute} 
@@ -503,7 +503,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                     <div className="flex items-center justify-between cursor-pointer">
                       <CardTitle className="text-base flex items-center">
                         <Filter className="h-4 w-4 mr-2" />
-                        Filters ({query.filters.length})
+                        Filters ({query?.filters?.length || 0})
                       </CardTitle>
                       {expandedSections.filters ? 
                         <ChevronDown className="h-4 w-4" /> : 
@@ -513,7 +513,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="mt-4">
-                      {query.filters.length === 0 ? (
+                      {(!query?.filters || query.filters.length === 0) ? (
                         <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                           <Filter className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 mb-2">No filters applied</p>
@@ -521,7 +521,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          {query.filters.map((filter) => (
+                          {query?.filters?.map((filter) => (
                             <FilterCard 
                               key={filter.id} 
                               filter={filter} 
