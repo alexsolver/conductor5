@@ -73,10 +73,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         visibility: data.visibility || 'internal',
         status: data.status || 'draft',
         authorId: data.authorId,
-        contentType: data.contentType || 'rich_text',
-        approvalStatus: 'not_submitted',
-        viewCount: 0,
-        ratingCount: 0,
         published: false,
         isDeleted: false,
         version: 1
