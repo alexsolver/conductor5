@@ -69,7 +69,7 @@
     "updated_at": "Mis à jour le",
     "filters": {
       "all": "Tous",
-      "open": "Ouvert", 
+      "open": "Ouvert",
       "in_progress": "En Cours",
       "resolved": "Résolu",
       "closed": "Fermé"

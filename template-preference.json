@@ -1,6 +1,6 @@
 {
   "selectedTemplate": "corporate-blue",
-  "appliedAt": "2025-08-16T01:39:00.498Z",
+  "appliedAt": "2025-08-19T01:43:34.271Z",
   "template": {
     "id": "corporate-blue",
     "name": "Corporate Professional",
@@ -30,6 +30,7 @@
       "Tipografia clara",
       "Navegação hierárquica"
     ],
-    "style": "corporate"
+    "style": "corporate",
+    "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e"
   }
 }
