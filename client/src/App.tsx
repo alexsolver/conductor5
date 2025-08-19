@@ -149,7 +149,6 @@ function AppRouter() {
         <Route path="/" component={Dashboard} />
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/tickets/:id" component={TicketDetails} />
-        <Route path="/knowledge-base" component={KnowledgeBase} />
         <Route path="/customers" component={Customers} />
         <Route path="/tenant-admin/solicitantes" component={Customers} />
         <Route path="/tenant-admin/beneficiaries" component={Beneficiaries} />
@@ -248,6 +247,10 @@ function AppRouter() {
         <Route path="/dashboard/:id/edit" component={DashboardView} />
 
         <Route path="/companies" component={Companies} />
+        
+        {/* Knowledge Base Route */}
+        <Route path="/knowledge-base" component={KnowledgeBase} />
+        
         <Route component={NotFound} />
       </Switch>
     </AppShell>
