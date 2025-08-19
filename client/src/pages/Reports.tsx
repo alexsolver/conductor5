@@ -1,1797 +1,608 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from 'wouter';
 import { 
-  Plus, Search, Filter, BarChart3, PieChart, LineChart, Table, Download, Share2, 
-  Eye, Edit, Trash2, Play, Settings, Clock, Users, Star, StarOff, Calendar, 
-  Database, Code, Palette, FileText, Grid, Layout, Monitor, Smartphone, Tablet,
-  TrendingUp, AlertTriangle, CheckCircle, XCircle, MoreHorizontal, Copy, ExternalLink,
-  RefreshCw, CheckCircle2
+  Plus, Search, Filter, MoreVertical, Play, Share, Download, 
+  Eye, Edit, Trash2, Copy, Star, Clock, Users, BarChart3,
+  LineChart, PieChart, Table, TrendingUp, Zap, Database,
+  FolderOpen, BookOpen, Settings, Grid, List, Calendar,
+  ChevronRight, ChevronDown, Sparkles, Target, AlertCircle
 } from "lucide-react";
-import AdvancedWYSIWYGDesigner from '@/components/reports/AdvancedWYSIWYGDesigner';
-import AdvancedQueryBuilder from '@/components/reports/AdvancedQueryBuilder';
-import { ResultsViewer } from '@/components/reports/ResultsViewer';
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
-import { 
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, 
-  DropdownMenuSeparator, DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from 'wouter';
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
-// Create Report Dialog Component
-function CreateReportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const form = useForm<ReportFormData>({
-    resolver: zodResolver(reportSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      dataSource: "tickets",
-      category: "operational", 
-      chartType: "bar",
-      schedulingEnabled: false,
-      isPublic: false,
-      accessLevel: "private",
-      notifications: {
-        enabled: false,
-        channels: [],
-      },
-      wysiwyg: {
-        enabled: false,
-      },
-    },
-  });
+// Zendesk-style Quick Start Templates
+const ZENDESK_QUICK_TEMPLATES = [
+  {
+    id: "ticket-volume",
+    name: "Ticket Volume",
+    description: "Track ticket creation trends over time",
+    icon: BarChart3,
+    category: "Performance",
+    color: "bg-blue-500",
+    estimatedTime: "2 min"
+  },
+  {
+    id: "agent-performance", 
+    name: "Agent Performance",
+    description: "Monitor agent productivity and resolution rates",
+    icon: Users,
+    category: "Team",
+    color: "bg-green-500",
+    estimatedTime: "3 min"
+  },
+  {
+    id: "sla-compliance",
+    name: "SLA Compliance",
+    description: "Track SLA breaches and response times",
+    icon: Target,
+    category: "Performance", 
+    color: "bg-orange-500",
+    estimatedTime: "2 min"
+  },
+  {
+    id: "customer-satisfaction",
+    name: "Customer Satisfaction",
+    description: "Analyze CSAT scores and feedback trends",
+    icon: Star,
+    category: "Customer",
+    color: "bg-purple-500",
+    estimatedTime: "4 min"
+  }
+];
+
+// Zendesk-style Data Sources
+const ZENDESK_DATA_SOURCES = [
+  {
+    id: "tickets",
+    name: "Tickets",
+    description: "Support tickets and related data",
+    icon: Grid,
+    tables: 45,
+    color: "text-blue-600"
+  },
+  {
+    id: "users",
+    name: "Users", 
+    description: "Customer and agent information",
+    icon: Users,
+    tables: 12,
+    color: "text-green-600"
+  },
+  {
+    id: "organizations",
+    name: "Organizations",
+    description: "Company and group data",
+    icon: FolderOpen,
+    tables: 8,
+    color: "text-purple-600"
+  },
+  {
+    id: "chat",
+    name: "Chat",
+    description: "Live chat conversations",
+    icon: Database,
+    tables: 15,
+    color: "text-orange-600"
+  }
+];
+
+// Main Explore Page Component
+export default function Reports() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeView, setActiveView] = useState("explore"); // explore, reports, dashboards
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [viewMode, setViewMode] = useState("grid"); // grid, list
+  const [showFilters, setShowFilters] = useState(false);
+  const [showQuickStart, setShowQuickStart] = useState(true);
 
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const createReport = useMutation({
-    mutationFn: (data: ReportFormData) => apiRequest("POST", "/api/reports-dashboards/reports", data),
-    onSuccess: () => {
-      toast({ title: "Relatório criado com sucesso!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
-      onOpenChange(false);
-      form.reset();
-    },
-    onError: (error) => {
-      toast({ 
-        title: "Erro ao criar relatório", 
-        description: error.message, 
-        variant: "destructive" 
-      });
-    },
+  // Fetch existing reports
+  const { data: reportsData, isLoading } = useQuery({
+    queryKey: ["/api/reports-dashboards/reports"],
+    queryFn: () => apiRequest("GET", "/api/reports-dashboards/reports")
   });
 
-  const handleCreateReport = (data: ReportFormData) => {
-    createReport.mutate(data);
+  const reports = reportsData?.data?.reports || [];
+
+  // Zendesk-style Categories
+  const categories = [
+    { id: "all", name: "All Categories", count: reports.length },
+    { id: "performance", name: "Performance", count: reports.filter(r => r.category === 'operational').length },
+    { id: "team", name: "Team Analytics", count: reports.filter(r => r.category === 'hr').length },
+    { id: "customer", name: "Customer Insights", count: reports.filter(r => r.category === 'analytical').length },
+    { id: "compliance", name: "Compliance", count: reports.filter(r => r.category === 'compliance').length }
+  ];
+
+  // Filter reports based on search and category
+  const filteredReports = reports.filter(report => {
+    const matchesSearch = report.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         report.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || 
+                           (selectedCategory === 'performance' && report.category === 'operational') ||
+                           (selectedCategory === 'team' && report.category === 'hr') ||
+                           (selectedCategory === 'customer' && report.category === 'analytical') ||
+                           (selectedCategory === 'compliance' && report.category === 'compliance');
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleCreateFromTemplate = (templateId: string) => {
+    setLocation(`/reports/create?template=${templateId}`);
   };
 
-  const handleCreateWithWYSIWYG = () => {
-    const basicData = form.getValues();
-    // Navigate to the full-page creation flow
-    setLocation("/reports/create");
-    onOpenChange(false);
+  const handleEditReport = (reportId: string) => {
+    setLocation(`/reports/edit/${reportId}`);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Criar Novo Relatório</DialogTitle>
-        </DialogHeader>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleCreateReport)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Relatório</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Dashboard de Performance" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+  const handleViewReport = (reportId: string) => {
+    setLocation(`/reports/view/${reportId}`);
+  };
 
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="operational">Operacional</SelectItem>
-                        <SelectItem value="analytical">Analítico</SelectItem>
-                        <SelectItem value="compliance">Compliance</SelectItem>
-                        <SelectItem value="financial">Financeiro</SelectItem>
-                        <SelectItem value="hr">Recursos Humanos</SelectItem>
-                        <SelectItem value="strategic">Estratégico</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Descreva o objetivo e conteúdo do relatório..." 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="dataSource"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fonte de Dados</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a fonte" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="tickets">Tickets</SelectItem>
-                        <SelectItem value="customers">Clientes</SelectItem>
-                        <SelectItem value="users">Usuários</SelectItem>
-                        <SelectItem value="materials">Materiais</SelectItem>
-                        <SelectItem value="services">Serviços</SelectItem>
-                        <SelectItem value="timecard">Timecard</SelectItem>
-                        <SelectItem value="locations">Locais</SelectItem>
-                        <SelectItem value="omnibridge">OmniBridge</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="chartType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Gráfico</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="bar">Gráfico de Barras</SelectItem>
-                        <SelectItem value="line">Gráfico de Linha</SelectItem>
-                        <SelectItem value="pie">Gráfico de Pizza</SelectItem>
-                        <SelectItem value="table">Tabela</SelectItem>
-                        <SelectItem value="gauge">Velocímetro</SelectItem>
-                        <SelectItem value="area">Gráfico de Área</SelectItem>
-                        <SelectItem value="scatter">Dispersão</SelectItem>
-                        <SelectItem value="heatmap">Mapa de Calor</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCreateWithWYSIWYG}
-                data-testid="button-create-advanced"
-              >
-                <Palette className="w-4 h-4 mr-2" />
-                Criar com Editor Avançado
-              </Button>
-              
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
+  // Zendesk-style Explore Landing
+  if (activeView === "explore") {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Zendesk-style Header */}
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center space-x-4">
+                <h1 className="text-2xl font-bold text-gray-900">Explore</h1>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  Data Analytics
+                </Badge>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setActiveView("reports")}
                 >
-                  Cancelar
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Reports
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={createReport.isPending}
-                  data-testid="button-create-simple"
-                >
-                  {createReport.isPending ? "Criando..." : "Criar Relatório"}
+                <Button onClick={() => setLocation('/reports/create')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Report
                 </Button>
               </div>
             </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
+          </div>
+        </div>
 
-// Enhanced schema for comprehensive report creation
-const reportSchema = z.object({
-  name: z.string().min(1, "Report name is required"),
-  description: z.string().optional(),
-  dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard", "locations", "omnibridge"]),
-  category: z.enum(["operational", "analytical", "compliance", "financial", "hr", "strategic"]),
-  chartType: z.enum(["bar", "line", "pie", "table", "gauge", "area", "scatter", "heatmap"]),
-  filters: z.string().optional(),
-  schedulingEnabled: z.boolean().default(false),
-  scheduleType: z.enum(["cron", "interval", "event_driven", "threshold"]).optional(),
-  scheduleConfig: z.string().optional(),
-  isPublic: z.boolean().default(false),
-  accessLevel: z.enum(["private", "team", "company", "public"]).default("private"),
-  notifications: z.object({
-    enabled: z.boolean().default(false),
-    channels: z.array(z.enum(["email", "slack", "webhook", "in_app"])).default([]),
-    thresholds: z.string().optional(),
-  }).optional(),
-  wysiwyg: z.object({
-    enabled: z.boolean().default(false),
-    template: z.string().optional(),
-    styling: z.string().optional(),
-  }).optional(),
-});
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Quick Start Section - Zendesk Style */}
+          {showQuickStart && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Quick start</h2>
+                  <p className="text-gray-600 mt-1">Get insights in minutes with pre-built reports</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowQuickStart(false)}
+                >
+                  Hide
+                </Button>
+              </div>
 
-type ReportFormData = z.infer<typeof reportSchema>;
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {ZENDESK_QUICK_TEMPLATES.map((template) => (
+                  <Card 
+                    key={template.id}
+                    className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-200"
+                    onClick={() => handleCreateFromTemplate(template.id)}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className={`p-3 rounded-lg ${template.color} text-white mb-4`}>
+                          <template.icon className="h-6 w-6" />
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {template.estimatedTime}
+                        </Badge>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
+                      <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+                      <Badge variant="outline" className="text-xs">
+                        {template.category}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
 
-interface Report {
-  id: string;
-  name: string;
-  description?: string;
-  dataSource: string;
-  category: string;
-  chartType: string;
-  isPublic: boolean;
-  accessLevel: string;
-  createdBy: string;
-  createdAt: string;
-  lastExecutedAt?: string;
-  executionCount: number;
-  isFavorite: boolean;
-  status: "active" | "paused" | "error" | "scheduled";
-  scheduleConfig?: any;
-  notifications?: any;
-  wysiwyg?: any;
-}
+          {/* Data Sources Section - Zendesk Style */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Data sources</h2>
+                <p className="text-gray-600 mt-1">Choose your data to start building</p>
+              </div>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Manage Sources
+              </Button>
+            </div>
 
-// Icons mapping
-const chartTypeIcons = {
-  bar: BarChart3,
-  line: LineChart,
-  pie: PieChart,
-  table: Table,
-  gauge: BarChart3,
-  area: LineChart,
-  scatter: BarChart3,
-  heatmap: Grid,
-};
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {ZENDESK_DATA_SOURCES.map((source) => (
+                <Card 
+                  key={source.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setLocation(`/reports/create?datasource=${source.id}`)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center mb-4">
+                      <source.icon className={`h-8 w-8 ${source.color} mr-3`} />
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{source.name}</h3>
+                        <p className="text-sm text-gray-500">{source.tables} tables</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600">{source.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
 
-const categoryColors = {
-  operational: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  analytical: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-  compliance: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  financial: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  hr: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-  strategic: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
-};
+          {/* Recent Activity - Zendesk Style */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Recent activity</h2>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setActiveView("reports")}
+              >
+                View All Reports
+              </Button>
+            </div>
 
-const statusColors = {
-  active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  paused: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  error: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-  scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-};
-
-// Template Library Component - Biblioteca de Relatórios Prontos
-function TemplateLibrary({ onClose }: { onClose: () => void }) {
-  const templateCategories = [
-    { id: "sla", name: "SLA & Performance", icon: TrendingUp, templates: [
-      { id: "sla-dashboard", name: "SLA Performance Dashboard", description: "Monitor ticket SLA compliance and response times" },
-      { id: "response-time", name: "Response Time Analysis", description: "Track average response times by priority and category" },
-      { id: "resolution-trends", name: "Resolution Trends", description: "Analyze ticket resolution patterns over time" },
-    ]},
-    { id: "tickets", name: "Tickets & Support", icon: AlertTriangle, templates: [
-      { id: "ticket-volume", name: "Ticket Volume Report", description: "Daily, weekly, and monthly ticket creation trends" },
-      { id: "agent-performance", name: "Agent Performance", description: "Individual agent productivity and quality metrics" },
-      { id: "customer-satisfaction", name: "Customer Satisfaction", description: "CSAT scores and feedback analysis" },
-    ]},
-    { id: "contracts", name: "Contratos", icon: FileText, templates: [
-      { id: "contract-overview", name: "Contract Overview", description: "Active contracts, renewals, and revenue tracking" },
-      { id: "billing-summary", name: "Billing Summary", description: "Monthly billing cycles and payment status" },
-      { id: "sla-compliance", name: "Contract SLA Compliance", description: "SLA metrics by contract and customer" },
-    ]},
-    { id: "financial", name: "Financeiro", icon: BarChart3, templates: [
-      { id: "revenue-report", name: "Revenue Analysis", description: "Monthly and quarterly revenue breakdown" },
-      { id: "cost-analysis", name: "Cost Analysis", description: "Operational costs and profitability metrics" },
-      { id: "expense-tracking", name: "Expense Tracking", description: "Corporate expense management and approval workflows" },
-    ]},
-    { id: "consumption", name: "Consumo", icon: PieChart, templates: [
-      { id: "resource-usage", name: "Resource Usage", description: "System resource consumption and optimization" },
-      { id: "api-consumption", name: "API Consumption", description: "API usage patterns and rate limiting" },
-      { id: "storage-analytics", name: "Storage Analytics", description: "Data storage trends and capacity planning" },
-    ]},
-    { id: "attendance", name: "Atendimento", icon: Users, templates: [
-      { id: "channel-performance", name: "Channel Performance", description: "Omnichannel performance across email, chat, phone" },
-      { id: "first-contact", name: "First Contact Resolution", description: "FCR rates and improvement opportunities" },
-      { id: "escalation-analysis", name: "Escalation Analysis", description: "Ticket escalation patterns and resolution paths" },
-    ]},
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Choose from 20+ Professional Templates</h3>
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {templateCategories.map((category) => (
-          <Card key={category.id}>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <category.icon className="w-5 h-5 mr-2" />
-                {category.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {category.templates.map((template) => (
-                  <div key={template.id} className="border rounded p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
-                    <h4 className="font-medium text-sm">{template.name}</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{template.description}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <Button size="sm" variant="outline">Use Template</Button>
-                      <Button size="sm" variant="ghost">Preview</Button>
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6">
+                {filteredReports.slice(0, 5).map((report, index) => (
+                  <div key={report.id} className="flex items-center justify-between py-4 border-b last:border-b-0">
+                    <div className="flex items-center space-x-4">
+                      <div className="p-2 bg-gray-100 rounded">
+                        {report.chartType === 'bar' && <BarChart3 className="h-4 w-4" />}
+                        {report.chartType === 'line' && <LineChart className="h-4 w-4" />}
+                        {report.chartType === 'pie' && <PieChart className="h-4 w-4" />}
+                        {report.chartType === 'table' && <Table className="h-4 w-4" />}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">{report.name}</h3>
+                        <p className="text-sm text-gray-500">{report.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={report.status === 'active' ? 'default' : 'secondary'}>
+                        {report.status}
+                      </Badge>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewReport(report.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
 
-// Drag-Drop Visual Builder Component - Construtor Visual
-function DragDropReportBuilder({ onClose }: { onClose: () => void }) {
-  const [selectedFields, setSelectedFields] = useState<any[]>([]);
-  const [availableMetrics, setAvailableMetrics] = useState([
-    { id: "ticket_count", name: "Ticket Count", type: "numeric" },
-    { id: "avg_response_time", name: "Average Response Time", type: "duration" },
-    { id: "customer_satisfaction", name: "Customer Satisfaction", type: "percentage" },
-    { id: "resolution_time", name: "Resolution Time", type: "duration" },
-    { id: "agent_workload", name: "Agent Workload", type: "numeric" },
-  ]);
-
-  const [chartConfig, setChartConfig] = useState({
-    type: "bar",
-    groupBy: "",
-    aggregation: "sum",
-    timeRange: "last_30_days",
-  });
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Visual Report Builder - No SQL Required</h3>
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Available Fields */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Available Metrics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {availableMetrics.map((metric) => (
-                <div
-                  key={metric.id}
-                  className="p-2 border rounded cursor-move hover:bg-blue-50 dark:hover:bg-blue-900"
-                  draggable
-                  onDragStart={(e) => e.dataTransfer.setData("text/plain", metric.id)}
-                >
-                  <div className="font-medium text-sm">{metric.name}</div>
-                  <div className="text-xs text-gray-500">{metric.type}</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Report Canvas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Report Canvas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-64 text-center"
-              onDrop={(e) => {
-                e.preventDefault();
-                const fieldId = e.dataTransfer.getData("text/plain");
-                const field = availableMetrics.find(m => m.id === fieldId);
-                if (field) {
-                  setSelectedFields([...selectedFields, field]);
-                }
-              }}
-              onDragOver={(e) => e.preventDefault()}
-            >
-              {selectedFields.length === 0 ? (
-                <div className="text-gray-500 mt-8">
-                  <Grid className="w-12 h-12 mx-auto mb-4" />
-                  <p>Drag metrics here to build your report</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {selectedFields.map((field, index) => (
-                    <div key={index} className="bg-blue-100 dark:bg-blue-900 p-2 rounded flex items-center justify-between">
-                      <span className="text-sm">{field.name}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setSelectedFields(selectedFields.filter((_, i) => i !== index))}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Chart Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Visualization Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Chart Type</label>
-              <Select value={chartConfig.type} onValueChange={(value) => setChartConfig({...chartConfig, type: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bar">Bar Chart</SelectItem>
-                  <SelectItem value="line">Line Chart</SelectItem>
-                  <SelectItem value="pie">Pie Chart</SelectItem>
-                  <SelectItem value="table">Table</SelectItem>
-                  <SelectItem value="heatmap">Heatmap</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Time Range</label>
-              <Select value={chartConfig.timeRange} onValueChange={(value) => setChartConfig({...chartConfig, timeRange: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-                  <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-                  <SelectItem value="last_3_months">Last 3 Months</SelectItem>
-                  <SelectItem value="last_year">Last Year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button className="w-full">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Generate Report
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-// Advanced Filters Manager Component - Filtros Avançados
-function AdvancedFiltersManager({ savedFilters, onSaveFilter, onClose }: { 
-  savedFilters: any[], 
-  onSaveFilter: (filter: any) => void, 
-  onClose: () => void 
-}) {
-  const [currentFilter, setCurrentFilter] = useState({
-    name: "",
-    conditions: [],
-    period: { start: "", end: "" },
-    customer: "",
-    location: "",
-    sla: "",
-    agent: "",
-    category: "",
-    priority: "",
-  });
-
-  const filterOptions = {
-    customers: ["All Customers", "Customer A", "Customer B", "Customer C"],
-    locations: ["All Locations", "São Paulo", "Rio de Janeiro", "Belo Horizonte"],
-    slaLevels: ["All SLAs", "Bronze", "Silver", "Gold", "Platinum"],
-    agents: ["All Agents", "Agent 1", "Agent 2", "Agent 3"],
-    categories: ["All Categories", "Technical", "Billing", "General"],
-    priorities: ["All Priorities", "Low", "Medium", "High", "Critical"],
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Advanced Filters & Saved Presets</h3>
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Filter Builder */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Build Custom Filter</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Filter Name</label>
-              <Input
-                value={currentFilter.name}
-                onChange={(e) => setCurrentFilter({...currentFilter, name: e.target.value})}
-                placeholder="e.g., High Priority Last Week"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Start Date</label>
-                <Input
-                  type="date"
-                  value={currentFilter.period.start}
-                  onChange={(e) => setCurrentFilter({
-                    ...currentFilter,
-                    period: {...currentFilter.period, start: e.target.value}
-                  })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">End Date</label>
-                <Input
-                  type="date"
-                  value={currentFilter.period.end}
-                  onChange={(e) => setCurrentFilter({
-                    ...currentFilter,
-                    period: {...currentFilter.period, end: e.target.value}
-                  })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Customer</label>
-                <Select value={currentFilter.customer} onValueChange={(value) => setCurrentFilter({...currentFilter, customer: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filterOptions.customers.map(customer => (
-                      <SelectItem key={customer} value={customer}>{customer}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Location</label>
-                <Select value={currentFilter.location} onValueChange={(value) => setCurrentFilter({...currentFilter, location: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filterOptions.locations.map(location => (
-                      <SelectItem key={location} value={location}>{location}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium">SLA Level</label>
-                <Select value={currentFilter.sla} onValueChange={(value) => setCurrentFilter({...currentFilter, sla: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="SLA" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filterOptions.slaLevels.map(sla => (
-                      <SelectItem key={sla} value={sla}>{sla}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Category</label>
-                <Select value={currentFilter.category} onValueChange={(value) => setCurrentFilter({...currentFilter, category: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filterOptions.categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Priority</label>
-                <Select value={currentFilter.priority} onValueChange={(value) => setCurrentFilter({...currentFilter, priority: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filterOptions.priorities.map(priority => (
-                      <SelectItem key={priority} value={priority}>{priority}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <Button 
-              className="w-full"
-              onClick={() => {
-                if (currentFilter.name) {
-                  onSaveFilter({...currentFilter, id: Date.now()});
-                  setCurrentFilter({
-                    name: "",
-                    conditions: [],
-                    period: { start: "", end: "" },
-                    customer: "",
-                    location: "",
-                    sla: "",
-                    agent: "",
-                    category: "",
-                    priority: "",
-                  });
-                }
-              }}
-            >
-              <Star className="w-4 h-4 mr-2" />
-              Save Filter
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Saved Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Saved Filters ({savedFilters.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {savedFilters.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
-                  <Filter className="w-8 h-8 mx-auto mb-2" />
-                  <p>No saved filters yet</p>
-                </div>
-              ) : (
-                savedFilters.map((filter) => (
-                  <div key={filter.id} className="p-3 border rounded hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-sm">{filter.name}</h4>
-                      <div className="flex items-center space-x-1">
-                        <Button size="sm" variant="outline">Apply</Button>
-                        <Button size="sm" variant="ghost">
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {filter.period.start} to {filter.period.end} | {filter.customer} | {filter.priority}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-// Execution Queue Manager Component - Fila de Execução Inteligente
-function ExecutionQueueManager({ queue, onClose }: { queue: any[], onClose: () => void }) {
-  const [queueItems, setQueueItems] = useState([
-    {
-      id: 1,
-      reportName: "SLA Performance Dashboard",
-      status: "running",
-      priority: "high",
-      estimatedTime: "2 min",
-      progress: 65,
-      startedAt: "2025-08-18T00:45:00Z",
-      queuePosition: 1,
-    },
-    {
-      id: 2,
-      reportName: "Customer Satisfaction Trends",
-      status: "queued",
-      priority: "medium",
-      estimatedTime: "5 min",
-      progress: 0,
-      queuePosition: 2,
-    },
-    {
-      id: 3,
-      reportName: "CLT Compliance Report",
-      status: "scheduled",
-      priority: "low",
-      estimatedTime: "8 min",
-      progress: 0,
-      scheduledFor: "2025-08-18T02:00:00Z",
-      queuePosition: 3,
-    },
-  ]);
-
-  const statusColors = {
-    running: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-    queued: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    completed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    failed: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-    scheduled: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Intelligent Execution Queue</h3>
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Running</p>
-                <p className="text-2xl font-bold">{queueItems.filter(item => item.status === 'running').length}</p>
-              </div>
-              <Play className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Queued</p>
-                <p className="text-2xl font-bold">{queueItems.filter(item => item.status === 'queued').length}</p>
-              </div>
-              <Clock className="w-8 h-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Scheduled</p>
-                <p className="text-2xl font-bold">{queueItems.filter(item => item.status === 'scheduled').length}</p>
-              </div>
-              <Calendar className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Queue Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {queueItems.map((item) => (
-              <div key={item.id} className="border rounded p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h4 className="font-medium">{item.reportName}</h4>
-                    <p className="text-sm text-gray-500">Position #{item.queuePosition} | Est. {item.estimatedTime}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className={statusColors[item.status as keyof typeof statusColors]}>
-                      {item.status}
-                    </Badge>
-                    <Button size="sm" variant="outline">
-                      <ExternalLink className="w-3 h-3" />
+                {filteredReports.length === 0 && (
+                  <div className="text-center py-8">
+                    <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No reports yet</h3>
+                    <p className="text-gray-600 mb-4">Create your first report to get started</p>
+                    <Button onClick={() => setLocation('/reports/create')}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Report
                     </Button>
                   </div>
-                </div>
-
-                {item.status === 'running' && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{item.progress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all"
-                        style={{ width: `${item.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {item.scheduledFor && (
-                  <p className="text-sm text-gray-500 mt-2">
-                    Scheduled for: {new Date(item.scheduledFor).toLocaleString()}
-                  </p>
                 )}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// Security Profiles Manager Component - Segurança e Perfis de Acesso
-function SecurityProfilesManager({ onClose }: { onClose: () => void }) {
-  const [profiles, setProfiles] = useState([
-    {
-      id: 1,
-      name: "Customer Self-Service",
-      description: "Customers can only view reports related to their own data",
-      rules: ["own_data_only", "no_aggregated_metrics", "limited_export"],
-      reportsVisible: 5,
-      usersCount: 150,
-    },
-    {
-      id: 2,
-      name: "Team Manager",
-      description: "Managers can view team performance and department metrics",
-      rules: ["team_data", "department_metrics", "export_allowed"],
-      reportsVisible: 25,
-      usersCount: 12,
-    },
-    {
-      id: 3,
-      name: "Executive Dashboard",
-      description: "C-level access to all metrics and strategic reports",
-      rules: ["all_data", "financial_reports", "strategic_metrics"],
-      reportsVisible: 47,
-      usersCount: 5,
-    },
-  ]);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Security Profiles & Access Control</h3>
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {profiles.map((profile) => (
-          <Card key={profile.id}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{profile.name}</span>
-                <Badge variant="outline">{profile.usersCount} users</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">{profile.description}</p>
-
-              <div>
-                <label className="text-sm font-medium">Access Rules</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {profile.rules.map((rule) => (
-                    <Badge key={rule} variant="secondary" className="text-xs">
-                      {rule.replace(/_/g, ' ')}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Reports Visible:</span>
-                <span className="font-medium">{profile.reportsVisible}/47</span>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Button size="sm" variant="outline">
-                  <Settings className="w-3 h-3 mr-1" />
-                  Configure
-                </Button>
-                <Button size="sm" variant="outline">
-                  <Users className="w-3 h-3 mr-1" />
-                  Manage Users
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Access Logs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[
-              { user: "customer@example.com", report: "SLA Dashboard", action: "viewed", time: "2 min ago" },
-              { user: "manager@company.com", report: "Team Performance", action: "exported", time: "15 min ago" },
-              { user: "exec@company.com", report: "Financial Overview", action: "downloaded", time: "1 hour ago" },
-            ].map((log, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <div>
-                  <span className="font-medium">{log.user}</span>
-                  <span className="text-gray-500 ml-2">{log.action}</span>
-                  <span className="text-blue-600 ml-1">"{log.report}"</span>
-                </div>
-                <span className="text-gray-400">{log.time}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// Version History Manager Component - Versões & Histórico
-function VersionHistoryManager({ versions, onClose }: { versions: any[], onClose: () => void }) {
-  const [mockVersions] = useState([
-    {
-      id: 1,
-      reportName: "SLA Performance Dashboard",
-      version: "v2.3",
-      author: "admin@company.com",
-      changes: "Added new SLA threshold indicators and response time breakdown",
-      createdAt: "2025-08-18T00:30:00Z",
-      status: "current",
-    },
-    {
-      id: 2,
-      reportName: "SLA Performance Dashboard",
-      version: "v2.2",
-      author: "manager@company.com",
-      changes: "Updated color scheme and added customer satisfaction metrics",
-      createdAt: "2025-08-15T14:20:00Z",
-      status: "archived",
-    },
-    {
-      id: 3,
-      reportName: "SLA Performance Dashboard",
-      version: "v2.1",
-      author: "admin@company.com",
-      changes: "Initial template with basic SLA tracking",
-      createdAt: "2025-08-10T09:15:00Z",
-      status: "archived",
-    },
-  ]);
-
-  const statusColors = {
-    current: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    archived: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
-    draft: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Report Versions & History</h3>
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </div>
-
-      <div className="space-y-4">
-        {mockVersions.map((version) => (
-          <Card key={version.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h4 className="font-medium">{version.reportName}</h4>
-                  <p className="text-sm text-gray-500">
-                    {version.version} by {version.author}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge className={statusColors[version.status as keyof typeof statusColors]}>
-                    {version.status}
-                  </Badge>
-                  <span className="text-sm text-gray-400">
-                    {new Date(version.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                {version.changes}
-              </p>
-
-              <div className="flex items-center space-x-2">
-                {version.status === 'current' ? (
-                  <Button size="sm" variant="outline" disabled>
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Current Version
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="outline">
-                    <Copy className="w-3 h-3 mr-1" />
-                    Restore
-                  </Button>
-                )}
-                <Button size="sm" variant="outline">
-                  <Eye className="w-3 h-3 mr-1" />
-                  Preview
-                </Button>
-                <Button size="sm" variant="outline">
-                  <Download className="w-3 h-3 mr-1" />
-                  Download
-                </Button>
-                {version.status !== 'current' && (
-                  <Button size="sm" variant="ghost">
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Compare Versions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">Version A</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select version" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="v2.3">v2.3 (current)</SelectItem>
-                  <SelectItem value="v2.2">v2.2</SelectItem>
-                  <SelectItem value="v2.1">v2.1</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Version B</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select version" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="v2.3">v2.3 (current)</SelectItem>
-                  <SelectItem value="v2.2">v2.2</SelectItem>
-                  <SelectItem value="v2.1">v2.1</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
-          <Button className="w-full mt-4">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Compare Side by Side
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Reports Library View - Zendesk Style
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with Zendesk-style navigation */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-6">
+              <Button 
+                variant="ghost" 
+                onClick={() => setActiveView("explore")}
+                className="text-blue-600 hover:bg-blue-50"
+              >
+                <ChevronRight className="h-4 w-4 mr-2 rotate-180" />
+                Back to Explore
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Tabs value={activeView} onValueChange={setActiveView}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="reports">Reports</TabsTrigger>
+                  <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button onClick={() => setLocation('/reports/create')}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Report
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Filters and Search - Zendesk Style */}
+        <div className="flex flex-col lg:flex-row gap-6 mb-8">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search reports and dashboards..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name} ({category.count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+          </div>
+        </div>
+
+        {/* Reports Grid/List - Zendesk Style */}
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredReports.map((report) => (
+              <ReportCardZendeskStyle 
+                key={report.id} 
+                report={report}
+                onView={() => handleViewReport(report.id)}
+                onEdit={() => handleEditReport(report.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6">
+              {filteredReports.map((report) => (
+                <ReportListItemZendeskStyle 
+                  key={report.id} 
+                  report={report}
+                  onView={() => handleViewReport(report.id)}
+                  onEdit={() => handleEditReport(report.id)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {filteredReports.length === 0 && (
+          <div className="text-center py-12">
+            <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No reports found</h3>
+            <p className="text-gray-600 mb-6">Try adjusting your search or create a new report</p>
+            <Button onClick={() => setLocation('/reports/create')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Report
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-// WYSIWYG Report Designer Component - Using Advanced Canvas
-function WYSIWYGDesigner({ onSave, initialData }: { onSave: (config: any) => void; initialData?: any }) {
-  // Use the advanced WYSIWYG designer with A4 canvas
-  return <AdvancedWYSIWYGDesigner onSave={onSave} initialDesign={initialData} />;
-}
-
-// Query Builder - Using Advanced Builder
-function QueryBuilder({ onSave, initialQuery }: { onSave: (query: any) => void; initialQuery?: any }) {
-  // Use the advanced query builder with intuitive interface
-  return (
-    <AdvancedQueryBuilder 
-      onQueryChange={onSave}
-      onExecute={onSave}
-      initialQuery={initialQuery}
-    />
-  );
-}
-
-// Report Card Component
-function ReportCard({ report }: { report: Report }) {
-  const { toast } = useToast();
-  const ChartIcon = chartTypeIcons[report.chartType as keyof typeof chartTypeIcons];
-  const [, setLocation] = useLocation(); // Use wouter's useLocation hook
-
-  // Execute Report Mutation
-  const [executionResult, setExecutionResult] = useState<any>(null);
-  const [showResultDialog, setShowResultDialog] = useState(false);
-
-  const executeReport = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/execute`),
-    onSuccess: (result) => {
-      console.log('✅ [REPORT-EXECUTION] Success:', result);
-
-      // ✅ 1QA.MD COMPLIANCE: Show execution results instead of just success message
-      if (result?.results) {
-        setExecutionResult(result);
-        setShowResultDialog(true);
-        toast({ title: "Report executed successfully" });
-      } else {
-        toast({ title: "Report executed but no data returned" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
-    },
-    onError: (error) => {
-      console.error('❌ [REPORT-EXECUTION] Error:', error);
-      toast({ title: "Error executing report", description: error.message, variant: "destructive" });
-    },
-  });
-
-  // Toggle Favorite Mutation
-  const toggleFavorite = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/favorite`),
-    onSuccess: () => {
-      toast({ title: report.isFavorite ? "Removed from favorites" : "Added to favorites" });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
-    },
-    onError: (error) => {
-      toast({ title: "Error updating favorite status", description: error.message, variant: "destructive" });
-    },
-  });
-
-  // Delete Report Mutation
-  const deleteReport = useMutation({
-    mutationFn: () => apiRequest("DELETE", `/api/reports-dashboards/reports/${report.id}`),
-    onSuccess: () => {
-      toast({ title: "Report deleted successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
-    },
-    onError: (error) => {
-      toast({ title: "Error deleting report", description: error.message, variant: "destructive" });
-    },
-  });
-
-  // Duplicate Report Mutation
-  const duplicateReport = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/reports-dashboards/reports/${report.id}/duplicate`),
-    onSuccess: () => {
-      toast({ title: "Report duplicated successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
-    },
-    onError: (error) => {
-      toast({ title: "Error duplicating report", description: error.message, variant: "destructive" });
-    },
-  });
-
-  // Handler Functions following 1qa.md patterns
-  const handleViewReport = () => {
-    // Navigate to report view or open modal - implementing placeholder for now
-    toast({ title: "Opening report view", description: `Viewing ${report.name}` });
-    // TODO: Implement navigation to report details page
-  };
-
-  const handleViewDetails = () => {
-    // Show detailed report information
-    toast({ title: "Showing report details", description: `Details for ${report.name}` });
-    // TODO: Implement details modal or navigation
-  };
-
-  const handleEditReport = () => {
-    // Navigate to edit mode
-    // TODO: Implement navigation to edit page: navigate(`/reports/${report.id}/edit`);
-    toast({ title: "Opening report editor", description: `Editing ${report.name}` });
-    setLocation(`/reports/${report.id}/edit`); // Navigate to the edit page
-  };
-
-  const handleShareReport = () => {
-    // Open share dialog
-    toast({ title: "Opening share options", description: `Sharing ${report.name}` });
-    // TODO: Implement share functionality
-  };
-
-  const handleExportReport = () => {
-    // Export report in various formats
-    toast({ title: "Exporting report", description: `Exporting ${report.name}` });
-    // TODO: Implement export functionality
-  };
-
-  const handleDeleteReport = () => {
-    // Confirm deletion before executing
-    if (window.confirm(`Are you sure you want to delete "${report.name}"? This action cannot be undone.`)) {
-      deleteReport.mutate();
+// Zendesk-style Report Card Component
+function ReportCardZendeskStyle({ report, onView, onEdit }) {
+  const getChartIcon = (chartType) => {
+    switch (chartType) {
+      case 'bar': return BarChart3;
+      case 'line': return LineChart;
+      case 'pie': return PieChart;
+      case 'table': return Table;
+      default: return BarChart3;
     }
   };
 
+  const ChartIcon = getChartIcon(report.chartType);
+
   return (
-    <>
-    <Card className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+    <Card className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-200">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <ChartIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <ChartIcon className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="flex-1">
-              <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
-                {report.name}
-              </CardTitle>
-              {report.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {report.description}
-                </p>
-              )}
-              <div className="flex items-center space-x-2 mt-2">
-                <Badge className={categoryColors[report.category as keyof typeof categoryColors]}>
-                  {report.category}
-                </Badge>
-                <Badge className={statusColors[report.status as keyof typeof statusColors]}>
-                  {report.status}
-                </Badge>
-                {report.scheduleConfig && (
-                  <Badge variant="outline">
-                    <Clock className="w-3 h-3 mr-1" />
-                    Scheduled
-                  </Badge>
-                )}
-              </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-gray-900 truncate">{report.name}</h3>
+              <p className="text-sm text-gray-500 truncate">{report.description}</p>
             </div>
           </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" data-testid={`button-menu-${report.id}`}>
-                <MoreHorizontal className="w-4 h-4" />
+              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
+                <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                onClick={() => executeReport.mutate()}
-                disabled={executeReport.isPending}
-                data-testid={`menu-execute-${report.id}`}
-              >
-                <Play className="w-4 h-4 mr-2" />
-                {executeReport.isPending ? "Executing..." : "Execute Now"}
+              <DropdownMenuItem onClick={onView}>
+                <Eye className="h-4 w-4 mr-2" />
+                View
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handleViewDetails}
-                data-testid={`menu-view-details-${report.id}`}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
+              <DropdownMenuItem onClick={onEdit}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handleEditReport}
-                data-testid={`menu-edit-${report.id}`}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Report
+              <DropdownMenuItem>
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => duplicateReport.mutate()}
-                disabled={duplicateReport.isPending}
-                data-testid={`menu-duplicate-${report.id}`}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                {duplicateReport.isPending ? "Duplicating..." : "Duplicate"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleShareReport}
-                data-testid={`menu-share-${report.id}`}
-              >
-                <Share2 className="w-4 h-4 mr-2" />
+              <DropdownMenuItem>
+                <Share className="h-4 w-4 mr-2" />
                 Share
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handleExportReport}
-                data-testid={`menu-export-${report.id}`}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => toggleFavorite.mutate()}
-                disabled={toggleFavorite.isPending}
-                data-testid={`menu-favorite-${report.id}`}
-              >
-                {report.isFavorite ? (
-                  <>
-                    <StarOff className="w-4 h-4 mr-2" />
-                    {toggleFavorite.isPending ? "Removing..." : "Remove Favorite"}
-                  </>
-                ) : (
-                  <>
-                    <Star className="w-4 h-4 mr-2" />
-                    {toggleFavorite.isPending ? "Adding..." : "Add Favorite"}
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="text-red-600"
-                onClick={handleDeleteReport}
-                disabled={deleteReport.isPending}
-                data-testid={`menu-delete-${report.id}`}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                {deleteReport.isPending ? "Deleting..." : "Delete"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </CardHeader>
-
       <CardContent className="pt-0">
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-gray-500">Data Source:</span>
-            <span className="ml-2 font-medium">{report.dataSource}</span>
-          </div>
-          <div>
-            <span className="text-gray-500">Chart Type:</span>
-            <span className="ml-2 font-medium">{report.chartType}</span>
-          </div>
-          <div>
-            <span className="text-gray-500">Executions:</span>
-            <span className="ml-2 font-medium">{report.executionCount}</span>
-          </div>
-          <div>
-            <span className="text-gray-500">Last Run:</span>
-            <span className="ml-2 font-medium">
-              {report.lastExecutedAt ? new Date(report.lastExecutedAt).toLocaleDateString() : "Never"}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mt-4 pt-4 border-t">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Button
-              size="sm"
-              onClick={() => executeReport.mutate()}
-              disabled={executeReport.isPending}
-              data-testid={`button-execute-${report.id}`}
-            >
-              <Play className="w-3 h-3 mr-1" />
-              {executeReport.isPending ? "Running..." : "Execute"}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleViewReport}
-              data-testid={`button-view-${report.id}`}
-            >
-              <Eye className="w-3 h-3 mr-1" />
-              View
+            <Badge variant={report.status === 'active' ? 'default' : 'secondary'}>
+              {report.status}
+            </Badge>
+            {report.isFavorite && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+          </div>
+          <div className="flex items-center space-x-1">
+            <Button variant="ghost" size="sm" onClick={onView}>
+              <Play className="h-4 w-4" />
             </Button>
           </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => toggleFavorite.mutate()}
-            data-testid={`button-favorite-${report.id}`}
-          >
-            {report.isFavorite ? (
-              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-            ) : (
-              <Star className="w-4 h-4" />
-            )}
-          </Button>
         </div>
+        {report.lastExecutedAt && (
+          <p className="text-xs text-gray-500 mt-2">
+            Last run: {new Date(report.lastExecutedAt).toLocaleDateString()}
+          </p>
+        )}
       </CardContent>
     </Card>
-
-    {/* ✅ 1QA.MD COMPLIANCE: Report Results Dialog - Show execution results */}
-    <ResultsViewer 
-      open={showResultDialog} 
-      onOpenChange={setShowResultDialog}
-      report={report}
-      executionResult={executionResult}
-    />
-    </>
   );
 }
 
-// Main Reports Page Component
-export default function Reports() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-
-  // Enhanced state management for advanced features
-  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
-  const [showDragDropBuilder, setShowDragDropBuilder] = useState(false);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [showSecurityProfiles, setShowSecurityProfiles] = useState(false);
-  const [showVersionHistory, setShowVersionHistory] = useState(false);
-  const [showExecutionQueue, setShowExecutionQueue] = useState(false);
-  const [showCreateReportDialog, setShowCreateReportDialog] = useState(false); // State for the dialog
-  const [savedFilters, setSavedFilters] = useState<any[]>([]);
-  const [reportVersions, setReportVersions] = useState<any[]>([]);
-  const [executionQueue, setExecutionQueue] = useState<any[]>([]);
-
-  // Handler for when a report is created
-  const handleReportCreated = () => {
-    console.log("Report created, refreshing list...");
-    // Optionally invalidate queries or fetch again
+// Zendesk-style Report List Item Component
+function ReportListItemZendeskStyle({ report, onView, onEdit }) {
+  const getChartIcon = (chartType) => {
+    switch (chartType) {
+      case 'bar': return BarChart3;
+      case 'line': return LineChart;
+      case 'pie': return PieChart;
+      case 'table': return Table;
+      default: return BarChart3;
+    }
   };
 
-  // Fetch reports
-  const { data: reportsData, isLoading } = useQuery({
-    queryKey: ["/api/reports-dashboards/reports"],
-    queryFn: () => apiRequest("GET", "/api/reports-dashboards/reports"),
-  });
-
-  // Mock data for now since backend returns empty
-  const mockReports: Report[] = [
-    {
-      id: "1",
-      name: "SLA Performance Dashboard",
-      description: "Monitor ticket SLA compliance and response times",
-      dataSource: "tickets",
-      category: "operational",
-      chartType: "bar",
-      isPublic: false,
-      accessLevel: "team",
-      createdBy: "user1",
-      createdAt: "2025-08-15T10:00:00Z",
-      lastExecutedAt: "2025-08-18T08:30:00Z",
-      executionCount: 42,
-      isFavorite: true,
-      status: "active",
-      scheduleConfig: { type: "cron", expression: "0 9 * * *" },
-    },
-    {
-      id: "2",
-      name: "Customer Satisfaction Trends",
-      description: "Track customer satisfaction scores over time",
-      dataSource: "customers",
-      category: "analytical",
-      chartType: "line",
-      isPublic: true,
-      accessLevel: "public",
-      createdBy: "user2",
-      createdAt: "2025-08-14T15:30:00Z",
-      executionCount: 28,
-      isFavorite: false,
-      status: "active",
-    },
-    {
-      id: "3",
-      name: "CLT Compliance Report",
-      description: "Monitor working hours and CLT compliance",
-      dataSource: "timecard",
-      category: "compliance",
-      chartType: "gauge",
-      isPublic: false,
-      accessLevel: "private",
-      createdBy: "user1",
-      createdAt: "2025-08-12T09:15:00Z",
-      lastExecutedAt: "2025-08-17T17:00:00Z",
-      executionCount: 15,
-      isFavorite: true,
-      status: "scheduled",
-      scheduleConfig: { type: "interval", minutes: 360 },
-    },
-  ];
-
-  const reports = (reportsData as any)?.data || mockReports;
-
-  const filteredReports = reports.filter((report: Report) => {
-    const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         report.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || report.category === categoryFilter;
-    const matchesTab = activeTab === "all" || 
-                      (activeTab === "favorites" && report.isFavorite) ||
-                      (activeTab === "scheduled" && report.scheduleConfig) ||
-                      (activeTab === "public" && report.isPublic);
-
-    return matchesSearch && matchesCategory && matchesTab;
-  });
+  const ChartIcon = getChartIcon(report.chartType);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Reports & Analytics
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Create, manage, and analyze comprehensive reports across all system modules
-          </p>
+    <div className="flex items-center justify-between py-4 border-b last:border-b-0 hover:bg-gray-50 rounded px-4 -mx-4">
+      <div className="flex items-center space-x-4 flex-1 min-w-0">
+        <div className="p-2 bg-blue-50 rounded-lg">
+          <ChartIcon className="h-5 w-5 text-blue-600" />
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={() => setShowTemplateLibrary(true)} data-testid="button-template-library">
-            <FileText className="w-4 h-4 mr-2" />
-            Template Library
-          </Button>
-          <Button variant="outline" onClick={() => setShowDragDropBuilder(true)} data-testid="button-visual-builder">
-            <Grid className="w-4 h-4 mr-2" />
-            Visual Builder
-          </Button>
-          <Button variant="outline" onClick={() => setShowAdvancedFilters(true)} data-testid="button-advanced-filters">
-            <Filter className="w-4 h-4 mr-2" />
-            Advanced Filters
-          </Button>
-          <Button variant="outline" onClick={() => setShowExecutionQueue(true)} data-testid="button-execution-queue">
-            <Clock className="w-4 h-4 mr-2" />
-            Execution Queue
-          </Button>
-          <Button variant="outline" onClick={() => setShowSecurityProfiles(true)} data-testid="button-security-profiles">
-            <Users className="w-4 h-4 mr-2" />
-            Security
-          </Button>
-          <Button variant="outline" onClick={() => setShowVersionHistory(true)} data-testid="button-version-history">
-            <Calendar className="w-4 h-4 mr-2" />
-            Versions
-          </Button>
-          <Button onClick={() => setShowCreateReportDialog(true)} data-testid="button-create-report" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Advanced Report
-          </Button>
-        </div>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Reports</p>
-                <p className="text-2xl font-bold">{reports.length}</p>
-              </div>
-              <FileText className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Scheduled</p>
-                <p className="text-2xl font-bold">{reports.filter((r: Report) => r.scheduleConfig).length}</p>
-              </div>
-              <Clock className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Favorites</p>
-                <p className="text-2xl font-bold">{reports.filter((r: Report) => r.isFavorite).length}</p>
-              </div>
-              <Star className="w-8 h-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Executions</p>
-                <p className="text-2xl font-bold">{reports.reduce((acc: number, r: Report) => acc + r.executionCount, 0)}</p>
-              </div>
-              <Play className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search reports..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              data-testid="input-search-reports"
-            />
+        <div className="min-w-0 flex-1">
+          <h3 className="font-medium text-gray-900 truncate">{report.name}</h3>
+          <p className="text-sm text-gray-500 truncate">{report.description}</p>
+          <div className="flex items-center space-x-4 mt-1">
+            <Badge variant={report.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+              {report.status}
+            </Badge>
+            {report.lastExecutedAt && (
+              <span className="text-xs text-gray-500">
+                Last run: {new Date(report.lastExecutedAt).toLocaleDateString()}
+              </span>
+            )}
           </div>
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-48" data-testid="select-category-filter">
-            <Filter className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="operational">Operational</SelectItem>
-            <SelectItem value="analytical">Analytical</SelectItem>
-            <SelectItem value="compliance">Compliance</SelectItem>
-            <SelectItem value="financial">Financial</SelectItem>
-            <SelectItem value="hr">HR</SelectItem>
-            <SelectItem value="strategic">Strategic</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
-
-      {/* Advanced Features Dialogs */}
-      {showTemplateLibrary && (
-        <Dialog open={showTemplateLibrary} onOpenChange={setShowTemplateLibrary}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Template Library</DialogTitle>
-            </DialogHeader>
-            <TemplateLibrary onClose={() => setShowTemplateLibrary(false)} />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {showDragDropBuilder && (
-        <Dialog open={showDragDropBuilder} onOpenChange={setShowDragDropBuilder}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Visual Report Builder</DialogTitle>
-            </DialogHeader>
-            <DragDropReportBuilder onClose={() => setShowDragDropBuilder(false)} />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {showAdvancedFilters && (
-        <Dialog open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Advanced Filters</DialogTitle>
-            </DialogHeader>
-            <AdvancedFiltersManager
-              savedFilters={savedFilters}
-              onSaveFilter={(filter) => setSavedFilters([...savedFilters, filter])}
-              onClose={() => setShowAdvancedFilters(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {showExecutionQueue && (
-        <Dialog open={showExecutionQueue} onOpenChange={setShowExecutionQueue}>
-          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Intelligent Execution Queue</DialogTitle>
-            </DialogHeader>
-            <ExecutionQueueManager
-              queue={executionQueue}
-              onClose={() => setShowExecutionQueue(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {showSecurityProfiles && (
-        <Dialog open={showSecurityProfiles} onOpenChange={setShowSecurityProfiles}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Security Profiles & Access Control</DialogTitle>
-            </DialogHeader>
-            <SecurityProfilesManager onClose={() => setShowSecurityProfiles(false)} />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {showVersionHistory && (
-        <Dialog open={showVersionHistory} onOpenChange={setShowVersionHistory}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Report Versions & History</DialogTitle>
-            </DialogHeader>
-            <VersionHistoryManager 
-              versions={reportVersions}
-              onClose={() => setShowVersionHistory(false)} 
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Create Report Dialog */}
-      <CreateReportDialog 
-        open={showCreateReportDialog} 
-        onOpenChange={setShowCreateReportDialog}
-      />
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all" data-testid="tab-all">All Reports</TabsTrigger>
-          <TabsTrigger value="favorites" data-testid="tab-favorites">Favorites</TabsTrigger>
-          <TabsTrigger value="scheduled" data-testid="tab-scheduled">Scheduled</TabsTrigger>
-          <TabsTrigger value="public" data-testid="tab-public">Public</TabsTrigger>
-          <TabsTrigger value="recent" data-testid="tab-recent">Recent</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-6">
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : filteredReports.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredReports.map((report: Report) => (
-                <ReportCard key={report.id} report={report} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No reports found</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
-                {searchTerm || categoryFilter !== "all" 
-                  ? "Try adjusting your search or filters"
-                  : "Get started by creating your first report"
-                }
-              </p>
-              {!searchTerm && categoryFilter === "all" && (
-                <Button onClick={() => setShowCreateReportDialog(true)} data-testid="button-create-first-report" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Advanced Report
-                </Button>
-              )}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+      <div className="flex items-center space-x-2">
+        {report.isFavorite && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+        <Button variant="ghost" size="sm" onClick={onView}>
+          <Play className="h-4 w-4" />
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onView}>
+              <Eye className="h-4 w-4 mr-2" />
+              View
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEdit}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Copy className="h-4 w-4 mr-2" />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Share className="h-4 w-4 mr-2" />
+              Share
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }
