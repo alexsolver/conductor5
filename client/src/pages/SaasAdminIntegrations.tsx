@@ -113,10 +113,7 @@ export default function SaasAdminIntegrations() {
       };
 
       const url = `/api/saas-admin/integrations/${integrationId}/config`;
-      return apiRequest(url, {
-        method: 'PUT',
-        body: JSON.stringify(sanitizedConfig),
-      });
+      return apiRequest('PUT', url, sanitizedConfig);
     },
     onSuccess: (data) => {
       console.log('✅ [SAAS-ADMIN-CONFIG] Configuração salva com sucesso:', data);
