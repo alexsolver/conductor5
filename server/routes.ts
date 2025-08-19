@@ -4553,18 +4553,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`🔍 [SAAS-ADMIN-INTEGRATIONS] Fetching SaaS admin integrations`);
+      console.log(`🔍 [SAAS-ADMIN-INTEGRATIONS] Fetching AI integrations`);
 
-      // Mock data for SaaS admin integrations
-      const integrations = [
+      // Get database pool to fetch real configurations
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+
+      // Base integrations list
+      const baseIntegrations = [
         {
           id: 'openai',
           name: 'OpenAI',
           provider: 'OpenAI',
           description: 'Integração com modelos GPT-4 e ChatGPT para chat inteligente',
-          status: 'disconnected',
-          apiKeyConfigured: false,
-          config: {},
           features: ['GPT-4', 'ChatGPT', 'Embeddings']
         },
         {
@@ -4572,9 +4573,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'DeepSeek',
           provider: 'DeepSeek',
           description: 'Modelos de IA avançados para análise e processamento',
-          status: 'disconnected',
-          apiKeyConfigured: false,
-          config: {},
           features: ['Reasoning', 'Code Generation', 'Analysis']
         },
         {
@@ -4582,12 +4580,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: 'Google AI',
           provider: 'Google',
           description: 'Integração com Gemini e outros modelos do Google AI',
-          status: 'disconnected',
-          apiKeyConfigured: false,
-          config: {},
           features: ['Gemini', 'Multimodal', 'Reasoning']
         }
       ];
+
+      // Fetch saved configurations and merge with base data
+      const integrations = [];
+      for (const baseIntegration of baseIntegrations) {
+        try {
+          const configResult = await pool.query(`
+            SELECT config FROM "public"."system_integrations" 
+            WHERE integration_id = $1
+          `, [baseIntegration.id]);
+
+          const savedConfig = configResult.rows[0]?.config || {};
+          const hasApiKey = savedConfig?.apiKey && savedConfig.apiKey.length > 0;
+
+          integrations.push({
+            ...baseIntegration,
+            status: hasApiKey ? 'connected' : 'disconnected',
+            apiKeyConfigured: hasApiKey,
+            config: savedConfig,
+            lastTested: savedConfig?.lastTested || null
+          });
+        } catch (error) {
+          // If no config found, use defaults
+          integrations.push({
+            ...baseIntegration,
+            status: 'disconnected',
+            apiKeyConfigured: false,
+            config: {},
+            lastTested: null
+          });
+        }
+      }
 
       res.json({
         success: true,
@@ -4681,9 +4707,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         enabled: config.enabled !== undefined ? config.enabled : true
       };
 
-      // In a real implementation, save to database
-      // For now, simulate success
-      console.log(`✅ [SAAS-ADMIN-CONFIG] Configuration saved successfully for ${integrationId}`);
+      // Save configuration to database
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      
+      // Upsert configuration in database
+      await pool.query(`
+        INSERT INTO "public"."system_integrations" (integration_id, config, updated_at)
+        VALUES ($1, $2, NOW())
+        ON CONFLICT (integration_id) 
+        DO UPDATE SET config = $2, updated_at = NOW()
+      `, [integrationId, JSON.stringify(cleanedConfig)]);
+
+      console.log(`✅ [SAAS-ADMIN-CONFIG] Configuration saved successfully`);
 
       res.json({
         success: true,
@@ -4724,24 +4760,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Simulate test (in real implementation, test actual API connection)
-      const testSuccess = Math.random() > 0.3; // 70% success rate for demo
+      // Get saved configuration from database
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      
+      const configResult = await pool.query(`
+        SELECT config FROM "public"."system_integrations" 
+        WHERE integration_id = $1
+      `, [integrationId]);
 
-      if (testSuccess) {
-        res.json({
-          success: true,
-          message: 'Integração testada com sucesso',
-          result: {
-            status: 'connected',
-            responseTime: Math.floor(Math.random() * 1000) + 100,
-            lastTested: new Date().toISOString()
-          }
+      if (!configResult.rows[0]?.config) {
+        return res.json({
+          success: false,
+          message: 'Configuração não encontrada. Configure a integração primeiro.',
+          error: 'No configuration found'
         });
-      } else {
+      }
+
+      const config = configResult.rows[0].config;
+      if (!config.apiKey) {
+        return res.json({
+          success: false,
+          message: 'API Key não configurada',
+          error: 'API Key required'
+        });
+      }
+
+      // Test the actual integration based on type
+      let testResult;
+      const startTime = Date.now();
+
+      try {
+        if (integrationId === 'openai') {
+          // Test OpenAI API
+          const baseUrl = config.baseUrl || 'https://api.openai.com/v1';
+          const response = await fetch(`${baseUrl}/models`, {
+            headers: {
+              'Authorization': `Bearer ${config.apiKey}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            testResult = {
+              success: true,
+              message: 'Integração OpenAI funcionando corretamente',
+              result: {
+                status: 'connected',
+                responseTime: Date.now() - startTime,
+                lastTested: new Date().toISOString(),
+                apiVersion: 'v1'
+              }
+            };
+          } else {
+            testResult = {
+              success: false,
+              message: 'Falha na conexão com OpenAI',
+              error: `HTTP ${response.status}: ${response.statusText}`
+            };
+          }
+        } else {
+          // For other integrations, simulate test for now
+          testResult = {
+            success: true,
+            message: `Integração ${integrationId} testada com sucesso (simulado)`,
+            result: {
+              status: 'connected',
+              responseTime: Date.now() - startTime,
+              lastTested: new Date().toISOString()
+            }
+          };
+        }
+
+        // Update last tested timestamp in database
+        if (testResult.success) {
+          const updatedConfig = {
+            ...config,
+            lastTested: new Date().toISOString()
+          };
+          await pool.query(`
+            UPDATE "public"."system_integrations" 
+            SET config = $2, updated_at = NOW()
+            WHERE integration_id = $1
+          `, [integrationId, JSON.stringify(updatedConfig)]);
+        }
+
+        res.json(testResult);
+
+      } catch (error) {
+        console.error(`❌ [SAAS-ADMIN-TEST] Test failed for ${integrationId}:`, error);
         res.json({
           success: false,
-          message: 'Falha no teste da integração',
-          error: 'API Key inválida ou serviço indisponível'
+          message: 'Erro ao testar integração',
+          error: error.message
         });
       }
 
