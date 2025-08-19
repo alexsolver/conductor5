@@ -1,0 +1,48 @@
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+🔍 [KB-DEBUG] Articles data structure: 
+Object {articlesData: {…}, extractedArticles: Array(0), isArray: true}
+🔍 [KB-DEBUG] Articles data structure: 
+Object {articlesData: {…}, extractedArticles: Array(0), isArray: true}
+Warning: findDOMNode is deprecated and will be removed in the next major release. Instead, add a ref directly to the element you want to reference. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-find-node
+    at ReactQuill2 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-quill.js?v=5a68e9f2:12820:30)
+    at div
+    at RichTextEditor (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/knowledge-base/RichTextEditor.tsx:20:3)
+    at div
+    at form
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=39b8926c:42:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=39b8926c:61:7
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=39b8926c:43:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=39b8926c:20:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=39b8926c:42:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-ZYWKWX7V.js?v=39b8926c:29:5
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4WWZGGX3.js?v=39b8926c:237:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4WWZGGX3.js?v=39b8926c:160:58
+    at Presence (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=39b8926c:24:11)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4WWZGGX3.js?v=39b8926c:151:64
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=39b8926c:43:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=39b8926c:20:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=39b8926c:42:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=39b8926c:260:22
+    at Presence (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=39b8926c:24:11)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=39b8926c:38:15)
+    at DialogPortal (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4WWZGGX3.js?v=39b8926c:113:11)
+    at _c3 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=39b8926c:38:15)
+    at Dialog (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4WWZGGX3.js?v=39b8926c:54:5)
+    at CreateArticleDialog (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/knowledge-base/CreateArticleDialog.tsx:46:39)
+    at div
+    at KnowledgeBase (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/KnowledgeBase.tsx:41:41)
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4a17be32:191:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4a17be32:247:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter…
