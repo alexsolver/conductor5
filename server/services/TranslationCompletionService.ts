@@ -313,7 +313,9 @@ export class TranslationCompletionService {
    */
   async scanTranslationKeys(): Promise<TranslationKey[]> {
     const keys: TranslationKey[] = [];
-    const keyPattern = /(?:t\(|useTranslation\(\)\.t\(|i18n\.t\()\s*['"`]([^'"`]+)['"`]/g;
+    // ✅ 1QA.MD: Refined regex to avoid capturing API URLs as translation keys
+    // Only capture strings that look like translation keys (dot-separated words, no forward slashes)
+    const keyPattern = /(?:t\(|useTranslation\(\)\.t\(|i18n\.t\()\s*['"`]([a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+)['"`]/g;
 
     for (const sourceDir of this.SOURCE_DIRS) {
       try {
@@ -643,12 +645,16 @@ export class TranslationCompletionService {
 
       for (const match of matches) {
         if (match[1]) {
-          keys.push({
-            key: match[1],
-            module,
-            usage: [filePath],
-            priority: this.determinePriority(match[1], filePath)
-          });
+          const key = match[1];
+          // ✅ 1QA.MD: Additional filter to exclude API URLs and paths
+          if (!key.includes('/') && !key.startsWith('http') && key.includes('.')) {
+            keys.push({
+              key,
+              module,
+              usage: [filePath],
+              priority: this.determinePriority(key, filePath)
+            });
+          }
         }
       }
     } catch (error) {
