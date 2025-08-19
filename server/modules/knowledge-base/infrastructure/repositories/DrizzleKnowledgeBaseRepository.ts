@@ -3,7 +3,13 @@
 
 import { eq, and, like, desc, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { knowledgeBaseArticles } from '../../../../../shared/schema-knowledge-base';
+import { 
+  knowledgeBaseArticles,
+  knowledgeBaseTemplates,
+  knowledgeBaseComments,
+  knowledgeBaseScheduledPublications,
+  knowledgeBaseArticleVersions
+} from '../../../../../shared/schema-knowledge-base';
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 import {
   KnowledgeBaseArticle,
@@ -471,6 +477,244 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       total: total,
       hasMore: false // In a real scenario, you'd need a separate count query or pagination logic
     };
+  }
+
+  // ========================================
+  // TEMPLATE METHODS
+  // ========================================
+  
+  async createTemplate(template: any): Promise<any> {
+    const [inserted] = await db
+      .insert(knowledgeBaseTemplates)
+      .values(template)
+      .returning();
+    return inserted;
+  }
+
+  async findTemplateByName(name: string, tenantId: string): Promise<any> {
+    const [template] = await db
+      .select()
+      .from(knowledgeBaseTemplates)
+      .where(and(
+        eq(knowledgeBaseTemplates.name, name),
+        eq(knowledgeBaseTemplates.tenantId, tenantId),
+        eq(knowledgeBaseTemplates.isActive, true)
+      ));
+    return template || null;
+  }
+
+  async findTemplateById(id: string, tenantId: string): Promise<any> {
+    const [template] = await db
+      .select()
+      .from(knowledgeBaseTemplates)
+      .where(and(
+        eq(knowledgeBaseTemplates.id, id),
+        eq(knowledgeBaseTemplates.tenantId, tenantId)
+      ));
+    return template || null;
+  }
+
+  async listTemplates(tenantId: string): Promise<any[]> {
+    const templates = await db
+      .select()
+      .from(knowledgeBaseTemplates)
+      .where(and(
+        eq(knowledgeBaseTemplates.tenantId, tenantId),
+        eq(knowledgeBaseTemplates.isActive, true)
+      ))
+      .orderBy(desc(knowledgeBaseTemplates.createdAt));
+    return templates;
+  }
+
+  async updateTemplate(id: string, updates: any, tenantId: string): Promise<any> {
+    const [updated] = await db
+      .update(knowledgeBaseTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(knowledgeBaseTemplates.id, id),
+        eq(knowledgeBaseTemplates.tenantId, tenantId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteTemplate(id: string, tenantId: string): Promise<boolean> {
+    const result = await db
+      .delete(knowledgeBaseTemplates)
+      .where(and(
+        eq(knowledgeBaseTemplates.id, id),
+        eq(knowledgeBaseTemplates.tenantId, tenantId)
+      ));
+    return result.changes > 0;
+  }
+
+  // ========================================
+  // COMMENT METHODS
+  // ========================================
+  
+  async createComment(comment: any): Promise<any> {
+    const [inserted] = await db
+      .insert(knowledgeBaseComments)
+      .values(comment)
+      .returning();
+    return inserted;
+  }
+
+  async findCommentById(id: string, tenantId: string): Promise<any> {
+    const [comment] = await db
+      .select()
+      .from(knowledgeBaseComments)
+      .where(and(
+        eq(knowledgeBaseComments.id, id),
+        eq(knowledgeBaseComments.tenantId, tenantId)
+      ));
+    return comment || null;
+  }
+
+  async findCommentsByArticle(articleId: string, tenantId: string): Promise<any[]> {
+    const comments = await db
+      .select()
+      .from(knowledgeBaseComments)
+      .where(and(
+        eq(knowledgeBaseComments.articleId, articleId),
+        eq(knowledgeBaseComments.tenantId, tenantId)
+      ))
+      .orderBy(desc(knowledgeBaseComments.createdAt));
+    return comments;
+  }
+
+  async updateComment(id: string, content: string, tenantId: string): Promise<any> {
+    const [updated] = await db
+      .update(knowledgeBaseComments)
+      .set({ 
+        content, 
+        isEdited: true,
+        updatedAt: new Date() 
+      })
+      .where(and(
+        eq(knowledgeBaseComments.id, id),
+        eq(knowledgeBaseComments.tenantId, tenantId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteComment(id: string, tenantId: string): Promise<boolean> {
+    const result = await db
+      .update(knowledgeBaseComments)
+      .set({ deletedAt: new Date() })
+      .where(and(
+        eq(knowledgeBaseComments.id, id),
+        eq(knowledgeBaseComments.tenantId, tenantId)
+      ));
+    return result.changes > 0;
+  }
+
+  // ========================================
+  // VERSION METHODS
+  // ========================================
+  
+  async createVersion(version: any): Promise<any> {
+    const [inserted] = await db
+      .insert(knowledgeBaseArticleVersions)
+      .values(version)
+      .returning();
+    return inserted;
+  }
+
+  async getLatestVersionNumber(articleId: string, tenantId: string): Promise<number> {
+    const [result] = await db
+      .select({ versionNumber: knowledgeBaseArticleVersions.versionNumber })
+      .from(knowledgeBaseArticleVersions)
+      .where(and(
+        eq(knowledgeBaseArticleVersions.articleId, articleId),
+        eq(knowledgeBaseArticleVersions.tenantId, tenantId)
+      ))
+      .orderBy(desc(knowledgeBaseArticleVersions.versionNumber))
+      .limit(1);
+    
+    return result?.versionNumber || 0;
+  }
+
+  async findVersionsByArticle(articleId: string, tenantId: string): Promise<any[]> {
+    const versions = await db
+      .select()
+      .from(knowledgeBaseArticleVersions)
+      .where(and(
+        eq(knowledgeBaseArticleVersions.articleId, articleId),
+        eq(knowledgeBaseArticleVersions.tenantId, tenantId)
+      ))
+      .orderBy(desc(knowledgeBaseArticleVersions.versionNumber));
+    return versions;
+  }
+
+  async findVersionById(id: string, tenantId: string): Promise<any> {
+    const [version] = await db
+      .select()
+      .from(knowledgeBaseArticleVersions)
+      .where(and(
+        eq(knowledgeBaseArticleVersions.id, id),
+        eq(knowledgeBaseArticleVersions.tenantId, tenantId)
+      ));
+    return version || null;
+  }
+
+  // ========================================
+  // SCHEDULED PUBLICATION METHODS
+  // ========================================
+  
+  async createScheduledPublication(schedule: any): Promise<any> {
+    const [inserted] = await db
+      .insert(knowledgeBaseScheduledPublications)
+      .values(schedule)
+      .returning();
+    return inserted;
+  }
+
+  async findScheduledPublicationByArticle(articleId: string, tenantId: string): Promise<any> {
+    const [schedule] = await db
+      .select()
+      .from(knowledgeBaseScheduledPublications)
+      .where(and(
+        eq(knowledgeBaseScheduledPublications.articleId, articleId),
+        eq(knowledgeBaseScheduledPublications.tenantId, tenantId),
+        eq(knowledgeBaseScheduledPublications.status, 'scheduled')
+      ));
+    return schedule || null;
+  }
+
+  async findPendingScheduledPublications(tenantId: string): Promise<any[]> {
+    const schedules = await db
+      .select()
+      .from(knowledgeBaseScheduledPublications)
+      .where(and(
+        eq(knowledgeBaseScheduledPublications.tenantId, tenantId),
+        eq(knowledgeBaseScheduledPublications.status, 'scheduled'),
+        sql`${knowledgeBaseScheduledPublications.scheduledFor} <= NOW()`
+      ));
+    return schedules;
+  }
+
+  async updateScheduledPublication(id: string, updates: any, tenantId: string): Promise<any> {
+    const [updated] = await db
+      .update(knowledgeBaseScheduledPublications)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(knowledgeBaseScheduledPublications.id, id),
+        eq(knowledgeBaseScheduledPublications.tenantId, tenantId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteScheduledPublication(id: string, tenantId: string): Promise<boolean> {
+    const result = await db
+      .delete(knowledgeBaseScheduledPublications)
+      .where(and(
+        eq(knowledgeBaseScheduledPublications.id, id),
+        eq(knowledgeBaseScheduledPublications.tenantId, tenantId)
+      ));
+    return result.changes > 0;
   }
 
   private generateSummary(content: string): string {

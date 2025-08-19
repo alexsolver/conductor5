@@ -380,3 +380,146 @@ export const knowledgeBaseArticleRelationsRelations = relations(knowledgeBaseArt
     references: [knowledgeBaseArticles.id],
   }),
 }));
+
+// ========================================
+// ADDITIONAL TABLES FOR ADVANCED FEATURES
+// ========================================
+
+// Knowledge Base Templates
+export const knowledgeBaseTemplates = pgTable("knowledge_base_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+  
+  // Template Info
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  content: text("content").notNull(),
+  category: knowledgeBaseCategoryEnum("category").notNull(),
+  
+  // Template Fields
+  fields: jsonb("fields").default([]), // Dynamic fields for template
+  isActive: boolean("is_active").notNull().default(true),
+  isDefault: boolean("is_default").notNull().default(false),
+  
+  // Authoring
+  createdBy: uuid("created_by").notNull(),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("kb_templates_tenant_idx").on(table.tenantId),
+  index("kb_templates_tenant_category_idx").on(table.tenantId, table.category),
+  index("kb_templates_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Knowledge Base Article Comments
+export const knowledgeBaseComments: any = pgTable("knowledge_base_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+  articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
+  
+  // Comment Structure
+  parentId: uuid("parent_id").references(() => knowledgeBaseComments.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  
+  // Author Info
+  authorId: uuid("author_id").notNull(),
+  authorName: varchar("author_name", { length: 255 }).notNull(),
+  
+  // Status
+  isEdited: boolean("is_edited").notNull().default(false),
+  isApproved: boolean("is_approved").notNull().default(true),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+}, (table) => [
+  index("kb_comments_tenant_article_idx").on(table.tenantId, table.articleId),
+  index("kb_comments_tenant_author_idx").on(table.tenantId, table.authorId),
+  index("kb_comments_parent_idx").on(table.parentId),
+]);
+
+// Knowledge Base Scheduled Publications
+export const knowledgeBaseScheduledPublications = pgTable("knowledge_base_scheduled_publications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+  articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
+  
+  // Scheduling Info
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("scheduled"), // scheduled, published, cancelled, failed
+  publishedAt: timestamp("published_at"),
+  
+  // Configuration
+  autoPublish: boolean("auto_publish").notNull().default(true),
+  notifyUsers: boolean("notify_users").notNull().default(false),
+  
+  // Authoring
+  scheduledBy: uuid("scheduled_by").notNull(),
+  
+  // Execution Log
+  executionLog: jsonb("execution_log").default({}),
+  failureReason: text("failure_reason"),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("kb_scheduled_tenant_idx").on(table.tenantId),
+  index("kb_scheduled_tenant_article_idx").on(table.tenantId, table.articleId),
+  index("kb_scheduled_tenant_status_idx").on(table.tenantId, table.status),
+  index("kb_scheduled_execution_idx").on(table.scheduledFor),
+]);
+
+// Additional schemas for new tables
+export const insertKnowledgeBaseTemplateSchema = createInsertSchema(knowledgeBaseTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertKnowledgeBaseCommentSchema = createInsertSchema(knowledgeBaseComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+  isEdited: true,
+});
+
+export const insertKnowledgeBaseScheduledPublicationSchema = createInsertSchema(knowledgeBaseScheduledPublications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  publishedAt: true,
+  executionLog: true,
+  failureReason: true,
+});
+
+// Additional type exports
+export type KnowledgeBaseTemplate = typeof knowledgeBaseTemplates.$inferSelect;
+export type InsertKnowledgeBaseTemplate = z.infer<typeof insertKnowledgeBaseTemplateSchema>;
+
+export type KnowledgeBaseComment = typeof knowledgeBaseComments.$inferSelect;
+export type InsertKnowledgeBaseComment = z.infer<typeof insertKnowledgeBaseCommentSchema>;
+
+export type KnowledgeBaseScheduledPublication = typeof knowledgeBaseScheduledPublications.$inferSelect;
+export type InsertKnowledgeBaseScheduledPublication = z.infer<typeof insertKnowledgeBaseScheduledPublicationSchema>;
+
+// Template field type definition
+export interface TemplateField {
+  id: string;
+  name: string;
+  type: 'text' | 'textarea' | 'select' | 'checkbox' | 'date' | 'number';
+  label: string;
+  required: boolean;
+  defaultValue?: any;
+  options?: string[]; // For select fields
+  placeholder?: string;
+  validation?: {
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+  };
+}

@@ -52,4 +52,32 @@ export interface IKnowledgeBaseRepository {
   getCategories(tenantId: string): Promise<{ name: string; count: number }[]>;
   getTags(tenantId: string): Promise<{ name: string; count: number }[]>;
   getRelatedArticles(articleId: string, tenantId: string, limit?: number): Promise<KnowledgeBaseArticle[]>;
+  
+  // Templates
+  createTemplate(template: any): Promise<any>;
+  findTemplateByName(name: string, tenantId: string): Promise<any>;
+  findTemplateById(id: string, tenantId: string): Promise<any>;
+  listTemplates(tenantId: string): Promise<any[]>;
+  updateTemplate(id: string, updates: any, tenantId: string): Promise<any>;
+  deleteTemplate(id: string, tenantId: string): Promise<boolean>;
+  
+  // Comments
+  createComment(comment: any): Promise<any>;
+  findCommentById(id: string, tenantId: string): Promise<any>;
+  findCommentsByArticle(articleId: string, tenantId: string): Promise<any[]>;
+  updateComment(id: string, content: string, tenantId: string): Promise<any>;
+  deleteComment(id: string, tenantId: string): Promise<boolean>;
+  
+  // Versioning
+  createVersion(version: any): Promise<any>;
+  getLatestVersionNumber(articleId: string, tenantId: string): Promise<number>;
+  findVersionsByArticle(articleId: string, tenantId: string): Promise<any[]>;
+  findVersionById(id: string, tenantId: string): Promise<any>;
+  
+  // Scheduled Publications
+  createScheduledPublication(schedule: any): Promise<any>;
+  findScheduledPublicationByArticle(articleId: string, tenantId: string): Promise<any>;
+  findPendingScheduledPublications(tenantId: string): Promise<any[]>;
+  updateScheduledPublication(id: string, updates: any, tenantId: string): Promise<any>;
+  deleteScheduledPublication(id: string, tenantId: string): Promise<boolean>;
 }

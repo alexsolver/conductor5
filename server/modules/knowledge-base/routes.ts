@@ -3,6 +3,7 @@
 
 import { Router } from 'express';
 import { KnowledgeBaseController } from './application/controllers/KnowledgeBaseController';
+import { KnowledgeBaseAdvancedController } from './application/controllers/KnowledgeBaseAdvancedController';
 import { CreateKnowledgeBaseArticleUseCase } from './application/use-cases/CreateKnowledgeBaseArticleUseCase';
 import { UpdateKnowledgeBaseArticleUseCase } from './application/use-cases/UpdateKnowledgeBaseArticleUseCase';
 import { ApproveKnowledgeBaseArticleUseCase } from './application/use-cases/ApproveKnowledgeBaseArticleUseCase';
@@ -25,13 +26,18 @@ const updateUseCase = new UpdateKnowledgeBaseArticleUseCase(repository, logger);
 const approveUseCase = new ApproveKnowledgeBaseArticleUseCase(repository, logger);
 const dashboardUseCase = new GetKnowledgeBaseDashboardUseCase(dashboardWidget, logger);
 
-// Initialize controller
+// Initialize controllers
 const controller = new KnowledgeBaseController(
   createUseCase,
   updateUseCase,
   approveUseCase,
   dashboardUseCase,
   ticketIntegration,
+  repository,
+  logger
+);
+
+const advancedController = new KnowledgeBaseAdvancedController(
   repository,
   logger
 );
@@ -48,5 +54,25 @@ router.get('/dashboard', (req, res) => controller.getDashboard(req, res));
 // Ticket integration routes
 router.get('/ticket-suggestions', (req, res) => controller.getTicketSuggestions(req, res));
 router.post('/articles/:articleId/link-ticket', (req, res) => controller.linkToTicket(req, res));
+
+// ========================================
+// ADVANCED FEATURES ROUTES
+// ========================================
+
+// Template management
+router.post('/templates', (req, res) => advancedController.createTemplate(req, res));
+router.get('/templates', (req, res) => advancedController.listTemplates(req, res));
+router.get('/templates/:id', (req, res) => advancedController.getTemplate(req, res));
+
+// Comments system
+router.post('/articles/:articleId/comments', (req, res) => advancedController.createComment(req, res));
+router.get('/articles/:articleId/comments', (req, res) => advancedController.getComments(req, res));
+
+// Publication scheduling
+router.post('/articles/:articleId/schedule', (req, res) => advancedController.schedulePublication(req, res));
+
+// Version control
+router.post('/articles/:articleId/versions', (req, res) => advancedController.createVersion(req, res));
+router.get('/articles/:articleId/versions', (req, res) => advancedController.getVersions(req, res));
 
 export { router as knowledgeBaseRoutes };
