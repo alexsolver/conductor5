@@ -32,6 +32,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
     
     return {
       ...created,
+      summary: created.summary || undefined,
       version: 1,
       contentType: 'rich_text',
       attachments: [],
@@ -56,6 +57,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return {
       ...article,
+      summary: article.summary || undefined,
       version: 1,
       contentType: 'rich_text',
       attachments: [],
@@ -83,6 +85,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return {
       ...updated,
+      summary: updated.summary || undefined,
       version: 1,
       contentType: 'rich_text',
       attachments: [],
@@ -130,6 +133,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     const mappedArticles = articles.map(article => ({
       ...article,
+      summary: article.summary || undefined,
       version: 1,
       contentType: 'rich_text' as const,
       attachments: [] as ArticleAttachment[],
