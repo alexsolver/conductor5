@@ -137,7 +137,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       const mappedArticles = articles.map(article => ({
         ...article,
-        summary: article.summary || undefined,
+        // Usar primeiros 200 caracteres do content como summary se não existir
+        summary: article.summary || article.content?.substring(0, 200) + '...' || undefined,
         version: 1,
         contentType: 'rich_text' as const,
         attachments: [] as ArticleAttachment[],
@@ -147,18 +148,11 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         expiresAt: null
       }));
 
-      console.log(`🔍 [KB-SEARCH] Debug info:`, {
+      console.log(`🔍 [KB-SEARCH] Search successful:`, {
         tenantId,
-        queryObject: query,
-        conditionsCount: conditions.length,
         foundArticles: articles.length,
-        sampleArticles: articles.slice(0, 2).map(a => ({ 
-          id: a.id, 
-          title: a.title, 
-          status: a.status,
-          visibility: a.visibility,
-          tenantId: a.tenantId 
-        }))
+        totalFromDB: total,
+        sampleTitles: articles.slice(0, 3).map(a => a.title)
       });
       
       return {
