@@ -158,7 +158,15 @@ export default function SaasAdminIntegrations() {
     mutationFn: async (integrationId: string) => {
       console.log(`🧪 [SAAS-ADMIN-TEST] Testando integração: ${integrationId}`);
       const url = `/api/saas-admin/integrations/${integrationId}/test`;
-      return apiRequest('POST', url, {});
+      const response = await apiRequest('POST', url, {});
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('🧪 [SAAS-ADMIN-TEST] Parsed response data:', data);
+      return data;
     },
     onSuccess: (data) => {
       console.log('✅ [SAAS-ADMIN-TEST] Teste concluído:', data);
