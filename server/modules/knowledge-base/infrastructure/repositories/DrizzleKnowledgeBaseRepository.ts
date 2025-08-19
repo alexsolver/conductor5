@@ -32,7 +32,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
     
     return {
       ...created,
-      summary: created.summary || undefined,
+      summary: created.content?.substring(0, 200) + '...' || undefined,
+      tags: created.tags || [],
       version: 1,
       contentType: 'rich_text',
       attachments: [],
@@ -57,7 +58,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return {
       ...article,
-      summary: article.summary || undefined,
+      summary: article.content?.substring(0, 200) + '...' || undefined,
+      tags: article.tags || [],
       version: 1,
       contentType: 'rich_text',
       attachments: [],
@@ -85,7 +87,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return {
       ...updated,
-      summary: updated.summary || undefined,
+      summary: updated.content?.substring(0, 200) + '...' || undefined,
+      tags: updated.tags || [],
       version: 1,
       contentType: 'rich_text',
       attachments: [],
@@ -137,8 +140,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       const mappedArticles = articles.map(article => ({
         ...article,
-        // Usar primeiros 200 caracteres do content como summary se não existir
         summary: article.summary || article.content?.substring(0, 200) + '...' || undefined,
+        tags: article.tags || [],
         version: 1,
         contentType: 'rich_text' as const,
         attachments: [] as ArticleAttachment[],
