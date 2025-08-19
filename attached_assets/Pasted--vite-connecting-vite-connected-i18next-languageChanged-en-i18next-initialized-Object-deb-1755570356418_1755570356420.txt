@@ -1,0 +1,76 @@
+[vite] connecting...
+[vite] connected.
+i18next: languageChanged en
+i18next: initialized 
+Object {debug: true, initAsync: true, ns: Array(1), defaultNS: Array(1), fallbackLng: Array(1), …}
+i18next: languageChanged en
+i18next: init: i18next is already initialized. You should call init just once!
+i18next: initialized 
+Object {debug: true, initAsync: true, ns: Array(1), defaultNS: Array(1), fallbackLng: Array(1), …}
+🔍 [AUTH-QUERY] Making auth check request...
+⚠️ [AUTH-QUERY] Auth query error: Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+🔐 [LOGIN] Starting login process...
+🔍 [LOGIN] Response status: 200
+🔍 [LOGIN] Response data structure: 
+(3) ["success", "message", "data"]
+✅ [LOGIN] Using structured response format
+✅ [LOGIN-SUCCESS] Storing tokens and user data
+📦 [LOGIN-SUCCESS] Access token stored
+📦 [LOGIN-SUCCESS] Refresh token stored
+📦 [LOGIN-SUCCESS] Tenant ID stored: 3f99462f-3621-4b1b-bea8-782acc50d62e
+✅ [LOGIN-SUCCESS] Login completed successfully
+🌐 [API-REQUEST] GET /api/auth/me
+🌐 [API-REQUEST] GET /api/tenants/3f99462f-3621-4b1b-bea8-782acc50d62e
+🌐 [API-REQUEST] GET /api/user/profile
+🌐 [API-REQUEST] GET /api/timecard/current-status
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+🌐 [API-REQUEST] GET /api/translation-completion/analyze
+Error auto-completing translations: 
+Error {}
+
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: undefined, role: undefined, employmentType: undefined, position: undefined}
+[EMPLOYMENT-DETECTION] Using default: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: undefined, role: undefined, employmentType: undefined, detectedType: "clt"}
+Error auto-completing translations: 
+Error {}
+message: "Invalid token format"
+stack: "Error: Invalid token format↵ at onClick (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TranslationManager.tsx:530:27)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
