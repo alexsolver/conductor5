@@ -108,46 +108,73 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
   }
 
   async search(query: KnowledgeBaseSearchQuery, tenantId: string): Promise<KnowledgeBaseSearchResult> {
-    const conditions = [eq(knowledgeBaseArticles.tenantId, tenantId)];
+    try {
+      const conditions = [eq(knowledgeBaseArticles.tenantId, tenantId)];
 
-    if (query.query) {
-      conditions.push(
-        sql`(${knowledgeBaseArticles.title} ILIKE ${'%' + query.query + '%'} OR ${knowledgeBaseArticles.content} ILIKE ${'%' + query.query + '%'})`
-      );
+      if (query.query) {
+        conditions.push(
+          sql`(${knowledgeBaseArticles.title} ILIKE ${'%' + query.query + '%'} OR ${knowledgeBaseArticles.content} ILIKE ${'%' + query.query + '%'})`
+        );
+      }
+
+      const articles = await db
+        .select({
+          id: knowledgeBaseArticles.id,
+          tenantId: knowledgeBaseArticles.tenantId,
+          title: knowledgeBaseArticles.title,
+          content: knowledgeBaseArticles.content,
+          summary: knowledgeBaseArticles.summary,
+          slug: knowledgeBaseArticles.slug,
+          category: knowledgeBaseArticles.category,
+          tags: knowledgeBaseArticles.tags,
+          authorId: knowledgeBaseArticles.authorId,
+          status: knowledgeBaseArticles.status,
+          visibility: knowledgeBaseArticles.visibility,
+          published: knowledgeBaseArticles.published,
+          createdAt: knowledgeBaseArticles.createdAt,
+          updatedAt: knowledgeBaseArticles.updatedAt,
+          viewCount: knowledgeBaseArticles.viewCount
+        })
+        .from(knowledgeBaseArticles)
+        .where(and(...conditions))
+        .orderBy(desc(knowledgeBaseArticles.updatedAt))
+        .limit(query.limit || 20)
+        .offset(query.offset || 0);
+
+      const [countResult] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(knowledgeBaseArticles)
+        .where(and(...conditions));
+
+      const total = countResult?.count || 0;
+
+      const mappedArticles = articles.map(article => ({
+        ...article,
+        summary: article.summary || undefined,
+        version: 1,
+        contentType: 'rich_text' as const,
+        attachments: [] as ArticleAttachment[],
+        approvalStatus: 'not_submitted' as const,
+        approvalHistory: [] as ApprovalHistoryEntry[],
+        ratingCount: 0,
+        expiresAt: null
+      }));
+
+      console.log(`🔍 [KB-SEARCH] Found ${articles.length} articles for tenant ${tenantId}`);
+      
+      return {
+        articles: mappedArticles,
+        total,
+        hasMore: articles.length === (query.limit || 20)
+      };
+    } catch (error) {
+      console.error('18:12:35 [error]: Search articles error:', error);
+      return {
+        articles: [],
+        total: 0,
+        hasMore: false
+      };
     }
-
-    const articles = await db
-      .select()
-      .from(knowledgeBaseArticles)
-      .where(and(...conditions))
-      .orderBy(desc(knowledgeBaseArticles.updatedAt))
-      .limit(query.limit || 20)
-      .offset(query.offset || 0);
-
-    const [countResult] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(knowledgeBaseArticles)
-      .where(and(...conditions));
-
-    const total = countResult?.count || 0;
-
-    const mappedArticles = articles.map(article => ({
-      ...article,
-      summary: article.summary || undefined,
-      version: 1,
-      contentType: 'rich_text' as const,
-      attachments: [] as ArticleAttachment[],
-      approvalStatus: 'not_submitted' as const,
-      approvalHistory: [] as ApprovalHistoryEntry[],
-      ratingCount: 0,
-      expiresAt: null
-    }));
-
-    return {
-      articles: mappedArticles,
-      total,
-      hasMore: articles.length === (query.limit || 20)
-    };
   }
 
   async findByCategory(category: string, tenantId: string): Promise<KnowledgeBaseArticle[]> {
