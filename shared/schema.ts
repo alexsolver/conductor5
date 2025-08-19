@@ -16,6 +16,9 @@ export * from "./schema-reports";
 // GDPR Compliance Module Schema - Clean Version
 export * from "./schema-gdpr-compliance-clean";
 
+// Knowledge Base Module Schema - Clean Architecture
+export * from "./schema-knowledge-base";
+
 // Selective export from contracts to avoid conflicts - Export only enums
 export {
   contractTypeEnum,
