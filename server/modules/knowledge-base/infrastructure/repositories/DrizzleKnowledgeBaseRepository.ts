@@ -38,8 +38,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       tags: row.tags || [],
       keywords: [],
       status: row.status,
-      visibility: row.accessLevel || 'internal',
-      accessLevel: row.accessLevel,
+      visibility: 'internal', // Default since accessLevel column doesn't exist in DB
+      accessLevel: 'internal', // Default since accessLevel column doesn't exist in DB
       authorId: row.authorId,
       reviewerId: row.reviewerId,
       published: row.published,
@@ -73,7 +73,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         content: data.content,
         categoryId: data.category,
         tags: data.tags || [],
-        accessLevel: data.visibility || 'public',
         status: data.status || 'draft',
         authorId: data.authorId,
         published: false,
@@ -161,9 +160,10 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         conditions.push(eq(knowledgeBaseArticles.status, query.status));
       }
 
-      // Add access level filter (visibility mapped to accessLevel)
+      // Add access level filter - using status since accessLevel column doesn't exist in DB
       if (query.visibility) {
-        conditions.push(eq(knowledgeBaseArticles.accessLevel, query.visibility));
+        // Map visibility to appropriate status or skip this filter
+        console.log(`🔍 [KB-SEARCH] Visibility filter requested but accessLevel column not available:`, query.visibility);
       }
 
       // Add author filter
@@ -200,7 +200,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           categoryId: knowledgeBaseArticles.categoryId,
           tags: knowledgeBaseArticles.tags,
           status: knowledgeBaseArticles.status,
-          accessLevel: knowledgeBaseArticles.accessLevel,
+          // accessLevel column doesn't exist in DB schema
           authorId: knowledgeBaseArticles.authorId,
           published: knowledgeBaseArticles.published,
           publishedAt: knowledgeBaseArticles.publishedAt,

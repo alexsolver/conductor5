@@ -51,7 +51,7 @@ export class KnowledgeBaseController {
         authorId: userId,
         tenantId,
         status: req.body.status || 'draft',
-        visibility: req.body.access_level || req.body.visibility || 'internal',
+        visibility: req.body.visibility || 'internal',
         published: false,
         viewCount: 0,
         helpfulCount: 0,
