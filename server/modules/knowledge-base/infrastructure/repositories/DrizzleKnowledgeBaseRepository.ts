@@ -1,3 +1,4 @@
+
 // ✅ 1QA.MD COMPLIANCE: DRIZZLE KNOWLEDGE BASE REPOSITORY - CLEAN ARCHITECTURE
 // Infrastructure layer - implements domain repository interface
 
@@ -32,7 +33,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return {
       ...created,
-      summary: created.content?.substring(0, 200) + '...' || '',
       tags: created.tags || [],
       version: 1,
       contentType: 'rich_text',
@@ -73,7 +73,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return {
       ...article,
-      summary: article.content?.substring(0, 200) + '...' || '',
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text',
@@ -102,7 +101,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return {
       ...updated,
-      summary: updated.content?.substring(0, 200) + '...' || '',
       tags: updated.tags || [],
       version: 1,
       contentType: 'rich_text',
@@ -170,7 +168,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       const mappedArticles = articles.map(article => ({
         ...article,
-        summary: article.content?.substring(0, 200) + '...' || '',
         tags: article.tags || [],
         version: 1,
         contentType: 'rich_text' as const,
@@ -228,7 +225,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
-      summary: article.content?.substring(0, 200) + '...' || '',
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
@@ -266,7 +262,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
-      summary: article.content?.substring(0, 200) + '...' || '',
       tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
@@ -303,7 +298,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
-      summary: article.content?.substring(0, 200) + '...' || '',
+      tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
       attachments: [] as ArticleAttachment[],
@@ -364,7 +359,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
-      summary: article.content?.substring(0, 200) + '...' || '',
+      tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
       attachments: [] as ArticleAttachment[],
@@ -426,7 +421,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
-      summary: article.content?.substring(0, 200) + '...' || '',
+      tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
       attachments: [] as ArticleAttachment[],
@@ -462,7 +457,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
     return articles.map(article => ({
       ...article,
-      summary: article.content?.substring(0, 200) + '...' || '',
+      tags: article.tags || [],
       version: 1,
       contentType: 'rich_text' as const,
       attachments: [] as ArticleAttachment[],
