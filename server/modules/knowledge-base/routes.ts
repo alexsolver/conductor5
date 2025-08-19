@@ -1,29 +1,50 @@
 // ✅ 1QA.MD COMPLIANCE: KNOWLEDGE BASE ROUTES - CLEAN ARCHITECTURE
-// Presentation layer - HTTP endpoints
+// Presentation layer - HTTP routes definition
 
 import { Router } from 'express';
-import { KnowledgeBaseApplicationService } from './application/services/KnowledgeBaseApplicationService';
+import { KnowledgeBaseController } from './application/controllers/KnowledgeBaseController';
+import { CreateKnowledgeBaseArticleUseCase } from './application/use-cases/CreateKnowledgeBaseArticleUseCase';
+import { UpdateKnowledgeBaseArticleUseCase } from './application/use-cases/UpdateKnowledgeBaseArticleUseCase';
+import { ApproveKnowledgeBaseArticleUseCase } from './application/use-cases/ApproveKnowledgeBaseArticleUseCase';
+import { GetKnowledgeBaseDashboardUseCase } from './application/use-cases/GetKnowledgeBaseDashboardUseCase';
+import { DrizzleKnowledgeBaseRepository } from './infrastructure/repositories/DrizzleKnowledgeBaseRepository';
+import { TicketIntegrationService } from './infrastructure/integrations/TicketIntegrationService';
+import { KnowledgeBaseDashboardWidget } from './infrastructure/widgets/KnowledgeBaseDashboardWidget';
+import logger from '../../utils/logger';
 
-export function createKnowledgeBaseRoutes(): Router {
-  const router = Router();
-  const applicationService = new KnowledgeBaseApplicationService();
-  const controller = applicationService.getController();
+const router = Router();
 
-  // Article management endpoints
-  router.post('/articles', async (req, res) => {
-    await controller.createArticle(req, res);
-  });
+// Initialize repository and services
+const repository = new DrizzleKnowledgeBaseRepository();
+const dashboardWidget = new KnowledgeBaseDashboardWidget(repository, logger);
+const ticketIntegration = new TicketIntegrationService(repository, logger);
 
-  router.get('/articles', async (req, res) => {
-    await controller.searchArticles(req, res);
-  });
+// Initialize use cases
+const createUseCase = new CreateKnowledgeBaseArticleUseCase(repository, logger);
+const updateUseCase = new UpdateKnowledgeBaseArticleUseCase(repository, logger);
+const approveUseCase = new ApproveKnowledgeBaseArticleUseCase(repository, logger);
+const dashboardUseCase = new GetKnowledgeBaseDashboardUseCase(dashboardWidget, logger);
 
-  router.get('/articles/:id', async (req, res) => {
-    await controller.getArticleById(req, res);
-  });
+// Initialize controller
+const controller = new KnowledgeBaseController(
+  createUseCase,
+  updateUseCase,
+  approveUseCase,
+  dashboardUseCase,
+  ticketIntegration,
+  logger
+);
 
-  return router;
-}
+// Article management routes
+router.post('/articles', (req, res) => controller.createArticle(req, res));
+router.put('/articles/:id', (req, res) => controller.updateArticle(req, res));
+router.post('/articles/:id/approve', (req, res) => controller.approveArticle(req, res));
 
-// Export for integration with main routes
-export default createKnowledgeBaseRoutes;
+// Dashboard and analytics routes
+router.get('/dashboard', (req, res) => controller.getDashboard(req, res));
+
+// Ticket integration routes
+router.get('/ticket-suggestions', (req, res) => controller.getTicketSuggestions(req, res));
+router.post('/articles/:articleId/link-ticket', (req, res) => controller.linkToTicket(req, res));
+
+export { router as knowledgeBaseRoutes };

@@ -1,93 +1,207 @@
 // ✅ 1QA.MD COMPLIANCE: KNOWLEDGE BASE CONTROLLER - CLEAN ARCHITECTURE
-// Application layer controller - handles HTTP requests
+// Application layer - handles HTTP requests and responses
 
 import { Request, Response } from 'express';
-import { CreateKnowledgeBaseUseCase } from '../use-cases/CreateKnowledgeBaseUseCase';
-import { SearchKnowledgeBaseUseCase } from '../use-cases/SearchKnowledgeBaseUseCase';
-import { CreateKnowledgeBaseArticleDTO, KnowledgeBaseSearchDTO } from '../dto/CreateKnowledgeBaseDTO';
+import { CreateKnowledgeBaseArticleUseCase } from '../use-cases/CreateKnowledgeBaseArticleUseCase';
+import { UpdateKnowledgeBaseArticleUseCase } from '../use-cases/UpdateKnowledgeBaseArticleUseCase';
+import { ApproveKnowledgeBaseArticleUseCase } from '../use-cases/ApproveKnowledgeBaseArticleUseCase';
+import { GetKnowledgeBaseDashboardUseCase } from '../use-cases/GetKnowledgeBaseDashboardUseCase';
+import { TicketIntegrationService } from '../../infrastructure/integrations/TicketIntegrationService';
+import { Logger } from 'winston';
 
 export class KnowledgeBaseController {
   constructor(
-    private createUseCase: CreateKnowledgeBaseUseCase,
-    private searchUseCase: SearchKnowledgeBaseUseCase
+    private createUseCase: CreateKnowledgeBaseArticleUseCase,
+    private updateUseCase: UpdateKnowledgeBaseArticleUseCase,
+    private approveUseCase: ApproveKnowledgeBaseArticleUseCase,
+    private dashboardUseCase: GetKnowledgeBaseDashboardUseCase,
+    private ticketIntegration: TicketIntegrationService,
+    private logger: Logger
   ) {}
 
   async createArticle(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = (req as any).tenantId;
-      const userId = (req as any).user?.id;
-
-      if (!tenantId || !userId) {
-        res.status(400).json({ success: false, message: 'Authentication required' });
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
         return;
       }
 
-      const dto: CreateKnowledgeBaseArticleDTO = {
+      const command = {
         ...req.body,
-        authorId: userId,
+        authorId: req.user?.id || req.body.authorId
+      };
+
+      const article = await this.createUseCase.execute(command, tenantId);
+      
+      res.status(201).json({
+        success: true,
+        message: 'Article created successfully',
+        data: article
+      });
+
+    } catch (error) {
+      this.logger.error(`Create article error: ${error}`);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create article',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async updateArticle(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const articleId = req.params.id;
+
+      if (!tenantId) {
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      const command = {
+        id: articleId,
+        ...req.body
+      };
+
+      const article = await this.updateUseCase.execute(command, tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Article updated successfully',
+        data: article
+      });
+
+    } catch (error) {
+      this.logger.error(`Update article error: ${error}`);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update article',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async approveArticle(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const articleId = req.params.id;
+
+      if (!tenantId) {
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      const command = {
+        articleId,
+        reviewerId: req.user?.id || '',
+        ...req.body
+      };
+
+      const article = await this.approveUseCase.execute(command, tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Article approval processed successfully',
+        data: article
+      });
+
+    } catch (error) {
+      this.logger.error(`Approve article error: ${error}`);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to process article approval',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async getDashboard(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      const dashboardData = await this.dashboardUseCase.execute(tenantId);
+      
+      res.json({
+        success: true,
+        message: 'Dashboard data retrieved successfully',
+        data: dashboardData
+      });
+
+    } catch (error) {
+      this.logger.error(`Get dashboard error: ${error}`);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get dashboard data',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async getTicketSuggestions(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { ticketId, category, description } = req.query;
+      
+      if (!tenantId) {
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      const suggestions = await this.ticketIntegration.getSuggestedArticlesForTicket(
+        ticketId as string,
+        category as string,
+        description as string,
         tenantId
-      };
+      );
+      
+      res.json({
+        success: true,
+        message: 'Ticket suggestions retrieved successfully',
+        data: suggestions
+      });
 
-      const result = await this.createUseCase.execute(dto);
-
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
-        res.status(400).json(result);
-      }
     } catch (error) {
-      console.error('❌ [KB-CONTROLLER] Create error:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
+      this.logger.error(`Get ticket suggestions error: ${error}`);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get ticket suggestions',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
-  async searchArticles(req: Request, res: Response): Promise<void> {
+  async linkToTicket(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = (req as any).tenantId;
-
+      const tenantId = req.user?.tenantId;
+      const { articleId } = req.params;
+      const { ticketId } = req.body;
+      
       if (!tenantId) {
-        res.status(400).json({ success: false, message: 'Tenant ID required' });
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
         return;
       }
 
-      const searchDto: KnowledgeBaseSearchDTO = {
-        query: req.query.q as string || req.query.query as string,
-        category: req.query.category as string,
-        tags: Array.isArray(req.query.tags) ? req.query.tags : req.query.tags ? [req.query.tags as string] : undefined,
-        status: req.query.status as any,
-        visibility: req.query.visibility as any,
-        authorId: req.query.authorId as string,
-        dateFrom: req.query.dateFrom as string,
-        dateTo: req.query.dateTo as string,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
-        sortBy: req.query.sortBy as any,
-        sortOrder: req.query.sortOrder as any
-      };
+      const success = await this.ticketIntegration.linkArticleToTicket(ticketId, articleId, tenantId);
+      
+      res.json({
+        success,
+        message: success ? 'Article linked to ticket successfully' : 'Failed to link article to ticket'
+      });
 
-      const result = await this.searchUseCase.execute(searchDto, tenantId);
-      res.json(result);
     } catch (error) {
-      console.error('❌ [KB-CONTROLLER] Search error:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-  }
-
-  async getArticleById(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = (req as any).tenantId;
-      const { id } = req.params;
-
-      if (!tenantId) {
-        res.status(400).json({ success: false, message: 'Tenant ID required' });
-        return;
-      }
-
-      // This would use a GetByIdUseCase (not implemented yet for brevity)
-      res.json({ success: true, message: 'Get by ID - to be implemented' });
-    } catch (error) {
-      console.error('❌ [KB-CONTROLLER] Get error:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
+      this.logger.error(`Link to ticket error: ${error}`);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to link article to ticket',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 }

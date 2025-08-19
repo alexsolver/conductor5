@@ -65,7 +65,7 @@ import { v4 as uuidv4 } from 'uuid';
 import notificationRoutes from './modules/notifications/routes';
 import { slaRoutes } from './modules/sla/routes/slaRoutes';
 import reportsRoutes from './modules/reports/routes';
-import { createKnowledgeBaseRoutes } from './modules/knowledge-base/routes';
+import { knowledgeBaseRoutes } from './modules/knowledge-base/routes';
 
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
 // Legacy imports removed per analysis
@@ -421,7 +421,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ KNOWLEDGE BASE CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log('🏗️ [KNOWLEDGE-BASE] Initializing Knowledge Base Clean Architecture module...');
-  const knowledgeBaseRoutes = createKnowledgeBaseRoutes();
   app.use('/api/knowledge-base', knowledgeBaseRoutes);
   console.log('✅ [KNOWLEDGE-BASE] Clean Architecture module registered at /api/knowledge-base');
 
