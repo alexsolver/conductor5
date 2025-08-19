@@ -109,6 +109,8 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
   async search(query: KnowledgeBaseSearchQuery, tenantId: string): Promise<KnowledgeBaseSearchResult> {
     try {
+      console.log(`🔍 [KB-SEARCH] Starting search with:`, { tenantId, query });
+      
       const conditions = [eq(knowledgeBaseArticles.tenantId, tenantId)];
 
       // Only add search condition if query is provided and not empty
@@ -119,23 +121,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       }
 
       const articles = await db
-        .select({
-          id: knowledgeBaseArticles.id,
-          tenantId: knowledgeBaseArticles.tenantId,
-          title: knowledgeBaseArticles.title,
-          content: knowledgeBaseArticles.content,
-          summary: knowledgeBaseArticles.summary,
-          slug: knowledgeBaseArticles.slug,
-          category: knowledgeBaseArticles.category,
-          tags: knowledgeBaseArticles.tags,
-          authorId: knowledgeBaseArticles.authorId,
-          status: knowledgeBaseArticles.status,
-          visibility: knowledgeBaseArticles.visibility,
-          published: knowledgeBaseArticles.published,
-          createdAt: knowledgeBaseArticles.createdAt,
-          updatedAt: knowledgeBaseArticles.updatedAt,
-          viewCount: knowledgeBaseArticles.viewCount
-        })
+        .select()
         .from(knowledgeBaseArticles)
         .where(and(...conditions))
         .orderBy(desc(knowledgeBaseArticles.updatedAt))
@@ -161,10 +147,18 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         expiresAt: null
       }));
 
-      console.log(`🔍 [KB-SEARCH] Found ${articles.length} articles for tenant ${tenantId}`, {
-        query: query.query,
-        conditions: conditions.length,
-        rawResult: articles.map(a => ({ id: a.id, title: a.title, status: a.status }))
+      console.log(`🔍 [KB-SEARCH] Debug info:`, {
+        tenantId,
+        queryObject: query,
+        conditionsCount: conditions.length,
+        foundArticles: articles.length,
+        sampleArticles: articles.slice(0, 2).map(a => ({ 
+          id: a.id, 
+          title: a.title, 
+          status: a.status,
+          visibility: a.visibility,
+          tenantId: a.tenantId 
+        }))
       });
       
       return {
