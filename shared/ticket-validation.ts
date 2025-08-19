@@ -25,7 +25,7 @@ export const LinkTypeEnum = z.enum(['relates_to', 'blocks', 'blocked_by', 'dupli
 // Schema para validação de formulário - aceita valores do banco E mapeamento frontend
 export const ticketFormValidationSchema = z.object({
   subject: z.string().min(3, "Assunto deve ter pelo menos 3 caracteres").max(255),
-  description: z.string().max(4000).optional(),
+  description: z.string().optional(),
   // Status aceita tanto valores do backend (inglês) quanto frontend (português)
   status: z.enum(['new', 'open', 'in_progress', 'resolved', 'closed'], {
     errorMap: () => ({ message: "Status inválido" })
@@ -50,7 +50,7 @@ export const ticketFormValidationSchema = z.object({
   resolution: z.string().optional(),
   environment: z.string().optional(),
   templateAlternative: z.string().optional(),
-  
+
   // Time tracking fields removed - not present in current schema
   followers: z.array(z.string()).default([]),
   companyId: z.string().optional(),
@@ -65,7 +65,6 @@ export const ticketFormSchema = z.object({
 
   // Campos opcionais mas validados
   description: z.string()
-    .max(4000, "Descrição não pode exceder 4000 caracteres")
     .optional(),
 
   // Validação 100% dinâmica - aceita qualquer valor configurado no banco
@@ -161,7 +160,6 @@ const baseTicketSchema = z.object({
     .min(3, "Assunto deve ter pelo menos 3 caracteres")
     .max(255, "Assunto não pode exceder 255 caracteres"),
   description: z.string()
-    .max(4000, "Descrição não pode exceder 4000 caracteres")
     .optional(),
   status: TicketStatusEnum.default('open'),
   priority: TicketPriorityEnum.default('medium'),
@@ -222,7 +220,7 @@ export const newTicketModalSchema = z.object({
   // Urgência (obrigatório) - usando enum para validação correta  
   urgency: TicketUrgencyEnum,
   // Descrição Detalhada (obrigatório)
-  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres").max(4000, "Descrição não pode exceder 4000 caracteres"),
+  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres").optional(),
   // Sintomas (opcional)
   symptoms: z.string().max(1000, "Sintomas não podem exceder 1000 caracteres").optional(),
   // Impacto no Negócio (opcional)
