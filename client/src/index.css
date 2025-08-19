@@ -393,3 +393,41 @@
   border-color: #3b82f6;
   box-shadow: 0 0 0 1px #3b82f6;
 }
+
+/* Rich Text Editor Custom Styles (Knowledge Base) */
+.rich-text-editor .ql-container {
+  min-height: 280px;
+  font-family: inherit;
+}
+
+.rich-text-editor .ql-editor {
+  min-height: 280px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rich-text-editor .ql-toolbar {
+  border-top: 1px solid #e2e8f0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: none;
+}
+
+.rich-text-editor .ql-container {
+  border-bottom: 1px solid #e2e8f0;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-top: none;
+}
+
+.rich-text-editor .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+}
+
+/* Focus styles for Rich Text Editor */
+.rich-text-editor .ql-toolbar:focus-within,
+.rich-text-editor .ql-container:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
