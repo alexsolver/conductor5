@@ -21,7 +21,7 @@ export function TicketDescriptionEditor({
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
       [{ 'indent': '-1'}, { 'indent': '+1' }],
-      ['link', 'blockquote', 'code-block'],
+      ['link', 'image', 'blockquote', 'code-block'],
       [{ 'color': [] }, { 'background': [] }],
       ['clean']
     ],
@@ -29,7 +29,7 @@ export function TicketDescriptionEditor({
 
   const formats = [
     'header', 'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent', 'link', 'blockquote',
+    'list', 'bullet', 'indent', 'link', 'image', 'blockquote',
     'code-block', 'color', 'background'
   ];
 
