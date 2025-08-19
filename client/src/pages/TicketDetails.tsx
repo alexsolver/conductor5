@@ -21,7 +21,7 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
-  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2
+  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ import { FilteredUserSelect } from "@/components/FilteredUserSelect";
 import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
 import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelect";
 import { MaterialsServicesMiniSystem } from "@/components/MaterialsServicesMiniSystem";
+import { KnowledgeBaseTicketTab } from "@/components/KnowledgeBaseTicketTab";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
@@ -86,7 +87,7 @@ const TicketDetails = React.memo(() => {
   // Handle hash-based navigation for direct tab access
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
-    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'materials', 'latest-interactions'].includes(hash)) {
+    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'materials', 'latest-interactions', 'knowledge-base'].includes(hash)) {
       setActiveTab(hash);
     }
   }, []);
@@ -2920,6 +2921,9 @@ const TicketDetails = React.memo(() => {
       case "materials":
         return <MaterialsServicesMiniSystem ticketId={id} ticket={ticket} />;
 
+      case "knowledge-base":
+        return <KnowledgeBaseTicketTab ticketId={id} />;
+
       default:
         return (
           <div className="space-y-4">
@@ -3685,6 +3689,23 @@ const TicketDetails = React.memo(() => {
           >
             <Package className="h-4 w-4" />
             <span className="text-sm font-medium">Materiais e Serviços</span>
+          </button>
+
+          {/* Base de Conhecimento Tab */}
+          <button
+            onClick={() => setActiveTab("knowledge-base")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "knowledge-base"
+                ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "knowledge-base"}
+            aria-controls="tab-content"
+            data-testid="tab-knowledge-base"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span className="text-sm font-medium">Base de Conhecimento</span>
           </button>
 
           <button
