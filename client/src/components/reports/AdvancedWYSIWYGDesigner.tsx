@@ -168,7 +168,7 @@ interface WYSIWYGDesignerProps {
 }
 
 export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign, data, onSave }: WYSIWYGDesignerProps) {
-  const [design, setDesign] = useState({
+  const defaultDesign = {
     components: [],
     layout: {
       width: 800,
@@ -182,7 +182,9 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       showHeader: true,
       showFooter: false
     }
-  });
+  };
+  
+  const [design, setDesign] = useState(initialDesign || defaultDesign);
 
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [activeTab, setActiveTab] = useState('components');
@@ -195,7 +197,12 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
 
   useEffect(() => {
     if (initialDesign) {
-      setDesign(initialDesign);
+      setDesign({
+        ...initialDesign,
+        components: initialDesign.components || [],
+        layout: initialDesign.layout || { width: 800, height: 600, backgroundColor: '#ffffff', padding: 20 },
+        settings: initialDesign.settings || { title: 'Untitled Report', description: '', showHeader: true, showFooter: false }
+      });
     }
   }, [initialDesign]);
 
@@ -213,12 +220,12 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       position: position || { x: 50, y: 50 },
       size: { width: 200, height: 100 },
       props: { ...componentTemplate.defaultProps },
-      zIndex: design.components.length
+      zIndex: design?.components?.length || 0
     };
 
     setDesign(prev => ({
       ...prev,
-      components: [...prev.components, newComponent]
+      components: [...(prev.components || []), newComponent]
     }));
 
     setSelectedComponent(newComponent.id);
@@ -227,7 +234,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
   const updateComponent = (componentId, updates) => {
     setDesign(prev => ({
       ...prev,
-      components: prev.components.map(comp =>
+      components: (prev.components || []).map(comp =>
         comp.id === componentId ? { ...comp, ...updates } : comp
       )
     }));
@@ -236,7 +243,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
   const deleteComponent = (componentId) => {
     setDesign(prev => ({
       ...prev,
-      components: prev.components.filter(comp => comp.id !== componentId)
+      components: (prev.components || []).filter(comp => comp.id !== componentId)
     }));
     
     if (selectedComponent === componentId) {
@@ -245,7 +252,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
   };
 
   const duplicateComponent = (componentId) => {
-    const component = design.components.find(c => c.id === componentId);
+    const component = design?.components?.find(c => c.id === componentId);
     if (!component) return;
 
     const newComponent = {
@@ -259,7 +266,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
 
     setDesign(prev => ({
       ...prev,
-      components: [...prev.components, newComponent]
+      components: [...(prev.components || []), newComponent]
     }));
   };
 
@@ -449,10 +456,10 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               ref={canvasRef}
               className="mx-auto bg-white shadow-lg relative"
               style={{
-                width: `${design.layout.width}px`,
-                height: `${design.layout.height}px`,
-                backgroundColor: design.layout.backgroundColor,
-                padding: `${design.layout.padding}px`
+                width: `${design?.layout?.width || 800}px`,
+                height: `${design?.layout?.height || 600}px`,
+                backgroundColor: design?.layout?.backgroundColor || '#ffffff',
+                padding: `${design?.layout?.padding || 20}px`
               }}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -469,7 +476,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               )}
 
               {/* Render Components */}
-              {design.components.map((component) => (
+              {design?.components?.map((component) => (
                 <DesignComponent
                   key={component.id}
                   component={component}
@@ -483,7 +490,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               ))}
 
               {/* Empty state */}
-              {design.components.length === 0 && !previewMode && (
+              {(!design?.components || design.components.length === 0) && !previewMode && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <Layout className="h-16 w-16 text-gray-400 mx-auto mb-4" />
