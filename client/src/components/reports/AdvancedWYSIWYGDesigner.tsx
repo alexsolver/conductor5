@@ -164,9 +164,10 @@ interface WYSIWYGDesignerProps {
   onDesignChange?: (design: any) => void;
   initialDesign?: any;
   data?: any;
+  onSave: (report: { name?: string; description?: string; design?: any }) => void;
 }
 
-export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign, data }: WYSIWYGDesignerProps) {
+export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign, data, onSave }: WYSIWYGDesignerProps) {
   const [design, setDesign] = useState({
     components: [],
     layout: {
@@ -283,7 +284,15 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
     e.preventDefault();
   };
 
-  const selectedComponentData = design.components.find(c => c.id === selectedComponent);
+  const handleSave = () => {
+    onSave({
+      name: design.settings.title,
+      description: design.settings.description,
+      design: design
+    });
+  };
+
+  const selectedComponentData = design?.components?.find(c => c.id === selectedComponent);
 
   return (
     <TooltipProvider>
