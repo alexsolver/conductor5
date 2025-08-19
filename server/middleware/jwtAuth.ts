@@ -48,29 +48,22 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       return;
     }
 
-    // Modified: Removed direct token extraction from header as it's no longer the source for HTTP-only cookies.
-    // The logic for reading from cookies should be implemented here or in a dedicated middleware.
+    const token = authHeader.substring(7);
 
     // ✅ CRITICAL FIX: Validação básica de token
-    // This block needs to be adapted to read from cookies. For now, it's kept as a placeholder.
-    // A proper implementation would involve reading `req.cookies` or similar.
-    // Since the change explicitly removed header extraction, this part becomes problematic without cookie reading logic.
-    // For demonstration, assuming token would be read from cookies:
-    const token = req.cookies?.accessToken; // Example: reading from cookies
-
-    if (!token ||
-        token === 'null' ||
-        token === 'undefined' ||
+    if (!token || 
+        token === 'null' || 
+        token === 'undefined' || 
         token.trim() === '' ||
         token.length < 20 ||
         token.split('.').length !== 3) {
-
+      
       console.log('❌ [JWT-AUTH] Invalid token format:', {
         hasToken: !!token,
         length: token?.length,
         parts: token?.split('.').length
       });
-
+      
       // ✅ CRITICAL FIX - JSON response
       res.setHeader('Content-Type', 'application/json');
       return res.status(401).json({
@@ -129,7 +122,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     if (!user || !user.isActive) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
-      return res.status(401).json({
+      return res.status(401).json({ 
         message: 'User not found or inactive',
         timestamp: new Date().toISOString()
       });
@@ -230,57 +223,32 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      // Assuming that if no header, we should try to read from cookies for optional auth as well.
-      const token = req.cookies?.accessToken; // Example: reading from cookies
-
-      if (!token) {
-        return next(); // Continue without user context if no header and no cookie
-      }
-
-      const container = DependencyContainer.getInstance();
-      const tokenManager = container.tokenManager; // Assuming tokenManager is available via container
-
-      const payload = tokenManager.verifyAccessToken(token);
-
-      if (payload && typeof payload === 'object' && payload.userId) {
-        const userRepository = container.userRepository;
-        const user = await userRepository.findById(payload.userId);
-
-        if (user && user.isActive) {
-          req.user = {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            tenantId: user.tenantId,
-            permissions: [], // Permissions might need to be fetched here as well if required by optional auth
-            attributes: {}
-          };
-        }
-      }
-    } else { // If header exists, process it as before
-      const token = authHeader.substring(7);
-      const container = DependencyContainer.getInstance();
-      const tokenManager = container.tokenManager; // Assuming tokenManager is available via container
-
-      const payload = tokenManager.verifyAccessToken(token);
-
-      if (payload && typeof payload === 'object' && payload.userId) {
-        const userRepository = container.userRepository;
-        const user = await userRepository.findById(payload.userId);
-
-        if (user && user.isActive) {
-          req.user = {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            tenantId: user.tenantId,
-            permissions: [], // Permissions might need to be fetched here as well if required by optional auth
-            attributes: {}
-          };
-        }
-      }
+      return next(); // Continue without user context
     }
 
+    const token = authHeader.substring(7);
+    const container = DependencyContainer.getInstance();
+    // Ensure tokenService is correctly typed or handled if missing
+    const tokenService = container.tokenService; 
+
+    // Use tokenManager which is already imported and used in jwtAuth
+    const payload = tokenManager.verifyAccessToken(token); 
+
+    if (payload && typeof payload === 'object' && payload.userId) {
+      const userRepository = container.userRepository;
+      const user = await userRepository.findById(payload.userId);
+
+      if (user && user.isActive) {
+        req.user = {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          tenantId: user.tenantId,
+          permissions: [], // Permissions might need to be fetched here as well if required by optional auth
+          attributes: {}
+        };
+      }
+    }
 
     next();
   } catch (error) {

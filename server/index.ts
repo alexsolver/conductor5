@@ -180,8 +180,6 @@ app.use(viteStabilityMiddleware);
 
 app.use(express.json({ limit: '10mb' })); // Increased limit for stability
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-
-// CRITICAL: Cookie parser middleware
 app.use(cookieParser());
 
 // CRITICAL: Schema validation and tenant isolation middleware
@@ -245,20 +243,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-// ✅ CRITICAL: Fixed CORS configuration for Vite dev server
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev',
-    'https://rest-express.replit.app'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['X-Total-Count', 'X-Page-Count']
-}));
 
 (async () => {
   // CRITICAL: Initialize Vite HMR optimizations

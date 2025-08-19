@@ -26,45 +26,23 @@ export class AuthController {
       const userAgent = req.headers['user-agent'];
 
       const result = await this.loginUseCase.execute(dto, ipAddress, userAgent);
-      const userInfo = { id: result.user.id, username: result.user.username, email: result.user.email };
 
-      // Set HTTP-only cookies for tokens
-      const isProduction = process.env.NODE_ENV === 'production';
-
-      // Access token cookie (12 horas)
-      res.cookie('accessToken', result.accessToken, {
+      // Set refresh token as httpOnly cookie
+      res.cookie('refreshToken', result.tokens.refreshToken, {
         httpOnly: true,
-        secure: isProduction, // HTTPS only in production
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 12 * 60 * 60 * 1000, // 12 hours
-        path: '/'
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
-      // Refresh token cookie (30 dias)
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-        path: '/'
-      });
-
-      // Send response without tokens in body
-      res.status(200).json({
+      res.json({
         success: true,
         message: 'Login successful',
-        data: {
-          user: userInfo,
-          session: {
-            id: result.sessionId,
-            expiresAt: result.expiresAt
-          }
-        },
-        timestamp: new Date().toISOString()
+        data: result
       });
     } catch (error: any) {
       const statusCode = error.message.includes('Invalid') || error.message.includes('deactivated') ? 401 : 400;
-
+      
       res.status(statusCode).json({
         success: false,
         message: error.message || 'Login failed',
@@ -75,67 +53,40 @@ export class AuthController {
 
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
-      // Try to get refresh token from cookie first, then from body
-      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-
+      // Try to get refresh token from body or cookie
+      const refreshTokenFromBody = req.body.refreshToken;
+      const refreshTokenFromCookie = req.cookies?.refreshToken;
+      
+      const refreshToken = refreshTokenFromBody || refreshTokenFromCookie;
+      
       if (!refreshToken) {
         res.status(400).json({
           success: false,
-          message: 'Refresh token is required',
-          code: 'MISSING_REFRESH_TOKEN',
-          timestamp: new Date().toISOString()
+          message: 'Refresh token is required'
         });
         return;
       }
 
       const dto: RefreshTokenDTO = { refreshToken };
       const result = await this.refreshTokenUseCase.execute(dto);
-      const isProduction = process.env.NODE_ENV === 'production';
 
-      // Set new HTTP-only cookies
-      res.cookie('accessToken', result.accessToken, {
+      // Update refresh token cookie
+      res.cookie('refreshToken', result.tokens.refreshToken, {
         httpOnly: true,
-        secure: isProduction,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 12 * 60 * 60 * 1000, // 12 hours
-        path: '/'
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-        path: '/'
-      });
-
-      res.status(200).json({
+      res.json({
         success: true,
         message: 'Token refreshed successfully',
-        data: {
-          session: {
-            id: result.sessionId,
-            expiresAt: result.expiresAt
-          }
-        },
-        timestamp: new Date().toISOString()
+        data: result
       });
     } catch (error: any) {
       // Clear refresh token cookie on error
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/'
-      });
-      res.clearCookie('accessToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/'
-      });
-
-
+      res.clearCookie('refreshToken');
+      
       res.status(401).json({
         success: false,
         message: error.message || 'Token refresh failed',
@@ -159,25 +110,12 @@ export class AuthController {
 
       await this.logoutUseCase.execute(userId, dto);
 
-      // Clear HTTP-only cookies
-      res.clearCookie('accessToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/'
-      });
+      // Clear refresh token cookie
+      res.clearCookie('refreshToken');
 
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/'
-      });
-
-      res.status(200).json({
+      res.json({
         success: true,
-        message: 'Logout successful',
-        timestamp: new Date().toISOString()
+        message: 'Logout successful'
       });
     } catch (error: any) {
       res.status(400).json({
@@ -219,14 +157,8 @@ export class AuthController {
 
   async me(req: Request, res: Response): Promise<void> {
     try {
-      // Check for accessToken cookie first
-      let token = req.cookies.accessToken;
-
-      if (!token) {
-        // If not in cookies, try from Authorization header (for initial requests or testing)
-        const authHeader = req.headers.authorization;
-        token = authHeader?.split(' ')[1];
-      }
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.split(' ')[1]; // Bearer <token>
 
       if (!token) {
         res.status(401).json({
