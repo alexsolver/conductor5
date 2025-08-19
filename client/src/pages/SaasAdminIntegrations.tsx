@@ -185,7 +185,13 @@ export default function SaasAdminIntegrations() {
     }
   });
 
-  const integrations: Integration[] = integrationsData?.integrations || [
+  // Use data from API when available, adding icons to each integration
+  const integrations: Integration[] = integrationsData?.integrations?.map((integration: any) => ({
+    ...integration,
+    icon: integration.id === 'openai' ? Brain : 
+          integration.id === 'deepseek' ? Bot : 
+          integration.id === 'google-ai' ? Zap : Brain
+  })) || [
     {
       id: 'openai',
       name: 'OpenAI',
@@ -193,7 +199,8 @@ export default function SaasAdminIntegrations() {
       description: 'Integração com modelos GPT-4 e ChatGPT para chat inteligente e geração de conteúdo',
       icon: Brain,
       status: 'disconnected',
-      apiKeyConfigured: false
+      apiKeyConfigured: false,
+      config: {}
     },
     {
       id: 'deepseek',
@@ -202,7 +209,8 @@ export default function SaasAdminIntegrations() {
       description: 'Modelos de IA avançados para análise e processamento de linguagem natural',
       icon: Bot,
       status: 'disconnected',
-      apiKeyConfigured: false
+      apiKeyConfigured: false,
+      config: {}
     },
     {
       id: 'google-ai',
@@ -211,7 +219,8 @@ export default function SaasAdminIntegrations() {
       description: 'Integração com Gemini e outros modelos do Google AI para análise multimodal',
       icon: Zap,
       status: 'disconnected',
-      apiKeyConfigured: false
+      apiKeyConfigured: false,
+      config: {}
     }
   ];
 
@@ -234,13 +243,23 @@ export default function SaasAdminIntegrations() {
   };
 
   const onConfigureIntegration = (integration: Integration) => {
+    console.log('🔧 [CONFIGURE] Opening config dialog for:', integration.id);
+    console.log('🔧 [CONFIGURE] Integration config:', integration.config);
+    
     setSelectedIntegration(integration);
-    if (integration.config) {
+    
+    // Check if integration has saved configuration
+    if (integration.config && Object.keys(integration.config).length > 0) {
+      console.log('✅ [CONFIGURE] Loading saved configuration');
       configForm.reset({
-        ...integration.config,
-        baseUrl: integration.config.baseUrl || ""
+        apiKey: integration.config.apiKey || "",
+        baseUrl: integration.config.baseUrl || "",
+        maxTokens: integration.config.maxTokens || 4000,
+        temperature: integration.config.temperature !== undefined ? integration.config.temperature : 0.7,
+        enabled: integration.config.enabled !== undefined ? integration.config.enabled : true
       });
     } else {
+      console.log('📋 [CONFIGURE] Using default configuration');
       configForm.reset({
         apiKey: "",
         baseUrl: "",
