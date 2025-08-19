@@ -45,6 +45,180 @@ interface CompletionReport {
   }>;
 }
 
+export function TranslationCompletionPanel() {
+  const { toast } = useToast();
+  const [isCompleting, setIsCompleting] = useState(false);
+  
+  const { data: completionReport, isLoading, refetch } = useQuery({
+    queryKey: ['translation-completion-report'],
+    queryFn: () => apiRequest<CompletionReport>('/translation-completion/analyze'),
+  });
+
+  const autoCompleteTranslations = useMutation({
+    mutationFn: () => apiRequest('/translation-completion/auto-complete-all', {
+      method: 'POST'
+    }),
+    onSuccess: (data) => {
+      toast({
+        title: "✅ Tradução Automática Concluída!",
+        description: data.message,
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro na Tradução Automática",
+        description: "Falha ao completar traduções automaticamente",
+        variant: "destructive"
+      });
+      console.error('Auto-completion error:', error);
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Analisando traduções...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!completionReport) {
+    return (
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Não foi possível carregar o relatório de traduções.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const totalLanguages = Object.keys(completionReport.summary.languageStats).length;
+  const averageCompleteness = Object.values(completionReport.summary.languageStats)
+    .reduce((sum, stats) => sum + stats.completeness, 0) / totalLanguages;
+
+  return (
+    <div className="space-y-6">
+      {/* Header com ação principal */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Sistema de Tradução Automática
+              </CardTitle>
+              <CardDescription>
+                Completude média: {averageCompleteness.toFixed(1)}% | {completionReport.summary.totalKeys} chaves total
+              </CardDescription>
+            </div>
+            <Button
+              onClick={() => autoCompleteTranslations.mutate()}
+              disabled={autoCompleteTranslations.isPending}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            >
+              {autoCompleteTranslations.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Completando...
+                </>
+              ) : (
+                <>
+                  <Zap className="mr-2 h-4 w-4" />
+                  🚀 Completar Todas as Traduções
+                </>
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Status por idioma */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Status por Idioma</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Object.entries(completionReport.summary.languageStats).map(([language, stats]) => {
+              const getStatusColor = (completeness: number) => {
+                if (completeness >= 90) return 'bg-green-500';
+                if (completeness >= 70) return 'bg-yellow-500';
+                return 'bg-red-500';
+              };
+
+              const getStatusIcon = (completeness: number) => {
+                if (completeness >= 90) return <CheckCircle className="h-4 w-4 text-green-600" />;
+                if (completeness >= 70) return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+                return <AlertCircle className="h-4 w-4 text-red-600" />;
+              };
+
+              return (
+                <div key={language} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(stats.completeness)}
+                      <span className="font-medium">{language}</span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {stats.existingKeys}/{stats.existingKeys + stats.missingKeys} ({stats.completeness.toFixed(1)}%)
+                    </div>
+                  </div>
+                  <Progress 
+                    value={stats.completeness} 
+                    className="h-2"
+                  />
+                  {stats.missingKeys > 0 && (
+                    <div className="text-xs text-red-600">
+                      {stats.missingKeys} chaves faltando
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Gaps por módulo */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Gaps por Módulo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {completionReport.gaps.map(gap => (
+              <div key={gap.language} className="space-y-2">
+                <h4 className="font-medium">{gap.language}</h4>
+                {Object.entries(gap.moduleGaps).length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {Object.entries(gap.moduleGaps).map(([module, missingKeys]) => (
+                      <Badge key={module} variant="outline" className="justify-between">
+                        {module}
+                        <span className="ml-2 text-xs bg-red-100 text-red-800 px-1 rounded">
+                          {missingKeys.length}
+                        </span>
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-green-600">✅ Todas as traduções completas</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 interface HardcodedText {
   file: string;
   line: number;

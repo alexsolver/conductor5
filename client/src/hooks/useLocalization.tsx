@@ -81,11 +81,11 @@ export function useLocalization() {
         },
         body: JSON.stringify(preferences),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to save preferences');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -94,7 +94,7 @@ export function useLocalization() {
         title: t('success.saved'),
         description: 'Localization preferences updated successfully',
       });
-      
+
       // Update i18n language if changed
       if (data.preferences?.language) {
         i18n.changeLanguage(data.preferences.language);
@@ -118,11 +118,11 @@ export function useLocalization() {
           'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to detect locale');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -135,7 +135,7 @@ export function useLocalization() {
             currency: data.detected.currency,
             dateFormat: 'short'
           };
-          
+
           savePreferencesMutation.mutate(detectedPrefs);
         }
       }
@@ -176,7 +176,7 @@ export function useLocalization() {
   const formatCurrencyLocalized = (amount: number, currency?: string): string => {
     const currencyCode = currency || userPreferences?.currency || 'USD';
     const locale = userPreferences?.language || i18n.language;
-    
+
     // Map language codes to locale codes for currency formatting
     const localeMap: Record<string, string> = {
       'en': 'en-US',
@@ -185,7 +185,7 @@ export function useLocalization() {
       'fr': 'fr-FR',
       'de': 'de-DE'
     };
-    
+
     return formatCurrency(amount, currencyCode, localeMap[locale] || 'en-US');
   };
 
@@ -194,7 +194,7 @@ export function useLocalization() {
     options?: Intl.NumberFormatOptions
   ): string => {
     const locale = userPreferences?.language || i18n.language;
-    
+
     const localeMap: Record<string, string> = {
       'en': 'en-US',
       'pt-BR': 'pt-BR',
@@ -202,7 +202,7 @@ export function useLocalization() {
       'fr': 'fr-FR',
       'de': 'de-DE'
     };
-    
+
     return formatNumber(number, localeMap[locale] || 'en-US', options);
   };
 
@@ -218,32 +218,32 @@ export function useLocalization() {
   return {
     // Translation function
     t,
-    
+
     // Current state
     currentLanguage: currentLanguage || languages[0],
     currentTimezone: currentTimezone || { code: 'UTC', name: 'UTC', offset: '+00:00', region: 'Global' },
     currentCurrency: currentCurrency || { code: 'USD', name: 'US Dollar', symbol: '$', region: 'North America' },
-    
+
     // Available options
     languages,
     timezones,
     currencies,
-    
+
     // User preferences
     userPreferences,
-    
+
     // Actions
     changeLanguage,
     changeTimezone,
     changeCurrency,
     detectLocale: () => detectLocaleMutation.mutate(),
-    
+
     // Formatting helpers
     formatDate: formatDateLocalized,
     formatRelativeTime: formatRelativeTimeLocalized,
     formatCurrency: formatCurrencyLocalized,
     formatNumber: formatNumberLocalized,
-    
+
     // Loading states
     isLoadingPreferences: savePreferencesMutation.isPending,
     isDetectingLocale: detectLocaleMutation.isPending,

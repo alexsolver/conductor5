@@ -343,6 +343,45 @@ export default function TranslationManager() {
         </TabsContent>
 
           <TabsContent value="completion" className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Completar Traduções Automaticamente</h3>
+              <Button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/translation-completion/auto-complete-all', {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                      }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                      toast({
+                        title: "Sucesso!",
+                        description: data.message,
+                      });
+                      // Recarrega a página para ver as mudanças
+                      window.location.reload();
+                    } else {
+                      throw new Error(data.message);
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "Erro",
+                      description: "Falha ao completar traduções automaticamente",
+                      variant: "destructive"
+                    });
+                    console.error('Error auto-completing translations:', error);
+                  }
+                }}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                🚀 Completar Todas as Traduções
+              </Button>
+            </div>
             <TranslationCompletionPanel />
           </TabsContent>
 

@@ -1,4 +1,3 @@
-
 /**
  * Translation Completion API Routes
  * Automated translation completion following 1qa.md patterns
@@ -265,6 +264,56 @@ router.post('/replace-hardcoded', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 /**
+ * POST /api/translation-completion/auto-complete-all
+ * Completa automaticamente todas as traduções faltantes
+ */
+router.post('/auto-complete-all', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (req.user?.role !== 'saas_admin') {
+      return res.status(403).json({ message: 'SaaS admin access required' });
+    }
+
+    console.log('🚀 [AUTO-TRANSLATION] Starting automatic translation completion...');
+
+    // 1. Completa traduções faltantes
+    const completionResults = await translationService.completeTranslations(true);
+
+    // 2. Detecta e substitui textos hardcoded
+    const hardcodedResults = await translationService.replaceHardcodedTexts(false);
+
+    // 3. Gera relatório final
+    const finalReport = await translationService.generateCompletenessReport();
+
+    const summary = {
+      translationsAdded: completionResults.reduce((sum, r) => sum + r.addedKeys.length, 0),
+      hardcodedTextsReplaced: hardcodedResults.reduce((sum, r) => sum + r.replacements, 0),
+      filesModified: hardcodedResults.filter(r => r.success && r.replacements > 0).length,
+      finalCompleteness: finalReport.summary.languageStats
+    };
+
+    console.log('✅ [AUTO-TRANSLATION] Completion successful:', summary);
+
+    res.json({
+      success: true,
+      data: {
+        summary,
+        completionResults,
+        hardcodedResults: hardcodedResults.filter(r => r.replacements > 0),
+        finalReport
+      },
+      message: `Auto-translation completed! Added ${summary.translationsAdded} translations and replaced ${summary.hardcodedTextsReplaced} hardcoded texts in ${summary.filesModified} files.`
+    });
+
+  } catch (error) {
+    console.error('Error in auto-complete-all:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to complete automatic translation'
+    });
+  }
+});
+
+/**
  * POST /api/translation-completion/validate
  * Valida integridade das traduções
  */
@@ -275,7 +324,7 @@ router.post('/validate', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const report = await translationService.generateCompletenessReport();
-    
+
     // Identifica problemas críticos
     const criticalIssues = [];
     const warnings = [];
@@ -298,7 +347,7 @@ router.post('/validate', jwtAuth, async (req: AuthenticatedRequest, res) => {
       }
     }
 
-    const isHealthy = criticalIssues.length === 0 && moduleIssues.length < 5;
+    const isHealthy = criticalIssues.length === 0 && warnings.length < 5;
 
     res.json({
       success: true,
