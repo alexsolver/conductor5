@@ -159,12 +159,12 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
 
     setQuery(prev => ({
       ...prev,
-      metrics: [...prev.metrics, newMetric]
+      metrics: [...(prev.metrics || []), newMetric]
     }));
   };
 
   const addAttribute = (field: any) => {
-    if (query.attributes.find(attr => attr.field === field.id)) return;
+    if (query?.attributes?.find(attr => attr.field === field.id)) return;
 
     const newAttribute = {
       id: `${field.id}_${Date.now()}`,
@@ -175,7 +175,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
 
     setQuery(prev => ({
       ...prev,
-      attributes: [...prev.attributes, newAttribute]
+      attributes: [...(prev.attributes || []), newAttribute]
     }));
   };
 
@@ -192,35 +192,35 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
 
     setQuery(prev => ({
       ...prev,
-      filters: [...prev.filters, newFilter]
+      filters: [...(prev.filters || []), newFilter]
     }));
   };
 
   const removeMetric = (metricId: string) => {
     setQuery(prev => ({
       ...prev,
-      metrics: prev.metrics.filter(m => m.id !== metricId)
+      metrics: (prev.metrics || []).filter(m => m.id !== metricId)
     }));
   };
 
   const removeAttribute = (attributeId: string) => {
     setQuery(prev => ({
       ...prev,
-      attributes: prev.attributes.filter(a => a.id !== attributeId)
+      attributes: (prev.attributes || []).filter(a => a.id !== attributeId)
     }));
   };
 
   const removeFilter = (filterId: string) => {
     setQuery(prev => ({
       ...prev,
-      filters: prev.filters.filter(f => f.id !== filterId)
+      filters: (prev.filters || []).filter(f => f.id !== filterId)
     }));
   };
 
   const updateFilter = (filterId: string, updates: any) => {
     setQuery(prev => ({
       ...prev,
-      filters: prev.filters.map(f => 
+      filters: (prev.filters || []).map(f => 
         f.id === filterId ? { ...f, ...updates } : f
       )
     }));
@@ -657,33 +657,33 @@ function QueryPreview({ query, dataSchema }) {
             <p className="text-sm text-gray-600">{dataSchema[query.dataSource]?.name}</p>
           </div>
 
-          {query.metrics.length > 0 && (
+          {query?.metrics?.length > 0 && (
             <div>
-              <Label className="text-sm font-medium">Metrics ({query.metrics.length})</Label>
+              <Label className="text-sm font-medium">Metrics ({query?.metrics?.length || 0})</Label>
               <div className="mt-1 space-y-1">
-                {query.metrics.map((metric) => (
+                {query?.metrics?.map((metric) => (
                   <Badge key={metric.id} variant="secondary">{metric.label}</Badge>
                 ))}
               </div>
             </div>
           )}
 
-          {query.attributes.length > 0 && (
+          {query?.attributes?.length > 0 && (
             <div>
-              <Label className="text-sm font-medium">Attributes ({query.attributes.length})</Label>
+              <Label className="text-sm font-medium">Attributes ({query?.attributes?.length || 0})</Label>
               <div className="mt-1 space-y-1">
-                {query.attributes.map((attr) => (
+                {query?.attributes?.map((attr) => (
                   <Badge key={attr.id} variant="outline">{attr.fieldName}</Badge>
                 ))}
               </div>
             </div>
           )}
 
-          {query.filters.length > 0 && (
+          {query?.filters?.length > 0 && (
             <div>
-              <Label className="text-sm font-medium">Filters ({query.filters.length})</Label>
+              <Label className="text-sm font-medium">Filters ({query?.filters?.length || 0})</Label>
               <div className="mt-1 space-y-1">
-                {query.filters.map((filter) => (
+                {query?.filters?.map((filter) => (
                   <div key={filter.id} className="text-sm text-gray-600">
                     {filter.fieldName} {filter.operator} {filter.value}
                   </div>
