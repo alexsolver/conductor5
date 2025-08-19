@@ -156,8 +156,11 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
 
   // Handle search
   const handleSearch = () => {
-    if (searchQuery.trim() || selectedCategory) {
-      console.log('🔍 [KB-TAB] Searching articles:', { query: searchQuery, category: selectedCategory });
+    if (searchQuery.trim() || (selectedCategory && selectedCategory !== 'all')) {
+      console.log('🔍 [KB-TAB] Searching articles:', { 
+        query: searchQuery, 
+        category: selectedCategory === 'all' ? '' : selectedCategory 
+      });
       searchArticles();
       setActiveTab('search');
     }
@@ -282,8 +285,8 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     );
   };
 
-  const relatedArticles = relatedArticlesData?.success ? relatedArticlesData.data : [];
-  const searchResults = searchResultsData?.success ? searchResultsData.data : [];
+  const relatedArticles = (relatedArticlesData as any)?.success ? (relatedArticlesData as any).data : [];
+  const searchResults = (searchResultsData as any)?.success ? (searchResultsData as any).data : [];
 
   return (
     <div className="space-y-6" data-testid="knowledge-base-tab">
@@ -341,7 +344,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {Object.entries(categoryLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {label}
