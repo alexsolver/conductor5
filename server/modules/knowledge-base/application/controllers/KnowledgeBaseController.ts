@@ -138,10 +138,20 @@ export class KnowledgeBaseController {
 
       const result = await this.repository.search(searchQuery, tenantId);
       
+      this.logger.info(`🔍 [KB-CONTROLLER] Search result: ${JSON.stringify({ 
+        articlesCount: result.articles?.length || 0, 
+        total: result.total,
+        query: searchQuery 
+      })}`);
+      
       res.json({
         success: true,
         message: 'Articles retrieved successfully',
-        data: result
+        data: {
+          articles: result.articles || [],
+          total: result.total || 0,
+          hasMore: result.hasMore || false
+        }
       });
 
     } catch (error) {

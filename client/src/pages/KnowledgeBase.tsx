@@ -62,7 +62,20 @@ export default function KnowledgeBase() {
     },
   });
 
-  const articles = (articlesData as any)?.success ? (articlesData as any).data : [];
+  // Extract articles safely from response
+  const articles = Array.isArray(articlesData?.data?.articles) 
+    ? articlesData.data.articles 
+    : Array.isArray(articlesData?.articles) 
+    ? articlesData.articles 
+    : Array.isArray(articlesData?.data) 
+    ? articlesData.data 
+    : [];
+
+  console.log('🔍 [KB-DEBUG] Articles data structure:', { 
+    articlesData, 
+    extractedArticles: articles, 
+    isArray: Array.isArray(articles) 
+  });
 
   const handleSearch = () => {
     // Query will automatically refetch due to dependency on searchQuery

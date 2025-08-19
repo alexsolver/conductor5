@@ -160,7 +160,11 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         expiresAt: null
       }));
 
-      console.log(`🔍 [KB-SEARCH] Found ${articles.length} articles for tenant ${tenantId}`);
+      console.log(`🔍 [KB-SEARCH] Found ${articles.length} articles for tenant ${tenantId}`, {
+        query: query.query,
+        conditions: conditions.length,
+        rawResult: articles.map(a => ({ id: a.id, title: a.title, status: a.status }))
+      });
       
       return {
         articles: mappedArticles,
