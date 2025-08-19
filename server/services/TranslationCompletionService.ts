@@ -7,6 +7,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { z } from 'zod';
+import { pool } from '../db';
 
 interface TranslationKey {
   key: string;
@@ -832,7 +833,7 @@ export class TranslationCompletionService {
         // Adiciona traduções faltantes
         for (const missingKey of gap.missingKeys) {
           try {
-            const translation = this.generateTranslation(missingKey, gap.language, force);
+            const translation = await this.generateTranslation(missingKey, gap.language, force);
             if (translation) {
               this.setNestedKey(translations, missingKey, translation);
               result.addedKeys.push(missingKey);
@@ -857,9 +858,103 @@ export class TranslationCompletionService {
   }
 
   /**
+   * Obtém configuração da integração OpenAI
+   */
+  private async getOpenAIConfig(): Promise<{ apiKey: string; baseUrl: string } | null> {
+    try {
+      const result = await pool.query(`
+        SELECT config FROM "public"."system_integrations" 
+        WHERE integration_id = $1
+      `, ['openai']);
+
+      if (!result.rows[0]?.config) {
+        console.warn('[TRANSLATION-AI] OpenAI integration not configured');
+        return null;
+      }
+
+      const config = result.rows[0].config;
+      if (!config.apiKey) {
+        console.warn('[TRANSLATION-AI] OpenAI API key not configured');
+        return null;
+      }
+
+      return {
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl || 'https://api.openai.com/v1'
+      };
+    } catch (error) {
+      console.error('[TRANSLATION-AI] Error getting OpenAI config:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Traduz texto usando OpenAI
+   */
+  private async translateWithOpenAI(text: string, targetLanguage: string): Promise<string | null> {
+    try {
+      const config = await this.getOpenAIConfig();
+      if (!config) {
+        return null;
+      }
+
+      const languageNames: Record<string, string> = {
+        'en': 'English',
+        'pt-BR': 'Brazilian Portuguese',
+        'es': 'Spanish',
+        'fr': 'French',
+        'de': 'German'
+      };
+
+      const targetLangName = languageNames[targetLanguage] || targetLanguage;
+
+      const response = await fetch(`${config.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a professional translator specializing in software interface translations. Translate the given text to ${targetLangName}. Keep the translation concise, appropriate for software UI, and maintain any technical terms. Return only the translated text without explanations.`
+            },
+            {
+              role: 'user',
+              content: text
+            }
+          ],
+          max_tokens: 100,
+          temperature: 0.3
+        })
+      });
+
+      if (!response.ok) {
+        console.error('[TRANSLATION-AI] OpenAI API error:', response.status, response.statusText);
+        return null;
+      }
+
+      const data = await response.json();
+      const translation = data.choices?.[0]?.message?.content?.trim();
+
+      if (translation) {
+        console.log(`[TRANSLATION-AI] Successfully translated "${text}" to ${targetLanguage}: "${translation}"`);
+        return translation;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[TRANSLATION-AI] Error translating with OpenAI:', error);
+      return null;
+    }
+  }
+
+  /**
    * Gera tradução para uma chave específica
    */
-  private generateTranslation(key: string, language: string, force: boolean): string | null {
+  private async generateTranslation(key: string, language: string, force: boolean): Promise<string | null> {
     // Verifica traduções automáticas pré-definidas
     if (this.AUTO_TRANSLATIONS[key]?.[language]) {
       return this.AUTO_TRANSLATIONS[key][language];
@@ -867,10 +962,31 @@ export class TranslationCompletionService {
 
     // Fallback para inglês se não for inglês
     if (language !== 'en' && this.AUTO_TRANSLATIONS[key]?.['en']) {
-      return this.generateFallbackTranslation(this.AUTO_TRANSLATIONS[key]['en'], language);
+      const fallback = this.generateFallbackTranslation(this.AUTO_TRANSLATIONS[key]['en'], language);
+      if (fallback && !fallback.startsWith('[')) {
+        return fallback;
+      }
     }
 
-    // Gera tradução baseada na chave
+    // Tenta usar OpenAI para tradução automática
+    if (language !== 'en') {
+      // Primeiro tenta obter o texto em inglês
+      let sourceText = this.AUTO_TRANSLATIONS[key]?.['en'];
+      
+      // Se não tiver tradução em inglês, gera baseado na chave
+      if (!sourceText) {
+        sourceText = this.generateKeyBasedTranslation(key, 'en').replace(/^\[EN\]\s*/, '');
+      }
+
+      if (sourceText) {
+        const aiTranslation = await this.translateWithOpenAI(sourceText, language);
+        if (aiTranslation) {
+          return aiTranslation;
+        }
+      }
+    }
+
+    // Gera tradução baseada na chave como último recurso
     if (force) {
       return this.generateKeyBasedTranslation(key, language);
     }
