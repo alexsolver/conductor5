@@ -24,7 +24,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         category: article.category as any,
         tags: article.tags,
         authorId: article.authorId,
-        slug: article.title.toLowerCase().replace(/\s+/g, '-'),
         status: 'draft',
         visibility: 'internal'
       })
@@ -52,7 +51,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId: knowledgeBaseArticles.tenantId,
         title: knowledgeBaseArticles.title,
         content: knowledgeBaseArticles.content,
-        slug: knowledgeBaseArticles.slug,
         category: knowledgeBaseArticles.category,
         tags: knowledgeBaseArticles.tags,
         authorId: knowledgeBaseArticles.authorId,
@@ -144,7 +142,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           tenantId: knowledgeBaseArticles.tenantId,
           title: knowledgeBaseArticles.title,
           content: knowledgeBaseArticles.content,
-          slug: knowledgeBaseArticles.slug,
           category: knowledgeBaseArticles.category,
           tags: knowledgeBaseArticles.tags,
           authorId: knowledgeBaseArticles.authorId,
