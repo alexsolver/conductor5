@@ -140,7 +140,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       const mappedArticles = articles.map(article => ({
         ...article,
-        summary: article.summary || article.content?.substring(0, 200) + '...' || undefined,
+        summary: article.content?.substring(0, 200) + '...' || undefined,
         tags: article.tags || [],
         version: 1,
         contentType: 'rich_text' as const,
