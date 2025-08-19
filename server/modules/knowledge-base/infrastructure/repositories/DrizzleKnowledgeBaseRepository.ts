@@ -20,7 +20,7 @@ import type {
 } from '../../domain/repositories/IKnowledgeBaseRepository';
 
 export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository {
-  
+
   // Helper method to convert DB row to domain entity
   private mapToKnowledgeBaseArticle(row: any): KnowledgeBaseArticle {
     return {
@@ -170,7 +170,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       let orderBy;
       const sortBy = query.sortBy || 'updated_at';
       const sortOrder = query.sortOrder || 'desc';
-      
+
       switch (sortBy) {
         case 'created_at':
           orderBy = sortOrder === 'asc' ? asc(knowledgeBaseArticles.createdAt) : desc(knowledgeBaseArticles.createdAt);
@@ -187,7 +187,23 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
 
       // Execute search query
       const articles = await db
-        .select()
+        .select({
+          id: knowledgeBaseArticles.id,
+          title: knowledgeBaseArticles.title,
+          content: knowledgeBaseArticles.content,
+          category: knowledgeBaseArticles.category,
+          tags: knowledgeBaseArticles.tags,
+          status: knowledgeBaseArticles.status,
+          visibility: knowledgeBaseArticles.visibility,
+          authorId: knowledgeBaseArticles.authorId,
+          published: knowledgeBaseArticles.published,
+          publishedAt: knowledgeBaseArticles.publishedAt,
+          viewCount: knowledgeBaseArticles.viewCount,
+          helpfulCount: knowledgeBaseArticles.helpfulCount,
+          version: knowledgeBaseArticles.version,
+          createdAt: knowledgeBaseArticles.createdAt,
+          updatedAt: knowledgeBaseArticles.updatedAt,
+        })
         .from(knowledgeBaseArticles)
         .where(and(...conditions))
         .orderBy(orderBy)
@@ -201,7 +217,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         .where(and(...conditions));
 
       const total = countResult?.count || 0;
-      const limit = query.limit || 20;
       const offset = query.offset || 0;
 
       console.log(`🔍 [KB-SEARCH] Found ${articles.length} articles, total: ${total}`);
@@ -535,7 +550,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         createdAt: new Date().toISOString(),
         isActive: true
       };
-      
+
       console.log('✅ [KB-REPOSITORY] Template created:', newTemplate.id);
       return newTemplate;
     } catch (error) {
@@ -572,7 +587,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId,
         createdAt: new Date().toISOString()
       };
-      
+
       console.log('✅ [KB-REPOSITORY] Comment created:', newComment.id);
       return newComment;
     } catch (error) {
@@ -610,7 +625,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId,
         createdAt: new Date().toISOString()
       };
-      
+
       console.log('✅ [KB-REPOSITORY] Version created:', newVersion.id);
       return newVersion;
     } catch (error) {

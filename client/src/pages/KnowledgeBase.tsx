@@ -33,6 +33,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { CreateArticleDialog } from "@/components/knowledge-base/CreateArticleDialog";
 import { TemplateCreateDialog } from "@/components/knowledge-base/TemplateCreateDialog";
 import { MediaUploadDialog } from "@/components/knowledge-base/MediaUploadDialog";
+import { WorkflowConfigurationDialog } from "@/components/knowledge-base/WorkflowConfigurationDialog";
 
 interface Article {
   id: string;
@@ -70,6 +71,7 @@ export default function KnowledgeBase() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedAccess, setSelectedAccess] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isWorkflowDialogOpen, setIsWorkflowDialogOpen] = useState(false);
   const [semanticSearch, setSemanticSearch] = useState(false);
 
   // Fetch articles
@@ -395,7 +397,12 @@ export default function KnowledgeBase() {
                 <h3 className="text-xl font-semibold">Workflow de Aprovação</h3>
                 <p className="text-gray-600">Gerencie artigos pendentes de aprovação</p>
               </div>
-              <Button variant="outline" className="gap-2" data-testid="button-configure-workflow">
+              <Button 
+                variant="outline" 
+                className="gap-2" 
+                onClick={() => setIsWorkflowDialogOpen(true)}
+                data-testid="button-configure-workflow"
+              >
                 <Settings className="w-4 h-4" />
                 Configurar Workflow
               </Button>
@@ -531,6 +538,12 @@ export default function KnowledgeBase() {
       <CreateArticleDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
+      />
+
+      {/* Workflow Configuration Dialog */}
+      <WorkflowConfigurationDialog
+        isOpen={isWorkflowDialogOpen}
+        onClose={() => setIsWorkflowDialogOpen(false)}
       />
     </div>
   );

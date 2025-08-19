@@ -31,7 +31,7 @@ export class CreateKnowledgeBaseArticleUseCase {
       if (!command.title?.trim()) {
         throw new Error('Article title is required');
       }
-      
+
       if (!command.content?.trim()) {
         throw new Error('Article content is required');
       }

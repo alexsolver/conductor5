@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, BookOpen, Save, Upload } from "lucide-react";
+import { Plus, X, BookOpen, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "./RichTextEditor";
@@ -18,14 +18,14 @@ interface CreateArticleDialogProps {
 }
 
 const categories = [
-  { value: 'Suporte Técnico', label: 'Suporte Técnico' },
-  { value: 'Configuração', label: 'Configuração' },
-  { value: 'Troubleshooting', label: 'Resolução de Problemas' },
-  { value: 'Políticas', label: 'Políticas' },
-  { value: 'Procedimentos', label: 'Procedimentos' },
-  { value: 'FAQ', label: 'Perguntas Frequentes' },
-  { value: 'Treinamento', label: 'Treinamento' },
-  { value: 'Integrações', label: 'Integrações' }
+  { value: 'technical_support', label: 'Suporte Técnico' },
+  { value: 'configuration', label: 'Configuração' },
+  { value: 'troubleshooting', label: 'Resolução de Problemas' },
+  { value: 'policies', label: 'Políticas' },
+  { value: 'procedures', label: 'Procedimentos' },
+  { value: 'faq', label: 'Perguntas Frequentes' },
+  { value: 'training', label: 'Treinamento' },
+  { value: 'integrations', label: 'Integrações' }
 ];
 
 const accessLevels = [
@@ -35,21 +35,24 @@ const accessLevels = [
 ];
 
 export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogProps) {
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    category: '',
-    access_level: 'public',
-    published: false,
-    tags: [] as string[]
-  });
-  
-  const [newTag, setNewTag] = useState('');
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState('');
+  const [access_level, setAccessLevel] = useState('public');
+  const [published, setPublished] = useState(false);
+  const [tags, setTags] = useState('');
+  const [newTag, setNewTag] = useState(''); // This state might be redundant if tags are comma-separated input
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: { title: string; content: string; category: string; access_level: string; published: boolean; tags: string[] }) => {
       const response = await apiRequest('POST', '/api/knowledge-base/articles', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao criar artigo');
+      }
       return response.json();
     },
     onSuccess: (result) => {
@@ -58,20 +61,16 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
           title: "✅ Artigo criado com sucesso!",
           description: "O artigo foi salvo na base de conhecimento.",
         });
-        
-        // Invalidate queries to refresh the list
+
         queryClient.invalidateQueries({ queryKey: ['/api/knowledge-base/articles'] });
-        
+
         // Reset form and close dialog
-        setFormData({
-          title: '',
-          content: '',
-          category: '',
-          access_level: 'public',
-          published: false,
-          tags: []
-        });
-        setNewTag('');
+        setTitle('');
+        setContent('');
+        setCategory('');
+        setAccessLevel('public');
+        setPublished(false);
+        setTags('');
         onOpenChange(false);
       } else {
         toast({
@@ -85,16 +84,34 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
       console.error('❌ [CREATE-ARTICLE] Error:', error);
       toast({
         title: "❌ Erro ao criar artigo",
-        description: "Não foi possível criar o artigo. Tente novamente.",
+        description: error instanceof Error ? error.message : "Não foi possível criar o artigo. Tente novamente.",
         variant: "destructive",
       });
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const addTag = () => {
+    if (newTag.trim() && !tags.split(',').map(t => t.trim()).filter(Boolean).includes(newTag.trim())) {
+      setTags(prev => prev ? `${prev}, ${newTag.trim()}` : newTag.trim());
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(prev => prev.split(',').map(t => t.trim()).filter(t => t !== tagToRemove).join(', '));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.title.trim() || !formData.content.trim() || !formData.category) {
+
+    if (!title.trim() || !content.trim() || !category) {
       toast({
         title: "⚠️ Campos obrigatórios",
         description: "Preencha título, conteúdo e categoria.",
@@ -103,30 +120,32 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
       return;
     }
 
-    createMutation.mutate(formData);
-  };
+    setIsSubmitting(true);
 
-  const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
-  };
+    try {
+      const articleData = {
+        title: title.trim(),
+        content: content.trim(),
+        category,
+        access_level: access_level || 'public',
+        published: published,
+        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      };
 
-  const removeTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
+      console.log('📝 [CREATE-ARTICLE] Submitting:', articleData);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTag();
+      createMutation.mutate(articleData);
+
+    } catch (error) {
+      console.error('❌ [CREATE-ARTICLE] Error during submission preparation:', error);
+      toast({
+        title: "❌ Erro ao preparar o artigo",
+        description: "Ocorreu um erro ao preparar os dados. Tente novamente.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    } finally {
+      // The actual setIsSubmitting(false) is handled within createMutation's onError/onSuccess
     }
   };
 
@@ -152,8 +171,8 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
             <Input
               id="title"
               placeholder="Digite o título do artigo..."
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               data-testid="input-article-title"
             />
           </div>
@@ -163,14 +182,14 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
             <Label htmlFor="category" className="text-sm font-medium">
               Categoria *
             </Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+            <Select value={category} onValueChange={setCategory} required>
               <SelectTrigger data-testid="select-article-category">
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                {categories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -182,7 +201,7 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
             <Label htmlFor="access_level" className="text-sm font-medium">
               Nível de Acesso
             </Label>
-            <Select value={formData.access_level} onValueChange={(value: 'public' | 'private' | 'restricted') => setFormData(prev => ({ ...prev, access_level: value }))}>
+            <Select value={access_level} onValueChange={(value: 'public' | 'private' | 'restricted') => setAccessLevel(value)}>
               <SelectTrigger data-testid="select-access-level">
                 <SelectValue />
               </SelectTrigger>
@@ -202,8 +221,8 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
               Conteúdo *
             </Label>
             <RichTextEditor
-              content={formData.content}
-              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
+              content={content}
+              onChange={setContent}
               placeholder="Digite o conteúdo do artigo..."
               className="min-h-[300px]"
             />
@@ -226,16 +245,16 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            {formData.tags.length > 0 && (
+            {tags && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {formData.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="flex items-center gap-1" data-testid={`tag-${tag}`}>
-                    {tag}
+                {tags.split(',').map((tag) => (
+                  <Badge key={tag.trim()} variant="secondary" className="flex items-center gap-1" data-testid={`tag-${tag.trim()}`}>
+                    {tag.trim()}
                     <button
                       type="button"
-                      onClick={() => removeTag(tag)}
+                      onClick={() => removeTag(tag.trim())}
                       className="ml-1 hover:bg-gray-400 rounded-full p-0.5"
-                      data-testid={`remove-tag-${tag}`}
+                      data-testid={`remove-tag-${tag.trim()}`}
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -249,8 +268,8 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
           <div className="flex items-center space-x-2">
             <Switch
               id="published"
-              checked={formData.published}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, published: checked }))}
+              checked={published}
+              onCheckedChange={setPublished}
               data-testid="switch-published"
             />
             <Label htmlFor="published" className="text-sm font-medium">
@@ -263,8 +282,8 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel">
               Cancelar
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={createMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700"
               data-testid="button-save-article"

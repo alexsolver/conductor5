@@ -36,17 +36,47 @@ export class KnowledgeBaseController {
         return;
       }
 
+      // Validate required fields
+      const { title, content, category } = req.body;
+      if (!title || !content || !category) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Campos obrigatórios: title, content, category' 
+        });
+        return;
+      }
+
       const articleData = {
         ...req.body,
         authorId: userId,
-        tenantId
+        tenantId,
+        status: req.body.status || 'draft',
+        visibility: req.body.visibility || 'internal',
+        published: false,
+        viewCount: 0,
+        helpfulCount: 0,
+        upvoteCount: 0,
+        version: 1
       };
 
+      console.log('📝 [KB-CONTROLLER] Creating article:', { title, category, tenantId });
+
       const result = await this.createUseCase.execute(articleData);
-      res.status(201).json(result);
+      
+      console.log('✅ [KB-CONTROLLER] Article created successfully:', result);
+      
+      res.status(201).json({
+        success: true,
+        message: 'Artigo criado com sucesso',
+        data: result
+      });
     } catch (error) {
       this.logger.error('Error creating article:', error);
-      res.status(500).json({ success: false, message: 'Erro interno do servidor' });
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 
