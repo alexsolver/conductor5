@@ -28,7 +28,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       tenantId: row.tenantId,
       title: row.title,
       content: row.content,
-      summary: row.summary,
+      summary: row.content?.substring(0, 200) + '...' || '', // Gera summary do conteúdo
       slug: row.slug,
       category: row.categoryId,
       tags: row.tags || [],
@@ -67,7 +67,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId,
         title: data.title,
         content: data.content,
-        summary: data.summary,
         categoryId: data.category,
         tags: data.tags || [],
         visibility: data.visibility || 'internal',

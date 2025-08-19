@@ -41,7 +41,7 @@ export class CreateKnowledgeBaseArticleUseCase {
       }
 
       // Create article entity
-      const articleData: Omit<KnowledgeBaseArticle, 'id' | 'createdAt' | 'updatedAt' | 'version'> = {
+      const articleData: CreateKnowledgeBaseArticleData = {
         title: command.title.trim(),
         content: command.content,
         category: command.category,
@@ -49,17 +49,7 @@ export class CreateKnowledgeBaseArticleUseCase {
         status: command.status || 'draft',
         visibility: command.visibility || 'internal',
         authorId: command.authorId,
-        contentType: command.contentType || 'rich_text',
-        attachments: [],
-        approvalStatus: 'not_submitted',
-        approvalHistory: [],
-        viewCount: 0,
-        ratingCount: 0,
-        tenantId,
-        reviewerId: undefined,
-        publishedAt: undefined,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        contentType: command.contentType || 'rich_text'
       };
 
       // Save article
