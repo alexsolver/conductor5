@@ -68,30 +68,30 @@ export const knowledgeBaseApprovalStatusEnum = pgEnum("knowledge_base_approval_s
 export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`), // character varying
   tenantId: varchar("tenant_id").notNull(), // character varying
-  
+
   // Basic Article Info - exactly matching DB types and lengths
   title: varchar("title").notNull(), // character varying
   content: text("content").notNull(),
-  
+
   // Categorization - matching exact DB structure  
   categoryId: varchar("category_id").notNull(), // character varying
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
-  
+
   // Status & Visibility - using text types with defaults to match DB
   status: text("status").default("draft"), // text with default 'draft'
-  accessLevel: varchar("access_level").default("public"), // USER-DEFINED with default 'public'
-  
+  // Note: accessLevel removed - not part of current DB schema
+
   // Authoring
   authorId: varchar("author_id").notNull(), // character varying
   reviewerId: varchar("reviewer_id"), // character varying
-  
+
   // Publishing & Metadata - matching exact DB column names and defaults
   published: boolean("published").default(false), // boolean default false
   publishedAt: timestamp("published_at", { withTimezone: true }),
   viewCount: integer("view_count").default(0), // integer default 0
   helpfulCount: integer("helpful_count").default(0), // integer default 0
   upvoteCount: integer("upvote_count").default(0), // integer default 0
-  
+
   // Additional fields matching DB exactly
   isDeleted: boolean("is_deleted").default(false), // boolean default false
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -102,7 +102,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   ratingCount: integer("rating_count").default(0), // integer default 0
   attachmentCount: integer("attachment_count").default(0), // integer default 0
   lastViewedAt: timestamp("last_viewed_at", { withTimezone: false }), // timestamp without time zone
-  
+
   // Audit - matching DB defaults exactly
   createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
@@ -113,10 +113,10 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   index("kb_articles_tenant_category_idx").on(table.tenantId, table.categoryId),
   index("kb_articles_tenant_author_idx").on(table.tenantId, table.authorId),
   index("kb_articles_tenant_published_idx").on(table.tenantId, table.publishedAt),
-  
+
   // Unique title per tenant (removed slug reference)
   unique("kb_articles_tenant_title_unique").on(table.tenantId, table.title),
-  
+
   // Search optimization
   index("kb_articles_title_idx").on(table.title),
   index("kb_articles_tags_idx").on(table.tags),
@@ -127,17 +127,17 @@ export const knowledgeBaseArticleVersions = pgTable("knowledge_base_article_vers
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
-  
+
   // Version Info
   versionNumber: integer("version_number").notNull(),
   title: varchar("title", { length: 500 }).notNull(),
   content: text("content").notNull(),
   summary: text("summary"),
-  
+
   // Change Info
   changeDescription: text("change_description"),
   authorId: uuid("author_id").notNull(),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
@@ -151,18 +151,18 @@ export const knowledgeBaseAttachments = pgTable("knowledge_base_attachments", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
-  
+
   // File Info
   fileName: varchar("file_name", { length: 255 }).notNull(),
   originalName: varchar("original_name", { length: 255 }).notNull(),
   fileSize: integer("file_size").notNull(),
   mimeType: varchar("mime_type", { length: 100 }).notNull(),
   filePath: text("file_path").notNull(),
-  
+
   // Metadata
   description: text("description"),
   uploadedBy: uuid("uploaded_by").notNull(),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
@@ -175,12 +175,12 @@ export const knowledgeBaseRatings = pgTable("knowledge_base_ratings", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
-  
+
   // Rating Info
   userId: uuid("user_id").notNull(),
   rating: integer("rating").notNull(), // 1-5 or upvote/downvote (-1, 0, 1)
   feedback: text("feedback"),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -195,16 +195,16 @@ export const knowledgeBaseApprovals = pgTable("knowledge_base_approvals", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
-  
+
   // Approval Info
   approverId: uuid("approver_id").notNull(),
   status: knowledgeBaseApprovalStatusEnum("status").default("pending").notNull(),
   comments: text("comments"),
-  
+
   // Metadata
   requestedAt: timestamp("requested_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -219,15 +219,15 @@ export const knowledgeBaseArticleRelations = pgTable("knowledge_base_article_rel
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
-  
+
   // Relation Info
   entityType: varchar("entity_type", { length: 50 }).notNull(), // "ticket", "customer", "category", etc.
   entityId: uuid("entity_id").notNull(),
   relationType: varchar("relation_type", { length: 50 }).notNull(), // "related", "solution", "reference"
-  
+
   // Metadata
   createdBy: uuid("created_by").notNull(),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
@@ -240,17 +240,17 @@ export const knowledgeBaseArticleRelations = pgTable("knowledge_base_article_rel
 export const knowledgeBaseSearchLogs = pgTable("knowledge_base_search_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
-  
+
   // Search Info
   query: text("query").notNull(),
   userId: uuid("user_id").notNull(),
   resultsCount: integer("results_count").default(0),
   clickedArticleId: uuid("clicked_article_id"),
-  
+
   // Search Context
   searchContext: jsonb("search_context").default({}), // filters, sorting, etc.
   userAgent: text("user_agent"),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
@@ -397,21 +397,21 @@ export const knowledgeBaseArticleRelationsRelations = relations(knowledgeBaseArt
 export const knowledgeBaseTemplates = pgTable("knowledge_base_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
-  
+
   // Template Info
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   content: text("content").notNull(),
   category: knowledgeBaseCategoryEnum("category").notNull(),
-  
+
   // Template Fields
   fields: jsonb("fields").default([]), // Dynamic fields for template
   isActive: boolean("is_active").notNull().default(true),
   isDefault: boolean("is_default").notNull().default(false),
-  
+
   // Authoring
   createdBy: uuid("created_by").notNull(),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -426,19 +426,19 @@ export const knowledgeBaseComments: any = pgTable("knowledge_base_comments", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
-  
+
   // Comment Structure
   parentId: uuid("parent_id").references(() => knowledgeBaseComments.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
-  
+
   // Author Info
   authorId: uuid("author_id").notNull(),
   authorName: varchar("author_name", { length: 255 }).notNull(),
-  
+
   // Status
   isEdited: boolean("is_edited").notNull().default(false),
   isApproved: boolean("is_approved").notNull().default(true),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -454,23 +454,23 @@ export const knowledgeBaseScheduledPublications = pgTable("knowledge_base_schedu
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   articleId: uuid("article_id").notNull().references(() => knowledgeBaseArticles.id, { onDelete: "cascade" }),
-  
+
   // Scheduling Info
   scheduledFor: timestamp("scheduled_for").notNull(),
   status: varchar("status", { length: 50 }).notNull().default("scheduled"), // scheduled, published, cancelled, failed
   publishedAt: timestamp("published_at"),
-  
+
   // Configuration
   autoPublish: boolean("auto_publish").notNull().default(true),
   notifyUsers: boolean("notify_users").notNull().default(false),
-  
+
   // Authoring
   scheduledBy: uuid("scheduled_by").notNull(),
-  
+
   // Execution Log
   executionLog: jsonb("execution_log").default({}),
   failureReason: text("failure_reason"),
-  
+
   // Audit
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -5,7 +5,7 @@ import { db } from '../../../../../shared/schema';
 import { knowledgeBaseArticles } from '../../../../../shared/schema-knowledge-base';
 import { eq, and, desc, asc, sql, like, inArray, isNull, or, ilike } from 'drizzle-orm';
 
-import type { 
+import type {
   KnowledgeBaseArticle,
   ArticleAttachment,
   ApprovalHistoryEntry
@@ -200,7 +200,6 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
           categoryId: knowledgeBaseArticles.categoryId,
           tags: knowledgeBaseArticles.tags,
           status: knowledgeBaseArticles.status,
-          // accessLevel column doesn't exist in DB schema
           authorId: knowledgeBaseArticles.authorId,
           published: knowledgeBaseArticles.published,
           publishedAt: knowledgeBaseArticles.publishedAt,

@@ -47,7 +47,7 @@ export class CreateKnowledgeBaseArticleUseCase {
         category: command.category,
         tags: command.tags || [],
         status: command.status || 'draft',
-        visibility: command.visibility || 'internal',
+        visibility: command.visibility || 'internal', 
         authorId: command.authorId,
         contentType: command.contentType || 'rich_text'
       };

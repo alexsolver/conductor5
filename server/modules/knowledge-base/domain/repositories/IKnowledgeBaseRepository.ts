@@ -32,7 +32,7 @@ export interface CreateKnowledgeBaseArticleData {
   status?: string;
   authorId: string;
   contentType?: string;
-  accessLevel?: string;
+  // accessLevel removed - not part of current schema
 }
 
 export interface UpdateKnowledgeBaseArticleData {
