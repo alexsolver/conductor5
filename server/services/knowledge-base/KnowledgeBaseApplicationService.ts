@@ -105,7 +105,7 @@ export class KnowledgeBaseApplicationService {
   /**
    * Create new article
    */
-  async createArticle(articleData: InsertKnowledgeBaseArticle, authorId: string): Promise<{
+  async createArticle(articleData: any, authorId: string): Promise<{
     success: boolean;
     message: string;
     data: KnowledgeBaseArticle;
@@ -113,17 +113,32 @@ export class KnowledgeBaseApplicationService {
     try {
       this.logger.log(`[KB-SERVICE] Creating article for tenant: ${this.tenantId}`);
 
-      // Validate input data
-      const validatedData = insertKnowledgeBaseArticleSchema.parse(articleData);
+      // Map category string to categoryId (using category as ID for now)
+      const categoryMapping: Record<string, string> = {
+        'technical_support': 'technical_support',
+        'troubleshooting': 'troubleshooting', 
+        'user_guide': 'user_guide',
+        'faq': 'faq',
+        'policy': 'policy',
+        'process': 'process',
+        'training': 'training',
+        'announcement': 'announcement',
+        'best_practice': 'best_practice',
+        'configuration': 'configuration',
+        'other': 'other'
+      };
 
-      // Prepare article for insertion
-      const newArticle: InsertKnowledgeBaseArticle = {
-        ...validatedData,
+      // Prepare article for insertion with proper field mapping
+      const newArticle = {
+        title: articleData.title,
+        content: articleData.content,
+        categoryId: categoryMapping[articleData.category] || 'other',
         tenantId: this.tenantId,
         authorId,
-        status: validatedData.status || 'draft',
-        visibility: validatedData.visibility || 'public',
-        published: validatedData.published || false
+        status: articleData.status || 'draft',
+        published: articleData.published || false,
+        tags: articleData.tags || [],
+        publishedAt: articleData.published ? new Date() : null,
       };
 
       // Insert article

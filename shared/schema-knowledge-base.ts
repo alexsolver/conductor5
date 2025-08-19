@@ -272,6 +272,7 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   viewCount: true,
   upvoteCount: true,
   helpfulCount: true,
+  categoryId: true, // Omit categoryId since we'll handle category mapping
 }).extend({
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
