@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { CreditCard, DollarSign, TrendingUp, Users, Download, AlertCircle } from "lucide-react";
-
 export default function SaasAdminBilling() {
   return (
     <div className=""
@@ -19,62 +17,57 @@ export default function SaasAdminBilling() {
             Gestão de faturamento e monitoramento de uso da plataforma
           </p>
         </div>
-
         {/* Revenue Overview */}
         <div className=""
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
+              <CardTitle className="text-lg">"Receita Mensal</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$147,230</div>
+              <div className="text-lg">"$147,230</div>
               <p className=""
                 +12% desde o mês passado
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Tenants Ativos</CardTitle>
+              <CardTitle className="text-lg">"Tenants Ativos</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">847</div>
+              <div className="text-lg">"847</div>
               <p className=""
                 +34 novos este mês
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
+              <CardTitle className="text-lg">"Ticket Médio</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$174</div>
+              <div className="text-lg">"$174</div>
               <p className=""
                 +5% este mês
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Churn Rate</CardTitle>
+              <CardTitle className="text-lg">"Churn Rate</CardTitle>
               <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2.3%</div>
+              <div className="text-lg">"2.3%</div>
               <p className=""
                 -0.5% desde o mês passado
               </p>
             </CardContent>
           </Card>
         </div>
-
         <Tabs defaultValue="overview" className=""
           <TabsList className=""
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
@@ -82,7 +75,6 @@ export default function SaasAdminBilling() {
             <TabsTrigger value="usage">Uso de Recursos</TabsTrigger>
             <TabsTrigger value="invoices">Faturas</TabsTrigger>
           </TabsList>
-
           <TabsContent value="overview" className=""
             <div className=""
               <Card>
@@ -92,49 +84,47 @@ export default function SaasAdminBilling() {
                 <CardContent className=""
                   <div className=""
                     <div className=""
-                      <span className="text-sm font-medium">Enterprise</span>
-                      <span className="text-sm font-bold">$89,340 (61%)</span>
+                      <span className="text-lg">"Enterprise</span>
+                      <span className="text-lg">"$89,340 (61%)</span>
                     </div>
                     <Progress value={61} className="h-2" />
                     
                     <div className=""
-                      <span className="text-sm font-medium">Professional</span>
-                      <span className="text-sm font-bold">$42,180 (29%)</span>
+                      <span className="text-lg">"Professional</span>
+                      <span className="text-lg">"$42,180 (29%)</span>
                     </div>
                     <Progress value={29} className="h-2" />
                     
                     <div className=""
-                      <span className="text-sm font-medium">Standard</span>
-                      <span className="text-sm font-bold">$15,710 (10%)</span>
+                      <span className="text-lg">"Standard</span>
+                      <span className="text-lg">"$15,710 (10%)</span>
                     </div>
                     <Progress value={10} className="h-2" />
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Crescimento de Receita</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className=""
-                    <div className="text-3xl font-bold text-green-600">$147,230</div>
-                    <div className="text-sm text-gray-500">Receita mensal atual</div>
+                    <div className="text-lg">"$147,230</div>
+                    <div className="text-lg">"Receita mensal atual</div>
                     
                     <div className=""
                       <div className=""
-                        <span className="text-sm">Meta mensal</span>
-                        <span className="text-sm font-medium">$150,000</span>
+                        <span className="text-lg">"Meta mensal</span>
+                        <span className="text-lg">"$150,000</span>
                       </div>
                       <Progress value={98} className="h-2" />
-                      <div className="text-xs text-gray-500">98% da meta alcançada</div>
+                      <div className="text-lg">"98% da meta alcançada</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
-
           <TabsContent value="tenants" className=""
             <Card>
               <CardHeader className=""
@@ -192,14 +182,14 @@ export default function SaasAdminBilling() {
                       }
                     ].map((tenant, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">{tenant.name}</TableCell>
+                        <TableCell className="text-lg">"{tenant.name}</TableCell>
                         <TableCell>
                           <Badge variant={tenant.plan === 'Enterprise' ? 'default' : 'secondary'}>
                             {tenant.plan}
                           </Badge>
                         </TableCell>
                         <TableCell>{tenant.users}</TableCell>
-                        <TableCell className="font-medium">{tenant.amount}</TableCell>
+                        <TableCell className="text-lg">"{tenant.amount}</TableCell>
                         <TableCell>
                           <Badge variant={tenant.status === 'Ativo' ? 'default' : 'destructive'}>
                             {tenant.status}
@@ -213,7 +203,6 @@ export default function SaasAdminBilling() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="usage" className=""
             <div className=""
               <Card>
@@ -227,7 +216,7 @@ export default function SaasAdminBilling() {
                     { tenant: 'Enterprise Solutions', storage: 89, api: 23, users: 67 }
                   ].map((tenant, index) => (
                     <div key={index} className=""
-                      <div className="font-medium">{tenant.tenant}</div>
+                      <div className="text-lg">"{tenant.tenant}</div>
                       <div className=""
                         <div className=""
                           <span>Storage</span>
@@ -253,7 +242,6 @@ export default function SaasAdminBilling() {
                   ))}
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Alertas de Uso</CardTitle>
@@ -279,8 +267,8 @@ export default function SaasAdminBilling() {
                     ].map((alert, index) => (
                       <div key={index} className=""
                         <div>
-                          <div className="font-medium">{alert.tenant}</div>
-                          <div className="text-sm text-gray-500">{alert.alert}</div>
+                          <div className="text-lg">"{alert.tenant}</div>
+                          <div className="text-lg">"{alert.alert}</div>
                         </div>
                         <Badge variant={alert.type === 'error' ? 'destructive' : 
                                       alert.type === 'warning' ? 'secondary' : 'default'}>
@@ -293,7 +281,6 @@ export default function SaasAdminBilling() {
               </Card>
             </div>
           </TabsContent>
-
           <TabsContent value="invoices" className=""
             <Card>
               <CardHeader className=""
@@ -340,10 +327,10 @@ export default function SaasAdminBilling() {
                       }
                     ].map((invoice, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">{invoice.number}</TableCell>
+                        <TableCell className="text-lg">"{invoice.number}</TableCell>
                         <TableCell>{invoice.tenant}</TableCell>
                         <TableCell>{invoice.date}</TableCell>
-                        <TableCell className="font-medium">{invoice.amount}</TableCell>
+                        <TableCell className="text-lg">"{invoice.amount}</TableCell>
                         <TableCell>
                           <Badge variant={invoice.status === 'Pago' ? 'default' : 'destructive'}>
                             {invoice.status}

@@ -1,13 +1,11 @@
 /**
  * DynamicBadge - Badge inteligente que integra com useFieldColors para resolver race conditions
  */
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFieldColors } from '@/hooks/useFieldColors';
 import { Loader2, AlertCircle } from 'lucide-react';
-
 interface DynamicBadgeProps {
   fieldName: string;
   value: string;
@@ -18,7 +16,6 @@ interface DynamicBadgeProps {
   loading?: boolean;
   [key: string]: any;
 }
-
 export function DynamicBadge({ 
   fieldName, 
   value, 
@@ -30,24 +27,20 @@ export function DynamicBadge({
   ...props 
 }: DynamicBadgeProps) {
   const { getFieldColor, getFieldLabel, isLoading, isReady } = useFieldColors();
-
   if (!value || value === '') {
     return null;
   }
-
   // Size-specific classes
   const sizeClasses = {
     sm: "text-xs px-2 py-1 h-5",
     default: "text-sm px-2.5 py-1.5 h-6", 
     lg: "text-base px-3 py-2 h-8"
   };
-
   const iconSizes = {
     sm: "h-2.5 w-2.5",
     default: "h-3 w-3",
     lg: "h-4 w-4"
   };
-
   // 🚨 CORREÇÃO CRÍTICA: Aguardar dados estarem prontos antes de renderizar
   if (isLoading || !isReady || loading) {
     return (
@@ -65,12 +58,9 @@ export function DynamicBadge({
       </Badge>
     );
   }
-
   const colorHex = getFieldColor(fieldName, value);
   const label = getFieldLabel(fieldName, value);
-
   console.log("
-
   // Se não encontrar cor específica, usar badge padrão do sistema
   if (!colorHex) {
     return (
@@ -84,14 +74,12 @@ export function DynamicBadge({
       </Badge>
     );
   }
-
   // Aplicar cor customizada com estilo inline para garantir visibilidade
   const inlineStyles: React.CSSProperties = {
     backgroundColor: colorHex,
     borderColor: colorHex,
     color: getContrastColor(colorHex),
   };
-
   return (
     <Badge 
       variant="default"
@@ -104,7 +92,6 @@ export function DynamicBadge({
     </Badge>
   );
 }
-
 // Função auxiliar para calcular cor de contraste
 function getContrastColor(hexColor: string): string {
   // Converter hex para RGB

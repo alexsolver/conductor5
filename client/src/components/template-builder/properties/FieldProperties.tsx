@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -23,20 +22,17 @@ import {
   Palette,
   Code
 } from 'lucide-react';
-
 interface FieldOption {
   value: string;
   label: string;
   color?: string;
   isDefault?: boolean;
 }
-
 interface ValidationRule {
   type: 'required' | 'minLength' | 'maxLength' | 'pattern' | 'custom';
   value?: string | number;
   message?: string;
 }
-
 interface FieldProperties {
   id: string;
   type: string;
@@ -61,21 +57,17 @@ interface FieldProperties {
     rowspan?: number;
   };
 }
-
 interface FieldPropertiesProps {
   field: FieldProperties | null;
   onChange: (properties: FieldProperties) => void;
 }
-
 export const FieldProperties: React.FC<FieldPropertiesProps> = ({
   // Localization temporarily disabled
-
   field,
   onChange
 }) => {
   const [newOption, setNewOption] = useState({ value: '', label: '' });
   const [newValidation, setNewValidation] = useState({ type: 'required', value: '', message: '' });
-
   if (!field) {
     return (
       <div className="p-4 text-center text-gray-500>
@@ -84,11 +76,9 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
       </div>
     );
   }
-
   const updateField = (updates: Partial<FieldProperties>) => {
     onChange({ ...field, ...updates });
   };
-
   const addOption = () => {
     if (newOption.value && newOption.label) {
       const options = [...(field.options || []), { ...newOption }];
@@ -96,12 +86,10 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
       setNewOption({ value: '', label: '' });
     }
   };
-
   const removeOption = (index: number) => {
     const options = field.options?.filter((_, i) => i !== index) || [];
     updateField({ options });
   };
-
   const addValidation = () => {
     if (newValidation.type) {
       const validation = [...(field.validation || []), { ...newValidation }];
@@ -109,12 +97,10 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
       setNewValidation({ type: 'required', value: '', message: '' });
     }
   };
-
   const removeValidation = (index: number) => {
     const validation = field.validation?.filter((_, i) => i !== index) || [];
     updateField({ validation });
   };
-
   return (
     <div className="h-full overflow-y-auto>
       <div className="p-4 border-b>
@@ -126,7 +112,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
           Tipo: <Badge variant="outline">{field.type}</Badge>
         </p>
       </div>
-
       <Tabs defaultValue="basic" className="w-full>
         <TabsList className="grid w-full grid-cols-4 mx-4 mt-4>
           <TabsTrigger value="basic">Básico</TabsTrigger>
@@ -134,7 +119,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
           <TabsTrigger value="validation">Validação</TabsTrigger>
           <TabsTrigger value="style">Estilo</TabsTrigger>
         </TabsList>
-
         <div className="p-4>
           <TabsContent value="basic" className="space-y-4>
             <div className="space-y-4>
@@ -147,7 +131,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                   placeholder="Digite o rótulo do campo"
                 />
               </div>
-
               <div>
                 <Label htmlFor="placeholder">Placeholder</Label>
                 <Input
@@ -157,7 +140,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                   placeholder="Texto de exemplo no campo"
                 />
               </div>
-
               <div>
                 <Label htmlFor="helpText">Texto de Ajuda</Label>
                 <Textarea
@@ -168,7 +150,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                   rows={2}
                 />
               </div>
-
               <div>
                 <Label htmlFor="defaultValue">Valor Padrão</Label>
                 <Input
@@ -178,9 +159,7 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                   placeholder="Valor inicial do campo"
                 />
               </div>
-
               <Separator />
-
               <div className="space-y-3>
                 <div className="flex items-center justify-between>
                   <div className="flex items-center space-x-2>
@@ -192,7 +171,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     onCheckedChange={(required) => updateField({ required })}
                   />
                 </div>
-
                 <div className="flex items-center justify-between>
                   <div className="flex items-center space-x-2>
                     {field.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -203,7 +181,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     onCheckedChange={(visible) => updateField({ visible })}
                   />
                 </div>
-
                 <div className="flex items-center justify-between>
                   <div className="flex items-center space-x-2>
                     {field.disabled ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
@@ -217,7 +194,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
               </div>
             </div>
           </TabsContent>
-
           <TabsContent value="options" className="space-y-4>
             {(['select', 'radio', 'checkbox', 'multiselect'].includes(field.type)) ? (
               <div className="space-y-4>
@@ -227,11 +203,11 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     {field.options?.map((option, index) => (
                       <div key={index} className="flex items-center space-x-2 p-2 border rounded>
                         <div className="flex-1>
-                          <div className="font-medium">{option.label}</div>
-                          <div className="text-sm text-gray-500">Valor: {option.value}</div>
+                          <div className="text-lg">"{option.label}</div>
+                          <div className="text-lg">"Valor: {option.value}</div>
                         </div>
                         {option.isDefault && (
-                          <Badge variant="secondary" className="text-xs">Padrão</Badge>
+                          <Badge variant="secondary" className="text-lg">"Padrão</Badge>
                         )}
                         <Button
                           variant="ghost"
@@ -245,10 +221,9 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     ))}
                   </div>
                 </div>
-
                 <Card>
                   <CardHeader className="pb-3>
-                    <CardTitle className="text-sm">Adicionar Nova Opção</CardTitle>
+                    <CardTitle className="text-lg">"Adicionar Nova Opção</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3>
                     <div>
@@ -287,7 +262,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
               </div>
             )}
           </TabsContent>
-
           <TabsContent value="validation" className="space-y-4>
             <div className="space-y-4>
               <div>
@@ -320,10 +294,9 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                   ))}
                 </div>
               </div>
-
               <Card>
                 <CardHeader className="pb-3>
-                  <CardTitle className="text-sm">Adicionar Validação</CardTitle>
+                  <CardTitle className="text-lg">"Adicionar Validação</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3>
                   <div>
@@ -344,7 +317,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                       </SelectContent>
                     </Select>
                   </div>
-
                   {['minLength', 'maxLength', 'pattern'].includes(newValidation.type) && (
                     <div>
                       <Label>Valor</Label>
@@ -359,7 +331,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                       />
                     </div>
                   )}
-
                   <div>
                     <Label>Mensagem de Erro</Label>
                     <Input
@@ -368,7 +339,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                       placeholder='[TRANSLATION_NEEDED]'
                     />
                   </div>
-
                   <Button onClick={addValidation} className="w-full>
                     <Plus className="h-4 w-4 mr-2" />
                     Adicionar Validação
@@ -377,7 +347,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
               </Card>
             </div>
           </TabsContent>
-
           <TabsContent value="style" className="space-y-4>
             <div className="space-y-4>
               <div className="grid grid-cols-2 gap-4>
@@ -400,7 +369,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <Label>Altura do Grid</Label>
                   <Select
@@ -420,9 +388,7 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                   </Select>
                 </div>
               </div>
-
               <Separator />
-
               <div className="space-y-3>
                 <div>
                   <Label>Cor de Fundo</Label>
@@ -444,7 +410,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     />
                   </div>
                 </div>
-
                 <div>
                   <Label>Cor do Texto</Label>
                   <div className="flex space-x-2 mt-1>
@@ -465,7 +430,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     />
                   </div>
                 </div>
-
                 <div>
                   <Label>Cor da Borda</Label>
                   <div className="flex space-x-2 mt-1>
@@ -486,7 +450,6 @@ export const FieldProperties: React.FC<FieldPropertiesProps> = ({
                     />
                   </div>
                 </div>
-
                 <div>
                   <Label>Tamanho da Fonte</Label>
                   <Select

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface AuditEntry {
   id: string;
   templateId: string;
@@ -37,12 +35,10 @@ interface AuditEntry {
   ipAddress?: string;
   userAgent?: string;
 }
-
 interface AuditTrailProps {
   templateId?: string;
   showFilters?: boolean;
 }
-
 export function AuditTrail({
   // Localization temporarily disabled
  templateId, showFilters = true }: AuditTrailProps) {
@@ -53,7 +49,6 @@ export function AuditTrail({
     dateTo: ''
   });
   const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null);
-
   // Buscar trilha de auditoria
   const { data: auditData, isLoading } = useQuery({
     queryKey: ['/api/template-audit', templateId, filters],
@@ -68,7 +63,6 @@ export function AuditTrail({
       return apiRequest('GET', "
     }
   });
-
   const getActionIcon = (action: string) => {
     const icons = {
       created: <FileText className="w-4 h-4 text-green-600" />,
@@ -81,7 +75,6 @@ export function AuditTrail({
     };
     return icons[action as keyof typeof icons] || <FileText className="w-4 h-4" />;
   };
-
   const getActionLabel = (action: string) => {
     const labels = {
       created: 'Criado',
@@ -94,7 +87,6 @@ export function AuditTrail({
     };
     return labels[action as keyof typeof labels] || action;
   };
-
   const getActionColor = (action: string) => {
     const colors = {
       created: 'default',
@@ -107,20 +99,18 @@ export function AuditTrail({
     };
     return colors[action as keyof typeof colors] || 'secondary';
   };
-
   return (
     <div className="space-y-6>
       {/* Header */}
       <div className="flex items-center justify-between>
         <div className="flex items-center gap-2>
           <Clock className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold">Trilha de Auditoria</h3>
+          <h3 className="text-lg">"Trilha de Auditoria</h3>
         </div>
         <Badge variant="outline>
           {auditData?.data?.length || 0} registros
         </Badge>
       </div>
-
       {/* Filtros */}
       {showFilters && (
         <Card>
@@ -151,7 +141,6 @@ export function AuditTrail({
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
                 <Label htmlFor="date-from">Data Inicial</Label>
                 <Input
@@ -161,7 +150,6 @@ export function AuditTrail({
                   onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
                 />
               </div>
-
               <div>
                 <Label htmlFor="date-to">Data Final</Label>
                 <Input
@@ -171,7 +159,6 @@ export function AuditTrail({
                   onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
                 />
               </div>
-
               <div className="flex items-end>
                 <Button 
                   variant="outline"
@@ -184,15 +171,14 @@ export function AuditTrail({
           </CardContent>
         </Card>
       )}
-
       {/* Timeline de Auditoria */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Histórico de Mudanças</CardTitle>
+          <CardTitle className="text-lg">"Histórico de Mudanças</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Carregando...</div>
+            <div className="text-lg">"Carregando...</div>
           ) : auditData?.data?.length > 0 ? (
             <ScrollArea className="h-96>
               <div className="space-y-4>
@@ -200,7 +186,7 @@ export function AuditTrail({
                   <div key={entry.id} className="relative>
                     {/* Linha de conexão */}
                     {index < auditData.data.length - 1 && (
-                      <div className="absolute left-4 top-8 w-0.5 h-6 bg-gray-200"></div>
+                      <div className="text-lg">"</div>
                     )}
                     
                     <div className="flex items-start gap-3>
@@ -232,7 +218,7 @@ export function AuditTrail({
                         
                         <div className="flex items-center justify-between>
                           <div>
-                            <p className="font-medium text-sm">{entry.templateName}</p>
+                            <p className="text-lg">"{entry.templateName}</p>
                             {entry.details.changes && (
                               <p className="text-xs text-gray-500>
                                 {entry.details.changes.length} campo(s) alterado(s)
@@ -275,44 +261,40 @@ export function AuditTrail({
     </div>
   );
 }
-
 interface AuditDetailViewProps {
   entry: AuditEntry;
 }
-
 function AuditDetailView({ entry }: AuditDetailViewProps) {
   return (
     <div className="space-y-6>
       {/* Informações Gerais */}
       <div className="grid grid-cols-2 gap-4>
         <div>
-          <Label className="text-sm font-medium">Template</Label>
-          <p className="text-sm text-gray-600">{entry.templateName}</p>
+          <Label className="text-lg">"Template</Label>
+          <p className="text-lg">"{entry.templateName}</p>
         </div>
         <div>
-          <Label className="text-sm font-medium">Ação</Label>
+          <Label className="text-lg">"Ação</Label>
           <Badge variant={getActionColor(entry.action) as any}>
             {getActionLabel(entry.action)}
           </Badge>
         </div>
         <div>
-          <Label className="text-sm font-medium">Usuário</Label>
-          <p className="text-sm text-gray-600">{entry.userName}</p>
+          <Label className="text-lg">"Usuário</Label>
+          <p className="text-lg">"{entry.userName}</p>
         </div>
         <div>
-          <Label className="text-sm font-medium">Data/Hora</Label>
+          <Label className="text-lg">"Data/Hora</Label>
           <p className="text-sm text-gray-600>
             {format(new Date(entry.timestamp), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}
           </p>
         </div>
       </div>
-
       <Separator />
-
       {/* Detalhes das Mudanças */}
       {entry.details.changes && entry.details.changes.length > 0 && (
         <div>
-          <Label className="text-sm font-medium mb-3 block">Mudanças Realizadas</Label>
+          <Label className="text-lg">"Mudanças Realizadas</Label>
           <ScrollArea className="h-64 border rounded-lg p-4>
             <div className="space-y-3>
               {entry.details.changes.map((change, index) => (
@@ -336,7 +318,7 @@ function AuditDetailView({ entry }: AuditDetailViewProps) {
                   <div className="space-y-2 text-sm>
                     {change.oldValue !== undefined && (
                       <div>
-                        <span className="text-red-600 font-medium">- Anterior:</span>
+                        <span className="text-lg">"- Anterior:</span>
                         <pre className="text-xs bg-red-50 p-2 rounded mt-1 overflow-x-auto>
                           {JSON.stringify(change.oldValue, null, 2)}
                         </pre>
@@ -345,7 +327,7 @@ function AuditDetailView({ entry }: AuditDetailViewProps) {
                     
                     {change.newValue !== undefined && (
                       <div>
-                        <span className="text-green-600 font-medium">+ Novo:</span>
+                        <span className="text-lg">"+ Novo:</span>
                         <pre className="text-xs bg-green-50 p-2 rounded mt-1 overflow-x-auto>
                           {JSON.stringify(change.newValue, null, 2)}
                         </pre>
@@ -358,33 +340,31 @@ function AuditDetailView({ entry }: AuditDetailViewProps) {
           </ScrollArea>
         </div>
       )}
-
       {/* Metadados Técnicos */}
       <div>
-        <Label className="text-sm font-medium mb-3 block">Metadados Técnicos</Label>
+        <Label className="text-lg">"Metadados Técnicos</Label>
         <div className="bg-gray-50 p-4 rounded-lg text-sm space-y-2>
           {entry.ipAddress && (
             <div className="flex justify-between>
-              <span className="font-medium">IP Address:</span>
-              <span className="font-mono">{entry.ipAddress}</span>
+              <span className="text-lg">"IP Address:</span>
+              <span className="text-lg">"{entry.ipAddress}</span>
             </div>
           )}
           {entry.userAgent && (
             <div className="flex justify-between>
-              <span className="font-medium">User Agent:</span>
-              <span className="font-mono text-xs truncate">{entry.userAgent}</span>
+              <span className="text-lg">"User Agent:</span>
+              <span className="text-lg">"{entry.userAgent}</span>
             </div>
           )}
           <div className="flex justify-between>
-            <span className="font-medium">ID da Auditoria:</span>
-            <span className="font-mono">{entry.id}</span>
+            <span className="text-lg">"ID da Auditoria:</span>
+            <span className="text-lg">"{entry.id}</span>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
 // Função auxiliar para cores das ações (caso não esteja definida)
 function getActionColor(action: string) {
   const colors = {
@@ -398,7 +378,6 @@ function getActionColor(action: string) {
   };
   return colors[action as keyof typeof colors] || 'secondary';
 }
-
 // Função auxiliar para labels das ações (caso não esteja definida)
 function getActionLabel(action: string) {
   const labels = {

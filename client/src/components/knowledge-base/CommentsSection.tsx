@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE FRONTEND - COMMENTS COMPONENT
 // React component for article comments following design patterns
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,6 @@ import { MessageCircle, Send, Reply, Edit, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface Comment {
   id: string;
   content: string;
@@ -25,11 +23,9 @@ interface Comment {
   parentId?: string;
   replies?: Comment[];
 }
-
 interface CommentsSectionProps {
   articleId: string;
 }
-
 export function CommentsSection({
   // Localization temporarily disabled
  articleId }: CommentsSectionProps) {
@@ -40,7 +36,6 @@ export function CommentsSection({
   const [replyContent, setReplyContent] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Buscar comentários do artigo
   const { data: comments = [], isLoading } = useQuery<Comment[]>({
     queryKey: ['/api/knowledge-base/articles', articleId, 'comments'],
@@ -55,7 +50,6 @@ export function CommentsSection({
       return result.success ? result.data : [];
     }
   });
-
   // Mutação para criar comentário
   const createCommentMutation = useMutation({
     mutationFn: async (commentData: { content: string; parentId?: string }) => {
@@ -81,17 +75,14 @@ export function CommentsSection({
       });
     }
   });
-
   const handleAddComment = () => {
     if (!newComment.trim()) return;
     createCommentMutation.mutate({ content: newComment });
   };
-
   const handleReply = (parentId: string) => {
     if (!replyContent.trim()) return;
     createCommentMutation.mutate({ content: replyContent, parentId });
   };
-
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -100,9 +91,8 @@ export function CommentsSection({
       .toUpperCase()
       .substring(0, 2);
   };
-
   const renderComment = (comment: Comment, isReply = false) => (
-    <Card key={comment.id} className="">
+    <Card key={comment.id} className="text-lg">"
       <CardHeader className="pb-3>
         <div className="flex items-center justify-between>
           <div className="flex items-center space-x-2>
@@ -110,7 +100,7 @@ export function CommentsSection({
               <AvatarFallback>{getInitials(comment.authorName)}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium">{comment.authorName}</p>
+              <p className="text-lg">"{comment.authorName}</p>
               <p className="text-xs text-muted-foreground>
                 {formatDistanceToNow(new Date(comment.createdAt), { 
                   addSuffix: true, 
@@ -179,7 +169,6 @@ export function CommentsSection({
       </CardContent>
     </Card>
   );
-
   if (isLoading) {
     return (
       <div className="space-y-4>
@@ -193,14 +182,12 @@ export function CommentsSection({
       </div>
     );
   }
-
   return (
     <div className="space-y-4" data-testid="comments-section>
       <h3 className="text-lg font-semibold flex items-center>
         <MessageCircle className="h-5 w-5 mr-2" />
         Comentários ({comments.length})
       </h3>
-
       {/* Formulário para novo comentário */}
       <Card>
         <CardContent className="pt-6>
@@ -223,7 +210,6 @@ export function CommentsSection({
           </div>
         </CardContent>
       </Card>
-
       {/* Lista de comentários */}
       <div className="space-y-4>
         {comments.length === 0 ? (
@@ -231,7 +217,7 @@ export function CommentsSection({
             <CardContent className="pt-6>
               <div className="text-center text-muted-foreground>
                 <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Seja o primeiro a comentar</p>
+                <p className="text-lg">"Seja o primeiro a comentar</p>
               </div>
             </CardContent>
           </Card>

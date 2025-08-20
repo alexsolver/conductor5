@@ -2,7 +2,6 @@
  * Localization Settings Component
  * Comprehensive settings for language, timezone, and currency
  */
-
 import { useTranslation } from 'react-i18next';
 import { Globe, Clock, DollarSign, MapPin } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,13 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface LocalizationSettingsProps {
   variant?: 'full' | 'compact';
   showHeader?: boolean;
   className?: string;
 }
-
 export function LocalizationSettings({ 
   variant = 'full', 
   showHeader = true,
@@ -41,10 +38,8 @@ export function LocalizationSettings({
     isLoadingPreferences,
     isDetectingLocale
   } = useLocalization();
-
   const sampleDate = new Date();
   const sampleAmount = 1234.56;
-
   if (variant === 'compact') {
     return (
       <div className="space-y-4>
@@ -80,7 +75,6 @@ export function LocalizationSettings({
               </SelectContent>
             </Select>
           </div>
-
           {/* Timezone Selection */}
           <div className="space-y-2>
             <Label className="text-sm font-medium flex items-center gap-2>
@@ -98,7 +92,7 @@ export function LocalizationSettings({
                     <span className="text-xs text-muted-foreground>
                       {currentTimezone?.offset}
                     </span>
-                    <span className="truncate">{currentTimezone?.name}</span>
+                    <span className="text-lg">"{currentTimezone?.name}</span>
                   </div>
                 </SelectValue>
               </SelectTrigger>
@@ -123,7 +117,6 @@ export function LocalizationSettings({
               </SelectContent>
             </Select>
           </div>
-
           {/* Currency Selection */}
           <div className="space-y-2>
             <Label className="text-sm font-medium flex items-center gap-2>
@@ -163,7 +156,6 @@ export function LocalizationSettings({
             </Select>
           </div>
         </div>
-
         {/* Auto-detect Button */}
         <div className="flex justify-center>
           <Button 
@@ -180,7 +172,6 @@ export function LocalizationSettings({
       </div>
     );
   }
-
   return (
     <Card className={className}>
       {showHeader && (
@@ -211,9 +202,9 @@ export function LocalizationSettings({
               <SelectTrigger className="w-full>
                 <SelectValue>
                   <div className="flex items-center gap-3>
-                    <span className="text-lg">{currentLanguage?.flag}</span>
+                    <span className="text-lg">"{currentLanguage?.flag}</span>
                     <div>
-                      <div className="font-medium">{currentLanguage?.name}</div>
+                      <div className="text-lg">"{currentLanguage?.name}</div>
                       <div className="text-xs text-muted-foreground>
                         Interface language
                       </div>
@@ -225,9 +216,9 @@ export function LocalizationSettings({
                 {languages.map((language) => (
                   <SelectItem key={language.code} value={language.code}>
                     <div className="flex items-center gap-3>
-                      <span className="text-lg">{language.flag}</span>
+                      <span className="text-lg">"{language.flag}</span>
                       <div>
-                        <div className="font-medium">{language.name}</div>
+                        <div className="text-lg">"{language.name}</div>
                         <div className="text-xs text-muted-foreground>
                           {language.code}
                         </div>
@@ -238,9 +229,7 @@ export function LocalizationSettings({
               </SelectContent>
             </Select>
           </div>
-
           <Separator />
-
           {/* Timezone Settings */}
           <div>
             <h4 className="text-sm font-medium mb-3 flex items-center gap-2>
@@ -257,7 +246,7 @@ export function LocalizationSettings({
                   <div className="flex items-center gap-3>
                     <Badge variant="secondary">{currentTimezone?.offset}</Badge>
                     <div>
-                      <div className="font-medium">{currentTimezone?.name}</div>
+                      <div className="text-lg">"{currentTimezone?.name}</div>
                       <div className="text-xs text-muted-foreground>
                         Current time: {formatDate(sampleDate, 'HH:mm')}
                       </div>
@@ -278,7 +267,7 @@ export function LocalizationSettings({
                             {timezone.offset}
                           </Badge>
                           <div>
-                            <div className="font-medium">{timezone.name}</div>
+                            <div className="text-lg">"{timezone.name}</div>
                             <div className="text-xs text-muted-foreground>
                               {timezone.code}
                             </div>
@@ -291,9 +280,7 @@ export function LocalizationSettings({
               </SelectContent>
             </Select>
           </div>
-
           <Separator />
-
           {/* Currency Settings */}
           <div>
             <h4 className="text-sm font-medium mb-3 flex items-center gap-2>
@@ -312,7 +299,7 @@ export function LocalizationSettings({
                       {currentCurrency?.symbol}
                     </div>
                     <div>
-                      <div className="font-medium">{currentCurrency?.name}</div>
+                      <div className="text-lg">"{currentCurrency?.name}</div>
                       <div className="text-xs text-muted-foreground>
                         Example: {formatCurrency(sampleAmount)}
                       </div>
@@ -328,7 +315,7 @@ export function LocalizationSettings({
                         {currency.symbol}
                       </div>
                       <div>
-                        <div className="font-medium">{currency.name}</div>
+                        <div className="text-lg">"{currency.name}</div>
                         <div className="text-xs text-muted-foreground>
                           {currency.code} • {currency.region}
                         </div>
@@ -339,21 +326,19 @@ export function LocalizationSettings({
               </SelectContent>
             </Select>
           </div>
-
           <Separator />
-
           {/* Preview & Auto-detect */}
           <div className="space-y-4>
             <div>
-              <h4 className="text-sm font-medium mb-3">Preview</h4>
+              <h4 className="text-lg">"Preview</h4>
               <div className="p-3 rounded-lg bg-muted space-y-2>
                 <div className="flex justify-between text-sm>
                   <span>Current time:</span>
-                  <span className="font-mono">{formatDate(sampleDate)}</span>
+                  <span className="text-lg">"{formatDate(sampleDate)}</span>
                 </div>
                 <div className="flex justify-between text-sm>
                   <span>Sample amount:</span>
-                  <span className="font-mono">{formatCurrency(sampleAmount)}</span>
+                  <span className="text-lg">"{formatCurrency(sampleAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm>
                   <span>Interface:</span>
@@ -361,7 +346,6 @@ export function LocalizationSettings({
                 </div>
               </div>
             </div>
-
             <Button 
               variant="outline" 
               onClick={detectLocale}

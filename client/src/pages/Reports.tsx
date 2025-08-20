@@ -9,7 +9,6 @@ import {
   FolderOpen, BookOpen, Settings, Grid, List, Calendar,
   ChevronRight, ChevronDown, Sparkles, Target, AlertCircle
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,12 +22,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-
 // Zendesk-style Quick Start Templates
 const ZENDESK_QUICK_TEMPLATES = [
   {
   // Localization temporarily disabled
-
     id: "ticket-volume",
     name: "Ticket Volume",
     description: "Track ticket creation trends over time",
@@ -65,7 +62,6 @@ const ZENDESK_QUICK_TEMPLATES = [
     estimatedTime: "4 min"
   }
 ];
-
 // Zendesk-style Data Sources
 const ZENDESK_DATA_SOURCES = [
   {
@@ -101,7 +97,6 @@ const ZENDESK_DATA_SOURCES = [
     color: "text-orange-600"
   }
 ];
-
 // Main Explore Page Component
 export default function Reports() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -110,18 +105,14 @@ export default function Reports() {
   const [viewMode, setViewMode] = useState("grid"); // grid, list
   const [showFilters, setShowFilters] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(true);
-
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-
   // Fetch existing reports
   const { data: reportsData, isLoading } = useQuery({
     queryKey: ["/api/reports-dashboards/reports"],
     queryFn: () => apiRequest("GET", "/api/reports-dashboards/reports")
   });
-
   const reports = reportsData?.data?.reports || [];
-
   // Zendesk-style Categories
   const categories = [
     { id: "all", name: '[TRANSLATION_NEEDED]', count: reports.length },
@@ -130,7 +121,6 @@ export default function Reports() {
     { id: "customer", name: "Customer Insights", count: reports.filter(r => r.category === 'analytical').length },
     { id: "compliance", name: "Compliance", count: reports.filter(r => r.category === 'compliance').length }
   ];
-
   // Filter reports based on search and category
   const filteredReports = reports.filter(report => {
     const matchesSearch = report.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -142,19 +132,15 @@ export default function Reports() {
                            (selectedCategory === 'compliance' && report.category === 'compliance');
     return matchesSearch && matchesCategory;
   });
-
   const handleCreateFromTemplate = (templateId: string) => {
     setLocation("
   };
-
   const handleEditReport = (reportId: string) => {
     setLocation("
   };
-
   const handleViewReport = (reportId: string) => {
     setLocation("
   };
-
   // Zendesk-style Explore Landing
   if (activeView === "explore") {
     return (
@@ -164,7 +150,7 @@ export default function Reports() {
           <div className=""
             <div className=""
               <div className=""
-                <h1 className="text-2xl font-bold text-gray-900">Explore</h1>
+                <h1 className="text-lg">"Explore</h1>
                 <Badge variant="secondary" className=""
                   Data Analytics
                 </Badge>
@@ -186,15 +172,14 @@ export default function Reports() {
             </div>
           </div>
         </div>
-
         <div className=""
           {/* Quick Start Section - Zendesk Style */}
           {showQuickStart && (
             <div className=""
               <div className=""
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Quick start</h2>
-                  <p className="text-gray-600 mt-1">Get insights in minutes with pre-built reports</p>
+                  <h2 className="text-lg">"Quick start</h2>
+                  <p className="text-lg">"Get insights in minutes with pre-built reports</p>
                 </div>
                 <Button 
                   variant="ghost" 
@@ -204,7 +189,6 @@ export default function Reports() {
                   Hide
                 </Button>
               </div>
-
               <div className=""
                 {ZENDESK_QUICK_TEMPLATES.map((template) => (
                   <Card 
@@ -221,8 +205,8 @@ export default function Reports() {
                           {template.estimatedTime}
                         </Badge>
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
-                      <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+                      <h3 className="text-lg">"{template.name}</h3>
+                      <p className="text-lg">"{template.description}</p>
                       <Badge variant="outline" className=""
                         {template.category}
                       </Badge>
@@ -232,20 +216,18 @@ export default function Reports() {
               </div>
             </div>
           )}
-
           {/* Data Sources Section - Zendesk Style */}
           <div className=""
             <div className=""
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Data sources</h2>
-                <p className="text-gray-600 mt-1">Choose your data to start building</p>
+                <h2 className="text-lg">"Data sources</h2>
+                <p className="text-lg">"Choose your data to start building</p>
               </div>
               <Button variant="outline" size="sm>
                 <Settings className="h-4 w-4 mr-2" />
                 Manage Sources
               </Button>
             </div>
-
             <div className=""
               {ZENDESK_DATA_SOURCES.map((source) => (
                 <Card 
@@ -257,21 +239,20 @@ export default function Reports() {
                     <div className=""
                       <source.icon className="h-8 w-8 " mr-3" />
                       <div>
-                        <h3 className="font-semibold text-gray-900">{source.name}</h3>
-                        <p className="text-sm text-gray-500">{source.tables} tables</p>
+                        <h3 className="text-lg">"{source.name}</h3>
+                        <p className="text-lg">"{source.tables} tables</p>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600">{source.description}</p>
+                    <p className="text-lg">"{source.description}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </div>
-
           {/* Recent Activity - Zendesk Style */}
           <div>
             <div className=""
-              <h2 className="text-xl font-semibold text-gray-900">Recent activity</h2>
+              <h2 className="text-lg">"Recent activity</h2>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -280,7 +261,6 @@ export default function Reports() {
                 View All Reports
               </Button>
             </div>
-
             <div className=""
               <div className=""
                 {filteredReports.slice(0, 5).map((report, index) => (
@@ -293,8 +273,8 @@ export default function Reports() {
                         {report.chartType === 'table' && <Table className="h-4 w-4" />}
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">{report.name}</h3>
-                        <p className="text-sm text-gray-500">{report.description}</p>
+                        <h3 className="text-lg">"{report.name}</h3>
+                        <p className="text-lg">"{report.description}</p>
                       </div>
                     </div>
                     <div className=""
@@ -311,12 +291,11 @@ export default function Reports() {
                     </div>
                   </div>
                 ))}
-
                 {filteredReports.length === 0 && (
                   <div className=""
                     <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No reports yet</h3>
-                    <p className="text-gray-600 mb-4">Create your first report to get started</p>
+                    <h3 className="text-lg">"No reports yet</h3>
+                    <p className="text-lg">"Create your first report to get started</p>
                     <Button onClick={() => setLocation('/reports/create')}>
                       <Plus className="h-4 w-4 mr-2" />
                       Create Report
@@ -330,7 +309,6 @@ export default function Reports() {
       </div>
     );
   }
-
   // Reports Library View - Zendesk Style
   return (
     <div className=""
@@ -355,7 +333,6 @@ export default function Reports() {
                 </TabsList>
               </Tabs>
             </div>
-
             <div className=""
               <div className=""
                 <Button
@@ -381,7 +358,6 @@ export default function Reports() {
           </div>
         </div>
       </div>
-
       <div className=""
         {/* Filters and Search - Zendesk Style */}
         <div className=""
@@ -418,7 +394,6 @@ export default function Reports() {
             </Button>
           </div>
         </div>
-
         {/* Reports Grid/List - Zendesk Style */}
         {viewMode === 'grid' ? (
           <div className=""
@@ -445,12 +420,11 @@ export default function Reports() {
             </div>
           </div>
         )}
-
         {filteredReports.length === 0 && (
           <div className=""
             <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No reports found</h3>
-            <p className="text-gray-600 mb-6">Try adjusting your search or create a new report</p>
+            <h3 className="text-lg">"No reports found</h3>
+            <p className="text-lg">"Try adjusting your search or create a new report</p>
             <Button onClick={() => setLocation('/reports/create')}>
               <Plus className="h-4 w-4 mr-2" />
               Create Report
@@ -461,7 +435,6 @@ export default function Reports() {
     </div>
   );
 }
-
 // Zendesk-style Report Card Component
 function ReportCardZendeskStyle({ report, onView, onEdit }) {
   const getChartIcon = (chartType) => {
@@ -473,9 +446,7 @@ function ReportCardZendeskStyle({ report, onView, onEdit }) {
       default: return BarChart3;
     }
   };
-
   const ChartIcon = getChartIcon(report.chartType);
-
   return (
     <Card className=""
       <CardHeader className=""
@@ -485,8 +456,8 @@ function ReportCardZendeskStyle({ report, onView, onEdit }) {
               <ChartIcon className="h-5 w-5 text-blue-600" />
             </div>
             <div className=""
-              <h3 className="font-semibold text-gray-900 truncate">{report.name}</h3>
-              <p className="text-sm text-gray-500 truncate">{report.description}</p>
+              <h3 className="text-lg">"{report.name}</h3>
+              <p className="text-lg">"{report.description}</p>
             </div>
           </div>
           <DropdownMenu>
@@ -539,7 +510,6 @@ function ReportCardZendeskStyle({ report, onView, onEdit }) {
     </Card>
   );
 }
-
 // Zendesk-style Report List Item Component
 function ReportListItemZendeskStyle({ report, onView, onEdit }) {
   const getChartIcon = (chartType) => {
@@ -551,9 +521,7 @@ function ReportListItemZendeskStyle({ report, onView, onEdit }) {
       default: return BarChart3;
     }
   };
-
   const ChartIcon = getChartIcon(report.chartType);
-
   return (
     <div className=""
       <div className=""
@@ -561,8 +529,8 @@ function ReportListItemZendeskStyle({ report, onView, onEdit }) {
           <ChartIcon className="h-5 w-5 text-blue-600" />
         </div>
         <div className=""
-          <h3 className="font-medium text-gray-900 truncate">{report.name}</h3>
-          <p className="text-sm text-gray-500 truncate">{report.description}</p>
+          <h3 className="text-lg">"{report.name}</h3>
+          <p className="text-lg">"{report.description}</p>
           <div className=""
             <Badge variant={report.status === 'active' ? 'default' : 'secondary'} className=""
               {report.status}

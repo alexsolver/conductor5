@@ -1,8 +1,6 @@
-
 /**
  * Componente para representar um campo no canvas que pode ser arrastado e editado
  */
-
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -33,7 +31,6 @@ import {
   Image,
   AlertTriangle
 } from 'lucide-react'
-
 interface DraggableFieldItemProps {
   field: FieldComponent
   isSelected: boolean
@@ -42,10 +39,8 @@ interface DraggableFieldItemProps {
   onDelete: (id: string) => void
   readonly?: boolean
 }
-
 const getFieldIcon = (type: string) => {
   // Localization temporarily disabled
-
   const icons = {
     text: Type,
     textarea: FileText,
@@ -66,7 +61,6 @@ const getFieldIcon = (type: string) => {
   }
   return icons[type as keyof typeof icons] || Type
 }
-
 const getFieldTypeLabel = (type: string) => {
   const labels = {
     text: 'Texto',
@@ -88,7 +82,6 @@ const getFieldTypeLabel = (type: string) => {
   }
   return labels[type as keyof typeof labels] || type
 }
-
 const getValidationSummary = (field: FieldComponent) => {
   const validations = []
   
@@ -111,10 +104,8 @@ const getValidationSummary = (field: FieldComponent) => {
   if (field.properties?.max !== undefined) {
     validations.push("
   }
-
   return validations
 }
-
 export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
   field,
   isSelected,
@@ -134,19 +125,16 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
     id: field.id,
     disabled: readonly
   })
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
-
   const Icon = getFieldIcon(field.type)
   const validations = getValidationSummary(field)
   const hasErrors = field.validation && Object.keys(field.validation).some(key => 
     field.validation[key] === false
   )
-
   const handleToggleVisibility = (e: React.MouseEvent) => {
     e.stopPropagation()
     onUpdate(field.id, {
@@ -156,20 +144,17 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
       }
     })
   }
-
   const handleDuplicate = (e: React.MouseEvent) => {
     e.stopPropagation()
     // TODO: Implementar duplicação
     console.log('Duplicar campo:', field.id)
   }
-
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (window.confirm('Tem certeza que deseja remover este campo?')) {
       onDelete(field.id)
     }
   }
-
   return (
     <div
       ref={setNodeRef}
@@ -214,7 +199,6 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
                 </p>
               </div>
             </div>
-
             <div className="flex items-center gap-1>
               {hasErrors && (
                 <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -233,7 +217,6 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
               )}
             </div>
           </div>
-
           {/* Content */}
           <div className="space-y-2>
             {/* Field key */}
@@ -242,7 +225,6 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
                 {field.id}
               </span>
             </div>
-
             {/* Validations */}
             {validations.length > 0 && (
               <div className="flex flex-wrap gap-1>
@@ -253,14 +235,12 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
                 ))}
               </div>
             )}
-
             {/* Properties summary */}
             {field.properties?.placeholder && (
               <div className="text-xs text-gray-500 italic>
                 "{field.properties.placeholder}"
               </div>
             )}
-
             {/* Options count for select fields */}
             {(['select', 'multiselect', 'radio'].includes(field.type) && field.properties?.options) && (
               <div className="text-xs text-gray-500>
@@ -268,7 +248,6 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
               </div>
             )}
           </div>
-
           {/* Actions */}
           {!readonly && (
             <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t opacity-0 group-hover:opacity-100 transition-opacity>
@@ -285,7 +264,6 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
                   <Eye className="w-3 h-3" />
                 )}
               </Button>
-
               <Button
                 variant="ghost"
                 size="sm"
@@ -295,7 +273,6 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
               >
                 <Copy className="w-3 h-3" />
               </Button>
-
               <Button
                 variant="ghost"
                 size="sm"
@@ -305,7 +282,6 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
               >
                 <Settings className="w-3 h-3" />
               </Button>
-
               <Button
                 variant="ghost"
                 size="sm"

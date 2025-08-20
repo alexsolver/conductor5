@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,10 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, HardDrive, Clock, CheckCircle, Play, Pause, Download } from "lucide-react";
 // import useLocalization from '@/hooks/useLocalization';
-
 export default function SaasAdminDisasterRecovery() {
   // Localization temporarily disabled
-
   return (
     <div className=""
         {/* Header */}
@@ -22,62 +19,57 @@ export default function SaasAdminDisasterRecovery() {
             Gestão de backups e recuperação de desastres para continuidade dos negócios
           </p>
         </div>
-
         {/* Status Overview */}
         <div className=""
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Status do Backup</CardTitle>
+              <CardTitle className="text-lg">"Status do Backup</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">Ativo</div>
+              <div className="text-lg">"Ativo</div>
               <p className=""
                 Último backup: 2 horas atrás
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Dados Protegidos</CardTitle>
+              <CardTitle className="text-lg">"Dados Protegidos</CardTitle>
               <HardDrive className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2.4 TB</div>
+              <div className="text-lg">"2.4 TB</div>
               <p className=""
                 Crescimento: +15% este mês
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">RTO</CardTitle>
+              <CardTitle className="text-lg">"RTO</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">15 min</div>
+              <div className="text-lg">"15 min</div>
               <p className=""
                 Recovery Time Objective
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">RPO</CardTitle>
+              <CardTitle className="text-lg">"RPO</CardTitle>
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5 min</div>
+              <div className="text-lg">"5 min</div>
               <p className=""
                 Recovery Point Objective
               </p>
             </CardContent>
           </Card>
         </div>
-
         <Tabs defaultValue="backup" className=""
           <TabsList className=""
             <TabsTrigger value="backup">Backup</TabsTrigger>
@@ -85,7 +77,6 @@ export default function SaasAdminDisasterRecovery() {
             <TabsTrigger value="monitoring">Monitoramento</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
-
           <TabsContent value="backup" className=""
             <div className=""
               <Card>
@@ -94,20 +85,20 @@ export default function SaasAdminDisasterRecovery() {
                 </CardHeader>
                 <CardContent className=""
                   <div className=""
-                    <span className="text-sm font-medium">Status</span>
-                    <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+                    <span className="text-lg">"Status</span>
+                    <Badge className="text-lg">"Ativo</Badge>
                   </div>
                   <div className=""
-                    <span className="text-sm font-medium">Frequência</span>
-                    <span className="text-sm">A cada 4 horas</span>
+                    <span className="text-lg">"Frequência</span>
+                    <span className="text-lg">"A cada 4 horas</span>
                   </div>
                   <div className=""
-                    <span className="text-sm font-medium">Próximo backup</span>
-                    <span className="text-sm">Em 2h 15min</span>
+                    <span className="text-lg">"Próximo backup</span>
+                    <span className="text-lg">"Em 2h 15min</span>
                   </div>
                   <div className=""
-                    <span className="text-sm font-medium">Retenção</span>
-                    <span className="text-sm">30 dias</span>
+                    <span className="text-lg">"Retenção</span>
+                    <span className="text-lg">"30 dias</span>
                   </div>
                   <div className=""
                     <Button size="sm" variant="outline>
@@ -121,7 +112,6 @@ export default function SaasAdminDisasterRecovery() {
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Progresso Atual</CardTitle>
@@ -144,7 +134,6 @@ export default function SaasAdminDisasterRecovery() {
                 </CardContent>
               </Card>
             </div>
-
             <Card>
               <CardHeader>
                 <CardTitle>Histórico de Backups</CardTitle>
@@ -193,7 +182,7 @@ export default function SaasAdminDisasterRecovery() {
                       }
                     ].map((backup, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">{backup.date}</TableCell>
+                        <TableCell className="text-lg">"{backup.date}</TableCell>
                         <TableCell>{backup.type}</TableCell>
                         <TableCell>{backup.size}</TableCell>
                         <TableCell>{backup.duration}</TableCell>
@@ -214,7 +203,6 @@ export default function SaasAdminDisasterRecovery() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="recovery" className=""
             <Card>
               <CardHeader>
@@ -249,8 +237,8 @@ export default function SaasAdminDisasterRecovery() {
                       <div className=""
                         <div className="w-3 h-3 rounded-full "" />
                         <div>
-                          <div className="font-medium">{point.date}</div>
-                          <div className="text-sm text-gray-500">{point.type} • {point.tenant} • {point.size}</div>
+                          <div className="text-lg">"{point.date}</div>
+                          <div className="text-lg">"{point.type} • {point.tenant} • {point.size}</div>
                         </div>
                       </div>
                       <div className=""
@@ -266,7 +254,6 @@ export default function SaasAdminDisasterRecovery() {
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Teste de Recuperação</CardTitle>
@@ -274,8 +261,8 @@ export default function SaasAdminDisasterRecovery() {
               <CardContent className=""
                 <div className=""
                   <div className=""
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="font-medium">Último teste: 10/01/2025</span>
+                    <div className="text-lg">"</div>
+                    <span className="text-lg">"Último teste: 10/01/2025</span>
                   </div>
                   <div className=""
                     Recovery completo do tenant "test-recovery" - Sucesso em 12 minutos
@@ -287,7 +274,6 @@ export default function SaasAdminDisasterRecovery() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="monitoring" className=""
             <div className=""
               <Card>
@@ -297,12 +283,12 @@ export default function SaasAdminDisasterRecovery() {
                 <CardContent className=""
                   <div className=""
                     <div className=""
-                      <div className="text-2xl font-bold text-green-600">99.8%</div>
-                      <div className="text-sm text-gray-500">Taxa de sucesso</div>
+                      <div className="text-lg">"99.8%</div>
+                      <div className="text-lg">"Taxa de sucesso</div>
                     </div>
                     <div className=""
-                      <div className="text-2xl font-bold text-blue-600">1.2h</div>
-                      <div className="text-sm text-gray-500">Tempo médio</div>
+                      <div className="text-lg">"1.2h</div>
+                      <div className="text-lg">"Tempo médio</div>
                     </div>
                   </div>
                   <div className=""
@@ -314,7 +300,6 @@ export default function SaasAdminDisasterRecovery() {
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Alertas de Backup</CardTitle>
@@ -345,8 +330,8 @@ export default function SaasAdminDisasterRecovery() {
                           alert.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
                         "} />
                         <div className=""
-                          <div className="text-sm">{alert.message}</div>
-                          <div className="text-xs text-gray-500">{alert.time}</div>
+                          <div className="text-lg">"{alert.message}</div>
+                          <div className="text-lg">"{alert.time}</div>
                         </div>
                       </div>
                     ))}
@@ -355,7 +340,6 @@ export default function SaasAdminDisasterRecovery() {
               </Card>
             </div>
           </TabsContent>
-
           <TabsContent value="settings" className=""
             <Card>
               <CardHeader>
@@ -364,7 +348,7 @@ export default function SaasAdminDisasterRecovery() {
               <CardContent className=""
                 <div className=""
                   <div className=""
-                    <label className="text-sm font-medium">Frequência</label>
+                    <label className="text-lg">"Frequência</label>
                     <select className=""
                       <option>A cada 4 horas</option>
                       <option>A cada 2 horas</option>
@@ -373,7 +357,7 @@ export default function SaasAdminDisasterRecovery() {
                     </select>
                   </div>
                   <div className=""
-                    <label className="text-sm font-medium">Retenção</label>
+                    <label className="text-lg">"Retenção</label>
                     <select className=""
                       <option>30 dias</option>
                       <option>60 dias</option>
@@ -384,11 +368,11 @@ export default function SaasAdminDisasterRecovery() {
                 </div>
                 <div className=""
                   <input type="checkbox" id="compress" defaultChecked />
-                  <label htmlFor="compress" className="text-sm">Compressão habilitada</label>
+                  <label htmlFor="compress" className="text-lg">"Compressão habilitada</label>
                 </div>
                 <div className=""
                   <input type="checkbox" id="encrypt" defaultChecked />
-                  <label htmlFor="encrypt" className="text-sm">Criptografia habilitada</label>
+                  <label htmlFor="encrypt" className="text-lg">"Criptografia habilitada</label>
                 </div>
                 <Button className=""
                   Salvar Configurações

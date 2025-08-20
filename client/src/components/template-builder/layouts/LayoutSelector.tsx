@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,6 @@ import {
   Star,
   StarOff
 } from 'lucide-react';
-
 interface LayoutStructure {
   sections: Array<{
     id: string;
@@ -34,7 +32,6 @@ interface LayoutStructure {
     }>;
   }>;
 }
-
 interface LayoutTemplate {
   id: string;
   name: string;
@@ -48,18 +45,15 @@ interface LayoutTemplate {
   createdAt: Date;
   updatedAt: Date;
 }
-
 interface LayoutSelectorProps {
   currentLayout?: LayoutTemplate;
   onLayoutSelect: (layout: LayoutTemplate) => void;
   onLayoutSave: (layout: Omit<LayoutTemplate, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onLayoutDelete: (layoutId: string) => void;
 }
-
 const predefinedLayouts: LayoutTemplate[] = [
   {
   // Localization temporarily disabled
-
     id: 'simple-form',
     name: 'Formulário Simples',
     description: 'Layout básico com uma coluna para formulários simples',
@@ -334,7 +328,6 @@ const predefinedLayouts: LayoutTemplate[] = [
     updatedAt: new Date()
   }
 ];
-
 export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
   currentLayout,
   onLayoutSelect,
@@ -347,14 +340,12 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newLayoutName, setNewLayoutName] = useState('');
   const [newLayoutDescription, setNewLayoutDescription] = useState('');
-
   const filteredLayouts = layouts.filter(layout => {
     const matchesSearch = layout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          layout.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || layout.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
   const categoryLabels = {
     all: '[TRANSLATION_NEEDED]',
     basic: 'Básicos',
@@ -362,7 +353,6 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
     specialized: 'Especializados',
     custom: 'Personalizados'
   };
-
   const handleToggleFavorite = (layoutId: string) => {
     setLayouts(layouts.map(layout => 
       layout.id === layoutId 
@@ -370,10 +360,8 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
         : layout
     ));
   };
-
   const handleCreateLayout = () => {
     if (!newLayoutName.trim()) return;
-
     const newLayout: Omit<LayoutTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
       name: newLayoutName,
       description: newLayoutDescription,
@@ -391,13 +379,11 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
       preview: 'Layout personalizado',
       usageCount: 0
     };
-
     onLayoutSave(newLayout);
     setNewLayoutName('');
     setNewLayoutDescription('');
     setShowCreateDialog(false);
   };
-
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'basic': return <Square className="h-4 w-4" />;
@@ -407,7 +393,6 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
       default: return <Layout className="h-4 w-4" />;
     }
   };
-
   return (
     <div className="w-full h-full>
       <div className="p-4 border-b>
@@ -474,7 +459,6 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
             </DialogContent>
           </Dialog>
         </div>
-
         {/* Filtros */}
         <div className="flex space-x-4>
           <div className="flex-1>
@@ -493,13 +477,12 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                 onClick={() => setSelectedCategory(value)}
               >
                 {getCategoryIcon(value)}
-                <span className="ml-1 hidden sm:inline">{label}</span>
+                <span className="text-lg">"{label}</span>
               </Button>
             ))}
           </div>
         </div>
       </div>
-
       <div className="p-4>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4>
           {filteredLayouts.map((layout) => (
@@ -516,7 +499,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                 <div className="flex items-center justify-between>
                   <div className="flex items-center space-x-2>
                     {getCategoryIcon(layout.category)}
-                    <CardTitle className="text-base">{layout.name}</CardTitle>
+                    <CardTitle className="text-lg">"{layout.name}</CardTitle>
                     {layout.isDefault && (
                       <Badge variant="secondary" className="text-xs>
                         Padrão
@@ -565,7 +548,6 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                       {layout.preview}
                     </pre>
                   </div>
-
                   {/* Estatísticas */}
                   <div className="flex items-center justify-between text-xs text-gray-500>
                     <span>
@@ -582,11 +564,10 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
             </Card>
           ))}
         </div>
-
         {filteredLayouts.length === 0 && (
           <div className="text-center py-12 text-gray-500>
             <Layout className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">Nenhum layout encontrado</p>
+            <p className="text-lg">"Nenhum layout encontrado</p>
             <p className="text-sm>
               Tente ajustar os filtros ou criar um novo layout personalizado
             </p>
@@ -596,5 +577,4 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
     </div>
   );
 };
-
 export default LayoutSelector;

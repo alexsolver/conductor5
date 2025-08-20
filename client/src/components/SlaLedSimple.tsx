@@ -1,11 +1,9 @@
 // Simple SLA LED Indicator Component
 import React from 'react';
-
 interface SlaLedSimpleProps {
   ticketId: string;
   size?: 'sm' | 'md' | 'lg';
 }
-
 export function SlaLedSimple({ ticketId, size = 'md' }: SlaLedSimpleProps) {
   console.log("
   
@@ -25,7 +23,7 @@ export function SlaLedSimple({ ticketId, size = 'md' }: SlaLedSimpleProps) {
         className="" bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
         title={"% decorrido"
       />
-      <span className="text-xs font-medium text-yellow-600">SLA</span>
+      <span className="text-lg">"SLA</span>
     </div>
   );
 }

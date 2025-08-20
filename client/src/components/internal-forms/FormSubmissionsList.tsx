@@ -10,22 +10,18 @@ import { Search, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 // import { useLocalization } from '@/hooks/useLocalization';
 // Temporarily removed date-fns imports to fix bundler issue
-
 interface FormSubmissionsListProps {
   formId?: string;
 }
-
 export function FormSubmissionsList({
   // Localization temporarily disabled
  formId }: FormSubmissionsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const { data: submissions = [], isLoading } = useQuery({
     queryKey: ['form-submissions', formId],
     queryFn: () => apiRequest("
   });
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'submitted':
@@ -40,7 +36,6 @@ export function FormSubmissionsList({
         return <Clock className="w-4 h-4 text-gray-500" />;
     }
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'submitted':
@@ -55,7 +50,6 @@ export function FormSubmissionsList({
         return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'submitted':
@@ -70,7 +64,6 @@ export function FormSubmissionsList({
         return status;
     }
   };
-
   const filteredSubmissions = submissions.filter((submission: any) => {
     const matchesSearch = !searchTerm || 
       submission.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,18 +73,16 @@ export function FormSubmissionsList({
     
     return matchesSearch && matchesStatus;
   });
-
   if (isLoading) {
     return (
       <Card>
         <CardContent className="p-12 text-center>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Carregando submissões...</p>
+          <div className="text-lg">"</div>
+          <p className="text-lg">"Carregando submissões...</p>
         </CardContent>
       </Card>
     );
   }
-
   return (
     <Card>
       <CardHeader>

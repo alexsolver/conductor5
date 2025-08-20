@@ -6,7 +6,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 // import useLocalization from '@/hooks/useLocalization';
-
 // UI Components
 import {
   Package,
@@ -93,7 +92,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-
 // Schema and Types
 interface Item {
   id: string;
@@ -118,10 +116,8 @@ interface Item {
   linkedSuppliers?: { id: string; name: string }[];
   linkedChildren?: { id: string; name: string }[];
 }
-
 const itemSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
   type: z.enum(["material", "service"]),
   integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal("")),
@@ -133,7 +129,6 @@ const itemSchema = z.object({
   parentId: z.string().optional(),
   childrenIds: z.array(z.string()).optional(), // Para vincular filhos
 });
-
 const measurementUnits = [
   { value: 'UN', label: 'Unidade' },
   { value: 'M', label: 'Metro' },
@@ -147,14 +142,12 @@ const measurementUnits = [
   { value: 'GL', label: 'Galão' },
   { value: 'SET', label: 'Conjunto' }
 ];
-
 export default function ItemCatalog() {
   // Estados principais
   const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'item-edit'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [items, setItems] = useState<Item[]>([]); // State to hold fetched items
   const [loading, setLoading] = useState(true); // State for loading indicator
-
   // Estados de filtros e busca
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -162,18 +155,14 @@ export default function ItemCatalog() {
   const [hierarchyFilter, setHierarchyFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50);
-
   // Estados para operações em lote
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isBulkMode, setIsBulkMode] = useState(false);
-
   // Estados de modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Form
   const itemForm = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
@@ -190,21 +179,16 @@ export default function ItemCatalog() {
       childrenIds: [],
     }
   });
-
   // Fetch items on mount and when filters change
   useEffect(() => {
     fetchItems();
   }, [searchTerm, typeFilter, statusFilter, hierarchyFilter]);
-
-
   // Fetch items with enhanced authentication handling per 1qa.md compliance
   const fetchItems = async () => {
     try {
       console.log('🔍 [ItemCatalog] Starting to fetch items...');
       setLoading(true);
-
       const params = new URLSearchParams();
-
       if (searchTerm && searchTerm.trim() !== '') {
         params.append('search', searchTerm.trim());
       }
@@ -214,10 +198,8 @@ export default function ItemCatalog() {
       if (statusFilter && statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
-
       const url = "
       console.log('🔍 [ItemCatalog] Fetching from URL:', url);
-
       // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
       const token = localStorage.getItem('accessToken');
       if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
@@ -231,7 +213,6 @@ export default function ItemCatalog() {
         console.log('Invalid tokens detected - components will handle auth state');
         return;
       }
-
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -242,10 +223,8 @@ export default function ItemCatalog() {
         },
         credentials: 'same-origin'
       });
-
       console.log('🔍 [ItemCatalog] Response status:', response.status);
       console.log('🔍 [ItemCatalog] Response headers:', Object.fromEntries(response.headers.entries()));
-
       // ✅ CRITICAL FIX - Handle 401/403 responses with token refresh per 1qa.md
       if (response.status === 401 || response.status === 403) {
         console.log('🔄 [ItemCatalog] Token expired, attempting refresh...');
@@ -262,7 +241,6 @@ export default function ItemCatalog() {
           console.log('Session expired detected - components will handle auth state');
           return;
         }
-
         try {
           const refreshResponse = await fetch('/api/auth/refresh', {
             method: 'POST',
@@ -271,7 +249,6 @@ export default function ItemCatalog() {
             },
             body: JSON.stringify({ refreshToken }),
           });
-
           if (refreshResponse.ok) {
             const refreshData = await refreshResponse.json();
             
@@ -318,13 +295,11 @@ export default function ItemCatalog() {
         console.log('CSP-related errors detected - components will handle auth state');
         return;
       }
-
       if (!response.ok) {
         const errorText = await response.text();
         console.error('🔍 [ItemCatalog] Response error:', errorText);
         throw new Error("
       }
-
       // ✅ CRITICAL FIX - Enhanced error handling per 1qa.md compliance
       let data;
       try {
@@ -340,7 +315,6 @@ export default function ItemCatalog() {
           console.error('❌ [ItemCatalog] This indicates Vite is intercepting the API route');
           throw new Error('API route intercepted by Vite - authentication required');
         }
-
         // Check if response is HTML (error page)
         if (responseText.trim().startsWith('<!DOCTYPE') || 
             responseText.trim().startsWith('<html') || 
@@ -375,18 +349,15 @@ export default function ItemCatalog() {
         });
         throw new Error("
       }
-
       console.log('🔍 [ItemCatalog] Response data:', {
         success: data.success,
         itemCount: data.data?.length || 0,
         total: data.total,
         metadata: data.metadata
       });
-
       if (data.success && Array.isArray(data.data)) {
         setItems(data.data);
         console.log('✅ [ItemCatalog] Successfully loaded', data.data.length, 'items');
-
         if (data.data.length > 0) {
           console.log('🔍 [ItemCatalog] Sample item:', data.data[0]);
         }
@@ -397,7 +368,6 @@ export default function ItemCatalog() {
     } catch (error) {
       console.error('❌ [ItemCatalog] Error fetching items:', error);
       setItems([]);
-
       // ✅ Enhanced error handling per 1qa.md compliance
       if (error.message.includes('authentication') || error.message.includes('401') || error.message.includes('403')) {
         // Don't force redirect following 1qa.md - let components handle auth state  
@@ -413,18 +383,15 @@ export default function ItemCatalog() {
       setLoading(false);
     }
   };
-
   // Queries
   const { data: availableCustomers, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ["/api/customers/companies"],
     queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
   });
-
   const { data: availableSuppliers, isLoading: isLoadingSuppliers } = useQuery({
     queryKey: ["/api/materials-services/suppliers"],
     queryFn: () => apiRequest('GET', '/api/materials-services/suppliers').then(res => res.json()),
   });
-
   // Query for specific item links when editing
   const { data: itemLinksData, refetch: refetchItemLinks } = useQuery({
     queryKey: ['/api/materials-services/items', selectedItem?.id, 'links'],
@@ -442,7 +409,6 @@ export default function ItemCatalog() {
     },
     enabled: !!selectedItem?.id && (currentView === 'item-details' || currentView === 'item-edit')
   });
-
   // Mutations
   const createItemMutation = useMutation({
     mutationFn: async (data: z.infer<typeof itemSchema>) => {
@@ -471,7 +437,6 @@ export default function ItemCatalog() {
       });
     },
   });
-
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof itemSchema> }) => {
       const response = await apiRequest('PUT', "
@@ -494,7 +459,6 @@ export default function ItemCatalog() {
       });
     },
   });
-
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await apiRequest('DELETE', "
@@ -515,11 +479,9 @@ export default function ItemCatalog() {
       });
     },
   });
-
   // Processar dados
   const companies = (availableCustomers as any)?.data || [];
   const suppliers = (availableSuppliers as any)?.data || [];
-
   const filteredItems = items.filter((item: Item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -532,27 +494,22 @@ export default function ItemCatalog() {
                            (hierarchyFilter === "parent" && item.isParent) ||
                            (hierarchyFilter === "child" && item.parentId) ||
                            (hierarchyFilter === "standalone" && !item.parentId && !item.isParent);
-
     return matchesSearch && matchesType && matchesStatus && matchesHierarchy;
   });
-
   // Paginação
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const paginatedItems = filteredItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
   // Reset página quando filtros mudam
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, typeFilter, statusFilter, hierarchyFilter]);
-
   const handleItemClick = (item: Item) => {
     setSelectedItem(item);
     setCurrentView('item-details');
   };
-
   const handleEditItem = (item: Item) => {
     setSelectedItem(item);
     itemForm.reset({
@@ -569,7 +526,6 @@ export default function ItemCatalog() {
     });
     setCurrentView('item-edit');
   };
-
   const onSubmitItem = async (data: z.infer<typeof itemSchema>) => {
     if (selectedItem && currentView === 'item-edit') {
       // Logic to update item and its hierarchical links
@@ -579,7 +535,6 @@ export default function ItemCatalog() {
           childrenIds: data.childrenIds, // Ensure childrenIds are sent
         });
         if (!updateResponse.ok) throw new Error('Failed to update item');
-
         toast({ title: "Item atualizado", description: "Informações e vínculos salvos." });
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
         setCurrentView('item-details');
@@ -590,7 +545,6 @@ export default function ItemCatalog() {
       createItemMutation.mutate(data);
     }
   };
-
   const handleSelectAll = () => {
     if (selectedItems.size === paginatedItems.length) {
       setSelectedItems(new Set());
@@ -598,7 +552,6 @@ export default function ItemCatalog() {
       setSelectedItems(new Set(paginatedItems.map(item => item.id)));
     }
   };
-
   const handleSelectItem = (itemId: string) => {
     const newSelected = new Set(selectedItems);
     if (newSelected.has(itemId)) {
@@ -608,12 +561,11 @@ export default function ItemCatalog() {
     }
     setSelectedItems(newSelected);
   };
-
   const renderCatalogView = () => (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Catálogo de Itens</h1>
+          <h1 className="text-lg">"Catálogo de Itens</h1>
           <p className=""
             {items.length} {items.length === 1 ? 'item encontrado' : 'itens encontrados'}
             {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && ' (filtrado)'}
@@ -628,7 +580,6 @@ export default function ItemCatalog() {
           Novo Item
         </Button>
       </div>
-
       <Card>
         <CardContent className=""
           <div className=""
@@ -641,7 +592,6 @@ export default function ItemCatalog() {
                 className="pl-10"
               />
             </div>
-
             <div className=""
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className=""
@@ -653,7 +603,6 @@ export default function ItemCatalog() {
                   <SelectItem value="service">Serviços</SelectItem>
                 </SelectContent>
               </Select>
-
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className=""
                   <SelectValue placeholder="Status" />
@@ -664,7 +613,6 @@ export default function ItemCatalog() {
                   <SelectItem value="inactive">Inativo</SelectItem>
                 </SelectContent>
               </Select>
-
               <Select value={hierarchyFilter} onValueChange={setHierarchyFilter}>
                 <SelectTrigger className=""
                   <SelectValue placeholder="Hierarquia" />
@@ -676,7 +624,6 @@ export default function ItemCatalog() {
                   <SelectItem value="standalone">Independentes</SelectItem>
                 </SelectContent>
               </Select>
-
               <div className=""
                 <Button
                   variant={isBulkMode ? "default" : "outline"
@@ -695,13 +642,12 @@ export default function ItemCatalog() {
           </div>
         </CardContent>
       </Card>
-
       <Card>
         <CardContent className=""
           {loading ? (
             <div className=""
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2">Carregando itens...</span>
+              <div className="text-lg">"</div>
+              <span className="text-lg">"Carregando itens...</span>
             </div>
           ) : items.length === 0 ? (
             <div className=""
@@ -730,14 +676,14 @@ export default function ItemCatalog() {
                       </TableHead>
                     )}
                     <TableHead>Nome</TableHead>
-                    <TableHead className="w-24">Tipo</TableHead>
-                    <TableHead className="w-32">Código</TableHead>
-                    <TableHead className="w-24">Unidade</TableHead>
-                    <TableHead className="w-32">Hierarquia</TableHead>
-                    <TableHead className="w-32">Empresas</TableHead>
-                    <TableHead className="w-32">Fornecedores</TableHead>
-                    <TableHead className="w-24">Status</TableHead>
-                    <TableHead className="w-32">Ações</TableHead>
+                    <TableHead className="text-lg">"Tipo</TableHead>
+                    <TableHead className="text-lg">"Código</TableHead>
+                    <TableHead className="text-lg">"Unidade</TableHead>
+                    <TableHead className="text-lg">"Hierarquia</TableHead>
+                    <TableHead className="text-lg">"Empresas</TableHead>
+                    <TableHead className="text-lg">"Fornecedores</TableHead>
+                    <TableHead className="text-lg">"Status</TableHead>
+                    <TableHead className="text-lg">"Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -756,7 +702,6 @@ export default function ItemCatalog() {
                           />
                         </TableCell>
                       )}
-
                       <TableCell
                         className="font-medium cursor-pointer hover:text-blue-600"
                         onClick={() => handleItemClick(item)}
@@ -767,7 +712,7 @@ export default function ItemCatalog() {
                             <Wrench className="h-4 w-4 text-green-600" />
                           }
                           <div>
-                            <div className="font-medium">{item.name}</div>
+                            <div className="text-lg">"{item.name}</div>
                             {item.description && (
                               <div className=""
                                 {item.description}
@@ -776,21 +721,17 @@ export default function ItemCatalog() {
                           </div>
                         </div>
                       </TableCell>
-
                       <TableCell>
                         <Badge variant={item.type === 'material' ? 'default' : 'secondary'}>
                           {item.type === 'material' ? 'Material' : 'Serviço'}
                         </Badge>
                       </TableCell>
-
                       <TableCell className=""
                         {item.integrationCode || '-'}
                       </TableCell>
-
                       <TableCell className=""
                         {item.measurementUnit}
                       </TableCell>
-
                       <TableCell>
                         <div className=""
                           {item.isParent && (
@@ -806,39 +747,35 @@ export default function ItemCatalog() {
                             </Badge>
                           )}
                           {!item.parentId && !item.isParent && (
-                            <span className="text-xs text-gray-400">-</span>
+                            <span className="text-lg">"-</span>
                           )}
                         </div>
                       </TableCell>
-
                       <TableCell>
                         {(item.companiesCount || 0) > 0 ? (
                           <div className=""
                             <Building className="h-3 w-3 text-blue-600" />
-                            <span className="text-sm">{item.companiesCount}</span>
+                            <span className="text-lg">"{item.companiesCount}</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">-</span>
+                          <span className="text-lg">"-</span>
                         )}
                       </TableCell>
-
                       <TableCell>
                         {(item.suppliersCount || 0) > 0 ? (
                           <div className=""
                             <Truck className="h-3 w-3 text-amber-600" />
-                            <span className="text-sm">{item.suppliersCount}</span>
+                            <span className="text-lg">"{item.suppliersCount}</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">-</span>
+                          <span className="text-lg">"-</span>
                         )}
                       </TableCell>
-
                       <TableCell>
                         <Badge variant={item.active ? "default" : "secondary>
                           {item.active ? "Ativo" : "Inativo"
                         </Badge>
                       </TableCell>
-
                       <TableCell>
                         <div className=""
                           <Button
@@ -896,7 +833,6 @@ export default function ItemCatalog() {
                   ))}
                 </TableBody>
               </Table>
-
               {totalPages > 1 && (
                 <div className=""
                   <div className=""
@@ -931,10 +867,8 @@ export default function ItemCatalog() {
       </Card>
     </div>
   );
-
   const renderItemDetailsView = () => {
     if (!selectedItem) return null;
-
     return (
       <div className=""
         <div className=""
@@ -955,7 +889,7 @@ export default function ItemCatalog() {
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
-                <h1 className="text-2xl font-bold">{selectedItem.name}</h1>
+                <h1 className="text-lg">"{selectedItem.name}</h1>
                 <div className=""
                   <Badge variant={selectedItem.active ? "default" : "secondary>
                     {selectedItem.active ? "Ativo" : "Inativo"
@@ -973,7 +907,6 @@ export default function ItemCatalog() {
               </div>
             </div>
           </div>
-
           <div className=""
             <Button
               variant="outline"
@@ -984,7 +917,6 @@ export default function ItemCatalog() {
             </Button>
           </div>
         </div>
-
         <div className=""
           <div className=""
             <Card>
@@ -995,41 +927,36 @@ export default function ItemCatalog() {
                 <div className=""
                   {selectedItem.integrationCode && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Código de Integração</label>
-                      <p className="text-sm mt-1">{selectedItem.integrationCode}</p>
+                      <label className="text-lg">"Código de Integração</label>
+                      <p className="text-lg">"{selectedItem.integrationCode}</p>
                     </div>
                   )}
-
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Unidade de Medida</label>
-                    <p className="text-sm mt-1">{selectedItem.measurementUnit}</p>
+                    <label className="text-lg">"Unidade de Medida</label>
+                    <p className="text-lg">"{selectedItem.measurementUnit}</p>
                   </div>
-
                   {selectedItem.maintenancePlan && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Plano de Manutenção</label>
-                      <p className="text-sm mt-1">{selectedItem.maintenancePlan}</p>
+                      <label className="text-lg">"Plano de Manutenção</label>
+                      <p className="text-lg">"{selectedItem.maintenancePlan}</p>
                     </div>
                   )}
-
                   {selectedItem.defaultChecklist && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Checklist Padrão</label>
-                      <p className="text-sm mt-1">{selectedItem.defaultChecklist}</p>
+                      <label className="text-lg">"Checklist Padrão</label>
+                      <p className="text-lg">"{selectedItem.defaultChecklist}</p>
                     </div>
                   )}
                 </div>
-
                 {selectedItem.description && (
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Descrição</label>
-                    <p className="text-sm mt-1">{selectedItem.description}</p>
+                    <label className="text-lg">"Descrição</label>
+                    <p className="text-lg">"{selectedItem.description}</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
-
           <div>
             <Card>
               <CardHeader>
@@ -1039,24 +966,22 @@ export default function ItemCatalog() {
                 <div className=""
                   <div className=""
                     <Building className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">Empresas</span>
+                    <span className="text-lg">"Empresas</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.companiesCount || 0}</Badge>
                 </div>
-
                 <div className=""
                   <div className=""
                     <Truck className="h-4 w-4 text-amber-600" />
-                    <span className="text-sm">Fornecedores</span>
+                    <span className="text-lg">"Fornecedores</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.suppliersCount || 0}</Badge>
                 </div>
-
                 {selectedItem.isParent && (
                   <div className=""
                     <div className=""
                       <Layers className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm">Itens Filhos</span>
+                      <span className="text-lg">"Itens Filhos</span>
                     </div>
                     <Badge variant="secondary">{selectedItem.childrenCount || 0}</Badge>
                   </div>
@@ -1065,7 +990,6 @@ export default function ItemCatalog() {
             </Card>
           </div>
         </div>
-
         <Card>
           <CardContent className=""
             <Tabs defaultValue="hierarchy" className=""
@@ -1074,25 +998,22 @@ export default function ItemCatalog() {
                 <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
                 <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
               </TabsList>
-
               <TabsContent value="hierarchy" className=""
                 <div className=""
                   <Layers className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Funcionalidade de vínculos pai-filho será implementada</p>
+                  <p className="text-lg">"Funcionalidade de vínculos pai-filho será implementada</p>
                 </div>
               </TabsContent>
-
               <TabsContent value="companies" className=""
                 <div className=""
                   <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Lista de empresas vinculadas será implementada</p>
+                  <p className="text-lg">"Lista de empresas vinculadas será implementada</p>
                 </div>
               </TabsContent>
-
               <TabsContent value="suppliers" className=""
                 <div className=""
                   <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Lista de fornecedores será implementada</p>
+                  <p className="text-lg">"Lista de fornecedores será implementada</p>
                 </div>
               </TabsContent>
             </Tabs>
@@ -1101,12 +1022,9 @@ export default function ItemCatalog() {
       </div>
     );
   };
-
   const renderItemEditView = () => {
     if (!selectedItem) return null;
-
     const itemLinks = itemLinksData || { customers: [], suppliers: [] };
-
     return (
       <div className=""
         <div className=""
@@ -1127,13 +1045,12 @@ export default function ItemCatalog() {
                 {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Editar: {selectedItem.name}</h1>
-                <p className="text-gray-600">Modificar informações e gerenciar vínculos</p>
+                <h1 className="text-lg">"Editar: {selectedItem.name}</h1>
+                <p className="text-lg">"Modificar informações e gerenciar vínculos</p>
               </div>
             </div>
           </div>
         </div>
-
         <Form {...itemForm}>
           <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className=""
             <Card>
@@ -1155,7 +1072,6 @@ export default function ItemCatalog() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={itemForm.control}
                     name="type"
@@ -1177,7 +1093,6 @@ export default function ItemCatalog() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={itemForm.control}
                     name="integrationCode"
@@ -1191,7 +1106,6 @@ export default function ItemCatalog() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={itemForm.control}
                     name="measurementUnit"
@@ -1215,7 +1129,6 @@ export default function ItemCatalog() {
                     )}
                   />
                 </div>
-
                 <FormField
                   control={itemForm.control}
                   name="description"
@@ -1229,14 +1142,13 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={itemForm.control}
                   name="active"
                   render={({ field }) => (
                     <FormItem className=""
                       <div className=""
-                        <FormLabel className="text-base">Status Ativo</FormLabel>
+                        <FormLabel className="text-lg">"Status Ativo</FormLabel>
                         <FormDescription>
                           Item disponível para uso
                         </FormDescription>
@@ -1250,7 +1162,6 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <Button type="submit" disabled={updateItemMutation.isPending}>
                     {updateItemMutation.isPending ? (
@@ -1268,7 +1179,6 @@ export default function ItemCatalog() {
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Vínculos Hierárquicos</CardTitle>
@@ -1277,7 +1187,7 @@ export default function ItemCatalog() {
                 {/* Campos para itens filhos com seleção múltipla */}
                 <div className=""
                   <div>
-                    <label className="text-sm font-medium">Itens Filhos</label>
+                    <label className="text-lg">"Itens Filhos</label>
                     <div className=""
                       <Select
                         value=""
@@ -1308,18 +1218,16 @@ export default function ItemCatalog() {
                         </SelectContent>
                       </Select>
                     </div>
-
                     {/* Lista dos itens filhos selecionados */}
                     <div className=""
                       {(itemForm.watch("childrenIds") || []).map((childId) => {
                         const child = items.find(item => item.id === childId);
                         if (!child) return null;
-
                         return (
                           <div key={childId} className=""
                             <div className=""
                               <ChevronRight className="h-3 w-3 text-blue-600" />
-                              <span className="text-sm font-medium">{child.name}</span>
+                              <span className="text-lg">"{child.name}</span>
                               <Badge variant="outline" className=""
                                 {child.type === 'material' ? 'Material' : 'Serviço'}
                               </Badge>
@@ -1341,7 +1249,6 @@ export default function ItemCatalog() {
                         );
                       })}
                     </div>
-
                     <p className=""
                       Selecione itens que serão filhos deste item. Os vínculos serão salvos automaticamente.
                     </p>
@@ -1349,7 +1256,6 @@ export default function ItemCatalog() {
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
@@ -1360,21 +1266,18 @@ export default function ItemCatalog() {
                     <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
                     <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
                   </TabsList>
-
                   <TabsContent value="companies" className=""
                     <div className=""
-                      <h3 className="text-lg font-medium">Empresas Vinculadas</h3>
+                      <h3 className="text-lg">"Empresas Vinculadas</h3>
                       <Select
                         onValueChange={async (companyId) => {
                           if (!selectedItem?.id || !companyId || companyId === "none") return;
-
                           try {
                             const response = await fetch("/link-customer`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ customerId: companyId })
                             });
-
                             if (response.ok) {
                               toast({
                                 title: '[TRANSLATION_NEEDED]',
@@ -1409,7 +1312,6 @@ export default function ItemCatalog() {
                         </SelectContent>
                       </Select>
                     </div>
-
                     <div className=""
                       {itemLinks?.customers?.map((company: any) => (
                         <div key={company.id} className=""
@@ -1419,12 +1321,10 @@ export default function ItemCatalog() {
                             size="sm"
                             onClick={async () => {
                               if (!selectedItem?.id) return;
-
                               try {
                                 const response = await fetch("
                                   method: 'DELETE'
                                 });
-
                                 if (response.ok) {
                                   toast({
                                     title: '[TRANSLATION_NEEDED]',
@@ -1447,7 +1347,6 @@ export default function ItemCatalog() {
                           </Button>
                         </div>
                       ))}
-
                       {(!itemLinks?.customers || itemLinks.customers.length === 0) && (
                         <div className=""
                           Nenhuma empresa vinculada
@@ -1455,21 +1354,18 @@ export default function ItemCatalog() {
                       )}
                     </div>
                   </TabsContent>
-
                   <TabsContent value="suppliers" className=""
                     <div className=""
-                      <h3 className="text-lg font-medium">Fornecedores Vinculados</h3>
+                      <h3 className="text-lg">"Fornecedores Vinculados</h3>
                       <Select
                         onValueChange={async (supplierId) => {
                           if (!selectedItem?.id || !supplierId || supplierId === "none") return;
-
                           try {
                             const response = await fetch("/link-supplier`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ supplierId })
                             });
-
                             if (response.ok) {
                               toast({
                                 title: '[TRANSLATION_NEEDED]',
@@ -1504,7 +1400,6 @@ export default function ItemCatalog() {
                         </SelectContent>
                       </Select>
                     </div>
-
                     <div className=""
                       {itemLinks?.suppliers?.map((supplier: any) => (
                         <div key={supplier.id} className=""
@@ -1514,12 +1409,10 @@ export default function ItemCatalog() {
                             size="sm"
                             onClick={async () => {
                               if (!selectedItem?.id) return;
-
                               try {
                                 const response = await fetch("
                                   method: 'DELETE'
                                 });
-
                                 if (response.ok) {
                                   toast({
                                     title: '[TRANSLATION_NEEDED]',
@@ -1542,7 +1435,6 @@ export default function ItemCatalog() {
                           </Button>
                         </div>
                       ))}
-
                       {(!itemLinks?.suppliers || itemLinks.suppliers.length === 0) && (
                         <div className=""
                           Nenhum fornecedor vinculado
@@ -1558,25 +1450,22 @@ export default function ItemCatalog() {
       </div>
     );
   };
-
   return (
     <div className=""
       <div className=""
         <span>Gestão</span>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-gray-900">Catálogo de Itens</span>
+        <span className="text-lg">"Catálogo de Itens</span>
         {selectedItem && (
           <>
             <ChevronRight className="h-4 w-4" />
-            <span className="font-medium text-gray-900">{selectedItem.name}</span>
+            <span className="text-lg">"{selectedItem.name}</span>
           </>
         )}
       </div>
-
       {currentView === 'catalog' && renderCatalogView()}
       {currentView === 'item-details' && renderItemDetailsView()}
       {currentView === 'item-edit' && renderItemEditView()}
-
       <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
         setIsCreateModalOpen(open);
         if (!open) {
@@ -1590,7 +1479,6 @@ export default function ItemCatalog() {
               Preencha as informações essenciais para criar um novo item
             </DialogDescription>
           </DialogHeader>
-
           <Form {...itemForm}>
             <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className=""
               <div className=""
@@ -1607,7 +1495,6 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={itemForm.control}
                   name="type"
@@ -1629,7 +1516,6 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={itemForm.control}
                   name="integrationCode"
@@ -1643,7 +1529,6 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={itemForm.control}
                   name="measurementUnit"
@@ -1667,7 +1552,6 @@ export default function ItemCatalog() {
                   )}
                 />
               </div>
-
               <FormField
                 control={itemForm.control}
                 name="description"
@@ -1681,14 +1565,13 @@ export default function ItemCatalog() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={itemForm.control}
                 name="active"
                 render={({ field }) => (
                   <FormItem className=""
                     <div className=""
-                      <FormLabel className="text-base">Status Ativo</FormLabel>
+                      <FormLabel className="text-lg">"Status Ativo</FormLabel>
                       <FormDescription>
                         Item disponível para uso
                       </FormDescription>
@@ -1702,7 +1585,6 @@ export default function ItemCatalog() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button
                   type="button"

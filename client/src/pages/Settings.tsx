@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 // import useLocalization from '@/hooks/useLocalization';
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,15 +32,12 @@ import {
   Check,
   X
 } from "lucide-react";
-
 export default function Settings() {
   // Localization temporarily disabled
-
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
-
   // Redirect to home if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -56,18 +52,15 @@ export default function Settings() {
       return;
     }
   }, [isAuthenticated, isLoading, toast]);
-
   const handleSave = () => {
     toast({
       title: '[TRANSLATION_NEEDED]',
       description: "Your settings have been updated successfully.",
     });
   };
-
   if (isLoading || !isAuthenticated) {
     return null;
   }
-
   return (
     <div className=""
         <div className=""
@@ -90,7 +83,6 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-
           {/* Settings Tabs */}
           <Tabs defaultValue="profile" className=""
             <TabsList className=""
@@ -101,7 +93,6 @@ export default function Settings() {
               <TabsTrigger value="appearance">Appearance</TabsTrigger>
               <TabsTrigger value="integrations">Integrations</TabsTrigger>
             </TabsList>
-
             {/* Profile Tab */}
             <TabsContent value="profile" className=""
               <Card className=""
@@ -128,7 +119,6 @@ export default function Settings() {
                       </Button>
                     </div>
                   </div>
-
                   <div className=""
                     <div className=""
                       <Label htmlFor="firstName">First Name</Label>
@@ -164,7 +154,6 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-
                   <div className=""
                     <Label htmlFor="bio">Bio</Label>
                     <Textarea
@@ -173,7 +162,6 @@ export default function Settings() {
                       rows={3}
                     />
                   </div>
-
                   <div className=""
                     <Label htmlFor="role">Role</Label>
                     <Select defaultValue={user?.role || 'agent'}>
@@ -190,7 +178,6 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             {/* Company Tab */}
             <TabsContent value="company" className=""
               <Card className=""
@@ -248,7 +235,6 @@ export default function Settings() {
                       </Select>
                     </div>
                   </div>
-
                   <div className=""
                     <Label htmlFor="address">Address</Label>
                     <Textarea
@@ -257,11 +243,9 @@ export default function Settings() {
                       rows={2}
                     />
                   </div>
-
                   <Separator />
-
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">Team Members</h4>
+                    <h4 className="text-lg">"Team Members</h4>
                     <div className=""
                       {[
                         { name: "Sarah Adams", email: "sarah@acme.com", role: "Admin" },
@@ -276,8 +260,8 @@ export default function Settings() {
                               </span>
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{member.email}</p>
+                              <p className="text-lg">"{member.name}</p>
+                              <p className="text-lg">"{member.email}</p>
                             </div>
                           </div>
                           <div className=""
@@ -297,7 +281,6 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             {/* Notifications Tab */}
             <TabsContent value="notifications" className=""
               <Card className=""
@@ -311,7 +294,7 @@ export default function Settings() {
                   <div className=""
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Email notifications</p>
+                        <p className="text-lg">"Email notifications</p>
                         <p className=""
                           Receive notifications via email
                         </p>
@@ -320,7 +303,7 @@ export default function Settings() {
                     </div>
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Push notifications</p>
+                        <p className="text-lg">"Push notifications</p>
                         <p className=""
                           Receive push notifications in browser
                         </p>
@@ -329,7 +312,7 @@ export default function Settings() {
                     </div>
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">New ticket alerts</p>
+                        <p className="text-lg">"New ticket alerts</p>
                         <p className=""
                           Get notified when new tickets are created
                         </p>
@@ -338,7 +321,7 @@ export default function Settings() {
                     </div>
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Assignment notifications</p>
+                        <p className="text-lg">"Assignment notifications</p>
                         <p className=""
                           Notify when tickets are assigned to you
                         </p>
@@ -347,7 +330,7 @@ export default function Settings() {
                     </div>
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Weekly reports</p>
+                        <p className="text-lg">"Weekly reports</p>
                         <p className=""
                           Receive weekly performance reports
                         </p>
@@ -358,7 +341,6 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             {/* Security Tab */}
             <TabsContent value="security" className=""
               <Card className=""
@@ -405,13 +387,11 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-
                   <Separator />
-
                   <div className=""
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Two-factor authentication</p>
+                        <p className="text-lg">"Two-factor authentication</p>
                         <p className=""
                           Add an extra layer of security to your account
                         </p>
@@ -422,7 +402,7 @@ export default function Settings() {
                     </div>
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Session timeout</p>
+                        <p className="text-lg">"Session timeout</p>
                         <p className=""
                           Automatically log out after period of inactivity
                         </p>
@@ -440,11 +420,9 @@ export default function Settings() {
                       </Select>
                     </div>
                   </div>
-
                   <Separator />
-
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">Active Sessions</h4>
+                    <h4 className="text-lg">"Active Sessions</h4>
                     <div className=""
                       {[
                         { device: "MacBook Pro", location: "New York, US", current: true },
@@ -455,9 +433,9 @@ export default function Settings() {
                           <div>
                             <p className=""
                               {session.device}
-                              {session.current && <Badge variant="default" className="ml-2">Current</Badge>}
+                              {session.current && <Badge variant="default" className="text-lg">"Current</Badge>}
                             </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{session.location}</p>
+                            <p className="text-lg">"{session.location}</p>
                           </div>
                           {!session.current && (
                             <Button variant="ghost" size="sm" className=""
@@ -472,7 +450,6 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             {/* Appearance Tab */}
             <TabsContent value="appearance" className=""
               <Card className=""
@@ -488,47 +465,44 @@ export default function Settings() {
                       <Label>Theme</Label>
                       <div className=""
                         <div className=""
-                          <div className="w-full h-16 bg-white border rounded mb-2"></div>
-                          <p className="text-sm font-medium text-center">Light</p>
+                          <div className="text-lg">"</div>
+                          <p className="text-lg">"Light</p>
                         </div>
                         <div className=""
-                          <div className="w-full h-16 bg-gray-900 border rounded mb-2"></div>
-                          <p className="text-sm font-medium text-center">Dark</p>
+                          <div className="text-lg">"</div>
+                          <p className="text-lg">"Dark</p>
                         </div>
                         <div className=""
-                          <div className="w-full h-16 bg-gradient-to-r from-white to-gray-900 border rounded mb-2"></div>
-                          <p className="text-sm font-medium text-center">Auto</p>
+                          <div className="text-lg">"</div>
+                          <p className="text-lg">"Auto</p>
                         </div>
                       </div>
                     </div>
-
                     <div>
                       <Label>Gradient Style</Label>
                       <div className=""
                         <div className=""
-                          <div className="w-full h-8 gradient-primary rounded mb-2"></div>
-                          <p className="text-sm font-medium text-center">Purple</p>
+                          <div className="text-lg">"</div>
+                          <p className="text-lg">"Purple</p>
                         </div>
                         <div className=""
-                          <div className="w-full h-8 gradient-secondary rounded mb-2"></div>
-                          <p className="text-sm font-medium text-center">Pink</p>
+                          <div className="text-lg">"</div>
+                          <p className="text-lg">"Pink</p>
                         </div>
                       </div>
                     </div>
-
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Compact mode</p>
+                        <p className="text-lg">"Compact mode</p>
                         <p className=""
                           Reduce spacing and padding throughout the interface
                         </p>
                       </div>
                       <Switch />
                     </div>
-
                     <div className=""
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Sidebar animations</p>
+                        <p className="text-lg">"Sidebar animations</p>
                         <p className=""
                           Enable smooth transitions for sidebar interactions
                         </p>
@@ -539,7 +513,6 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             {/* Integrations Tab */}
             <TabsContent value="integrations" className=""
               <Card className=""
@@ -561,7 +534,7 @@ export default function Settings() {
                     ].map((integration) => (
                       <div key={integration.name} className=""
                         <div className=""
-                          <h4 className="font-medium text-gray-900 dark:text-white">{integration.name}</h4>
+                          <h4 className="text-lg">"{integration.name}</h4>
                           {integration.connected ? (
                             <Badge variant="default" className=""
                               <Check className="w-3 h-3 mr-1" />

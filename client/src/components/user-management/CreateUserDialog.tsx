@@ -31,32 +31,27 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
 interface CreateUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tenantAdmin?: boolean;
 }
-
 interface UserGroup {
   id: string;
   name: string;
   description?: string;
 }
-
 interface CustomRole {
   id: string;
   name: string;
   description?: string;
 }
-
 interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
 }
-
 export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: CreateUserDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -115,22 +110,18 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       outros: [] as File[],
     },
   });
-
   const { data: groupsData } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
     enabled: open,
   });
-
   const { data: rolesData } = useQuery<{ roles: CustomRole[] }>({
     queryKey: ["/api/user-management/roles"],
     enabled: open,
   });
-
   const { data: usersData } = useQuery<{ users: User[] }>({
     queryKey: ["/api/tenant-admin/users"],
     enabled: open,
   });
-
   const createUserMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       return apiRequest("POST", "/api/user-management/users", data);
@@ -157,7 +148,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       });
     },
   });
-
   const resetForm = () => {
     setFormData({
       // Dados Básicos
@@ -213,14 +203,12 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       },
     });
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email.trim()) return;
     
     createUserMutation.mutate(formData);
   };
-
   const handleGroupToggle = (groupId: string, checked: boolean) => {
     if (checked) {
       setFormData(prev => ({
@@ -234,7 +222,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       }));
     }
   };
-
   const handleRoleToggle = (roleId: string, checked: boolean) => {
     if (checked) {
       setFormData(prev => ({
@@ -248,7 +235,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       }));
     }
   };
-
   const handleSupervisorToggle = (supervisorId: string, checked: boolean) => {
     if (checked) {
       setFormData(prev => ({
@@ -262,7 +248,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       }));
     }
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden" aria-describedby="create-user-description>
@@ -279,7 +264,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
               Adicione um novo usuário com informações completas organizadas por categoria
             </DialogDescription>
           </DialogHeader>
-
           <Tabs defaultValue="basic" className="py-4>
             <TabsList className="grid w-full grid-cols-5>
               <TabsTrigger value="basic" className="flex items-center gap-2>
@@ -303,7 +287,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                 Documentos
               </TabsTrigger>
             </TabsList>
-
             {/* Aba 1: Dados Básicos */}
             <TabsContent value="basic>
               <ScrollArea className="h-[400px] pr-4>
@@ -330,7 +313,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       />
                     </div>
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="email">Email *</Label>
                     <Input
@@ -342,7 +324,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       required
                     />
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="integrationCode">Código de Integração</Label>
                     <Input
@@ -352,7 +333,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       placeholder="INT001"
                     />
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="alternativeEmail">Email Alternativo</Label>
                     <Input
@@ -363,7 +343,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       placeholder="joao.silva@email.com"
                     />
                   </div>
-
                   <div className="grid grid-cols-3 gap-4>
                     <div className="space-y-2>
                       <Label htmlFor="cellPhone">Celular</Label>
@@ -393,7 +372,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-2 gap-4>
                     <div className="space-y-2>
                       <Label htmlFor="timeZone">Fuso Horário</Label>
@@ -422,7 +400,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       </Select>
                     </div>
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="cpfCnpj">CPF/CNPJ</Label>
                     <Input
@@ -432,7 +409,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       placeholder="000.000.000-00"
                     />
                   </div>
-
                   <div className="space-y-2>
                     <Label>Supervisores</Label>
                     <ScrollArea className="h-32 border rounded-md p-3>
@@ -458,7 +434,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       )}
                     </ScrollArea>
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="role">Papel do Sistema *</Label>
                     <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
@@ -475,7 +450,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div className="space-y-3>
                     <div className="flex items-center space-x-2>
                       <Checkbox
@@ -485,7 +459,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       />
                       <Label htmlFor="isActive">Conta ativa</Label>
                     </div>
-
                     <div className="flex items-center space-x-2>
                       <Checkbox
                         id="sendInvitation"
@@ -498,7 +471,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                 </div>
               </ScrollArea>
             </TabsContent>
-
             {/* Aba 2: Endereço */}
             <TabsContent value="address>
               <ScrollArea className="h-[400px] pr-4>
@@ -529,7 +501,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       </Select>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-2 gap-4>
                     <div className="space-y-2>
                       <Label htmlFor="state">Estado</Label>
@@ -550,7 +521,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       />
                     </div>
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="streetAddress">Logradouro</Label>
                     <Input
@@ -560,7 +530,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       placeholder="Rua das Flores"
                     />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4>
                     <div className="space-y-2>
                       <Label htmlFor="houseType">Tipo</Label>
@@ -586,7 +555,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       />
                     </div>
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="complement">Complemento</Label>
                     <Input
@@ -596,7 +564,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       placeholder="Apto 45, Bloco B"
                     />
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="neighborhood">Bairro</Label>
                     <Input
@@ -609,7 +576,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                 </div>
               </ScrollArea>
             </TabsContent>
-
             {/* Aba 3: Dados RH */}
             <TabsContent value="hr>
               <ScrollArea className="h-[400px] pr-4>
@@ -641,7 +607,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       </p>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-2 gap-4>
                     <div className="space-y-2>
                       <Label htmlFor="employeeCode">Código do Funcionário</Label>
@@ -662,7 +627,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       />
                     </div>
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="cargo">Cargo</Label>
                     <Input
@@ -672,7 +636,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       placeholder="Analista de Sistemas"
                     />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4>
                     <div className="space-y-2>
                       <Label htmlFor="ctps">CTPS</Label>
@@ -693,7 +656,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       />
                     </div>
                   </div>
-
                   <div className="space-y-2>
                     <Label>Data de Admissão</Label>
                     <Popover>
@@ -720,7 +682,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       </PopoverContent>
                     </Popover>
                   </div>
-
                   <div className="space-y-2>
                     <Label htmlFor="costCenter">Centro de Custo</Label>
                     <Input
@@ -733,7 +694,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                 </div>
               </ScrollArea>
             </TabsContent>
-
             {/* Aba 4: Grupos/Funções (Permissões e Grupos) */}
             <TabsContent value="groups>
               <ScrollArea className="h-[400px] pr-4>
@@ -759,9 +719,9 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                                 onCheckedChange={(checked) => handleRoleToggle(role.id, !!checked)}
                               />
                               <Label htmlFor={"
-                                <div className="font-medium">{role.name}</div>
+                                <div className="text-lg">"{role.name}</div>
                                 {role.description && (
-                                  <div className="text-xs text-muted-foreground">{role.description}</div>
+                                  <div className="text-lg">"{role.description}</div>
                                 )}
                               </Label>
                             </div>
@@ -776,7 +736,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     
                     {formData.customRoleIds.length > 0 && (
                       <div className="mt-2>
-                        <p className="text-sm text-muted-foreground mb-2">Papéis selecionados:</p>
+                        <p className="text-lg">"Papéis selecionados:</p>
                         <div className="flex flex-wrap gap-1>
                           {formData.customRoleIds.map((roleId) => {
                             const role = rolesData?.roles?.find(r => r.id === roleId);
@@ -790,7 +750,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       </div>
                     )}
                   </div>
-
                   {/* Grupos de Usuários */}
                   <div>
                     <h4 className="font-medium mb-2 flex items-center gap-2>
@@ -812,9 +771,9 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                                 onCheckedChange={(checked) => handleGroupToggle(group.id, !!checked)}
                               />
                               <Label htmlFor={"
-                                <div className="font-medium">{group.name}</div>
+                                <div className="text-lg">"{group.name}</div>
                                 {group.description && (
-                                  <div className="text-xs text-muted-foreground">{group.description}</div>
+                                  <div className="text-lg">"{group.description}</div>
                                 )}
                               </Label>
                             </div>
@@ -829,7 +788,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                     
                     {formData.groupIds.length > 0 && (
                       <div className="mt-2>
-                        <p className="text-sm text-muted-foreground mb-2">Grupos selecionados:</p>
+                        <p className="text-lg">"Grupos selecionados:</p>
                         <div className="flex flex-wrap gap-1>
                           {formData.groupIds.map((groupId) => {
                             const group = groupsData?.groups?.find(g => g.id === groupId);
@@ -846,7 +805,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                 </div>
               </ScrollArea>
             </TabsContent>
-
             {/* Aba 5: Documentos (Upload de Arquivos) */}
             <TabsContent value="documents>
               <ScrollArea className="h-[400px] pr-4>
@@ -860,7 +818,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       Anexe os documentos necessários para o cadastro do usuário
                     </p>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
                     {/* RG */}
                     <div className="space-y-2>
@@ -888,7 +845,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           {formData.documents.rg ? (
                             <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm font-medium">{formData.documents.rg.name}</p>
+                              <p className="text-lg">"{formData.documents.rg.name}</p>
                               <p className="text-xs text-muted-foreground>
                                 {(formData.documents.rg.size / 1024 / 1024).toFixed(2)} MB
                               </p>
@@ -896,14 +853,13 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ) : (
                             <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm">Clique para enviar RG</p>
-                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                              <p className="text-lg">"Clique para enviar RG</p>
+                              <p className="text-lg">"PDF, JPG, PNG até 10MB</p>
                             </div>
                           )}
                         </Label>
                       </div>
                     </div>
-
                     {/* CPF */}
                     <div className="space-y-2>
                       <Label htmlFor="cpf-upload" className="flex items-center gap-2>
@@ -930,7 +886,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           {formData.documents.cpf ? (
                             <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm font-medium">{formData.documents.cpf.name}</p>
+                              <p className="text-lg">"{formData.documents.cpf.name}</p>
                               <p className="text-xs text-muted-foreground>
                                 {(formData.documents.cpf.size / 1024 / 1024).toFixed(2)} MB
                               </p>
@@ -938,14 +894,13 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ) : (
                             <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm">Clique para enviar CPF</p>
-                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                              <p className="text-lg">"Clique para enviar CPF</p>
+                              <p className="text-lg">"PDF, JPG, PNG até 10MB</p>
                             </div>
                           )}
                         </Label>
                       </div>
                     </div>
-
                     {/* CNPJ */}
                     <div className="space-y-2>
                       <Label htmlFor="cnpj-upload" className="flex items-center gap-2>
@@ -972,7 +927,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           {formData.documents.cnpj ? (
                             <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm font-medium">{formData.documents.cnpj.name}</p>
+                              <p className="text-lg">"{formData.documents.cnpj.name}</p>
                               <p className="text-xs text-muted-foreground>
                                 {(formData.documents.cnpj.size / 1024 / 1024).toFixed(2)} MB
                               </p>
@@ -980,14 +935,13 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ) : (
                             <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm">Clique para enviar CNPJ</p>
-                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                              <p className="text-lg">"Clique para enviar CNPJ</p>
+                              <p className="text-lg">"PDF, JPG, PNG até 10MB</p>
                             </div>
                           )}
                         </Label>
                       </div>
                     </div>
-
                     {/* Contrato de Trabalho */}
                     <div className="space-y-2>
                       <Label htmlFor="contrato-upload" className="flex items-center gap-2>
@@ -1014,7 +968,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           {formData.documents.contratoTrabalho ? (
                             <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm font-medium">{formData.documents.contratoTrabalho.name}</p>
+                              <p className="text-lg">"{formData.documents.contratoTrabalho.name}</p>
                               <p className="text-xs text-muted-foreground>
                                 {(formData.documents.contratoTrabalho.size / 1024 / 1024).toFixed(2)} MB
                               </p>
@@ -1022,14 +976,13 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ) : (
                             <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm">Clique para enviar contrato</p>
-                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                              <p className="text-lg">"Clique para enviar contrato</p>
+                              <p className="text-lg">"PDF, JPG, PNG até 10MB</p>
                             </div>
                           )}
                         </Label>
                       </div>
                     </div>
-
                     {/* Carteira de Vacinação */}
                     <div className="space-y-2>
                       <Label htmlFor="vacina-upload" className="flex items-center gap-2>
@@ -1056,7 +1009,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           {formData.documents.carteiraVacina ? (
                             <div className="text-green-600 dark:text-green-400>
                               <FileText className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm font-medium">{formData.documents.carteiraVacina.name}</p>
+                              <p className="text-lg">"{formData.documents.carteiraVacina.name}</p>
                               <p className="text-xs text-muted-foreground>
                                 {(formData.documents.carteiraVacina.size / 1024 / 1024).toFixed(2)} MB
                               </p>
@@ -1064,14 +1017,13 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ) : (
                             <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm">Clique para enviar carteira</p>
-                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                              <p className="text-lg">"Clique para enviar carteira</p>
+                              <p className="text-lg">"PDF, JPG, PNG até 10MB</p>
                             </div>
                           )}
                         </Label>
                       </div>
                     </div>
-
                     {/* Outros Documentos */}
                     <div className="space-y-2>
                       <Label htmlFor="outros-upload" className="flex items-center gap-2>
@@ -1116,18 +1068,17 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                           ) : (
                             <div className="text-muted-foreground>
                               <Upload className="w-8 h-8 mx-auto mb-2" />
-                              <p className="text-sm">Clique para enviar outros documentos</p>
-                              <p className="text-xs">Múltiplos arquivos: PDF, JPG, PNG até 10MB cada</p>
+                              <p className="text-lg">"Clique para enviar outros documentos</p>
+                              <p className="text-lg">"Múltiplos arquivos: PDF, JPG, PNG até 10MB cada</p>
                             </div>
                           )}
                         </Label>
                       </div>
                     </div>
                   </div>
-
                   {/* Resumo dos documentos enviados */}
                   <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg>
-                    <h5 className="font-medium mb-2 text-sm">Resumo dos Documentos:</h5>
+                    <h5 className="text-lg">"Resumo dos Documentos:</h5>
                     <div className="space-y-1 text-xs text-muted-foreground>
                       <p>RG: {formData.documents.rg ? '✓ Enviado' : '○ Pendente'}</p>
                       <p>CPF: {formData.documents.cpf ? '✓ Enviado' : '○ Pendente'}</p>
@@ -1141,7 +1092,6 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
               </ScrollArea>
             </TabsContent>
           </Tabs>
-
           <DialogFooter>
             <Button 
               type="button" 

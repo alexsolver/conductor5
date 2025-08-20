@@ -5,7 +5,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
-
 import {
   Dialog,
   DialogContent,
@@ -34,13 +33,11 @@ import {
   Save,
   X
 } from 'lucide-react';
-
 interface EditMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   member: any;
 }
-
 export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -50,7 +47,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   
   // ✅ Verificar se usuário é tenant_admin para editar emails seguindo 1qa.md
   const canEditEmail = user?.role === 'tenant_admin' || user?.role === 'saas_admin';
-
   const form = useForm({
     defaultValues: {
       // Dados Básicos
@@ -92,19 +88,16 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       groupIds: []
     }
   });
-
   // Fetch available groups
   const { data: groupsData } = useQuery({
     queryKey: ['/api/user-management/groups'],
     enabled: open,
   });
-
   // Fetch available roles
   const { data: rolesData } = useQuery({
     queryKey: ['/api/team-management/roles'],
     enabled: open,
   });
-
   // Fetch complete member details when modal opens
   const { data: memberDetails, isLoading: memberLoading } = useQuery({
     queryKey: ['/api/team-management/members', member?.id],
@@ -131,7 +124,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     },
     enabled: open && !!member?.id,
   });
-
   // Reset form when member details are loaded
   useEffect(() => {
     if (open && member && !memberLoading) {
@@ -140,11 +132,9 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       
       console.log('[TRANSLATION_NEEDED]', sourceData);
       console.log('[TRANSLATION_NEEDED]', Object.keys(sourceData));
-
       // Handle different data structures with more comprehensive mapping
       const firstName = sourceData.firstName || sourceData.first_name || (sourceData.name ? sourceData.name.split(' ')[0] : '');
       const lastName = sourceData.lastName || sourceData.last_name || (sourceData.name ? sourceData.name.split(' ').slice(1).join(' ') : '');
-
       const formDataToSet = {
         // Dados Básicos
         firstName,
@@ -185,12 +175,10 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         role: sourceData.role || '',
         groupIds: sourceData.groupIds || sourceData.group_ids || []
       };
-
       console.log('[TRANSLATION_NEEDED]', formDataToSet);
       form.reset(formDataToSet);
     }
   }, [member, open, memberLoading, form]);
-
   // Update member mutation
   const updateMemberMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -202,12 +190,10 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       queryClient.invalidateQueries({ queryKey: ['/api/team-management/members'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
       queryClient.invalidateQueries({ queryKey: ['/api/team-management/stats'] });
-
       toast({
         title: "Membro atualizado",
         description: "Os dados do membro foram atualizados com sucesso.",
       });
-
       onOpenChange(false);
     },
     onError: (error: any) => {
@@ -219,11 +205,9 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       });
     },
   });
-
   const handleSubmit = async (data: any) => {
     console.log('[TRANSLATION_NEEDED]', data);
     setIsSubmitting(true);
-
     try {
       await updateMemberMutation.mutateAsync(data);
     } catch (error) {
@@ -232,16 +216,13 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       setIsSubmitting(false);
     }
   };
-
   const handleCancel = () => {
     form.reset();
     onOpenChange(false);
   };
-
   if (!member) {
     return null;
   }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
@@ -254,10 +235,9 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
             Atualize as informações pessoais e profissionais do membro da equipe.
           </DialogDescription>
         </DialogHeader>
-
         {memberLoading ? (
           <div className="flex items-center justify-center py-8>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mr-2"></div>
+            <div className="text-lg">"</div>
             <span>Carregando dados do membro...</span>
           </div>
         ) : (
@@ -381,7 +361,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
             </CardContent>
           </Card>
-
           {/* Professional Information */}
           <Card>
             <CardHeader>
@@ -506,7 +485,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
             </CardContent>
           </Card>
-
           {/* Address Information */}
           <Card>
             <CardHeader>
@@ -590,7 +568,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </div>
             </CardContent>
           </Card>
-
           {/* Groups */}
           {Array.isArray(groupsData?.groups) && groupsData.groups.length > 0 && (
             <Card>
@@ -622,7 +599,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                         }}
                       >
                         <div className="flex items-center justify-between>
-                          <span className="text-sm font-medium">{group.name}</span>
+                          <span className="text-lg">"{group.name}</span>
                           {isSelected && (
                             <Badge variant="default" className="text-xs>
                               Selecionado
@@ -630,7 +607,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                           )}
                         </div>
                         {group.description && (
-                          <p className="text-xs text-gray-500 mt-1">{group.description}</p>
+                          <p className="text-lg">"{group.description}</p>
                         )}
                       </div>
                     );
@@ -639,7 +616,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </CardContent>
             </Card>
           )}
-
           <DialogFooter>
             <Button
               type="button"
@@ -657,7 +633,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
             >
               {isSubmitting || updateMemberMutation.isPending ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="text-lg">"</div>
                   Salvando...
                 </>
               ) : (

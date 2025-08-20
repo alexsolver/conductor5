@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface GroupSelectProps {
   value?: string;
   onChange: (value: string) => void;
@@ -11,7 +10,6 @@ interface GroupSelectProps {
   disabled?: boolean;
   className?: string;
 }
-
 export function GroupSelect({
   // Localization temporarily disabled
  
@@ -28,9 +26,7 @@ export function GroupSelect({
       return response.json();
     },
   });
-
   const groups = groupsData?.data || [];
-
   if (isLoading) {
     return (
       <Select disabled>
@@ -40,7 +36,6 @@ export function GroupSelect({
       </Select>
     );
   }
-
   return (
     <Select 
       value={value || '__none__'} 

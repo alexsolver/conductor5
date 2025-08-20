@@ -25,7 +25,6 @@ import {
   GripVertical,
   X
 } from 'lucide-react';
-
 interface DraggableFieldItemProps {
   field: {
     id: string;
@@ -37,7 +36,6 @@ interface DraggableFieldItemProps {
   isDropped?: boolean;
   onRemove?: () => void;
 }
-
 const getIconComponent = (iconName: string) => {
   const icons = {
     Type,
@@ -62,7 +60,6 @@ const getIconComponent = (iconName: string) => {
   
   return icons[iconName as keyof typeof icons] || Type;
 };
-
 const getFieldTypeColor = (type: string) => {
   const colors = {
     text: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -87,7 +84,6 @@ const getFieldTypeColor = (type: string) => {
   
   return colors[type as keyof typeof colors] || 'bg-gray-50 text-gray-700 border-gray-200';
 };
-
 export function DraggableFieldItem({ field, isDragging, isDropped = false, onRemove }: DraggableFieldItemProps) {
   const {
     attributes,
@@ -99,14 +95,11 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
     id: field.id,
     disabled: isDropped
   });
-
   const IconComponent = getIconComponent(field.icon);
   const colorClass = getFieldTypeColor(field.type);
-
   const style = transform ? {
     transform: "px, 0)`,
   } : undefined;
-
   const baseCardClass = `
     relative cursor-pointer border transition-all duration-200
     ${colorClass}
@@ -114,7 +107,6 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
     ${isDraggedOver ? 'ring-2 ring-blue-500' : ''}
     ${isDropped ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}
   `;
-
   return (
     <Card
       ref={setNodeRef}
@@ -151,7 +143,6 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
             </Button>
           )}
         </div>
-
         {/* Field Type Badge */}
         <div className="mt-2>
           <Badge 
@@ -162,15 +153,13 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
           </Badge>
         </div>
       </div>
-
       {/* Drag Indicator */}
       {!isDropped && (
         <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity>
-          <div className="w-2 h-2 bg-current rounded-full"></div>
+          <div className="text-lg">"</div>
         </div>
       )}
     </Card>
   );
 }
-
 export default DraggableFieldItem;

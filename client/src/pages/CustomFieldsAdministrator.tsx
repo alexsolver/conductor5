@@ -26,10 +26,8 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react';
-
 type ModuleType = 'customers' | 'tickets' | 'beneficiaries' | 'materials' | 'services' | 'locations';
 type FieldType = 'text' | 'number' | 'select' | 'multiselect' | 'date' | 'boolean' | 'textarea' | 'file' | 'email' | 'phone';
-
 interface CustomFieldMetadata {
   id: string;
   moduleType: ModuleType;
@@ -44,7 +42,6 @@ interface CustomFieldMetadata {
   createdAt: string;
   updatedAt: string;
 }
-
 interface CreateFieldFormData {
   moduleType: ModuleType;
   fieldName: string;
@@ -55,11 +52,9 @@ interface CreateFieldFormData {
   fieldOptions?: Record<string, any>;
   helpText?: string;
 }
-
 interface EditFieldFormData extends CreateFieldFormData {
   fieldId: string;
 }
-
 const MODULE_TYPES = [
   { value: 'customers', label: '[TRANSLATION_NEEDED]' },
   { value: 'tickets', label: '[TRANSLATION_NEEDED]' },
@@ -68,7 +63,6 @@ const MODULE_TYPES = [
   { value: 'services', label: 'Serviços' },
   { value: 'locations', label: 'Locais' }
 ] as const;
-
 const FIELD_TYPE_CONFIG = {
   text: { label: 'Texto', description: 'Campo de texto simples' },
   number: { label: 'Número', description: 'Campo numérico' },
@@ -81,18 +75,15 @@ const FIELD_TYPE_CONFIG = {
   email: { label: 'Email', description: 'Campo de email com validação' },
   phone: { label: 'Telefone', description: 'Campo de telefone com validação' }
 } as const;
-
 export default function CustomFieldsAdministrator() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const [selectedModule, setSelectedModule] = useState<ModuleType>('customers');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<CustomFieldMetadata | null>(null);
   const [fieldToDelete, setFieldToDelete] = useState<CustomFieldMetadata | null>(null);
   const [activeTab, setActiveTab] = useState('fields');
-
   // Fetch fields for selected module
   const { data: moduleFields = [], isLoading } = useQuery({
     queryKey: ['custom-fields', selectedModule],
@@ -109,7 +100,6 @@ export default function CustomFieldsAdministrator() {
       return data.data || [];
     }
   });
-
   // Create field mutation
   const createFieldMutation = useMutation({
     mutationFn: async (fieldData: Partial<CustomFieldMetadata>) => {
@@ -142,7 +132,6 @@ export default function CustomFieldsAdministrator() {
       });
     }
   });
-
   // Update field mutation
   const updateFieldMutation = useMutation({
     mutationFn: async ({ fieldId, ...fieldData }: Partial<CustomFieldMetadata> & { fieldId: string }) => {
@@ -175,7 +164,6 @@ export default function CustomFieldsAdministrator() {
       });
     }
   });
-
   // Delete field mutation
   const deleteFieldMutation = useMutation({
     mutationFn: async (fieldId: string) => {
@@ -205,7 +193,6 @@ export default function CustomFieldsAdministrator() {
       });
     }
   });
-
   const renderFieldsList = () => {
     if (isLoading) {
       return (
@@ -215,12 +202,12 @@ export default function CustomFieldsAdministrator() {
               <CardContent className=""
                 <div className=""
                   <div className=""
-                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="text-lg">"</div>
+                    <div className="text-lg">"</div>
                   </div>
                   <div className=""
-                    <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                    <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                    <div className="text-lg">"</div>
+                    <div className="text-lg">"</div>
                   </div>
                 </div>
               </CardContent>
@@ -229,7 +216,6 @@ export default function CustomFieldsAdministrator() {
         </div>
       );
     }
-
     return (
       <div className=""
         {moduleFields.length === 0 ? (
@@ -264,7 +250,7 @@ export default function CustomFieldsAdministrator() {
                           #{index + 1}
                         </span>
                       </div>
-                      <h3 className="font-semibold text-gray-900 text-lg">{field.fieldLabel}</h3>
+                      <h3 className="text-lg">"{field.fieldLabel}</h3>
                       <Badge variant="secondary" className=""
                         {FIELD_TYPE_CONFIG[field.fieldType as FieldType]?.label}
                       </Badge>
@@ -277,7 +263,7 @@ export default function CustomFieldsAdministrator() {
                     
                     <div className=""
                       <p className=""
-                        <span className="font-medium">Campo técnico:</span>
+                        <span className="text-lg">"Campo técnico:</span>
                         <code className=""
                           {field.fieldName}
                         </code>
@@ -296,7 +282,6 @@ export default function CustomFieldsAdministrator() {
                       </div>
                     </div>
                   </div>
-
                   <div className=""
                     <Button
                       variant="ghost"
@@ -325,7 +310,6 @@ export default function CustomFieldsAdministrator() {
       </div>
     );
   };
-
   // Breadcrumb component
   const Breadcrumb = () => (
     <nav className=""
@@ -333,17 +317,16 @@ export default function CustomFieldsAdministrator() {
       <ChevronRight className="w-4 h-4" />
       <span>Administração</span>
       <ChevronRight className="w-4 h-4" />
-      <span className="text-gray-900 font-medium">Campos Customizados</span>
+      <span className="text-lg">"Campos Customizados</span>
     </nav>
   );
-
   return (
     <div className=""
       <Breadcrumb />
       
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Administrador de Campos Customizados</h1>
+          <h1 className="text-lg">"Administrador de Campos Customizados</h1>
           <p className=""
             Configure campos personalizados para diferentes módulos do sistema
           </p>
@@ -355,7 +338,6 @@ export default function CustomFieldsAdministrator() {
           </Badge>
         </div>
       </div>
-
       <Card className=""
         <CardContent className=""
           <div className=""
@@ -383,7 +365,6 @@ export default function CustomFieldsAdministrator() {
                 </div>
               )}
             </div>
-
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className=""
@@ -409,17 +390,14 @@ export default function CustomFieldsAdministrator() {
           </div>
         </CardContent>
       </Card>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="fields">Campos</TabsTrigger>
           <TabsTrigger value="statistics">Estatísticas</TabsTrigger>
         </TabsList>
-
         <TabsContent value="fields" className=""
           {renderFieldsList()}
         </TabsContent>
-
         <TabsContent value="statistics>
           <div className=""
             <Card>
@@ -432,31 +410,30 @@ export default function CustomFieldsAdministrator() {
               <CardContent>
                 <div className=""
                   <div className=""
-                    <div className="text-3xl font-bold text-blue-600">{moduleFields.length}</div>
-                    <div className="text-sm text-blue-700 mt-1">Total de Campos</div>
+                    <div className="text-lg">"{moduleFields.length}</div>
+                    <div className="text-lg">"Total de Campos</div>
                   </div>
                   <div className=""
                     <div className=""
                       {moduleFields.filter((f: CustomFieldMetadata) => f.isRequired).length}
                     </div>
-                    <div className="text-sm text-red-700 mt-1">Campos Obrigatórios</div>
+                    <div className="text-lg">"Campos Obrigatórios</div>
                   </div>
                   <div className=""
                     <div className=""
                       {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'text').length}
                     </div>
-                    <div className="text-sm text-green-700 mt-1">Campos de Texto</div>
+                    <div className="text-lg">"Campos de Texto</div>
                   </div>
                   <div className=""
                     <div className=""
                       {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'select').length}
                     </div>
-                    <div className="text-sm text-purple-700 mt-1">Campos de Seleção</div>
+                    <div className="text-lg">"Campos de Seleção</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Distribuição por Tipo de Campo</CardTitle>
@@ -470,8 +447,8 @@ export default function CustomFieldsAdministrator() {
                     return (
                       <div key={type} className=""
                         <div className=""
-                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                          <span className="font-medium">{config.label}</span>
+                          <div className="text-lg">"</div>
+                          <span className="text-lg">"{config.label}</span>
                         </div>
                         <div className=""
                           <div className=""
@@ -480,7 +457,7 @@ export default function CustomFieldsAdministrator() {
                               style={{ width: "%` }}
                             ></div>
                           </div>
-                          <span className="text-sm text-gray-600 w-8 text-right">{count}</span>
+                          <span className="text-lg">"{count}</span>
                         </div>
                       </div>
                     );
@@ -491,7 +468,6 @@ export default function CustomFieldsAdministrator() {
           </div>
         </TabsContent>
       </Tabs>
-
       {/* Edit Field Dialog */}
       {editingField && (
         <Dialog open={!!editingField} onOpenChange={() => setEditingField(null)}>
@@ -511,7 +487,6 @@ export default function CustomFieldsAdministrator() {
           </DialogContent>
         </Dialog>
       )}
-
       {/* Delete Confirmation Dialog */}
       {fieldToDelete && (
         <Dialog open={!!fieldToDelete} onOpenChange={() => setFieldToDelete(null)}>
@@ -548,7 +523,6 @@ export default function CustomFieldsAdministrator() {
     </div>
   );
 }
-
 // Create Field Form Component
 interface CreateFieldFormProps {
   moduleType: ModuleType;
@@ -556,7 +530,6 @@ interface CreateFieldFormProps {
   isLoading: boolean;
   onCancel: () => void;
 }
-
 function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFieldFormProps) {
   const [formData, setFormData] = useState<CreateFieldFormData>({
     moduleType,
@@ -566,12 +539,10 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
     isRequired: false,
     helpText: ''
   });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
-
   return (
     <form onSubmit={handleSubmit} className=""
       <div className=""
@@ -596,7 +567,6 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
           />
         </div>
       </div>
-
       <div className=""
         <Label htmlFor="fieldType">Tipo de Campo</Label>
         <Select value={formData.fieldType} onValueChange={(value: FieldType) => setFormData({ ...formData, fieldType: value })}>
@@ -607,15 +577,14 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
             {Object.entries(FIELD_TYPE_CONFIG).map(([key, config]) => (
               <SelectItem key={key} value={key}>
                 <div>
-                  <div className="font-medium">{config.label}</div>
-                  <div className="text-xs text-gray-500">{config.description}</div>
+                  <div className="text-lg">"{config.label}</div>
+                  <div className="text-lg">"{config.description}</div>
                 </div>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-
       <div className=""
         <Label htmlFor="helpText">Texto de Ajuda (Opcional)</Label>
         <Textarea
@@ -626,7 +595,6 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
           rows={3}
         />
       </div>
-
       <div className=""
         <Checkbox
           id="isRequired"
@@ -637,7 +605,6 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
           Campo obrigatório
         </Label>
       </div>
-
       <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
@@ -650,7 +617,6 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading, onCancel }: CreateFi
     </form>
   );
 }
-
 // Edit Field Form Component
 interface EditFieldFormProps {
   field: CustomFieldMetadata;
@@ -658,7 +624,6 @@ interface EditFieldFormProps {
   isLoading: boolean;
   onCancel: () => void;
 }
-
 function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormProps) {
   const [formData, setFormData] = useState<EditFieldFormData>({
     fieldId: field.id,
@@ -669,12 +634,10 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
     isRequired: field.isRequired,
     helpText: field.fieldOptions?.helpText || ''
   });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
-
   return (
     <form onSubmit={handleSubmit} className=""
       <div className=""
@@ -687,7 +650,7 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
             disabled
             className="bg-gray-50"
           />
-          <p className="text-xs text-gray-500">O nome técnico não pode ser alterado</p>
+          <p className="text-lg">"O nome técnico não pode ser alterado</p>
         </div>
         <div className=""
           <Label htmlFor="fieldLabel">Label (Exibição)</Label>
@@ -699,7 +662,6 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
           />
         </div>
       </div>
-
       <div className=""
         <Label htmlFor="fieldType">Tipo de Campo</Label>
         <Select value={formData.fieldType} onValueChange={(value: FieldType) => setFormData({ ...formData, fieldType: value })}>
@@ -710,15 +672,14 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
             {Object.entries(FIELD_TYPE_CONFIG).map(([key, config]) => (
               <SelectItem key={key} value={key}>
                 <div>
-                  <div className="font-medium">{config.label}</div>
-                  <div className="text-xs text-gray-500">{config.description}</div>
+                  <div className="text-lg">"{config.label}</div>
+                  <div className="text-lg">"{config.description}</div>
                 </div>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-
       <div className=""
         <Label htmlFor="helpText">Texto de Ajuda (Opcional)</Label>
         <Textarea
@@ -728,7 +689,6 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
           rows={3}
         />
       </div>
-
       <div className=""
         <Checkbox
           id="isRequired"
@@ -739,7 +699,6 @@ function EditFieldForm({ field, onSubmit, isLoading, onCancel }: EditFieldFormPr
           Campo obrigatório
         </Label>
       </div>
-
       <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar

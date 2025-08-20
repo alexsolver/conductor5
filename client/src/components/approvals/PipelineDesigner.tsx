@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Plus, ArrowDown, Users, Clock, Settings } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface ApprovalStep {
   id: string;
   stepNumber: number;
@@ -19,10 +18,8 @@ interface ApprovalStep {
   autoApprove: boolean;
   conditions?: string;
 }
-
 export function PipelineDesigner() {
   // Localization temporarily disabled
-
   const [steps, setSteps] = useState<ApprovalStep[]>([
     {
       id: '1',
@@ -35,23 +32,19 @@ export function PipelineDesigner() {
       autoApprove: false
     }
   ]);
-
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationResult, setSimulationResult] = useState<string>('');
-
   const approverTypes = [
     { value: 'user', label: 'Usuário Específico' },
     { value: 'group', label: '[TRANSLATION_NEEDED]' },
     { value: 'role', label: 'Função/Cargo' },
     { value: 'hierarchy', label: 'Hierarquia (Manager Chain)' }
   ];
-
   const decisionModes = [
     { value: 'ALL', label: '[TRANSLATION_NEEDED]' },
     { value: 'ANY', label: 'Qualquer um pode aprovar' },
     { value: 'QUORUM', label: 'Quórum (X de N)' }
   ];
-
   const addStep = () => {
     const newStep: ApprovalStep = {
       id: Date.now().toString(),
@@ -65,7 +58,6 @@ export function PipelineDesigner() {
     };
     setSteps(prev => [...prev, newStep]);
   };
-
   const removeStep = (stepId: string) => {
     setSteps(prev => {
       const newSteps = prev.filter(step => step.id !== stepId);
@@ -76,13 +68,11 @@ export function PipelineDesigner() {
       }));
     });
   };
-
   const updateStep = (stepId: string, field: keyof ApprovalStep, value: any) => {
     setSteps(prev => prev.map(step => 
       step.id === stepId ? { ...step, [field]: value } : step
     ));
   };
-
   const moveStep = (stepId: string, direction: 'up' | 'down') => {
     setSteps(prev => {
       const currentIndex = prev.findIndex(step => step.id === stepId);
@@ -92,7 +82,6 @@ export function PipelineDesigner() {
       ) {
         return prev;
       }
-
       const newSteps = [...prev];
       const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
       
@@ -104,7 +93,6 @@ export function PipelineDesigner() {
       }));
     });
   };
-
   const simulatePipeline = () => {
     setIsSimulating(true);
     
@@ -134,23 +122,19 @@ export function PipelineDesigner() {
       setIsSimulating(false);
     }, 2000);
   };
-
   const savePipeline = () => {
     console.log('Saving pipeline:', steps);
     alert('Pipeline salvo com sucesso!');
   };
-
   const getTotalSLA = () => {
     return steps.reduce((total, step) => total + step.slaHours, 0);
   };
-
   const getStepColor = (step: ApprovalStep) => {
     if (step.autoApprove) return 'bg-green-100 border-green-300 dark:bg-green-900/20';
     if (step.slaHours <= 4) return 'bg-red-100 border-red-300 dark:bg-red-900/20';
     if (step.slaHours <= 24) return 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/20';
     return 'bg-blue-100 border-blue-300 dark:bg-blue-900/20';
   };
-
   return (
     <div className="space-y-6" data-testid="pipeline-designer>
       <Card data-testid="pipeline-header>
@@ -201,7 +185,6 @@ export function PipelineDesigner() {
           </div>
         </CardContent>
       </Card>
-
       {/* Pipeline Steps */}
       <div className="space-y-4" data-testid="pipeline-steps>
         {steps.map((step, index) => (
@@ -280,7 +263,6 @@ export function PipelineDesigner() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300>
                     Modo de Decisão
@@ -302,7 +284,6 @@ export function PipelineDesigner() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300>
                     SLA (horas)
@@ -315,7 +296,6 @@ export function PipelineDesigner() {
                     data-testid={"
                   />
                 </div>
-
                 {step.mode === 'QUORUM' && (
                   <div>
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300>
@@ -331,7 +311,6 @@ export function PipelineDesigner() {
                   </div>
                 )}
               </div>
-
               <div className="mt-4 flex items-center gap-4>
                 <label className="flex items-center gap-2>
                   <input
@@ -341,7 +320,7 @@ export function PipelineDesigner() {
                     className="rounded"
                     data-testid={"
                   />
-                  <span className="text-sm font-medium">Auto-aprovação</span>
+                  <span className="text-lg">"Auto-aprovação</span>
                 </label>
                 
                 <Badge 
@@ -355,7 +334,6 @@ export function PipelineDesigner() {
           </Card>
         ))}
       </div>
-
       {/* Simulation Results */}
       {simulationResult && (
         <Card data-testid="simulation-results>
@@ -372,7 +350,6 @@ export function PipelineDesigner() {
           </CardContent>
         </Card>
       )}
-
       {/* Pipeline Flow Visualization */}
       <Card data-testid="pipeline-visualization>
         <CardHeader>
@@ -383,12 +360,12 @@ export function PipelineDesigner() {
             {steps.map((step, index) => (
               <div key={step.id} className="flex flex-col items-center" data-testid={"
                 <div className="p-4 rounded-lg border-2 " min-w-48 text-center>
-                  <div className="font-medium">{step.name}</div>
+                  <div className="text-lg">"{step.name}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-1>
                     {step.approverType} • {step.mode} • {step.slaHours}h
                   </div>
                   {step.autoApprove && (
-                    <Badge variant="default" className="mt-2">Auto</Badge>
+                    <Badge variant="default" className="text-lg">"Auto</Badge>
                   )}
                 </div>
                 {index < steps.length - 1 && (

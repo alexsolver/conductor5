@@ -14,7 +14,6 @@ import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, H
 import { useLocation } from "wouter";
 // import useLocalization from "@/hooks/useLocalization";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
-
 interface Ticket {
   id: string;
   number: string;
@@ -41,7 +40,6 @@ interface Ticket {
   caller_last_name?: string;
   caller_email?: string;
 }
-
 interface Attachment {
   id: string;
   fileName: string;
@@ -51,7 +49,6 @@ interface Attachment {
   createdAt: string;
   uploadedByName: string;
 }
-
 interface Communication {
   id: string;
   type: string;
@@ -60,7 +57,6 @@ interface Communication {
   createdAt: string;
   authorName: string;
 }
-
 interface Note {
   id: string;
   content: string;
@@ -68,7 +64,6 @@ interface Note {
   createdAt: string;
   authorName: string;
 }
-
 interface HistoryEntry {
   id: string;
   actionType: string;
@@ -79,7 +74,6 @@ interface HistoryEntry {
   createdAt: string;
   performedByName: string;
 }
-
 export default function TicketDetail() {
   const { id } = useParams();
   const [, navigate] = useLocation();
@@ -88,7 +82,6 @@ export default function TicketDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { getFieldLabel } = useFieldColors();
-
   // Fetch ticket details
   const { data: ticket, isLoading: isTicketLoading, error: ticketError } = useQuery<Ticket>({
     queryKey: ["
@@ -112,35 +105,30 @@ export default function TicketDetail() {
       return data?.data || data;
     },
   });
-
   // Fetch attachments
   const { data: attachments, isLoading: isAttachmentsLoading } = useQuery<Attachment[]>({
     queryKey: ["/attachments`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
-
   // Fetch communications
   const { data: communications, isLoading: isCommunicationsLoading } = useQuery<Communication[]>({
     queryKey: ["/communications`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
-
   // Fetch notes
   const { data: notes, isLoading: isNotesLoading } = useQuery<Note[]>({
     queryKey: ["/notes`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
-
   // Fetch history
   const { data: history, isLoading: isHistoryLoading } = useQuery<HistoryEntry[]>({
     queryKey: ["/history`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
-
   // 🎯 [1QA-COMPLIANCE] Fetch company details for proper display
   const { data: company, error: companyError } = useQuery({
     queryKey: ["
@@ -151,7 +139,6 @@ export default function TicketDetail() {
     },
     retry: false,
   });
-
   // 🎯 [1QA-COMPLIANCE] Debug company loading
   useEffect(() => {
     console.log('🎫 [TICKET-DEBUG] Current ticket data:', {
@@ -171,21 +158,18 @@ export default function TicketDetail() {
       console.log('✅ [COMPANY-DEBUG] Company loaded:', company);
     }
   }, [ticket, ticket?.companyId, company, companyError]);
-
   // 🎯 [1QA-COMPLIANCE] Fetch user details for assigned user display  
   const { data: assignedUser } = useQuery({
     queryKey: ["
     enabled: !!ticket?.assignedToId,
     select: (data: any) => data?.data || data,
   });
-
   // 🎯 [1QA-COMPLIANCE] Fetch location details for proper display
   const { data: location } = useQuery({
     queryKey: ["
     enabled: !!ticket?.locationId,
     select: (data: any) => data?.data || data,
   });
-
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -193,7 +177,6 @@ export default function TicketDetail() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
   const handleDownloadAttachment = (attachmentId: string, originalName: string) => {
     const downloadUrl = "/download`;
     const link = document.createElement('a');
@@ -204,7 +187,6 @@ export default function TicketDetail() {
     link.click();
     document.body.removeChild(link);
   };
-
   const handleUploadComplete = () => {
     // Refresh attachments after upload
     queryClient.invalidateQueries({ queryKey: ["/attachments`] });
@@ -214,26 +196,24 @@ export default function TicketDetail() {
       description: 'Files uploaded successfully.',
     });
   };
-
   if (isTicketLoading) {
     return (
       <div className=""
         <div className=""
-          <div className="h-8 bg-gray-200 rounded-md w-1/3 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded-md"></div>
+          <div className="text-lg">"</div>
+          <div className="text-lg">"</div>
         </div>
       </div>
     );
   }
-
   if (ticketError) {
     console.log('❌ [TICKET-DETAIL] Error loading ticket:', ticketError);
     if (ticketError.message?.includes('401')) {
       return (
         <div className=""
           <div className=""
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Sessão expirada</h1>
-            <p className="text-gray-600 mb-4">Faça login novamente para continuar</p>
+            <h1 className="text-lg">"Sessão expirada</h1>
+            <p className="text-lg">"Faça login novamente para continuar</p>
             <Button onClick={() => console.log('Auth redirect blocked per 1qa.md')}>
               Login será tratado automaticamente
             </Button>
@@ -242,12 +222,11 @@ export default function TicketDetail() {
       );
     }
   }
-
   if (!ticket) {
     return (
       <div className=""
         <div className=""
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">'[TRANSLATION_NEEDED]'</h1>
+          <h1 className="text-lg">"'[TRANSLATION_NEEDED]'</h1>
           <Button onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             '[TRANSLATION_NEEDED]'
@@ -256,7 +235,6 @@ export default function TicketDetail() {
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Header */}
@@ -302,7 +280,6 @@ export default function TicketDetail() {
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <div className=""
         {/* Left Column - Main Content */}
@@ -323,7 +300,6 @@ export default function TicketDetail() {
               </div>
             </CardContent>
           </Card>
-
           {/* Tabs for detailed content */}
           <Tabs defaultValue="attachments" className=""
             <TabsList className=""
@@ -343,7 +319,6 @@ export default function TicketDetail() {
                 '[TRANSLATION_NEEDED]'
               </TabsTrigger>
             </TabsList>
-
             <TabsContent value="attachments" className=""
               {/* Upload Component */}
               <Card>
@@ -357,7 +332,6 @@ export default function TicketDetail() {
                   />
                 </CardContent>
               </Card>
-
               {/* Existing Attachments */}
               <Card>
                 <CardHeader>
@@ -365,7 +339,7 @@ export default function TicketDetail() {
                 </CardHeader>
                 <CardContent>
                   {isAttachmentsLoading ? (
-                    <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
+                    <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
                   ) : attachments && attachments.length > 0 ? (
                     <div className=""
                       {attachments.map((attachment) => (
@@ -404,7 +378,6 @@ export default function TicketDetail() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             <TabsContent value="communications>
               <Card>
                 <CardHeader>
@@ -412,7 +385,7 @@ export default function TicketDetail() {
                 </CardHeader>
                 <CardContent>
                   {isCommunicationsLoading ? (
-                    <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
+                    <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
                   ) : communications && communications.length > 0 ? (
                     <div className=""
                       {communications.map((comm) => (
@@ -425,8 +398,8 @@ export default function TicketDetail() {
                               {formatDate(comm.createdAt)}
                             </span>
                           </div>
-                          <p className="text-gray-700">{comm.content}</p>
-                          <p className="text-sm text-gray-500 mt-1">'[TRANSLATION_NEEDED]': {comm.authorName}</p>
+                          <p className="text-lg">"{comm.content}</p>
+                          <p className="text-lg">"'[TRANSLATION_NEEDED]': {comm.authorName}</p>
                         </div>
                       ))}
                     </div>
@@ -438,7 +411,6 @@ export default function TicketDetail() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             <TabsContent value="notes>
               <Card>
                 <CardHeader>
@@ -446,7 +418,7 @@ export default function TicketDetail() {
                 </CardHeader>
                 <CardContent>
                   {isNotesLoading ? (
-                    <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
+                    <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
                   ) : notes && notes.length > 0 ? (
                     <div className=""
                       {notes.map((note) => (
@@ -459,8 +431,8 @@ export default function TicketDetail() {
                               {formatDate(note.createdAt)}
                             </span>
                           </div>
-                          <p className="text-gray-700 whitespace-pre-wrap">{note.content}</p>
-                          <p className="text-sm text-gray-500 mt-2">'[TRANSLATION_NEEDED]': {note.authorName}</p>
+                          <p className="text-lg">"{note.content}</p>
+                          <p className="text-lg">"'[TRANSLATION_NEEDED]': {note.authorName}</p>
                         </div>
                       ))}
                     </div>
@@ -472,7 +444,6 @@ export default function TicketDetail() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             <TabsContent value="history>
               <Card>
                 <CardHeader>
@@ -480,14 +451,14 @@ export default function TicketDetail() {
                 </CardHeader>
                 <CardContent>
                   {isHistoryLoading ? (
-                    <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
+                    <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
                   ) : history && history.length > 0 ? (
                     <div className=""
                       {history.map((entry) => (
                         <div key={entry.id} className=""
                           <div className=""
                             <div>
-                              <p className="font-medium text-gray-900">{entry.description}</p>
+                              <p className="text-lg">"{entry.description}</p>
                               {entry.fieldName && (
                                 <p className=""
                                   '[TRANSLATION_NEEDED]': {entry.fieldName}
@@ -496,7 +467,7 @@ export default function TicketDetail() {
                                   )}
                                 </p>
                               )}
-                              <p className="text-sm text-gray-500">'[TRANSLATION_NEEDED]': {entry.performedByName}</p>
+                              <p className="text-lg">"'[TRANSLATION_NEEDED]': {entry.performedByName}</p>
                             </div>
                             <span className=""
                               {formatDate(entry.createdAt)}
@@ -515,7 +486,6 @@ export default function TicketDetail() {
             </TabsContent>
           </Tabs>
         </div>
-
         {/* Right Column - Sidebar Info */}
         <div className=""
           <Card>
@@ -525,20 +495,19 @@ export default function TicketDetail() {
             <CardContent className=""
               <div className=""
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-gray-500">Criado:</span>
-                <span className="ml-2 font-medium">{formatDate(ticket.createdAt)}</span>
+                <span className="text-lg">"Criado:</span>
+                <span className="text-lg">"{formatDate(ticket.createdAt)}</span>
               </div>
               
               <div className=""
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-gray-500">Atualizado:</span>
-                <span className="ml-2 font-medium">{formatDate(ticket.updatedAt)}</span>
+                <span className="text-lg">"Atualizado:</span>
+                <span className="text-lg">"{formatDate(ticket.updatedAt)}</span>
               </div>
-
               {ticket.assignedToId && (
                 <div className=""
                   <User className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-gray-500">Responsável:</span>
+                  <span className="text-lg">"Responsável:</span>
                   <span className=""
                     {assignedUser?.firstName && assignedUser?.lastName 
                       ? "
@@ -547,21 +516,19 @@ export default function TicketDetail() {
                   </span>
                 </div>
               )}
-
               {ticket.companyId && (
                 <div className=""
                   <Building className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-gray-500">Empresa:</span>
+                  <span className="text-lg">"Empresa:</span>
                   <span className=""
                     {(ticket as any)?.company_name || (ticket as any)?.company_display_name || company?.name || ticket.companyId}
                   </span>
                 </div>
               )}
-
               {ticket.locationId && (
                 <div className=""
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-gray-500">Local:</span>
+                  <span className="text-lg">"Local:</span>
                   <span className=""
                     {location?.name || location?.address || ticket.locationId}
                   </span>

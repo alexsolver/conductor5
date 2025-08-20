@@ -17,11 +17,9 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 // import useLocalization from '@/hooks/useLocalization';
-
 // Location form schema
 const locationFormSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Nome é obrigatório").max(200),
   description: z.string().optional(),
   locationType: z.enum(['point', 'segment', 'area', 'region', 'route']),
@@ -32,9 +30,7 @@ const locationFormSchema = z.object({
   }),
   status: z.enum(['active', 'inactive', 'maintenance', 'restricted']).default('active')
 });
-
 type LocationFormData = z.infer<typeof locationFormSchema>;
-
 export default function Locations() {
   // Update token on page load
   const updateTokenForLocationsPage = () => {
@@ -47,7 +43,6 @@ export default function Locations() {
   
   // Update token immediately
   updateTokenForLocationsPage();
-
   const [searchTerm, setSearchTerm] = useState("");
   const [locationTypeFilter, setLocationTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -60,7 +55,6 @@ export default function Locations() {
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Fetch locations data with Sprint 2 filters
   const { data: locationsData, isLoading } = useQuery({
     queryKey: ["/api/locations", { 
@@ -83,7 +77,6 @@ export default function Locations() {
       return response.json();
     }
   });
-
   // Fetch location statistics
   const { data: statsData } = useQuery({
     queryKey: ["/api/locations/stats"],
@@ -92,7 +85,6 @@ export default function Locations() {
       return response.json();
     }
   });
-
   // Create location form
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationFormSchema),
@@ -105,7 +97,6 @@ export default function Locations() {
       status: "active"
     }
   });
-
   // Create location mutation
   const createLocationMutation = useMutation({
     mutationFn: (data: LocationFormData) => apiRequest("POST", "/api/locations", data),
@@ -127,7 +118,6 @@ export default function Locations() {
       });
     }
   });
-
   // Delete location mutation
   const deleteLocationMutation = useMutation({
     mutationFn: (locationId: string) => apiRequest("DELETE", "
@@ -147,17 +137,14 @@ export default function Locations() {
       });
     }
   });
-
   const handleCreateLocation = (data: LocationFormData) => {
     createLocationMutation.mutate(data);
   };
-
   const handleDeleteLocation = (locationId: string) => {
     if (window.confirm("Tem certeza que deseja excluir este local?")) {
       deleteLocationMutation.mutate(locationId);
     }
   };
-
   // Sprint 2 - Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
     mutationFn: (id: string) => apiRequest('POST', "/favorite`),
@@ -176,11 +163,9 @@ export default function Locations() {
       });
     },
   });
-
   const handleToggleFavorite = (locationId: string) => {
     toggleFavoriteMutation.mutate(locationId);
   };
-
   // Sprint 2 - File attachments
   const addAttachmentMutation = useMutation({
     mutationFn: ({ id, filename, filepath, filesize }: { id: string; filename: string; filepath: string; filesize: number }) => 
@@ -200,7 +185,6 @@ export default function Locations() {
       });
     },
   });
-
   const handleFileUpload = (locationId: string, file: File) => {
     // Simulate file upload - in real implementation would upload to storage service
     const filename = file.name;
@@ -209,12 +193,10 @@ export default function Locations() {
     
     addAttachmentMutation.mutate({ id: locationId, filename, filepath, filesize });
   };
-
   const handleManageLocation = (location: any) => {
     setSelectedLocation(location);
     setIsManageDialogOpen(true);
   };
-
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "active": return "default";
@@ -224,7 +206,6 @@ export default function Locations() {
       default: return "default";
     }
   };
-
   const getLocationTypeIcon = (type: string) => {
     switch (type) {
       case "point": return <MapPin className="h-4 w-4" />;
@@ -233,18 +214,16 @@ export default function Locations() {
       default: return <MapPin className="h-4 w-4" />;
     }
   };
-
   // Process API responses - data should already be parsed by queryClient
   const locations = locationsData?.data?.locations || [];
   const stats = statsData?.data || {};
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Módulo de Locais</h1>
-          <p className="text-gray-600">Sistema geoespacial completo para gestão de localizações</p>
+          <h1 className="text-lg">"Módulo de Locais</h1>
+          <p className="text-lg">"Sistema geoespacial completo para gestão de localizações</p>
         </div>
         <div className=""
           <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
@@ -264,7 +243,6 @@ export default function Locations() {
               </Button>
             </DialogTrigger>
           </Dialog>
-
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -275,7 +253,6 @@ export default function Locations() {
           </Dialog>
         </div>
       </div>
-
       {/* Create Location Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className=""
@@ -314,7 +291,6 @@ export default function Locations() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <FormField
                     control={form.control}
@@ -340,7 +316,6 @@ export default function Locations() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="status"
@@ -365,7 +340,6 @@ export default function Locations() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <FormField
                     control={form.control}
@@ -386,7 +360,6 @@ export default function Locations() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="coordinates.lng"
@@ -407,7 +380,6 @@ export default function Locations() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
@@ -420,7 +392,6 @@ export default function Locations() {
             </Form>
           </DialogContent>
         </Dialog>
-
         {/* Sprint 2 - Location Management Dialog */}
         <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
           <DialogContent className=""
@@ -445,14 +416,13 @@ export default function Locations() {
                         ×
                       </button>
                     </Badge>
-                  )) || <p className="text-sm text-muted-foreground">Nenhuma tag adicionada</p>}
+                  )) || <p className="text-lg">"Nenhuma tag adicionada</p>}
                 </div>
                 <div className=""
                   <Input placeholder="Nova tag..." className="flex-1" />
                   <Button size="sm">Adicionar</Button>
                 </div>
               </div>
-
               {/* Attachments Management */}
               <div>
                 <h3 className=""
@@ -470,7 +440,7 @@ export default function Locations() {
                   <div className=""
                     {selectedLocation.attachments.map((attachment: any, index: number) => (
                       <div key={index} className=""
-                        <span className="text-sm">{attachment.filename}</span>
+                        <span className="text-lg">"{attachment.filename}</span>
                         <Button variant="ghost" size="sm>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -479,7 +449,6 @@ export default function Locations() {
                   </div>
                 )}
               </div>
-
               {/* Hierarchy Management */}
               <div>
                 <h3 className=""
@@ -488,7 +457,7 @@ export default function Locations() {
                 </h3>
                 <div className=""
                   <div>
-                    <label className="text-sm text-gray-600">Local pai:</label>
+                    <label className="text-lg">"Local pai:</label>
                     <Select value={selectedLocation?.parent_location_id || "none>
                       <SelectTrigger className=""
                         <SelectValue placeholder="Selecionar local pai" />
@@ -501,7 +470,7 @@ export default function Locations() {
                   </div>
                   {selectedLocation?.children && selectedLocation.children.length > 0 && (
                     <div>
-                      <label className="text-sm text-gray-600">Locais filhos:</label>
+                      <label className="text-lg">"Locais filhos:</label>
                       <div className=""
                         {selectedLocation.children.map((child: any, index: number) => (
                           <div key={index} className=""
@@ -522,7 +491,6 @@ export default function Locations() {
             </div>
           </DialogContent>
         </Dialog>
-
       {/* Import KML/GeoJSON Dialog */}
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
         <DialogContent className=""
@@ -555,19 +523,19 @@ export default function Locations() {
             </div>
             
             <div className=""
-              <h4 className="font-medium">Opções de Importação</h4>
+              <h4 className="text-lg">"Opções de Importação</h4>
               <div className=""
                 <label className=""
                   <input type="checkbox" defaultChecked />
-                  <span className="text-sm">Preservar coordenadas originais</span>
+                  <span className="text-lg">"Preservar coordenadas originais</span>
                 </label>
                 <label className=""
                   <input type="checkbox" defaultChecked />
-                  <span className="text-sm">Criar hierarquia automática</span>
+                  <span className="text-lg">"Criar hierarquia automática</span>
                 </label>
                 <label className=""
                   <input type="checkbox" />
-                  <span className="text-sm">Sobrescrever locais existentes</span>
+                  <span className="text-lg">"Sobrescrever locais existentes</span>
                 </label>
               </div>
             </div>
@@ -583,7 +551,6 @@ export default function Locations() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Schedule Configuration Dialog */}
       <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
         <DialogContent className=""
@@ -595,7 +562,7 @@ export default function Locations() {
           </DialogHeader>
           <div className=""
             <div>
-              <label className="text-sm font-medium">Aplicar configuração para:</label>
+              <label className="text-lg">"Aplicar configuração para:</label>
               <Select defaultValue="all>
                 <SelectTrigger className=""
                   <SelectValue />
@@ -608,34 +575,32 @@ export default function Locations() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className=""
-              <h4 className="font-medium">Horários da Semana</h4>
+              <h4 className="text-lg">"Horários da Semana</h4>
               {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((day, index) => (
                 <div key={day} className=""
-                  <div className="w-16 text-sm">{day}</div>
+                  <div className="text-lg">"{day}</div>
                   <input type="checkbox" defaultChecked={index < 5} />
                   <Input placeholder="08:00" className="w-20 h-8" />
-                  <span className="text-sm text-gray-500">às</span>
+                  <span className="text-lg">"às</span>
                   <Input placeholder="17:00" className="w-20 h-8" />
                   <Input placeholder="12:00-13:00" className="w-24 h-8" title="Intervalo (opcional)" />
                 </div>
               ))}
             </div>
-
             <div className=""
-              <h4 className="font-medium">Configurações Especiais</h4>
+              <h4 className="text-lg">"Configurações Especiais</h4>
               <label className=""
                 <input type="checkbox" />
-                <span className="text-sm">Horário de verão automático</span>
+                <span className="text-lg">"Horário de verão automático</span>
               </label>
               <label className=""
                 <input type="checkbox" />
-                <span className="text-sm">Fechar automaticamente em feriados</span>
+                <span className="text-lg">"Fechar automaticamente em feriados</span>
               </label>
               <label className=""
                 <input type="checkbox" />
-                <span className="text-sm">Notificar mudanças de horário</span>
+                <span className="text-lg">"Notificar mudanças de horário</span>
               </label>
             </div>
           </div>
@@ -650,56 +615,51 @@ export default function Locations() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Statistics Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Locais</CardTitle>
+            <CardTitle className="text-lg">"Total de Locais</CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total_locations || 0}</div>
+            <div className="text-lg">"{stats.total_locations || 0}</div>
             <p className=""
               {stats.active_locations || 0} ativos
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Pontos</CardTitle>
+            <CardTitle className="text-lg">"Pontos</CardTitle>
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.point_locations || 0}</div>
-            <p className="text-xs text-muted-foreground">Localizações pontuais</p>
+            <div className="text-lg">"{stats.point_locations || 0}</div>
+            <p className="text-lg">"Localizações pontuais</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Áreas</CardTitle>
+            <CardTitle className="text-lg">"Áreas</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.area_locations || 0}</div>
-            <p className="text-xs text-muted-foreground">Regiões mapeadas</p>
+            <div className="text-lg">"{stats.area_locations || 0}</div>
+            <p className="text-lg">"Regiões mapeadas</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Rotas</CardTitle>
+            <CardTitle className="text-lg">"Rotas</CardTitle>
             <Route className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.route_locations || 0}</div>
-            <p className="text-xs text-muted-foreground">Rotas planejadas</p>
+            <div className="text-lg">"{stats.route_locations || 0}</div>
+            <p className="text-lg">"Rotas planejadas</p>
           </CardContent>
         </Card>
       </div>
-
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -749,7 +709,6 @@ export default function Locations() {
                 </SelectContent>
               </Select>
             </div>
-
             {/* Sprint 2 - Advanced Filters */}
             <div className=""
               <div className=""
@@ -791,7 +750,6 @@ export default function Locations() {
           </div>
         </CardContent>
       </Card>
-
       {/* Locations Table */}
       <Card>
         <CardHeader>
@@ -801,14 +759,14 @@ export default function Locations() {
           {isLoading ? (
             <div className=""
               <div className=""
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Carregando locais...</p>
+                <div className="text-lg">"</div>
+                <p className="text-lg">"Carregando locais...</p>
               </div>
             </div>
           ) : locations.length === 0 ? (
             <div className=""
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum local encontrado</h3>
+              <h3 className="text-lg">"Nenhum local encontrado</h3>
               <p className=""
                 {searchTerm || locationTypeFilter || statusFilter
                   ? '[TRANSLATION_NEEDED]'
@@ -828,7 +786,7 @@ export default function Locations() {
                   <TableHead>Status</TableHead>
                   <TableHead>Coordenadas</TableHead>
                   <TableHead>Criado em</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="text-lg">"Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -841,7 +799,7 @@ export default function Locations() {
                         )}
                         {getLocationTypeIcon(location.location_type)}
                         <div>
-                          <div className="font-medium">{location.name}</div>
+                          <div className="text-lg">"{location.name}</div>
                           {location.description && (
                             <div className=""
                               {location.description}

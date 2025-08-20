@@ -1,0 +1,580 @@
+✅ [SCHEDULER] Daily schema checks scheduled successfully
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] Unexpected end of file
+
+    client/src/components/layout/AppShell.tsx:27:0:
+      27 │ 
+         ╵ ^
+
+
+✘ [ERROR] Unterminated regular expression
+
+    client/src/components/routing/EmploymentRouteGuard.tsx:66:12:
+      66 │       </div>
+         ╵             ^
+
+
+✘ [ERROR] Unexpected end of file
+
+    client/src/components/ui/toaster.tsx:34:0:
+      34 │ 
+         ╵ ^
+
+
+✘ [ERROR] Expected ")" but found "method"
+
+    client/src/contexts/SimpleTimerContext.tsx:75:8:
+      75 │         method: 'PATCH',
+         │         ~~~~~~
+         ╵         )
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/AbsenceManagement.tsx:164:60:
+      164 │       return await apiRequest('PUT', "/reject`, { reason });
+          ╵                                                             ^
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/ActivityPlanner.tsx:283:12:
+      283 │             <Plus className="w-4 h-4 mr-2" />
+          │             ^
+          ╵             >
+
+
+✘ [ERROR] Expected ")" but found "return"
+
+    client/src/pages/AgendaManager.tsx:149:6:
+      149 │       return await response.json();
+          │       ~~~~~~
+          ╵       )
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/Analytics.tsx:106:6:
+      106 │       <div className=""
+          │       ^
+          ╵       >
+
+
+✘ [ERROR] Expected ">" but found "\"\n        <div>\n          <h1 className=\""
+
+    client/src/pages/ApprovalManagement.tsx:17:22:
+      17 │       <div className=""
+         │                       ^
+         ╵                       >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/AssetManagement.tsx:179:6:
+      179 │       <div className=""
+          │       ^
+          ╵       >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/AuthPage.tsx:39:8:
+      39 │         <div className=""
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Beneficiaries.tsx:148:36:
+      148 │       const response = await fetch("
+          ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CLTCompliance.tsx:89:57:
+      89 │         description: " registros corrigidos com sucesso`,
+         ╵                                                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CertificateManager.tsx:43:28:
+      43 │           'Authorization': "
+         ╵                             ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Companies.tsx:151:25:
+      151 │       apiRequest('PUT', "
+          ╵                          ^
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/Compliance.tsx:232:21:
+      232 │         {/* Header */}
+          │                      ^
+          ╵                      ...
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ComplianceManagement.tsx:201:72:
+      201 │ ...tionFn: (alertId: string) => apiRequest('POST', "/acknowledge`),
+          ╵                                                                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ContractManagement.tsx:97:36:
+      97 │       const response = await fetch("
+         ╵                                     ^
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/CorporateExpenseManagement.tsx:122:10:
+      122 │           <Plus className="h-4 w-4 mr-2" />
+          │           ^
+          ╵           >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CustomFieldsAdministrator.tsx:100:36:
+      100 │       const response = await fetch("
+          ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/CustomerItemMappings.tsx:84:48:
+      84 │       const response = await apiRequest('GET', "
+         ╵                                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Customers.tsx:138:14:
+      138 │       return "
+          ╵               ^
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/Dashboard.tsx:28:8:
+      28 │         <div className=""
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/DashboardView.tsx:107:40:
+      107 │                 title: ticket.title || "
+          ╵                                         ^
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/Dashboards.tsx:200:4:
+      200 │     <Home className="w-4 h-4" />
+          │     ^
+          ╵     >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/DragDropDemo.tsx:65:15:
+      65 │           id: "
+         ╵                ^
+
+
+✘ [ERROR] Expected ">" but found "\"\n        <Shield className=\""
+
+    client/src/pages/GdprCompliancePage.tsx:166:22:
+      166 │       <div className=""
+          │                       ^
+          ╵                       >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/HolidayCalendar.tsx:113:36:
+      113 │       const response = await fetch("
+          ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/HourBank.tsx:63:48:
+      63 │       const response = await apiRequest('GET', "
+         ╵                                                 ^
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/InternalForms.tsx:62:19:
+      62 │       {/* Header */}
+         │                    ^
+         ╵                    ...
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ItemCatalog.tsx:218:19:
+      218 │       const url = "
+          ╵                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/KnowledgeBase.tsx:86:19:
+      86 │       const url = "
+         ╵                    ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/LPU.tsx:142:57:
+      142 │       const response = await apiRequest('GET', "/items`);
+          ╵                                                          ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/LocationsNew.tsx:249:58:
+      249 │     const statsKey = "Stats` as keyof typeof statsQueries;
+          ╵                                                           ^
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/ModuleIntegrityControl.tsx:197:8:
+      197 │         <div className=""
+          │         ^
+          ╵         >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/NotificationsPage.tsx:143:23:
+      143 │       }).toString()", {
+          ╵                        ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/OmniBridge.tsx:190:36:
+      190 │           'Authorization': token ? "
+          ╵                                     ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ProductivityReports.tsx:60:48:
+      60 │       const response = await apiRequest('GET', "
+         ╵                                                 ^
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/ReportCreate.tsx:137:19:
+      137 │       {/* Header */}
+          │                    ^
+          ╵                    ...
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/ReportEdit.tsx:58:38:
+      58 │     queryFn: () => apiRequest("GET", "
+         ╵                                       ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/Reports.tsx:147:17:
+      147 │     setLocation("
+          ╵                  ^
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/SaasAdmin.tsx:37:8:
+      37 │         <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/SaasAdminBilling.tsx:13:21:
+      13 │         {/* Header */}
+         │                      ^
+         ╵                      ...
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/SaasAdminDisasterRecovery.tsx:16:21:
+      16 │         {/* Header */}
+         │                      ^
+         ╵                      ...
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/SaasAdminIntegrations.tsx:74:8:
+      74 │         <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/SaasAdminPerformance.tsx:12:21:
+      12 │         {/* Header */}
+         │                      ^
+         ╵                      ...
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/SecuritySettings.tsx:242:8:
+      242 │         <div className=""
+          │         ^
+          ╵         >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/SettingsSimple.tsx:13:6:
+      13 │       <div>
+         │       ^
+         ╵       >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/SlaManagement.tsx:269:13:
+      269 │       fetch("
+          ╵              ^
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/StockManagement.tsx:114:6:
+      114 │       <div className=""
+          │       ^
+          ╵       >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/SupplierManagement.tsx:130:48:
+      130 │       const response = await apiRequest('PUT', "
+          ╵                                                 ^
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TeamManagement.tsx:176:100:
+      176 │ ...lastName || ''.toLowerCase().includes(searchTerm.toLowerCase());
+          ╵                                                                    ^
+
+
+✘ [ERROR] Expected "..." but found "Array"
+
+    client/src/pages/TechnicalSkills.tsx:242:9:
+      242 │         {Array.from({ length: maxLevel }, (_, i) => (
+          │          ~~~~~
+          ╵          ...
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TemplateSelector.tsx:176:6:
+      176 │       <Label className="text-sm font-medium">{label}</Label>
+          │       ^
+          ╵       >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TenantAdmin.tsx:48:8:
+      48 │         <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TenantAdminBranding.tsx:126:8:
+      126 │         <Palette className="w-16 h-16 mx-auto text-red-500 mb-4" />
+          │         ^
+          ╵         >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TenantAdminGeral.tsx:180:8:
+      180 │         <div className=""
+          │         ^
+          ╵         >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TenantAdminIntegrations.tsx:679:8:
+      679 │         <div className=""
+          │         ^
+          ╵         >
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/TenantAdminWorkflows.tsx:22:21:
+      22 │         {/* Header */}
+         │                      ^
+         ╵                      ...
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TenantProvisioning.tsx:74:8:
+      74 │         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/TicketAdvancedConfiguration.tsx:294:35:
+      294 │       {/* Header with navigation */}
+          │                                    ^
+          ╵                                    ...
+
+
+✘ [ERROR] Expected "}" but found "A"
+
+    client/src/pages/TicketConfiguration.tsx:493:55:
+      493 │ ...nfiguração salva com sucesso"A opção foi atualizada no sis...
+          │                                 ^
+          ╵                                 }
+
+
+✘ [ERROR] Expected "}" but found "createdByName"
+
+    client/src/pages/TicketDetails.tsx:515:8:
+      515 │         createdByName: action.agent_name || action.created_by_nam...
+          │         ~~~~~~~~~~~~~
+          ╵         }
+
+
+✘ [ERROR] Expected "}" but found "\", { headers: { \""
+
+    client/src/pages/TicketMaterials.tsx:107:99:
+      107 │ ...etId + "/consumed-items", { headers: { "Content-Type": "applic...
+          │                           ~~~~~~~~~~~~~~~~~
+          ╵                           }
+
+
+✘ [ERROR] Expected "..." but found "}"
+
+    client/src/pages/TicketTemplates.tsx:299:19:
+      299 │       {/* Header */}
+          │                    ^
+          ╵                    ...
+
+
+✘ [ERROR] Expected "..." but found "!"
+
+    client/src/pages/TicketsTable.tsx:92:7:
+      92 │       {!disabled && (
+         │        ^
+         ╵        ...
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/Timecard.tsx:391:8:
+      391 │         <CardHeader className="p-4"
+          │         ^
+          ╵         >
+
+
+✘ [ERROR] Unterminated string literal
+
+    client/src/pages/TimecardApprovalSettings.tsx:824:40:
+      824 │ export default TimecardApprovalSettings;
+          ╵                                         ^
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TimecardApprovals.tsx:223:8:
+      223 │         <div className="p-4"
+          │         ^
+          ╵         >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TimecardAutonomous.tsx:87:8:
+      87 │         <div className="p-4"
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Expected "}" but found "."
+
+    client/src/pages/TimecardReports.tsx:464:38:
+      464 │ ...                        {record.status === "approved" ? "✅ O...
+          │                                   ^
+          ╵                                   }
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/TranslationManager.tsx:71:8:
+      71 │         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/UserManagement.tsx:53:8:
+      53 │         <div className="p-4"
+         │         ^
+         ╵         >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/UserProfile.tsx:346:8:
+      346 │         <div className="p-4"
+          │         ^
+          ╵         >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/WorkSchedules.tsx:130:6:
+      130 │       <div className="p-4"
+          │       ^
+          ╵       >
+
+
+✘ [ERROR] Expected ">" but found "<"
+
+    client/src/pages/not-found.tsx:7:6:
+      7 │       <Card className="p-4"
+        │       ^
+        ╵       >

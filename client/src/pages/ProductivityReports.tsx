@@ -28,7 +28,6 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { apiRequest } from '@/lib/queryClient';
-
 interface ProductivitySummary {
   totalActivities: number;
   totalTimeSeconds: number;
@@ -44,15 +43,12 @@ interface ProductivitySummary {
     activities: Record<string, { count: number; time: number }>;
   }>;
 }
-
 export default function ProductivityReports() {
   // Localization temporarily disabled
-
   const [filters, setFilters] = useState({
     startDate: format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
   });
-
   const { data: myProductivity, isLoading: myProductivityLoading, error: myProductivityError } = useQuery({
     queryKey: ['/api/productivity/my-productivity', filters],
     queryFn: async () => {
@@ -62,7 +58,6 @@ export default function ProductivityReports() {
       return jsonData;
     },
   });
-
   const { data: teamProductivity, isLoading: teamProductivityLoading } = useQuery({
     queryKey: ['/api/productivity/team-productivity', filters],
     queryFn: async () => {
@@ -71,19 +66,16 @@ export default function ProductivityReports() {
       return await response.json();
     },
   });
-
   const formatDuration = (seconds: number) => {
     if (seconds === 0) return 'Em análise';
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return "m`;
   };
-
   const formatPercentage = (value: number, total: number) => {
     if (total === 0) return '0%';
     return "%`;
   };
-
   const getActivityTypeLabel = (type: string) => {
     const labels = {
       'view_ticket': 'Visualizar Tickets',
@@ -100,7 +92,6 @@ export default function ProductivityReports() {
     };
     return labels[type] || type;
   };
-
   const getActivityColor = (type: string) => {
     const colors = {
       'view_ticket': 'bg-blue-500',
@@ -111,7 +102,6 @@ export default function ProductivityReports() {
     };
     return colors[type] || 'bg-gray-500';
   };
-
   const summary: ProductivitySummary = myProductivity?.data?.summary || {
     totalActivities: 0,
     totalTimeSeconds: 0,
@@ -119,19 +109,15 @@ export default function ProductivityReports() {
     activitiesByType: {},
     dailyBreakdown: {}
   };
-
-
-
   return (
     <div className=""
       <div className=""
-        <h1 className="text-2xl font-bold">Relatórios de Produtividade</h1>
+        <h1 className="text-lg">"Relatórios de Produtividade</h1>
         <Button variant="outline>
           <Download className="h-4 w-4 mr-2" />
           Exportar
         </Button>
       </div>
-
       {/* Status do Sistema */}
       {summary.totalActivities > 0 && summary.totalTimeSeconds === 0 && (
         <Card className=""
@@ -141,7 +127,7 @@ export default function ProductivityReports() {
                 <Activity className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="font-medium text-blue-900">Sistema de Tracking Ativo</h3>
+                <h3 className="text-lg">"Sistema de Tracking Ativo</h3>
                 <p className=""
                   O sistema está registrando suas atividades com sucesso. 
                   O cálculo de tempo detalhado está sendo ajustado para fornecer métricas mais precisas.
@@ -151,7 +137,6 @@ export default function ProductivityReports() {
           </CardContent>
         </Card>
       )}
-
       {/* Filtros */}
       <Card>
         <CardHeader>
@@ -178,7 +163,6 @@ export default function ProductivityReports() {
           </div>
         </CardContent>
       </Card>
-
       <Tabs defaultValue="my-productivity" className=""
         <TabsList>
           <TabsTrigger value="my-productivity" className=""
@@ -190,7 +174,6 @@ export default function ProductivityReports() {
             Equipe
           </TabsTrigger>
         </TabsList>
-
         {/* Minha Produtividade */}
         <TabsContent value="my-productivity" className=""
           {/* Resumo Geral */}
@@ -199,51 +182,47 @@ export default function ProductivityReports() {
               <CardContent className=""
                 <div className=""
                   <div>
-                    <p className="text-sm text-gray-600">Total de Atividades</p>
-                    <p className="text-2xl font-bold">{summary.totalActivities}</p>
+                    <p className="text-lg">"Total de Atividades</p>
+                    <p className="text-lg">"{summary.totalActivities}</p>
                   </div>
                   <Activity className="h-8 w-8 text-blue-500" />
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardContent className=""
                 <div className=""
                   <div>
-                    <p className="text-sm text-gray-600">Tempo Total</p>
-                    <p className="text-2xl font-bold">{formatDuration(summary.totalTimeSeconds)}</p>
+                    <p className="text-lg">"Tempo Total</p>
+                    <p className="text-lg">"{formatDuration(summary.totalTimeSeconds)}</p>
                   </div>
                   <Clock className="h-8 w-8 text-green-500" />
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardContent className=""
                 <div className=""
                   <div>
-                    <p className="text-sm text-gray-600">Tempo Médio por Atividade</p>
-                    <p className="text-2xl font-bold">{formatDuration(summary.averageSessionTime)}</p>
+                    <p className="text-lg">"Tempo Médio por Atividade</p>
+                    <p className="text-lg">"{formatDuration(summary.averageSessionTime)}</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-purple-500" />
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardContent className=""
                 <div className=""
                   <div>
-                    <p className="text-sm text-gray-600">Dias Ativos</p>
-                    <p className="text-2xl font-bold">{Object.keys(summary.dailyBreakdown).length}</p>
+                    <p className="text-lg">"Dias Ativos</p>
+                    <p className="text-lg">"{Object.keys(summary.dailyBreakdown).length}</p>
                   </div>
                   <Calendar className="h-8 w-8 text-orange-500" />
                 </div>
               </CardContent>
             </Card>
           </div>
-
           {/* Atividades por Tipo */}
           <Card>
             <CardHeader>
@@ -253,7 +232,7 @@ export default function ProductivityReports() {
               {myProductivityLoading ? (
                 <div className=""
                   {[1, 2, 3].map(i => (
-                    <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                    <div key={i} className="text-lg">"</div>
                   ))}
                 </div>
               ) : (
@@ -262,16 +241,16 @@ export default function ProductivityReports() {
                     Object.entries(summary.activitiesByType).map(([type, data]) => (
                       <div key={type} className=""
                         <div className=""
-                          <div className="w-4 h-4 rounded ""></div>
+                          <div className="w-4 h-4 rounded "</div>
                           <div>
-                            <div className="font-medium">{getActivityTypeLabel(type)}</div>
+                            <div className="text-lg">"{getActivityTypeLabel(type)}</div>
                             <div className=""
                               {data.count} atividades • {formatDuration(data.avgTime)} média
                             </div>
                           </div>
                         </div>
                         <div className=""
-                          <div className="font-medium">{formatDuration(data.totalTime)}</div>
+                          <div className="text-lg">"{formatDuration(data.totalTime)}</div>
                           <Badge variant="secondary>
                             {formatPercentage(data.totalTime, summary.totalTimeSeconds)}
                           </Badge>
@@ -287,7 +266,6 @@ export default function ProductivityReports() {
               )}
             </CardContent>
           </Card>
-
           {/* Breakdown Diário */}
           <Card>
             <CardHeader>
@@ -326,7 +304,6 @@ export default function ProductivityReports() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Produtividade da Equipe */}
         <TabsContent value="team-productivity" className=""
           <Card>
@@ -337,7 +314,7 @@ export default function ProductivityReports() {
               {teamProductivityLoading ? (
                 <div className=""
                   {[1, 2, 3].map(i => (
-                    <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                    <div key={i} className="text-lg">"</div>
                   ))}
                 </div>
               ) : (
@@ -349,14 +326,14 @@ export default function ProductivityReports() {
                           {index + 1}
                         </div>
                         <div>
-                          <div className="font-medium">Usuário {user.userId.substring(0, 8)}</div>
+                          <div className="text-lg">"Usuário {user.userId.substring(0, 8)}</div>
                           <div className=""
                             {user.totalActivities} atividades
                           </div>
                         </div>
                       </div>
                       <div className=""
-                        <div className="font-medium">{formatDuration(user.totalTime)}</div>
+                        <div className="text-lg">"{formatDuration(user.totalTime)}</div>
                         <div className=""
                           {Math.floor(user.totalTime / user.totalActivities)}s/atividade
                         </div>

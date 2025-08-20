@@ -10,14 +10,12 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import MapSelector from './MapSelector';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface CustomerLocationManagerProps {
   customerId: string;
   isOpen: boolean;
   onClose: () => void;
   onAddNewLocation: () => void;
 }
-
 interface CustomerLocation {
   locationId: string;
   isPrimary: boolean;
@@ -36,7 +34,6 @@ interface CustomerLocation {
     longitude?: string;
   };
 }
-
 export function CustomerLocationManager({
   // Localization temporarily disabled
  
@@ -48,19 +45,16 @@ export function CustomerLocationManager({
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Fetch customer locations
   const { data: customerLocationsData, isLoading: isLoadingCustomerLocations } = useQuery({
     queryKey: ["/locations`],
     enabled: isOpen && !!customerId,
   });
-
   // Fetch all available locations
   const { data: allLocationsData, isLoading: isLoadingAllLocations } = useQuery({
     queryKey: ['/api/locations'],
     enabled: isOpen,
   });
-
   const customerLocations: CustomerLocation[] = customerLocationsData?.data || [];
   const allLocations = Array.isArray(allLocationsData?.data) ? allLocationsData.data : [];
   
@@ -68,7 +62,6 @@ export function CustomerLocationManager({
   const availableLocations = allLocations.filter(
     (location: any) => !customerLocations.find(cl => cl.locationId === location.id)
   );
-
   // Add location mutation
   const addLocationMutation = useMutation({
     mutationFn: async ({ locationId, isPrimary }: { locationId: string; isPrimary: boolean }) => {
@@ -90,7 +83,6 @@ export function CustomerLocationManager({
       });
     }
   });
-
   // Remove location mutation
   const removeLocationMutation = useMutation({
     mutationFn: async (locationId: string) => {
@@ -115,7 +107,6 @@ export function CustomerLocationManager({
       });
     }
   });
-
   // Set primary location mutation
   const setPrimaryMutation = useMutation({
     mutationFn: async (locationId: string) => {
@@ -138,7 +129,6 @@ export function CustomerLocationManager({
       });
     }
   });
-
   const handleAddLocation = () => {
     if (!selectedLocationId) {
       toast({
@@ -148,11 +138,9 @@ export function CustomerLocationManager({
       });
       return;
     }
-
     const isPrimary = customerLocations.length === 0; // First location is primary by default
     addLocationMutation.mutate({ locationId: selectedLocationId, isPrimary });
   };
-
   const handleRemoveLocation = (locationId: string) => {
     console.log('Removing location:', locationId);
     if (!locationId) {
@@ -165,11 +153,9 @@ export function CustomerLocationManager({
     }
     removeLocationMutation.mutate(locationId);
   };
-
   const handleSetPrimary = (locationId: string) => {
     setPrimaryMutation.mutate(locationId);
   };
-
   const getLocationTypeColor = (type: string) => {
     const colors = {
       cliente: 'bg-blue-100 text-blue-800',
@@ -180,7 +166,6 @@ export function CustomerLocationManager({
     };
     return colors[type as keyof typeof colors] || colors.cliente;
   };
-
   const getStatusColor = (status: string) => {
     const colors = {
       ativo: 'bg-green-100 text-green-800',
@@ -190,7 +175,6 @@ export function CustomerLocationManager({
     };
     return colors[status as keyof typeof colors] || colors.ativo;
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
@@ -203,12 +187,11 @@ export function CustomerLocationManager({
             Adicione ou remova localizações associadas a este cliente favorecido.
           </DialogDescription>
         </DialogHeader>
-
         <div className="space-y-6>
           {/* Add New Location Section */}
           <div className="space-y-4>
             <div className="flex items-center justify-between>
-              <h3 className="text-lg font-medium">Adicionar Nova Localização</h3>
+              <h3 className="text-lg">"Adicionar Nova Localização</h3>
               <Button
                 onClick={onAddNewLocation}
                 variant="outline"
@@ -219,7 +202,6 @@ export function CustomerLocationManager({
                 Criar Nova Localização
               </Button>
             </div>
-
             <div className="flex gap-3>
               <div className="flex-1>
                 <Select value={selectedLocationId} onValueChange={setSelectedLocationId}>
@@ -252,21 +234,19 @@ export function CustomerLocationManager({
               </Button>
             </div>
           </div>
-
           {/* Current Locations Section */}
           <div className="space-y-4>
             <h3 className="text-lg font-medium>
               Localizações Associadas ({customerLocations.length})
             </h3>
-
             {isLoadingCustomerLocations ? (
               <div className="space-y-3>
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="animate-pulse>
                     <CardContent className="p-4>
                       <div className="space-y-2>
-                        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                        <div className="text-lg">"</div>
+                        <div className="text-lg">"</div>
                       </div>
                     </CardContent>
                   </Card>
@@ -316,7 +296,6 @@ export function CustomerLocationManager({
                               {customerLocation.location?.status || 'Ativo'}
                             </Badge>
                           </div>
-
                           <div className="text-sm text-gray-600>
                             <div className="flex items-center gap-1>
                               <Navigation className="h-4 w-4" />
@@ -328,14 +307,12 @@ export function CustomerLocationManager({
                               {customerLocation.location?.city || 'Cidade'}, {customerLocation.location?.state || 'Estado'} - {customerLocation.location?.zipCode || 'CEP'}
                             </div>
                           </div>
-
                           {(customerLocation.location?.latitude && customerLocation.location?.longitude) && (
                             <div className="text-xs text-gray-500>
                               Coordenadas: {parseFloat(customerLocation.location.latitude).toFixed(6)}, {parseFloat(customerLocation.location.longitude).toFixed(6)}
                             </div>
                           )}
                         </div>
-
                         <div className="flex items-center gap-2 ml-4>
                           {!customerLocation.isPrimary && (
                             <Button

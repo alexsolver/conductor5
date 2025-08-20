@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE FRONTEND - TEMPLATE SELECTOR COMPONENT
 // React component for template selection following design patterns
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -28,7 +27,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Plus } from 'lucide-react';
-
 interface Template {
   id: string;
   name: string;
@@ -37,12 +35,10 @@ interface Template {
   category: string;
   createdAt: string;
 }
-
 interface TemplateSelectorProps {
   onSelectTemplate: (template: Template) => void;
   selectedTemplate?: string;
 }
-
 export function TemplateSelector({
   // Localization temporarily disabled
  onSelectTemplate, selectedTemplate }: TemplateSelectorProps) {
@@ -52,7 +48,6 @@ export function TemplateSelector({
   const [newTemplateContent, setNewTemplateContent] = useState('');
   const [newTemplateCategory, setNewTemplateCategory] = useState('');
   const { toast } = useToast();
-
   // Buscar templates disponíveis
   const { 
     data: templates = [], 
@@ -74,7 +69,6 @@ export function TemplateSelector({
       return result.data || [];
     }
   });
-
   const handleCreateTemplate = async () => {
     if (!newTemplateName.trim() || !newTemplateContent.trim()) {
       toast({
@@ -84,7 +78,6 @@ export function TemplateSelector({
       });
       return;
     }
-
     try {
       const response = await apiRequest('/api/knowledge-base/templates', 'POST', {
         name: newTemplateName,
@@ -92,7 +85,6 @@ export function TemplateSelector({
         content: newTemplateContent,
         category: newTemplateCategory || 'general'
       });
-
       if (response.success) {
         toast({
           title: '[TRANSLATION_NEEDED]',
@@ -113,18 +105,16 @@ export function TemplateSelector({
       });
     }
   };
-
   const handleSelectTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
     if (template) {
       onSelectTemplate(template);
     }
   };
-
   return (
     <div className="space-y-4" data-testid="template-selector>
       <div className="flex items-center justify-between>
-        <Label className="text-sm font-medium">Templates</Label>
+        <Label className="text-lg">"Templates</Label>
         
         <Dialog open={newTemplateOpen} onOpenChange={setNewTemplateOpen}>
           <DialogTrigger asChild>
@@ -212,15 +202,14 @@ export function TemplateSelector({
           </DialogContent>
         </Dialog>
       </div>
-
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Carregando templates...</div>
+        <div className="text-lg">"Carregando templates...</div>
       ) : templates.length === 0 ? (
         <Card>
           <CardContent className="pt-6>
             <div className="text-center text-muted-foreground>
               <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Nenhum template disponível</p>
+              <p className="text-lg">"Nenhum template disponível</p>
             </div>
           </CardContent>
         </Card>
@@ -243,11 +232,10 @@ export function TemplateSelector({
               ))}
             </SelectContent>
           </Select>
-
           {selectedTemplate && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Preview do Template</CardTitle>
+                <CardTitle className="text-lg">"Preview do Template</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-xs text-muted-foreground whitespace-pre-wrap max-h-32 overflow-y-auto>

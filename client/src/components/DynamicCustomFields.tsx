@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, AlertCircle } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface CustomFieldMetadata {
   id: string;
   moduleType: string;
@@ -24,7 +22,6 @@ interface CustomFieldMetadata {
   displayOrder: number;
   isActive: boolean;
 }
-
 interface DynamicCustomFieldsProps {
   moduleType: 'customers' | 'tickets' | 'beneficiaries' | 'materials' | 'services' | 'locations';
   entityId?: string;
@@ -33,10 +30,8 @@ interface DynamicCustomFieldsProps {
   readOnly?: boolean;
   className?: string;
 }
-
 const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
   // Localization temporarily disabled
-
   moduleType,
   entityId,
   values = {},
@@ -45,7 +40,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
   className = ''
 }) => {
   const [fieldValues, setFieldValues] = useState<Record<string, any>>(values);
-
   // Fetch custom fields for the module
   const { data: fields = [], isLoading, error } = useQuery({
     queryKey: ['custom-fields', moduleType],
@@ -62,7 +56,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
       return data.data || [];
     }
   });
-
   // Fetch entity values if entityId is provided
   const { data: entityValues } = useQuery({
     queryKey: ['custom-field-values', moduleType, entityId],
@@ -85,13 +78,11 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
     },
     enabled: !!entityId
   });
-
   useEffect(() => {
     if (entityValues) {
       setFieldValues(prev => ({ ...prev, ...entityValues }));
     }
   }, [entityValues]);
-
   const handleFieldChange = (fieldId: string, value: any) => {
     const newValues = { ...fieldValues, [fieldId]: value };
     setFieldValues(newValues);
@@ -100,14 +91,12 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
       onChange(fieldId, value);
     }
   };
-
   const renderField = (field: CustomFieldMetadata) => {
     const value = fieldValues[field.id];
     const fieldProps = {
       disabled: readOnly,
       required: field.isRequired
     };
-
     switch (field.fieldType) {
       case 'text':
       case 'email':
@@ -121,7 +110,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
             placeholder={field.fieldOptions?.placeholder || ''}
           />
         );
-
       case 'number':
         return (
           <Input
@@ -133,7 +121,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
             max={field.validationRules?.max}
           />
         );
-
       case 'textarea':
         return (
           <Textarea
@@ -144,7 +131,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
             placeholder={field.fieldOptions?.placeholder || ''}
           />
         );
-
       case 'select':
         return (
           <Select
@@ -164,7 +150,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
             </SelectContent>
           </Select>
         );
-
       case 'boolean':
         return (
           <div className="flex items-center space-x-2>
@@ -176,7 +161,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
             <Label>{field.fieldOptions?.checkboxLabel || 'Sim'}</Label>
           </div>
         );
-
       case 'date':
         return (
           <Input
@@ -186,7 +170,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
             onChange={(e) => handleFieldChange(field.id, e.target.value)}
           />
         );
-
       case 'multiselect':
         const selectedValues = Array.isArray(value) ? value : [];
         return (
@@ -208,7 +191,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
             ))}
           </div>
         );
-
       default:
         return (
           <div className="text-sm text-gray-500>
@@ -217,7 +199,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
         );
     }
   };
-
   if (isLoading) {
     return (
       <Card className="p-4>
@@ -228,7 +209,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
       </Card>
     );
   }
-
   if (error) {
     return (
       <Card className="border-red-200 bg-red-50>
@@ -243,7 +223,6 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
       </Card>
     );
   }
-
   if (fields.length === 0) {
     return (
       <Card className="border-gray-200 bg-gray-50>
@@ -255,9 +234,8 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
       </Card>
     );
   }
-
   return (
-    <div className="space-y-4 ">
+    <div className="text-lg">"
       {fields.map((field: CustomFieldMetadata) => (
         <div key={field.id} className="space-y-1>
           <div className="flex items-center gap-2>
@@ -281,5 +259,4 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
     </div>
   );
 };
-
 export default DynamicCustomFields;

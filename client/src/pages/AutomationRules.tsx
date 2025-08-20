@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,10 +35,8 @@ import {
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-
 const automationRuleSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string(),
   enabled: z.boolean().default(true),
@@ -56,9 +53,7 @@ const automationRuleSchema = z.object({
     params: z.record(z.any())
   })).min(1, 'Pelo menos uma ação é necessária')
 });
-
 type AutomationRuleForm = z.infer<typeof automationRuleSchema>;
-
 export default function AutomationRules() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -66,13 +61,11 @@ export default function AutomationRules() {
   const [selectedRule, setSelectedRule] = useState<any>(null);
   const [testData, setTestData] = useState('{}');
   const [loadingError, setLoadingError] = useState<string | null>(null);
-
   // Debug log para verificar se o componente está montando
   useEffect(() => {
     console.log('🤖 [AutomationRules] Component mounted');
     return () => console.log('🤖 [AutomationRules] Component unmounted');
   }, []);
-
   const form = useForm<AutomationRuleForm>({
     resolver: zodResolver(automationRuleSchema),
     defaultValues: {
@@ -84,7 +77,6 @@ export default function AutomationRules() {
       actions: [{ type: 'send_message', target: 'telegram', params: {} }]
     }
   });
-
   // Buscar regras de automação
   const { data: rulesData, isLoading, error: rulesError } = useQuery({
     queryKey: ['automation-rules'],
@@ -126,7 +118,6 @@ export default function AutomationRules() {
       setLoadingError(null);
     }
   });
-
   // Buscar métricas
   const { data: metricsData, error: metricsError } = useQuery({
     queryKey: ['automation-metrics'],
@@ -140,7 +131,6 @@ export default function AutomationRules() {
       console.log('✅ [AutomationRules] Metrics loaded successfully:', data);
     }
   });
-
   // Mutation para criar regra
   const createRuleMutation = useMutation({
     mutationFn: (data: AutomationRuleForm) =>
@@ -166,7 +156,6 @@ export default function AutomationRules() {
       });
     }
   });
-
   // Mutation para deletar regra
   const deleteRuleMutation = useMutation({
     mutationFn: (ruleId: string) =>
@@ -180,7 +169,6 @@ export default function AutomationRules() {
       });
     }
   });
-
   // Mutation para testar regra
   const testRuleMutation = useMutation({
     mutationFn: ({ ruleId, testData }: { ruleId: string; testData: any }) =>
@@ -196,11 +184,9 @@ export default function AutomationRules() {
       });
     }
   });
-
   const handleSubmit = (data: AutomationRuleForm) => {
     createRuleMutation.mutate(data);
   };
-
   const handleTestRule = (ruleId: string) => {
     try {
       const parsedTestData = JSON.parse(testData);
@@ -213,7 +199,6 @@ export default function AutomationRules() {
       });
     }
   };
-
   const addCondition = () => {
     const currentConditions = form.getValues('conditions');
     form.setValue('conditions', [
@@ -221,7 +206,6 @@ export default function AutomationRules() {
       { field: 'message', operator: 'contains', value: '', logicalOperator: 'AND' }
     ]);
   };
-
   const addAction = () => {
     const currentActions = form.getValues('actions');
     form.setValue('actions', [
@@ -229,7 +213,6 @@ export default function AutomationRules() {
       { type: 'send_message', target: 'telegram', params: {} }
     ]);
   };
-
   // Fallback de dados para desenvolvimento se API falhar
   const mockRules = [];
   const mockMetrics = {
@@ -240,7 +223,6 @@ export default function AutomationRules() {
     successRate: 100,
     avgExecutionTime: 0
   };
-
   // Verificações robustas de segurança para evitar undefined errors
   const rules = useMemo(() => {
     try {
@@ -256,7 +238,6 @@ export default function AutomationRules() {
       return mockRules;
     }
   }, [rulesData]);
-
   const metrics = useMemo(() => {
     try {
       if (metricsData?.metrics && typeof metricsData.metrics === 'object') {
@@ -271,7 +252,6 @@ export default function AutomationRules() {
       return mockMetrics;
     }
   }, [metricsData]);
-
   // Validação robusta para evitar erros de includes e undefined
   const safeRules = useMemo(() => {
     console.log('🔍 [AutomationRules] Processing rules data:', { rules, type: typeof rules, isArray: Array.isArray(rules) });
@@ -314,7 +294,6 @@ export default function AutomationRules() {
     console.log('✅ [AutomationRules] Total processed rules:', processedRules.length);
     return processedRules;
   }, [rules]);
-
   // Early return se houver erro crítico
   if (loadingError || rulesError) {
     return (
@@ -322,7 +301,7 @@ export default function AutomationRules() {
         <div className=""
           <div className=""
             <AlertTriangle className="h-12 w-12 mx-auto text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Erro ao Carregar Página</h3>
+            <h3 className="text-lg">"Erro ao Carregar Página</h3>
             <p className=""
               {loadingError || rulesError?.message || 'Não foi possível carregar as regras de automação'}
             </p>
@@ -357,18 +336,16 @@ export default function AutomationRules() {
       </div>
     );
   }
-
   console.log('🤖 [AutomationRules] Rendering with data:', { 
     rulesCount: rules.length, 
     metricsLoaded: !!metricsData,
     isLoading 
   });
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">🤖 Regras de Automação</h2>
+          <h2 className="text-lg">"🤖 Regras de Automação</h2>
           <p className=""
             Configure regras inteligentes para automatizar o roteamento e resposta de mensagens
           </p>
@@ -403,7 +380,6 @@ export default function AutomationRules() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="priority"
@@ -425,7 +401,6 @@ export default function AutomationRules() {
                     )}
                   />
                 </div>
-
                 <FormField
                   control={form.control}
                   name="description"
@@ -439,14 +414,13 @@ export default function AutomationRules() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="enabled"
                   render={({ field }) => (
                     <FormItem className=""
                       <div className=""
-                        <FormLabel className="text-base">Regra Ativa</FormLabel>
+                        <FormLabel className="text-lg">"Regra Ativa</FormLabel>
                         <FormDescription>
                           A regra será executada automaticamente quando ativa
                         </FormDescription>
@@ -460,21 +434,19 @@ export default function AutomationRules() {
                     </FormItem>
                   )}
                 />
-
                 {/* Condições */}
                 <div className=""
                   <div className=""
-                    <Label className="text-base font-medium">🎯 Condições (IF)</Label>
+                    <Label className="text-lg">"🎯 Condições (IF)</Label>
                     <Button type="button" variant="outline" size="sm" onClick={addCondition}>
                       <Plus className="mr-2 h-4 w-4" />
                       Adicionar Condição
                     </Button>
                   </div>
-
                   {(form.watch('conditions') || []).map((_, index) => (
                     <div key={index} className=""
                       <div className=""
-                        <Label className="text-xs">Campo</Label>
+                        <Label className="text-lg">"Campo</Label>
                         <Select
                           value={form.watch(".field`)}
                           onValueChange={(value) => form.setValue(".field`, value)}
@@ -492,9 +464,8 @@ export default function AutomationRules() {
                           </SelectContent>
                         </Select>
                       </div>
-
                       <div className=""
-                        <Label className="text-xs">Operador</Label>
+                        <Label className="text-lg">"Operador</Label>
                         <Select
                           value={form.watch(".operator`)}
                           onValueChange={(value) => form.setValue(".operator`, value)}
@@ -513,9 +484,8 @@ export default function AutomationRules() {
                           </SelectContent>
                         </Select>
                       </div>
-
                       <div className=""
-                        <Label className="text-xs">Valor</Label>
+                        <Label className="text-lg">"Valor</Label>
                         <Input
                           className="h-8"
                           placeholder="Valor para comparação"
@@ -523,9 +493,8 @@ export default function AutomationRules() {
                           onChange={(e) => form.setValue(".value`, e.target.value)}
                         />
                       </div>
-
                       <div className=""
-                        <Label className="text-xs">Lógica</Label>
+                        <Label className="text-lg">"Lógica</Label>
                         <Select
                           value={form.watch(".logicalOperator`) || 'AND'}
                           onValueChange={(value) => form.setValue(".logicalOperator`, value)}
@@ -542,21 +511,19 @@ export default function AutomationRules() {
                     </div>
                   ))}
                 </div>
-
                 {/* Ações */}
                 <div className=""
                   <div className=""
-                    <Label className="text-base font-medium">⚡ Ações (THEN)</Label>
+                    <Label className="text-lg">"⚡ Ações (THEN)</Label>
                     <Button type="button" variant="outline" size="sm" onClick={addAction}>
                       <Plus className="mr-2 h-4 w-4" />
                       Adicionar Ação
                     </Button>
                   </div>
-
                   {(form.watch('actions') || []).map((_, index) => (
                     <div key={index} className=""
                       <div className=""
-                        <Label className="text-xs">Tipo de Ação</Label>
+                        <Label className="text-lg">"Tipo de Ação</Label>
                         <Select
                           value={form.watch(".type`)}
                           onValueChange={(value) => form.setValue(".type`, value)}
@@ -574,9 +541,8 @@ export default function AutomationRules() {
                           </SelectContent>
                         </Select>
                       </div>
-
                       <div className=""
-                        <Label className="text-xs">Destino</Label>
+                        <Label className="text-lg">"Destino</Label>
                         <Input
                           className="h-8"
                           placeholder="Ex: telegram, manager, high_priority"
@@ -584,9 +550,8 @@ export default function AutomationRules() {
                           onChange={(e) => form.setValue(".target`, e.target.value)}
                         />
                       </div>
-
                       <div className=""
-                        <Label className="text-xs">Parâmetros (JSON)</Label>
+                        <Label className="text-lg">"Parâmetros (JSON)</Label>
                         <Input
                           className="h-8"
                           placeholder='{"message": "Auto-resposta"}'
@@ -604,7 +569,6 @@ export default function AutomationRules() {
                     </div>
                   ))}
                 </div>
-
                 <div className=""
                   <Button type="submit" disabled={createRuleMutation.isPending}>
                     {createRuleMutation.isPending ? '🔄 Criando...' : '✅ Criar Regra'}
@@ -618,62 +582,57 @@ export default function AutomationRules() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Métricas */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Regras</CardTitle>
+            <CardTitle className="text-lg">"Total de Regras</CardTitle>
             <Bot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.rulesCount || 0}</div>
+            <div className="text-lg">"{metrics.rulesCount || 0}</div>
             <p className=""
               {metrics.enabledRulesCount || 0} ativas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Regras Executadas</CardTitle>
+            <CardTitle className="text-lg">"Regras Executadas</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.rulesExecuted || 0}</div>
+            <div className="text-lg">"{metrics.rulesExecuted || 0}</div>
             <p className=""
               Total executadas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Ações Disparadas</CardTitle>
+            <CardTitle className="text-lg">"Ações Disparadas</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.actionsTriggered || 0}</div>
+            <div className="text-lg">"{metrics.actionsTriggered || 0}</div>
             <p className=""
               Ações executadas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
+            <CardTitle className="text-lg">"Taxa de Sucesso</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.successRate || 100}%</div>
+            <div className="text-lg">"{metrics.successRate || 100}%</div>
             <p className=""
               {metrics.avgExecutionTime || 0}ms média
             </p>
           </CardContent>
         </Card>
       </div>
-
       {/* Lista de Regras */}
       <Card>
         <CardHeader>
@@ -685,8 +644,8 @@ export default function AutomationRules() {
         <CardContent>
           {isLoading ? (
             <div className=""
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Carregando regras de automação...</p>
+              <div className="text-lg">"</div>
+              <p className="text-lg">"Carregando regras de automação...</p>
               <p className=""
                 Conectando com o serviço de automação...
               </p>
@@ -694,7 +653,7 @@ export default function AutomationRules() {
           ) : rules.length === 0 ? (
             <div className=""
               <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Nenhuma regra de automação configurada</p>
+              <p className="text-lg">"Nenhuma regra de automação configurada</p>
               <p className=""
                 Crie sua primeira regra para automatizar o processamento de mensagens
               </p>
@@ -708,12 +667,10 @@ export default function AutomationRules() {
                     console.warn(":`, rule);
                     return null;
                   }
-
                   if (!rule.id) {
                     console.warn(":`, rule);
                     return null;
                   }
-
                   // Garantir que todas as propriedades sejam seguras
                   const displayRule = {
                     id: String(rule.id),
@@ -735,8 +692,8 @@ export default function AutomationRules() {
                             <Pause className="h-4 w-4 text-gray-400" />
                           )}
                           <div>
-                            <p className="font-medium">{displayRule.name}</p>
-                            <p className="text-sm text-muted-foreground">{displayRule.description}</p>
+                            <p className="text-lg">"{displayRule.name}</p>
+                            <p className="text-lg">"{displayRule.description}</p>
                             <div className=""
                               <Badge variant="outline" className=""
                                 Prioridade {displayRule.priority}
@@ -754,7 +711,6 @@ export default function AutomationRules() {
                           </div>
                         </div>
                       </div>
-
                       <div className=""
                         <Button
                           variant="outline"
@@ -781,14 +737,13 @@ export default function AutomationRules() {
                 })
               ) : (
                 <div className=""
-                  <p className="text-muted-foreground">Nenhuma regra processada com segurança</p>
+                  <p className="text-lg">"Nenhuma regra processada com segurança</p>
                 </div>
               )}
             </div>
           )}
         </CardContent>
       </Card>
-
       {/* Dialog de Teste */}
       {selectedRule && (
         <Dialog open={!!selectedRule} onOpenChange={() => setSelectedRule(null)}>
@@ -810,7 +765,6 @@ export default function AutomationRules() {
                   Configure os dados que serão usados para testar a regra
                 </p>
               </div>
-
               <div className=""
                 <Button
                   onClick={() => handleTestRule(selectedRule.id)}

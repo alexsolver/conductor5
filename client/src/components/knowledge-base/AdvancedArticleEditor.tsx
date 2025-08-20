@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: ADVANCED KNOWLEDGE BASE EDITOR - CLEAN ARCHITECTURE FRONTEND
 // Componente integrado com todas as funcionalidades avançadas mantendo o React Quill
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,6 @@ import {
   Upload,
   Settings
 } from 'lucide-react';
-
 interface Article {
   id?: string;
   title: string;
@@ -47,13 +45,11 @@ interface Article {
   publishedAt?: string;
   version?: number;
 }
-
 interface AdvancedArticleEditorProps {
   articleId?: string;
   onSave?: (article: Article) => void;
   onCancel?: () => void;
 }
-
 export function AdvancedArticleEditor({
   // Localization temporarily disabled
  articleId, onSave, onCancel }: AdvancedArticleEditorProps) {
@@ -71,7 +67,6 @@ export function AdvancedArticleEditor({
   const [isDraft, setIsDraft] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Carregar artigo existente se articleId for fornecido
   const { data: existingArticle, isLoading } = useQuery({
     queryKey: ['/api/knowledge-base/articles', articleId],
@@ -89,7 +84,6 @@ export function AdvancedArticleEditor({
     },
     enabled: !!articleId
   });
-
   // Aplicar dados do artigo existente
   useEffect(() => {
     if (existingArticle) {
@@ -97,7 +91,6 @@ export function AdvancedArticleEditor({
       setIsDraft(existingArticle.status === 'draft');
     }
   }, [existingArticle]);
-
   // Mutação para salvar artigo
   const saveArticleMutation = useMutation({
     mutationFn: async (articleData: Article) => {
@@ -130,7 +123,6 @@ export function AdvancedArticleEditor({
       });
     }
   });
-
   const handleTemplateSelect = (template: any) => {
     setArticle(prev => ({
       ...prev,
@@ -143,7 +135,6 @@ export function AdvancedArticleEditor({
       description: "" foi aplicado ao artigo`
     });
   };
-
   const handleAddTag = () => {
     if (newTag.trim() && !article.tags.includes(newTag.trim())) {
       setArticle(prev => ({
@@ -153,14 +144,12 @@ export function AdvancedArticleEditor({
       setNewTag('');
     }
   };
-
   const handleRemoveTag = (tagToRemove: string) => {
     setArticle(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
   };
-
   const handleSave = () => {
     if (!article.title.trim()) {
       toast({
@@ -170,26 +159,22 @@ export function AdvancedArticleEditor({
       });
       return;
     }
-
     const articleData = {
       ...article,
       status: isDraft ? 'draft' : 'published'
     };
-
     saveArticleMutation.mutate(articleData);
   };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-96>
         <div className="text-center>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-sm text-muted-foreground">Carregando artigo...</p>
+          <div className="text-lg">"</div>
+          <p className="text-lg">"Carregando artigo...</p>
         </div>
       </div>
     );
   }
-
   return (
     <div className="space-y-6" data-testid="advanced-article-editor>
       {/* Header com ações principais */}
@@ -233,7 +218,6 @@ export function AdvancedArticleEditor({
           </Button>
         </div>
       </div>
-
       <Tabs defaultValue="content" className="w-full>
         <TabsList className="grid w-full grid-cols-4>
           <TabsTrigger value="content>
@@ -253,7 +237,6 @@ export function AdvancedArticleEditor({
             Versões
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="content" className="space-y-6>
           {/* Seletor de Templates */}
           <Card>
@@ -270,7 +253,6 @@ export function AdvancedArticleEditor({
               />
             </CardContent>
           </Card>
-
           {/* Editor Principal */}
           <Card>
             <CardHeader>
@@ -286,7 +268,6 @@ export function AdvancedArticleEditor({
               />
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Conteúdo</CardTitle>
@@ -304,7 +285,6 @@ export function AdvancedArticleEditor({
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="metadata" className="space-y-6>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
             <Card>
@@ -329,7 +309,6 @@ export function AdvancedArticleEditor({
                 </Select>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Visibilidade</CardTitle>
@@ -368,7 +347,6 @@ export function AdvancedArticleEditor({
               </CardContent>
             </Card>
           </div>
-
           <Card>
             <CardHeader>
               <CardTitle>Tags</CardTitle>
@@ -412,7 +390,6 @@ export function AdvancedArticleEditor({
               )}
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Resumo Automático</CardTitle>
@@ -431,7 +408,6 @@ export function AdvancedArticleEditor({
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="comments>
           {articleId ? (
             <CommentsSection articleId={articleId} />
@@ -446,7 +422,6 @@ export function AdvancedArticleEditor({
             </Card>
           )}
         </TabsContent>
-
         <TabsContent value="versions>
           {articleId ? (
             <Card>
@@ -460,7 +435,7 @@ export function AdvancedArticleEditor({
                 <div className="text-center text-muted-foreground py-8>
                   <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>Funcionalidade de versionamento implementada</p>
-                  <p className="text-sm">Versões são criadas automaticamente a cada atualização</p>
+                  <p className="text-lg">"Versões são criadas automaticamente a cada atualização</p>
                 </div>
               </CardContent>
             </Card>

@@ -16,20 +16,16 @@ import { Plus, Users, Building, Settings, BarChart3, Shield } from "lucide-react
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 // import useLocalization from '@/hooks/useLocalization';
-
 const createTenantSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Nome é obrigatório"),
   subdomain: z.string().min(1, "Subdomínio é obrigatório").regex(/^[a-z0-9-]+$/, "Subdomínio deve conter apenas letras minúsculas, números e hífens"),
   settings: z.object({}).optional()
 });
-
 export default function SaasAdmin() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
@@ -44,25 +40,21 @@ export default function SaasAdmin() {
       </div>
     );
   }
-
   // Query para listar tenants
   const { data: tenantsData, isLoading: isLoadingTenants } = useQuery({
     queryKey: ['/api/saas-admin/tenants'],
     staleTime: 5 * 60 * 1000,
   });
-
   // Query para analytics da plataforma
   const { data: analyticsData } = useQuery({
     queryKey: ['/api/saas-admin/analytics'],
     staleTime: 2 * 60 * 1000,
   });
-
   // Query para lista de usuários
   const { data: usersData } = useQuery({
     queryKey: ['/api/saas-admin/users'],
     staleTime: 5 * 60 * 1000,
   });
-
   // Form para criar tenant
   const form = useForm({
     resolver: zodResolver(createTenantSchema),
@@ -72,7 +64,6 @@ export default function SaasAdmin() {
       settings: {}
     }
   });
-
   // Mutation para criar tenant
   const createTenantMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createTenantSchema>) => {
@@ -96,11 +87,9 @@ export default function SaasAdmin() {
       });
     }
   });
-
   const onSubmit = (data: z.infer<typeof createTenantSchema>) => {
     createTenantMutation.mutate(data);
   };
-
   return (
     <div className=""
       {/* Header */}
@@ -166,12 +155,11 @@ export default function SaasAdmin() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Analytics Cards */}
       <div className=""
         <Card className=""
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium text-white">Total Tenants</CardTitle>
+            <CardTitle className="text-lg">"Total Tenants</CardTitle>
             <Building className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
@@ -180,10 +168,9 @@ export default function SaasAdmin() {
             </div>
           </CardContent>
         </Card>
-
         <Card className=""
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium text-white">Total Usuários</CardTitle>
+            <CardTitle className="text-lg">"Total Usuários</CardTitle>
             <Users className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
@@ -192,10 +179,9 @@ export default function SaasAdmin() {
             </div>
           </CardContent>
         </Card>
-
         <Card className=""
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium text-white">Total Tickets</CardTitle>
+            <CardTitle className="text-lg">"Total Tickets</CardTitle>
             <BarChart3 className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
@@ -204,10 +190,9 @@ export default function SaasAdmin() {
             </div>
           </CardContent>
         </Card>
-
         <Card className=""
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium text-white">Usuários Ativos</CardTitle>
+            <CardTitle className="text-lg">"Usuários Ativos</CardTitle>
             <Users className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
@@ -217,7 +202,6 @@ export default function SaasAdmin() {
           </CardContent>
         </Card>
       </div>
-
       {/* Tenants and Users Tables */}
       <div className=""
         {/* Tenants Table */}
@@ -231,23 +215,23 @@ export default function SaasAdmin() {
           <CardContent>
             {isLoadingTenants ? (
               <div className=""
-                <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="text-lg">"</div>
               </div>
             ) : (
               <div className=""
                 {tenantsData?.tenants?.map((tenant: any) => (
                   <div key={tenant.id} className=""
                     <div className=""
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{tenant.name}</h3>
-                      <Badge className="bg-green-100 text-green-700">Ativo</Badge>
+                      <h3 className="text-lg">"{tenant.name}</h3>
+                      <Badge className="text-lg">"Ativo</Badge>
                     </div>
                     <div className=""
                       <div className=""
-                        <span className="font-medium mr-2">Subdomínio:</span>
+                        <span className="text-lg">"Subdomínio:</span>
                         <Badge variant="outline">{tenant.subdomain}</Badge>
                       </div>
                       <div>
-                        <span className="font-medium mr-2">Criado em:</span>
+                        <span className="text-lg">"Criado em:</span>
                         {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
@@ -263,7 +247,6 @@ export default function SaasAdmin() {
             )}
           </CardContent>
         </Card>
-
         {/* Users Table */}
         <Card>
           <CardHeader>
@@ -291,14 +274,14 @@ export default function SaasAdmin() {
                     <div className=""
                       <div>{user.email}</div>
                       <div>
-                        <span className="font-medium mr-2">Status:</span>
+                        <span className="text-lg">"Status:</span>
                         <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700>
                           {user.isActive ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </div>
                       {user.lastLoginAt && (
                         <div>
-                          <span className="font-medium mr-2">Último login:</span>
+                          <span className="text-lg">"Último login:</span>
                           {new Date(user.lastLoginAt).toLocaleDateString('pt-BR')}
                         </div>
                       )}
@@ -313,7 +296,7 @@ export default function SaasAdmin() {
               </div>
             ) : (
               <div className=""
-                <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="text-lg">"</div>
               </div>
             )}
           </CardContent>

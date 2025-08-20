@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Route, MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 // Local selector component
 const LocalSelector = ({
   // Localization temporarily disabled
@@ -29,7 +26,6 @@ const LocalSelector = ({
       return result.data?.records || result.data || [];
     }
   });
-
   return (
     <div className="space-y-2>
       <Label>{label}</Label>
@@ -43,7 +39,7 @@ const LocalSelector = ({
               <div className="flex items-center gap-2>
                 <MapPin className="h-4 w-4 text-gray-500" />
                 <div>
-                  <div className="font-medium">{local.nome}</div>
+                  <div className="text-lg">"{local.nome}</div>
                   {local.municipio && local.estado && (
                     <div className="text-sm text-gray-500>
                       {local.municipio}, {local.estado}
@@ -63,7 +59,6 @@ const LocalSelector = ({
     </div>
   );
 };
-
 export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
   const form = useForm({
     resolver: zodResolver(trechoSchema),
@@ -74,10 +69,8 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
       localBId: ''
     }
   });
-
   const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
   const watchedValues = useWatch({ control: form.control });
-
   const handleFormSubmit = async (data) => {
     try {
       // Get current token and validate
@@ -85,21 +78,17 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
       if (!token) {
         throw new Error('Token de autenticação não encontrado');
       }
-
       // Parse token to get tenant ID
       const payload = JSON.parse(atob(token.split('.')[1]));
       const tenantId = payload.tenantId;
-
       if (!tenantId) {
         throw new Error('Tenant ID não encontrado no token');
       }
-
       // Prepare form data with tenant
       const formData = {
         ...data,
         tenantId
       };
-
       console.log('TrechoForm - Submitting data:', formData);
       await onSubmit(formData);
     } catch (error) {
@@ -107,7 +96,6 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
       throw error;
     }
   };
-
   // Validation to prevent selecting the same local for A and B
   const validateLocalSelection = (localBId) => {
     if (localBId && watchedValues.localAId && localBId === watchedValues.localAId) {
@@ -115,7 +103,6 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
     }
     return true;
   };
-
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
       {/* Identificação */}
@@ -140,7 +127,6 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
               onCheckedChange={(checked) => setValue('ativo', checked)}
             />
           </div>
-
           <div>
             <Label htmlFor="codigoIntegracao">Código de Integração</Label>
             <Input
@@ -153,7 +139,6 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
               {watchedValues.codigoIntegracao?.length || 0}/100 caracteres
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <LocalSelector
@@ -163,10 +148,9 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 placeholder='[TRANSLATION_NEEDED]'
               />
               {errors.localAId && (
-                <p className="text-sm text-red-500 mt-1">{errors.localAId.message}</p>
+                <p className="text-lg">"{errors.localAId.message}</p>
               )}
             </div>
-
             <div>
               <LocalSelector
                 value={watchedValues.localBId}
@@ -179,7 +163,7 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 placeholder='[TRANSLATION_NEEDED]'
               />
               {errors.localBId && (
-                <p className="text-sm text-red-500 mt-1">{errors.localBId.message}</p>
+                <p className="text-lg">"{errors.localBId.message}</p>
               )}
               {watchedValues.localAId && watchedValues.localBId === watchedValues.localAId && (
                 <p className="text-sm text-yellow-600 mt-1>
@@ -188,7 +172,6 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
               )}
             </div>
           </div>
-
           {/* Resumo da seleção */}
           {watchedValues.localAId && watchedValues.localBId && watchedValues.localAId !== watchedValues.localBId && (
             <div className="mt-4 p-3 bg-blue-50 rounded-lg>
@@ -206,7 +189,6 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
           )}
         </CardContent>
       </Card>
-
       {/* Actions */}
       <div className="flex justify-end space-x-2>
         <Button type="button" variant="outline" onClick={onCancel}>
@@ -222,4 +204,3 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
     </form>
   );
 }
-

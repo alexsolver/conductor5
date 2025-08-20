@@ -4,12 +4,10 @@
  * ✅ REAL DATA: Using PostgreSQL database with proper authentication
  * ✅ COMPLETE IMPLEMENTATION: All requested features following specifications
  */
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, FileText, CreditCard, DollarSign, Clock, CheckCircle, XCircle, AlertTriangle, Filter, Search, Eye, Edit, Trash2, Download, Upload, Target, Users, Settings, BarChart3 } from 'lucide-react';
 // import useLocalization from '@/hooks/useLocalization';
-
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,26 +19,21 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-
 // Form Validation
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
-
 // Validation Schemas
 const createExpenseReportSchema = z.object({
   // Localization temporarily disabled
-
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   departmentId: z.string().optional(),
   costCenterId: z.string().optional(),
   projectId: z.string().optional()
 });
-
 type CreateExpenseReportData = z.infer<typeof createExpenseReportSchema>;
-
 // Status badge styling
 const getStatusBadge = (status: string) => {
   const styles = {
@@ -52,7 +45,6 @@ const getStatusBadge = (status: string) => {
     paid: 'bg-purple-100 text-purple-700 border-purple-200',
     cancelled: 'bg-gray-100 text-gray-500 border-gray-200'
   };
-
   const labels = {
     draft: 'Rascunho',
     submitted: 'Submetido',
@@ -62,20 +54,17 @@ const getStatusBadge = (status: string) => {
     paid: 'Pago',
     cancelled: '[TRANSLATION_NEEDED]'
   };
-
   return (
     <Badge className={styles[status as keyof typeof styles] || styles.draft}>
       {labels[status as keyof typeof labels] || status}
     </Badge>
   );
 };
-
 // Create Expense Report Dialog
 function CreateExpenseReportDialog() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const form = useForm<CreateExpenseReportData>({
     resolver: zodResolver(createExpenseReportSchema),
     defaultValues: {
@@ -86,7 +75,6 @@ function CreateExpenseReportDialog() {
       projectId: ''
     }
   });
-
   const createMutation = useMutation({
     mutationFn: async (data: CreateExpenseReportData) => {
       return apiRequest('POST', '/api/expense-approval/reports', data);
@@ -110,11 +98,9 @@ function CreateExpenseReportDialog() {
       });
     }
   });
-
   const onSubmit = (data: CreateExpenseReportData) => {
     createMutation.mutate(data);
   };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -132,7 +118,6 @@ function CreateExpenseReportDialog() {
             Configure os dados básicos do relatório de despesas corporativas
           </DialogDescription>
         </DialogHeader>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className=""
             <FormField
@@ -152,7 +137,6 @@ function CreateExpenseReportDialog() {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="description"
@@ -170,7 +154,6 @@ function CreateExpenseReportDialog() {
                 </FormItem>
               )}
             />
-
             <div className=""
               <FormField
                 control={form.control}
@@ -196,7 +179,6 @@ function CreateExpenseReportDialog() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="costCenterId"
@@ -221,7 +203,6 @@ function CreateExpenseReportDialog() {
                 )}
               />
             </div>
-
             <FormField
               control={form.control}
               name="projectId"
@@ -244,7 +225,6 @@ function CreateExpenseReportDialog() {
                 </FormItem>
               )}
             />
-
             <div className=""
               <Button 
                 type="button" 
@@ -269,7 +249,6 @@ function CreateExpenseReportDialog() {
     </Dialog>
   );
 }
-
 // Dashboard Metrics Component
 function DashboardMetrics() {
   const { data: metrics, isLoading } = useQuery({
@@ -283,7 +262,6 @@ function DashboardMetrics() {
       return result.data || result;
     }
   });
-
   if (isLoading) {
     return (
       <div className=""
@@ -291,8 +269,8 @@ function DashboardMetrics() {
           <Card key={i}>
             <CardContent className=""
               <div className=""
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
+                <div className="text-lg">"</div>
+                <div className="text-lg">"</div>
               </div>
             </CardContent>
           </Card>
@@ -300,7 +278,6 @@ function DashboardMetrics() {
       </div>
     );
   }
-
   const defaultMetrics = {
     totalReports: 0,
     pendingApprovals: 0,
@@ -308,7 +285,6 @@ function DashboardMetrics() {
     averageProcessingTime: 0,
     ...metrics
   };
-
   return (
     <div className=""
       <Card className=""
@@ -316,7 +292,7 @@ function DashboardMetrics() {
           <div className=""
             <FileText className="h-8 w-8 text-blue-600" />
             <div className=""
-              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total de Relatórios</p>
+              <p className="text-lg">"Total de Relatórios</p>
               <p className="text-2xl font-bold text-blue-900 dark:text-blue-100" data-testid="metric-total-reports>
                 {defaultMetrics.totalReports}
               </p>
@@ -324,13 +300,12 @@ function DashboardMetrics() {
           </div>
         </CardContent>
       </Card>
-
       <Card className=""
         <CardContent className=""
           <div className=""
             <Clock className="h-8 w-8 text-yellow-600" />
             <div className=""
-              <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">Pendentes</p>
+              <p className="text-lg">"Pendentes</p>
               <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100" data-testid="metric-pending-approvals>
                 {defaultMetrics.pendingApprovals}
               </p>
@@ -338,13 +313,12 @@ function DashboardMetrics() {
           </div>
         </CardContent>
       </Card>
-
       <Card className=""
         <CardContent className=""
           <div className=""
             <DollarSign className="h-8 w-8 text-green-600" />
             <div className=""
-              <p className="text-sm font-medium text-green-700 dark:text-green-300">Valor Total</p>
+              <p className="text-lg">"Valor Total</p>
               <p className="text-2xl font-bold text-green-900 dark:text-green-100" data-testid="metric-total-amount>
                 R$ {(defaultMetrics.totalAmount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
@@ -352,13 +326,12 @@ function DashboardMetrics() {
           </div>
         </CardContent>
       </Card>
-
       <Card className=""
         <CardContent className=""
           <div className=""
             <CheckCircle className="h-8 w-8 text-purple-600" />
             <div className=""
-              <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Tempo Médio</p>
+              <p className="text-lg">"Tempo Médio</p>
               <p className="text-2xl font-bold text-purple-900 dark:text-purple-100" data-testid="metric-avg-processing-time>
                 {defaultMetrics.averageProcessingTime || 0}h
               </p>
@@ -369,12 +342,10 @@ function DashboardMetrics() {
     </div>
   );
 }
-
 // Expense Reports List Component
 function ExpenseReportsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-
   const { data: expenseReports, isLoading, error } = useQuery({
     queryKey: ['/api/expense-approval/reports', { search: searchTerm, status: statusFilter }],
     queryFn: async () => {
@@ -383,7 +354,6 @@ function ExpenseReportsList() {
         ...(statusFilter !== 'all' && { status: statusFilter }),
         limit: '20'
       });
-
       const response = await apiRequest('GET', "
       if (!response.ok) {
         throw new Error('Falha ao carregar relatórios de despesas');
@@ -392,28 +362,26 @@ function ExpenseReportsList() {
       return result.data?.reports || result.reports || [];
     }
   });
-
   if (isLoading) {
     return (
       <Card>
         <CardContent className=""
           <div className=""
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-            <span className="ml-2 text-gray-600">Carregando relatórios...</span>
+            <div className="text-lg">"</div>
+            <span className="text-lg">"Carregando relatórios...</span>
           </div>
         </CardContent>
       </Card>
     );
   }
-
   if (error) {
     return (
       <Card>
         <CardContent className=""
           <div className=""
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Erro ao Carregar</h3>
-            <p className="text-gray-600 mb-4">Não foi possível carregar os relatórios de despesas.</p>
+            <h3 className="text-lg">"Erro ao Carregar</h3>
+            <p className="text-lg">"Não foi possível carregar os relatórios de despesas.</p>
             <Button onClick={() => window.location.reload()} variant="outline>
               Tentar Novamente
             </Button>
@@ -422,25 +390,22 @@ function ExpenseReportsList() {
       </Card>
     );
   }
-
   const filteredReports = Array.isArray(expenseReports) ? expenseReports.filter(report => {
     const matchesSearch = report.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          report.reportNumber?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || report.status === statusFilter;
     return matchesSearch && matchesStatus;
   }) : [];
-
   return (
     <Card>
       <CardHeader>
         <div className=""
           <div>
-            <CardTitle className="text-lg font-semibold">Relatórios de Despesas</CardTitle>
+            <CardTitle className="text-lg">"Relatórios de Despesas</CardTitle>
             <CardDescription>
               {filteredReports.length} relatório(s) encontrado(s)
             </CardDescription>
           </div>
-
           <div className=""
             <div className=""
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
@@ -452,7 +417,6 @@ function ExpenseReportsList() {
                 data-testid="input-search-reports"
               />
             </div>
-
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-[150px]" data-testid="select-status-filter>
                 <SelectValue placeholder="Status" />
@@ -470,12 +434,11 @@ function ExpenseReportsList() {
           </div>
         </div>
       </CardHeader>
-
       <CardContent>
         {filteredReports.length === 0 ? (
           <div className=""
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum relatório encontrado</h3>
+            <h3 className="text-lg">"Nenhum relatório encontrado</h3>
             <p className=""
               {searchTerm || statusFilter !== 'all' 
                 ? 'Tente ajustar os filtros de busca.' 
@@ -500,7 +463,7 @@ function ExpenseReportsList() {
                       {report.reportNumber || "
                     </p>
                     {report.description && (
-                      <p className="text-sm text-gray-700 mb-2">{report.description}</p>
+                      <p className="text-lg">"{report.description}</p>
                     )}
                   </div>
                   <div className=""
@@ -510,7 +473,6 @@ function ExpenseReportsList() {
                     </span>
                   </div>
                 </div>
-
                 <div className=""
                   <span>
                     Criado em {new Date(report.createdAt || new Date()).toLocaleDateString('pt-BR')}
@@ -536,7 +498,6 @@ function ExpenseReportsList() {
     </Card>
   );
 }
-
 // Main Component
 export default function CorporateExpenseManagement() {
   return (
@@ -555,10 +516,8 @@ export default function CorporateExpenseManagement() {
           <CreateExpenseReportDialog />
         </div>
       </div>
-
       {/* Dashboard Metrics */}
       <DashboardMetrics />
-
       {/* Main Content Tabs */}
       <Tabs defaultValue="reports" className=""
         <TabsList className=""
@@ -583,11 +542,9 @@ export default function CorporateExpenseManagement() {
             Analytics
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="reports>
           <ExpenseReportsList />
         </TabsContent>
-
         <TabsContent value="approvals>
           <Card>
             <CardHeader>
@@ -602,7 +559,7 @@ export default function CorporateExpenseManagement() {
             <CardContent>
               <div className=""
                 <Clock className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sistema de Aprovações</h3>
+                <h3 className="text-lg">"Sistema de Aprovações</h3>
                 <p className=""
                   Workflow hierárquico com SLA, escalonamento e audit trail completo
                 </p>
@@ -613,7 +570,6 @@ export default function CorporateExpenseManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="policies>
           <Card>
             <CardHeader>
@@ -628,7 +584,7 @@ export default function CorporateExpenseManagement() {
             <CardContent>
               <div className=""
                 <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Configuração de Políticas</h3>
+                <h3 className="text-lg">"Configuração de Políticas</h3>
                 <p className=""
                   Sistema avançado de regras com limites, blacklists e compliance
                 </p>
@@ -639,7 +595,6 @@ export default function CorporateExpenseManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="cards>
           <Card>
             <CardHeader>
@@ -654,7 +609,7 @@ export default function CorporateExpenseManagement() {
             <CardContent>
               <div className=""
                 <CreditCard className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Gestão de Cartões</h3>
+                <h3 className="text-lg">"Gestão de Cartões</h3>
                 <p className=""
                   Matching inteligente, reconciliação automática e controle de gastos
                 </p>
@@ -665,7 +620,6 @@ export default function CorporateExpenseManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="analytics>
           <Card>
             <CardHeader>
@@ -680,7 +634,7 @@ export default function CorporateExpenseManagement() {
             <CardContent>
               <div className=""
                 <BarChart3 className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Business Intelligence</h3>
+                <h3 className="text-lg">"Business Intelligence</h3>
                 <p className=""
                   Dashboards executivos, detecção de fraudes e análise de padrões
                 </p>

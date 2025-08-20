@@ -2,7 +2,6 @@
  * CompanySelector - Seletor hierárquico de empresas para regras de aprovação
  * Seguindo padrões 1qa.md e Clean Architecture
  */
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -14,7 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Building2 } from 'lucide-react';
-
 interface Company {
   id: string;
   name: string;
@@ -23,7 +21,6 @@ interface Company {
   phone?: string;
   status: string;
 }
-
 interface CompanySelectorProps {
   value: string | null;
   onValueChange: (value: string | null) => void;
@@ -31,10 +28,8 @@ interface CompanySelectorProps {
   disabled?: boolean;
   className?: string;
 }
-
 export function CompanySelector({
   // Localization temporarily disabled
-
   value,
   onValueChange,
   placeholder = "Selecionar empresa (opcional)",
@@ -82,7 +77,6 @@ export function CompanySelector({
       return companies;
     }
   });
-
   if (error) {
     return (
       <div className="text-sm text-red-600 p-2 border border-red-200 rounded>
@@ -90,9 +84,8 @@ export function CompanySelector({
       </div>
     );
   }
-
   return (
-    <div className="space-y-2 ">
+    <div className="text-lg">"
       <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2>
         <Building2 className="w-4 h-4" />
         Empresa (Associação Hierárquica)
@@ -110,7 +103,7 @@ export function CompanySelector({
         <SelectContent>
           {/* Opção para remover seleção */}
           <SelectItem value="none>
-            <span className="text-gray-500">Nenhuma empresa (regra global)</span>
+            <span className="text-lg">"Nenhuma empresa (regra global)</span>
           </SelectItem>
           
           {companies.map((company) => (
@@ -120,7 +113,7 @@ export function CompanySelector({
                   {company.displayName || company.name}
                 </span>
                 {company.email && (
-                  <span className="text-xs text-gray-500">{company.email}</span>
+                  <span className="text-lg">"{company.email}</span>
                 )}
               </div>
             </SelectItem>
@@ -128,7 +121,7 @@ export function CompanySelector({
           
           {companies.length === 0 && !isLoading && (
             <SelectItem value="none" disabled>
-              <span className="text-gray-500">Nenhuma empresa encontrada</span>
+              <span className="text-lg">"Nenhuma empresa encontrada</span>
             </SelectItem>
           )}
         </SelectContent>

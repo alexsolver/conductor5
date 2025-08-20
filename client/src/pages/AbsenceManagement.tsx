@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,10 +15,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 // import useLocalization from '@/hooks/useLocalization';
-
 const absenceFormSchema = z.object({
   // Localization temporarily disabled
-
   userId: z.string().min(1, 'Usuário é obrigatório'),
   absenceType: z.enum(['vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence']),
   startDate: z.string().min(1, 'Data inicial é obrigatória'),
@@ -28,16 +25,13 @@ const absenceFormSchema = z.object({
   medicalCertificate: z.string().optional(),
   coverUserId: z.string().optional(),
 });
-
 type AbsenceFormData = z.infer<typeof absenceFormSchema>;
-
 interface User {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
 }
-
 interface AbsenceRequest {
   id: string;
   userId: string;
@@ -52,7 +46,6 @@ interface AbsenceRequest {
   userName?: string;
   userEmail?: string;
 }
-
 const absenceTypeLabels = {
   vacation: 'Férias',
   sick_leave: 'Atestado Médico',
@@ -63,26 +56,22 @@ const absenceTypeLabels = {
   justified_absence: 'Falta Justificada',
   unjustified_absence: 'Falta Injustificada'
 };
-
 const statusLabels = {
   pending: 'Pendente',
   approved: 'Aprovada',
   rejected: 'Rejeitada',
   cancelled: '[TRANSLATION_NEEDED]'
 };
-
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   approved: 'bg-green-100 text-green-800',
   rejected: 'bg-red-100 text-red-800',
   cancelled: 'bg-gray-100 text-gray-800'
 };
-
 export default function AbsenceManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const form = useForm<AbsenceFormData>({
     resolver: zodResolver(absenceFormSchema),
     defaultValues: {
@@ -95,7 +84,6 @@ export default function AbsenceManagement() {
       coverUserId: '',
     },
   });
-
   // Buscar solicitações pendentes
   const { data: pendingRequestsData, isLoading } = useQuery({
     queryKey: ['/api/timecard/absence-requests/pending'],
@@ -104,7 +92,6 @@ export default function AbsenceManagement() {
       return response;
     },
   });
-
   // Buscar usuários
   const { data: usersData } = useQuery({
     queryKey: ['/api/tenant-admin/users'],
@@ -113,7 +100,6 @@ export default function AbsenceManagement() {
       return response;
     },
   });
-
   // Criar solicitação de ausência
   const createAbsenceRequestMutation = useMutation({
     mutationFn: async (data: AbsenceFormData) => {
@@ -136,7 +122,6 @@ export default function AbsenceManagement() {
       });
     },
   });
-
   // Aprovar solicitação
   const approveRequestMutation = useMutation({
     mutationFn: async (requestId: string) => {
@@ -157,7 +142,6 @@ export default function AbsenceManagement() {
       });
     },
   });
-
   // Rejeitar solicitação
   const rejectRequestMutation = useMutation({
     mutationFn: async ({ requestId, reason }: { requestId: string; reason: string }) => {
@@ -178,31 +162,25 @@ export default function AbsenceManagement() {
       });
     },
   });
-
   const pendingRequests = (pendingRequestsData as any)?.requests || [];
   const users = (usersData as any)?.users || [];
-
   const handleSubmit = (data: AbsenceFormData) => {
     createAbsenceRequestMutation.mutate(data);
   };
-
   const handleApprove = (requestId: string) => {
     if (confirm('Tem certeza que deseja aprovar esta solicitação?')) {
       approveRequestMutation.mutate(requestId);
     }
   };
-
   const handleReject = (requestId: string) => {
     const reason = prompt('Motivo da rejeição:');
     if (reason && reason.trim()) {
       rejectRequestMutation.mutate({ requestId, reason: reason.trim() });
     }
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
-
   const calculateDays = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -210,23 +188,21 @@ export default function AbsenceManagement() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return diffDays;
   };
-
   if (isLoading) {
     return (
       <div className=""
         <div className=""
-          <div className="text-lg text-gray-600">Carregando solicitações de ausência...</div>
+          <div className="text-lg">"Carregando solicitações de ausência...</div>
         </div>
       </div>
     );
   }
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestão de Ausências</h1>
-          <p className="text-gray-600">Gerencie solicitações de férias, licenças e faltas</p>
+          <h1 className="text-lg">"Gestão de Ausências</h1>
+          <p className="text-lg">"Gerencie solicitações de férias, licenças e faltas</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -271,7 +247,6 @@ export default function AbsenceManagement() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="absenceType"
@@ -297,7 +272,6 @@ export default function AbsenceManagement() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <FormField
                     control={form.control}
@@ -312,7 +286,6 @@ export default function AbsenceManagement() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="endDate"
@@ -327,7 +300,6 @@ export default function AbsenceManagement() {
                     )}
                   />
                 </div>
-
                 <FormField
                   control={form.control}
                   name="reason"
@@ -345,7 +317,6 @@ export default function AbsenceManagement() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="medicalCertificate"
@@ -362,7 +333,6 @@ export default function AbsenceManagement() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="coverUserId"
@@ -388,7 +358,6 @@ export default function AbsenceManagement() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
@@ -402,7 +371,6 @@ export default function AbsenceManagement() {
           </DialogContent>
         </Dialog>
       </div>
-
       <div className=""
         <Card>
           <CardHeader>
@@ -427,7 +395,7 @@ export default function AbsenceManagement() {
                       <div className=""
                         <User className="h-4 w-4 text-gray-400" />
                         <div>
-                          <h3 className="font-medium">{request.userName || 'Usuário'}</h3>
+                          <h3 className="text-lg">"{request.userName || 'Usuário'}</h3>
                           <p className=""
                             {absenceTypeLabels[request.absenceType as keyof typeof absenceTypeLabels]}
                           </p>
@@ -437,7 +405,6 @@ export default function AbsenceManagement() {
                         {statusLabels[request.status as keyof typeof statusLabels]}
                       </Badge>
                     </div>
-
                     <div className=""
                       <div className=""
                         <Calendar className="h-4 w-4 text-gray-400" />
@@ -452,14 +419,12 @@ export default function AbsenceManagement() {
                         </span>
                       </div>
                     </div>
-
                     <div className=""
                       <div className=""
                         <FileText className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <p className="text-sm text-gray-700">{request.reason}</p>
+                        <p className="text-lg">"{request.reason}</p>
                       </div>
                     </div>
-
                     {request.status === 'pending' && (
                       <div className=""
                         <Button

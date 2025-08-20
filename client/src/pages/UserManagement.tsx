@@ -25,7 +25,6 @@ import { UserSessions } from "@/components/user-management/UserSessions";
 import { CreateUserDialog } from "@/components/user-management/CreateUserDialog";
 import { InviteUserDialog } from "@/components/user-management/InviteUserDialog";
 import { apiRequest } from "@/lib/queryClient";
-
 interface UserStats {
   totalUsers: number;
   activeUsers: number;
@@ -33,28 +32,24 @@ interface UserStats {
   activeSessions: number;
   roleDistribution: Record<string, number>;
 }
-
 export function UserManagement() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
-
   // Fetch user management statistics
   const { data: stats, isLoading: statsLoading } = useQuery<{ stats: UserStats }>({
     queryKey: ["/api/user-management/stats"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
-
   const userStats = stats?.stats;
-
   return (
-    <div className="p-4"
-        <div className="p-4"
-          <h2 className="p-4"
+    <div className="p-4">
+        <div className="p-4">
+          <h2 className="p-4">
             {t("userManagement.title", "Gestão de Usuários")}
           </h2>
-          <div className="p-4"
+          <div className="p-4">
             <Button onClick={() => setShowInviteUser(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
               {t("userManagement.inviteUser", "Convidar Usuário")}
@@ -65,78 +60,73 @@ export function UserManagement() {
             </Button>
           </div>
         </div>
-
         {/* Statistics Cards */}
-        <div className="p-4"
+        <div className="p-4">
           <Card>
-            <CardHeader className="p-4"
-              <CardTitle className="p-4"
+            <CardHeader className="p-4">
+              <CardTitle className="p-4">
                 {t("userManagement.stats.totalUsers", "Total de Usuários")}
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="p-4">
                 {statsLoading ? "..." : userStats?.totalUsers || 0}
               </div>
-              <p className="p-4"
+              <p className="p-4">
                 {t("userManagement.stats.totalUsersDesc", "Usuários registrados")}
               </p>
             </CardContent>
           </Card>
-
           <Card>
-            <CardHeader className="p-4"
-              <CardTitle className="p-4"
+            <CardHeader className="p-4">
+              <CardTitle className="p-4">
                 {t("userManagement.stats.activeUsers", "Usuários Ativos")}
               </CardTitle>
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="p-4">
                 {statsLoading ? "..." : userStats?.activeUsers || 0}
               </div>
-              <p className="p-4"
+              <p className="p-4">
                 {t("userManagement.stats.activeUsersDesc", "Contas ativas")}
               </p>
             </CardContent>
           </Card>
-
           <Card>
-            <CardHeader className="p-4"
-              <CardTitle className="p-4"
+            <CardHeader className="p-4">
+              <CardTitle className="p-4">
                 {t("userManagement.stats.pendingInvitations", "Convites Pendentes")}
               </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="p-4">
                 {statsLoading ? "..." : userStats?.pendingInvitations || 0}
               </div>
-              <p className="p-4"
+              <p className="p-4">
                 {t("userManagement.stats.pendingInvitationsDesc", "Aguardando resposta")}
               </p>
             </CardContent>
           </Card>
-
           <Card>
-            <CardHeader className="p-4"
-              <CardTitle className="p-4"
+            <CardHeader className="p-4">
+              <CardTitle className="p-4">
                 {t("userManagement.stats.activeSessions", "Sessões Ativas")}
               </CardTitle>
               <Monitor className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="p-4">
                 {statsLoading ? "..." : userStats?.activeSessions || 0}
               </div>
-              <p className="p-4"
+              <p className="p-4">
                 {t("userManagement.stats.activeSessionsDesc", "Usuários conectados")}
               </p>
             </CardContent>
           </Card>
         </div>
-
         {/* Role Distribution */}
         {userStats?.roleDistribution && (
           <Card>
@@ -149,9 +139,9 @@ export function UserManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="p-4">
                 {Object.entries(userStats.roleDistribution).map(([role, count]) => (
-                  <Badge key={role} variant="secondary" className="p-4"
+                  <Badge key={role} variant="secondary" className="p-4">
                     {role}: {count}
                   </Badge>
                 ))}
@@ -159,9 +149,8 @@ export function UserManagement() {
             </CardContent>
           </Card>
         )}
-
         {/* Main Content Tabs */}
-        <Tabs defaultValue="users" className="p-4"
+        <Tabs defaultValue="users" className="p-4">
           <TabsList>
             <TabsTrigger value="users>
               <Users className="mr-2 h-4 w-4" />
@@ -188,32 +177,25 @@ export function UserManagement() {
               {t("userManagement.tabs.activity", "Atividade")}
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="users" className="p-4"
+          <TabsContent value="users" className="p-4">
             <UserList />
           </TabsContent>
-
-          <TabsContent value="groups" className="p-4"
+          <TabsContent value="groups" className="p-4">
             <UserGroups />
           </TabsContent>
-
-          <TabsContent value="roles" className="p-4"
+          <TabsContent value="roles" className="p-4">
             <CustomRoles />
           </TabsContent>
-
-          <TabsContent value="invitations" className="p-4"
+          <TabsContent value="invitations" className="p-4">
             <UserInvitations />
           </TabsContent>
-
-          <TabsContent value="sessions" className="p-4"
+          <TabsContent value="sessions" className="p-4">
             <UserSessions />
           </TabsContent>
-
-          <TabsContent value="activity" className="p-4"
+          <TabsContent value="activity" className="p-4">
             <UserActivity />
           </TabsContent>
         </Tabs>
-
         {/* Dialogs */}
         <CreateUserDialog 
           open={showCreateUser} 

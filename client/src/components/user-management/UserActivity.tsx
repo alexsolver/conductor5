@@ -37,7 +37,6 @@ import {
 } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
 interface UserActivityItem {
   id: string;
   userId: string;
@@ -60,17 +59,14 @@ interface UserActivityItem {
     email: string;
   };
 }
-
 interface UserActivityProps {
   tenantAdmin?: boolean;
 }
-
 export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [dateRange, setDateRange] = useState("7");
-
   const { data: activityData, isLoading } = useQuery<{ activities: UserActivityItem[] }>({
     queryKey: ["/api/user-management/activity", {
       search: searchTerm,
@@ -78,7 +74,6 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
       days: parseInt(dateRange)
     }],
   });
-
   const getActionIcon = (action: string) => {
     const iconMap: Record<string, JSX.Element> = {
       'login': <LogIn className="h-4 w-4" />,
@@ -93,7 +88,6 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
     };
     return iconMap[action] || <Activity className="h-4 w-4" />;
   };
-
   const getActionDisplayName = (action: string) => {
     const actionNames: Record<string, string> = {
       'login': 'Login',
@@ -117,7 +111,6 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
     };
     return actionNames[action] || action;
   };
-
   const getResourceDisplayName = (resource?: string) => {
     if (!resource) return '';
     
@@ -132,18 +125,15 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
     };
     return resourceNames[resource] || resource;
   };
-
   const filteredActivities = activityData?.activities || [];
-
   return (
     <div className="space-y-4>
       <div>
-        <h3 className="text-lg font-medium">{t("userManagement.userActivity", "Atividade dos Usuários")}</h3>
+        <h3 className="text-lg">"{t("userManagement.userActivity", "Atividade dos Usuários")}</h3>
         <p className="text-sm text-muted-foreground>
           {t("userManagement.userActivityDesc", "Monitore ações e atividades dos usuários no sistema")}
         </p>
       </div>
-
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -191,7 +181,6 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
           </div>
         </CardContent>
       </Card>
-
       {/* Activity Log */}
       <Card>
         <CardHeader>
@@ -277,7 +266,6 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
               </TableBody>
             </Table>
           )}
-
           {filteredActivities.length === 0 && !isLoading && (
             <div className="text-center py-8>
               <Activity className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
@@ -291,7 +279,6 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
           )}
         </CardContent>
       </Card>
-
       {/* Activity Summary */}
       {filteredActivities.length > 0 && (
         <div className="grid gap-4 md:grid-cols-3>

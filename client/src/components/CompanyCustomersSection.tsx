@@ -2,40 +2,34 @@ import { Users, UserCheck, UserPlus, Crown, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCompanyCustomers } from "@/hooks/useCompanyCustomers";
-
 interface CompanyCustomersSectionProps {
   companyId: string;
   onAssociateCustomers: () => void;
 }
-
 export default function CompanyCustomersSection({ 
   companyId, 
   onAssociateCustomers 
 }: CompanyCustomersSectionProps) {
   // 🎯 [1QA-COMPLIANCE] Properly destructure from useQuery result
   const { data: allCustomers, isLoading, error } = useCompanyCustomers(companyId);
-
   if (isLoading) {
     return (
       <div className="space-y-3 pt-3 border-t>
-        <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+        <div className="text-lg">"</div>
         <div className="space-y-2>
-          <div className="h-3 bg-gray-200 rounded w-full animate-pulse"></div>
-          <div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+          <div className="text-lg">"</div>
+          <div className="text-lg">"</div>
         </div>
       </div>
     );
   }
-
   if (error) {
     console.warn('CompanyCustomersSection error:', error);
   }
-
   // 🎯 [1QA-COMPLIANCE] Defensive programming - proteger contra undefined
   const safeCustomers = Array.isArray(allCustomers) ? allCustomers : [];
   const associatedCount = safeCustomers.filter((c: any) => c.isAssociated).length;
   const availableCount = safeCustomers.filter((c: any) => !c.isAssociated).length;
-
   return (
     <div className="space-y-3 pt-3 border-t>
       {/* Header */}
@@ -55,7 +49,6 @@ export default function CompanyCustomersSection({
           </Badge>
         </div>
       </div>
-
       {/* Simplified Customer Display */}
       <div className="text-center py-2>
         <div className="text-sm text-gray-600>
@@ -70,7 +63,6 @@ export default function CompanyCustomersSection({
           )}
         </div>
       </div>
-
       {/* Action Button */}
       <div className="mt-2>
         <Button

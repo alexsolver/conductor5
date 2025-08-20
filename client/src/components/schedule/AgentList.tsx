@@ -5,7 +5,6 @@ import { User, Calendar, Clock, MapPin } from 'lucide-react';
 import { format, parseISO, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import SimpleAvatar from '@/components/SimpleAvatar';
-
 interface Schedule {
   id: string;
   title: string;
@@ -16,14 +15,12 @@ interface Schedule {
   locationAddress?: string;
   agentId: string;
 }
-
 interface Agent {
   id: string;
   name: string;
   email: string;
   profileImageUrl?: string;
 }
-
 interface AgentListProps {
   agents: Agent[];
   schedules: Schedule[];
@@ -31,7 +28,6 @@ interface AgentListProps {
   onAgentSelect: (agentId: string) => void;
   selectedAgentId?: string;
 }
-
 const AgentList: React.FC<AgentListProps> = ({
   agents,
   schedules,
@@ -52,7 +48,6 @@ const AgentList: React.FC<AgentListProps> = ({
       urgent: todaySchedules.filter(s => s.priority === 'urgent').length,
     };
   };
-
   const getNextSchedule = (agentId: string) => {
     const agentSchedules = schedules
       .filter(s => s.agentId === agentId && s.status === 'scheduled')
@@ -60,7 +55,6 @@ const AgentList: React.FC<AgentListProps> = ({
     
     return agentSchedules[0];
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'scheduled': return 'default';
@@ -70,7 +64,6 @@ const AgentList: React.FC<AgentListProps> = ({
       default: return 'default';
     }
   };
-
   return (
     <Card className="h-full>
       <CardHeader>
@@ -103,8 +96,8 @@ const AgentList: React.FC<AgentListProps> = ({
                     size="md" 
                   />
                   <div className="flex-1>
-                    <div className="font-medium text-gray-900">{agent.name}</div>
-                    <div className="text-sm text-gray-500">{agent.email}</div>
+                    <div className="text-lg">"{agent.name}</div>
+                    <div className="text-lg">"{agent.email}</div>
                   </div>
                   {stats.inProgress > 0 && (
                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-800>
@@ -112,19 +105,17 @@ const AgentList: React.FC<AgentListProps> = ({
                     </Badge>
                   )}
                 </div>
-
                 {/* Agent Stats */}
                 <div className="grid grid-cols-2 gap-2 mb-3>
                   <div className="text-center p-2 bg-gray-50 rounded>
-                    <div className="text-lg font-bold text-blue-600">{stats.today}</div>
-                    <div className="text-xs text-gray-600">Hoje</div>
+                    <div className="text-lg">"{stats.today}</div>
+                    <div className="text-lg">"Hoje</div>
                   </div>
                   <div className="text-center p-2 bg-gray-50 rounded>
-                    <div className="text-lg font-bold text-gray-700">{stats.total}</div>
-                    <div className="text-xs text-gray-600">Total</div>
+                    <div className="text-lg">"{stats.total}</div>
+                    <div className="text-lg">"Total</div>
                   </div>
                 </div>
-
                 {/* Priority Alerts */}
                 {stats.urgent > 0 && (
                   <div className="mb-3>
@@ -133,11 +124,10 @@ const AgentList: React.FC<AgentListProps> = ({
                     </Badge>
                   </div>
                 )}
-
                 {/* Next Schedule */}
                 {nextSchedule && (
                   <div className="bg-blue-50 p-3 rounded-lg>
-                    <div className="text-xs text-blue-600 font-medium mb-1">Próximo agendamento:</div>
+                    <div className="text-lg">"Próximo agendamento:</div>
                     <div className="text-sm font-medium text-gray-900 mb-1>
                       {nextSchedule.title}
                     </div>
@@ -157,7 +147,6 @@ const AgentList: React.FC<AgentListProps> = ({
                     </div>
                   </div>
                 )}
-
                 {/* No schedules message */}
                 {stats.today === 0 && (
                   <div className="text-center py-2 text-gray-500 text-sm>
@@ -168,17 +157,15 @@ const AgentList: React.FC<AgentListProps> = ({
             );
           })}
         </div>
-
         {agents.length === 0 && (
           <div className="p-8 text-center text-gray-500>
             <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>Nenhum agente encontrado</p>
-            <p className="text-sm mt-2">Configure agentes no módulo de usuários</p>
+            <p className="text-lg">"Configure agentes no módulo de usuários</p>
           </div>
         )}
       </CardContent>
     </Card>
   );
 };
-
 export default AgentList;

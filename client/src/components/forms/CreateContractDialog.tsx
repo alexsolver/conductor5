@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: CREATE CONTRACT DIALOG
 // Clean Architecture - Frontend Form Component
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,11 +36,9 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-
 // ✅ 1QA.MD COMPLIANCE: ZOD SCHEMA VALIDATION
 const createContractSchema = z.object({
   // Localization temporarily disabled
-
   contractNumber: z.string().min(1, 'Número do contrato é obrigatório'),
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   contractType: z.enum(['service', 'supply', 'maintenance', 'rental', 'sla']),
@@ -61,9 +58,7 @@ const createContractSchema = z.object({
   autoRenewal: z.boolean().default(false),
   renewalPeriodMonths: z.string().transform(val => parseInt(val)).optional(),
 });
-
 type CreateContractFormData = z.infer<typeof createContractSchema>;
-
 // Opções para os selects
 const contractTypes = [
   { value: 'service', label: 'Serviço' },
@@ -72,7 +67,6 @@ const contractTypes = [
   { value: 'rental', label: 'Locação' },
   { value: 'sla', label: 'SLA' },
 ];
-
 const priorities = [
   { value: 'low', label: 'Baixa' },
   { value: 'medium', label: 'Média' },
@@ -80,24 +74,20 @@ const priorities = [
   { value: 'critical', label: 'Crítica' },
   { value: 'emergency', label: 'Emergencial' },
 ];
-
 const currencies = [
   { value: 'BRL', label: 'Real (BRL)' },
   { value: 'USD', label: 'Dólar (USD)' },
   { value: 'EUR', label: 'Euro (EUR)' },
 ];
-
 interface CreateContractDialogProps {
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
-
 export function CreateContractDialog({ children, open, onOpenChange }: CreateContractDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const form = useForm<CreateContractFormData>({
     resolver: zodResolver(createContractSchema),
     defaultValues: {
@@ -107,7 +97,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
       autoRenewal: false,
     },
   });
-
   // ✅ 1QA.MD COMPLIANCE: MUTATION WITH PROPER ERROR HANDLING
   const createContractMutation = useMutation({
     mutationFn: async (data: CreateContractFormData) => {
@@ -140,11 +129,9 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
       });
     },
   });
-
   const onSubmit = (data: CreateContractFormData) => {
     createContractMutation.mutate(data);
   };
-
   const handleOpenChange = (newOpen: boolean) => {
     if (onOpenChange) {
       onOpenChange(newOpen);
@@ -152,9 +139,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
       setIsOpen(newOpen);
     }
   };
-
   const isDialogOpen = open !== undefined ? open : isOpen;
-
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild data-testid="button-create-contract>
@@ -167,13 +152,12 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
             Preencha os dados do novo contrato. Todos os campos marcados com * são obrigatórios.
           </DialogDescription>
         </DialogHeader>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
               {/* Informações Básicas */}
               <div className="space-y-4>
-                <h3 className="text-lg font-semibold text-muted-foreground">Informações Básicas</h3>
+                <h3 className="text-lg">"Informações Básicas</h3>
                 
                 <FormField
                   control={form.control}
@@ -192,7 +176,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="title"
@@ -210,7 +193,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="contractType"
@@ -235,7 +217,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="priority"
@@ -260,7 +241,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="description"
@@ -279,7 +259,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="customerCompanyId"
@@ -297,7 +276,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="managerId"
@@ -315,7 +293,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="technicalManagerId"
@@ -333,7 +310,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="locationId"
@@ -352,10 +328,9 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                   )}
                 />
               </div>
-
               {/* Informações Comerciais e Datas */}
               <div className="space-y-4>
-                <h3 className="text-lg font-semibold text-muted-foreground">Dados Comerciais</h3>
+                <h3 className="text-lg">"Dados Comerciais</h3>
                 
                 <div className="grid grid-cols-2 gap-4>
                   <FormField
@@ -375,7 +350,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="endDate"
@@ -394,7 +368,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     )}
                   />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4>
                   <FormField
                     control={form.control}
@@ -415,7 +388,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="monthlyValue"
@@ -436,7 +408,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     )}
                   />
                 </div>
-
                 <FormField
                   control={form.control}
                   name="currency"
@@ -461,7 +432,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="paymentTerms"
@@ -480,7 +450,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     </FormItem>
                   )}
                 />
-
                 <div className="space-y-4>
                   <FormField
                     control={form.control}
@@ -488,7 +457,7 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4>
                         <div className="space-y-0.5>
-                          <FormLabel className="text-base">Renovação Automática</FormLabel>
+                          <FormLabel className="text-lg">"Renovação Automática</FormLabel>
                           <div className="text-sm text-muted-foreground>
                             Renovar automaticamente o contrato
                           </div>
@@ -503,7 +472,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                       </FormItem>
                     )}
                   />
-
                   {form.watch('autoRenewal') && (
                     <FormField
                       control={form.control}
@@ -525,7 +493,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                     />
                   )}
                 </div>
-
                 <FormField
                   control={form.control}
                   name="termsConditions"
@@ -546,7 +513,6 @@ export function CreateContractDialog({ children, open, onOpenChange }: CreateCon
                 />
               </div>
             </div>
-
             <DialogFooter className="gap-2>
               <Button 
                 type="button" 

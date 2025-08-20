@@ -14,14 +14,12 @@ import { X, MapPin, Users, Calendar, Route } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from "@/hooks/use-toast";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 // Multi-select components for relationships
 const ClientesMultiSelect = ({
   // Localization temporarily disabled
  value = [], onChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-
   const { data: clientes = [] } = useQuery({
     queryKey: ['integration-customers'],
     queryFn: async () => {
@@ -33,28 +31,23 @@ const ClientesMultiSelect = ({
       return result.data || [];
     }
   });
-
   const filteredClientes = clientes.filter(cliente =>
     cliente.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cliente.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   const handleToggle = (clienteId) => {
     const newValue = value.includes(clienteId)
       ? value.filter(id => id !== clienteId)
       : [...value, clienteId];
     onChange(newValue);
   };
-
   const removeCliente = (clienteId) => {
     onChange(value.filter(id => id !== clienteId));
   };
-
   const getClienteNome = (id) => {
     const cliente = clientes.find(c => c.id === id);
     return cliente?.nome || 'Cliente não encontrado';
   };
-
   return (
     <div className="space-y-2>
       <div className="relative>
@@ -78,8 +71,8 @@ const ClientesMultiSelect = ({
                   className="mr-2"
                 />
                 <div className="flex-1>
-                  <div className="font-medium">{cliente.nome}</div>
-                  <div className="text-sm text-gray-500">{cliente.email}</div>
+                  <div className="text-lg">"{cliente.nome}</div>
+                  <div className="text-lg">"{cliente.email}</div>
                 </div>
               </div>
             ))}
@@ -91,7 +84,6 @@ const ClientesMultiSelect = ({
           </div>
         )}
       </div>
-
       {/* Selected clientes */}
       {value.length > 0 && (
         <div className="flex flex-wrap gap-2>
@@ -106,22 +98,18 @@ const ClientesMultiSelect = ({
           ))}
         </div>
       )}
-
       <div className="text-xs text-gray-500>
         {value.length} cliente(s) selecionado(s)
       </div>
-
       {isOpen && (
         <div className="fixed inset-0 z-5" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );
 };
-
 const RegioesMultiSelect = ({ value = [], onChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-
   const { data: regioes = [] } = useQuery({
     queryKey: ['/api/locations-new/regiao'],
     queryFn: async () => {
@@ -133,29 +121,24 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
       return result.data || [];
     }
   });
-
   // Ensure regioes is always an array
   const regioesArray = Array.isArray(regioes) ? regioes : [];
   const filteredRegioes = regioesArray.filter(regiao =>
     regiao.nome?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   const handleToggle = (regiaoId) => {
     const newValue = value.includes(regiaoId)
       ? value.filter(id => id !== regiaoId)
       : [...value, regiaoId];
     onChange(newValue);
   };
-
   const removeRegiao = (regiaoId) => {
     onChange(value.filter(id => id !== regiaoId));
   };
-
   const getRegiaoNome = (id) => {
     const regiao = regioesArray.find(r => r.id === id);
     return regiao?.nome || 'Região não encontrada';
   };
-
   return (
     <div className="space-y-2>
       <div className="relative>
@@ -179,9 +162,9 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
                   className="mr-2"
                 />
                 <div className="flex-1>
-                  <div className="font-medium">{regiao.nome}</div>
+                  <div className="text-lg">"{regiao.nome}</div>
                   {regiao.descricao && (
-                    <div className="text-sm text-gray-500">{regiao.descricao}</div>
+                    <div className="text-lg">"{regiao.descricao}</div>
                   )}
                 </div>
               </div>
@@ -194,7 +177,6 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
           </div>
         )}
       </div>
-
       {/* Selected regioes */}
       {value.length > 0 && (
         <div className="flex flex-wrap gap-2>
@@ -209,18 +191,15 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
           ))}
         </div>
       )}
-
       <div className="text-xs text-gray-500>
         {value.length} região(ões) selecionada(s)
       </div>
-
       {isOpen && (
         <div className="fixed inset-0 z-5" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );
 };
-
 interface RotaDinamicaFormProps {
   onSubmit: (data: NewRotaDinamica) => void;
   initialData?: Partial<NewRotaDinamica>;
@@ -228,7 +207,6 @@ interface RotaDinamicaFormProps {
   onSuccess?: () => void; // Added for success callback
   onClose?: () => void; // Added for close callback
 }
-
 export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onSuccess, onClose }: RotaDinamicaFormProps) {
   const { toast } = useToast();
   const form = useForm({
@@ -243,10 +221,8 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       previsaoDias: 1
     }
   });
-
   const { register, handleSubmit: handleHookFormSubmit, formState: { errors }, setValue, watch } = form;
   const watchedValues = useWatch({ control: form.control });
-
   // Dias da semana options
   const diasSemanaOptions = [
     { value: 'domingo', label: 'Dom', fullName: 'Domingo' },
@@ -257,7 +233,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
     { value: 'sexta', label: 'Sex', fullName: 'Sexta-feira' },
     { value: 'sabado', label: 'Sáb', fullName: 'Sábado' }
   ];
-
   const handleDiaSemanaToggle = (dia) => {
     const currentDias = watchedValues.diasSemana || [];
     const newDias = currentDias.includes(dia)
@@ -265,12 +240,10 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       : [...currentDias, dia];
     setValue('diasSemana', newDias);
   };
-
   const handleSubmit = async (data: NewRotaDinamica) => {
     try {
       console.log('🔄 [ROTA-DINAMICA-FORM] Starting form submission...');
       console.log('📝 [ROTA-DINAMICA-FORM] Form data:', JSON.stringify(data, null, 2));
-
       // Validar token de acesso
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -282,7 +255,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
         });
         return;
       }
-
       // Validar dados básicos antes de enviar
       if (!data.nome || typeof data.nome !== 'string' || data.nome.trim().length === 0) {
         console.error('❌ [ROTA-DINAMICA-FORM] Nome field validation failed');
@@ -293,9 +265,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
         });
         return;
       }
-
       console.log('🌐 [ROTA-DINAMICA-FORM] Making API request to /api/locations-new/rota-dinamica');
-
       // Fazer requisição
       const response = await fetch('/api/locations-new/rota-dinamica', {
         method: 'POST',
@@ -306,17 +276,14 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
         },
         body: JSON.stringify(data)
       });
-
       console.log('📡 [ROTA-DINAMICA-FORM] Response received:', {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok
       });
-
       let result: any;
       try {
         const responseText = await response.text();
-
         if (!responseText) {
           console.error('❌ [ROTA-DINAMICA-FORM] Empty response from server');
           toast({
@@ -326,7 +293,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
           });
           return;
         }
-
         // Verificar se é HTML (página de erro)
         if (responseText.trim().startsWith('<!DOCTYPE') ||
             responseText.trim().startsWith('<html')) {
@@ -338,10 +304,8 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
           });
           return;
         }
-
         result = JSON.parse(responseText);
         console.log('✅ [ROTA-DINAMICA-FORM] Successfully parsed JSON:', result);
-
       } catch (parseError) {
         console.error('❌ [ROTA-DINAMICA-FORM] JSON parsing error:', parseError);
         toast({
@@ -351,17 +315,14 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
         });
         return;
       }
-
       // Processar resposta baseada no status HTTP
       if (response.ok && result?.success) {
         console.log('✅ [ROTA-DINAMICA-FORM] Rota dinâmica created successfully');
-
         toast({
           title: '[TRANSLATION_NEEDED]',
           description: result.message || "Rota dinâmica criada com sucesso!",
           variant: "default"
         });
-
         // Callbacks de sucesso
         if (onSuccess) {
           console.log('🔄 [ROTA-DINAMICA-FORM] Calling onSuccess callback');
@@ -371,26 +332,21 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
           console.log('🔄 [ROTA-DINAMICA-FORM] Calling onClose callback');
           onClose();
         }
-
       } else {
         // Erro do servidor ou validação
         console.error('❌ [ROTA-DINAMICA-FORM] Server returned error:', {
           status: response.status,
           result: result
         });
-
         const errorMessage = result?.message || result?.error || '[TRANSLATION_NEEDED]';
-
         toast({
           title: '[TRANSLATION_NEEDED]',
           description: errorMessage,
           variant: "destructive"
         });
       }
-
     } catch (networkError) {
       console.error('❌ [ROTA-DINAMICA-FORM] Network or unexpected error:', networkError);
-
       if (networkError instanceof TypeError && networkError.message.includes('Failed to fetch')) {
         toast({
           title: '[TRANSLATION_NEEDED]',
@@ -406,7 +362,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       }
     }
   };
-
   return (
     <form onSubmit={handleHookFormSubmit(handleSubmit)} className="space-y-6>
       {/* Identificação */}
@@ -431,7 +386,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
               onCheckedChange={(checked) => setValue('ativo', checked)}
             />
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <Label htmlFor="nome">Nome da Rota *</Label>
@@ -443,13 +397,12 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
                 className={errors.nome ? 'border-red-500' : ''}
               />
               {errors.nome && (
-                <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
+                <p className="text-lg">"{errors.nome.message}</p>
               )}
               <div className="text-xs text-gray-500 mt-1>
                 {watchedValues.nome?.length || 0}/100 caracteres
               </div>
             </div>
-
             <div>
               <Label htmlFor="idRota">ID da Rota *</Label>
               <Input
@@ -460,7 +413,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
                 className={errors.idRota ? 'border-red-500' : ''}
               />
               {errors.idRota && (
-                <p className="text-sm text-red-500 mt-1">{errors.idRota.message}</p>
+                <p className="text-lg">"{errors.idRota.message}</p>
               )}
               <div className="text-xs text-gray-500 mt-1>
                 {watchedValues.idRota?.length || 0}/100 caracteres
@@ -469,7 +422,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
           </div>
         </CardContent>
       </Card>
-
       {/* Relacionamentos */}
       <Card>
         <CardHeader>
@@ -489,7 +441,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
               onChange={(clientes) => setValue('clientesVinculados', clientes)}
             />
           </div>
-
           <div>
             <Label>Regiões Atendidas (Multi-seleção)</Label>
             <div className="text-sm text-muted-foreground mb-2>
@@ -502,7 +453,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
           </div>
         </CardContent>
       </Card>
-
       {/* Planejamento da Rota */}
       <Card>
         <CardHeader>
@@ -541,7 +491,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
               </div>
             )}
           </div>
-
           <div>
             <Label htmlFor="previsaoDias">Previsão de Dias da Rota Dinâmica *</Label>
             <div className="text-sm text-muted-foreground mb-2>
@@ -556,7 +505,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
               className={errors.previsaoDias ? 'border-red-500' : ''}
             />
             {errors.previsaoDias && (
-              <p className="text-sm text-red-500 mt-1">{errors.previsaoDias.message}</p>
+              <p className="text-lg">"{errors.previsaoDias.message}</p>
             )}
             <div className="text-xs text-gray-500 mt-1>
               Valor atual: {watchedValues.previsaoDias || 1} dia(s)
@@ -564,7 +513,6 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
           </div>
         </CardContent>
       </Card>
-
       {/* Actions */}
       <div className="flex justify-end space-x-2>
         <Button type="button" variant="outline" onClick={onClose}>

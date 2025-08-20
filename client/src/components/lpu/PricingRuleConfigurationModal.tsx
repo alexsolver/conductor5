@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,17 +12,14 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Settings, Calculator, Percent, Calendar, Target } from "lucide-react";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface PricingRuleConfigurationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rule?: any;
   onSave: (rule: any) => void;
 }
-
 export default function PricingRuleConfigurationModal({
   // Localization temporarily disabled
-
   open,
   onOpenChange,
   rule,
@@ -40,29 +36,23 @@ export default function PricingRuleConfigurationModal({
     validFrom: rule?.validFrom || '',
     validTo: rule?.validTo || ''
   });
-
   const [tierRules, setTierRules] = useState(
     rule?.actions?.tiers || [{ minQuantity: 1, maxQuantity: 10, discount: 0 }]
   );
-
   const [dynamicFactors, setDynamicFactors] = useState(
     rule?.actions?.factors || { demandFactor: 1, seasonalFactor: 1, inventoryFactor: 1 }
   );
-
   const addTierRule = () => {
     setTierRules([...tierRules, { minQuantity: 0, maxQuantity: 0, discount: 0 }]);
   };
-
   const removeTierRule = (index: number) => {
     setTierRules(tierRules.filter((_, i) => i !== index));
   };
-
   const updateTierRule = (index: number, field: string, value: number) => {
     const newTiers = [...tierRules];
     newTiers[index] = { ...newTiers[index], [field]: value };
     setTierRules(newTiers);
   };
-
   const handleSave = () => {
     const ruleData = {
       ...formData,
@@ -74,7 +64,6 @@ export default function PricingRuleConfigurationModal({
     };
     onSave(ruleData);
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
@@ -83,7 +72,6 @@ export default function PricingRuleConfigurationModal({
             {rule ? '[TRANSLATION_NEEDED]' : 'Nova Regra de Precificação'}
           </DialogTitle>
         </DialogHeader>
-
         <Tabs defaultValue="basic" className="space-y-4>
           <TabsList className="grid w-full grid-cols-4>
             <TabsTrigger value="basic">Básico</TabsTrigger>
@@ -91,7 +79,6 @@ export default function PricingRuleConfigurationModal({
             <TabsTrigger value="actions">Ações</TabsTrigger>
             <TabsTrigger value="advanced">Avançado</TabsTrigger>
           </TabsList>
-
           <TabsContent value="basic" className="space-y-4>
             <div className="grid grid-cols-2 gap-4>
               <div>
@@ -121,7 +108,6 @@ export default function PricingRuleConfigurationModal({
                 </Select>
               </div>
             </div>
-
             <div>
               <Label htmlFor="description">Descrição</Label>
               <Textarea
@@ -132,7 +118,6 @@ export default function PricingRuleConfigurationModal({
                 placeholder="Descrição detalhada da regra..."
               />
             </div>
-
             <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="priority">Prioridade (1-10)</Label>
@@ -154,7 +139,6 @@ export default function PricingRuleConfigurationModal({
               </div>
             </div>
           </TabsContent>
-
           <TabsContent value="conditions" className="space-y-4>
             <Card>
               <CardHeader>
@@ -190,7 +174,6 @@ export default function PricingRuleConfigurationModal({
                     />
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4>
                   <div>
                     <Label>Preço Mínimo (R$)</Label>
@@ -219,7 +202,6 @@ export default function PricingRuleConfigurationModal({
                     />
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4>
                   <div>
                     <Label>Válido De</Label>
@@ -241,7 +223,6 @@ export default function PricingRuleConfigurationModal({
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="actions" className="space-y-4>
             {formData.ruleType === 'percentual' && (
               <Card>
@@ -271,7 +252,6 @@ export default function PricingRuleConfigurationModal({
                 </CardContent>
               </Card>
             )}
-
             {formData.ruleType === 'fixo' && (
               <Card>
                 <CardHeader>
@@ -315,7 +295,6 @@ export default function PricingRuleConfigurationModal({
                 </CardContent>
               </Card>
             )}
-
             {formData.ruleType === 'escalonado' && (
               <Card>
                 <CardHeader>
@@ -372,7 +351,6 @@ export default function PricingRuleConfigurationModal({
                 </CardContent>
               </Card>
             )}
-
             {formData.ruleType === 'dinamico' && (
               <Card>
                 <CardHeader>
@@ -425,7 +403,6 @@ export default function PricingRuleConfigurationModal({
               </Card>
             )}
           </TabsContent>
-
           <TabsContent value="advanced" className="space-y-4>
             <Card>
               <CardHeader>
@@ -460,9 +437,7 @@ export default function PricingRuleConfigurationModal({
                     />
                   </div>
                 </div>
-
                 <Separator />
-
                 <div>
                   <Label>Observações Internas</Label>
                   <Textarea
@@ -476,7 +451,6 @@ export default function PricingRuleConfigurationModal({
             </Card>
           </TabsContent>
         </Tabs>
-
         <div className="flex justify-end space-x-2 pt-4 border-t>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar

@@ -18,10 +18,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 const createContractSchema = z.object({
   // Localization temporarily disabled
-
   contractNumber: z.string().optional(), // Gerado automaticamente pelo backend
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
@@ -43,19 +41,15 @@ const createContractSchema = z.object({
   terminationClause: z.string().optional(),
   scopeOfWork: z.string().optional(),
 });
-
 type CreateContractFormData = z.infer<typeof createContractSchema>;
-
 interface CreateContractDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }
-
 export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateContractDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const form = useForm<CreateContractFormData>({
     resolver: zodResolver(createContractSchema),
     defaultValues: {
@@ -74,18 +68,15 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
       scopeOfWork: '',
     },
   });
-
   // Fetch customer companies for dropdown using apiRequest
   const { data: companiesData, isLoading: companiesLoading, error: companiesError } = useQuery({
     queryKey: ['/api/companies'],
     retry: 1,
   });
-
   // Fetch users for manager dropdown
   const { data: usersData } = useQuery({
     queryKey: ['/api/user-management/users'],
   });
-
   // Ensure data is always arrays and sort companies with Default first
   const companies = (() => {
     const companiesList = Array.isArray(companiesData) ? companiesData : 
@@ -93,7 +84,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
     return companiesList.sort((a: any, b: any) => {
       const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
       const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
-
       if (aIsDefault && !bIsDefault) return -1;
       if (!aIsDefault && bIsDefault) return 1;
       return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
@@ -102,10 +92,8 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   
   const users = Array.isArray(usersData) ? usersData : 
                (usersData as any)?.users ? (usersData as any).users : [];
-
   // Debug log
   console.log('Customer companies data:', { companiesData, companies, companiesLoading, companiesError });
-
   const createContractMutation = useMutation({
     mutationFn: (data: CreateContractFormData) => {
       // Transform data to match backend schema
@@ -145,30 +133,26 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
       });
     },
   });
-
   const onSubmit = (data: CreateContractFormData) => {
     createContractMutation.mutate(data);
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
         <DialogHeader>
           <DialogTitle>Criar Novo Contrato</DialogTitle>
         </DialogHeader>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
             {/* Contract Number Auto-Generated Info */}
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200>
               <div className="flex items-center gap-2>
-                <div className="text-sm font-medium text-gray-700">Número do Contrato:</div>
+                <div className="text-lg">"Número do Contrato:</div>
                 <div className="text-sm text-gray-500 italic>
                   Será gerado automaticamente após a criação (ex: CTR-2025-003)
                 </div>
               </div>
             </div>
-
             {/* Contract Type */}
             <FormField
               control={form.control}
@@ -195,7 +179,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="title"
@@ -209,7 +192,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="description"
@@ -227,7 +209,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 </FormItem>
               )}
             />
-
             {/* Contract Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <FormField
@@ -254,7 +235,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="priority"
@@ -279,7 +259,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
-
             {/* Client and Manager */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <FormField
@@ -312,7 +291,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="managerId"
@@ -339,7 +317,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
-
             {/* Financial Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <FormField
@@ -362,7 +339,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="currency"
@@ -386,7 +362,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
-
             {/* Dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
               <FormField
@@ -430,7 +405,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="endDate"
@@ -473,7 +447,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
-
             {/* Additional Terms */}
             <div className="space-y-4>
               <FormField
@@ -493,7 +466,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="paymentTerms"
@@ -511,7 +483,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="renewalTerms"
@@ -529,7 +500,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="terminationClause"
@@ -548,7 +518,6 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                 )}
               />
             </div>
-
             {/* Action Buttons */}
             <div className="flex justify-end gap-2 pt-4>
               <Button

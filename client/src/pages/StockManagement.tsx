@@ -34,7 +34,6 @@ import {
   Users,
   BarChart3
 } from "lucide-react";
-
 // Types
 interface StockItem {
   id: string;
@@ -52,11 +51,9 @@ interface StockItem {
   category: string;
   createdAt: string;
 }
-
 // Helper functions
 const getStatusColor = (status: string) => {
   // Localization temporarily disabled
-
   switch (status) {
     case 'ok': return 'bg-green-100 text-green-800';
     case 'low': return 'bg-yellow-100 text-yellow-800';
@@ -65,7 +62,6 @@ const getStatusColor = (status: string) => {
     default: return 'bg-gray-100 text-gray-800';
   }
 };
-
 const getStatusLabel = (status: string) => {
   switch (status) {
     case 'ok': return 'Normal';
@@ -75,7 +71,6 @@ const getStatusLabel = (status: string) => {
     default: return 'Indefinido';
   }
 };
-
 // New Movement Form Component
 function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void; isLoading: boolean }) {
   const [movementType, setMovementType] = useState("entry");
@@ -84,19 +79,16 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
   const [quantity, setQuantity] = useState("");
   const [unitCost, setUnitCost] = useState("");
   const [reason, setReason] = useState("");
-
   const { data: itemsResponse } = useQuery({
     queryKey: ["/api/materials-services/items"],
     enabled: true
   });
   const items = (itemsResponse as any)?.data || [];
-
   const { data: warehousesResponse } = useQuery({
     queryKey: ["/api/materials-services/warehouses"],
     enabled: true
   });
   const warehouses = (warehousesResponse as any)?.data || [];
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -108,7 +100,6 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
       reason
     });
   };
-
   return (
     <form onSubmit={handleSubmit} className=""
       <div className=""
@@ -125,7 +116,6 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
             </SelectContent>
           </Select>
         </div>
-
         <div className=""
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
@@ -141,7 +131,6 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
             </SelectContent>
           </Select>
         </div>
-
         <div className=""
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
@@ -157,7 +146,6 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
             </SelectContent>
           </Select>
         </div>
-
         <div className=""
           <Label htmlFor="quantity">Quantidade *</Label>
           <Input
@@ -169,7 +157,6 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
             required
           />
         </div>
-
         <div className=""
           <Label htmlFor="unitCost">Custo Unitário (opcional)</Label>
           <Input
@@ -182,7 +169,6 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           />
         </div>
       </div>
-
       <div className=""
         <Label htmlFor="reason">Motivo *</Label>
         <Textarea
@@ -193,7 +179,6 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           required
         />
       </div>
-
       <div className=""
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Registrando..." : "Registrar Movimentação"
@@ -202,26 +187,22 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
     </form>
   );
 }
-
 // Adjustment Form Component
 function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void; isLoading: boolean }) {
   const [itemId, setItemId] = useState("");
   const [warehouseId, setWarehouseId] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
   const [adjustmentReason, setAdjustmentReason] = useState("");
-
   const { data: itemsResponse } = useQuery({
     queryKey: ["/api/materials-services/items"],
     enabled: true
   });
   const items = (itemsResponse as any)?.data || [];
-
   const { data: warehousesResponse } = useQuery({
     queryKey: ["/api/materials-services/warehouses"],
     enabled: true
   });
   const warehouses = (warehousesResponse as any)?.data || [];
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -231,7 +212,6 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
       reason: adjustmentReason
     });
   };
-
   return (
     <form onSubmit={handleSubmit} className=""
       <div className=""
@@ -250,7 +230,6 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
             </SelectContent>
           </Select>
         </div>
-
         <div className=""
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
@@ -266,7 +245,6 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
             </SelectContent>
           </Select>
         </div>
-
         <div className=""
           <Label htmlFor="newQuantity">Nova Quantidade *</Label>
           <Input
@@ -279,7 +257,6 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           />
         </div>
       </div>
-
       <div className=""
         <Label htmlFor="adjustmentReason">Motivo do Ajuste *</Label>
         <Textarea
@@ -290,7 +267,6 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           required
         />
       </div>
-
       <div className=""
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Ajustando..." : "Realizar Ajuste"
@@ -299,7 +275,6 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
     </form>
   );
 }
-
 // Inventory Modal Component
 function InventoryModal() {
   const { data: stockResponse } = useQuery({
@@ -307,21 +282,20 @@ function InventoryModal() {
     enabled: true
   });
   const stockItems: StockItem[] = (stockResponse as any)?.data || [];
-
   return (
     <div className=""
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm">Total de Itens</CardTitle>
+            <CardTitle className="text-lg">"Total de Itens</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stockItems.length}</div>
+            <div className="text-lg">"{stockItems.length}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm">Valor Total</CardTitle>
+            <CardTitle className="text-lg">"Valor Total</CardTitle>
           </CardHeader>
           <CardContent>
             <div className=""
@@ -331,7 +305,7 @@ function InventoryModal() {
         </Card>
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm">Itens Críticos</CardTitle>
+            <CardTitle className="text-lg">"Itens Críticos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className=""
@@ -340,7 +314,6 @@ function InventoryModal() {
           </CardContent>
         </Card>
       </div>
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -356,8 +329,8 @@ function InventoryModal() {
             <TableRow key={item.id}>
               <TableCell>
                 <div>
-                  <div className="font-medium">{item.itemName}</div>
-                  <div className="text-sm text-muted-foreground">{item.itemCode}</div>
+                  <div className="text-lg">"{item.itemName}</div>
+                  <div className="text-lg">"{item.itemCode}</div>
                 </div>
               </TableCell>
               <TableCell>{item.currentStock}</TableCell>
@@ -375,7 +348,6 @@ function InventoryModal() {
     </div>
   );
 }
-
 // Warehouses Tab Component
 function WarehousesTab({ warehouses, onCreateWarehouse }: { 
   warehouses: any[]; 
@@ -385,7 +357,7 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
     <div className=""
       <div className=""
         <div>
-          <h3 className="text-lg font-semibold">Gestão de Armazéns</h3>
+          <h3 className="text-lg">"Gestão de Armazéns</h3>
           <p className=""
             Gerencie seus armazéns e localizações de estoque
           </p>
@@ -395,13 +367,12 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
           Novo Armazém
         </Button>
       </div>
-
       <div className=""
         {warehouses.length === 0 ? (
           <Card className=""
             <CardContent className=""
               <Warehouse className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhum armazém cadastrado</h3>
+              <h3 className="text-lg">"Nenhum armazém cadastrado</h3>
               <p className=""
                 Comece criando seu primeiro armazém para organizar o estoque
               </p>
@@ -415,7 +386,7 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
           warehouses.map((warehouse: any) => (
             <Card key={warehouse.id}>
               <CardHeader className=""
-                <CardTitle className="text-base">{warehouse.name}</CardTitle>
+                <CardTitle className="text-lg">"{warehouse.name}</CardTitle>
                 <Warehouse className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -464,7 +435,6 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
           ))
         )}
       </div>
-
       {warehouses.length > 0 && (
         <Card>
           <CardHeader>
@@ -473,26 +443,26 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
           <CardContent>
             <div className=""
               <div className=""
-                <div className="text-2xl font-bold">{warehouses.length}</div>
-                <p className="text-sm text-muted-foreground">Total de Armazéns</p>
+                <div className="text-lg">"{warehouses.length}</div>
+                <p className="text-lg">"Total de Armazéns</p>
               </div>
               <div className=""
                 <div className=""
                   {warehouses.reduce((acc, w) => acc + (w.itemCount || 0), 0)}
                 </div>
-                <p className="text-sm text-muted-foreground">Itens Totais</p>
+                <p className="text-lg">"Itens Totais</p>
               </div>
               <div className=""
                 <div className=""
                   R$ {warehouses.reduce((acc, w) => acc + (w.totalValue || 0), 0).toLocaleString()}
                 </div>
-                <p className="text-sm text-muted-foreground">Valor Total</p>
+                <p className="text-lg">"Valor Total</p>
               </div>
               <div className=""
                 <div className=""
                   {warehouses.filter(w => w.status === 'active').length}
                 </div>
-                <p className="text-sm text-muted-foreground">Armazéns Ativos</p>
+                <p className="text-lg">"Armazéns Ativos</p>
               </div>
             </div>
           </CardContent>
@@ -501,9 +471,6 @@ function WarehousesTab({ warehouses, onCreateWarehouse }: {
     </div>
   );
 }
-
-
-
 interface StockMovement {
   id: string;
   itemId: string;
@@ -518,7 +485,6 @@ interface StockMovement {
   createdBy: string;
   createdAt: string;
 }
-
 export function StockManagement() {
   const [selectedTab, setSelectedTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
@@ -534,38 +500,32 @@ export function StockManagement() {
   const [isViewWarehouseOpen, setIsViewWarehouseOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState<any>(null);
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Fetch stock data
   const { data: stockResponse, isLoading: isLoadingStock } = useQuery({
     queryKey: ["/api/materials-services/stock/items"],
     enabled: true
   });
   const stockItems: StockItem[] = (stockResponse as any)?.data || [];
-
   // Fetch stock statistics
   const { data: statsResponse } = useQuery({
     queryKey: ["/api/materials-services/stock/stats"],
     enabled: true
   });
   const stockStats = (statsResponse as any)?.data || {};
-
   // Fetch recent movements
   const { data: movementsResponse } = useQuery({
     queryKey: ["/api/materials-services/stock/movements"],
     enabled: true
   });
   const movements: StockMovement[] = (movementsResponse as any)?.data || [];
-
   // Fetch warehouses
   const { data: warehousesResponse } = useQuery({
     queryKey: ["/api/materials-services/warehouses"],
     enabled: true
   });
   const warehouses = (warehousesResponse as any)?.data || [];
-
   // Mutation for creating stock movement
   const createMovementMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -582,7 +542,6 @@ export function StockManagement() {
       toast({ title: "Erro ao registrar movimentação", variant: "destructive" });
     }
   });
-
   // Mutation for stock adjustment
   const adjustmentMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -599,16 +558,13 @@ export function StockManagement() {
       toast({ title: "Erro ao realizar ajuste de estoque", variant: "destructive" });
     }
   });
-
   // Handlers
   const handleCreateMovement = (data: any) => {
     createMovementMutation.mutate(data);
   };
-
   const handleStockAdjustment = (data: any) => {
     adjustmentMutation.mutate(data);
   };
-
   // Filter stock items
   const filteredStockItems = stockItems.filter(item => {
     const matchesSearch = item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -618,12 +574,11 @@ export function StockManagement() {
     
     return matchesSearch && matchesStatus && matchesWarehouse;
   });
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">Gestão de Estoque</h1>
+          <h1 className="text-lg">"Gestão de Estoque</h1>
           <p className=""
             Controle completo do seu inventário e movimentações
           </p>
@@ -643,7 +598,6 @@ export function StockManagement() {
           </Button>
         </div>
       </div>
-
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className=""
         <TabsList className=""
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
@@ -651,62 +605,57 @@ export function StockManagement() {
           <TabsTrigger value="movements">Movimentações</TabsTrigger>
           <TabsTrigger value="warehouses">Armazéns</TabsTrigger>
         </TabsList>
-
         {/* Overview Tab */}
         <TabsContent value="overview" className=""
           {/* Statistics Cards */}
           <div className=""
             <Card>
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Itens em Estoque</CardTitle>
+                <CardTitle className="text-lg">"Itens em Estoque</CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stockStats.totalItems || stockItems.length}</div>
+                <div className="text-lg">"{stockStats.totalItems || stockItems.length}</div>
                 <p className=""
                   {stockStats.activeItems || stockItems.filter(item => item.status !== 'critical').length} ativos
                 </p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Estoque Baixo</CardTitle>
+                <CardTitle className="text-lg">"Estoque Baixo</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-yellow-600" />
               </CardHeader>
               <CardContent>
                 <div className=""
                   {stockStats.lowStockItems || stockItems.filter(item => item.status === 'low').length}
                 </div>
-                <p className="text-xs text-muted-foreground">Necessitam reposição</p>
+                <p className="text-lg">"Necessitam reposição</p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+                <CardTitle className="text-lg">"Valor Total</CardTitle>
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className=""
                   R$ {(stockStats.totalValue || stockItems.reduce((acc, item) => acc + item.totalValue, 0)).toLocaleString()}
                 </div>
-                <p className="text-xs text-muted-foreground">Inventário completo</p>
+                <p className="text-lg">"Inventário completo</p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Movimentações Hoje</CardTitle>
+                <CardTitle className="text-lg">"Movimentações Hoje</CardTitle>
                 <ArrowUpDown className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stockStats.todayMovements || movements.length}</div>
-                <p className="text-xs text-muted-foreground">Entradas e saídas</p>
+                <div className="text-lg">"{stockStats.todayMovements || movements.length}</div>
+                <p className="text-lg">"Entradas e saídas</p>
               </CardContent>
             </Card>
           </div>
-
           {/* Recent Movements */}
           <Card>
             <CardHeader>
@@ -719,7 +668,7 @@ export function StockManagement() {
               {movements.length === 0 ? (
                 <div className=""
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Nenhuma movimentação registrada</h3>
+                  <h3 className="text-lg">"Nenhuma movimentação registrada</h3>
                   <p>As movimentações de estoque aparecerão aqui</p>
                 </div>
               ) : (
@@ -738,7 +687,7 @@ export function StockManagement() {
                       <TableRow key={movement.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{movement.itemName}</div>
+                            <div className="text-lg">"{movement.itemName}</div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -763,7 +712,6 @@ export function StockManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Items Tab */}
         <TabsContent value="items" className=""
           {/* Filters */}
@@ -786,7 +734,6 @@ export function StockManagement() {
                     />
                   </div>
                 </div>
-
                 <div className=""
                   <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -802,7 +749,6 @@ export function StockManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className=""
                   <Label htmlFor="warehouse">Armazém</Label>
                   <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
@@ -822,7 +768,6 @@ export function StockManagement() {
               </div>
             </CardContent>
           </Card>
-
           {/* Items List */}
           <Card>
             <CardHeader>
@@ -839,7 +784,7 @@ export function StockManagement() {
               ) : filteredStockItems.length === 0 ? (
                 <div className=""
                   <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Nenhum item encontrado</h3>
+                  <h3 className="text-lg">"Nenhum item encontrado</h3>
                   <p>Verifique os filtros aplicados</p>
                 </div>
               ) : (
@@ -860,14 +805,14 @@ export function StockManagement() {
                       <TableRow key={item.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{item.itemName}</div>
-                            <div className="text-sm text-muted-foreground">{item.itemCode}</div>
+                            <div className="text-lg">"{item.itemName}</div>
+                            <div className="text-lg">"{item.itemCode}</div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className=""
-                            <span className="text-lg font-semibold">{item.currentStock}</span>
-                            <div className="text-xs text-muted-foreground">unidades</div>
+                            <span className="text-lg">"{item.currentStock}</span>
+                            <div className="text-lg">"unidades</div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -915,7 +860,6 @@ export function StockManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Movements Tab */}
         <TabsContent value="movements" className=""
           <Card>
@@ -929,7 +873,7 @@ export function StockManagement() {
               {movements.length === 0 ? (
                 <div className=""
                   <ArrowUpDown className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Nenhuma movimentação registrada</h3>
+                  <h3 className="text-lg">"Nenhuma movimentação registrada</h3>
                   <p>As movimentações de estoque aparecerão aqui</p>
                 </div>
               ) : (
@@ -950,7 +894,7 @@ export function StockManagement() {
                       <TableRow key={movement.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{movement.itemName}</div>
+                            <div className="text-lg">"{movement.itemName}</div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -979,7 +923,6 @@ export function StockManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Warehouses Tab */}
         <TabsContent value="warehouses" className=""
           <WarehousesTab 
@@ -988,7 +931,6 @@ export function StockManagement() {
           />
         </TabsContent>
       </Tabs>
-
       {/* Modals */}
       <Dialog open={isNewMovementOpen} onOpenChange={setIsNewMovementOpen}>
         <DialogContent className=""
@@ -1004,7 +946,6 @@ export function StockManagement() {
           />
         </DialogContent>
       </Dialog>
-
       <Dialog open={isAdjustmentOpen} onOpenChange={setIsAdjustmentOpen}>
         <DialogContent className=""
           <DialogHeader>
@@ -1019,7 +960,6 @@ export function StockManagement() {
           />
         </DialogContent>
       </Dialog>
-
       <Dialog open={isInventoryOpen} onOpenChange={setIsInventoryOpen}>
         <DialogContent className=""
           <DialogHeader>
@@ -1031,7 +971,6 @@ export function StockManagement() {
           <InventoryModal />
         </DialogContent>
       </Dialog>
-
       <Dialog open={isNewWarehouseOpen} onOpenChange={setIsNewWarehouseOpen}>
         <DialogContent className=""
           <DialogHeader>
@@ -1051,7 +990,6 @@ export function StockManagement() {
           />
         </DialogContent>
       </Dialog>
-
       {/* View Item Modal */}
       <Dialog open={isViewItemOpen} onOpenChange={setIsViewItemOpen}>
         <DialogContent className=""
@@ -1065,38 +1003,38 @@ export function StockManagement() {
             <div className=""
               <div className=""
                 <div>
-                  <Label className="text-sm font-medium">Nome do Item</Label>
-                  <p className="text-sm text-muted-foreground">{selectedItem.itemName}</p>
+                  <Label className="text-lg">"Nome do Item</Label>
+                  <p className="text-lg">"{selectedItem.itemName}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Código</Label>
-                  <p className="text-sm text-muted-foreground">{selectedItem.itemCode}</p>
+                  <Label className="text-lg">"Código</Label>
+                  <p className="text-lg">"{selectedItem.itemCode}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Estoque Atual</Label>
-                  <p className="text-sm text-muted-foreground">{selectedItem.currentStock} unidades</p>
+                  <Label className="text-lg">"Estoque Atual</Label>
+                  <p className="text-lg">"{selectedItem.currentStock} unidades</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Status</Label>
+                  <Label className="text-lg">"Status</Label>
                   <Badge className={getStatusColor(selectedItem.status)}>
                     {getStatusLabel(selectedItem.status)}
                   </Badge>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Estoque Mínimo</Label>
-                  <p className="text-sm text-muted-foreground">{selectedItem.minimumStock}</p>
+                  <Label className="text-lg">"Estoque Mínimo</Label>
+                  <p className="text-lg">"{selectedItem.minimumStock}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Estoque Máximo</Label>
-                  <p className="text-sm text-muted-foreground">{selectedItem.maximumStock}</p>
+                  <Label className="text-lg">"Estoque Máximo</Label>
+                  <p className="text-lg">"{selectedItem.maximumStock}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Valor Total</Label>
-                  <p className="text-sm text-muted-foreground">R$ {selectedItem.totalValue.toLocaleString()}</p>
+                  <Label className="text-lg">"Valor Total</Label>
+                  <p className="text-lg">"R$ {selectedItem.totalValue.toLocaleString()}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Armazém</Label>
-                  <p className="text-sm text-muted-foreground">{selectedItem.warehouse}</p>
+                  <Label className="text-lg">"Armazém</Label>
+                  <p className="text-lg">"{selectedItem.warehouse}</p>
                 </div>
               </div>
               <div className=""
@@ -1106,7 +1044,6 @@ export function StockManagement() {
           )}
         </DialogContent>
       </Dialog>
-
       {/* Edit Item Modal */}
       <Dialog open={isEditItemOpen} onOpenChange={setIsEditItemOpen}>
         <DialogContent className=""
@@ -1129,7 +1066,6 @@ export function StockManagement() {
           )}
         </DialogContent>
       </Dialog>
-
       {/* View Warehouse Modal */}
       <Dialog open={isViewWarehouseOpen} onOpenChange={setIsViewWarehouseOpen}>
         <DialogContent className=""
@@ -1143,27 +1079,27 @@ export function StockManagement() {
             <div className=""
               <div className=""
                 <div>
-                  <Label className="text-sm font-medium">Nome</Label>
-                  <p className="text-sm text-muted-foreground">{selectedWarehouse.name}</p>
+                  <Label className="text-lg">"Nome</Label>
+                  <p className="text-lg">"{selectedWarehouse.name}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Localização</Label>
-                  <p className="text-sm text-muted-foreground">{selectedWarehouse.location || 'Não informada'}</p>
+                  <Label className="text-lg">"Localização</Label>
+                  <p className="text-lg">"{selectedWarehouse.location || 'Não informada'}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Responsável</Label>
-                  <p className="text-sm text-muted-foreground">{selectedWarehouse.manager || 'Não informado'}</p>
+                  <Label className="text-lg">"Responsável</Label>
+                  <p className="text-lg">"{selectedWarehouse.manager || 'Não informado'}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Total de Itens</Label>
-                  <p className="text-sm text-muted-foreground">{selectedWarehouse.itemCount || 0} itens</p>
+                  <Label className="text-lg">"Total de Itens</Label>
+                  <p className="text-lg">"{selectedWarehouse.itemCount || 0} itens</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Valor Total</Label>
-                  <p className="text-sm text-muted-foreground">R$ {(selectedWarehouse.totalValue || 0).toLocaleString()}</p>
+                  <Label className="text-lg">"Valor Total</Label>
+                  <p className="text-lg">"R$ {(selectedWarehouse.totalValue || 0).toLocaleString()}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Status</Label>
+                  <Label className="text-lg">"Status</Label>
                   <Badge variant={selectedWarehouse.status === 'active' ? 'default' : 'secondary'}>
                     {selectedWarehouse.status === 'active' ? 'Ativo' : 'Inativo'}
                   </Badge>
@@ -1176,7 +1112,6 @@ export function StockManagement() {
           )}
         </DialogContent>
       </Dialog>
-
       {/* Edit Warehouse Modal */}
       <Dialog open={isEditWarehouseOpen} onOpenChange={setIsEditWarehouseOpen}>
         <DialogContent className=""
@@ -1202,7 +1137,6 @@ export function StockManagement() {
     </div>
   );
 }
-
 // Formulário para novo armazém
 function NewWarehouseForm({ onSubmit, isLoading, onCancel }: { 
   onSubmit: (data: any) => void; 
@@ -1215,7 +1149,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
   const [manager, setManager] = useState('');
   const [capacity, setCapacity] = useState('');
   const [description, setDescription] = useState('');
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !location) {
@@ -1226,7 +1159,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
       });
       return;
     }
-
     onSubmit({
       name,
       location,
@@ -1236,7 +1168,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
       status: 'active'
     });
   };
-
   return (
     <form onSubmit={handleSubmit} className=""
       <div className=""
@@ -1250,7 +1181,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
             required
           />
         </div>
-
         <div className=""
           <Label htmlFor="location">Localização *</Label>
           <Input
@@ -1261,7 +1191,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
             required
           />
         </div>
-
         <div className=""
           <Label htmlFor="manager">Responsável</Label>
           <Input
@@ -1271,7 +1200,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
             onChange={(e) => setManager(e.target.value)}
           />
         </div>
-
         <div className=""
           <Label htmlFor="capacity">Capacidade (m²)</Label>
           <Input
@@ -1283,7 +1211,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           />
         </div>
       </div>
-
       <div className=""
         <Label htmlFor="description">Descrição</Label>
         <Input
@@ -1293,7 +1220,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
-
       <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
@@ -1305,7 +1231,6 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
     </form>
   );
 }
-
 // Formulário para editar item
 function EditItemForm({ item, onSubmit, onCancel }: { 
   item: StockItem; 
@@ -1316,7 +1241,6 @@ function EditItemForm({ item, onSubmit, onCancel }: {
   const [minimumStock, setMinimumStock] = useState(item.minimumStock.toString());
   const [maximumStock, setMaximumStock] = useState(item.maximumStock.toString());
   const [warehouse, setWarehouse] = useState(item.warehouse);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -1327,7 +1251,6 @@ function EditItemForm({ item, onSubmit, onCancel }: {
       warehouse
     });
   };
-
   return (
     <form onSubmit={handleSubmit} className=""
       <div className=""
@@ -1340,7 +1263,6 @@ function EditItemForm({ item, onSubmit, onCancel }: {
           <Label>Código</Label>
           <Input value={item.itemCode} disabled />
         </div>
-
         <div className=""
           <Label htmlFor="minimumStock">Estoque Mínimo *</Label>
           <Input
@@ -1351,7 +1273,6 @@ function EditItemForm({ item, onSubmit, onCancel }: {
             required
           />
         </div>
-
         <div className=""
           <Label htmlFor="maximumStock">Estoque Máximo *</Label>
           <Input
@@ -1362,7 +1283,6 @@ function EditItemForm({ item, onSubmit, onCancel }: {
             required
           />
         </div>
-
         <div className=""
           <Label htmlFor="warehouse">Armazém</Label>
           <Input
@@ -1371,13 +1291,11 @@ function EditItemForm({ item, onSubmit, onCancel }: {
             onChange={(e) => setWarehouse(e.target.value)}
           />
         </div>
-
         <div className=""
           <Label>Estoque Atual</Label>
           <Input value={" unidades" disabled />
         </div>
       </div>
-
       <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
@@ -1389,7 +1307,6 @@ function EditItemForm({ item, onSubmit, onCancel }: {
     </form>
   );
 }
-
 // Formulário para editar armazém
 function EditWarehouseForm({ warehouse, onSubmit, onCancel }: { 
   warehouse: any; 
@@ -1401,7 +1318,6 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
   const [location, setLocation] = useState(warehouse.location || '');
   const [manager, setManager] = useState(warehouse.manager || '');
   const [status, setStatus] = useState(warehouse.status || 'active');
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !location) {
@@ -1412,7 +1328,6 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
       });
       return;
     }
-
     onSubmit({
       id: warehouse.id,
       name,
@@ -1421,7 +1336,6 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
       status
     });
   };
-
   return (
     <form onSubmit={handleSubmit} className=""
       <div className=""
@@ -1434,7 +1348,6 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
             required
           />
         </div>
-
         <div className=""
           <Label htmlFor="location">Localização *</Label>
           <Input
@@ -1444,7 +1357,6 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
             required
           />
         </div>
-
         <div className=""
           <Label htmlFor="manager">Responsável</Label>
           <Input
@@ -1453,7 +1365,6 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
             onChange={(e) => setManager(e.target.value)}
           />
         </div>
-
         <div className=""
           <Label htmlFor="status">Status</Label>
           <select 
@@ -1467,7 +1378,6 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
           </select>
         </div>
       </div>
-
       <div className=""
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar

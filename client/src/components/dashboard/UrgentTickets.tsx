@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { TicketWithRelations } from "@/types";
-
 function getPriorityColor(priority: string) {
   switch (priority.toLowerCase()) {
     case "critical":
@@ -18,7 +17,6 @@ function getPriorityColor(priority: string) {
       return "bg-gray-500 text-white";
   }
 }
-
 function formatTimeAgo(date: string) {
   const now = new Date();
   const ticketDate = new Date(date);
@@ -32,12 +30,10 @@ function formatTimeAgo(date: string) {
   const diffInDays = Math.floor(diffInHours / 24);
   return "d ago`;
 }
-
 export function UrgentTickets() {
   const { data: urgentTickets, isLoading } = useQuery<TicketWithRelations[]>({
     queryKey: ["/api/tickets/urgent"],
   });
-
   if (isLoading) {
     return (
       <Card className="gradient-card>
@@ -72,9 +68,7 @@ export function UrgentTickets() {
       </Card>
     );
   }
-
   const criticalCount = urgentTickets?.filter(t => t.priority === "critical").length || 0;
-
   return (
     <Card className="gradient-card>
       <CardHeader>

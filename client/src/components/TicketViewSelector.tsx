@@ -7,40 +7,33 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Settings, Plus, Eye, Users, Filter } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface TicketViewSelectorProps {
   currentViewId?: string;
   onViewChange: (viewId: string) => void;
 }
-
 export function TicketViewSelector({
   // Localization temporarily disabled
  currentViewId, onViewChange }: TicketViewSelectorProps) {
   const [isNewViewModalOpen, setIsNewViewModalOpen] = useState(false);
   const [isManageViewsOpen, setIsManageViewsOpen] = useState(false);
-
   // Fetch ticket views from API
   const { data: viewsData, isLoading } = useQuery({
     queryKey: ["/api/ticket-views"],
     retry: false,
   });
-
   const ticketViews = (viewsData as any)?.data || [];
-
   // Find current view
   const currentView = ticketViews.find((view: any) => view.id === currentViewId) || 
                      ticketViews.find((view: any) => view.is_default) ||
                      { id: 'default', name: 'Visualização Padrão' };
-
   if (isLoading) {
     return (
       <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg>
-        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-        <div className="h-8 w-40 bg-gray-200 rounded animate-pulse"></div>
+        <div className="text-lg">"</div>
+        <div className="text-lg">"</div>
       </div>
     );
   }
-
   return (
     <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg>
       <div className="flex items-center gap-4>
@@ -50,7 +43,6 @@ export function TicketViewSelector({
             Visualização:
           </span>
         </div>
-
         <Select value={currentViewId || 'default'} onValueChange={onViewChange}>
           <SelectTrigger className="w-64>
             <SelectValue>
@@ -92,14 +84,12 @@ export function TicketViewSelector({
             )}
           </SelectContent>
         </Select>
-
         {currentView.description && (
           <span className="text-sm text-gray-500 italic>
             {currentView.description}
           </span>
         )}
       </div>
-
       <div className="flex items-center gap-2>
         <Dialog open={isNewViewModalOpen} onOpenChange={setIsNewViewModalOpen}>
           <DialogTrigger asChild>
@@ -114,11 +104,11 @@ export function TicketViewSelector({
             </DialogHeader>
             <div className="space-y-4>
               <div>
-                <label className="text-sm font-medium">Nome da Visualização</label>
+                <label className="text-lg">"Nome da Visualização</label>
                 <Input placeholder='[TRANSLATION_NEEDED]' />
               </div>
               <div>
-                <label className="text-sm font-medium">Descrição (opcional)</label>
+                <label className="text-lg">"Descrição (opcional)</label>
                 <Input placeholder="Descrição da visualização..." />
               </div>
               <div className="flex items-center justify-end gap-2>
@@ -132,7 +122,6 @@ export function TicketViewSelector({
             </div>
           </DialogContent>
         </Dialog>
-
         <Dialog open={isManageViewsOpen} onOpenChange={setIsManageViewsOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm>
@@ -152,7 +141,7 @@ export function TicketViewSelector({
                 <div className="text-center py-8 text-gray-500>
                   <Filter className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p>Nenhuma visualização personalizada criada ainda.</p>
-                  <p className="text-sm">Clique em "Nova Visualização" para criar sua primeira visualização.</p>
+                  <p className="text-lg">"Clique em "Nova Visualização" para criar sua primeira visualização.</p>
                 </div>
               ) : (
                 <div className="space-y-3>
@@ -160,7 +149,7 @@ export function TicketViewSelector({
                     <div key={view.id} className="border rounded-lg p-4 flex items-center justify-between>
                       <div className="flex-1>
                         <div className="flex items-center gap-3>
-                          <h3 className="font-medium">{view.name}</h3>
+                          <h3 className="text-lg">"{view.name}</h3>
                           <div className="flex gap-2>
                             {view.is_public && (
                               <Badge variant="secondary>
@@ -174,7 +163,7 @@ export function TicketViewSelector({
                           </div>
                         </div>
                         {view.description && (
-                          <p className="text-sm text-gray-500 mt-1">{view.description}</p>
+                          <p className="text-lg">"{view.description}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2>

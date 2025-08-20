@@ -12,14 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface EditInternalActionModalProps {
   ticketId: string;
   action: any;
   isOpen: boolean;
   onClose: () => void;
 }
-
 export default function EditInternalActionModal({
   // Localization temporarily disabled
  ticketId, action, isOpen, onClose }: EditInternalActionModalProps) {
@@ -38,7 +36,6 @@ export default function EditInternalActionModal({
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Fetch detailed action data for editing
   const { data: actionDetails, isLoading: actionLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "actions", action?.id],
@@ -49,11 +46,9 @@ export default function EditInternalActionModal({
     },
     enabled: isOpen && !!action?.id && !!ticketId,
   });
-
   // Populate form with existing action data
   useEffect(() => {
     if (!isOpen || !action) return;
-
     // Reset form data whenever modal opens
     let dataToUse = action;
     
@@ -76,7 +71,6 @@ export default function EditInternalActionModal({
         return "";
       }
     };
-
     setFormData({
       startDateTime: formatDateTime(dataToUse.start_time || dataToUse.startDateTime),
       endDateTime: formatDateTime(dataToUse.end_time || dataToUse.endDateTime),
@@ -92,7 +86,6 @@ export default function EditInternalActionModal({
     
     setIsPublic(dataToUse.is_public !== undefined ? dataToUse.is_public : dataToUse.isPublic || false);
   }, [actionDetails, action, isOpen]);
-
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
     queryKey: ["/api/user-management/users"],
@@ -102,7 +95,6 @@ export default function EditInternalActionModal({
     },
     enabled: isOpen,
   });
-
   // Update internal action mutation
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -131,11 +123,9 @@ export default function EditInternalActionModal({
         title: '[TRANSLATION_NEEDED]',
         description: "Ação interna atualizada com sucesso",
       });
-
       // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
-
       onClose();
     },
     onError: (error: any) => {
@@ -146,7 +136,6 @@ export default function EditInternalActionModal({
       });
     },
   });
-
   const handleSubmit = () => {
     if (!formData.actionType) {
       toast({
@@ -156,10 +145,8 @@ export default function EditInternalActionModal({
       });
       return;
     }
-
     updateActionMutation.mutate(formData);
   };
-
   const handleTimeSpentToggle = (checked: boolean) => {
     setFormData(prev => ({
       ...prev,
@@ -167,9 +154,7 @@ export default function EditInternalActionModal({
       timeSpentMinutes: checked ? prev.timeSpentMinutes : "0"
     }));
   };
-
   if (!action) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto>
@@ -182,7 +167,6 @@ export default function EditInternalActionModal({
             Modifique os detalhes da ação interna registrada neste ticket.
           </DialogDescription>
         </DialogHeader>
-
         <Card>
           <CardContent className="p-6>
             <div className="space-y-6>
@@ -227,7 +211,7 @@ export default function EditInternalActionModal({
                       checked={formData.alterTimeSpent}
                       onCheckedChange={handleTimeSpentToggle}
                     />
-                    <Label htmlFor="alter-time" className="text-sm">Alterar tempo gasto</Label>
+                    <Label htmlFor="alter-time" className="text-lg">"Alterar tempo gasto</Label>
                   </div>
                   <Input
                     id="time-spent"
@@ -239,16 +223,15 @@ export default function EditInternalActionModal({
                     disabled={!formData.alterTimeSpent}
                     className="mt-1"
                   />
-                  <Label htmlFor="time-spent" className="text-xs text-gray-500">minutos</Label>
+                  <Label htmlFor="time-spent" className="text-lg">"minutos</Label>
                 </div>
               </div>
-
               {/* Assigned To - Highlighted */}
               <Card className="border-blue-200 bg-blue-50>
                 <CardContent className="p-4>
                   <div className="flex items-center gap-2 mb-2>
                     <User className="w-4 h-4 text-blue-600" />
-                    <Label htmlFor="assigned-to" className="text-sm font-bold text-blue-700">Atribuído a</Label>
+                    <Label htmlFor="assigned-to" className="text-lg">"Atribuído a</Label>
                   </div>
                   <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
                     <SelectTrigger>
@@ -265,7 +248,6 @@ export default function EditInternalActionModal({
                   </Select>
                 </CardContent>
               </Card>
-
               {/* Action Type */}
               <div>
                 <Label htmlFor="action-type">Ação Interna *</Label>
@@ -286,7 +268,6 @@ export default function EditInternalActionModal({
                   </SelectContent>
                 </Select>
               </div>
-
               {/* Description */}
               <div>
                 <Label htmlFor="description">Descrição</Label>
@@ -298,7 +279,6 @@ export default function EditInternalActionModal({
                   className="mt-1"
                 />
               </div>
-
               {/* Status */}
               <div className="grid grid-cols-2 gap-4>
                 <div>
@@ -314,7 +294,6 @@ export default function EditInternalActionModal({
                   </div>
                 </div>
               </div>
-
               {/* Work Log */}
               <div>
                 <Label htmlFor="work-log">Registro de Trabalho</Label>
@@ -327,7 +306,6 @@ export default function EditInternalActionModal({
                   className="mt-1"
                 />
               </div>
-
               {/* Public/Private Toggle */}
               <div className="flex items-center space-x-2 mb-4>
                 <Switch
@@ -339,7 +317,6 @@ export default function EditInternalActionModal({
                   {isPublic ? "Ação Pública (Visível ao cliente)" : "Ação Privada (Apenas agentes)"
                 </Label>
               </div>
-
               {/* Submit Section */}
               <div className="flex gap-2 justify-end border-t pt-4>
                 <Button

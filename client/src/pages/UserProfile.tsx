@@ -46,7 +46,6 @@ import NotificationPreferencesTab from "@/components/NotificationPreferencesTab"
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { UploadResult } from "@uppy/core";
-
 const profileSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
@@ -60,9 +59,7 @@ const profileSchema = z.object({
   dateOfBirth: z.string().optional(),
   address: z.string().optional(),
 });
-
 type ProfileFormData = z.infer<typeof profileSchema>;
-
 // Password change schema
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Senha atual é obrigatória"),
@@ -72,46 +69,38 @@ const passwordSchema = z.object({
   message: "Senhas não coincidem",
   path: ["confirmPassword"],
 });
-
 type PasswordFormData = z.infer<typeof passwordSchema>;
-
 export default function UserProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("personal");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-
   // Fetch user profile data
   const { data: profile, isLoading } = useQuery({
     queryKey: ['/api/user/profile'],
     enabled: !!user,
   });
-
   // Fetch user activity
   const { data: activity } = useQuery({
     queryKey: ['/api/user/activity'],
     enabled: !!user,
   });
-
   // Fetch user skills
   const { data: skills } = useQuery({
     queryKey: ['/api/user/skills'],
     enabled: !!user,
   });
-
   // Fetch user preferences
   const { data: preferences } = useQuery({
     queryKey: ['/api/user/preferences'],
     enabled: !!user,
   });
-
   // Fetch security sessions
   const { data: sessions } = useQuery({
     queryKey: ['/api/user/security/sessions'],
     enabled: !!user,
   });
-
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -128,7 +117,6 @@ export default function UserProfile() {
       address: "",
     },
   });
-
   // Update form when profile data loads following 1qa.md patterns
   useEffect(() => {
     if (profile && typeof profile === 'object') {
@@ -149,7 +137,6 @@ export default function UserProfile() {
       });
     }
   }, [profile, form]);
-
   // Update profile mutation following 1qa.md patterns
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
@@ -180,12 +167,10 @@ export default function UserProfile() {
       });
     },
   });
-
   const onSubmit = (data: ProfileFormData) => {
     console.log('[PROFILE-FORM] Submitting form data:', data);
     updateProfileMutation.mutate(data);
   };
-
   // Profile photo upload mutation following 1qa.md patterns
   const uploadPhotoMutation = useMutation({
     mutationFn: async (avatarURL: string) => {
@@ -239,7 +224,6 @@ export default function UserProfile() {
       });
     },
   });
-
   // Password form
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
@@ -249,7 +233,6 @@ export default function UserProfile() {
       confirmPassword: "",
     },
   });
-
   // Password change mutation
   const changePasswordMutation = useMutation({
     mutationFn: async (data: PasswordFormData) => {
@@ -275,7 +258,6 @@ export default function UserProfile() {
       });
     },
   });
-
   // Preferences mutations
   const updatePreferencesMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -297,7 +279,6 @@ export default function UserProfile() {
       });
     },
   });
-
   // Handle photo upload
   const handlePhotoUpload = async () => {
     try {
@@ -316,7 +297,6 @@ export default function UserProfile() {
       throw error;
     }
   };
-
   const handlePhotoComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
@@ -325,12 +305,10 @@ export default function UserProfile() {
       }
     }
   };
-
   // Handle password submit
   const onPasswordSubmit = (data: PasswordFormData) => {
     changePasswordMutation.mutate(data);
   };
-
   // Handle preference changes
   const handlePreferenceChange = (key: string, value: any) => {
     const preferencesData = preferences && typeof preferences === 'object' ? (preferences as any).data : {};
@@ -339,36 +317,33 @@ export default function UserProfile() {
       [key]: value,
     });
   };
-
   if (isLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <div className="p-4">
+        <div className="p-4">
+          <div className="text-lg">"</div>
+          <div className="text-lg">"</div>
         </div>
       </div>
     );
   }
-
   return (
-    <div className="p-4"
+    <div className="p-4">
       {/* Header */}
-      <div className="p-4"
+      <div className="p-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meu Perfil</h1>
-          <p className="text-gray-600 dark:text-gray-400">Gerencie suas informações pessoais e preferências</p>
+          <h1 className="text-lg">"Meu Perfil</h1>
+          <p className="text-lg">"Gerencie suas informações pessoais e preferências</p>
         </div>
       </div>
-
       {/* Profile Header Card */}
       <Card>
-        <CardContent className="p-4"
-          <div className="p-4"
-            <div className="p-4"
-              <Avatar className="p-4"
+        <CardContent className="p-4">
+          <div className="p-4">
+            <div className="p-4">
+              <Avatar className="p-4">
                 <AvatarImage src={(profile as any)?.avatar || (profile as any)?.avatar_url || ""} />
-                <AvatarFallback className="p-4"
+                <AvatarFallback className="p-4">
                   {((profile as any)?.firstName || user?.firstName)?.charAt(0)}{((profile as any)?.lastName || user?.lastName)?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
@@ -382,10 +357,10 @@ export default function UserProfile() {
                 <Camera className="h-4 w-4" />
               </ObjectUploader>
             </div>
-            <div className="p-4"
-              <h2 className="text-xl font-semibold">{(profile as any)?.firstName || user?.firstName} {(profile as any)?.lastName || user?.lastName}</h2>
-              <p className="text-gray-600 dark:text-gray-400">{(profile as any)?.email || user?.email}</p>
-              <div className="p-4"
+            <div className="p-4">
+              <h2 className="text-lg">"{(profile as any)?.firstName || user?.firstName} {(profile as any)?.lastName || user?.lastName}</h2>
+              <p className="text-lg">"{(profile as any)?.email || user?.email}</p>
+              <div className="p-4">
                 <Badge variant="outline">{(profile as any)?.role || user?.role}</Badge>
                 {(profile as any)?.department && <Badge variant="secondary">{(profile as any).department}</Badge>}
               </div>
@@ -410,40 +385,38 @@ export default function UserProfile() {
           </div>
         </CardContent>
       </Card>
-
       {/* Tabs Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4"
-        <TabsList className="p-4"
-          <TabsTrigger value="personal" className="p-4"
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4">
+        <TabsList className="p-4">
+          <TabsTrigger value="personal" className="p-4">
             <User className="h-4 w-4" />
             <span>Pessoal</span>
           </TabsTrigger>
-          <TabsTrigger value="skills" className="p-4"
+          <TabsTrigger value="skills" className="p-4">
             <Award className="h-4 w-4" />
             <span>Habilidades</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="p-4"
+          <TabsTrigger value="notifications" className="p-4">
             <Bell className="h-4 w-4" />
             <span>Notificações</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="p-4"
+          <TabsTrigger value="security" className="p-4">
             <Shield className="h-4 w-4" />
             <span>Segurança</span>
           </TabsTrigger>
-          <TabsTrigger value="privacy-gdpr" className="p-4"
+          <TabsTrigger value="privacy-gdpr" className="p-4">
             <Lock className="h-4 w-4" />
             <span>Privacidade & GDPR/LGPD</span>
           </TabsTrigger>
-          <TabsTrigger value="preferences" className="p-4"
+          <TabsTrigger value="preferences" className="p-4">
             <Settings className="h-4 w-4" />
             <span>Preferências</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="p-4"
+          <TabsTrigger value="activity" className="p-4">
             <Activity className="h-4 w-4" />
             <span>Atividade</span>
           </TabsTrigger>
         </TabsList>
-
         {/* Personal Information Tab */}
         <TabsContent value="personal>
           <Card>
@@ -455,8 +428,8 @@ export default function UserProfile() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
-                  <div className="p-4"
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-4">
+                  <div className="p-4">
                     <FormField
                       control={form.control}
                       name="firstName"
@@ -555,8 +528,7 @@ export default function UserProfile() {
                       </FormItem>
                     )}
                   />
-
-                  <div className="p-4"
+                  <div className="p-4">
                     <FormField
                       control={form.control}
                       name="location"
@@ -593,9 +565,8 @@ export default function UserProfile() {
                       )}
                     />
                   </div>
-
                   {isEditing && (
-                    <div className="p-4"
+                    <div className="p-4">
                       <Button
                         type="button"
                         variant="outline"
@@ -620,7 +591,6 @@ export default function UserProfile() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Skills Tab */}
         <TabsContent value="skills>
           <Card>
@@ -631,17 +601,17 @@ export default function UserProfile() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
-                <p className="p-4"
+              <div className="p-4">
+                <p className="p-4">
                   Suas habilidades técnicas serão exibidas aqui. Integração com o módulo de habilidades em desenvolvimento.
                 </p>
-                <div className="p-4"
+                <div className="p-4">
                   {Array.isArray(skills) && skills.length > 0 ? (
                     skills.map((skill: any) => (
-                      <div key={skill.id} className="p-4"
-                        <h4 className="font-medium">{skill.name}</h4>
-                        <p className="text-sm text-gray-600">{skill.category}</p>
-                        <div className="p-4"
+                      <div key={skill.id} className="p-4">
+                        <h4 className="text-lg">"{skill.name}</h4>
+                        <p className="text-lg">"{skill.category}</p>
+                        <div className="p-4">
                           <Badge variant={skill.level === 'expert' ? 'default' : 'secondary'}>
                             {skill.level}
                           </Badge>
@@ -649,19 +619,17 @@ export default function UserProfile() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-500">Nenhuma habilidade cadastrada</p>
+                    <p className="text-lg">"Nenhuma habilidade cadastrada</p>
                   )}
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Notifications Tab */}
         <TabsContent value="notifications>
           <NotificationPreferencesTab />
         </TabsContent>
-
         {/* Security Tab */}
         <TabsContent value="security>
           <Card>
@@ -671,12 +639,12 @@ export default function UserProfile() {
                 Gerencie a segurança da sua conta
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-4"
-              <div className="p-4"
-                <div className="p-4"
+            <CardContent className="p-4">
+              <div className="p-4">
+                <div className="p-4">
                   <div>
-                    <h4 className="font-medium">Alterar Senha</h4>
-                    <p className="text-sm text-gray-600">Atualize sua senha de acesso</p>
+                    <h4 className="text-lg">"Alterar Senha</h4>
+                    <p className="text-lg">"Atualize sua senha de acesso</p>
                   </div>
                   <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
                     <DialogTrigger asChild>
@@ -685,7 +653,7 @@ export default function UserProfile() {
                         Alterar
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="p-4"
+                    <DialogContent className="p-4">
                       <DialogHeader>
                         <DialogTitle>Alterar Senha</DialogTitle>
                         <DialogDescription>
@@ -693,7 +661,7 @@ export default function UserProfile() {
                         </DialogDescription>
                       </DialogHeader>
                       <Form {...passwordForm}>
-                        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="p-4"
+                        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="p-4">
                           <FormField
                             control={passwordForm.control}
                             name="currentPassword"
@@ -747,30 +715,30 @@ export default function UserProfile() {
                   </Dialog>
                 </div>
                 
-                <div className="p-4"
+                <div className="p-4">
                   <div>
-                    <h4 className="font-medium">Sessões Ativas</h4>
-                    <p className="text-sm text-gray-600">Gerencie dispositivos conectados</p>
+                    <h4 className="text-lg">"Sessões Ativas</h4>
+                    <p className="text-lg">"Gerencie dispositivos conectados</p>
                   </div>
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline">Ver Sessões</Button>
                     </DialogTrigger>
-                    <DialogContent className="p-4"
+                    <DialogContent className="p-4">
                       <DialogHeader>
                         <DialogTitle>Sessões Ativas</DialogTitle>
                         <DialogDescription>
                           Dispositivos conectados à sua conta
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="p-4"
+                      <div className="p-4">
                         {Array.isArray((sessions as any)?.data) && (sessions as any).data.length > 0 ? (
                           (sessions as any).data.map((session: any) => (
-                            <div key={session.id} className="p-4"
+                            <div key={session.id} className="p-4">
                               <div>
-                                <p className="font-medium">{session.device}</p>
-                                <p className="text-sm text-gray-600">{session.location}</p>
-                                <p className="p-4"
+                                <p className="text-lg">"{session.device}</p>
+                                <p className="text-lg">"{session.location}</p>
+                                <p className="p-4">
                                   Última atividade: {new Date(session.lastActivity).toLocaleString('pt-BR')}
                                 </p>
                               </div>
@@ -780,17 +748,16 @@ export default function UserProfile() {
                             </div>
                           ))
                         ) : (
-                          <p className="text-gray-500 text-center py-4">Nenhuma sessão ativa encontrada</p>
+                          <p className="text-lg">"Nenhuma sessão ativa encontrada</p>
                         )}
                       </div>
                     </DialogContent>
                   </Dialog>
                 </div>
-
-                <div className="p-4"
+                <div className="p-4">
                   <div>
-                    <h4 className="font-medium">Logs de Segurança</h4>
-                    <p className="text-sm text-gray-600">Histórico de atividades de segurança</p>
+                    <h4 className="text-lg">"Logs de Segurança</h4>
+                    <p className="text-lg">"Histórico de atividades de segurança</p>
                   </div>
                   <Button variant="outline">Ver Logs</Button>
                 </div>
@@ -798,7 +765,6 @@ export default function UserProfile() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Preferences Tab */}
         <TabsContent value="preferences>
           <Card>
@@ -808,18 +774,18 @@ export default function UserProfile() {
                 Configure suas preferências de sistema
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-4"
-              <div className="p-4"
-                <div className="p-4"
+            <CardContent className="p-4">
+              <div className="p-4">
+                <div className="p-4">
                   <div>
                     <Label htmlFor="language">Idioma</Label>
-                    <p className="text-sm text-gray-600">Selecione seu idioma preferido</p>
+                    <p className="text-lg">"Selecione seu idioma preferido</p>
                   </div>
                   <Select 
                     value={(preferences as any)?.data?.language || "pt-BR"
                     onValueChange={(value) => handlePreferenceChange('language', value)}
                   >
-                    <SelectTrigger className="p-4"
+                    <SelectTrigger className="p-4">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -829,13 +795,11 @@ export default function UserProfile() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <Separator />
-
-                <div className="p-4"
+                <div className="p-4">
                   <div>
                     <Label htmlFor="notifications">Notificações por Email</Label>
-                    <p className="text-sm text-gray-600">Receber notificações por email</p>
+                    <p className="text-lg">"Receber notificações por email</p>
                   </div>
                   <Switch 
                     id="notifications" 
@@ -843,11 +807,10 @@ export default function UserProfile() {
                     onCheckedChange={(checked) => handlePreferenceChange('emailNotifications', checked)}
                   />
                 </div>
-
-                <div className="p-4"
+                <div className="p-4">
                   <div>
                     <Label htmlFor="push-notifications">Notificações Push</Label>
-                    <p className="text-sm text-gray-600">Receber notificações no navegador</p>
+                    <p className="text-lg">"Receber notificações no navegador</p>
                   </div>
                   <Switch 
                     id="push-notifications" 
@@ -855,11 +818,10 @@ export default function UserProfile() {
                     onCheckedChange={(checked) => handlePreferenceChange('pushNotifications', checked)}
                   />
                 </div>
-
-                <div className="p-4"
+                <div className="p-4">
                   <div>
                     <Label htmlFor="dark-mode">Modo Escuro</Label>
-                    <p className="text-sm text-gray-600">Usar tema escuro na interface</p>
+                    <p className="text-lg">"Usar tema escuro na interface</p>
                   </div>
                   <Switch 
                     id="dark-mode" 
@@ -871,7 +833,6 @@ export default function UserProfile() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Activity Tab */}
         <TabsContent value="activity>
           <Card>
@@ -882,29 +843,28 @@ export default function UserProfile() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4"
+              <div className="p-4">
                 {Array.isArray(activity) && activity.length > 0 ? (
                   activity.map((item: any, index: number) => (
-                    <div key={index} className="p-4"
-                      <div className="p-4"
+                    <div key={index} className="p-4">
+                      <div className="p-4">
                         <Activity className="h-5 w-5 text-gray-400" />
                       </div>
-                      <div className="p-4"
-                        <p className="text-sm font-medium">{item.description}</p>
-                        <p className="p-4"
+                      <div className="p-4">
+                        <p className="text-lg">"{item.description}</p>
+                        <p className="p-4">
                           {new Date(item.timestamp).toLocaleString('pt-BR')}
                         </p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-8">Nenhuma atividade recente</p>
+                  <p className="text-lg">"Nenhuma atividade recente</p>
                 )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Privacy & GDPR/LGPD Tab - Seguindo 1qa.md */}
         <TabsContent value="privacy-gdpr>
           <PrivacyGdprTab />
@@ -913,36 +873,30 @@ export default function UserProfile() {
     </div>
   );
 }
-
 // ✅ Componente Privacidade & GDPR/LGPD - Seguindo especificações rigorosas do 1qa.md
 function PrivacyGdprTab() {
   const { toast } = useToast();
   const [showPolicyDialog, setShowPolicyDialog] = useState(false); // ✅ Estado para modal seguindo 1qa.md
-
   // ✅ Fetch GDPR user preferences
   const { data: gdprPreferences, refetch: refetchPreferences } = useQuery({
     queryKey: ['/api/gdpr-compliance/user-preferences'],
     enabled: true,
   });
-
   // ✅ Fetch data subject requests
   const { data: dataRequests } = useQuery({
     queryKey: ['/api/gdpr-compliance/data-subject-requests'],
     enabled: true,
   });
-
   // ✅ Fetch current privacy policy version
   const { data: privacyPolicy } = useQuery({
     queryKey: ['/api/gdpr-compliance/current-privacy-policy'],
     enabled: true,
   });
-
   // ✅ Fetch admin privacy policies (ativa) - Seguindo 1qa.md
   const { data: adminPolicies } = useQuery({
     queryKey: ['/api/gdpr-compliance/admin/privacy-policies'],
     enabled: true,
   });
-
   // ✅ Mutations for user actions
   const updatePreferencesMutation = useMutation({
     mutationFn: (preferences: any) => apiRequest('PUT', '/api/gdpr-compliance/user-preferences', preferences),
@@ -951,46 +905,40 @@ function PrivacyGdprTab() {
       refetchPreferences();
     }
   });
-
   const exportDataMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/gdpr-compliance/export-my-data', { format: 'json' }),
     onSuccess: () => {
       toast({ title: "Solicitação de exportação criada", description: "Você receberá um e-mail com seus dados" });
     }
   });
-
   const deleteDataMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/gdpr-compliance/request-data-deletion', { requestType: 'erasure', requestDetails: 'Direito ao esquecimento' }),
     onSuccess: () => {
       toast({ title: "Solicitação de exclusão criada", description: "Processaremos sua solicitação em até 30 dias" });
     }
   });
-
   const correctDataMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/gdpr-compliance/request-data-correction', { requestType: 'rectification', requestDetails: 'Correção de dados pessoais' }),
     onSuccess: () => {
       toast({ title: "Solicitação de correção criada", description: "Analisaremos sua solicitação" });
     }
   });
-
   const limitUsageMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/gdpr-compliance/limit-data-usage', { requestType: 'restriction', requestDetails: 'Limitação de uso de dados' }),
     onSuccess: () => {
       toast({ title: "Limitação de uso ativada", description: "Dados serão usados apenas para contratos essenciais" });
     }
   });
-
   const preferences = (gdprPreferences as any)?.data || {};
   const policyData = (privacyPolicy as any)?.data || {};
   
   // ✅ Buscar política ativa do admin - Seguindo 1qa.md
   const activePolicyFromAdmin = (adminPolicies as any)?.data?.find((policy: any) => policy.isActive) || 
                                 (adminPolicies as any)?.data?.[0] || {};
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="p-4"
+        <CardTitle className="p-4">
           <Lock className="h-5 w-5" />
           <span>Privacidade & GDPR/LGPD</span>
         </CardTitle>
@@ -998,17 +946,17 @@ function PrivacyGdprTab() {
           Gerencie suas preferências de privacidade e direitos de proteção de dados
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-4"
+      <CardContent className="p-4">
         
         {/* ✅ Política de Privacidade Atual */}
-        <div className="p-4"
-          <div className="p-4"
+        <div className="p-4">
+          <div className="p-4">
             <div>
-              <h4 className="p-4"
+              <h4 className="p-4">
                 <FileText className="h-4 w-4" />
                 <span>Política de Privacidade</span>
               </h4>
-              <p className="p-4"
+              <p className="p-4">
                 Versão ativa: {activePolicyFromAdmin.version || policyData.version || "1.0"} - {activePolicyFromAdmin.effectiveDate ? new Date(activePolicyFromAdmin.effectiveDate).toLocaleDateString('pt-BR') : (policyData.acceptedAt ? new Date(policyData.acceptedAt).toLocaleDateString('pt-BR') : "Primeira vez")}
               </p>
             </div>
@@ -1023,18 +971,16 @@ function PrivacyGdprTab() {
             </Button>
           </div>
         </div>
-
         <Separator />
-
         {/* ✅ Gerenciar Consentimento */}
-        <div className="p-4"
-          <h4 className="font-medium">Gerenciar Consentimento</h4>
+        <div className="p-4">
+          <h4 className="text-lg">"Gerenciar Consentimento</h4>
           
-          <div className="p-4"
-            <div className="p-4"
+          <div className="p-4">
+            <div className="p-4">
               <div>
-                <Label className="font-medium">Cookies de Marketing</Label>
-                <p className="text-sm text-gray-600">Permitir cookies para personalização de anúncios</p>
+                <Label className="text-lg">"Cookies de Marketing</Label>
+                <p className="text-lg">"Permitir cookies para personalização de anúncios</p>
               </div>
               <Switch
                 checked={preferences.emailMarketing || false}
@@ -1043,11 +989,10 @@ function PrivacyGdprTab() {
                 }
               />
             </div>
-
-            <div className="p-4"
+            <div className="p-4">
               <div>
-                <Label className="font-medium">Comunicação por SMS</Label>
-                <p className="text-sm text-gray-600">Receber comunicações de marketing por SMS</p>
+                <Label className="text-lg">"Comunicação por SMS</Label>
+                <p className="text-lg">"Receber comunicações de marketing por SMS</p>
               </div>
               <Switch
                 checked={preferences.smsMarketing || false}
@@ -1056,11 +1001,10 @@ function PrivacyGdprTab() {
                 }
               />
             </div>
-
-            <div className="p-4"
+            <div className="p-4">
               <div>
-                <Label className="font-medium">Análise de Dados</Label>
-                <p className="text-sm text-gray-600">Permitir análise para melhoria de serviços</p>
+                <Label className="text-lg">"Análise de Dados</Label>
+                <p className="text-lg">"Permitir análise para melhoria de serviços</p>
               </div>
               <Switch
                 checked={preferences.dataProcessingForAnalytics || false}
@@ -1069,11 +1013,10 @@ function PrivacyGdprTab() {
                 }
               />
             </div>
-
-            <div className="p-4"
+            <div className="p-4">
               <div>
-                <Label className="font-medium">Visibilidade do Perfil</Label>
-                <p className="text-sm text-gray-600">Controlar visibilidade das informações do perfil</p>
+                <Label className="text-lg">"Visibilidade do Perfil</Label>
+                <p className="text-lg">"Controlar visibilidade das informações do perfil</p>
               </div>
               <Select
                 value={preferences.profileVisibility || 'private'}
@@ -1081,7 +1024,7 @@ function PrivacyGdprTab() {
                   updatePreferencesMutation.mutate({ ...preferences, profileVisibility: value })
                 }
               >
-                <SelectTrigger className="p-4"
+                <SelectTrigger className="p-4">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1093,23 +1036,20 @@ function PrivacyGdprTab() {
             </div>
           </div>
         </div>
-
         <Separator />
-
         {/* ✅ Direitos do Usuário */}
-        <div className="p-4"
-          <h4 className="font-medium">Seus Direitos de Proteção de Dados</h4>
-          <p className="p-4"
+        <div className="p-4">
+          <h4 className="text-lg">"Seus Direitos de Proteção de Dados</h4>
+          <p className="p-4">
             Conforme GDPR/LGPD, você tem os seguintes direitos sobre seus dados pessoais:
           </p>
-
-          <div className="p-4"
+          <div className="p-4">
             {/* Baixar Meus Dados */}
-            <div className="p-4"
-              <div className="p-4"
+            <div className="p-4">
+              <div className="p-4">
                 <div>
-                  <h5 className="font-medium">Baixar Meus Dados</h5>
-                  <p className="text-sm text-gray-600">Exportar todos os seus dados (JSON/CSV/PDF)</p>
+                  <h5 className="text-lg">"Baixar Meus Dados</h5>
+                  <p className="text-lg">"Exportar todos os seus dados (JSON/CSV/PDF)</p>
                 </div>
                 <Button
                   variant="outline"
@@ -1121,13 +1061,12 @@ function PrivacyGdprTab() {
                 </Button>
               </div>
             </div>
-
             {/* Corrigir Dados */}
-            <div className="p-4"
-              <div className="p-4"
+            <div className="p-4">
+              <div className="p-4">
                 <div>
-                  <h5 className="font-medium">Corrigir Dados</h5>
-                  <p className="text-sm text-gray-600">Solicitar correção de informações incorretas</p>
+                  <h5 className="text-lg">"Corrigir Dados</h5>
+                  <p className="text-lg">"Solicitar correção de informações incorretas</p>
                 </div>
                 <Button
                   variant="outline"
@@ -1139,13 +1078,12 @@ function PrivacyGdprTab() {
                 </Button>
               </div>
             </div>
-
             {/* Limitar Uso */}
-            <div className="p-4"
-              <div className="p-4"
+            <div className="p-4">
+              <div className="p-4">
                 <div>
-                  <h5 className="font-medium">Limitar Uso</h5>
-                  <p className="text-sm text-gray-600">Suspender marketing, manter contratos essenciais</p>
+                  <h5 className="text-lg">"Limitar Uso</h5>
+                  <p className="text-lg">"Suspender marketing, manter contratos essenciais</p>
                 </div>
                 <Button
                   variant="outline"
@@ -1157,13 +1095,12 @@ function PrivacyGdprTab() {
                 </Button>
               </div>
             </div>
-
             {/* Excluir Meus Dados */}
-            <div className="p-4"
-              <div className="p-4"
+            <div className="p-4">
+              <div className="p-4">
                 <div>
-                  <h5 className="font-medium text-red-600 dark:text-red-400">Excluir Meus Dados</h5>
-                  <p className="text-sm text-gray-600">Direito ao esquecimento (ação irreversível)</p>
+                  <h5 className="text-lg">"Excluir Meus Dados</h5>
+                  <p className="text-lg">"Direito ao esquecimento (ação irreversível)</p>
                 </div>
                 <Button
                   variant="destructive"
@@ -1181,19 +1118,18 @@ function PrivacyGdprTab() {
             </div>
           </div>
         </div>
-
         {/* ✅ Histórico de Solicitações */}
         <Separator />
-        <div className="p-4"
-          <h4 className="font-medium">Histórico de Solicitações</h4>
+        <div className="p-4">
+          <h4 className="text-lg">"Histórico de Solicitações</h4>
           
           {(dataRequests as any)?.data && (dataRequests as any).data.length > 0 ? (
-            <div className="p-4"
+            <div className="p-4">
               {(dataRequests as any).data.map((request: any) => (
-                <div key={request.id} className="p-4"
+                <div key={request.id} className="p-4">
                   <div>
-                    <p className="font-medium">{request.requestType}</p>
-                    <p className="p-4"
+                    <p className="text-lg">"{request.requestType}</p>
+                    <p className="p-4">
                       {new Date(request.createdAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
@@ -1205,15 +1141,14 @@ function PrivacyGdprTab() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">Nenhuma solicitação encontrada</p>
+            <p className="text-lg">"Nenhuma solicitação encontrada</p>
           )}
         </div>
-
         {/* ✅ Dialog para exibir política completa - Seguindo 1qa.md */}
         <Dialog open={showPolicyDialog} onOpenChange={setShowPolicyDialog}>
-          <DialogContent className="p-4"
+          <DialogContent className="p-4">
             <DialogHeader>
-              <DialogTitle className="p-4"
+              <DialogTitle className="p-4">
                 <FileText className="h-5 w-5" />
                 {activePolicyFromAdmin.title || "Política de Privacidade"} - Versão {activePolicyFromAdmin.version || policyData.version || "1.0"
               </DialogTitle>
@@ -1227,7 +1162,7 @@ function PrivacyGdprTab() {
                 }
               </DialogDescription>
             </DialogHeader>
-            <div className="p-4"
+            <div className="p-4">
               <div 
                 className="prose prose-sm max-w-none dark:prose-invert"
                 dangerouslySetInnerHTML={{ 
@@ -1254,7 +1189,6 @@ function PrivacyGdprTab() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
       </CardContent>
     </Card>
   );

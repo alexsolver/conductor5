@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { apiRequest } from '@/lib/queryClient';
 import { Building2, Globe } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface Company {
   id: string;
   name: string;
@@ -15,13 +14,11 @@ interface Company {
   size: string;
   subscriptionTier: string;
 }
-
 interface CompanyTemplateSelectorProps {
   selectedCompany: string;
   onCompanyChange: (companyId: string) => void;
   showStats?: boolean;
 }
-
 export default function CompanyTemplateSelector({
   // Localization temporarily disabled
  
@@ -37,9 +34,7 @@ export default function CompanyTemplateSelector({
       return response.json();
     },
   });
-
   const companies: Company[] = Array.isArray(companiesResponse?.companies) ? companiesResponse.companies : [];
-
   // Fetch template stats for selected company
   const { data: statsResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
@@ -49,9 +44,7 @@ export default function CompanyTemplateSelector({
     },
     enabled: showStats
   });
-
   const stats = statsResponse?.data?.[0] || {};
-
   const getCompanyInfo = (companyId: string) => {
     if (companyId === 'all') {
       return {
@@ -68,9 +61,7 @@ export default function CompanyTemplateSelector({
       icon: <Building2 className="w-4 h-4" />
     };
   };
-
   const selectedCompanyInfo = getCompanyInfo(selectedCompany);
-
   const getSubscriptionColor = (tier: string) => {
     switch (tier?.toLowerCase()) {
       case 'enterprise': return 'bg-purple-100 text-purple-800';
@@ -79,7 +70,6 @@ export default function CompanyTemplateSelector({
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getSizeColor = (size: string) => {
     switch (size?.toLowerCase()) {
       case 'large': return 'bg-red-100 text-red-800';
@@ -88,7 +78,6 @@ export default function CompanyTemplateSelector({
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getSizeLabel = (size: string) => {
     switch (size?.toLowerCase()) {
       case 'large': return 'Grande';
@@ -97,7 +86,6 @@ export default function CompanyTemplateSelector({
       default: return size || 'N/A';
     }
   };
-
   const getTierLabel = (tier: string) => {
     switch (tier?.toLowerCase()) {
       case 'enterprise': return 'Enterprise';
@@ -106,18 +94,16 @@ export default function CompanyTemplateSelector({
       default: return tier || 'N/A';
     }
   };
-
   if (companiesLoading) {
     return (
       <Card className="animate-pulse>
         <CardContent className="p-4>
-          <div className="h-4 bg-gray-200 rounded mb-2"></div>
-          <div className="h-8 bg-gray-200 rounded"></div>
+          <div className="text-lg">"</div>
+          <div className="text-lg">"</div>
         </CardContent>
       </Card>
     );
   }
-
   return (
     <div className="space-y-4>
       {/* Company Selector */}
@@ -151,12 +137,11 @@ export default function CompanyTemplateSelector({
                 ))}
               </SelectContent>
             </Select>
-
             {/* Selected Company Info */}
             <div className="p-4 bg-gray-50 rounded-lg>
               <div className="flex items-start justify-between>
                 <div className="flex-1>
-                  <h4 className="font-medium">{selectedCompanyInfo.name}</h4>
+                  <h4 className="text-lg">"{selectedCompanyInfo.name}</h4>
                   <p className="text-sm text-muted-foreground mt-1>
                     {selectedCompanyInfo.description}
                   </p>
@@ -186,33 +171,31 @@ export default function CompanyTemplateSelector({
           </div>
         </CardContent>
       </Card>
-
       {/* Template Stats for Selected Company */}
       {showStats && stats && Object.keys(stats).length > 0 && (
         <Card>
           <CardHeader className="pb-3>
-            <CardTitle className="text-lg">Estatísticas de Templates</CardTitle>
+            <CardTitle className="text-lg">"Estatísticas de Templates</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4>
               <div className="text-center>
-                <p className="text-2xl font-bold text-blue-600">{stats.total_templates || 0}</p>
-                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-lg">"{stats.total_templates || 0}</p>
+                <p className="text-lg">"Total</p>
               </div>
               <div className="text-center>
-                <p className="text-2xl font-bold text-green-600">{stats.active_templates || 0}</p>
-                <p className="text-sm text-muted-foreground">Ativos</p>
+                <p className="text-lg">"{stats.active_templates || 0}</p>
+                <p className="text-lg">"Ativos</p>
               </div>
               <div className="text-center>
-                <p className="text-2xl font-bold text-orange-600">{Math.round(stats.avg_usage || 0)}</p>
-                <p className="text-sm text-muted-foreground">Uso Médio</p>
+                <p className="text-lg">"{Math.round(stats.avg_usage || 0)}</p>
+                <p className="text-lg">"Uso Médio</p>
               </div>
               <div className="text-center>
-                <p className="text-2xl font-bold text-purple-600">{stats.max_usage || 0}</p>
-                <p className="text-sm text-muted-foreground">Mais Usado</p>
+                <p className="text-lg">"{stats.max_usage || 0}</p>
+                <p className="text-lg">"Mais Usado</p>
               </div>
             </div>
-
             {stats.templates_by_category && stats.templates_by_category.length > 0 && (
               <div className="mt-4 pt-4 border-t>
                 <p className="text-sm font-medium text-muted-foreground mb-2>

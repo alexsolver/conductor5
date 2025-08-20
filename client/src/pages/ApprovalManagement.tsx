@@ -8,10 +8,8 @@ import { ApprovalInstances } from '@/components/approvals/ApprovalInstances';
 import { ApprovalGroupsManager } from '@/components/approvals/ApprovalGroupsManager';
 import { UnifiedApprovalConfigurator } from '@/components/approvals/UnifiedApprovalConfigurator';
 import { Settings, BarChart3, List, Users } from 'lucide-react';
-
 export function ApprovalManagement() {
   const [activeTab, setActiveTab] = useState('dashboard');
-
   return (
     <div className="container mx-auto p-6" data-testid="approval-management-container>
       <div className=""
@@ -27,7 +25,6 @@ export function ApprovalManagement() {
           Sistema Ativo
         </Badge>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className=""
         <TabsList className="grid w-full grid-cols-4" data-testid="tabs-navigation>
           <TabsTrigger value="dashboard" className="flex items-center gap-2" data-testid="tab-dashboard>
@@ -47,20 +44,16 @@ export function ApprovalManagement() {
             Grupos
           </TabsTrigger>
         </TabsList>
-
         <div className=""
           <TabsContent value="dashboard" data-testid="content-dashboard>
             <ApprovalDashboard />
           </TabsContent>
-
           <TabsContent value="configurator" data-testid="content-configurator>
             <UnifiedApprovalConfigurator />
           </TabsContent>
-
           <TabsContent value="instances" data-testid="content-instances>
             <ApprovalInstances />
           </TabsContent>
-
           <TabsContent value="groups" data-testid="content-groups>
             <ApprovalGroupsManager />
           </TabsContent>

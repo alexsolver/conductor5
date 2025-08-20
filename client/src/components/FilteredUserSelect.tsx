@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface FilteredUserSelectProps {
   value?: string;
   onChange: (value: string) => void;
@@ -12,7 +11,6 @@ interface FilteredUserSelectProps {
   disabled?: boolean;
   className?: string;
 }
-
 export function FilteredUserSelect({
   // Localization temporarily disabled
  
@@ -31,7 +29,6 @@ export function FilteredUserSelect({
       return response.json();
     },
   });
-
   // Buscar membros do grupo se um grupo foi selecionado
   const { data: groupMembersData, isLoading: isLoadingMembers } = useQuery({
     queryKey: ['/api/user-groups', selectedGroupId, 'members'],
@@ -42,7 +39,6 @@ export function FilteredUserSelect({
     },
     enabled: !!selectedGroupId,
   });
-
   const isLoading = isLoadingUsers || (selectedGroupId && isLoadingMembers);
   
   // Determinar quais usuários mostrar
@@ -64,7 +60,6 @@ export function FilteredUserSelect({
       users: usersToShow.map(u => ({ id: u.id, name: u.name, email: u.email }))
     });
   }
-
   if (isLoading) {
     return (
       <Select disabled>
@@ -74,7 +69,6 @@ export function FilteredUserSelect({
       </Select>
     );
   }
-
   return (
     <Select 
       value={value || '__none__'} 

@@ -13,11 +13,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 // Helper function to format currency
 function formatCurrency(amount: number | string | undefined): string {
   // Localization temporarily disabled
-
   const numericAmount = parseFloat(String(amount));
   if (isNaN(numericAmount)) {
     return "R$ 0,00";
@@ -27,12 +25,10 @@ function formatCurrency(amount: number | string | undefined): string {
     currency: 'BRL',
   }).format(numericAmount);
 }
-
 interface MaterialsServicesMiniSystemProps {
   ticketId: string;
   ticket?: any; // Add ticket data to get company information
 }
-
 export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServicesMiniSystemProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -44,7 +40,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const [consumeSelectedItem, setConsumeSelectedItem] = useState("");
   const [consumeQuantity, setConsumeQuantity] = useState("");
   const [consumedQuantity, setConsumedQuantity] = useState("");
-
   // Fetch items with customer-specific customizations
   const { data: itemsData, isLoading: itemsLoading, error: itemsError } = useQuery({
     queryKey: ['/api/materials-services/companies', ticket?.companyId || ticket?.customer_id, 'items'],
@@ -57,7 +52,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         customer_id: ticket?.customer_id,
         ticketKeys: ticket ? Object.keys(ticket) : 'no ticket'
       });
-
       if (!companyId) {
         // Fallback to regular items if no company ID
         const response = await apiRequest('GET', `/api/materials-services/items`);
@@ -65,7 +59,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         console.log('📦 [MaterialsSystem] Items fetched (fallback):', result.data?.length || 0, 'items');
         return result;
       }
-
       // Fetch items with company-specific personalization
       const response = await apiRequest('GET', "/items`);
       const result = await response.json();
@@ -75,7 +68,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     enabled: !!ticket,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
-
   // Fetch available items for consumption (only planned items)
   const { data: availableItemsData, isLoading: availableItemsLoading, error: availableItemsError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'available-for-consumption'],
@@ -84,7 +76,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       return response.json();
     },
   });
-
   // Fetch planned materials
   const { data: plannedData, isLoading: plannedLoading, error: plannedError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items'],
@@ -93,7 +84,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       return response.json();
     },
   });
-
   // Fetch consumed materials
   const { data: consumedData, isLoading: consumedLoading, error: consumedError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items'],
@@ -102,7 +92,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       return response.json();
     },
   });
-
   // Fetch cost summary
   const { data: costsData, isLoading: costsLoading, error: costsError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'costs-summary'],
@@ -111,45 +100,33 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       return response.json();
     },
   });
-
   // Add planned material mutation
   const addPlannedMutation = useMutation({
     mutationFn: async (data: any) => {
       const selectedItemData = itemsData?.data?.items?.find((item: any) => item.id === selectedItem);
-
       console.log('🔍 [ADD-PLANNED-MUTATION] Selected item data:', selectedItemData);
-
       // Use customer ID from ticket as LPU ID (this should be improved to fetch actual LPU)
       const lpuId = ticket?.companyId || ticket?.customer_id || 'b9389438-63a3-4cf1-8d96-590969de94f6';
       console.log('🔍 [ADD-PLANNED-MUTATION] Using LPU ID:', lpuId, 'for item:', selectedItem);
-
       // Fetch price from LPU before creating planned item
       let unitPrice = 0;
       try {
         console.log('💰 [PRICE-LOOKUP] Fetching price for item:', selectedItem, 'from LPU:', lpuId);
-
         // First, get price lists for the tenant
         const priceListsResponse = await apiRequest('GET', '/api/materials-services/price-lists');
         const priceListsData = await priceListsResponse.json();
-
         console.log('💰 [PRICE-LOOKUP] Available price lists:', priceListsData.length);
-
         if (priceListsData && priceListsData.length > 0) {
           // Use the first active price list (in a real scenario, you'd match by customer/company)
           const activePriceList = priceListsData.find((pl: any) => pl.isActive) || priceListsData[0];
-
           if (activePriceList) {
             console.log('💰 [PRICE-LOOKUP] Using price list:', activePriceList.name, 'ID:', activePriceList.id);
-
             // Get items from this price list
             const priceListItemsResponse = await apiRequest('GET', "/items`);
             const priceListItems = await priceListItemsResponse.json();
-
             console.log('💰 [PRICE-LOOKUP] Price list items:', priceListItems.length);
-
             // Find the item in the price list
             const priceListItem = priceListItems.find((item: any) => item.itemId === selectedItem);
-
             if (priceListItem) {
               unitPrice = parseFloat(priceListItem.unitPrice) || parseFloat(priceListItem.specialPrice) || 0;
               console.log('💰 [PRICE-LOOKUP] Found price:', unitPrice, 'for item:', selectedItem);
@@ -165,7 +142,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         // Fallback to item catalog price
         unitPrice = parseFloat(selectedItemData?.unitCost || selectedItemData?.price || 0);
       }
-
       const requestData = {
         itemId: selectedItem,
         plannedQuantity: parseFloat(quantity),
@@ -174,9 +150,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         priority: "medium",
         notes: ""
       };
-
       console.log('🔍 [ADD-PLANNED-MUTATION] Sending request data with price:', requestData);
-
       const response = await apiRequest('POST', "/planned-items`, requestData);
       return response.json();
     },
@@ -191,16 +165,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       toast({ title: "Erro ao adicionar material planejado", variant: "destructive" });
     }
   });
-
   // Add consumed material mutation
   const addConsumedMutation = useMutation({
     mutationFn: async (data: { itemId: string; quantityUsed: number }) => {
       // Get item details for pricing from available items
       const selectedItemData = availableItems.find((item: any) => item.itemId === data.itemId);
       if (!selectedItemData) throw new Error('Item not found in available items');
-
       console.log('🔍 [CONSUMED] Selected item data:', selectedItemData);
-
       const requestData = {
         itemId: data.itemId,
         plannedItemId: selectedItemData.plannedItemId || selectedItemData.id, // Include planned item ID
@@ -211,9 +182,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         consumptionType: 'used',
         notes: ''
       };
-
       console.log('🔍 [CONSUMED] Sending request data:', requestData);
-
       const response = await apiRequest('POST', "/consumed-items`, requestData);
       return response.json();
     },
@@ -228,7 +197,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       toast({ title: "Erro ao registrar consumo", variant: "destructive" });
     }
   });
-
   // Delete planned material mutation
   const deletePlannedMutation = useMutation({
     mutationFn: async (itemId: string) => {
@@ -244,14 +212,12 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       toast({ title: "Erro ao excluir item planejado", variant: "destructive" });
     }
   });
-
   // Handle delete planned item
   const handleDeletePlannedItem = (itemId: string, itemName: string) => {
     if (confirm(""?`)) {
       deletePlannedMutation.mutate(itemId);
     }
   };
-
   // Delete consumed material mutation
   const deleteConsumedMutation = useMutation({
     mutationFn: async (itemId: string) => {
@@ -266,14 +232,12 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       toast({ title: "Erro ao remover consumo", variant: "destructive" });
     }
   });
-
   const items = itemsData?.data || [];
   const availableItems = Array.isArray(availableItemsData?.data?.availableItems) ? availableItemsData.data.availableItems :
                          Array.isArray(availableItemsData?.data) ? availableItemsData.data :
                          Array.isArray(availableItemsData?.availableItems) ? availableItemsData.availableItems :
                          Array.isArray(availableItemsData) ? availableItemsData : [];
   const plannedMaterials = plannedData?.data?.plannedItems || [];
-
   // Debug logs for consumption availability
   useEffect(() => {
     console.log('🔍 [CONSUMPTION-DEBUG] Available items raw data:', availableItemsData);
@@ -287,18 +251,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       });
     }
   }, [availableItemsData]);
-
-
   // Process consumed materials data
   const consumedMaterials = useMemo(() => {
     if (!consumedData?.data?.consumedItems) return [];
-
     console.log('🔍 [CONSUMED-PROCESSING] Raw consumed data:', consumedData.data.consumedItems);
-
     return consumedData.data.consumedItems.map((item: any, index: number) => {
       // Handle multiple data structure patterns
       let consumedItem, itemData, itemId, itemName, itemType;
-
       // Pattern 1: Direct structure
       if (item.id && item.itemName) {
         consumedItem = item;
@@ -323,7 +282,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         itemName = itemData.name || itemData.itemName || item.itemName || 'Item não encontrado';
         itemType = itemData.type || itemData.itemType || item.itemType || 'Material';
       }
-
       const processedItem = {
         id: itemId || "
         consumedItemId: itemId || "
@@ -341,24 +299,19 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         consumedItem,
         itemData
       };
-
       console.log('🔍 [CONSUMED-MAPPING] Processed item:', {
         index,
         itemId,
         itemName,
         processedItem
       });
-
       return processedItem;
     });
   }, [consumedData]);
-
   const costs = costsData?.data || {};
-
   // Enhanced error handling
   const hasDataError = itemsError || availableItemsError || plannedError || consumedError || costsError;
   const isAnyLoading = itemsLoading || availableItemsLoading || plannedLoading || consumedLoading || costsLoading;
-
   const handleAddPlanned = () => {
     if (!selectedItem || !quantity) {
       toast({ title: "Selecione um item e informe a quantidade", variant: "destructive" });
@@ -366,14 +319,12 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     }
     addPlannedMutation.mutate({ itemId: selectedItem, quantity: parseFloat(quantity) });
   };
-
   const handleConsumeItem = (item: any) => {
     setSelectedItem(item.itemId || item.id); // Set selected item for consumption
     // Potentially pre-fill quantity or other fields if needed
     console.log("Consuming item:", item);
     // For now, just set the item and let the user input quantity
   };
-
   const handleAddConsumed = () => {
     if (!selectedItem || !consumedQuantity) {
       toast({ title: "Selecione um item e informe a quantidade consumida", variant: "destructive" });
@@ -381,60 +332,51 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     }
     addConsumedMutation.mutate({ itemId: selectedItem, quantityUsed: parseFloat(consumedQuantity) });
   };
-
   return (
     <div className="space-y-6>
       <div className="flex items-center gap-2>
         <Package className="h-5 w-5 text-blue-600" />
-        <h2 className="text-xl font-semibold">Materiais e Serviços</h2>
+        <h2 className="text-lg">"Materiais e Serviços</h2>
         <div className="flex items-center gap-4 ml-4>
           <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-lg>
-            <span className="text-sm font-medium text-blue-700">Planejados:</span>
-            <span className="text-sm font-bold text-blue-800">{plannedMaterials.length}</span>
+            <span className="text-lg">"Planejados:</span>
+            <span className="text-lg">"{plannedMaterials.length}</span>
           </div>
           <div className="flex items-center gap-1 px-3 py-1 bg-green-50 rounded-lg>
-            <span className="text-sm font-medium text-green-700">Consumidos:</span>
-            <span className="text-sm font-bold text-green-800">{consumedMaterials.length}</span>
+            <span className="text-lg">"Consumidos:</span>
+            <span className="text-lg">"{consumedMaterials.length}</span>
           </div>
         </div>
       </div>
-
       {/* Cost Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4>
         <Card className="p-4 text-center border-blue-200 bg-blue-50>
-          <h3 className="text-sm font-semibold text-blue-800">Itens Planejados</h3>
-          <div className="text-2xl font-bold text-blue-700 mt-2">{plannedMaterials.length}</div>
+          <h3 className="text-lg">"Itens Planejados</h3>
+          <div className="text-lg">"{plannedMaterials.length}</div>
         </Card>
-
         <Card className="p-4 text-center border-green-200 bg-green-50>
-          <h3 className="text-sm font-semibold text-green-800">Itens Consumidos</h3>
-          <div className="text-2xl font-bold text-green-700 mt-2">{consumedMaterials.length}</div>
+          <h3 className="text-lg">"Itens Consumidos</h3>
+          <div className="text-lg">"{consumedMaterials.length}</div>
         </Card>
-
         <Card className="p-4 text-center border-purple-200 bg-purple-50>
-          <h3 className="text-sm font-semibold text-purple-800">Custo Planejado</h3>
+          <h3 className="text-lg">"Custo Planejado</h3>
           <div className="text-xl font-bold text-purple-700 mt-2>
             R$ {parseFloat(costs.plannedCost || '0').toFixed(2) || '0,00'}
           </div>
         </Card>
-
         <Card className="p-4 text-center border-orange-200 bg-orange-50>
-          <h3 className="text-sm font-semibold text-orange-800">Custo Real</h3>
+          <h3 className="text-lg">"Custo Real</h3>
           <div className="text-xl font-bold text-orange-700 mt-2>
             R$ {parseFloat(costs.actualCost || '0').toFixed(2) || '0,00'}
           </div>
         </Card>
       </div>
-
       {/* Main Content with Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full>
         <TabsList className="grid w-full grid-cols-2>
           <TabsTrigger value="planned">Planejar Item</TabsTrigger>
           <TabsTrigger value="consumed">Registrar Consumo</TabsTrigger>
         </TabsList>
-
-
-
         <TabsContent value="planned" className="space-y-4>
           <div className="flex flex-col space-y-4>
             {/* Add Planned Material/Service Form */}
@@ -463,8 +405,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                                 <Wrench className="h-4 w-4 text-green-500" />
                               )}
                               <div>
-                                <div className="font-medium">{item.name}</div>
-                                <div className="text-xs text-muted-foreground">{item.type} • {item.measurement_unit || 'UN'}</div>
+                                <div className="text-lg">"{item.name}</div>
+                                <div className="text-lg">"{item.type} • {item.measurement_unit || 'UN'}</div>
                               </div>
                             </div>
                           </SelectItem>
@@ -472,7 +414,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div>
                     <Label>Quantidade</Label>
                     <Input
@@ -484,7 +425,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       placeholder="Digite a quantidade"
                     />
                   </div>
-
                   <div className="flex items-end>
                     <Button 
                       onClick={() => handleAddPlanned()}
@@ -507,7 +447,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 </div>
               </CardContent>
             </Card>
-
             {/* Planned Items Sub-tabs */}
             <div>
               <div className="flex items-center justify-between mb-4>
@@ -515,7 +454,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   <Calendar className="h-5 w-5" />
                   Itens Planejados ({plannedData?.data?.plannedItems?.length || 0})
                 </h3>
-
                 {/* Sub-tabs for Materials/Services */}
                 <div className="flex bg-muted rounded-lg p-1>
                   <Button
@@ -546,7 +484,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   </Button>
                 </div>
               </div>
-
               {plannedLoading ? (
                 <div className="flex items-center justify-center p-8>
                   <Loader2 className="h-6 w-6 animate-spin mr-2" />
@@ -570,20 +507,20 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           ) : (
                             <Wrench className="h-4 w-4 text-green-500" />
                           )}
-                          <h4 className="font-semibold text-blue-900">{item.itemName}</h4>
+                          <h4 className="text-lg">"{item.itemName}</h4>
                           <Badge variant="outline" className="text-xs bg-blue-200 text-blue-800>
                             {item.itemType === 'material' ? 'Material' : 'Serviço'}
                           </Badge>
                         </div>
                         {item.itemDescription && (
-                          <p className="text-xs text-blue-700 mb-2">{item.itemDescription}</p>
+                          <p className="text-lg">"{item.itemDescription}</p>
                         )}
                         <div className="grid grid-cols-3 gap-4 text-sm>
                           <div>
-                            <span className="text-blue-600">Quantidade: <span className="font-medium text-blue-800">{item.plannedQuantity} {item.measurementUnit || 'UN'}</span></span>
+                            <span className="text-lg">"Quantidade: <span className="text-lg">"{item.plannedQuantity} {item.measurementUnit || 'UN'}</span></span>
                           </div>
                           <div>
-                            <span className="text-blue-600">Valor Unit.: <span className="font-medium text-blue-800">R$ {item.unitPrice?.toFixed(2) || '0,00'}</span></span>
+                            <span className="text-lg">"Valor Unit.: <span className="text-lg">"R$ {item.unitPrice?.toFixed(2) || '0,00'}</span></span>
                           </div>
                           <div>
                             <span className="text-blue-600 font-medium>
@@ -607,7 +544,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   ))}
                 </div>
               )}
-
               {!plannedLoading && (plannedData?.data?.plannedItems || [])
                 .filter((item: any) => {
                   if (plannedSubTab === 'all') return true;
@@ -620,7 +556,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     <>
                       <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>Nenhum item planejado encontrado</p>
-                      <p className="text-sm">Adicione itens usando o formulário acima</p>
+                      <p className="text-lg">"Adicione itens usando o formulário acima</p>
                     </>
                   ) : plannedSubTab === 'materials' ? (
                     <>
@@ -638,7 +574,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
             </div>
           </div>
         </TabsContent>
-
         <TabsContent value="consumed" className="space-y-4>
           <Card>
             <CardHeader>
@@ -649,12 +584,12 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 <div className="col-span-2 space-y-2>
                   <Label htmlFor="consumed-item-select">Item</Label>
                   {availableItemsLoading ? (
-                    <div className="text-center py-2">Carregando itens disponíveis...</div>
+                    <div className="text-lg">"Carregando itens disponíveis...</div>
                   ) : Array.isArray(availableItemsData?.data) && availableItemsData.data.length === 0 ? (
                     <div className="text-center py-4 text-gray-500>
                       <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p>Nenhum item planejado disponível para consumo</p>
-                      <p className="text-sm">Adicione itens no planejamento primeiro</p>
+                      <p className="text-lg">"Adicione itens no planejamento primeiro</p>
                     </div>
                   ) : (
                     <Select value={selectedItem} onValueChange={setSelectedItem}>
@@ -665,10 +600,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         {Array.isArray(availableItemsData?.data) && availableItemsData.data.map((item: any, index: number) => {
                           // Handle different data structures - try nested object first
                           const itemData = item.item || item.items || item;
-
                           // Try to get the item name from various possible locations in the data structure
                           let itemName = null;
-
                           // Priority 1: Direct name fields
                           if (itemData.itemName) itemName = itemData.itemName;
                           else if (itemData.name) itemName = itemData.name;
@@ -681,7 +614,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           else if (item.title) itemName = item.title;
                           // Fallback: Use a descriptive fallback instead of UUID
                           else itemName = "
-
                           // Debug log to see item structure
                           console.log('🔍 [CONSUMPTION-SELECT] Available item structure:', {
                             rawItem: item,
@@ -692,7 +624,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                             itemDataKeys: item.item ? Object.keys(item.item) : 'no item nested',
                             itemsDataKeys: item.items ? Object.keys(item.items) : 'no items nested'
                           });
-
                           const itemType = itemData.itemType || itemData.type || item.itemType || item.type || 'Material';
                           const itemDescription = itemData.itemDescription || item.description || itemData.display_description ||
                                                  item.itemDescription || item.description || item.display_description || '';
@@ -701,13 +632,12 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                                          item.integration_code || item.display_sku || '';
                           const remainingQty = item.remainingQuantity || item.plannedQuantity || '0';
                           const unitPrice = parseFloat(item.unitPriceAtPlanning || item.unitPrice || item.price || item.unit_cost || 0);
-
                           return (
                             <SelectItem key={"
                               <div className="flex flex-col text-left w-full>
                                 <div className="flex items-center gap-2>
-                                  <span className="font-medium">{itemName}</span>
-                                  <Badge variant="secondary" className="text-xs">{itemType}</Badge>
+                                  <span className="text-lg">"{itemName}</span>
+                                  <Badge variant="secondary" className="text-lg">"{itemType}</Badge>
                                 </div>
                                 {itemDescription && (
                                   <div className="text-xs text-gray-600 mb-1 line-clamp-1>
@@ -718,7 +648,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                                   {itemSku && <span>SKU: {itemSku}</span>}
                                   <span>Disponível: {remainingQty}</span>
                                   {unitPrice > 0 && (
-                                    <span className="font-medium text-green-600">R$ {unitPrice.toFixed(2)}</span>
+                                    <span className="text-lg">"R$ {unitPrice.toFixed(2)}</span>
                                   )}
                                 </div>
                               </div>
@@ -729,7 +659,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     </Select>
                   )}
                 </div>
-
                 <div className="space-y-2>
                   <Label htmlFor="consumed-quantity">Quantidade</Label>
                   <Input
@@ -741,7 +670,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   />
                 </div>
               </div>
-
               <Button
                 onClick={handleAddConsumed}
                 disabled={addConsumedMutation.isPending || !Array.isArray(availableItemsData?.data) || availableItemsData.data.length === 0}
@@ -750,7 +678,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 <Calculator className="h-4 w-4 mr-2" />
                 {addConsumedMutation.isPending ? "Registrando..." : "Registrar Consumo"
               </Button>
-
               {/* Lista de Itens Consumidos */}
               <div className="mt-6>
                 <div className="flex items-center justify-between mb-4>
@@ -758,7 +685,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     <Calculator className="h-5 w-5 text-green-600" />
                     Itens Consumidos ({consumedMaterials.length})
                   </h3>
-
                   {/* Sub-tabs para Materiais/Serviços Consumidos */}
                   <div className="flex bg-muted rounded-lg p-1>
                     <Button
@@ -789,7 +715,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     </Button>
                   </div>
                 </div>
-
                 {consumedLoading ? (
                   <div className="flex items-center justify-center p-8>
                     <Loader2 className="h-6 w-6 animate-spin mr-2" />
@@ -813,14 +738,14 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                             ) : (
                               <Wrench className="h-4 w-4 text-green-500" />
                             )}
-                            <h4 className="font-semibold text-green-900">{material.itemName}</h4>
+                            <h4 className="text-lg">"{material.itemName}</h4>
                             <Badge variant="outline" className="text-xs bg-green-200 text-green-800>
                               {material.itemType === 'material' ? 'Material' : 'Serviço'}
                             </Badge>
                           </div>
                           <div className="grid grid-cols-3 gap-4 text-sm>
                             <div>
-                              <span className="text-green-600">Quantidade Usada: <span className="font-medium text-green-800">{material.quantityUsed || material.actualQuantity}</span></span>
+                              <span className="text-lg">"Quantidade Usada: <span className="text-lg">"{material.quantityUsed || material.actualQuantity}</span></span>
                               {material.unitPrice && parseFloat(material.unitPrice) > 0 && (
                                 <div className="text-xs text-green-700 mt-1>
                                   Preço Unitário: R$ {parseFloat(material.unitPrice).toFixed(2)}
@@ -861,7 +786,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     ))}
                   </div>
                 )}
-
                 {!consumedLoading && consumedMaterials
                   .filter((item: any) => {
                     if (consumedSubTab === 'all') return true;
@@ -874,7 +798,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       <>
                         <Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>Nenhum item consumido encontrado</p>
-                        <p className="text-sm">Registre consumos usando o formulário acima</p>
+                        <p className="text-lg">"Registre consumos usando o formulário acima</p>
                       </>
                     ) : consumedSubTab === 'materials' ? (
                       <>

@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import ReactQuill from 'react-quill';
-
 // Suprimir warning temporariamente até ReactQuill atualizar
 const originalError = console.error;
 console.error = (...args) => {
@@ -10,7 +9,6 @@ console.error = (...args) => {
   originalError.call(console, ...args);
 };
 import 'react-quill/dist/quill.snow.css';
-
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -18,7 +16,6 @@ interface RichTextEditorProps {
   className?: string;
   readOnly?: boolean;
 }
-
 export function RichTextEditor({
   content,
   onChange,
@@ -37,13 +34,11 @@ export function RichTextEditor({
       ['clean']
     ],
   };
-
   const formats = [
     'header', 'bold', 'italic', 'underline', 'strike',
     'list', 'bullet', 'indent', 'link', 'image', 'blockquote',
     'code-block', 'color', 'background'
   ];
-
   if (readOnly) {
     return (
       <div
@@ -52,9 +47,8 @@ export function RichTextEditor({
       />
     );
   }
-
   return (
-    <div className="rich-text-editor ">
+    <div className="text-lg">"
       <ReactQuill
         theme="snow"
         value={content}

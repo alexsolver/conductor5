@@ -22,9 +22,7 @@ import { useFieldColors } from "@/hooks/useFieldColors";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { useLocation } from "wouter";
 import { useCompanyFilter } from "@/hooks/useCompanyFilter";
-
 import { NewTicketModalData, newTicketModalSchema } from "../../../shared/ticket-validation";
-
 export default function Tickets() {
   const { t } = useTranslation();
   const { formatDate } = useLocalization();
@@ -34,7 +32,6 @@ export default function Tickets() {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading, isReady } = useFieldColors();
-
   // Status mapping - manter valores em inglês conforme banco de dados 
   const statusMapping: Record<string, string> = {
     'new': 'new',
@@ -45,25 +42,21 @@ export default function Tickets() {
     'closed': 'closed',
     'cancelled': 'cancelled'
   };
-
   const priorityMapping: Record<string, string> = {
     'low': 'low',
     'medium': 'medium', 
     'high': 'high',
     'critical': 'critical'
   };
-
   // Funções de mapeamento
   const mapStatusValue = (value: string): string => {
     if (!value) return 'new';
     return statusMapping[value.toLowerCase()] || value;
   };
-
   const mapPriorityValue = (value: string): string => {
     if (!value) return 'medium';
     return priorityMapping[value.toLowerCase()] || value;
   };
-
   const categoryMapping: Record<string, string> = {
     'hardware': 'infraestrutura',
     'software': 'suporte_tecnico', 
@@ -75,7 +68,6 @@ export default function Tickets() {
     'financial': 'financeiro',
     'infrastructure': 'infraestrutura'
   };
-
   const mapCategoryValue = (value: string): string => {
     if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
       return 'suporte_tecnico';
@@ -83,10 +75,8 @@ export default function Tickets() {
     const mapped = categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
     return mapped;
   };
-
   // Token management handled by auth hook
   // Remove debug code for production
-
   const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
     retry: false,
@@ -99,7 +89,6 @@ export default function Tickets() {
       });
     },
   });
-
   // Fetch customers for the dropdown
   const { data: customersData, isLoading: customersLoading, error: customersError } = useQuery({
     queryKey: ["/api/customers"],
@@ -110,37 +99,31 @@ export default function Tickets() {
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
-
   // Fetch companies for filtering
   const { data: companiesData } = useQuery({
     queryKey: ["/api/customers/companies"],
     retry: false,
   });
-
   // Fetch users for assignment
   const { data: usersData } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
     retry: false,
   });
-
   // Fetch favorecidos (beneficiaries)
   const { data: favorecidosData } = useQuery({
     queryKey: ["/api/beneficiaries"],
     retry: false,
   });
-
   // Fetch locations
   const { data: locationsData } = useQuery({
     queryKey: ["/api/locations-new/local"],
     retry: false,
   });
-
   // Fetch hierarchical categories 
   const { data: categoriesData } = useQuery({
     queryKey: ["/api/ticket-hierarchy/categories"],
     retry: false,
   });
-
   // Fetch subcategories based on selected category
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const { data: subcategoriesData } = useQuery({
@@ -148,7 +131,6 @@ export default function Tickets() {
     enabled: !!selectedCategoryId,
     retry: false,
   });
-
   // Fetch actions based on selected subcategory
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
   const { data: actionsData } = useQuery({
@@ -156,7 +138,6 @@ export default function Tickets() {
     enabled: !!selectedSubcategoryId,
     retry: false,
   });
-
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   
@@ -164,10 +145,8 @@ export default function Tickets() {
   if (customersData?.error || customersError) {
     console.error('Customer loading error:', customersData?.error || customersError);
   }
-
   // Get raw companies and filter out Default if inactive
   const rawCompanies = Array.isArray(companiesData) ? companiesData : [];
-
   // Filter companies directly removing Default if inactive
   const companies = rawCompanies
     .filter((company: any) => {
@@ -182,7 +161,6 @@ export default function Tickets() {
     .sort((a: any, b: any) => {
       return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
     });
-
   // Debug: Check if Default company is in the list
   console.log('🔍 Final companies list for ticket modal:', companies.map(c => ({
     id: c.id, 
@@ -191,10 +169,8 @@ export default function Tickets() {
     isActive: c.is_active,
     isDefault: c.name?.toLowerCase().includes('default')
   })));
-
   console.log('🔍 Raw companies from API before filtering:', rawCompanies.length);
   console.log('🔍 Filtered companies for dropdown:', companies.length);
-
   // Additional debug for Default company filtering
   const defaultCompany = rawCompanies.find((c: any) => c.name?.toLowerCase().includes('default'));
   if (defaultCompany) {
@@ -203,18 +179,14 @@ export default function Tickets() {
   } else {
     console.log('✅ No Default company in raw API data');
   }
-
   const users = (usersData as any)?.users || [];
-
   // Extract data for new modal fields with safe type checking
   const favorecidos = (favorecidosData as any)?.data?.beneficiaries || (favorecidosData as any)?.favorecidos || [];
   const locations = (locationsData as any)?.data?.locations || (locationsData as any)?.data || [];
   const categories = (categoriesData as any)?.data || [];
   const subcategories = (subcategoriesData as any)?.data || [];
   const actions = (actionsData as any)?.data || [];
-
   console.log('[TRANSLATION_NEEDED]', { customersData, customers: customers.length });
-
   // Form setup with new schema
   const form = useForm<NewTicketModalData>({
     resolver: zodResolver(newTicketModalSchema),
@@ -235,11 +207,9 @@ export default function Tickets() {
       location: "",
     },
   });
-
   // Watch for company selection to filter customers
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
-
   // Reset subcategory when category changes
   useEffect(() => {
     if (selectedCategoryId) {
@@ -248,30 +218,25 @@ export default function Tickets() {
       form.setValue("action", "");
     }
   }, [selectedCategoryId]);
-
   // Reset action when subcategory changes  
   useEffect(() => {
     if (selectedSubcategoryId) {
       form.setValue("action", "");
     }
   }, [selectedSubcategoryId]);
-
   // Filter customers based on selected company
   useEffect(() => {
     if (!selectedCompanyId) {
       setFilteredCustomers(customers);
       return;
     }
-
     // Fetch customers for the selected company
     const fetchCustomersForCompany = async () => {
       try {
         console.log('Fetching customers for company:', selectedCompanyId);
         const response = await apiRequest("GET", "/customers`);
         const data = await response.json();
-
         console.log('Company customers response:', data);
-
         if (data.success && data.customers) {
           setFilteredCustomers(data.customers);
         } else {
@@ -284,10 +249,8 @@ export default function Tickets() {
         setFilteredCustomers(customers);
       }
     };
-
     fetchCustomersForCompany();
   }, [selectedCompanyId, customers]);
-
   // Create ticket mutation
   const createTicketMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -312,11 +275,9 @@ export default function Tickets() {
       });
     },
   });
-
   // Handle form submission  
   const onSubmit = (data: NewTicketModalData) => {
     console.log('🎫 New ticket form submitted:', data);
-
     // Standardized field mapping to backend
     const ticketData = {
       // Core fields
@@ -344,17 +305,14 @@ export default function Tickets() {
       business_impact: data.businessImpact || null,
       workaround: data.workaround || null,
     };
-
     createTicketMutation.mutate(ticketData);
   };
-
   // Função para trocar visualização ativa
   const handleViewChange = (viewId: string) => {
     setCurrentViewId(viewId);
     console.log('Visualização alterada para:', viewId);
     // Aqui podemos adicionar lógica para aplicar filtros/colunas da visualização
   };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
@@ -364,7 +322,6 @@ export default function Tickets() {
       default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "open": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
@@ -374,22 +331,21 @@ export default function Tickets() {
       default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
-
   if (isLoading || isFieldColorsLoading || !isReady) {
     return (
       <div className=""
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+        <div className="text-lg">"</div>
         <div className=""
           {[1, 2, 3].map((i) => (
             <Card key={i} className=""
               <CardContent className=""
                 <div className=""
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="text-lg">"</div>
+                  <div className="text-lg">"</div>
                   <div className=""
-                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                    <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                    <div className="text-lg">"</div>
+                    <div className="text-lg">"</div>
+                    <div className="text-lg">"</div>
                   </div>
                 </div>
               </CardContent>
@@ -399,7 +355,6 @@ export default function Tickets() {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className=""
@@ -416,8 +371,8 @@ export default function Tickets() {
         <Card>
           <CardContent className=""
             <div className=""
-              <div className="text-lg font-medium mb-2">'[TRANSLATION_NEEDED]'</div>
-              <p className="text-sm mb-4">'[TRANSLATION_NEEDED]'</p>
+              <div className="text-lg">"'[TRANSLATION_NEEDED]'</div>
+              <p className="text-lg">"'[TRANSLATION_NEEDED]'</p>
               <Button 
                 onClick={() => window.location.reload()}
                 variant="outline"
@@ -430,7 +385,6 @@ export default function Tickets() {
       </div>
     );
   }
-
   // Parse consistente dos dados de tickets seguindo Clean Architecture
   console.log('🎫 [Tickets] Raw API response:', tickets);
   
@@ -478,7 +432,6 @@ export default function Tickets() {
     ticketsCount,
     sampleTicket: ticketsList[0] || null
   });
-
   return (
     <div className=""
       <div className=""
@@ -511,7 +464,7 @@ export default function Tickets() {
                       name="companyId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]' *</FormLabel>
+                          <FormLabel className="text-lg">"'[TRANSLATION_NEEDED]' *</FormLabel>
                           <Select 
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -544,14 +497,13 @@ export default function Tickets() {
                       </FormItem>
                     )}
                   />
-
                   {/* Customer/Cliente Selection - Filtered by Company */}
                     <FormField
                       control={form.control}
                       name="customerId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]' *</FormLabel>
+                          <FormLabel className="text-lg">"'[TRANSLATION_NEEDED]' *</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             value={field.value}
@@ -605,7 +557,6 @@ export default function Tickets() {
                       </FormItem>
                     )}
                   />
-
                   {/* 3. FAVORECIDO */}
                   <FormField
                     control={form.control}
@@ -632,14 +583,13 @@ export default function Tickets() {
                       </FormItem>
                     )}
                   />
-
                   {/* 4. ASSUNTO/TÍTULO */}
                     <FormField
                       control={form.control}
                       name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]' *</FormLabel>
+                          <FormLabel className="text-lg">"'[TRANSLATION_NEEDED]' *</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder='[TRANSLATION_NEEDED]' 
@@ -651,7 +601,6 @@ export default function Tickets() {
                         </FormItem>
                       )}
                     />
-
                   {/* 5. CATEGORIA */}
                   <FormField
                     control={form.control}
@@ -683,7 +632,6 @@ export default function Tickets() {
                       </FormItem>
                     )}
                   />
-
                   {/* 6. SUB CATEGORIA */}
                   <FormField
                     control={form.control}
@@ -722,7 +670,6 @@ export default function Tickets() {
                       </FormItem>
                     )}
                   />
-
                   {/* 7. AÇÃO */}
                   <FormField
                     control={form.control}
@@ -758,7 +705,6 @@ export default function Tickets() {
                       </FormItem>
                     )}
                   />
-
                   <div className=""
                     {/* 8. PRIORIDADE */}
                     <FormField
@@ -779,7 +725,6 @@ export default function Tickets() {
                         </FormItem>
                       )}
                     />
-
                     {/* 9. URGÊNCIA */}
                     <FormField
                       control={form.control}
@@ -800,14 +745,13 @@ export default function Tickets() {
                       )}
                     />
                   </div>
-
                   {/* 10. DESCRIÇÃO DETALHADA */}
                     <FormField
                       control={form.control}
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]' *</FormLabel>
+                          <FormLabel className="text-lg">"'[TRANSLATION_NEEDED]' *</FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder='[TRANSLATION_NEEDED]'
@@ -819,14 +763,13 @@ export default function Tickets() {
                         </FormItem>
                       )}
                     />
-
                   {/* 11. SINTOMAS */}
                     <FormField
                       control={form.control}
                       name="symptoms"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]'</FormLabel>
+                          <FormLabel className="text-lg">"'[TRANSLATION_NEEDED]'</FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder='[TRANSLATION_NEEDED]'
@@ -838,14 +781,13 @@ export default function Tickets() {
                         </FormItem>
                       )}
                     />
-
                     {/* 12. IMPACTO NO NEGÓCIO */}
                     <FormField
                       control={form.control}
                       name="businessImpact"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]'</FormLabel>
+                          <FormLabel className="text-lg">"'[TRANSLATION_NEEDED]'</FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder='[TRANSLATION_NEEDED]'
@@ -857,14 +799,13 @@ export default function Tickets() {
                         </FormItem>
                       )}
                     />
-
                     {/* 13. SOLUÇÃO TEMPORÁRIA */}
                     <FormField
                       control={form.control}
                       name="workaround"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]'</FormLabel>
+                          <FormLabel className="text-lg">"'[TRANSLATION_NEEDED]'</FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder='[TRANSLATION_NEEDED]'
@@ -876,7 +817,6 @@ export default function Tickets() {
                         </FormItem>
                       )}
                     />
-
                   {/* 14. LOCAL */}
                   <FormField
                     control={form.control}
@@ -903,7 +843,6 @@ export default function Tickets() {
                       </FormItem>
                     )}
                   />
-
                   </form>
                   </Form>
                 </div>
@@ -928,7 +867,6 @@ export default function Tickets() {
           </Dialog>
         </div>
       </div>
-
       {/* Sistema de Visualizações de Tickets */}
       <div className=""
         <TicketViewSelector 
@@ -936,7 +874,6 @@ export default function Tickets() {
           onViewChange={handleViewChange}
         />
       </div>
-
       <div className=""
         {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
           ticketsList.map((ticket: any) => (
@@ -1020,8 +957,8 @@ export default function Tickets() {
           <Card>
             <CardContent className=""
               <div className=""
-                <div className="text-lg font-medium mb-2">📋 Nenhum ticket encontrado</div>
-                <p className="text-sm mb-4">Não há tickets para exibir no momento.</p>
+                <div className="text-lg">"📋 Nenhum ticket encontrado</div>
+                <p className="text-lg">"Não há tickets para exibir no momento.</p>
                 <Button 
                   onClick={() => setIsCreateDialogOpen(true)}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"

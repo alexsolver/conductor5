@@ -16,7 +16,6 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, Users, Clock, Building2, Settings } from 'lucide-react';
 // import useLocalization from '@/hooks/useLocalization';
-
 // Import new components
 import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelector';
 import CustomFieldsEditor, { CustomField } from '@/components/templates/CustomFieldsEditor';
@@ -26,7 +25,6 @@ import TemplateCanvasEditor from '@/components/templates/TemplateCanvasEditor';
 import { TemplateHierarchyManager } from '@/components/template-builder/hierarchy/TemplateHierarchyManager';
 import { ApprovalWorkflow } from '@/components/template-builder/workflow/ApprovalWorkflow';
 import { AuditTrail } from '@/components/template-builder/audit/AuditTrail';
-
 // Schema para validação do formulário
 const templateSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -43,9 +41,7 @@ const templateSchema = z.object({
   autoAssign: z.boolean(),
   defaultAssigneeRole: z.string().optional(),
 });
-
 type TemplateFormData = z.infer<typeof templateSchema>;
-
 interface TicketTemplate {
   id: string;
   name: string;
@@ -67,7 +63,6 @@ interface TicketTemplate {
   updated_at: string;
   custom_fields?: string;
 }
-
 export default function TicketTemplates() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -77,10 +72,8 @@ export default function TicketTemplates() {
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [activeTab, setActiveTab] = useState('templates');
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Form para criar/editar templates
   const form = useForm<TemplateFormData>({
     resolver: zodResolver(templateSchema),
@@ -100,7 +93,6 @@ export default function TicketTemplates() {
       defaultAssigneeRole: '',
     },
   });
-
   // Query para buscar templates baseado na empresa selecionada
   const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ['"/api/ticket-templates/company', selectedCompany],
@@ -109,9 +101,7 @@ export default function TicketTemplates() {
       return response.json();
     },
   });
-
   const templates = Array.isArray(templatesResponse?.data) ? templatesResponse.data : [];
-
   // Query para buscar estatísticas baseado na empresa selecionada
   const { data: statsResponse } = useQuery({
     queryKey: ['"/api/ticket-templates/company', selectedCompany, 'stats'],
@@ -120,9 +110,7 @@ export default function TicketTemplates() {
       return response.json();
     },
   });
-
   const stats = statsResponse?.data?.[0] || {};
-
   // Query para buscar categorias baseado na empresa selecionada
   const { data: categoriesResponse } = useQuery({
     queryKey: ['"/api/ticket-templates/company', selectedCompany, 'categories'],
@@ -131,9 +119,7 @@ export default function TicketTemplates() {
       return response.json();
     },
   });
-
   const categories = Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [];
-
   // Mutation para criar template
   const createTemplateMutation = useMutation({
     mutationFn: (data: TemplateFormData & { customFields?: CustomField[] }) => 
@@ -175,7 +161,6 @@ export default function TicketTemplates() {
       });
     },
   });
-
   // Mutation para atualizar template
   const updateTemplateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<TemplateFormData> }) =>
@@ -200,7 +185,6 @@ export default function TicketTemplates() {
       });
     },
   });
-
   // Mutation para deletar template
   const deleteTemplateMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', "/api/ticket-templates/" + id),
@@ -220,15 +204,12 @@ export default function TicketTemplates() {
       });
     },
   });
-
   // Handlers
   const handleCreateTemplate = (data: TemplateFormData) => {
     createTemplateMutation.mutate({ ...data, customFields });
   };
-
   const handleEditTemplate = (template: TicketTemplate) => {
     setEditingTemplate(template);
-
     // Parse custom fields if they exist
     try {
       const parsedCustomFields = template.custom_fields ? JSON.parse(template.custom_fields) : [];
@@ -236,7 +217,6 @@ export default function TicketTemplates() {
     } catch (e) {
       setCustomFields([]);
     }
-
     form.reset({
       name: template.name,
       description: template.description,
@@ -254,18 +234,15 @@ export default function TicketTemplates() {
     });
     setIsEditOpen(true);
   };
-
   const handleUpdateTemplate = (data: TemplateFormData) => {
     if (!editingTemplate) return;
     updateTemplateMutation.mutate({ id: editingTemplate.id, data });
   };
-
   const handleDeleteTemplate = (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este template?')) {
       deleteTemplateMutation.mutate(id);
     }
   };
-
   // Filtrar templates
   const filteredTemplates = (templates || []).filter((template: TicketTemplate) => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -273,7 +250,6 @@ export default function TicketTemplates() {
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'low': return 'bg-green-100 text-green-800';
@@ -283,7 +259,6 @@ export default function TicketTemplates() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getPriorityLabel = (priority: string) => {
     switch (priority) {
       case 'low': return 'Baixa';
@@ -293,13 +268,12 @@ export default function TicketTemplates() {
       default: return priority;
     }
   };
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">Templates de Tickets</h1>
+          <h1 className="text-lg">"Templates de Tickets</h1>
           <p className=""
             Sistema completo de templates com campos customizáveis e análise inteligente
           </p>
@@ -309,14 +283,12 @@ export default function TicketTemplates() {
           Novo Template
         </Button>
       </div>
-
       {/* Company Selector */}
       <CompanyTemplateSelector 
         selectedCompany={selectedCompany}
         onCompanyChange={setSelectedCompany}
         showStats={false}
       />
-
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className=""
@@ -337,9 +309,7 @@ export default function TicketTemplates() {
             Configurações da Empresa
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="templates" className=""
-
         {/* Stats Cards */}
         {stats && Object.keys(stats).length > 0 && (
           <div className=""
@@ -347,8 +317,8 @@ export default function TicketTemplates() {
               <CardContent className=""
                 <div className=""
                   <div>
-                    <p className="text-sm text-muted-foreground">Total</p>
-                    <p className="text-2xl font-bold">{stats.total_templates || 0}</p>
+                    <p className="text-lg">"Total</p>
+                    <p className="text-lg">"{stats.total_templates || 0}</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-blue-500" />
                 </div>
@@ -358,8 +328,8 @@ export default function TicketTemplates() {
               <CardContent className=""
                 <div className=""
                   <div>
-                    <p className="text-sm text-muted-foreground">Ativos</p>
-                    <p className="text-2xl font-bold">{stats.active_templates || 0}</p>
+                    <p className="text-lg">"Ativos</p>
+                    <p className="text-lg">"{stats.active_templates || 0}</p>
                   </div>
                   <Users className="w-8 h-8 text-green-500" />
                 </div>
@@ -369,8 +339,8 @@ export default function TicketTemplates() {
               <CardContent className=""
                 <div className=""
                   <div>
-                    <p className="text-sm text-muted-foreground">Uso médio</p>
-                    <p className="text-2xl font-bold">{Math.round(stats.avg_usage || 0)}</p>
+                    <p className="text-lg">"Uso médio</p>
+                    <p className="text-lg">"{Math.round(stats.avg_usage || 0)}</p>
                   </div>
                   <Clock className="w-8 h-8 text-orange-500" />
                 </div>
@@ -380,8 +350,8 @@ export default function TicketTemplates() {
               <CardContent className=""
                 <div className=""
                   <div>
-                    <p className="text-sm text-muted-foreground">Mais usado</p>
-                    <p className="text-2xl font-bold">{stats.max_usage || 0}</p>
+                    <p className="text-lg">"Mais usado</p>
+                    <p className="text-lg">"{stats.max_usage || 0}</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-purple-500" />
                 </div>
@@ -389,7 +359,6 @@ export default function TicketTemplates() {
             </Card>
           </div>
         )}
-
       {/* Filters */}
       <Card>
         <CardContent className=""
@@ -422,11 +391,10 @@ export default function TicketTemplates() {
           </div>
         </CardContent>
       </Card>
-
       {/* Templates Grid */}
       {isLoading ? (
         <div className=""
-          <p className="text-muted-foreground">Carregando templates...</p>
+          <p className="text-lg">"Carregando templates...</p>
         </div>
       ) : filteredTemplates.length === 0 ? (
         <div className=""
@@ -443,7 +411,7 @@ export default function TicketTemplates() {
             <Card key={template.id} className=""
               <CardHeader className=""
                 <div className=""
-                  <CardTitle className="text-lg">{template.name}</CardTitle>
+                  <CardTitle className="text-lg">"{template.name}</CardTitle>
                   <div className=""
                     <Button
                       variant="ghost"
@@ -473,18 +441,16 @@ export default function TicketTemplates() {
                       {getPriorityLabel(template.priority)}
                     </Badge>
                   </div>
-
                   <div className=""
                     <p>Estimativa: {template.estimated_hours}h</p>
                     <p>Usado: {template.usage_count || 0} vezes</p>
                     {template.requires_approval && (
-                      <p className="text-orange-600">Requer aprovação</p>
+                      <p className="text-lg">"Requer aprovação</p>
                     )}
                     {template.auto_assign && (
-                      <p className="text-blue-600">Atribuição automática</p>
+                      <p className="text-lg">"Atribuição automática</p>
                     )}
                   </div>
-
                   <div className=""
                     <p className=""
                       Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')}
@@ -497,7 +463,6 @@ export default function TicketTemplates() {
         </div>
       )}
         </TabsContent>
-
         <TabsContent value="editor" className=""
           <Card>
             <CardHeader>
@@ -540,18 +505,15 @@ export default function TicketTemplates() {
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="analytics" className=""
           <TemplateAnalytics companyId={selectedCompany} />
         </TabsContent>
-
         <TabsContent value="company" className=""
           <CompanyTemplateSelector 
             selectedCompany={selectedCompany}
             onCompanyChange={setSelectedCompany}
             showStats={true}
           />
-
           <Card>
             <CardHeader>
               <CardTitle>Configurações Avançadas</CardTitle>
@@ -563,13 +525,13 @@ export default function TicketTemplates() {
               </p>
               <div className=""
                 <Card className=""
-                  <h4 className="font-medium mb-2">Templates Personalizados</h4>
+                  <h4 className="text-lg">"Templates Personalizados</h4>
                   <p className=""
                     Crie templates específicos para esta empresa com campos customizados.
                   </p>
                 </Card>
                 <Card className=""
-                  <h4 className="font-medium mb-2">Aprovações Automáticas</h4>
+                  <h4 className="text-lg">"Aprovações Automáticas</h4>
                   <p className=""
                     Configure regras de aprovação baseadas no perfil da empresa.
                   </p>
@@ -579,7 +541,6 @@ export default function TicketTemplates() {
           </Card>
         </TabsContent>
       </Tabs>
-
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className=""
@@ -602,7 +563,6 @@ export default function TicketTemplates() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="category"
@@ -617,7 +577,6 @@ export default function TicketTemplates() {
                 )}
               />
             </div>
-
             <FormField
               control={form.control}
               name="description"
@@ -635,7 +594,6 @@ export default function TicketTemplates() {
                 </FormItem>
               )}
             />
-
             <div className=""
               <FormField
                 control={form.control}
@@ -660,7 +618,6 @@ export default function TicketTemplates() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="urgency"
@@ -684,7 +641,6 @@ export default function TicketTemplates() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="impact"
@@ -709,7 +665,6 @@ export default function TicketTemplates() {
                 )}
               />
             </div>
-
             <div className=""
               <Button 
                 type="button" 
@@ -729,7 +684,6 @@ export default function TicketTemplates() {
         </Form>
         </DialogContent>
       </Dialog>
-
       {/* Edit Dialog - Similar structure with populated fields */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className=""
@@ -757,7 +711,6 @@ export default function TicketTemplates() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="category"
@@ -772,7 +725,6 @@ export default function TicketTemplates() {
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="description"
@@ -790,7 +742,6 @@ export default function TicketTemplates() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button 
                   type="button" 

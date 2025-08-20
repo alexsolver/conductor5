@@ -1,6 +1,5 @@
 import React from 'react';
 import LeafletMapSelector from './LeafletMapSelector';
-
 interface MapSelectorProps {
   initialLat: number;
   initialLng: number;
@@ -15,7 +14,6 @@ interface MapSelectorProps {
   };
   onLocationSelect: (lat: number, lng: number) => void;
 }
-
 function MapSelector({ initialLat, initialLng, addressData, onLocationSelect }: MapSelectorProps) {
   return (
     <LeafletMapSelector
@@ -26,5 +24,4 @@ function MapSelector({ initialLat, initialLng, addressData, onLocationSelect }: 
     />
   );
 }
-
 export default MapSelector;

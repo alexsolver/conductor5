@@ -1,14 +1,11 @@
 // ✅ 1QA.MD COMPLIANCE: SLA LED INDICATOR COMPONENT
 // Visual LED indicator for SLA expiration tracking
-
 import { Clock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 // ======================================
 // TYPES AND INTERFACES
 // ======================================
-
 export interface SlaLedProps {
   ticketId: string;
   slaStatus?: 'none' | 'active' | 'warning' | 'breached';
@@ -19,14 +16,11 @@ export interface SlaLedProps {
   showText?: boolean;
   className?: string;
 }
-
 // ======================================
 // LED STYLES CONFIGURATION
 // ======================================
-
 const ledStyles = {
   // Localization temporarily disabled
-
   none: {
     color: 'bg-gray-400',
     text: 'text-gray-600',
@@ -56,17 +50,14 @@ const ledStyles = {
     badge: 'destructive'
   }
 } as const;
-
 const sizeClasses = {
   sm: 'w-2 h-2',
   md: 'w-3 h-3',
   lg: 'w-4 h-4'
 } as const;
-
 // ======================================
 // UTILITY FUNCTIONS
 // ======================================
-
 function calculateSlaStatus(
   slaElapsedPercent: number,
   slaExpirationDate?: string
@@ -88,7 +79,6 @@ function calculateSlaStatus(
     return 'active';
   }
 }
-
 function formatTimeRemaining(slaExpirationDate: string): string {
   const now = new Date();
   const expiration = new Date(slaExpirationDate);
@@ -108,11 +98,9 @@ function formatTimeRemaining(slaExpirationDate: string): string {
     return "m`;
   }
 }
-
 // ======================================
 // MAIN COMPONENT
 // ======================================
-
 export function SlaLed({
   ticketId,
   slaStatus,
@@ -148,13 +136,13 @@ export function SlaLed({
   // LED simples (apenas círculo colorido)
   if (!showText) {
     return (
-      <div className="flex items-center space-x-1 ">
+      <div className="text-lg">"
         <div 
           className="${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ""
           title={"% decorrido)"
           data-testid={"
         />
-        <span className="text-xs text-gray-500 font-medium">SLA</span>
+        <span className="text-lg">"SLA</span>
       </div>
     );
   }
@@ -183,18 +171,15 @@ export function SlaLed({
     </div>
   );
 }
-
 // ======================================
 // PROGRESS BAR COMPONENT
 // ======================================
-
 interface SlaProgressBarProps {
   slaElapsedPercent: number;
   slaStatus?: 'none' | 'active' | 'warning' | 'breached';
   showPercentage?: boolean;
   className?: string;
 }
-
 export function SlaProgressBar({
   slaElapsedPercent,
   slaStatus = 'active',
@@ -221,5 +206,4 @@ export function SlaProgressBar({
     </div>
   );
 }
-
 export default SlaLed;

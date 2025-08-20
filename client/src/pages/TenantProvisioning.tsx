@@ -2,7 +2,6 @@
  * Tenant Auto-Provisioning Management Page
  * Interface for configuring and managing automatic tenant creation
  */
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -33,7 +32,6 @@ import {
   Cog
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-
 // Schema for manual tenant provisioning
 const provisionTenantSchema = z.object({
   name: z.string().min(1, "Nome do tenant é obrigatório"),
@@ -41,7 +39,6 @@ const provisionTenantSchema = z.object({
   companyName: z.string().optional(),
   settings: z.record(z.any()).optional()
 });
-
 // Schema for configuration updates
 const configSchema = z.object({
   enabled: z.boolean(),
@@ -55,10 +52,8 @@ const configSchema = z.object({
     theme: z.string()
   })
 });
-
 type ProvisionTenantFormData = z.infer<typeof provisionTenantSchema>;
 type ConfigFormData = z.infer<typeof configSchema>;
-
 export default function TenantProvisioning() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -66,7 +61,6 @@ export default function TenantProvisioning() {
   const queryClient = useQueryClient();
   const [isProvisionDialogOpen, setIsProvisionDialogOpen] = useState(false);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
-
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
@@ -81,13 +75,11 @@ export default function TenantProvisioning() {
       </div>
     );
   }
-
   // Query para configuração de auto-provisioning
   const { data: config, isLoading: isLoadingConfig } = useQuery({
     queryKey: ['/api/tenant-provisioning/config'],
     staleTime: 5 * 60 * 1000,
   });
-
   // Form para provisionamento manual
   const provisionForm = useForm<ProvisionTenantFormData>({
     resolver: zodResolver(provisionTenantSchema),
@@ -98,7 +90,6 @@ export default function TenantProvisioning() {
       settings: {}
     }
   });
-
   // Form para configuração
   const configForm = useForm<ConfigFormData>({
     resolver: zodResolver(configSchema),
@@ -115,7 +106,6 @@ export default function TenantProvisioning() {
       }
     }
   });
-
   // Mutation para provisionamento manual
   const provisionMutation = useMutation({
     mutationFn: async (data: ProvisionTenantFormData) => {
@@ -139,7 +129,6 @@ export default function TenantProvisioning() {
       });
     }
   });
-
   // Mutation para atualizar configuração
   const updateConfigMutation = useMutation({
     mutationFn: async (data: Partial<ConfigFormData>) => {
@@ -162,15 +151,12 @@ export default function TenantProvisioning() {
       });
     }
   });
-
   const onProvisionSubmit = (data: ProvisionTenantFormData) => {
     provisionMutation.mutate(data);
   };
-
   const onConfigSubmit = (data: ConfigFormData) => {
     updateConfigMutation.mutate(data);
   };
-
   const getStatusBadge = (enabled: boolean) => {
     return enabled ? (
       <Badge variant="default" className=""
@@ -184,7 +170,6 @@ export default function TenantProvisioning() {
       </Badge>
     );
   };
-
   return (
     <div className=""
       <div className=""
@@ -217,7 +202,7 @@ export default function TenantProvisioning() {
                       render={({ field }) => (
                         <FormItem className=""
                           <div className=""
-                            <FormLabel className="text-base">Auto-Provisioning</FormLabel>
+                            <FormLabel className="text-lg">"Auto-Provisioning</FormLabel>
                             <div className=""
                               Habilitar criação automática de tenants
                             </div>
@@ -238,7 +223,7 @@ export default function TenantProvisioning() {
                       render={({ field }) => (
                         <FormItem className=""
                           <div className=""
-                            <FormLabel className="text-base">Auto-Provisioning</FormLabel>
+                            <FormLabel className="text-lg">"Auto-Provisioning</FormLabel>
                             <div className=""
                               Permitir criação por usuários
                             </div>
@@ -253,7 +238,6 @@ export default function TenantProvisioning() {
                       )}
                     />
                   </div>
-
                   <FormField
                     control={configForm.control}
                     name="subdomainGeneration"
@@ -276,7 +260,6 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
-
                   <div className=""
                     <Button type="button" variant="outline" onClick={() => setIsConfigDialogOpen(false)}>
                       Cancelar
@@ -289,7 +272,6 @@ export default function TenantProvisioning() {
               </Form>
             </DialogContent>
           </Dialog>
-
           <Dialog open={isProvisionDialogOpen} onOpenChange={setIsProvisionDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -316,7 +298,6 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={provisionForm.control}
                     name="subdomain"
@@ -330,7 +311,6 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={provisionForm.control}
                     name="companyName"
@@ -344,7 +324,6 @@ export default function TenantProvisioning() {
                       </FormItem>
                     )}
                   />
-
                   <div className=""
                     <Button type="button" variant="outline" onClick={() => setIsProvisionDialogOpen(false)}>
                       Cancelar
@@ -359,12 +338,11 @@ export default function TenantProvisioning() {
           </Dialog>
         </div>
       </div>
-
       {/* Status Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Status do Sistema</CardTitle>
+            <CardTitle className="text-lg">"Status do Sistema</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -380,10 +358,9 @@ export default function TenantProvisioning() {
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Geração de Subdomínio</CardTitle>
+            <CardTitle className="text-lg">"Geração de Subdomínio</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -397,10 +374,9 @@ export default function TenantProvisioning() {
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Limites Padrão</CardTitle>
+            <CardTitle className="text-lg">"Limites Padrão</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -413,7 +389,6 @@ export default function TenantProvisioning() {
           </CardContent>
         </Card>
       </div>
-
       {/* Configuration Overview */}
       <Card>
         <CardHeader>
@@ -424,7 +399,7 @@ export default function TenantProvisioning() {
         </CardHeader>
         <CardContent>
           {isLoadingConfig ? (
-            <div className="text-center py-8">Carregando configurações...</div>
+            <div className="text-lg">"Carregando configurações...</div>
           ) : config ? (
             <div className=""
               <div className=""
@@ -459,16 +434,16 @@ export default function TenantProvisioning() {
                 <div className=""
                   <div className=""
                     <div>
-                      <span className="font-medium">Máximo de Usuários:</span> {config.defaultTenantSettings.maxUsers}
+                      <span className="text-lg">"Máximo de Usuários:</span> {config.defaultTenantSettings.maxUsers}
                     </div>
                     <div>
-                      <span className="font-medium">Máximo de Tickets:</span> {config.defaultTenantSettings.maxTickets}
+                      <span className="text-lg">"Máximo de Tickets:</span> {config.defaultTenantSettings.maxTickets}
                     </div>
                     <div>
-                      <span className="font-medium">Funcionalidades:</span> {config.defaultTenantSettings.features.join(', ')}
+                      <span className="text-lg">"Funcionalidades:</span> {config.defaultTenantSettings.features.join(', ')}
                     </div>
                     <div>
-                      <span className="font-medium">Tema:</span> {config.defaultTenantSettings.theme}
+                      <span className="text-lg">"Tema:</span> {config.defaultTenantSettings.theme}
                     </div>
                   </div>
                 </div>

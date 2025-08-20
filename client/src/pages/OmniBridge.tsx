@@ -46,7 +46,6 @@ import {
   Activity
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-
 interface Channel {
   id: string;
   name: string;
@@ -60,7 +59,6 @@ interface Channel {
   lastActivity?: string;
   features?: string[];
 }
-
 interface Message {
   id: string;
   channelId: string;
@@ -76,7 +74,6 @@ interface Message {
   attachments?: number;
   starred?: boolean;
 }
-
 interface AutomationRule {
   id: string;
   name: string;
@@ -92,7 +89,6 @@ interface AutomationRule {
   }[];
   priority: number;
 }
-
 interface Template {
   id: string;
   name: string;
@@ -103,7 +99,6 @@ interface Template {
   usage_count: number;
   created_at: string;
 }
-
 interface Chatbot {
   id: string;
   name: string;
@@ -118,11 +113,9 @@ interface Chatbot {
   ai_enabled: boolean;
   fallback_to_human: boolean;
 }
-
 // Helper functions for channel mapping
 function getChannelType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
   // Localization temporarily disabled
-
   if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
     return 'email';
   }
@@ -137,7 +130,6 @@ function getChannelType(integrationId: string): 'email' | 'whatsapp' | 'telegram
   }
   return 'chat';
 }
-
 function getChannelIcon(integrationId: string) {
   if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
     return Mail;
@@ -153,7 +145,6 @@ function getChannelIcon(integrationId: string) {
   }
   return MessageSquare;
 }
-
 export default function OmniBridge() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('inbox');
@@ -180,7 +171,6 @@ export default function OmniBridge() {
   const [replyContent, setReplyContent] = useState('');
   const [forwardContent, setForwardContent] = useState('');
   const [forwardRecipients, setForwardRecipients] = useState('');
-
   // Add automation state
   useEffect(() => {
     const fetchAutomationRules = async () => {
@@ -191,7 +181,6 @@ export default function OmniBridge() {
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         };
-
         const response = await fetch('/api/omnibridge/automation-rules', { headers });
         
         if (response.ok) {
@@ -205,12 +194,10 @@ export default function OmniBridge() {
         console.error('❌ [OmniBridge] Error fetching automation rules:', error);
       }
     };
-
     if (activeTab === 'automation') {
       fetchAutomationRules();
     }
   }, [activeTab, user?.tenantId]);
-
   const handleToggleAutomationRule = async (ruleId: string, enabled: boolean) => {
     try {
       const token = localStorage.getItem('token');
@@ -223,7 +210,6 @@ export default function OmniBridge() {
         },
         body: JSON.stringify({ isEnabled: enabled })
       });
-
       if (response.ok) {
         setAutomationRules(prev => prev.map(rule =>
           rule.id === ruleId ? { ...rule, isEnabled: enabled } : rule
@@ -234,7 +220,6 @@ export default function OmniBridge() {
       console.error('❌ [OmniBridge] Error toggling automation rule:', error);
     }
   };
-
   const handleCreateAutomationRule = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -254,7 +239,6 @@ export default function OmniBridge() {
           priority: newRuleData.priority || 0
         })
       });
-
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -279,34 +263,27 @@ export default function OmniBridge() {
       alert('Erro ao criar regra. Verifique o console para mais detalhes.');
     }
   };
-
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
         const token = localStorage.getItem('token');
-
         // ✅ TELEGRAM FIX: Garantir autenticação adequada com tenantId
         const headers = {
           'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         };
-
         console.log('🔧 [OMNIBRIDGE-FIX] Using headers:', headers);
         console.log('🔧 [OMNIBRIDGE-FIX] User tenantId:', user?.tenantId);
-
         console.log('🔧 [OMNIBRIDGE-FIX] Using headers:', headers);
-
         // Primeiro, sincronizar integrações para canais
         try {
           const syncResponse = await fetch('/api/omnibridge/sync-integrations', {
             method: 'POST',
             headers
           });
-
           if (syncResponse.ok) {
             console.log('✅ [OMNIBRIDGE-SYNC] Manual sync completed');
           } else {
@@ -315,23 +292,18 @@ export default function OmniBridge() {
         } catch (syncError) {
           console.warn('⚠️ [OMNIBRIDGE-SYNC] Sync error:', syncError);
         }
-
         // Agora buscar canais sincronizados
         const channelsResponse = await fetch('/api/omnibridge/channels', {
           headers
         });
-
         const inboxResponse = await fetch('/api/omnibridge/messages', {
           headers
         });
-
         let channelsData = [];
         let messagesData = [];
-
         if (channelsResponse.ok) {
           const channelsResult = await channelsResponse.json();
           console.log('🔍 [OmniBridge] Channels data:', channelsResult);
-
           if (channelsResult.success) {
             channelsData = channelsResult.data.map((channel: any) => ({
               id: channel.id,
@@ -356,19 +328,15 @@ export default function OmniBridge() {
               'x-tenant-id': user?.tenantId || ''
             }
           });
-
           if (integrationsResponse.ok) {
             const integrationsResult = await integrationsResponse.json();
             console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data || integrationsResult);
-
             if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
               const communicationChannels = integrationsResult.data.filter((integration: any) => {
                 const category = integration.category?.toLowerCase() || '';
                 return category === 'comunicação' || category === 'communication' || category === 'comunicacao';
               });
-
               console.log('🔍 [OmniBridge] Filtered communication channels:', communicationChannels.length, 'channels');
-
               channelsData = communicationChannels.map((integration: any) => ({
                 id: integration.id,
                 name: integration.name,
@@ -387,7 +355,6 @@ export default function OmniBridge() {
             console.log('⚠️ [OmniBridge] Failed to fetch integrations, status:', integrationsResponse.status);
           }
         }
-
         let inboxResult = null;
         if (inboxResponse.ok) {
           inboxResult = await inboxResponse.json();
@@ -395,7 +362,6 @@ export default function OmniBridge() {
         } else {
           console.log('⚠️ [OmniBridge] Failed to fetch inbox, status:', inboxResponse.status);
         }
-
         if (inboxResult && inboxResult.success) {
           messagesData = inboxResult.messages.map((msg: any) => ({
             id: msg.id,
@@ -412,25 +378,19 @@ export default function OmniBridge() {
             attachments: msg.attachments
           }));
         }
-
         if (channelsData.length === 0) {
           console.log('⚠️ [OmniBridge] No integrations data available, showing message to configure in Workspace Admin');
           channelsData = [];
         }
-
         console.log('🔍 [OmniBridge-DEBUG] Final channels count:', channelsData.length);
         console.log('🔍 [OmniBridge-DEBUG] Final inbox count:', messagesData.length);
-
         setChannels(channelsData);
         setMessages(messagesData);
-
         if (messagesData.length === 0) {
           console.log('📪 No inbox messages available');
         }
-
       } catch (error) {
         console.error('❌ [OmniBridge] Error fetching data:', error);
-
         // Fallback data if both endpoints fail
         setChannels([
           {
@@ -475,18 +435,13 @@ export default function OmniBridge() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
-
   const handleSyncIntegrations = async () => {
     try {
       setLoading(true);
-
       const token = localStorage.getItem('token');
-
       console.log('🔄 [OMNIBRIDGE-MANUAL-SYNC] Starting manual sync...');
-
       const response = await fetch('/api/omnibridge/sync-integrations', {
         method: 'POST',
         headers: {
@@ -495,13 +450,10 @@ export default function OmniBridge() {
           'x-tenant-id': user?.tenantId || ''
         }
       });
-
       if (response.ok) {
         console.log('✅ [OmniBridge] Integrations synced successfully');
-
         // Wait a moment for sync to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
-
         // Force reload data after sync
         window.location.reload();
       } else {
@@ -516,8 +468,6 @@ export default function OmniBridge() {
       setLoading(false);
     }
   };
-
-
   const handleChannelToggle = async (channelId: string, enabled: boolean) => {
     try {
       const token = localStorage.getItem('token');
@@ -530,7 +480,6 @@ export default function OmniBridge() {
         },
         body: JSON.stringify({ enabled })
       });
-
       if (response.ok) {
         setChannels(prev => prev.map(channel =>
           channel.id === channelId
@@ -543,8 +492,7 @@ export default function OmniBridge() {
               }
             : channel
         ));
-
-        console.log(" com sucesso`);
+        console.log(" com sucesso");
       } else {
         console.error('[TRANSLATION_NEEDED]', response.status);
       }
@@ -552,7 +500,6 @@ export default function OmniBridge() {
       console.error('[TRANSLATION_NEEDED]', error);
     }
   };
-
   const handleSendMessage = async (content: string, channelId: string, recipient: string) => {
     try {
       const token = localStorage.getItem('token');
@@ -569,7 +516,6 @@ export default function OmniBridge() {
           content
         })
       });
-
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Message sent successfully');
         // Refresh messages
@@ -581,7 +527,6 @@ export default function OmniBridge() {
       console.error('❌ [OMNIBRIDGE] Error sending message:', error);
     }
   };
-
   const refreshMessages = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -592,7 +537,6 @@ export default function OmniBridge() {
           'x-tenant-id': user?.tenantId || ''
         }
       });
-
       if (messagesResponse.ok) {
         const result = await messagesResponse.json();
         if (result.success) {
@@ -618,12 +562,10 @@ export default function OmniBridge() {
       console.error('❌ [OMNIBRIDGE] Error refreshing messages:', error);
     }
   };
-
   const handleReplyMessage = async (messageId: string, content: string) => {
     try {
       const message = messages.find(m => m.id === messageId);
       if (!message) return;
-
       const token = localStorage.getItem('token');
       const response = await fetch('/api/omnibridge/messages/reply', {
         method: 'POST',
@@ -639,7 +581,6 @@ export default function OmniBridge() {
           content
         })
       });
-
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Reply sent successfully');
         await refreshMessages();
@@ -654,12 +595,10 @@ export default function OmniBridge() {
       console.error('❌ [OMNIBRIDGE] Error sending reply:', error);
     }
   };
-
   const handleForwardMessage = async (messageId: string, recipients: string[], content: string) => {
     try {
       const message = messages.find(m => m.id === messageId);
       if (!message) return;
-
       const token = localStorage.getItem('token');
       const response = await fetch('/api/omnibridge/messages/forward', {
         method: 'POST',
@@ -676,7 +615,6 @@ export default function OmniBridge() {
           originalContent: message.content
         })
       });
-
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Message forwarded successfully');
         await refreshMessages();
@@ -687,7 +625,6 @@ export default function OmniBridge() {
       console.error('❌ [OMNIBRIDGE] Error forwarding message:', error);
     }
   };
-
   const handleArchiveMessage = async (messageId: string) => {
     try {
       const token = localStorage.getItem('token');
@@ -699,7 +636,6 @@ export default function OmniBridge() {
           'x-tenant-id': user?.tenantId || ''
         }
       });
-
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Message archived successfully');
         setMessages(prev => prev.map(msg =>
@@ -712,7 +648,6 @@ export default function OmniBridge() {
       console.error('❌ [OMNIBRIDGE] Error archiving message:', error);
     }
   };
-
   const handleMarkAsRead = async (messageId: string) => {
     try {
       const token = localStorage.getItem('token');
@@ -724,7 +659,6 @@ export default function OmniBridge() {
           'x-tenant-id': user?.tenantId || ''
         }
       });
-
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Message marked as read');
         setMessages(prev => prev.map(msg =>
@@ -737,7 +671,6 @@ export default function OmniBridge() {
       console.error('❌ [OMNIBRIDGE] Error marking message as read:', error);
     }
   };
-
   const handleStarMessage = async (messageId: string) => {
     try {
       const token = localStorage.getItem('token');
@@ -749,7 +682,6 @@ export default function OmniBridge() {
           'x-tenant-id': user?.tenantId || ''
         }
       });
-
       if (response.ok) {
         console.log('✅ [OMNIBRIDGE] Message starred');
         setMessages(prev => prev.map(msg =>
@@ -762,18 +694,14 @@ export default function OmniBridge() {
       console.error('❌ [OMNIBRIDGE] Error starring message:', error);
     }
   };
-
   const filteredMessages = messages.filter(message => {
     const matchesSearch = message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          message.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase()));
-
     const matchesStatus = filterStatus === 'all' || message.status === filterStatus;
     const matchesChannel = filterChannel === 'all' || message.channelType === filterChannel;
-
     return matchesSearch && matchesStatus && matchesChannel;
   });
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'connected': return 'bg-green-100 text-green-800 border-green-200';
@@ -782,7 +710,6 @@ export default function OmniBridge() {
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
@@ -792,23 +719,21 @@ export default function OmniBridge() {
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-
   if (loading) {
     return (
       <div className=""
         <div className=""
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando OmniBridge...</p>
+          <div className="text-lg">"</div>
+          <p className="text-lg">"Carregando OmniBridge...</p>
         </div>
       </div>
     );
   }
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">OmniBridge</h1>
+          <h1 className="text-lg">"OmniBridge</h1>
           <p className=""
             Central de comunicação unificada - Email, WhatsApp, Telegram e mais
           </p>
@@ -833,7 +758,6 @@ export default function OmniBridge() {
           </Button>
         </div>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className=""
         <TabsList className=""
           <TabsTrigger value="channels" className=""
@@ -857,7 +781,6 @@ export default function OmniBridge() {
             Templates
           </TabsTrigger>
         </TabsList>
-
         {/* Inbox Tab */}
         <TabsContent value="inbox" className=""
           <div className=""
@@ -895,7 +818,6 @@ export default function OmniBridge() {
               </SelectContent>
             </Select>
           </div>
-
           <div className=""
             <div className=""
               <Card>
@@ -938,7 +860,7 @@ export default function OmniBridge() {
                       <div className=""
                         <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>Nenhuma mensagem encontrada</p>
-                        <p className="text-sm">Configure seus canais para começar a receber mensagens</p>
+                        <p className="text-lg">"Configure seus canais para começar a receber mensagens</p>
                       </div>
                     ) : (
                       <div className=""
@@ -957,7 +879,7 @@ export default function OmniBridge() {
                                   {message.channelType === 'whatsapp' && <MessageSquare className="h-4 w-4" />}
                                   {message.channelType === 'telegram' && <MessageCircle className="h-4 w-4" />}
                                   {message.channelType === 'sms' && <Phone className="h-4 w-4" />}
-                                  <span className="font-medium">{message.from}</span>
+                                  <span className="text-lg">"{message.from}</span>
                                   {message.starred && (
                                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                                   )}
@@ -985,7 +907,7 @@ export default function OmniBridge() {
                               </div>
                             </div>
                             {message.subject && (
-                              <h4 className="font-medium mb-1">{message.subject}</h4>
+                              <h4 className="text-lg">"{message.subject}</h4>
                             )}
                             <p className=""
                               {message.content}
@@ -1022,7 +944,6 @@ export default function OmniBridge() {
                 </CardContent>
               </Card>
             </div>
-
             <div>
               <Card>
                 <CardHeader>
@@ -1036,25 +957,22 @@ export default function OmniBridge() {
                           {selectedMessage.channelType === 'email' && <Mail className="h-4 w-4" />}
                           {selectedMessage.channelType === 'whatsapp' && <MessageSquare className="h-4 w-4" />}
                           {selectedMessage.channelType === 'telegram' && <MessageCircle className="h-4 w-4" />}
-                          <span className="font-medium">{selectedMessage.from}</span>
+                          <span className="text-lg">"{selectedMessage.from}</span>
                         </div>
                         <Button variant="outline" size="sm>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </div>
-
                       {selectedMessage.subject && (
                         <div>
-                          <Label className="text-sm font-medium">Assunto</Label>
-                          <p className="text-sm mt-1">{selectedMessage.subject}</p>
+                          <Label className="text-lg">"Assunto</Label>
+                          <p className="text-lg">"{selectedMessage.subject}</p>
                         </div>
                       )}
-
                       <div>
-                        <Label className="text-sm font-medium">Conteúdo</Label>
-                        <p className="text-sm mt-1 whitespace-pre-wrap">{selectedMessage.content}</p>
+                        <Label className="text-lg">"Conteúdo</Label>
+                        <p className="text-lg">"{selectedMessage.content}</p>
                       </div>
-
                       <div className=""
                         <Badge variant="secondary" className={getPriorityColor(selectedMessage.priority)}>
                           {selectedMessage.priority}
@@ -1063,9 +981,7 @@ export default function OmniBridge() {
                           {selectedMessage.status}
                         </Badge>
                       </div>
-
                       <Separator />
-
                       <div className=""
                         <Button 
                           className="w-full" 
@@ -1144,7 +1060,6 @@ export default function OmniBridge() {
             </div>
           </div>
         </TabsContent>
-
         {/* Channels Tab */}
         <TabsContent value="channels" className=""
           <Card>
@@ -1158,7 +1073,7 @@ export default function OmniBridge() {
               {channels.length === 0 ? (
                 <div className=""
                   <Settings className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="text-lg font-medium mb-2">Nenhum canal configurado</h3>
+                  <h3 className="text-lg">"Nenhum canal configurado</h3>
                   <p className=""
                     Configure seus canais de comunicação no Workspace Admin para que eles apareçam aqui.
                   </p>
@@ -1188,8 +1103,8 @@ export default function OmniBridge() {
                             </div>
                           )}
                           <div>
-                            <h3 className="font-medium">{channel.name}</h3>
-                            <p className="text-sm text-muted-foreground">{channel.type}</p>
+                            <h3 className="text-lg">"{channel.name}</h3>
+                            <p className="text-lg">"{channel.type}</p>
                           </div>
                         </div>
                         <Switch
@@ -1202,7 +1117,6 @@ export default function OmniBridge() {
                       <p className=""
                         {channel.description}
                       </p>
-
                       <div className=""
                         <div className=""
                           <span>Status:</span>
@@ -1210,20 +1124,16 @@ export default function OmniBridge() {
                             {channel.status}
                           </Badge>
                         </div>
-
                         <div className=""
                           <span>Mensagens:</span>
-                          <span className="font-medium">{channel.messageCount}</span>
+                          <span className="text-lg">"{channel.messageCount}</span>
                         </div>
-
                         <div className=""
                           <span>Última atividade:</span>
-                          <span className="text-muted-foreground">{channel.lastActivity || '[TRANSLATION_NEEDED]'}</span>
+                          <span className="text-lg">"{channel.lastActivity || '[TRANSLATION_NEEDED]'}</span>
                         </div>
                       </div>
-
                       <Separator className="my-3" />
-
                       <div className=""
                         <Button
                           variant="outline"
@@ -1247,7 +1157,6 @@ export default function OmniBridge() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Automation Tab */}
         <TabsContent value="automation" className=""
           <Card>
@@ -1274,7 +1183,7 @@ export default function OmniBridge() {
                 <div className=""
                   <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Nenhuma regra de automação configurada</p>
-                  <p className="text-sm">Crie sua primeira regra para automatizar o atendimento</p>
+                  <p className="text-lg">"Crie sua primeira regra para automatizar o atendimento</p>
                   <div className=""
                     <Button onClick={() => setShowCreateRuleModal(true)} variant="outline>
                       <Plus className="h-4 w-4 mr-2" />
@@ -1294,12 +1203,12 @@ export default function OmniBridge() {
                         <CardHeader className=""
                           <div className=""
                             <div className=""
-                              <div className="p-2 rounded-lg ">
+                              <div className="text-lg">"
                                 <Workflow className="h-5 w-5 "" />
                               </div>
                               <div>
-                                <h3 className="font-medium">{rule.name}</h3>
-                                <p className="text-sm text-muted-foreground">{rule.description}</p>
+                                <h3 className="text-lg">"{rule.name}</h3>
+                                <p className="text-lg">"{rule.description}</p>
                               </div>
                             </div>
                             <div className=""
@@ -1317,7 +1226,7 @@ export default function OmniBridge() {
                           <div className=""
                             {/* Triggers */}
                             <div>
-                              <Label className="text-xs font-medium text-muted-foreground">GATILHOS</Label>
+                              <Label className="text-lg">"GATILHOS</Label>
                               <div className=""
                                 {rule.triggers && rule.triggers.map((trigger, index) => (
                                   <Badge key={index} variant="outline" className=""
@@ -1332,10 +1241,9 @@ export default function OmniBridge() {
                                 ))}
                               </div>
                             </div>
-
                             {/* Actions */}
                             <div>
-                              <Label className="text-xs font-medium text-muted-foreground">AÇÕES</Label>
+                              <Label className="text-lg">"AÇÕES</Label>
                               <div className=""
                                 {rule.actions && rule.actions.map((action, index) => (
                                   <Badge key={index} variant="secondary" className=""
@@ -1352,15 +1260,14 @@ export default function OmniBridge() {
                                 ))}
                               </div>
                             </div>
-
                             {/* Stats */}
                             <div className=""
                               <div className=""
                                 <span className=""
-                                  Prioridade: <span className="font-medium">{rule.priority}</span>
+                                  Prioridade: <span className="text-lg">"{rule.priority}</span>
                                 </span>
                                 <span className=""
-                                  Execuções: <span className="font-medium">{rule.executionStats?.totalExecutions || 0}</span>
+                                  Execuções: <span className="text-lg">"{rule.executionStats?.totalExecutions || 0}</span>
                                 </span>
                               </div>
                               <div className=""
@@ -1384,7 +1291,6 @@ export default function OmniBridge() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Templates Tab */}
         <TabsContent value="templates" className=""
           <Card>
@@ -1404,7 +1310,7 @@ export default function OmniBridge() {
               <div className=""
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum template configurado</p>
-                <p className="text-sm">Crie templates para agilizar suas respostas</p>
+                <p className="text-lg">"Crie templates para agilizar suas respostas</p>
                 <Button className="mt-4" variant="outline>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Primeiro Template
@@ -1413,13 +1319,11 @@ export default function OmniBridge() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Chatbots Tab */}
         <TabsContent value="chatbots" className=""
           <ChatbotKanban />
         </TabsContent>
       </Tabs>
-
       {/* Modal de Resposta */}
       <Dialog open={showReplyModal} onOpenChange={setShowReplyModal}>
         <DialogContent className=""
@@ -1432,8 +1336,8 @@ export default function OmniBridge() {
           </DialogHeader>
           <div className=""
             <div className=""
-              <p className="text-sm text-muted-foreground">Mensagem original:</p>
-              <p className="text-sm mt-1">{selectedMessage?.content}</p>
+              <p className="text-lg">"Mensagem original:</p>
+              <p className="text-lg">"{selectedMessage?.content}</p>
             </div>
             <Textarea
               placeholder="Digite sua resposta..."
@@ -1462,7 +1366,6 @@ export default function OmniBridge() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Modal de Encaminhamento */}
       <Dialog open={showForwardModal} onOpenChange={setShowForwardModal}>
         <DialogContent className=""
@@ -1474,8 +1377,8 @@ export default function OmniBridge() {
           </DialogHeader>
           <div className=""
             <div className=""
-              <p className="text-sm text-muted-foreground">Mensagem original:</p>
-              <p className="text-sm mt-1">{selectedMessage?.content}</p>
+              <p className="text-lg">"Mensagem original:</p>
+              <p className="text-lg">"{selectedMessage?.content}</p>
             </div>
             <div>
               <Label htmlFor="recipients">Destinatários (separados por vírgula)</Label>
@@ -1519,7 +1422,6 @@ export default function OmniBridge() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Modal de Criar Regra de Automação */}
       <Dialog open={showCreateRuleModal} onOpenChange={setShowCreateRuleModal}>
         <DialogContent className=""

@@ -12,13 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface EmailHistoryModalProps {
   ticketId: string;
   isOpen: boolean;
   onClose: () => void;
 }
-
 interface EmailMessage {
   id: string;
   from: string;
@@ -35,14 +33,12 @@ interface EmailMessage {
   }>;
   createdAt: string;
 }
-
 interface EmailTemplate {
   id: string;
   name: string;
   subject: string;
   content: string;
 }
-
 export default function EmailHistoryModal({
   // Localization temporarily disabled
  ticketId, isOpen, onClose }: EmailHistoryModalProps) {
@@ -53,7 +49,6 @@ export default function EmailHistoryModal({
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Fetch email history
   const { data: emails = [], isLoading: emailsLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "emails"],
@@ -63,7 +58,6 @@ export default function EmailHistoryModal({
     },
     enabled: isOpen,
   });
-
   // Fetch email templates
   const { data: templates = [] } = useQuery({
     queryKey: ["/api/email-templates"],
@@ -73,7 +67,6 @@ export default function EmailHistoryModal({
     },
     enabled: isOpen,
   });
-
   // Send email mutation
   const sendEmailMutation = useMutation({
     mutationFn: async (data: { to: string; subject: string; content: string }) => {
@@ -99,7 +92,6 @@ export default function EmailHistoryModal({
       });
     },
   });
-
   const handleTemplateSelect = (templateId: string) => {
     const template = templates.find((t: EmailTemplate) => t.id === templateId);
     if (template) {
@@ -108,7 +100,6 @@ export default function EmailHistoryModal({
     }
     setSelectedTemplate(templateId);
   };
-
   const handleSendEmail = () => {
     if (!replyTo.trim() || !subject.trim() || !content.trim()) {
       toast({
@@ -118,21 +109,18 @@ export default function EmailHistoryModal({
       });
       return;
     }
-
     sendEmailMutation.mutate({
       to: replyTo,
       subject: subject,
       content: content,
     });
   };
-
   const handleReplyToEmail = (email: EmailMessage) => {
     setReplyTo(email.from);
     setSubject(email.subject.startsWith('Re: ') ? email.subject : "
     setContent("
     setActiveTab("compose");
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto>
@@ -145,7 +133,6 @@ export default function EmailHistoryModal({
             Visualize toda a comunicação por e-mail do ticket e envie novas mensagens.
           </DialogDescription>
         </DialogHeader>
-
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2>
             <TabsTrigger value="history" className="flex items-center gap-2>
@@ -157,18 +144,17 @@ export default function EmailHistoryModal({
               Enviar E-mail
             </TabsTrigger>
           </TabsList>
-
           <TabsContent value="history" className="space-y-4>
             {emailsLoading ? (
               <div className="text-center py-8>
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-500">Carregando e-mails...</p>
+                <div className="text-lg">"</div>
+                <p className="text-lg">"Carregando e-mails...</p>
               </div>
             ) : emails.length === 0 ? (
               <div className="text-center py-12>
                 <Mail className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">Nenhum e-mail encontrado</p>
-                <p className="text-xs text-gray-400">As comunicações aparecerão aqui conforme chegarem</p>
+                <p className="text-lg">"Nenhum e-mail encontrado</p>
+                <p className="text-lg">"As comunicações aparecerão aqui conforme chegarem</p>
               </div>
             ) : (
               <div className="space-y-4>
@@ -194,7 +180,7 @@ export default function EmailHistoryModal({
                               {new Date(email.createdAt).toLocaleString()}
                             </span>
                           </div>
-                          <h4 className="font-medium">{email.subject}</h4>
+                          <h4 className="text-lg">"{email.subject}</h4>
                           <div className="text-sm text-gray-600>
                             <p><strong>De:</strong> {email.from}</p>
                             <p><strong>Para:</strong> {email.to.join(', ')}</p>
@@ -232,7 +218,7 @@ export default function EmailHistoryModal({
                       />
                       {email.attachments && email.attachments.length > 0 && (
                         <div className="mt-3 pt-3 border-t>
-                          <p className="text-xs font-medium text-gray-700 mb-2">Anexos:</p>
+                          <p className="text-lg">"Anexos:</p>
                           <div className="space-y-1>
                             {email.attachments.map((attachment) => (
                               <div key={attachment.id} className="flex items-center gap-2 text-xs>
@@ -252,14 +238,13 @@ export default function EmailHistoryModal({
               </div>
             )}
           </TabsContent>
-
           <TabsContent value="compose" className="space-y-4>
             <Card>
               <CardContent className="p-6>
                 <div className="space-y-4>
                   {templates.length > 0 && (
                     <div>
-                      <label className="text-sm font-medium">Template de E-mail</label>
+                      <label className="text-lg">"Template de E-mail</label>
                       <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
                         <SelectTrigger className="mt-2>
                           <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -274,9 +259,8 @@ export default function EmailHistoryModal({
                       </Select>
                     </div>
                   )}
-
                   <div>
-                    <label className="text-sm font-medium">Para *</label>
+                    <label className="text-lg">"Para *</label>
                     <Input
                       type="email"
                       placeholder="destinatario@email.com"
@@ -285,9 +269,8 @@ export default function EmailHistoryModal({
                       className="mt-2"
                     />
                   </div>
-
                   <div>
-                    <label className="text-sm font-medium">Assunto *</label>
+                    <label className="text-lg">"Assunto *</label>
                     <Input
                       placeholder="Assunto do e-mail"
                       value={subject}
@@ -295,9 +278,8 @@ export default function EmailHistoryModal({
                       className="mt-2"
                     />
                   </div>
-
                   <div>
-                    <label className="text-sm font-medium">Conteúdo *</label>
+                    <label className="text-lg">"Conteúdo *</label>
                     <Textarea
                       placeholder="Digite a mensagem..."
                       value={content}
@@ -306,7 +288,6 @@ export default function EmailHistoryModal({
                       className="mt-2"
                     />
                   </div>
-
                   <div className="flex justify-end>
                     <Button
                       onClick={handleSendEmail}

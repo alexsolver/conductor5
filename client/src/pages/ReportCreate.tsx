@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation } from 'wouter';
 import { useForm } from "react-hook-form";
@@ -23,11 +22,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-
 // Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Report name is required"),
   description: z.string().optional(),
   dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard", "locations", "omnibridge"]),
@@ -40,9 +37,7 @@ const reportSchema = z.object({
   isPublic: z.boolean().default(false),
   accessLevel: z.enum(["private", "team", "company", "public"]).default("private"),
 });
-
 type ReportFormData = z.infer<typeof reportSchema>;
-
 export default function ReportCreate() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("basic");
@@ -50,9 +45,7 @@ export default function ReportCreate() {
   const [query, setQuery] = useState<any>({});
   const [wysiwygDesign, setWysiwygDesign] = useState<any>({});
   const [isCreating, setIsCreating] = useState(false);
-
   const { toast } = useToast();
-
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
@@ -63,7 +56,6 @@ export default function ReportCreate() {
       isPublic: false,
     },
   });
-
   const createReportMutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
       const reportData = {
@@ -90,7 +82,6 @@ export default function ReportCreate() {
       });
     },
   });
-
   const handleCreateReport = async (data: ReportFormData) => {
     setIsCreating(true);
     try {
@@ -99,12 +90,10 @@ export default function ReportCreate() {
       setIsCreating(false);
     }
   };
-
   const handleQueryChange = (newQuery: any) => {
     console.log('✅ [QUERY-BUILDER] Query updated:', newQuery);
     setQuery(newQuery);
   };
-
   const handleWysiwygSave = (design: any) => {
     console.log('✅ [WYSIWYG] Design saved:', design);
     setWysiwygDesign(design);
@@ -115,7 +104,6 @@ export default function ReportCreate() {
       form.setValue('description', design.description);
     }
   };
-
   const canCreateReport = () => {
     const formData = form.getValues();
     if (!formData.name?.trim()) return false;
@@ -131,7 +119,6 @@ export default function ReportCreate() {
     }
     return true;
   };
-
   return (
     <div className=""
       {/* Header */}
@@ -178,9 +165,7 @@ export default function ReportCreate() {
           </Button>
         </div>
       </div>
-
       <Separator />
-
       {/* Report Type Selection */}
       <Card>
         <CardHeader>
@@ -196,13 +181,12 @@ export default function ReportCreate() {
             >
               <CardContent className=""
                 <BarChart3 className="w-8 h-8 mx-auto mb-3 text-primary" />
-                <h4 className="font-semibold mb-2">Relatório Padrão</h4>
+                <h4 className="text-lg">"Relatório Padrão</h4>
                 <p className=""
                   Seleção simples de fonte de dados e campos básicos
                 </p>
               </CardContent>
             </Card>
-
             <Card 
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'advanced' ? 'ring-2 ring-primary' : ''
@@ -211,13 +195,12 @@ export default function ReportCreate() {
             >
               <CardContent className=""
                 <Database className="w-8 h-8 mx-auto mb-3 text-primary" />
-                <h4 className="font-semibold mb-2">Query Builder Avançado</h4>
+                <h4 className="text-lg">"Query Builder Avançado</h4>
                 <p className=""
                   Construção completa com filtros, períodos, joins e SQL
                 </p>
               </CardContent>
             </Card>
-
             <Card 
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'wysiwyg' ? 'ring-2 ring-primary' : ''
@@ -226,7 +209,7 @@ export default function ReportCreate() {
             >
               <CardContent className=""
                 <Palette className="w-8 h-8 mx-auto mb-3 text-primary" />
-                <h4 className="font-semibold mb-2">WYSIWYG Designer</h4>
+                <h4 className="text-lg">"WYSIWYG Designer</h4>
                 <p className=""
                   Designer visual para relatórios e PDFs personalizados
                 </p>
@@ -235,7 +218,6 @@ export default function ReportCreate() {
           </div>
         </CardContent>
       </Card>
-
       {/* Main Configuration Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className=""
@@ -270,7 +252,6 @@ export default function ReportCreate() {
             Preview
           </TabsTrigger>
         </TabsList>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleCreateReport)} className=""
             {/* Basic Configuration Tab */}
@@ -298,7 +279,6 @@ export default function ReportCreate() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="description"
@@ -317,7 +297,6 @@ export default function ReportCreate() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="category"
@@ -345,7 +324,6 @@ export default function ReportCreate() {
                     />
                   </CardContent>
                 </Card>
-
                 <Card>
                   <CardHeader>
                     <CardTitle>Configurações de Acesso</CardTitle>
@@ -374,7 +352,6 @@ export default function ReportCreate() {
                         </FormItem>
                       )}
                     />
-
                     {reportType === 'standard' && (
                       <>
                         <FormField
@@ -403,7 +380,6 @@ export default function ReportCreate() {
                             </FormItem>
                           )}
                         />
-
                         <FormField
                           control={form.control}
                           name="chartType"
@@ -426,7 +402,7 @@ export default function ReportCreate() {
                                   >
                                     <CardContent className=""
                                       <type.icon className="w-6 h-6 mx-auto mb-1" />
-                                      <div className="text-xs">{type.label}</div>
+                                      <div className="text-lg">"{type.label}</div>
                                     </CardContent>
                                   </Card>
                                 ))}
@@ -441,7 +417,6 @@ export default function ReportCreate() {
                 </Card>
               </div>
             </TabsContent>
-
             {/* Builder Tab */}
             <TabsContent value="builder" className=""
               {reportType === 'wysiwyg' && (
@@ -459,7 +434,6 @@ export default function ReportCreate() {
                   </CardContent>
                 </Card>
               )}
-
               {reportType === 'advanced' && (
                 <Card>
                   <CardHeader>
@@ -476,7 +450,6 @@ export default function ReportCreate() {
                   </CardContent>
                 </Card>
               )}
-
               {reportType === 'standard' && (
                 <Card>
                   <CardHeader>
@@ -502,7 +475,6 @@ export default function ReportCreate() {
                 </Card>
               )}
             </TabsContent>
-
             {/* Schedule Tab */}
             <TabsContent value="schedule" className=""
               <Card>
@@ -516,7 +488,7 @@ export default function ReportCreate() {
                     render={({ field }) => (
                       <FormItem className=""
                         <div className=""
-                          <FormLabel className="text-base">Habilitar Agendamento</FormLabel>
+                          <FormLabel className="text-lg">"Habilitar Agendamento</FormLabel>
                           <div className=""
                             Execute este relatório automaticamente
                           </div>
@@ -532,7 +504,6 @@ export default function ReportCreate() {
                       </FormItem>
                     )}
                   />
-
                   {form.watch('schedulingEnabled') && (
                     <>
                       <FormField
@@ -558,7 +529,6 @@ export default function ReportCreate() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="scheduleConfig"
@@ -582,7 +552,6 @@ export default function ReportCreate() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             {/* Preview Tab */}
             <TabsContent value="preview" className=""
               <Card>
@@ -593,41 +562,39 @@ export default function ReportCreate() {
                   <div className=""
                     <div className=""
                       <div>
-                        <h4 className="font-semibold text-lg">{form.watch('name') || 'Nome do Relatório'}</h4>
-                        <p className="text-muted-foreground">{form.watch('description') || 'Sem descrição'}</p>
+                        <h4 className="text-lg">"{form.watch('name') || 'Nome do Relatório'}</h4>
+                        <p className="text-lg">"{form.watch('description') || 'Sem descrição'}</p>
                       </div>
                       
                       <div className=""
                         <div>
-                          <span className="font-medium">Tipo:</span>
-                          <div className="capitalize">{reportType}</div>
+                          <span className="text-lg">"Tipo:</span>
+                          <div className="text-lg">"{reportType}</div>
                         </div>
                         <div>
-                          <span className="font-medium">Categoria:</span>
-                          <div className="capitalize">{form.watch('category')}</div>
+                          <span className="text-lg">"Categoria:</span>
+                          <div className="text-lg">"{form.watch('category')}</div>
                         </div>
                         <div>
-                          <span className="font-medium">Acesso:</span>
-                          <div className="capitalize">{form.watch('accessLevel')}</div>
+                          <span className="text-lg">"Acesso:</span>
+                          <div className="text-lg">"{form.watch('accessLevel')}</div>
                         </div>
                         <div>
-                          <span className="font-medium">Agendamento:</span>
+                          <span className="text-lg">"Agendamento:</span>
                           <div>{form.watch('schedulingEnabled') ? 'Ativo' : 'Inativo'}</div>
                         </div>
                       </div>
-
                       {reportType === 'wysiwyg' && wysiwygDesign.elements?.length > 0 && (
                         <div>
-                          <span className="font-medium">WYSIWYG Elements:</span>
+                          <span className="text-lg">"WYSIWYG Elements:</span>
                           <div className=""
                             {wysiwygDesign.elements.length} elementos configurados
                           </div>
                         </div>
                       )}
-
                       {reportType === 'advanced' && query.dataSource && (
                         <div>
-                          <span className="font-medium">Query Configuration:</span>
+                          <span className="text-lg">"Query Configuration:</span>
                           <div className=""
                             Fonte: {query.dataSource}, Tabelas: {query.selectedTables?.length || 0}
                           </div>

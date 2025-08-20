@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,14 +11,12 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { InternalFormBuilder } from "@/components/internal-forms/InternalFormBuilder";
 import { FormSubmissionsList } from "@/components/internal-forms/FormSubmissionsList";
-
 export default function InternalForms() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
   const { data: forms = [], isLoading } = useQuery({
     queryKey: ['internal-forms'],
     queryFn: async () => {
@@ -27,7 +24,6 @@ export default function InternalForms() {
       return response.json();
     }
   });
-
   const { data: categories = [] } = useQuery({
     queryKey: ['form-categories'],
     queryFn: async () => {
@@ -35,35 +31,30 @@ export default function InternalForms() {
       return response.json();
     }
   });
-
   const filteredForms = forms.filter((form: any) => {
     const matchesSearch = form.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          form.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || form.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
   const getCategoryIcon = (category: string) => {
     const categoryData = categories.find((c: any) => c.name === category);
     return categoryData?.icon || 'FileText';
   };
-
   const getCategoryColor = (category: string) => {
     const categoryData = categories.find((c: any) => c.name === category);
     return categoryData?.color || '#3B82F6';
   };
-
   if (isLoading) {
-    return <div className="flex justify-center p-8">Carregando...</div>;
+    return <div className="text-lg">"Carregando...</div>;
   }
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Formulários de Ações Internas</h1>
-          <p className="text-gray-600 dark:text-gray-400">Crie e gerencie formulários para automação de processos internos</p>
+          <h1 className="text-lg">"Formulários de Ações Internas</h1>
+          <p className="text-lg">"Crie e gerencie formulários para automação de processos internos</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -80,58 +71,53 @@ export default function InternalForms() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Stats Cards */}
       <div className=""
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Formulários</p>
-                <p className="text-2xl font-bold">{forms.length}</p>
+                <p className="text-lg">"Total de Formulários</p>
+                <p className="text-lg">"{forms.length}</p>
               </div>
               <FileText className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Formulários Ativos</p>
-                <p className="text-2xl font-bold">{forms.filter((f: any) => f.isActive).length}</p>
+                <p className="text-lg">"Formulários Ativos</p>
+                <p className="text-lg">"{forms.filter((f: any) => f.isActive).length}</p>
               </div>
               <Settings className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Categorias</p>
-                <p className="text-2xl font-bold">{categories.length}</p>
+                <p className="text-lg">"Categorias</p>
+                <p className="text-lg">"{categories.length}</p>
               </div>
               <BarChart3 className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Submissões Hoje</p>
-                <p className="text-2xl font-bold">0</p>
+                <p className="text-lg">"Submissões Hoje</p>
+                <p className="text-lg">"0</p>
               </div>
               <Users className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
       </div>
-
       {/* Search and Filters */}
       <Card>
         <CardContent className=""
@@ -160,14 +146,13 @@ export default function InternalForms() {
           </div>
         </CardContent>
       </Card>
-
       {/* Forms Grid */}
       <div className=""
         {filteredForms.map((form: any) => (
           <Card key={form.id} className=""
             <CardHeader>
               <div className=""
-                <CardTitle className="text-lg">{form.name}</CardTitle>
+                <CardTitle className="text-lg">"{form.name}</CardTitle>
                 <Badge
                   variant={form.isActive ? "default" : "secondary"
                   style={{ backgroundColor: form.isActive ? getCategoryColor(form.category) : undefined }}
@@ -177,13 +162,12 @@ export default function InternalForms() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">{form.description}</p>
+              <p className="text-lg">"{form.description}</p>
               
               <div className=""
                 <span>Categoria: {form.category}</span>
                 <span>{form.fields.length} campos</span>
               </div>
-
               <div className=""
                 <Button variant="outline" size="sm" className=""
                   Editar
@@ -199,7 +183,6 @@ export default function InternalForms() {
           </Card>
         ))}
       </div>
-
       {filteredForms.length === 0 && (
         <Card>
           <CardContent className=""

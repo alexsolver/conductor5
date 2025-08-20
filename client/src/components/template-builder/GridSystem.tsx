@@ -1,17 +1,13 @@
-
 /**
  * Sistema de grid para auxiliar no posicionamento dos elementos no canvas
  */
-
 import React from 'react'
-
 interface GridSystemProps {
   zoom: number
   visible?: boolean
   gridSize?: number
   opacity?: number
 }
-
 export const GridSystem: React.FC<GridSystemProps> = ({
   zoom,
   visible = true,
@@ -19,7 +15,6 @@ export const GridSystem: React.FC<GridSystemProps> = ({
   opacity = 0.1
 }) => {
   if (!visible) return null
-
   const adjustedGridSize = gridSize * zoom
   
   return (

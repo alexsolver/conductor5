@@ -33,10 +33,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
-
 const companySchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Nome da empresa é obrigatório"),
   displayName: z.string().optional(),
   description: z.string().optional(),
@@ -50,7 +48,6 @@ const companySchema = z.object({
   subscriptionTier: z.enum(["basic", "professional", "enterprise"]).default("basic"),
   status: z.enum(["active", "inactive", "suspended"]).default("active")
 });
-
 interface Company {
   id: string;
   name: string;
@@ -67,7 +64,6 @@ interface Company {
   createdAt: string;
   updatedAt: string;
 }
-
 export default function Companies() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -77,7 +73,6 @@ export default function Companies() {
   const [searchTerm, setSearchTerm] = useState("");
   // Associate multiple customers modal
   const [isAssociateModalOpen, setIsAssociateModalOpen] = useState(false);
-
   const companyForm = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),
     defaultValues: {
@@ -92,14 +87,12 @@ export default function Companies() {
       status: "active"
     },
   });
-
   // Query para buscar empresas - usando endpoint correto
   const { data: companiesData, isLoading, error } = useQuery({
     queryKey: ['/api/customers/companies'],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
   // Handle different response formats from the API
   const companies = (() => {
     console.log('🔍 [COMPANIES-DEBUG] Raw API response:', companiesData);
@@ -122,7 +115,6 @@ export default function Companies() {
     console.log('❌ [COMPANIES-DEBUG] Unknown format, returning empty array');
     return [];
   })();
-
   // Mutation para criar empresa
   const createCompanyMutation = useMutation({
     mutationFn: (data: z.infer<typeof companySchema>) =>
@@ -144,7 +136,6 @@ export default function Companies() {
       });
     }
   });
-
   // Mutation para editar empresa
   const editCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: z.infer<typeof companySchema> }) =>
@@ -167,7 +158,6 @@ export default function Companies() {
       });
     }
   });
-
   // Mutation para deletar empresa
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) =>
@@ -187,17 +177,14 @@ export default function Companies() {
       });
     }
   });
-
   const handleCreateCompany = (data: z.infer<typeof companySchema>) => {
     createCompanyMutation.mutate(data);
   };
-
   const handleEditCompany = (data: z.infer<typeof companySchema>) => {
     if (selectedCompany) {
       editCompanyMutation.mutate({ id: selectedCompany.id, data });
     }
   };
-
   const openEditDialog = (company: Company) => {
     setSelectedCompany(company);
     companyForm.reset({
@@ -214,14 +201,12 @@ export default function Companies() {
     });
     setIsEditDialogOpen(true);
   };
-
   // Filtrar empresas com base no termo de busca
   const filteredCompanies = (Array.isArray(companies) ? companies : []).filter((company: Company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (company.displayName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
     (company.industry?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
-
   if (isLoading) {
     return (
       <div className=""
@@ -238,7 +223,6 @@ export default function Companies() {
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Header */}
@@ -251,7 +235,6 @@ export default function Companies() {
             Gerencie suas empresas e clientes associados
           </p>
         </div>
-
         <div className=""
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -280,7 +263,6 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={companyForm.control}
                       name="displayName"
@@ -294,7 +276,6 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={companyForm.control}
                       name="industry"
@@ -308,7 +289,6 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={companyForm.control}
                       name="size"
@@ -333,7 +313,6 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={companyForm.control}
                       name="email"
@@ -347,7 +326,6 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={companyForm.control}
                       name="phone"
@@ -361,7 +339,6 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={companyForm.control}
                       name="website"
@@ -375,7 +352,6 @@ export default function Companies() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={companyForm.control}
                       name="subscriptionTier"
@@ -399,7 +375,6 @@ export default function Companies() {
                       )}
                     />
                   </div>
-
                   <FormField
                     control={companyForm.control}
                     name="description"
@@ -417,7 +392,6 @@ export default function Companies() {
                       </FormItem>
                     )}
                   />
-
                   <div className=""
                     <Button
                       type="button"
@@ -439,7 +413,6 @@ export default function Companies() {
           </Dialog>
         </div>
       </div>
-
       {/* Search */}
       <div className=""
         <div className=""
@@ -452,7 +425,6 @@ export default function Companies() {
           />
         </div>
       </div>
-
       {/* Companies Grid */}
       {filteredCompanies.length === 0 ? (
         <div className=""
@@ -484,7 +456,7 @@ export default function Companies() {
                       {company.displayName || company.name}
                     </CardTitle>
                     {company.displayName && (
-                      <p className="text-sm text-gray-500 mb-2">{company.name}</p>
+                      <p className="text-lg">"{company.name}</p>
                     )}
                     <div className=""
                       <Badge 
@@ -499,7 +471,6 @@ export default function Companies() {
                       </Badge>
                     </div>
                   </div>
-
                   <div className=""
                     <Button
                       size="sm"
@@ -522,14 +493,12 @@ export default function Companies() {
                   </div>
                 </div>
               </CardHeader>
-
               <CardContent className=""
                 {company.description && (
                   <p className=""
                     {company.description}
                   </p>
                 )}
-
                 <div className=""
                   {company.industry && (
                     <div className=""
@@ -540,7 +509,7 @@ export default function Companies() {
                   {company.email && (
                     <div className=""
                       <Mail className="w-4 h-4" />
-                      <span className="truncate">{company.email}</span>
+                      <span className="text-lg">"{company.email}</span>
                     </div>
                   )}
                   {company.phone && (
@@ -563,7 +532,6 @@ export default function Companies() {
                     </div>
                   )}
                 </div>
-
                 {/* Company Customers Section */}
                 <CompanyCustomersSection 
                   companyId={company.id} 
@@ -577,7 +545,6 @@ export default function Companies() {
           ))}
         </div>
       )}
-
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className=""
@@ -600,7 +567,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={companyForm.control}
                   name="displayName"
@@ -614,7 +580,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={companyForm.control}
                   name="industry"
@@ -628,7 +593,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={companyForm.control}
                   name="size"
@@ -653,7 +617,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={companyForm.control}
                   name="email"
@@ -667,7 +630,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={companyForm.control}
                   name="phone"
@@ -681,7 +643,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={companyForm.control}
                   name="website"
@@ -695,7 +656,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={companyForm.control}
                   name="subscriptionTier"
@@ -718,7 +678,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={companyForm.control}
                   name="status"
@@ -742,7 +701,6 @@ export default function Companies() {
                   )}
                 />
               </div>
-
               <FormField
                 control={companyForm.control}
                 name="description"
@@ -760,7 +718,6 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button
                   type="button"
@@ -780,7 +737,6 @@ export default function Companies() {
           </Form>
         </DialogContent>
       </Dialog>
-
       {/* Associate Multiple Customers Modal */}
       <AssociateMultipleCustomersModal
         isOpen={isAssociateModalOpen}

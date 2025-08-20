@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,10 +12,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Workflow, Clock, Target, AlertCircle, Plus, Edit, Trash2, PlayCircle, PauseCircle } from "lucide-react";
 // import useLocalization from '@/hooks/useLocalization';
-
 export default function TenantAdminWorkflows() {
   // Localization temporarily disabled
-
   return (
     <div className=""
         {/* Header */}
@@ -74,75 +71,69 @@ export default function TenantAdminWorkflows() {
                     <Switch id="active" />
                     <Label htmlFor="active">Ativo</Label>
                   </div>
-                  <Button className="w-full">Criar Workflow</Button>
+                  <Button className="text-lg">"Criar Workflow</Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
         </div>
-
         {/* Workflow Overview */}
         <div className=""
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Workflows Ativos</CardTitle>
+              <CardTitle className="text-lg">"Workflows Ativos</CardTitle>
               <Workflow className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-lg">"12</div>
               <p className=""
                 3 novos este mês
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Execuções Hoje</CardTitle>
+              <CardTitle className="text-lg">"Execuções Hoje</CardTitle>
               <PlayCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">847</div>
+              <div className="text-lg">"847</div>
               <p className=""
                 +12% desde ontem
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
+              <CardTitle className="text-lg">"Taxa de Sucesso</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">98.5%</div>
+              <div className="text-lg">"98.5%</div>
               <p className=""
                 +0.3% esta semana
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">SLA Compliance</CardTitle>
+              <CardTitle className="text-lg">"SLA Compliance</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">94.2%</div>
+              <div className="text-lg">"94.2%</div>
               <p className=""
                 Meta: 95%
               </p>
             </CardContent>
           </Card>
         </div>
-
         <Tabs defaultValue="workflows" className=""
           <TabsList className=""
             <TabsTrigger value="workflows">Workflows</TabsTrigger>
             <TabsTrigger value="slas">SLAs</TabsTrigger>
             <TabsTrigger value="automation">Automação</TabsTrigger>
           </TabsList>
-
           <TabsContent value="workflows" className=""
             <Card>
               <CardHeader>
@@ -197,7 +188,7 @@ export default function TenantAdminWorkflows() {
                       }
                     ].map((workflow, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">{workflow.name}</TableCell>
+                        <TableCell className="text-lg">"{workflow.name}</TableCell>
                         <TableCell>{workflow.trigger}</TableCell>
                         <TableCell>
                           <Badge variant={workflow.status === 'Ativo' ? 'default' : 'secondary'}>
@@ -230,7 +221,6 @@ export default function TenantAdminWorkflows() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="slas" className=""
             <Card>
               <CardHeader>
@@ -275,7 +265,7 @@ export default function TenantAdminWorkflows() {
                     <div key={index} className=""
                       <div className=""
                         <div>
-                          <h3 className="font-semibold text-lg">{sla.priority}</h3>
+                          <h3 className="text-lg">"{sla.priority}</h3>
                           <div className=""
                             Resposta: {sla.responseTime} | Resolução: {sla.resolutionTime}
                           </div>
@@ -287,7 +277,7 @@ export default function TenantAdminWorkflows() {
                       <div className=""
                         <div className=""
                           <span>Compliance atual</span>
-                          <span className="font-medium">{sla.currentCompliance}%</span>
+                          <span className="text-lg">"{sla.currentCompliance}%</span>
                         </div>
                         <Progress value={sla.currentCompliance} className="h-2" />
                         <div className=""
@@ -304,7 +294,6 @@ export default function TenantAdminWorkflows() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="automation" className=""
             <div className=""
               <Card>
@@ -340,9 +329,9 @@ export default function TenantAdminWorkflows() {
                   ].map((rule, index) => (
                     <div key={index} className=""
                       <div className=""
-                        <div className="font-medium">{rule.name}</div>
-                        <div className="text-sm text-gray-500">{rule.description}</div>
-                        <div className="text-xs text-gray-400 mt-1">{rule.triggers} execuções hoje</div>
+                        <div className="text-lg">"{rule.name}</div>
+                        <div className="text-lg">"{rule.description}</div>
+                        <div className="text-lg">"{rule.triggers} execuções hoje</div>
                       </div>
                       <div className=""
                         <Switch checked={rule.active} />
@@ -354,7 +343,6 @@ export default function TenantAdminWorkflows() {
                   ))}
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Triggers Disponíveis</CardTitle>
@@ -370,8 +358,8 @@ export default function TenantAdminWorkflows() {
                   ].map((trigger, index) => (
                     <div key={index} className=""
                       <div className=""
-                        <span className="text-lg">{trigger.icon}</span>
-                        <span className="text-sm font-medium">{trigger.trigger}</span>
+                        <span className="text-lg">"{trigger.icon}</span>
+                        <span className="text-lg">"{trigger.trigger}</span>
                       </div>
                       <Badge variant="outline">{trigger.count} hoje</Badge>
                     </div>
@@ -379,7 +367,6 @@ export default function TenantAdminWorkflows() {
                 </CardContent>
               </Card>
             </div>
-
             <Card>
               <CardHeader>
                 <CardTitle>Histórico de Execuções</CardTitle>
@@ -422,15 +409,15 @@ export default function TenantAdminWorkflows() {
                           execution.status === 'Sucesso' ? 'bg-green-500' : 'bg-red-500'
                         "} />
                         <div>
-                          <div className="font-medium">{execution.workflow}</div>
-                          <div className="text-sm text-gray-500">{execution.ticket} • {execution.action}</div>
+                          <div className="text-lg">"{execution.workflow}</div>
+                          <div className="text-lg">"{execution.ticket} • {execution.action}</div>
                         </div>
                       </div>
                       <div className=""
                         <Badge variant={execution.status === 'Sucesso' ? 'default' : 'destructive'}>
                           {execution.status}
                         </Badge>
-                        <div className="text-xs text-gray-500 mt-1">{execution.time}</div>
+                        <div className="text-lg">"{execution.time}</div>
                       </div>
                     </div>
                   ))}

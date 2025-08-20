@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: SLA MANAGEMENT PAGE
 // Complete SLA management interface following Clean Architecture
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -48,7 +47,6 @@ import {
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { QueryBuilderComponent } from '@/components/QueryBuilder';
-
 // SLA Schema imports - following 1qa.md
 import type {
   QueryRule,
@@ -60,11 +58,9 @@ import type {
   logicalOperatorEnum,
   ticketFieldEnum
 } from '@shared/schema-sla';
-
 // ======================================
 // TYPES AND SCHEMAS
 // ======================================
-
 interface SlaDefinition {
   id: string;
   tenantId: string;
@@ -95,7 +91,6 @@ interface SlaDefinition {
   createdAt: string;
   updatedAt: string;
 }
-
 interface SlaInstance {
   id: string;
   tenantId: string;
@@ -111,7 +106,6 @@ interface SlaInstance {
   breachPercentage: number;
   createdAt: string;
 }
-
 interface SlaViolation {
   id: string;
   tenantId: string;
@@ -126,7 +120,6 @@ interface SlaViolation {
   resolved: boolean;
   createdAt: string;
 }
-
 interface SlaComplianceStats {
   totalTickets: number;
   slaMetTickets: number;
@@ -138,10 +131,8 @@ interface SlaComplianceStats {
   totalEscalations: number;
   escalationRate: number;
 }
-
 const slaDefinitionSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   type: z.enum(['SLA', 'OLA', 'UC']),
@@ -176,7 +167,6 @@ const slaDefinitionSchema = z.object({
   stopConditions: z.array(z.any()),
   workflowActions: z.array(z.any())
 });
-
 // Schema para criação de workflows
 const workflowSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -194,43 +184,35 @@ const workflowSchema = z.object({
   isActive: z.boolean(),
   priority: z.number().min(1).max(10)
 });
-
 // ======================================
 // MAIN COMPONENT
 // ======================================
-
 export default function SlaManagement() {
   const [selectedSla, setSelectedSla] = useState<SlaDefinition | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
-
   // Queries
   const { data: slaDefinitions, isLoading: isLoadingSlas } = useQuery({
     queryKey: ['/api/sla/definitions'],
     queryFn: () => apiRequest('/api/sla/definitions').then(res => res.json()),
   });
-
   const { data: activeInstances } = useQuery({
     queryKey: ['/api/sla/instances/active'],
     queryFn: () => apiRequest('/api/sla/instances/active').then(res => res.json()),
   });
-
   const { data: breachedInstances } = useQuery({
     queryKey: ['/api/sla/instances/breached'],
     queryFn: () => apiRequest('/api/sla/instances/breached').then(res => res.json()),
   });
-
   const { data: violations } = useQuery({
     queryKey: ['/api/sla/violations'],
     queryFn: () => apiRequest('/api/sla/violations').then(res => res.json()),
   });
-
   const { data: complianceStats } = useQuery({
     queryKey: ['/api/sla/analytics/compliance'],
     queryFn: () => apiRequest('/api/sla/analytics/compliance').then(res => res.json()),
   });
-
   // Estado para controle do workflow
   const [isWorkflowDialogOpen, setIsWorkflowDialogOpen] = useState(false);
   
@@ -239,7 +221,6 @@ export default function SlaManagement() {
     queryKey: ['/api/sla/workflows'],
     queryFn: () => apiRequest('/api/sla/workflows').then(res => res.json()),
   });
-
   // Mutations
   const createSlaMutation = useMutation({
     mutationFn: (data: any) => fetch('/api/sla/definitions', {
@@ -263,7 +244,6 @@ export default function SlaManagement() {
       });
     },
   });
-
   const updateSlaMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
       fetch("
@@ -288,7 +268,6 @@ export default function SlaManagement() {
       });
     },
   });
-
   const deleteSlaMutation = useMutation({
     mutationFn: (id: string) => 
       fetch("
@@ -307,7 +286,6 @@ export default function SlaManagement() {
       });
     },
   });
-
   const checkBreachesMutation = useMutation({
     mutationFn: () => fetch('/api/sla/monitoring/check-breaches', {
       method: 'POST',
@@ -320,7 +298,6 @@ export default function SlaManagement() {
       });
     },
   });
-
   // Mutation para criar workflow
   const createWorkflowMutation = useMutation({
     mutationFn: (data: any) => fetch('/api/sla/workflows', {
@@ -344,7 +321,6 @@ export default function SlaManagement() {
       });
     },
   });
-
   // Form para SLA
   const form = useForm<z.infer<typeof slaDefinitionSchema>>({
     resolver: zodResolver(slaDefinitionSchema),
@@ -366,7 +342,6 @@ export default function SlaManagement() {
       workflowActions: []
     },
   });
-
   // Form para Workflow
   const workflowForm = useForm<z.infer<typeof workflowSchema>>({
     resolver: zodResolver(workflowSchema),
@@ -380,7 +355,6 @@ export default function SlaManagement() {
       priority: 5
     },
   });
-
   const onSubmit = (values: z.infer<typeof slaDefinitionSchema>) => {
     if (selectedSla) {
       updateSlaMutation.mutate({ id: selectedSla.id, data: values });
@@ -388,11 +362,9 @@ export default function SlaManagement() {
       createSlaMutation.mutate(values);
     }
   };
-
   const onWorkflowSubmit = (values: z.infer<typeof workflowSchema>) => {
     createWorkflowMutation.mutate(values);
   };
-
   const handleEdit = (sla: SlaDefinition) => {
     setSelectedSla(sla);
     form.reset({
@@ -421,13 +393,11 @@ export default function SlaManagement() {
     });
     setIsEditDialogOpen(true);
   };
-
   const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja excluir este SLA?')) {
       deleteSlaMutation.mutate(id);
     }
   };
-
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active': return 'default';
@@ -437,7 +407,6 @@ export default function SlaManagement() {
       default: return 'secondary';
     }
   };
-
   const getPriorityBadgeVariant = (priority: string) => {
     switch (priority) {
       case 'critical': return 'destructive';
@@ -447,24 +416,22 @@ export default function SlaManagement() {
       default: return 'secondary';
     }
   };
-
   if (isLoadingSlas) {
     return (
       <div className=""
         <div className=""
-          <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-lg">"</div>
           <span>Carregando SLAs...</span>
         </div>
       </div>
     );
   }
-
   return (
     <div className="container mx-auto p-6 space-y-6" data-testid="sla-management-page>
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">Gestão de SLAs</h1>
+          <h1 className="text-lg">"Gestão de SLAs</h1>
           <p className=""
             Gerencie acordos de nível de serviço, operacional e contratos base
           </p>
@@ -499,13 +466,12 @@ export default function SlaManagement() {
           </Dialog>
         </div>
       </div>
-
       {/* Statistics Cards */}
       {complianceStats && (
         <div className=""
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Compliance Total</CardTitle>
+              <CardTitle className="text-lg">"Compliance Total</CardTitle>
               <Target className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -517,36 +483,33 @@ export default function SlaManagement() {
               </p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Tempo Médio Resposta</CardTitle>
+              <CardTitle className="text-lg">"Tempo Médio Resposta</CardTitle>
               <Clock className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className=""
                 {Math.round(complianceStats.avgResponseTimeMinutes)}min
               </div>
-              <p className="text-xs text-gray-600">Tempo médio de primeira resposta</p>
+              <p className="text-lg">"Tempo médio de primeira resposta</p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Tempo Médio Resolução</CardTitle>
+              <CardTitle className="text-lg">"Tempo Médio Resolução</CardTitle>
               <CheckCircle className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
               <div className=""
                 {Math.round(complianceStats.avgResolutionTimeMinutes)}min
               </div>
-              <p className="text-xs text-gray-600">Tempo médio de resolução</p>
+              <p className="text-lg">"Tempo médio de resolução</p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Violações</CardTitle>
+              <CardTitle className="text-lg">"Violações</CardTitle>
               <AlertTriangle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
@@ -560,7 +523,6 @@ export default function SlaManagement() {
           </Card>
         </div>
       )}
-
       {/* Main Content Tabs */}
       <Tabs defaultValue="definitions" className=""
         <TabsList className=""
@@ -585,7 +547,6 @@ export default function SlaManagement() {
             Automação
           </TabsTrigger>
         </TabsList>
-
         {/* SLA Definitions Tab */}
         <TabsContent value="definitions" className=""
           <Card>
@@ -611,7 +572,7 @@ export default function SlaManagement() {
                   >
                     <div className=""
                       <div className=""
-                        <h3 className="font-semibold">{sla.name}</h3>
+                        <h3 className="text-lg">"{sla.name}</h3>
                         <Badge variant={getStatusBadgeVariant(sla.status)}>
                           {sla.status}
                         </Badge>
@@ -620,7 +581,7 @@ export default function SlaManagement() {
                         </Badge>
                         <Badge variant="outline">{sla.type}</Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{sla.description}</p>
+                      <p className="text-lg">"{sla.description}</p>
                       <div className=""
                         {sla.responseTimeMinutes && (
                           <span>Resposta: {sla.responseTimeMinutes}min</span>
@@ -673,7 +634,6 @@ export default function SlaManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Active Monitoring Tab */}
         <TabsContent value="monitoring" className=""
           <div className=""
@@ -697,7 +657,7 @@ export default function SlaManagement() {
                       data-testid={"
                     >
                       <div className=""
-                        <span className="font-medium">Ticket #{instance.ticketId.slice(-8)}</span>
+                        <span className="text-lg">"Ticket #{instance.ticketId.slice(-8)}</span>
                         <Badge variant={instance.status === 'running' ? 'default' : 'secondary'}>
                           {instance.status}
                         </Badge>
@@ -717,7 +677,6 @@ export default function SlaManagement() {
                 </div>
               </CardContent>
             </Card>
-
             {/* Breached Instances */}
             <Card>
               <CardHeader>
@@ -738,7 +697,7 @@ export default function SlaManagement() {
                       data-testid={"
                     >
                       <div className=""
-                        <span className="font-medium">Ticket #{instance.ticketId.slice(-8)}</span>
+                        <span className="text-lg">"Ticket #{instance.ticketId.slice(-8)}</span>
                         <Badge variant="destructive">VIOLADO</Badge>
                       </div>
                       <div className=""
@@ -753,7 +712,6 @@ export default function SlaManagement() {
             </Card>
           </div>
         </TabsContent>
-
         {/* Violations Tab */}
         <TabsContent value="violations" className=""
           <Card>
@@ -773,7 +731,7 @@ export default function SlaManagement() {
                   >
                     <div className=""
                       <div className=""
-                        <span className="font-medium">Ticket #{violation.ticketId.slice(-8)}</span>
+                        <span className="text-lg">"Ticket #{violation.ticketId.slice(-8)}</span>
                         <Badge variant="destructive">{violation.violationType}</Badge>
                         <Badge variant={violation.severityLevel === 'critical' ? 'destructive' : 'secondary'}>
                           {violation.severityLevel}
@@ -795,7 +753,6 @@ export default function SlaManagement() {
                     </div>
                   </div>
                 ))}
-
                 {(!violations?.data || violations.data.length === 0) && (
                   <div className=""
                     <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
@@ -811,7 +768,6 @@ export default function SlaManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Analytics Tab */}
         <TabsContent value="analytics" className=""
           <Card>
@@ -834,15 +790,14 @@ export default function SlaManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Automation Tab */}
         <TabsContent value="automation" className=""
           <div className=""
             {/* Header */}
             <div className=""
               <div>
-                <h2 className="text-2xl font-bold">Workflows de Automação SLA</h2>
-                <p className="text-gray-600">Configure ações automáticas baseadas em eventos de SLA</p>
+                <h2 className="text-lg">"Workflows de Automação SLA</h2>
+                <p className="text-lg">"Configure ações automáticas baseadas em eventos de SLA</p>
               </div>
               <Button 
                 onClick={() => setIsWorkflowDialogOpen(true)}
@@ -852,54 +807,49 @@ export default function SlaManagement() {
                 Novo Workflow
               </Button>
             </div>
-
             {/* Statistics */}
             <div className=""
               <Card>
                 <CardHeader className=""
-                  <CardTitle className="text-sm font-medium">Total Workflows</CardTitle>
+                  <CardTitle className="text-lg">"Total Workflows</CardTitle>
                   <GitBranch className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-gray-600">0 ativos</p>
+                  <div className="text-lg">"0</div>
+                  <p className="text-lg">"0 ativos</p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader className=""
-                  <CardTitle className="text-sm font-medium">Execuções Hoje</CardTitle>
+                  <CardTitle className="text-lg">"Execuções Hoje</CardTitle>
                   <Play className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-gray-600">Disparos automáticos</p>
+                  <div className="text-lg">"0</div>
+                  <p className="text-lg">"Disparos automáticos</p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader className=""
-                  <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
+                  <CardTitle className="text-lg">"Taxa de Sucesso</CardTitle>
                   <CheckCircle className="h-4 w-4 text-purple-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">100%</div>
-                  <p className="text-xs text-gray-600">Últimas 24h</p>
+                  <div className="text-lg">"100%</div>
+                  <p className="text-lg">"Últimas 24h</p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader className=""
-                  <CardTitle className="text-sm font-medium">Falhas</CardTitle>
+                  <CardTitle className="text-lg">"Falhas</CardTitle>
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-600">0</div>
-                  <p className="text-xs text-gray-600">Requer atenção</p>
+                  <div className="text-lg">"0</div>
+                  <p className="text-lg">"Requer atenção</p>
                 </CardContent>
               </Card>
             </div>
-
             {/* Workflows List */}
             <Card>
               <CardHeader>
@@ -930,7 +880,6 @@ export default function SlaManagement() {
           </div>
         </TabsContent>
       </Tabs>
-
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className=""
@@ -945,7 +894,6 @@ export default function SlaManagement() {
           />
         </DialogContent>
       </Dialog>
-
       {/* Workflow Dialog */}
       <Dialog open={isWorkflowDialogOpen} onOpenChange={setIsWorkflowDialogOpen}>
         <DialogContent className=""
@@ -962,18 +910,15 @@ export default function SlaManagement() {
     </div>
   );
 }
-
 // ======================================
 // SLA FORM COMPONENT
 // ======================================
-
 interface SlaFormProps {
   form: any;
   onSubmit: (values: any) => void;
   isSubmitting: boolean;
   isEdit?: boolean;
 }
-
 function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
   return (
     <Form {...form}>
@@ -981,7 +926,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
         <div className=""
           {/* Basic Information */}
           <div className=""
-            <h3 className="text-lg font-semibold">Informações Básicas</h3>
+            <h3 className="text-lg">"Informações Básicas</h3>
             
             <FormField
               control={form.control}
@@ -996,7 +941,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="description"
@@ -1010,7 +954,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="type"
@@ -1033,7 +976,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="priority"
@@ -1058,10 +1000,9 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
               )}
             />
           </div>
-
           {/* Time Targets */}
           <div className=""
-            <h3 className="text-lg font-semibold">Metas de Tempo</h3>
+            <h3 className="text-lg">"Metas de Tempo</h3>
             
             <FormField
               control={form.control}
@@ -1081,7 +1022,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="resolutionTimeMinutes"
@@ -1100,7 +1040,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="updateTimeMinutes"
@@ -1119,7 +1058,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="idleTimeMinutes"
@@ -1140,10 +1078,9 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             />
           </div>
         </div>
-
         {/* Working Hours */}
         <div className=""
-          <h3 className="text-lg font-semibold">Horário de Funcionamento</h3>
+          <h3 className="text-lg">"Horário de Funcionamento</h3>
           
           <FormField
             control={form.control}
@@ -1151,7 +1088,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             render={({ field }) => (
               <FormItem className=""
                 <div className=""
-                  <FormLabel className="text-base">Apenas Horário Comercial</FormLabel>
+                  <FormLabel className="text-lg">"Apenas Horário Comercial</FormLabel>
                   <div className=""
                     SLA será pausado fora do horário comercial
                   </div>
@@ -1166,7 +1103,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
               </FormItem>
             )}
           />
-
           <div className=""
             <FormField
               control={form.control}
@@ -1181,7 +1117,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="workingHours.end"
@@ -1197,10 +1132,9 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             />
           </div>
         </div>
-
         {/* Escalation */}
         <div className=""
-          <h3 className="text-lg font-semibold">Configurações de Escalonamento</h3>
+          <h3 className="text-lg">"Configurações de Escalonamento</h3>
           
           <FormField
             control={form.control}
@@ -1208,7 +1142,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             render={({ field }) => (
               <FormItem className=""
                 <div className=""
-                  <FormLabel className="text-base">Habilitar Escalonamento</FormLabel>
+                  <FormLabel className="text-lg">"Habilitar Escalonamento</FormLabel>
                   <div className=""
                     Escalonar automaticamente quando próximo ao vencimento
                   </div>
@@ -1223,7 +1157,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
               </FormItem>
             )}
           />
-
           {form.watch('escalationEnabled') && (
             <FormField
               control={form.control}
@@ -1247,10 +1180,9 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             />
           )}
         </div>
-
         {/* Application Rules */}
         <div className=""
-          <h3 className="text-lg font-semibold">Regras de Aplicação</h3>
+          <h3 className="text-lg">"Regras de Aplicação</h3>
           <FormField
             control={form.control}
             name="applicationRules"
@@ -1268,7 +1200,6 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             )}
           />
         </div>
-
         {/* Submit Button */}
         <div className=""
           <Button type="submit" disabled={isSubmitting} data-testid="button-save-sla>
@@ -1289,17 +1220,14 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
     </Form>
   );
 }
-
 // ======================================
 // WORKFLOW FORM COMPONENT
 // ======================================
-
 interface WorkflowFormProps {
   form: any;
   onSubmit: (values: any) => void;
   isSubmitting: boolean;
 }
-
 function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
   return (
     <Form {...form}>
@@ -1307,7 +1235,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
         <div className=""
           {/* Basic Information */}
           <div className=""
-            <h3 className="text-lg font-semibold">Informações Básicas</h3>
+            <h3 className="text-lg">"Informações Básicas</h3>
             
             <FormField
               control={form.control}
@@ -1322,7 +1250,6 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="description"
@@ -1336,7 +1263,6 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="trigger"
@@ -1361,7 +1287,6 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="priority"
@@ -1383,18 +1308,16 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
               )}
             />
           </div>
-
           {/* Configuration */}
           <div className=""
-            <h3 className="text-lg font-semibold">Configuração</h3>
-
+            <h3 className="text-lg">"Configuração</h3>
             <FormField
               control={form.control}
               name="isActive"
               render={({ field }) => (
                 <FormItem className=""
                   <div className=""
-                    <FormLabel className="text-base">Workflow Ativo</FormLabel>
+                    <FormLabel className="text-lg">"Workflow Ativo</FormLabel>
                     <div className=""
                       Habilitar execução automática deste workflow
                     </div>
@@ -1409,9 +1332,8 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 </FormItem>
               )}
             />
-
             <div className=""
-              <h4 className="font-medium mb-3">Ações Rápidas</h4>
+              <h4 className="text-lg">"Ações Rápidas</h4>
               <div className=""
                 <Button 
                   type="button" 
@@ -1454,7 +1376,6 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                   <Plus className="w-3 h-3 mr-1" />
                   Criar Ticket
                 </Button>
-
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -1478,17 +1399,16 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             </div>
           </div>
         </div>
-
         {/* Current Actions Display */}
         <div className=""
-          <h3 className="text-lg font-semibold">Ações Configuradas</h3>
+          <h3 className="text-lg">"Ações Configuradas</h3>
           <div className=""
             {form.watch('actions')?.length > 0 ? (
               <div className=""
                 {form.watch('actions').map((action: any, index: number) => (
                   <div key={index} className=""
                     <div>
-                      <span className="font-medium capitalize">{action.type.replace('_', ' ')}</span>
+                      <span className="text-lg">"{action.type.replace('_', ' ')}</span>
                       <div className=""
                         {JSON.stringify(action.config, null, 2).substring(0, 100)}...
                       </div>
@@ -1513,12 +1433,11 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
               <div className=""
                 <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                 <p>Nenhuma ação configurada</p>
-                <p className="text-sm">Use os botões acima para adicionar ações</p>
+                <p className="text-lg">"Use os botões acima para adicionar ações</p>
               </div>
             )}
           </div>
         </div>
-
         {/* Submit Button */}
         <div className=""
           <Button type="submit" disabled={isSubmitting} data-testid="button-save-workflow>

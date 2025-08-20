@@ -16,16 +16,13 @@ import { Plus, Users, Settings, BarChart3, Shield, Building, Mail } from "lucide
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 // import useLocalization from '@/hooks/useLocalization';
-
 const createUserSchema = z.object({
   // Localization temporarily disabled
-
   email: z.string().email("Email inválido"),
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().optional(),
   role: z.enum(['agent', 'customer']).default('agent')
 });
-
 const tenantSettingsSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   settings: z.object({
@@ -34,13 +31,11 @@ const tenantSettingsSchema = z.object({
     features: z.array(z.string()).optional()
   }).optional()
 });
-
 export default function TenantAdmin() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
-
   // Verificar se usuário é tenant admin ou superior
   if (!user || !['tenant_admin', 'saas_admin'].includes(user.role)) {
     return (
@@ -55,25 +50,21 @@ export default function TenantAdmin() {
       </div>
     );
   }
-
   // Query para configurações do tenant
   const { data: tenantSettings, isLoading: isLoadingSettings } = useQuery({
     queryKey: ['/api/tenant-admin/settings'],
     staleTime: 5 * 60 * 1000,
   });
-
   // Query para usuários do tenant
   const { data: usersData, isLoading: isLoadingUsers } = useQuery({
     queryKey: ['/api/tenant-admin/users'],
     staleTime: 5 * 60 * 1000,
   });
-
   // Query para analytics do tenant
   const { data: analyticsData } = useQuery({
     queryKey: ['/api/tenant-admin/analytics'],
     staleTime: 2 * 60 * 1000,
   });
-
   // Form para criar usuário
   const userForm = useForm({
     resolver: zodResolver(createUserSchema),
@@ -84,7 +75,6 @@ export default function TenantAdmin() {
       role: "agent" as const
     }
   });
-
   // Form para configurações
   const settingsForm = useForm({
     resolver: zodResolver(tenantSettingsSchema),
@@ -93,7 +83,6 @@ export default function TenantAdmin() {
       settings: tenantSettings?.settings || {}
     }
   });
-
   // Mutation para criar usuário
   const createUserMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createUserSchema>) => {
@@ -117,7 +106,6 @@ export default function TenantAdmin() {
       });
     }
   });
-
   // Mutation para atualizar configurações
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: z.infer<typeof tenantSettingsSchema>) => {
@@ -140,15 +128,12 @@ export default function TenantAdmin() {
       });
     }
   });
-
   const onSubmitUser = (data: z.infer<typeof createUserSchema>) => {
     createUserMutation.mutate(data);
   };
-
   const onSubmitSettings = (data: z.infer<typeof tenantSettingsSchema>) => {
     updateSettingsMutation.mutate(data);
   };
-
   return (
     <div className=""
       {/* Header */}
@@ -201,7 +186,6 @@ export default function TenantAdmin() {
               </Form>
             </DialogContent>
           </Dialog>
-
           <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
             <DialogTrigger asChild>
               <Button className=""
@@ -289,7 +273,6 @@ export default function TenantAdmin() {
           </Dialog>
         </div>
       </div>
-
       {/* Tenant Info Card */}
       <Card className=""
         <CardHeader>
@@ -301,28 +284,27 @@ export default function TenantAdmin() {
         <CardContent>
           {isLoadingSettings ? (
             <div className=""
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="text-lg">"</div>
             </div>
           ) : (
             <div className=""
               <div>
-                <label className="text-sm text-purple-200">Nome</label>
-                <p className="text-lg font-medium">{tenantSettings?.name}</p>
+                <label className="text-lg">"Nome</label>
+                <p className="text-lg">"{tenantSettings?.name}</p>
               </div>
               <div>
-                <label className="text-sm text-purple-200">Subdomínio</label>
-                <p className="text-lg font-medium">{tenantSettings?.subdomain}</p>
+                <label className="text-lg">"Subdomínio</label>
+                <p className="text-lg">"{tenantSettings?.subdomain}</p>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
-
       {/* Analytics Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Tickets Ativos</CardTitle>
+            <CardTitle className="text-lg">"Tickets Ativos</CardTitle>
             <BarChart3 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -331,10 +313,9 @@ export default function TenantAdmin() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Usuários</CardTitle>
+            <CardTitle className="text-lg">"Usuários</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -343,10 +324,9 @@ export default function TenantAdmin() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Satisfação</CardTitle>
+            <CardTitle className="text-lg">"Satisfação</CardTitle>
             <BarChart3 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -355,10 +335,9 @@ export default function TenantAdmin() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Agentes Online</CardTitle>
+            <CardTitle className="text-lg">"Agentes Online</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -368,7 +347,6 @@ export default function TenantAdmin() {
           </CardContent>
         </Card>
       </div>
-
       {/* Users Table */}
       <Card>
         <CardHeader>
@@ -380,7 +358,7 @@ export default function TenantAdmin() {
         <CardContent>
           {isLoadingUsers ? (
             <div className=""
-              <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="text-lg">"</div>
             </div>
           ) : (
             <Table>

@@ -1,22 +1,18 @@
-
 /**
  * Componentes básicos de campo para o template builder
  */
-
 import React from 'react'
 import { Input } from '../../ui/input'
 import { Textarea } from '../../ui/textarea'
 import { Label } from '../../ui/label'
 import { Badge } from '../../ui/badge'
 import { FieldComponent } from '../DragDropCanvas'
-
 interface BasicFieldProps {
   field: FieldComponent
   value?: any
   onChange?: (value: any) => void
   disabled?: boolean
 }
-
 export const TextField: React.FC<BasicFieldProps> = ({ 
   field, 
   value = '', 
@@ -24,15 +20,14 @@ export const TextField: React.FC<BasicFieldProps> = ({
   disabled = false 
 }) => {
   const { properties = {} } = field
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">texto</Badge>
+        <Badge variant="outline" className="text-lg">"texto</Badge>
       </div>
       
       <Input
@@ -48,7 +43,7 @@ export const TextField: React.FC<BasicFieldProps> = ({
       />
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
       
       {properties.maxLength && (
@@ -59,7 +54,6 @@ export const TextField: React.FC<BasicFieldProps> = ({
     </div>
   )
 }
-
 export const TextAreaField: React.FC<BasicFieldProps> = ({ 
   field, 
   value = '', 
@@ -67,15 +61,14 @@ export const TextAreaField: React.FC<BasicFieldProps> = ({
   disabled = false 
 }) => {
   const { properties = {} } = field
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">texto longo</Badge>
+        <Badge variant="outline" className="text-lg">"texto longo</Badge>
       </div>
       
       <Textarea
@@ -90,7 +83,7 @@ export const TextAreaField: React.FC<BasicFieldProps> = ({
       />
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
       
       {properties.maxLength && (
@@ -101,7 +94,6 @@ export const TextAreaField: React.FC<BasicFieldProps> = ({
     </div>
   )
 }
-
 export const NumberField: React.FC<BasicFieldProps> = ({ 
   field, 
   value = '', 
@@ -109,15 +101,14 @@ export const NumberField: React.FC<BasicFieldProps> = ({
   disabled = false 
 }) => {
   const { properties = {} } = field
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">número</Badge>
+        <Badge variant="outline" className="text-lg">"número</Badge>
       </div>
       
       <Input
@@ -134,7 +125,7 @@ export const NumberField: React.FC<BasicFieldProps> = ({
       />
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
       
       {(properties.min !== undefined || properties.max !== undefined) && (
@@ -147,7 +138,6 @@ export const NumberField: React.FC<BasicFieldProps> = ({
     </div>
   )
 }
-
 export const EmailField: React.FC<BasicFieldProps> = ({ 
   field, 
   value = '', 
@@ -155,15 +145,14 @@ export const EmailField: React.FC<BasicFieldProps> = ({
   disabled = false 
 }) => {
   const { properties = {} } = field
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">email</Badge>
+        <Badge variant="outline" className="text-lg">"email</Badge>
       </div>
       
       <Input
@@ -177,12 +166,11 @@ export const EmailField: React.FC<BasicFieldProps> = ({
       />
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
     </div>
   )
 }
-
 export const PhoneField: React.FC<BasicFieldProps> = ({ 
   field, 
   value = '', 
@@ -190,7 +178,6 @@ export const PhoneField: React.FC<BasicFieldProps> = ({
   disabled = false 
 }) => {
   const { properties = {} } = field
-
   const formatPhone = (input: string) => {
     // Remove tudo que não é número
     const numbers = input.replace(/\D/g, '')
@@ -204,20 +191,18 @@ export const PhoneField: React.FC<BasicFieldProps> = ({
       return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
     }
   }
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhone(e.target.value)
     onChange?.(formatted)
   }
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">telefone</Badge>
+        <Badge variant="outline" className="text-lg">"telefone</Badge>
       </div>
       
       <Input
@@ -232,12 +217,11 @@ export const PhoneField: React.FC<BasicFieldProps> = ({
       />
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
     </div>
   )
 }
-
 export const URLField: React.FC<BasicFieldProps> = ({ 
   field, 
   value = '', 
@@ -245,15 +229,14 @@ export const URLField: React.FC<BasicFieldProps> = ({
   disabled = false 
 }) => {
   const { properties = {} } = field
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">url</Badge>
+        <Badge variant="outline" className="text-lg">"url</Badge>
       </div>
       
       <Input
@@ -267,7 +250,7 @@ export const URLField: React.FC<BasicFieldProps> = ({
       />
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
     </div>
   )

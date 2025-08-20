@@ -1,7 +1,6 @@
 // HOLIDAY CALENDAR MANAGEMENT
 // Sistema completo de gerenciamento de feriados multilocation
 // Integrado ao sistema de controle de jornadas
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, Plus, Filter, Download, Upload, MapPin, Globe, Building } from 'lucide-react';
@@ -21,7 +20,6 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 // import useLocalization from '@/hooks/useLocalization';
-
 // Types
 interface Holiday {
   id: string;
@@ -37,11 +35,9 @@ interface Holiday {
   createdAt: string;
   updatedAt: string;
 }
-
 // Zod schema for form validation
 const holidayFormSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, 'Nome do feriado é obrigatório'),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
   type: z.enum(['national', 'regional', 'corporate', 'optional'], {
@@ -52,30 +48,25 @@ const holidayFormSchema = z.object({
   isRecurring: z.boolean().default(false),
   description: z.string().optional()
 });
-
 type HolidayFormData = z.infer<typeof holidayFormSchema>;
-
 const typeLabels = {
   national: 'Nacional',
   regional: 'Regional',
   corporate: 'Corporativo',
   optional: 'Opcional'
 };
-
 const typeColors = {
   national: 'bg-red-100 text-red-800 border-red-200',
   regional: 'bg-blue-100 text-blue-800 border-blue-200',
   corporate: 'bg-green-100 text-green-800 border-green-200',
   optional: 'bg-yellow-100 text-yellow-800 border-yellow-200'
 };
-
 const typeIcons = {
   national: <Globe className="h-3 w-3" />,
   regional: <MapPin className="h-3 w-3" />,
   corporate: <Building className="h-3 w-3" />,
   optional: <Calendar className="h-3 w-3" />
 };
-
 export default function HolidayCalendar() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -85,7 +76,6 @@ export default function HolidayCalendar() {
   const [selectedCountry, setSelectedCountry] = useState('BRA');
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
-
   const form = useForm<HolidayFormData>({
     resolver: zodResolver(holidayFormSchema),
     defaultValues: {
@@ -98,7 +88,6 @@ export default function HolidayCalendar() {
       description: ''
     }
   });
-
   // Query holidays
   const { data: holidaysData, isLoading } = useQuery({
     queryKey: ['/api/holidays', { year: selectedYear, countryCode: selectedCountry, type: selectedType, regionCode: selectedRegion }],
@@ -115,7 +104,6 @@ export default function HolidayCalendar() {
       return response.json();
     }
   });
-
   // Create holiday mutation
   const createHolidayMutation = useMutation({
     mutationFn: async (data: HolidayFormData) => {
@@ -138,14 +126,11 @@ export default function HolidayCalendar() {
       });
     }
   });
-
   const onSubmit = (data: HolidayFormData) => {
     createHolidayMutation.mutate(data);
   };
-
   const holidays = holidaysData?.holidays || [];
   const totalHolidays = holidaysData?.total || 0;
-
   // Group holidays by month
   const holidaysByMonth = holidays.reduce((acc: Record<string, Holiday[]>, holiday: Holiday) => {
     const month = holiday.date.substring(0, 7); // YYYY-MM
@@ -153,19 +138,17 @@ export default function HolidayCalendar() {
     acc[month].push(holiday);
     return acc;
   }, {});
-
   const monthNames = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-2xl font-bold">Calendário de Feriados</h1>
-          <p className="text-gray-600 mt-1">Gerenciar feriados para controle de jornadas multilocation</p>
+          <h1 className="text-lg">"Calendário de Feriados</h1>
+          <p className="text-lg">"Gerenciar feriados para controle de jornadas multilocation</p>
         </div>
         
         <div className=""
@@ -337,7 +320,6 @@ export default function HolidayCalendar() {
           </Dialog>
         </div>
       </div>
-
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -349,7 +331,7 @@ export default function HolidayCalendar() {
         <CardContent>
           <div className=""
             <div className=""
-              <label className="text-sm font-medium">Ano</label>
+              <label className="text-lg">"Ano</label>
               <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -365,7 +347,7 @@ export default function HolidayCalendar() {
             </div>
             
             <div className=""
-              <label className="text-sm font-medium">País</label>
+              <label className="text-lg">"País</label>
               <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                 <SelectTrigger>
                   <SelectValue />
@@ -380,7 +362,7 @@ export default function HolidayCalendar() {
             </div>
             
             <div className=""
-              <label className="text-sm font-medium">Tipo</label>
+              <label className="text-lg">"Tipo</label>
               <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -397,7 +379,7 @@ export default function HolidayCalendar() {
             </div>
             
             <div className=""
-              <label className="text-sm font-medium">Região</label>
+              <label className="text-lg">"Região</label>
               <Input
                 placeholder="Ex: SP, RJ..."
                 value={selectedRegion}
@@ -407,7 +389,6 @@ export default function HolidayCalendar() {
           </div>
         </CardContent>
       </Card>
-
       {/* Stats */}
       <div className=""
         <Card>
@@ -415,8 +396,8 @@ export default function HolidayCalendar() {
             <div className=""
               <Calendar className="h-4 w-4 text-blue-600" />
               <div>
-                <p className="text-sm font-medium">Total de Feriados</p>
-                <p className="text-2xl font-bold text-blue-600">{totalHolidays}</p>
+                <p className="text-lg">"Total de Feriados</p>
+                <p className="text-lg">"{totalHolidays}</p>
               </div>
             </div>
           </CardContent>
@@ -427,7 +408,7 @@ export default function HolidayCalendar() {
             <div className=""
               <Globe className="h-4 w-4 text-red-600" />
               <div>
-                <p className="text-sm font-medium">Nacionais</p>
+                <p className="text-lg">"Nacionais</p>
                 <p className=""
                   {holidays.filter((h: Holiday) => h.type === 'national').length}
                 </p>
@@ -441,7 +422,7 @@ export default function HolidayCalendar() {
             <div className=""
               <MapPin className="h-4 w-4 text-blue-600" />
               <div>
-                <p className="text-sm font-medium">Regionais</p>
+                <p className="text-lg">"Regionais</p>
                 <p className=""
                   {holidays.filter((h: Holiday) => h.type === 'regional').length}
                 </p>
@@ -455,7 +436,7 @@ export default function HolidayCalendar() {
             <div className=""
               <Building className="h-4 w-4 text-green-600" />
               <div>
-                <p className="text-sm font-medium">Corporativos</p>
+                <p className="text-lg">"Corporativos</p>
                 <p className=""
                   {holidays.filter((h: Holiday) => h.type === 'corporate').length}
                 </p>
@@ -464,7 +445,6 @@ export default function HolidayCalendar() {
           </CardContent>
         </Card>
       </div>
-
       {/* Holidays List */}
       <Card>
         <CardHeader>
@@ -475,7 +455,7 @@ export default function HolidayCalendar() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Carregando feriados...</div>
+            <div className="text-lg">"Carregando feriados...</div>
           ) : (
             <div className=""
               {monthNames.map((monthName, index) => {
@@ -486,7 +466,7 @@ export default function HolidayCalendar() {
                 
                 return (
                   <div key={monthKey} className=""
-                    <h3 className="text-lg font-semibold text-gray-800">{monthName}</h3>
+                    <h3 className="text-lg">"{monthName}</h3>
                     <div className=""
                       {monthHolidays.map((holiday: Holiday) => (
                         <div key={holiday.id} className=""
@@ -501,9 +481,9 @@ export default function HolidayCalendar() {
                             </div>
                             
                             <div>
-                              <h4 className="font-medium">{holiday.name}</h4>
+                              <h4 className="text-lg">"{holiday.name}</h4>
                               {holiday.description && (
-                                <p className="text-sm text-gray-600">{holiday.description}</p>
+                                <p className="text-lg">"{holiday.description}</p>
                               )}
                             </div>
                           </div>
@@ -515,7 +495,7 @@ export default function HolidayCalendar() {
                               </Badge>
                             )}
                             
-                            <Badge className="text-xs ">
+                            <Badge className="text-lg">"
                               <span className=""
                                 {typeIcons[holiday.type]}
                                 {typeLabels[holiday.type]}

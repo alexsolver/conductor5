@@ -1,9 +1,7 @@
-
 /**
  * Advanced Ticket Configuration System
  * Hierarchical page for detailed ticket metadata customization
  */
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -45,7 +43,6 @@ import {
   Layers3
 } from "lucide-react";
 import { useLocation } from "wouter";
-
 // Schema para configurações avançadas
 const advancedFieldSchema = z.object({
   fieldName: z.string().min(1, "Nome do campo é obrigatório"),
@@ -59,7 +56,6 @@ const advancedFieldSchema = z.object({
   defaultValue: z.string().optional(),
   validationRules: z.string().optional()
 });
-
 const fieldOptionSchema = z.object({
   optionValue: z.string().min(1, "Valor é obrigatório"),
   displayLabel: z.string().min(1, "Rótulo é obrigatório"),
@@ -69,7 +65,6 @@ const fieldOptionSchema = z.object({
   isActive: z.boolean().default(true),
   slaHours: z.number().optional()
 });
-
 const slaConfigurationSchema = z.object({
   priority: z.string().min(1, "Prioridade é obrigatória"),
   responseTimeHours: z.number().min(1, "Tempo de resposta é obrigatório"),
@@ -78,7 +73,6 @@ const slaConfigurationSchema = z.object({
   businessHoursOnly: z.boolean().default(true),
   notificationEnabled: z.boolean().default(true)
 });
-
 interface FieldConfiguration {
   id: string;
   fieldName: string;
@@ -93,7 +87,6 @@ interface FieldConfiguration {
   validationRules?: string;
   options?: FieldOption[];
 }
-
 interface FieldOption {
   id: string;
   optionValue: string;
@@ -104,7 +97,6 @@ interface FieldOption {
   isActive: boolean;
   slaHours?: number;
 }
-
 interface SLAConfiguration {
   id: string;
   priority: string;
@@ -114,7 +106,6 @@ interface SLAConfiguration {
   businessHoursOnly: boolean;
   notificationEnabled: boolean;
 }
-
 function TicketAdvancedConfiguration() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -123,7 +114,6 @@ function TicketAdvancedConfiguration() {
   const [activeTab, setActiveTab] = useState("field-management");
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   // Form setups
   const fieldForm = useForm({
     resolver: zodResolver(advancedFieldSchema),
@@ -140,7 +130,6 @@ function TicketAdvancedConfiguration() {
       validationRules: ""
     }
   });
-
   const optionForm = useForm({
     resolver: zodResolver(fieldOptionSchema),
     defaultValues: {
@@ -153,7 +142,6 @@ function TicketAdvancedConfiguration() {
       slaHours: undefined
     }
   });
-
   const slaForm = useForm({
     resolver: zodResolver(slaConfigurationSchema),
     defaultValues: {
@@ -165,7 +153,6 @@ function TicketAdvancedConfiguration() {
       notificationEnabled: true
     }
   });
-
   // Data queries
   const { data: fieldConfigurations = [], isLoading: fieldsLoading } = useQuery({
     queryKey: ['"/api/ticket-metadata/field-configurations'],
@@ -175,7 +162,6 @@ function TicketAdvancedConfiguration() {
       return result.success ? result.data : [];
     }
   });
-
   const { data: fieldOptions = [], isLoading: optionsLoading } = useQuery({
     queryKey: ['/api/ticket-metadata/field-options'],
     queryFn: async () => {
@@ -184,7 +170,6 @@ function TicketAdvancedConfiguration() {
       return result.success ? result.data : [];
     }
   });
-
   const { data: slaConfigurations = [], isLoading: slaLoading } = useQuery({
     queryKey: ['/api/ticket-config/sla-configurations'],
     queryFn: async () => {
@@ -192,7 +177,6 @@ function TicketAdvancedConfiguration() {
       return response.json();
     }
   });
-
   // Mutations
   const createFieldMutation = useMutation({
     mutationFn: async (data: z.infer<typeof advancedFieldSchema>) => {
@@ -206,7 +190,6 @@ function TicketAdvancedConfiguration() {
       toast({ title: "Campo criado com sucesso" });
     }
   });
-
   const updateFieldMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof advancedFieldSchema> }) => {
       const response = await apiRequest('PUT', "/api/ticket-metadata/field-configurations/" + id, data);
@@ -219,7 +202,6 @@ function TicketAdvancedConfiguration() {
       toast({ title: "Campo atualizado com sucesso" });
     }
   });
-
   const createOptionMutation = useMutation({
     mutationFn: async ({ fieldId, data }: { fieldId: string; data: z.infer<typeof fieldOptionSchema> }) => {
       const response = await apiRequest('POST', "/api/ticket-metadata/field-options/" + fieldId, data);
@@ -232,7 +214,6 @@ function TicketAdvancedConfiguration() {
       toast({ title: "Opção criada com sucesso" });
     }
   });
-
   const createSLAMutation = useMutation({
     mutationFn: async (data: z.infer<typeof slaConfigurationSchema>) => {
       const response = await apiRequest('POST', '/api/ticket-config/sla-configurations', data);
@@ -245,7 +226,6 @@ function TicketAdvancedConfiguration() {
       toast({ title: "Configuração SLA criada com sucesso" });
     }
   });
-
   // Form handlers
   const onFieldSubmit = (data: z.infer<typeof advancedFieldSchema>) => {
     if (editingItem) {
@@ -254,17 +234,14 @@ function TicketAdvancedConfiguration() {
       createFieldMutation.mutate(data);
     }
   };
-
   const onOptionSubmit = (data: z.infer<typeof fieldOptionSchema>) => {
     if (editingItem?.fieldId) {
       createOptionMutation.mutate({ fieldId: editingItem.fieldId, data });
     }
   };
-
   const onSLASubmit = (data: z.infer<typeof slaConfigurationSchema>) => {
     createSLAMutation.mutate(data);
   };
-
   const openEditDialog = (item: any, type: string) => {
     setEditingItem({ ...item, type });
     if (type === 'field') {
@@ -276,7 +253,6 @@ function TicketAdvancedConfiguration() {
     }
     setIsDialogOpen(true);
   };
-
   const openCreateDialog = (type: string, fieldId?: string) => {
     setEditingItem({ type, fieldId });
     if (type === 'field') {
@@ -288,7 +264,6 @@ function TicketAdvancedConfiguration() {
     }
     setIsDialogOpen(true);
   };
-
   return (
     <div className=""
       {/* Header with navigation */}
@@ -314,7 +289,6 @@ function TicketAdvancedConfiguration() {
           </div>
         </div>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className=""
           <TabsTrigger value="field-management" className=""
@@ -334,7 +308,6 @@ function TicketAdvancedConfiguration() {
             <span>Regras de Validação</span>
           </TabsTrigger>
         </TabsList>
-
         {/* Field Management Tab */}
         <TabsContent value="field-management" className=""
           <Card>
@@ -371,7 +344,7 @@ function TicketAdvancedConfiguration() {
                 <TableBody>
                   {fieldConfigurations.map((field: FieldConfiguration) => (
                     <TableRow key={field.id}>
-                      <TableCell className="font-medium">{field.fieldName}</TableCell>
+                      <TableCell className="text-lg">"{field.fieldName}</TableCell>
                       <TableCell>{field.displayLabel}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{field.fieldType}</Badge>
@@ -388,7 +361,7 @@ function TicketAdvancedConfiguration() {
                       </TableCell>
                       <TableCell>
                         {field.isSystem ? (
-                          <Badge className="bg-blue-100 text-blue-800">Sistema</Badge>
+                          <Badge className="text-lg">"Sistema</Badge>
                         ) : (
                           <Badge variant="outline">Personalizado</Badge>
                         )}
@@ -421,7 +394,6 @@ function TicketAdvancedConfiguration() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Field Options Tab */}
         <TabsContent value="field-options" className=""
           <Card>
@@ -446,8 +418,8 @@ function TicketAdvancedConfiguration() {
                     <div key={field.id} className=""
                       <div className=""
                         <div>
-                          <h4 className="font-semibold">{field.displayLabel} ({field.fieldName})</h4>
-                          <p className="text-sm text-gray-600">Tipo: {field.fieldType}</p>
+                          <h4 className="text-lg">"{field.displayLabel} ({field.fieldName})</h4>
+                          <p className="text-lg">"Tipo: {field.fieldType}</p>
                         </div>
                         <Button
                           variant="outline"
@@ -470,9 +442,9 @@ function TicketAdvancedConfiguration() {
                                   className="w-3 h-3 rounded-full"
                                   style={{ backgroundColor: option.colorHex }}
                                 />
-                                <span className="font-medium">{option.displayLabel}</span>
+                                <span className="text-lg">"{option.displayLabel}</span>
                                 {option.isDefault && (
-                                  <Badge variant="secondary" className="text-xs">Padrão</Badge>
+                                  <Badge variant="secondary" className="text-lg">"Padrão</Badge>
                                 )}
                                 {option.slaHours && (
                                   <Badge variant="outline" className=""
@@ -497,7 +469,6 @@ function TicketAdvancedConfiguration() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* SLA Management Tab */}
         <TabsContent value="sla-management" className=""
           <Card>
@@ -534,20 +505,20 @@ function TicketAdvancedConfiguration() {
                 <TableBody>
                   {slaConfigurations.map((sla: SLAConfiguration) => (
                     <TableRow key={sla.id}>
-                      <TableCell className="font-medium">{sla.priority}</TableCell>
+                      <TableCell className="text-lg">"{sla.priority}</TableCell>
                       <TableCell>{sla.responseTimeHours}h</TableCell>
                       <TableCell>{sla.resolutionTimeHours}h</TableCell>
                       <TableCell>{sla.escalationTimeHours}h</TableCell>
                       <TableCell>
                         {sla.businessHoursOnly ? (
-                          <Badge className="bg-blue-100 text-blue-800">Sim</Badge>
+                          <Badge className="text-lg">"Sim</Badge>
                         ) : (
                           <Badge variant="outline">24/7</Badge>
                         )}
                       </TableCell>
                       <TableCell>
                         {sla.notificationEnabled ? (
-                          <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+                          <Badge className="text-lg">"Ativo</Badge>
                         ) : (
                           <Badge variant="outline">Inativo</Badge>
                         )}
@@ -568,7 +539,6 @@ function TicketAdvancedConfiguration() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Validation Rules Tab */}
         <TabsContent value="validation-rules" className=""
           <Card>
@@ -584,7 +554,7 @@ function TicketAdvancedConfiguration() {
             <CardContent>
               <div className=""
                 <div className=""
-                  <h4 className="font-medium text-blue-900 mb-2">Validações Disponíveis:</h4>
+                  <h4 className="text-lg">"Validações Disponíveis:</h4>
                   <ul className=""
                     <li>• Validação de formato de email</li>
                     <li>• Validação de números de telefone</li>
@@ -598,14 +568,13 @@ function TicketAdvancedConfiguration() {
                 <div className=""
                   <CheckCircle2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>As regras de validação são configuradas individualmente em cada campo.</p>
-                  <p className="text-sm mt-2">Vá para a aba "Gerenciar Campos" para configurar validações específicas.</p>
+                  <p className="text-lg">"Vá para a aba "Gerenciar Campos" para configurar validações específicas.</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
       {/* Dialog for Creating/Editing */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className=""
@@ -616,7 +585,6 @@ function TicketAdvancedConfiguration() {
               {editingItem?.type === 'sla' && 'Configurar SLA'}
             </DialogTitle>
           </DialogHeader>
-
           {/* Field Form */}
           {editingItem?.type === 'field' && (
             <Form {...fieldForm}>
@@ -649,7 +617,6 @@ function TicketAdvancedConfiguration() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <FormField
                     control={fieldForm.control}
@@ -694,7 +661,6 @@ function TicketAdvancedConfiguration() {
                     )}
                   />
                 </div>
-
                 <FormField
                   control={fieldForm.control}
                   name="placeholder"
@@ -708,7 +674,6 @@ function TicketAdvancedConfiguration() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={fieldForm.control}
                   name="helpText"
@@ -722,7 +687,6 @@ function TicketAdvancedConfiguration() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <FormField
                     control={fieldForm.control}
@@ -759,7 +723,6 @@ function TicketAdvancedConfiguration() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
@@ -771,7 +734,6 @@ function TicketAdvancedConfiguration() {
               </form>
             </Form>
           )}
-
           {/* Option Form */}
           {editingItem?.type === 'option' && (
             <Form {...optionForm}>
@@ -804,7 +766,6 @@ function TicketAdvancedConfiguration() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <FormField
                     control={optionForm.control}
@@ -833,7 +794,6 @@ function TicketAdvancedConfiguration() {
                     )}
                   />
                 </div>
-
                 <FormField
                   control={optionForm.control}
                   name="slaHours"
@@ -847,7 +807,6 @@ function TicketAdvancedConfiguration() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <FormField
                     control={optionForm.control}
@@ -884,7 +843,6 @@ function TicketAdvancedConfiguration() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
@@ -896,7 +854,6 @@ function TicketAdvancedConfiguration() {
               </form>
             </Form>
           )}
-
           {/* SLA Form */}
           {editingItem?.type === 'sla' && (
             <Form {...slaForm}>
@@ -924,7 +881,6 @@ function TicketAdvancedConfiguration() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <FormField
                     control={slaForm.control}
@@ -966,7 +922,6 @@ function TicketAdvancedConfiguration() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <FormField
                     control={slaForm.control}
@@ -1003,7 +958,6 @@ function TicketAdvancedConfiguration() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
@@ -1020,5 +974,4 @@ function TicketAdvancedConfiguration() {
     </div>
   );
 }
-
 export default TicketAdvancedConfiguration;

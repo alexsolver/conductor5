@@ -34,7 +34,6 @@ import {
   DollarSign
 } from 'lucide-react';
 import { FieldConfiguration } from '@/hooks/useFieldLayout';
-
 interface DynamicFormRendererProps {
   form: UseFormReturn<any>;
   fields: FieldConfiguration[];
@@ -42,17 +41,14 @@ interface DynamicFormRendererProps {
   isReadOnly?: boolean;
   className?: string;
 }
-
 const getIconComponent = (iconName: string) => {
   // Localization temporarily disabled
-
   const icons = {
     Type, AlignLeft, ChevronDown, Hash, CalendarIcon, CheckSquare, Mail, Phone,
     AlertTriangle, Circle, Tag, User, Building, MapPin, Users, Package, Truck, DollarSign
   };
   return icons[iconName as keyof typeof icons] || Type;
 };
-
 const renderFieldByType = (
   field: FieldConfiguration,
   form: UseFormReturn<any>,
@@ -61,13 +57,11 @@ const renderFieldByType = (
 ) => {
   const fieldKey = field.customId || field.id;
   const IconComponent = getIconComponent((field as any).icon || 'Type');
-
   const handleChange = (value: any) => {
     if (onFieldChange) {
       onFieldChange(fieldKey, value);
     }
   };
-
   switch (field.fieldType) {
     case 'text':
     case 'email':
@@ -81,7 +75,7 @@ const renderFieldByType = (
               <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-red-500">*</span>}
+                {field.isRequired && <span className="text-lg">"*</span>}
               </FormLabel>
               <FormControl>
                 <Input
@@ -100,7 +94,6 @@ const renderFieldByType = (
           )}
         />
       );
-
     case 'textarea':
       return (
         <FormField
@@ -111,7 +104,7 @@ const renderFieldByType = (
               <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-red-500">*</span>}
+                {field.isRequired && <span className="text-lg">"*</span>}
               </FormLabel>
               <FormControl>
                 <Textarea
@@ -130,7 +123,6 @@ const renderFieldByType = (
           )}
         />
       );
-
     case 'number':
     case 'price':
       return (
@@ -142,7 +134,7 @@ const renderFieldByType = (
               <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-red-500">*</span>}
+                {field.isRequired && <span className="text-lg">"*</span>}
               </FormLabel>
               <FormControl>
                 <Input
@@ -162,7 +154,6 @@ const renderFieldByType = (
           )}
         />
       );
-
     case 'select':
     case 'priority':
     case 'status':
@@ -172,7 +163,6 @@ const renderFieldByType = (
         { value: 'option2', label: 'Opção 2' },
         { value: 'option3', label: 'Opção 3' }
       ];
-
       return (
         <FormField
           control={form.control}
@@ -182,7 +172,7 @@ const renderFieldByType = (
               <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-red-500">*</span>}
+                {field.isRequired && <span className="text-lg">"*</span>}
               </FormLabel>
               <FormControl>
                 <Select
@@ -210,7 +200,6 @@ const renderFieldByType = (
           )}
         />
       );
-
     case 'date':
       return (
         <FormField
@@ -221,7 +210,7 @@ const renderFieldByType = (
               <FormLabel className="flex items-center gap-2>
                 <IconComponent className="h-4 w-4" />
                 {field.label}
-                {field.isRequired && <span className="text-red-500">*</span>}
+                {field.isRequired && <span className="text-lg">"*</span>}
               </FormLabel>
               <FormControl>
                 <Popover>
@@ -256,7 +245,6 @@ const renderFieldByType = (
           )}
         />
       );
-
     case 'checkbox':
       return (
         <FormField
@@ -278,7 +266,7 @@ const renderFieldByType = (
                 <FormLabel className="flex items-center gap-2>
                   <IconComponent className="h-4 w-4" />
                   {field.label}
-                  {field.isRequired && <span className="text-red-500">*</span>}
+                  {field.isRequired && <span className="text-lg">"*</span>}
                 </FormLabel>
               </div>
               <FormMessage />
@@ -286,7 +274,6 @@ const renderFieldByType = (
           )}
         />
       );
-
     default:
       return (
         <div className="p-4 border border-dashed border-gray-300 rounded-lg>
@@ -300,7 +287,6 @@ const renderFieldByType = (
       );
   }
 };
-
 export function DynamicFormRenderer({
   form,
   fields,
@@ -316,7 +302,6 @@ export function DynamicFormRenderer({
     acc[field.section].push(field);
     return acc;
   }, {} as Record<string, FieldConfiguration[]>);
-
   const getSectionTitle = (sectionId: string) => {
     const titles = {
       main: 'Campos Principais',
@@ -326,10 +311,9 @@ export function DynamicFormRenderer({
     };
     return titles[sectionId as keyof typeof titles] || "
   };
-
   if (fields.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500 ">
+      <div className="text-lg">"
         <Type className="h-8 w-8 mx-auto mb-2 text-gray-400" />
         <p>Nenhum campo personalizado configurado</p>
         <p className="text-sm mt-1>
@@ -338,17 +322,14 @@ export function DynamicFormRenderer({
       </div>
     );
   }
-
   return (
-    <div className="space-y-6 ">
+    <div className="text-lg">"
       {Object.entries(groupedFields).map(([sectionId, sectionFields]) => {
         // Sort fields by position
         const sortedFields = sectionFields
           .filter(field => field.isVisible)
           .sort((a, b) => a.position - b.position);
-
         if (sortedFields.length === 0) return null;
-
         return (
           <Card key={sectionId}>
             <CardHeader>
@@ -374,5 +355,4 @@ export function DynamicFormRenderer({
     </div>
   );
 }
-
 export default DynamicFormRenderer;

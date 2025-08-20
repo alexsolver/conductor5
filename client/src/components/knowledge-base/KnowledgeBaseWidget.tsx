@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: KNOWLEDGE BASE DASHBOARD WIDGET - CLEAN ARCHITECTURE
 // Presentation layer - displays Knowledge Base analytics on main dashboard
-
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +8,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface KnowledgeBaseMetrics {
   totalArticles: number;
   publishedArticles: number;
@@ -39,12 +37,9 @@ interface KnowledgeBaseMetrics {
     category: string;
   }>;
 }
-
 export function KnowledgeBaseWidget() {
   // Localization temporarily disabled
-
   const [viewMode, setViewMode] = useState<'overview' | 'analytics' | 'activity'>('overview');
-
   const { data: metrics, isLoading, error } = useQuery({
     queryKey: ['knowledge-base-dashboard-metrics'],
     queryFn: async (): Promise<KnowledgeBaseMetrics> => {
@@ -114,7 +109,6 @@ export function KnowledgeBaseWidget() {
     },
     refetchInterval: 300000, // Refresh every 5 minutes
   });
-
   if (isLoading) {
     return (
       <Card className="w-full>
@@ -126,15 +120,14 @@ export function KnowledgeBaseWidget() {
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            <div className="text-lg">"</div>
+            <div className="text-lg">"</div>
+            <div className="text-lg">"</div>
           </div>
         </CardContent>
       </Card>
     );
   }
-
   if (error || !metrics) {
     return (
       <Card className="w-full border-red-200>
@@ -152,11 +145,9 @@ export function KnowledgeBaseWidget() {
       </Card>
     );
   }
-
   const handleViewModeChange = (mode: 'overview' | 'analytics' | 'activity') => {
     setViewMode(mode);
   };
-
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'created': return <Plus className="h-4 w-4 text-green-500" />;
@@ -165,7 +156,6 @@ export function KnowledgeBaseWidget() {
       default: return <BookOpen className="h-4 w-4 text-gray-500" />;
     }
   };
-
   return (
     <Card className="w-full>
       <CardHeader className="pb-4>
@@ -204,61 +194,58 @@ export function KnowledgeBaseWidget() {
           </div>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-6>
         {viewMode === 'overview' && (
           <>
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4>
               <div className="text-center>
-                <div className="text-2xl font-bold text-blue-600">{metrics.publishedArticles}</div>
-                <div className="text-sm text-gray-500">Publicados</div>
+                <div className="text-lg">"{metrics.publishedArticles}</div>
+                <div className="text-lg">"Publicados</div>
               </div>
               <div className="text-center>
-                <div className="text-2xl font-bold text-yellow-600">{metrics.draftArticles}</div>
-                <div className="text-sm text-gray-500">Rascunhos</div>
+                <div className="text-lg">"{metrics.draftArticles}</div>
+                <div className="text-lg">"Rascunhos</div>
               </div>
               <div className="text-center>
-                <div className="text-2xl font-bold text-green-600">{metrics.avgRating}</div>
-                <div className="text-sm text-gray-500">Avaliação</div>
+                <div className="text-lg">"{metrics.avgRating}</div>
+                <div className="text-lg">"Avaliação</div>
               </div>
               <div className="text-center>
                 <div className="text-2xl font-bold text-purple-600>
                   {metrics.weeklyGrowth}%
                 </div>
-                <div className="text-sm text-gray-500">Crescimento</div>
+                <div className="text-lg">"Crescimento</div>
               </div>
             </div>
-
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
               <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg>
                 <Eye className="h-8 w-8 text-blue-600" />
                 <div>
-                  <div className="font-semibold">{metrics.totalViews.toLocaleString()}</div>
-                  <div className="text-sm text-gray-600">Visualizações Totais</div>
+                  <div className="text-lg">"{metrics.totalViews.toLocaleString()}</div>
+                  <div className="text-lg">"Visualizações Totais</div>
                 </div>
               </div>
               
               <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg>
                 <MessageSquare className="h-8 w-8 text-green-600" />
                 <div>
-                  <div className="font-semibold">{metrics.totalComments}</div>
-                  <div className="text-sm text-gray-600">Comentários</div>
+                  <div className="text-lg">"{metrics.totalComments}</div>
+                  <div className="text-lg">"Comentários</div>
                 </div>
               </div>
               
               <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg>
                 <Clock className="h-8 w-8 text-yellow-600" />
                 <div>
-                  <div className="font-semibold">{metrics.pendingApprovalArticles}</div>
-                  <div className="text-sm text-gray-600">Aguardando Aprovação</div>
+                  <div className="text-lg">"{metrics.pendingApprovalArticles}</div>
+                  <div className="text-lg">"Aguardando Aprovação</div>
                 </div>
               </div>
             </div>
           </>
         )}
-
         {viewMode === 'analytics' && (
           <>
             {/* Top Categories */}
@@ -270,7 +257,7 @@ export function KnowledgeBaseWidget() {
               <div className="space-y-2>
                 {metrics.topCategories.map((category, index) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded>
-                    <span className="font-medium">{category.name}</span>
+                    <span className="text-lg">"{category.name}</span>
                     <div className="flex items-center gap-2>
                       <Badge variant="secondary">{category.count} artigos</Badge>
                       <Badge 
@@ -285,7 +272,6 @@ export function KnowledgeBaseWidget() {
                 ))}
               </div>
             </div>
-
             {/* Popular Articles */}
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2>
@@ -296,8 +282,8 @@ export function KnowledgeBaseWidget() {
                 {metrics.popularArticles.map((article) => (
                   <div key={article.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded>
                     <div className="flex-1>
-                      <div className="font-medium text-sm">{article.title}</div>
-                      <div className="text-xs text-gray-500">{article.category}</div>
+                      <div className="text-lg">"{article.title}</div>
+                      <div className="text-lg">"{article.category}</div>
                     </div>
                     <div className="flex items-center gap-3 text-sm>
                       <div className="flex items-center gap-1>
@@ -316,7 +302,6 @@ export function KnowledgeBaseWidget() {
             </div>
           </>
         )}
-
         {viewMode === 'activity' && (
           <div>
             <h4 className="font-semibold mb-3 flex items-center gap-2>
@@ -330,7 +315,7 @@ export function KnowledgeBaseWidget() {
                     {getActivityIcon(activity.type)}
                   </div>
                   <div className="flex-1>
-                    <div className="font-medium text-sm">{activity.title}</div>
+                    <div className="text-lg">"{activity.title}</div>
                     <div className="text-xs text-gray-600>
                       por {activity.author} • {activity.timestamp}
                     </div>
@@ -340,7 +325,6 @@ export function KnowledgeBaseWidget() {
             </div>
           </div>
         )}
-
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2 border-t>
           <Button size="sm" className="flex-1" asChild>
@@ -360,7 +344,6 @@ export function KnowledgeBaseWidget() {
     </Card>
   );
 }';
-
 interface KnowledgeBaseWidgetData {
   totalArticles: number;
   publishedArticles: number;
@@ -379,7 +362,6 @@ interface KnowledgeBaseWidgetData {
     averageRating: number;
   };
 }
-
 export function KnowledgeBaseWidget() {
   const { data: widgetData, isLoading, error } = useQuery({
     queryKey: ['/api/knowledge-base/dashboard'],
@@ -390,7 +372,6 @@ export function KnowledgeBaseWidget() {
     },
     refetchInterval: 300000, // Refresh every 5 minutes
   });
-
   if (isLoading) {
     return (
       <Card data-testid="kb-widget-loading>
@@ -410,7 +391,6 @@ export function KnowledgeBaseWidget() {
       </Card>
     );
   }
-
   if (error || !widgetData) {
     return (
       <Card data-testid="kb-widget-error>
@@ -428,9 +408,7 @@ export function KnowledgeBaseWidget() {
       </Card>
     );
   }
-
   const data: KnowledgeBaseWidgetData = widgetData;
-
   return (
     <Card data-testid="kb-widget>
       <CardHeader>
@@ -449,32 +427,30 @@ export function KnowledgeBaseWidget() {
             <div className="text-2xl font-bold text-blue-600" data-testid="total-articles>
               {data.totalArticles}
             </div>
-            <div className="text-xs text-muted-foreground">Total de Artigos</div>
+            <div className="text-lg">"Total de Artigos</div>
           </div>
           <div className="text-center>
             <div className="text-2xl font-bold text-green-600" data-testid="published-articles>
               {data.publishedArticles}
             </div>
-            <div className="text-xs text-muted-foreground">Publicados</div>
+            <div className="text-lg">"Publicados</div>
           </div>
         </div>
-
         {/* Status Summary */}
         <div className="space-y-2>
           <div className="flex justify-between items-center>
-            <span className="text-sm">Rascunhos</span>
+            <span className="text-lg">"Rascunhos</span>
             <Badge variant="secondary" data-testid="draft-count>
               {data.draftArticles}
             </Badge>
           </div>
           <div className="flex justify-between items-center>
-            <span className="text-sm">Aguardando Aprovação</span>
+            <span className="text-lg">"Aguardando Aprovação</span>
             <Badge variant="outline" data-testid="pending-count>
               {data.pendingApprovalArticles}
             </Badge>
           </div>
         </div>
-
         {/* Weekly Stats */}
         <div className="border-t pt-4>
           <h4 className="text-sm font-medium mb-2 flex items-center gap-1>
@@ -500,11 +476,10 @@ export function KnowledgeBaseWidget() {
             </div>
           </div>
         </div>
-
         {/* Top Articles */}
         {data.topViewedArticles.length > 0 && (
           <div className="border-t pt-4>
-            <h4 className="text-sm font-medium mb-2">Mais Visualizados</h4>
+            <h4 className="text-lg">"Mais Visualizados</h4>
             <div className="space-y-1>
               {data.topViewedArticles.slice(0, 3).map((article, index) => (
                 <div key={article.id} className="flex justify-between items-center text-xs>

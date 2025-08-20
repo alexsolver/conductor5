@@ -38,7 +38,6 @@ import {
   FileText,
   BarChart3
 } from "lucide-react";
-
 interface Asset {
   id: string;
   assetTag: string;
@@ -75,7 +74,6 @@ interface Asset {
   createdAt: string;
   updatedAt: string;
 }
-
 interface AssetCategory {
   id: string;
   name: string;
@@ -85,7 +83,6 @@ interface AssetCategory {
   maintenanceInterval: number; // days
   active: boolean;
 }
-
 interface AssetStats {
   totalAssets: number;
   activeAssets: number;
@@ -96,7 +93,6 @@ interface AssetStats {
   upcomingMaintenance: number;
   expiredWarranties: number;
 }
-
 interface MaintenanceRecord {
   id: string;
   assetId: string;
@@ -108,10 +104,8 @@ interface MaintenanceRecord {
   notes?: string;
   nextMaintenanceDate?: string;
 }
-
 export function AssetsManagement() {
   // Localization temporarily disabled
-
   const [selectedTab, setSelectedTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -121,10 +115,8 @@ export function AssetsManagement() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Mock data for development - would be replaced with real API calls
   const mockAssetStats: AssetStats = {
     totalAssets: 247,
@@ -136,7 +128,6 @@ export function AssetsManagement() {
     upcomingMaintenance: 15,
     expiredWarranties: 8
   };
-
   const mockAssets: Asset[] = [
     {
       id: "1",
@@ -237,7 +228,6 @@ export function AssetsManagement() {
       updatedAt: "2025-01-20T16:45:00Z"
     }
   ];
-
   const mockAssetCategories: AssetCategory[] = [
     {
       id: "cat1",
@@ -276,26 +266,22 @@ export function AssetsManagement() {
       active: true
     }
   ];
-
   // Simulated queries - would use real API endpoints
   const { data: assets = mockAssets, isLoading: isLoadingAssets } = useQuery({
     queryKey: ["/api/materials-services/assets"],
     queryFn: () => Promise.resolve(mockAssets),
     enabled: true
   });
-
   const { data: assetCategories = mockAssetCategories } = useQuery({
     queryKey: ["/api/materials-services/asset-categories"],
     queryFn: () => Promise.resolve(mockAssetCategories),
     enabled: true
   });
-
   const { data: assetStats = mockAssetStats } = useQuery({
     queryKey: ["/api/materials-services/assets/stats"],
     queryFn: () => Promise.resolve(mockAssetStats),
     enabled: true
   });
-
   // Mutations for asset management
   const createAssetMutation = useMutation({
     mutationFn: async (data: Partial<Asset>) => {
@@ -315,7 +301,6 @@ export function AssetsManagement() {
       });
     }
   });
-
   const updateAssetMutation = useMutation({
     mutationFn: async ({ id, ...data }: Partial<Asset> & { id: string }) => {
       // Simulate API call
@@ -335,7 +320,6 @@ export function AssetsManagement() {
       });
     }
   });
-
   // Filter assets
   const filteredAssets = assets.filter((asset: Asset) => {
     const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -347,7 +331,6 @@ export function AssetsManagement() {
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -358,7 +341,6 @@ export function AssetsManagement() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'active': return 'Ativo';
@@ -369,7 +351,6 @@ export function AssetsManagement() {
       default: return 'Indefinido';
     }
   };
-
   const getConditionColor = (condition: string) => {
     switch (condition) {
       case 'excellent': return 'bg-green-100 text-green-800';
@@ -379,7 +360,6 @@ export function AssetsManagement() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getConditionLabel = (condition: string) => {
     switch (condition) {
       case 'excellent': return 'Excelente';
@@ -389,7 +369,6 @@ export function AssetsManagement() {
       default: return 'Indefinido';
     }
   };
-
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'computer': return Monitor;
@@ -399,7 +378,6 @@ export function AssetsManagement() {
       default: return Monitor;
     }
   };
-
   const handleCreateAsset = (formData: FormData) => {
     const assetData = {
       assetTag: formData.get('assetTag') as string,
@@ -414,33 +392,28 @@ export function AssetsManagement() {
       status: 'active' as const,
       condition: 'excellent' as const
     };
-
     createAssetMutation.mutate(assetData);
   };
-
   const calculateDepreciation = (asset: Asset) => {
     const category = assetCategories.find(cat => cat.code.toLowerCase() === asset.category);
     if (!category) return asset.purchasePrice;
-
     const ageInYears = (new Date().getTime() - new Date(asset.purchaseDate).getTime()) / (1000 * 60 * 60 * 24 * 365);
     const depreciationAmount = asset.purchasePrice * (category.depreciationRate / 100) * ageInYears;
     return Math.max(asset.purchasePrice - depreciationAmount, asset.purchasePrice * 0.1); // Min 10% of original value
   };
-
   if (isLoadingAssets) {
     return (
       <div className=""
-        <div className="text-center">Carregando ativos...</div>
+        <div className="text-lg">"Carregando ativos...</div>
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">Controle de Ativos</h1>
+          <h1 className="text-lg">"Controle de Ativos</h1>
           <p className=""
             Gerencie equipamentos, computadores e ativos da empresa
           </p>
@@ -456,25 +429,23 @@ export function AssetsManagement() {
           </Button>
         </div>
       </div>
-
       {/* Statistics Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
+            <CardTitle className="text-lg">"Total de Ativos</CardTitle>
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assetStats.totalAssets}</div>
+            <div className="text-lg">"{assetStats.totalAssets}</div>
             <p className=""
               {assetStats.activeAssets} ativos
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+            <CardTitle className="text-lg">"Valor Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -486,34 +457,31 @@ export function AssetsManagement() {
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Manutenção</CardTitle>
+            <CardTitle className="text-lg">"Manutenção</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assetStats.underMaintenance}</div>
+            <div className="text-lg">"{assetStats.underMaintenance}</div>
             <p className=""
               {assetStats.upcomingMaintenance} programadas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Garantias</CardTitle>
+            <CardTitle className="text-lg">"Garantias</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assetStats.expiredWarranties}</div>
+            <div className="text-lg">"{assetStats.expiredWarranties}</div>
             <p className=""
               garantias expiradas
             </p>
           </CardContent>
         </Card>
       </div>
-
       {/* Filters and Search */}
       <div className=""
         <div className=""
@@ -553,7 +521,6 @@ export function AssetsManagement() {
           </SelectContent>
         </Select>
       </div>
-
       {/* Assets Table */}
       <Card>
         <CardHeader>
@@ -579,10 +546,10 @@ export function AssetsManagement() {
                     </div>
                     <div>
                       <div className=""
-                        <h3 className="font-semibold">{asset.name}</h3>
+                        <h3 className="text-lg">"{asset.name}</h3>
                         <Badge variant="outline">{asset.assetTag}</Badge>
                       </div>
-                      <p className="text-sm text-gray-600">{asset.brand} {asset.model}</p>
+                      <p className="text-lg">"{asset.brand} {asset.model}</p>
                       <div className=""
                         <span className=""
                           <MapPin className="h-3 w-3" />
@@ -601,7 +568,6 @@ export function AssetsManagement() {
                       </div>
                     </div>
                   </div>
-
                   <div className=""
                     <div className=""
                       <div className=""
@@ -653,7 +619,6 @@ export function AssetsManagement() {
                 </div>
               );
             })}
-
             {filteredAssets.length === 0 && (
               <div className=""
                 Nenhum ativo encontrado
@@ -662,7 +627,6 @@ export function AssetsManagement() {
           </div>
         </CardContent>
       </Card>
-
       {/* Create Asset Dialog */}
       <Dialog open={isCreateAssetOpen} onOpenChange={setIsCreateAssetOpen}>
         <DialogContent className=""
@@ -722,12 +686,10 @@ export function AssetsManagement() {
                 <Input id="department" name="department" placeholder="Ex: Administrativo" required />
               </div>
             </div>
-
             <div className=""
               <Label htmlFor="description">Descrição *</Label>
               <Textarea id="description" name="description" rows={3} required />
             </div>
-
             <div className=""
               <Button type="button" variant="outline" onClick={() => setIsCreateAssetOpen(false)}>
                 Cancelar

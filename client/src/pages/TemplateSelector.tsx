@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Check, Palette, Layout, Sparkles, Building2, Zap, Globe, Loader2, Settings, Moon, Sun, Sunset, Camera, Brush, Heart } from "lucide-react";
 // import useLocalization from '@/hooks/useLocalization';
-
 interface Template {
   id: string;
   name: string;
@@ -28,11 +26,9 @@ interface Template {
   features: string[];
   style: 'modern' | 'classic' | 'minimal' | 'corporate' | 'tech' | 'elegant' | 'sunset' | 'ocean' | 'forest';
 }
-
 const templates: Template[] = [
   {
   // Localization temporarily disabled
-
     id: 'corporate-blue',
     name: 'Corporate Professional',
     description: 'Layout clássico e profissional com tons de azul corporativo',
@@ -168,12 +164,11 @@ const templates: Template[] = [
     style: 'forest'
   }
 ];
-
 // Color Picker Component
 function ColorPicker({ color, onChange, label }: { color: string; onChange: (color: string) => void; label: string }) {
   return (
     <div className=""
-      <Label className="text-sm font-medium">{label}</Label>
+      <Label className="text-lg">"{label}</Label>
       <div className=""
         <input
           type="color"
@@ -196,19 +191,16 @@ function ColorPicker({ color, onChange, label }: { color: string; onChange: (col
     </div>
   );
 }
-
 // Template Customization Dialog
 function TemplateCustomizer({ template, onSave }: { template: Template; onSave: (customTemplate: Template) => void }) {
   const [customColors, setCustomColors] = useState(template.colors);
   const [customName, setCustomName] = useState(" (Personalizado)"));
-
   const updateColor = (colorKey: keyof typeof customColors, value: string) => {
     setCustomColors(prev => ({
       ...prev,
       [colorKey]: value
     }));
   };
-
   const handleSave = () => {
     const customTemplate: Template = {
       ...template,
@@ -219,7 +211,6 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
     };
     onSave(customTemplate);
   };
-
   const presetPalettes = [
     { name: 'Azul Corporativo', colors: { primary: '#1e40af', secondary: '#3b82f6', accent: '#0ea5e9', background: '#f8fafc' } },
     { name: 'Verde Natureza', colors: { primary: '#166534', secondary: '#16a34a', accent: '#65a30d', background: '#f7fee7' } },
@@ -228,7 +219,6 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
     { name: 'Rosa Moderno', colors: { primary: '#be185d', secondary: '#ec4899', accent: '#f472b6', background: '#fdf2f8' } },
     { name: 'Cinza Minimalista', colors: { primary: '#374151', secondary: '#6b7280', accent: '#10b981', background: '#ffffff' } }
   ];
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -253,7 +243,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
           
           <TabsContent value="colors" className=""
             <div>
-              <Label className="text-sm font-medium mb-3 block">Nome do Tema</Label>
+              <Label className="text-lg">"Nome do Tema</Label>
               <Input
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
@@ -263,7 +253,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
             
             <div className=""
               <div className=""
-                <h4 className="font-medium">Editar Cores</h4>
+                <h4 className="text-lg">"Editar Cores</h4>
                 <ColorPicker
                   color={customColors.primary}
                   onChange={(color) => updateColor('primary', color)}
@@ -287,14 +277,14 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
               </div>
               
               <div className=""
-                <h4 className="font-medium">Pré-visualização</h4>
+                <h4 className="text-lg">"Pré-visualização</h4>
                 <div 
                   className="h-32 rounded-lg relative overflow-hidden"
                   style={{ 
                     background: " 100%)` 
                   }}
                 >
-                  <div className="absolute inset-0 bg-black/20"></div>
+                  <div className="text-lg">"</div>
                   <div className=""
                     {template.icon}
                   </div>
@@ -304,7 +294,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
                 </div>
                 
                 <div className=""
-                  <h5 className="text-sm font-medium">Paleta de Cores</h5>
+                  <h5 className="text-lg">"Paleta de Cores</h5>
                   <div className=""
                     <div 
                       className="w-8 h-8 rounded border-2 border-white shadow-md"
@@ -355,7 +345,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
                 >
                   <CardContent className=""
                     <div className=""
-                      <h5 className="font-medium">{palette.name}</h5>
+                      <h5 className="text-lg">"{palette.name}</h5>
                     </div>
                     <div className=""
                       <div 
@@ -400,20 +390,17 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
     </Dialog>
   );
 }
-
 export function TemplateSelector() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Query para obter template atual
   const { data: currentTemplate } = useQuery({
     queryKey: ['/api/templates/current'],
     retry: false
   });
-
   // Mutation para aplicar template
   const applyTemplateMutation = useMutation({
     mutationFn: async (template: Template) => {
@@ -441,7 +428,6 @@ export function TemplateSelector() {
       });
     },
   });
-
   // Mutation para resetar template
   const resetTemplateMutation = useMutation({
     mutationFn: async () => {
@@ -469,30 +455,24 @@ export function TemplateSelector() {
       });
     },
   });
-
   // Inicializar template selecionado baseado no atual
   useEffect(() => {
     if (currentTemplate?.selectedTemplate) {
       setSelectedTemplate(currentTemplate.selectedTemplate);
     }
   }, [currentTemplate]);
-
   const applyTemplate = (template: Template) => {
     applyTemplateMutation.mutate(template);
   };
-
   const resetTemplate = () => {
     resetTemplateMutation.mutate();
   };
-
   const handleCustomTemplate = (customTemplate: Template) => {
     setCustomTemplates(prev => [...prev, customTemplate]);
     applyTemplate(customTemplate);
   };
-
   // Combine original templates with custom ones
   const allTemplates = [...templates, ...customTemplates];
-
   return (
     <div className=""
       <div className=""
@@ -506,7 +486,6 @@ export function TemplateSelector() {
             Cada tema inclui esquema de cores, layout e componentes otimizados.
           </p>
         </div>
-
         {/* Templates Grid */}
         <div className=""
           {allTemplates.map((template) => (
@@ -526,7 +505,7 @@ export function TemplateSelector() {
                 className="h-32 relative"
                 style={{ background: template.preview }}
               >
-                <div className="absolute inset-0 bg-black/20"></div>
+                <div className="text-lg">"</div>
                 <div className=""
                   {template.icon}
                 </div>
@@ -543,7 +522,6 @@ export function TemplateSelector() {
                   </div>
                 )}
               </div>
-
               <CardHeader className=""
                 <CardTitle className=""
                   {template.name}
@@ -555,7 +533,6 @@ export function TemplateSelector() {
                   {template.description}
                 </p>
               </CardHeader>
-
               <CardContent className=""
                 {/* Color Palette */}
                 <div className=""
@@ -580,17 +557,15 @@ export function TemplateSelector() {
                     title="Cor de fundo"
                   ></div>
                 </div>
-
                 {/* Features */}
                 <div className=""
                   {template.features.map((feature, index) => (
                     <div key={index} className=""
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
+                      <div className="text-lg">"</div>
                       {feature}
                     </div>
                   ))}
                 </div>
-
                 {/* Apply Button */}
                 <div className=""
                   <Button 
@@ -622,7 +597,6 @@ export function TemplateSelector() {
             </Card>
           ))}
         </div>
-
         {/* Action Buttons */}
         <div className=""
           <Button 
@@ -648,11 +622,10 @@ export function TemplateSelector() {
             )}
           </Button>
         </div>
-
         {/* Theme Info */}
         {selectedTemplate && (
           <div className=""
-            <h3 className="text-xl font-semibold mb-4">Tema Selecionado</h3>
+            <h3 className="text-lg">"Tema Selecionado</h3>
             {(() => {
               const template = templates.find(t => t.id === selectedTemplate);
               if (!template) return null;
@@ -660,17 +633,17 @@ export function TemplateSelector() {
               return (
                 <div className=""
                   <div>
-                    <h4 className="font-medium mb-2">Informações do Tema</h4>
+                    <h4 className="text-lg">"Informações do Tema</h4>
                     <p className=""
                       {template.description}
                     </p>
                     <div className=""
-                      <div className="text-sm"><strong>Nome:</strong> {template.name}</div>
-                      <div className="text-sm"><strong>Estilo:</strong> {template.style}</div>
+                      <div className="text-lg">"<strong>Nome:</strong> {template.name}</div>
+                      <div className="text-lg">"<strong>Estilo:</strong> {template.style}</div>
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium mb-2">Paleta de Cores</h4>
+                    <h4 className="text-lg">"Paleta de Cores</h4>
                     <div className=""
                       <div className=""
                         <div className="w-4 h-4 rounded" style={{ backgroundColor: template.colors.primary }}></div>

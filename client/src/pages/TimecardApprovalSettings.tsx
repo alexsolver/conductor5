@@ -15,7 +15,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { Settings, Users, Clock, CheckCircle, XCircle, Plus, Trash2, Edit, UserPlus, X } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 // import useLocalization from '@/hooks/useLocalization';
-
 interface ApprovalGroup {
   id: string;
   name: string;
@@ -24,7 +23,6 @@ interface ApprovalGroup {
   memberCount: number;
   createdAt: string;
 }
-
 interface ApprovalSettings {
   approvalType: 'automatic' | 'manual';
   autoApproveComplete: boolean;
@@ -39,7 +37,6 @@ interface ApprovalSettings {
   escalationRules: any;
   notificationSettings: any;
 }
-
 interface User {
   id: string;
   firstName: string;
@@ -47,10 +44,8 @@ interface User {
   email: string;
   role: string;
 }
-
 export default function TimecardApprovalSettings() {
   // Localization temporarily disabled
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('settings');
@@ -60,31 +55,25 @@ export default function TimecardApprovalSettings() {
   const [newGroupDescription, setNewGroupDescription] = useState('');
   const [showMembersDialog, setShowMembersDialog] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-
   // Fetch approval settings
   const { data: settings, isLoading: settingsLoading } = useQuery({
     queryKey: ['/api/timecard/approval/settings'],
     retry: false,
   });
-
   // Fetch approval groups
   const { data: groupsData, isLoading: groupsLoading } = useQuery({
     queryKey: ['/api/timecard/approval/groups'],
     retry: false,
   });
-
   // Fetch available users
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['/api/timecard/approval/users'],
     retry: false,
   });
-
   const groups: ApprovalGroup[] = (groupsData as any)?.groups || [];
   const users: User[] = (usersData as any)?.users || [];
-
   // Estado para contadores de membros 
   const [groupMemberCounts, setGroupMemberCounts] = useState<Record<string, number>>({});
-
   // Buscar contadores de membros quando grupos mudarem
   useEffect(() => {
     const fetchMemberCounts = async () => {
@@ -120,19 +109,15 @@ export default function TimecardApprovalSettings() {
       console.log('Final member counts:', counts);
       setGroupMemberCounts(counts);
     };
-
     fetchMemberCounts();
   }, [groups]);
-
   // Fetch group members when a group is selected
   const { data: groupMembersData, isLoading: membersLoading } = useQuery({
     queryKey: ['/api/timecard/approval/groups', selectedGroup?.id, 'members'],
     enabled: !!selectedGroup?.id && showMembersDialog,
     retry: false,
   });
-
   const groupMembers: User[] = (groupMembersData as any)?.members || [];
-
   // Update settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (newSettings: Partial<ApprovalSettings>) => {
@@ -155,7 +140,6 @@ export default function TimecardApprovalSettings() {
       console.error('Error updating settings:', error);
     },
   });
-
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: { name: string; description?: string }) => {
@@ -180,7 +164,6 @@ export default function TimecardApprovalSettings() {
       console.error('Error creating group:', error);
     },
   });
-
   // Update group mutation
   const updateGroupMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string } }) => {
@@ -206,7 +189,6 @@ export default function TimecardApprovalSettings() {
       console.error('Error updating group:', error);
     },
   });
-
   // Update group members mutation
   const updateMembersMutation = useMutation({
     mutationFn: async ({ groupId, userIds }: { groupId: string; userIds: string[] }) => {
@@ -234,7 +216,6 @@ export default function TimecardApprovalSettings() {
       console.error('[TRANSLATION_NEEDED]', error);
     },
   });
-
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
@@ -256,7 +237,6 @@ export default function TimecardApprovalSettings() {
       console.error('[TRANSLATION_NEEDED]', error);
     },
   });
-
   const currentSettings: ApprovalSettings = (settings as any)?.settings || {
     approvalType: 'manual',
     autoApproveComplete: false,
@@ -271,15 +251,11 @@ export default function TimecardApprovalSettings() {
     escalationRules: {},
     notificationSettings: {}
   };
-
-
-
   const handleSettingsChange = (key: keyof ApprovalSettings, value: any) => {
     const updatedSettings = { ...currentSettings, [key]: value };
     console.log('Sending settings update:', updatedSettings);
     updateSettingsMutation.mutate(updatedSettings);
   };
-
   const handleCreateGroup = () => {
     if (!newGroupName.trim()) {
       toast({
@@ -289,13 +265,11 @@ export default function TimecardApprovalSettings() {
       });
       return;
     }
-
     createGroupMutation.mutate({
       name: newGroupName.trim(),
       description: newGroupDescription.trim() || undefined
     });
   };
-
   const handleUpdateGroup = () => {
     if (!selectedGroup || !newGroupName.trim()) {
       toast({
@@ -305,7 +279,6 @@ export default function TimecardApprovalSettings() {
       });
       return;
     }
-
     updateGroupMutation.mutate({
       id: selectedGroup.id,
       data: {
@@ -314,16 +287,13 @@ export default function TimecardApprovalSettings() {
       }
     });
   };
-
   const handleUpdateMembers = () => {
     if (!selectedGroup) return;
-
     updateMembersMutation.mutate({
       groupId: selectedGroup.id,
       userIds: selectedUsers
     });
   };
-
   const handleUserToggle = (userId: string, checked: boolean) => {
     if (checked) {
       setSelectedUsers(prev => [...prev, userId]);
@@ -331,55 +301,48 @@ export default function TimecardApprovalSettings() {
       setSelectedUsers(prev => prev.filter(id => id !== userId));
     }
   };
-
   // Initialize selected users when members dialog opens
   const handleOpenMembersDialog = (group: ApprovalGroup) => {
     setSelectedGroup(group);
     setSelectedUsers([]); // Reset first
     setShowMembersDialog(true);
   };
-
   // Update selected users when group members data changes
   React.useEffect(() => {
     if (groupMembers.length > 0 && showMembersDialog) {
       setSelectedUsers(groupMembers.map(member => member.id));
     }
   }, [groupMembers, showMembersDialog]);
-
   const handleDeleteGroup = (groupId: string) => {
     if (confirm('Tem certeza que deseja remover este grupo?')) {
       deleteGroupMutation.mutate(groupId);
     }
   };
-
   if (settingsLoading || groupsLoading || usersLoading) {
     return (
       <div className=""
         <div className=""
           <Settings className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Configurações de Aprovação do Timecard</h1>
+          <h1 className="text-lg">"Configurações de Aprovação do Timecard</h1>
         </div>
         <div className=""
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-lg">"</div>
         </div>
       </div>
     );
   }
-
   return (
     <div className=""
       <div className=""
         <Settings className="h-6 w-6" />
-        <h1 className="text-2xl font-bold">Configurações de Aprovação do Timecard</h1>
+        <h1 className="text-lg">"Configurações de Aprovação do Timecard</h1>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className=""
         <TabsList className=""
           <TabsTrigger value="settings">Configurações Gerais</TabsTrigger>
           <TabsTrigger value="groups">Grupos de Aprovação</TabsTrigger>
           <TabsTrigger value="tickets">Integração com Tickets</TabsTrigger>
         </TabsList>
-
         <TabsContent value="settings" className=""
           <Card>
             <CardHeader>
@@ -408,7 +371,6 @@ export default function TimecardApprovalSettings() {
                   </SelectContent>
                 </Select>
               </div>
-
               {currentSettings.approvalType === 'automatic' && (
                 <div className=""
                   <div className=""
@@ -431,7 +393,6 @@ export default function TimecardApprovalSettings() {
                   </div>
                 </div>
               )}
-
               {currentSettings.approvalType === 'manual' && (
                 <div className=""
                   <Label>Requer aprovação para:</Label>
@@ -463,7 +424,6 @@ export default function TimecardApprovalSettings() {
               )}
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Configuração de Aprovadores</CardTitle>
@@ -491,7 +451,6 @@ export default function TimecardApprovalSettings() {
                   </SelectContent>
                 </Select>
               </div>
-
               <div className=""
                 <Label>Aprovadores Individuais</Label>
                 <Select
@@ -514,7 +473,6 @@ export default function TimecardApprovalSettings() {
                       ))}
                   </SelectContent>
                 </Select>
-
                 {currentSettings.defaultApprovers.length > 0 && (
                   <div className=""
                     {currentSettings.defaultApprovers.map(userId => {
@@ -542,10 +500,9 @@ export default function TimecardApprovalSettings() {
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="groups" className=""
           <div className=""
-            <h3 className="text-lg font-semibold">Grupos de Aprovação</h3>
+            <h3 className="text-lg">"Grupos de Aprovação</h3>
             <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
               <DialogTrigger asChild>
                 <Button>
@@ -606,7 +563,6 @@ export default function TimecardApprovalSettings() {
                 </div>
               </DialogContent>
             </Dialog>
-
             {/* Members Management Dialog */}
             <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
               <DialogContent className=""
@@ -620,7 +576,7 @@ export default function TimecardApprovalSettings() {
                 </DialogHeader>
                 <div className=""
                   {membersLoading ? (
-                    <div className="text-center py-4">Carregando membros...</div>
+                    <div className="text-lg">"Carregando membros...</div>
                   ) : (
                     <div className=""
                       {users.map(user => (
@@ -669,13 +625,12 @@ export default function TimecardApprovalSettings() {
               </DialogContent>
             </Dialog>
           </div>
-
           <div className=""
             {groups.length === 0 ? (
               <Card>
                 <CardContent className=""
                   <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Nenhum grupo criado</h3>
+                  <h3 className="text-lg">"Nenhum grupo criado</h3>
                   <p className=""
                     Crie grupos para organizar seus aprovadores de timecard.
                   </p>
@@ -694,9 +649,9 @@ export default function TimecardApprovalSettings() {
                         <Users className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <h4 className="font-semibold">{group.name}</h4>
+                        <h4 className="text-lg">"{group.name}</h4>
                         {group.description && (
-                          <p className="text-sm text-muted-foreground">{group.description}</p>
+                          <p className="text-lg">"{group.description}</p>
                         )}
                         <div className=""
                           <Badge variant="outline">{groupMemberCounts[group.id] || 0} membros</Badge>
@@ -743,7 +698,6 @@ export default function TimecardApprovalSettings() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="tickets" className=""
           <Card>
             <CardHeader>
@@ -760,7 +714,6 @@ export default function TimecardApprovalSettings() {
                 />
                 <Label>Criar tickets automaticamente para aprovações</Label>
               </div>
-
               {currentSettings.createAutoTickets && (
                 <div className=""
                   <div className=""
@@ -779,7 +732,6 @@ export default function TimecardApprovalSettings() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {currentSettings.ticketRecurrence === 'weekly' && (
                     <div>
                       <Label>Dia da semana</Label>
@@ -802,7 +754,6 @@ export default function TimecardApprovalSettings() {
                       </Select>
                     </div>
                   )}
-
                   <div>
                     <Label>Horário de criação</Label>
                     <Input
@@ -820,5 +771,4 @@ export default function TimecardApprovalSettings() {
     </div>
   );
 }
-
 export default TimecardApprovalSettings;

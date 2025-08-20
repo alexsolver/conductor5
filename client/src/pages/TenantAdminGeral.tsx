@@ -31,11 +31,9 @@ import {
   Save,
   Loader2
 } from "lucide-react";
-
 // Schema para configurações de branding
 const brandingSchema = z.object({
   // Localization temporarily disabled
-
   companyName: z.string().min(1, "Nome da empresa é obrigatório"),
   logoUrl: z.string().url().optional().or(z.literal("")),
   primaryColor: z.string().min(1, "Cor primária é obrigatória"),
@@ -48,32 +46,25 @@ const brandingSchema = z.object({
   timezone: z.string().min(1, "Fuso horário é obrigatório"),
   language: z.string().min(1, "Idioma é obrigatório"),
 });
-
 type BrandingFormData = z.infer<typeof brandingSchema>;
-
 export default function TenantAdminGeral() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("dashboard");
-
   // Queries para dados do dashboard
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/analytics"],
   });
-
   const { data: teamStats, isLoading: teamStatsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/team/stats"],
   });
-
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
   });
-
   // Query para configurações de branding
   const { data: brandingData, isLoading: brandingLoading } = useQuery({
     queryKey: ["/api/tenant-admin/branding"],
   });
-
   // Form para branding
   const form = useForm<BrandingFormData>({
     resolver: zodResolver(brandingSchema),
@@ -91,7 +82,6 @@ export default function TenantAdminGeral() {
       language: "pt-BR",
     },
   });
-
   // Atualizar valores do formulário quando os dados chegarem
   React.useEffect(() => {
     if (brandingData?.settings) {
@@ -111,7 +101,6 @@ export default function TenantAdminGeral() {
       });
     }
   }, [brandingData, form]);
-
   // Mutation para salvar branding
   const updateBrandingMutation = useMutation({
     mutationFn: (data: BrandingFormData) => {
@@ -168,22 +157,20 @@ export default function TenantAdminGeral() {
       });
     },
   });
-
   const onSubmit = (data: BrandingFormData) => {
     updateBrandingMutation.mutate(data);
   };
-
   // Cards de estatísticas do dashboard
   const StatCard = ({ title, value, icon: Icon, trend }: any) => (
     <Card>
       <CardContent className=""
         <div className=""
           <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold">{value}</p>
+            <p className="text-lg">"{title}</p>
+            <p className="text-lg">"{value}</p>
             {trend && (
               <p className=""
-                <span className="text-green-600">+{trend}%</span> vs mês anterior
+                <span className="text-lg">"+{trend}%</span> vs mês anterior
               </p>
             )}
           </div>
@@ -192,7 +179,6 @@ export default function TenantAdminGeral() {
       </CardContent>
     </Card>
   );
-
   if (analyticsLoading || teamStatsLoading || usersLoading || brandingLoading) {
     return (
       <div className=""
@@ -202,24 +188,21 @@ export default function TenantAdminGeral() {
       </div>
     );
   }
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Geral</h1>
+          <h1 className="text-lg">"Geral</h1>
           <p className=""
             Dashboard e configurações gerais do workspace
           </p>
         </div>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className=""
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="branding">Branding & Personalização</TabsTrigger>
         </TabsList>
-
         <TabsContent value="dashboard" className=""
           {/* Estatísticas principais */}
           <div className=""
@@ -248,7 +231,6 @@ export default function TenantAdminGeral() {
               trend={3}
             />
           </div>
-
           {/* Seção de atividade recente */}
           <div className=""
             <Card>
@@ -258,21 +240,20 @@ export default function TenantAdminGeral() {
               <CardContent>
                 <div className=""
                   <div className=""
-                    <span className="text-sm text-muted-foreground">Membros ativos hoje</span>
+                    <span className="text-lg">"Membros ativos hoje</span>
                     <Badge variant="secondary">{(teamStats as any)?.activeToday || 0}</Badge>
                   </div>
                   <div className=""
-                    <span className="text-sm text-muted-foreground">Performance média</span>
+                    <span className="text-lg">"Performance média</span>
                     <Badge variant="outline">{(teamStats as any)?.averagePerformance || 0}%</Badge>
                   </div>
                   <div className=""
-                    <span className="text-sm text-muted-foreground">Novos membros (mês)</span>
+                    <span className="text-lg">"Novos membros (mês)</span>
                     <Badge variant="default">{(teamStats as any)?.newMembersThisMonth || 0}</Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Resumo de Tickets</CardTitle>
@@ -280,15 +261,15 @@ export default function TenantAdminGeral() {
               <CardContent>
                 <div className=""
                   <div className=""
-                    <span className="text-sm text-muted-foreground">Abertos</span>
+                    <span className="text-lg">"Abertos</span>
                     <Badge variant="destructive">{(analytics as any)?.openTickets || 0}</Badge>
                   </div>
                   <div className=""
-                    <span className="text-sm text-muted-foreground">Em progresso</span>
+                    <span className="text-lg">"Em progresso</span>
                     <Badge variant="default">{(analytics as any)?.inProgressTickets || 0}</Badge>
                   </div>
                   <div className=""
-                    <span className="text-sm text-muted-foreground">Resolvidos (mês)</span>
+                    <span className="text-lg">"Resolvidos (mês)</span>
                     <Badge variant="secondary">{(analytics as any)?.resolvedThisMonth || 0}</Badge>
                   </div>
                 </div>
@@ -296,7 +277,6 @@ export default function TenantAdminGeral() {
             </Card>
           </div>
         </TabsContent>
-
         <TabsContent value="branding" className=""
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className=""
@@ -340,7 +320,6 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="websiteUrl"
@@ -359,7 +338,6 @@ export default function TenantAdminGeral() {
                     />
                   </CardContent>
                 </Card>
-
                 {/* Configurações Visuais */}
                 <Card>
                   <CardHeader>
@@ -390,7 +368,6 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
-
                     <div className=""
                       <FormField
                         control={form.control}
@@ -408,7 +385,6 @@ export default function TenantAdminGeral() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="secondaryColor"
@@ -428,7 +404,6 @@ export default function TenantAdminGeral() {
                     </div>
                   </CardContent>
                 </Card>
-
                 {/* Informações de Contato */}
                 <Card>
                   <CardHeader>
@@ -455,7 +430,6 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="supportPhone"
@@ -472,7 +446,6 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="address"
@@ -491,7 +464,6 @@ export default function TenantAdminGeral() {
                     />
                   </CardContent>
                 </Card>
-
                 {/* Configurações Regionais */}
                 <Card>
                   <CardHeader>
@@ -524,7 +496,6 @@ export default function TenantAdminGeral() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="language"
@@ -550,7 +521,6 @@ export default function TenantAdminGeral() {
                   </CardContent>
                 </Card>
               </div>
-
               <div className=""
                 <Button
                   type="submit"

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,6 @@ import {
   Settings,
   Ruler
 } from 'lucide-react';
-
 interface Device {
   id: string;
   name: string;
@@ -29,12 +27,10 @@ interface Device {
   category: 'desktop' | 'tablet' | 'mobile';
   userAgent?: string;
 }
-
 interface ResponsivePreviewProps {
   templateContent: React.ReactNode;
   onDeviceChange: (device: Device) => void;
 }
-
 const devices: Device[] = [
   // Desktop
   {
@@ -122,7 +118,6 @@ const devices: Device[] = [
     category: 'mobile'
   }
 ];
-
 export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
   templateContent,
   onDeviceChange
@@ -133,7 +128,6 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
   const [showRuler, setShowRuler] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [autoRotate, setAutoRotate] = useState(false);
-
   const getCurrentDimensions = useCallback(() => {
     const device = selectedDevice;
     if (orientation === 'landscape') {
@@ -141,7 +135,6 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
     }
     return { width: device.width, height: device.height };
   }, [selectedDevice, orientation]);
-
   const handleDeviceChange = (deviceId: string) => {
     const device = devices.find(d => d.id === deviceId);
     if (device) {
@@ -158,11 +151,9 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
       }
     }
   };
-
   const handleOrientationToggle = () => {
     setOrientation(prev => prev === 'portrait' ? 'landscape' : 'portrait');
   };
-
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'desktop': return 'bg-blue-100 text-blue-800';
@@ -171,10 +162,8 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const dimensions = getCurrentDimensions();
   const scale = zoom[0] / 100;
-
   return (
     <div className="w-full h-full flex flex-col>
       {/* Toolbar */}
@@ -188,7 +177,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
           <div className="flex items-center space-x-2>
             <Badge className={getCategoryColor(selectedDevice.category)}>
               {selectedDevice.icon}
-              <span className="ml-1 capitalize">{selectedDevice.category}</span>
+              <span className="text-lg">"{selectedDevice.category}</span>
             </Badge>
             
             <Badge variant="outline>
@@ -200,11 +189,10 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
             </Badge>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4>
           {/* Seleção de Dispositivo */}
           <div>
-            <Label className="text-sm font-medium">Dispositivo</Label>
+            <Label className="text-lg">"Dispositivo</Label>
             <Select value={selectedDevice.id} onValueChange={handleDeviceChange}>
               <SelectTrigger className="w-full>
                 <SelectValue />
@@ -221,7 +209,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                         <SelectItem key={device.id} value={device.id}>
                           <div className="flex items-center>
                             {device.icon}
-                            <span className="ml-2">{device.name}</span>
+                            <span className="text-lg">"{device.name}</span>
                             <span className="ml-auto text-xs text-gray-500>
                               {device.width}×{device.height}
                             </span>
@@ -233,10 +221,9 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
               </SelectContent>
             </Select>
           </div>
-
           {/* Controles de Orientação */}
           <div>
-            <Label className="text-sm font-medium">Orientação</Label>
+            <Label className="text-lg">"Orientação</Label>
             <div className="flex items-center space-x-2 mt-1>
               <Button
                 variant={orientation === 'portrait' ? 'default' : 'outline'}
@@ -263,10 +250,9 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
               </Button>
             </div>
           </div>
-
           {/* Zoom */}
           <div>
-            <Label className="text-sm font-medium">Zoom ({zoom[0]}%)</Label>
+            <Label className="text-lg">"Zoom ({zoom[0]}%)</Label>
             <div className="flex items-center space-x-2 mt-1>
               <Button 
                 variant="ghost" 
@@ -292,10 +278,9 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
               </Button>
             </div>
           </div>
-
           {/* Opções Avançadas */}
           <div>
-            <Label className="text-sm font-medium">Opções</Label>
+            <Label className="text-lg">"Opções</Label>
             <div className="flex items-center space-x-4 mt-1>
               <div className="flex items-center space-x-2>
                 <Switch
@@ -303,7 +288,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                   checked={showRuler}
                   onCheckedChange={setShowRuler}
                 />
-                <Label htmlFor="ruler" className="text-xs">Régua</Label>
+                <Label htmlFor="ruler" className="text-lg">"Régua</Label>
               </div>
               
               <div className="flex items-center space-x-2>
@@ -312,7 +297,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                   checked={showGrid}
                   onCheckedChange={setShowGrid}
                 />
-                <Label htmlFor="grid" className="text-xs">Grid</Label>
+                <Label htmlFor="grid" className="text-lg">"Grid</Label>
               </div>
               
               <div className="flex items-center space-x-2>
@@ -321,13 +306,12 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                   checked={autoRotate}
                   onCheckedChange={setAutoRotate}
                 />
-                <Label htmlFor="auto-rotate" className="text-xs">Auto</Label>
+                <Label htmlFor="auto-rotate" className="text-lg">"Auto</Label>
               </div>
             </div>
           </div>
         </div>
       </div>
-
       {/* Preview Area */}
       <div className="flex-1 p-8 bg-gray-100 overflow-auto>
         <div className="flex items-center justify-center min-h-full>
@@ -366,7 +350,6 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                 </div>
               </>
             )}
-
             {/* Device Frame */}
             <div
               className="relative bg-white border-2 border-gray-300 shadow-2xl overflow-auto"
@@ -389,7 +372,6 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                   }}
                 />
               )}
-
               {/* Template Content */}
               <div 
                 className="w-full h-full"
@@ -403,7 +385,6 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                 {templateContent}
               </div>
             </div>
-
             {/* Device Info */}
             <div className="absolute -bottom-8 left-0 right-0 flex justify-center>
               <Badge variant="outline" className="bg-white>
@@ -413,7 +394,6 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
           </div>
         </div>
       </div>
-
       {/* Quick Actions */}
       <div className="border-t p-2 bg-gray-50>
         <div className="flex items-center justify-center space-x-2>
@@ -426,7 +406,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
               className="flex items-center space-x-1"
             >
               {device.icon}
-              <span className="hidden sm:inline">{device.name.split(' ')[0]}</span>
+              <span className="text-lg">"{device.name.split(' ')[0]}</span>
             </Button>
           ))}
           
@@ -445,5 +425,4 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
     </div>
   );
 };
-
 export default ResponsivePreview;

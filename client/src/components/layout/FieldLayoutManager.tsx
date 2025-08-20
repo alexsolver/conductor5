@@ -14,7 +14,6 @@ import DropZone from "./DropZone";
 import DynamicFieldRenderer, { CustomField } from "./DynamicFieldRenderer";
 import { useCustomFields } from "@/hooks/useCustomFields";
 import { useToast } from "@/hooks/use-toast";
-
 interface FieldLayoutManagerProps {
   ticketId?: string;
   entityType?: 'ticket' | 'customer' | 'user';
@@ -22,7 +21,6 @@ interface FieldLayoutManagerProps {
   isVisible?: boolean;
   onToggleVisibility?: (visible: boolean) => void;
 }
-
 export default function FieldLayoutManager({
   ticketId,
   entityType = 'ticket',
@@ -34,7 +32,6 @@ export default function FieldLayoutManager({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedField, setDraggedField] = useState<any>(null);
   const { toast } = useToast();
-
   const {
     fields: rawFields,
     isLoading,
@@ -48,10 +45,8 @@ export default function FieldLayoutManager({
     validateFields,
     isSaving
   } = useCustomFields({ ticketId, entityType, entityId });
-
   // Ensure fields is always an array
   const fields = Array.isArray(rawFields) ? rawFields : [];
-
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id as string);
@@ -60,7 +55,6 @@ export default function FieldLayoutManager({
       setDraggedField(active.data.current);
     }
   };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
@@ -69,7 +63,6 @@ export default function FieldLayoutManager({
       setDraggedField(null);
       return;
     }
-
     if (active.data.current?.type === 'field' && over.data.current?.type === 'dropzone') {
       const fieldData = active.data.current;
       
@@ -80,17 +73,14 @@ export default function FieldLayoutManager({
         description: "" foi adicionado à área de formulário`
       });
     }
-
     setActiveId(null);
     setDraggedField(null);
   };
-
   const handleSaveAll = async () => {
     if (validateFields()) {
       await saveFields();
     }
   };
-
   const handleToggleEditMode = () => {
     setIsEditMode(!isEditMode);
     if (isEditMode) {
@@ -98,7 +88,6 @@ export default function FieldLayoutManager({
       handleSaveAll();
     }
   };
-
   if (!isVisible) {
     return (
       <div className="fixed bottom-4 right-4 z-50>
@@ -113,7 +102,6 @@ export default function FieldLayoutManager({
       </div>
     );
   }
-
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex>
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -121,7 +109,6 @@ export default function FieldLayoutManager({
         <div className="w-80 bg-white border-r overflow-y-auto>
           <FieldsPalette />
         </div>
-
         {/* Main Panel - Form Builder */}
         <div className="flex-1 bg-gray-50 overflow-y-auto>
           <div className="p-6>
@@ -170,7 +157,6 @@ export default function FieldLayoutManager({
                 </div>
               </CardHeader>
             </Card>
-
             {/* Action Bar */}
             {isEditMode && (
               <Card className="mb-6>
@@ -222,7 +208,6 @@ export default function FieldLayoutManager({
                 </CardContent>
               </Card>
             )}
-
             {/* Form Building Area */}
             <div className="grid grid-cols-1 gap-4>
               {fields.length === 0 ? (
@@ -254,12 +239,11 @@ export default function FieldLayoutManager({
                 </>
               )}
             </div>
-
             {/* Values Preview (Debug Mode) */}
             {fields.length > 0 && !isEditMode && (
               <Card className="mt-6>
                 <CardHeader>
-                  <CardTitle className="text-sm">Valores dos Campos</CardTitle>
+                  <CardTitle className="text-lg">"Valores dos Campos</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto>
@@ -270,13 +254,12 @@ export default function FieldLayoutManager({
             )}
           </div>
         </div>
-
         {/* Drag Overlay */}
         <DragOverlay>
           {draggedField ? (
             <div className="p-3 border rounded-lg bg-white shadow-lg opacity-80>
               <div className="flex items-center gap-2>
-                <span className="font-medium text-sm">{draggedField.label}</span>
+                <span className="text-lg">"{draggedField.label}</span>
                 <Badge variant="outline" className="text-xs>
                   {draggedField.fieldType}
                 </Badge>

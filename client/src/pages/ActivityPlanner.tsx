@@ -3,7 +3,6 @@
  * Interface unificada para gestão de ativos, planos e ordens de serviço
  * Seguindo padrões de design system e 1qa.md
  */
-
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -51,11 +50,9 @@ import {
   MoreHorizontal,
   CheckSquare
 } from 'lucide-react';
-
 // Form Schemas following 1qa.md patterns
 const assetSchema = z.object({
   // Localization temporarily disabled
-
   tag: z.string().min(1, 'Tag é obrigatório'),
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
@@ -69,7 +66,6 @@ const assetSchema = z.object({
   warrantyExpiry: z.string().optional(),
   installationDate: z.string().optional(),
 });
-
 const maintenancePlanSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
@@ -82,7 +78,6 @@ const maintenancePlanSchema = z.object({
   requiredSkills: z.array(z.string()).optional(),
   isActive: z.boolean().default(true),
 });
-
 const workOrderSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
@@ -96,11 +91,9 @@ const workOrderSchema = z.object({
   instructions: z.string().optional(),
   requiredParts: z.array(z.string()).optional(),
 });
-
 type AssetFormData = z.infer<typeof assetSchema>;
 type MaintenancePlanFormData = z.infer<typeof maintenancePlanSchema>;
 type WorkOrderFormData = z.infer<typeof workOrderSchema>;
-
 interface Asset {
   id: string;
   tag: string;
@@ -121,7 +114,6 @@ interface Asset {
   location?: { name: string };
   category?: { name: string };
 }
-
 interface MaintenancePlan {
   id: string;
   name: string;
@@ -137,7 +129,6 @@ interface MaintenancePlan {
   nextScheduledAt?: string;
   asset?: { tag: string; name: string };
 }
-
 interface WorkOrder {
   id: string;
   title: string;
@@ -159,7 +150,6 @@ interface WorkOrder {
   asset?: { tag: string; name: string };
   assignedTechnician?: { name: string };
 }
-
 interface Technician {
   id: string;
   name: string;
@@ -167,24 +157,20 @@ interface Technician {
   skills: string[];
   availability: 'available' | 'busy' | 'offline';
 }
-
 interface Location {
   id: string;
   name: string;
 }
-
 interface AssetCategory {
   id: string;
   name: string;
 }
-
 const criticalityColors = {
   low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
   medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
   high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
   critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
 };
-
 const priorityColors = {
   low: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
   medium: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
@@ -192,50 +178,39 @@ const priorityColors = {
   critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
   emergency: 'bg-red-500 text-white dark:bg-red-600'
 };
-
 export default function ActivityPlanner() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
-
   // Additional data queries
   const { data: locations } = useQuery({
     queryKey: ['/api/locations'],
   });
-
   const { data: assetCategories } = useQuery({
     queryKey: ['/api/activity-planner/asset-categories'],
   });
-
   const { data: technicians } = useQuery({
     queryKey: ['/api/users'],
   });
-
   // Main data queries
   const { data: assetStats, isLoading: loadingAssetStats } = useQuery({
     queryKey: ['/api/activity-planner/stats/assets'],
     enabled: activeTab === 'dashboard'
   });
-
   const { data: assets, isLoading: loadingAssets } = useQuery<{ success: boolean; data: Asset[] }>({
     queryKey: ['/api/activity-planner/assets'],
     enabled: activeTab === 'assets'
   });
-
   const { data: maintenancePlans, isLoading: loadingPlans } = useQuery<{ success: boolean; data: MaintenancePlan[] }>({
     queryKey: ['/api/activity-planner/maintenance-plans'],
     enabled: activeTab === 'plans'
   });
-
   const { data: workOrders, isLoading: loadingWorkOrders } = useQuery<{ success: boolean; data: WorkOrder[] }>({
     queryKey: ['/api/activity-planner/work-orders'],
     enabled: activeTab === 'workorders'
   });
-
   // 🛠️ **CONTROLES CRÍTICOS AUSENTES** - Implementando conforme 1qa.md
-
   // 📋 **1. FORMULÁRIOS DE CRIAÇÃO COMPLETOS**
-
   // Asset Creation Dialog
   function CreateAssetDialog({ onSuccess }: { onSuccess: () => void }) {
     const [open, setOpen] = useState(false);
@@ -257,7 +232,6 @@ export default function ActivityPlanner() {
         installationDate: "",
       },
     });
-
     const createAssetMutation = useMutation({
       mutationFn: (data: AssetFormData) => apiRequest("POST", "/api/activity-planner/assets", data),
       onSuccess: () => {
@@ -275,7 +249,6 @@ export default function ActivityPlanner() {
         });
       },
     });
-
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
@@ -288,7 +261,6 @@ export default function ActivityPlanner() {
           <DialogHeader>
             <DialogTitle>Criar Novo Ativo</DialogTitle>
           </DialogHeader>
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit((data) => createAssetMutation.mutate(data))} className=""
               <div className=""
@@ -319,7 +291,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="locationId"
@@ -342,7 +313,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="categoryId"
@@ -365,7 +335,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="criticality"
@@ -389,7 +358,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="serialNumber"
@@ -403,7 +371,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="manufacturer"
@@ -417,7 +384,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="model"
@@ -431,7 +397,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="purchaseDate"
@@ -445,7 +410,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="warrantyExpiry"
@@ -459,7 +423,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="installationDate"
@@ -474,7 +437,6 @@ export default function ActivityPlanner() {
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="description"
@@ -488,7 +450,6 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
@@ -508,7 +469,6 @@ export default function ActivityPlanner() {
       </Dialog>
     );
   }
-
   // Maintenance Plan Creation Dialog
   function CreateMaintenancePlanDialog({ onSuccess }: { onSuccess: () => void }) {
     const [open, setOpen] = useState(false);
@@ -528,7 +488,6 @@ export default function ActivityPlanner() {
         isActive: true,
       },
     });
-
     const createPlanMutation = useMutation({
       mutationFn: (data: MaintenancePlanFormData) => apiRequest("POST", "/api/activity-planner/maintenance-plans", data),
       onSuccess: () => {
@@ -546,7 +505,6 @@ export default function ActivityPlanner() {
         });
       },
     });
-
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
@@ -559,7 +517,6 @@ export default function ActivityPlanner() {
           <DialogHeader>
             <DialogTitle>Criar Plano de Manutenção</DialogTitle>
           </DialogHeader>
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit((data) => createPlanMutation.mutate(data))} className=""
               <div className=""
@@ -576,7 +533,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="assetId"
@@ -599,7 +555,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="triggerType"
@@ -622,7 +577,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="triggerValue"
@@ -636,7 +590,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="priority"
@@ -660,7 +613,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="estimatedDuration"
@@ -680,7 +632,6 @@ export default function ActivityPlanner() {
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="description"
@@ -694,7 +645,6 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="instructions"
@@ -708,14 +658,13 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="isActive"
                 render={({ field }) => (
                   <FormItem className=""
                     <div className=""
-                      <FormLabel className="text-base">Plano Ativo</FormLabel>
+                      <FormLabel className="text-lg">"Plano Ativo</FormLabel>
                       <div className=""
                         Ativar agendamento automático de manutenções
                       </div>
@@ -730,7 +679,6 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
@@ -750,7 +698,6 @@ export default function ActivityPlanner() {
       </Dialog>
     );
   }
-
   // Work Order Creation Dialog
   function CreateWorkOrderDialog({ onSuccess }: { onSuccess: () => void }) {
     const [open, setOpen] = useState(false);
@@ -771,7 +718,6 @@ export default function ActivityPlanner() {
         requiredParts: [],
       },
     });
-
     const createWorkOrderMutation = useMutation({
       mutationFn: (data: WorkOrderFormData) => apiRequest("POST", "/api/activity-planner/work-orders", data),
       onSuccess: () => {
@@ -789,7 +735,6 @@ export default function ActivityPlanner() {
         });
       },
     });
-
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
@@ -802,7 +747,6 @@ export default function ActivityPlanner() {
           <DialogHeader>
             <DialogTitle>Criar Ordem de Serviço</DialogTitle>
           </DialogHeader>
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit((data) => createWorkOrderMutation.mutate(data))} className=""
               <div className=""
@@ -819,7 +763,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="assetId"
@@ -842,7 +785,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="type"
@@ -865,7 +807,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="priority"
@@ -890,7 +831,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="scheduledStart"
@@ -904,7 +844,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="estimatedDuration"
@@ -923,7 +862,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="assignedTechnicianId"
@@ -946,7 +884,6 @@ export default function ActivityPlanner() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="maintenancePlanId"
@@ -971,7 +908,6 @@ export default function ActivityPlanner() {
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="description"
@@ -985,7 +921,6 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="instructions"
@@ -999,7 +934,6 @@ export default function ActivityPlanner() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
@@ -1019,15 +953,13 @@ export default function ActivityPlanner() {
       </Dialog>
     );
   }
-
   // 🔧 **2. GESTÃO DE TÉCNICOS E ALOCAÇÃO** 
   function TechnicianAllocationPanel() {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
     return (
       <div className=""
         <div className=""
-          <h3 className="text-lg font-semibold">Alocação de Técnicos</h3>
+          <h3 className="text-lg">"Alocação de Técnicos</h3>
           <div className=""
             <Input 
               type="date" 
@@ -1041,15 +973,14 @@ export default function ActivityPlanner() {
             </Button>
           </div>
         </div>
-
         <div className=""
           {(technicians as any)?.data?.map((tech: Technician) => (
             <Card key={tech.id} className="hover:shadow-md transition-shadow" data-testid={"asset-card-
               <CardHeader className=""
                 <div className=""
                   <div>
-                    <CardTitle className="text-sm">{tech.name}</CardTitle>
-                    <p className="text-xs text-muted-foreground">{tech.email}</p>
+                    <CardTitle className="text-lg">"{tech.name}</CardTitle>
+                    <p className="text-lg">"{tech.email}</p>
                   </div>
                   <Badge variant={tech.availability === 'available' ? 'default' : 'secondary'}>
                     {tech.availability === 'available' ? 'Disponível' : 
@@ -1059,28 +990,27 @@ export default function ActivityPlanner() {
               </CardHeader>
               <CardContent className=""
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Habilidades:</p>
+                  <p className="text-lg">"Habilidades:</p>
                   <div className=""
                     {tech.skills?.map((skill, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">{skill}</Badge>
+                      <Badge key={idx} variant="outline" className="text-lg">"{skill}</Badge>
                     ))}
                   </div>
                 </div>
                 
                 <div className=""
-                  <p className="text-xs font-medium text-muted-foreground">OS do Dia:</p>
+                  <p className="text-lg">"OS do Dia:</p>
                   <div className=""
                     <div className=""
                       <span>OS-001 (09:00-11:00)</span>
-                      <Badge variant="outline" className="text-xs">Em Andamento</Badge>
+                      <Badge variant="outline" className="text-lg">"Em Andamento</Badge>
                     </div>
                     <div className=""
                       <span>OS-002 (14:00-16:00)</span>
-                      <Badge variant="secondary" className="text-xs">Agendada</Badge>
+                      <Badge variant="secondary" className="text-lg">"Agendada</Badge>
                     </div>
                   </div>
                 </div>
-
                 <div className=""
                   <Button size="sm" variant="outline" className="flex-1" data-testid={"asset-card-
                     <Eye className="w-3 h-3 mr-1" />
@@ -1098,16 +1028,14 @@ export default function ActivityPlanner() {
       </div>
     );
   }
-
   // 📅 **3. SISTEMA DE AGENDAMENTO AVANÇADO**
   function MaintenanceScheduler() {
     const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
     const [selectedWeek, setSelectedWeek] = useState(new Date().toISOString().split('T')[0]);
-
     return (
       <div className=""
         <div className=""
-          <h3 className="text-lg font-semibold">Cronograma de Manutenções</h3>
+          <h3 className="text-lg">"Cronograma de Manutenções</h3>
           <div className=""
             <Select value={viewMode} onValueChange={(value: 'calendar' | 'list') => setViewMode(value)}>
               <SelectTrigger className="w-32" data-testid="select-schedule-view>
@@ -1131,19 +1059,18 @@ export default function ActivityPlanner() {
             </Button>
           </div>
         </div>
-
         {viewMode === 'calendar' ? (
           <div className=""
             <div className=""
-              <div className="font-medium text-center text-sm">Horário</div>
+              <div className="text-lg">"Horário</div>
               {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(day => (
-                <div key={day} className="font-medium text-center text-sm">{day}</div>
+                <div key={day} className="text-lg">"{day}</div>
               ))}
             </div>
             
             {Array.from({ length: 12 }, (_, hour) => (
               <div key={hour} className=""
-                <div className="text-xs text-center py-2">{(hour + 8).toString().padStart(2, '0')}:00</div>
+                <div className="text-lg">"{(hour + 8).toString().padStart(2, '0')}:00</div>
                 {Array.from({ length: 7 }, (_, day) => (
                   <div 
                     key={day} 
@@ -1174,8 +1101,8 @@ export default function ActivityPlanner() {
                   <div className=""
                     <div className=""
                       <div className=""
-                        <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">OS-00{i}</Badge>
-                        <span className="font-medium">Manutenção Preventiva - Equipamento {i}</span>
+                        <Badge className="text-lg">"OS-00{i}</Badge>
+                        <span className="text-lg">"Manutenção Preventiva - Equipamento {i}</span>
                       </div>
                       <p className=""
                         📍 Localização: Setor {i} | 👨‍🔧 Técnico: João Silva
@@ -1201,7 +1128,6 @@ export default function ActivityPlanner() {
       </div>
     );
   }
-
   // 🏃‍♂️ **5. WORKFLOW DE ORDENS DE SERVIÇO**
   function WorkOrderWorkflow({ workOrder }: { workOrder: WorkOrder }) {
     const updateWorkOrderMutation = useMutation({
@@ -1219,7 +1145,6 @@ export default function ActivityPlanner() {
         });
       },
     });
-
     const handleStatusChange = (newStatus: WorkOrder['status']) => {
       updateWorkOrderMutation.mutate({ 
         id: workOrder.id, 
@@ -1230,7 +1155,6 @@ export default function ActivityPlanner() {
         }
       });
     };
-
     const getStatusColor = (status: string) => {
       switch (status) {
         case 'draft': return 'bg-gray-500';
@@ -1242,7 +1166,6 @@ export default function ActivityPlanner() {
         default: return 'bg-gray-500';
       }
     };
-
     return (
       <div className=""
         <DropdownMenu>
@@ -1298,12 +1221,11 @@ export default function ActivityPlanner() {
       </div>
     );
   }
-
   const renderDashboard = () => (
     <div className=""
       <Card className=""
         <CardHeader className=""
-          <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
+          <CardTitle className="text-lg">"Total de Ativos</CardTitle>
           <Settings className="h-4 w-4 text-blue-600" />
         </CardHeader>
         <CardContent>
@@ -1315,40 +1237,37 @@ export default function ActivityPlanner() {
           </p>
         </CardContent>
       </Card>
-
       <Card className=""
         <CardHeader className=""
-          <CardTitle className="text-sm font-medium">Planos Ativos</CardTitle>
+          <CardTitle className="text-lg">"Planos Ativos</CardTitle>
           <Calendar className="h-4 w-4 text-green-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-600">0</div>
+          <div className="text-lg">"0</div>
           <p className=""
             0 aguardando geração
           </p>
         </CardContent>
       </Card>
-
       <Card className=""
         <CardHeader className=""
-          <CardTitle className="text-sm font-medium">OS em Andamento</CardTitle>
+          <CardTitle className="text-lg">"OS em Andamento</CardTitle>
           <Wrench className="h-4 w-4 text-orange-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-orange-600">0</div>
+          <div className="text-lg">"0</div>
           <p className=""
             0 atrasadas
           </p>
         </CardContent>
       </Card>
-
       <Card className=""
         <CardHeader className=""
-          <CardTitle className="text-sm font-medium">Eficiência</CardTitle>
+          <CardTitle className="text-lg">"Eficiência</CardTitle>
           <CheckCircle className="h-4 w-4 text-purple-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-purple-600">95%</div>
+          <div className="text-lg">"95%</div>
           <p className=""
             SLA cumprido
           </p>
@@ -1356,7 +1275,6 @@ export default function ActivityPlanner() {
       </Card>
     </div>
   );
-
   const renderAssets = () => (
     <div className=""
       <div className=""
@@ -1387,19 +1305,18 @@ export default function ActivityPlanner() {
           </Button>
         </div>
       </div>
-
       <div className=""
         {loadingAssets ? (
           Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className=""
               <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="text-lg">"</div>
+                <div className="text-lg">"</div>
               </CardHeader>
               <CardContent>
                 <div className=""
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  <div className="text-lg">"</div>
+                  <div className="text-lg">"</div>
                 </div>
               </CardContent>
             </Card>
@@ -1410,7 +1327,7 @@ export default function ActivityPlanner() {
               <CardHeader>
                 <div className=""
                   <div>
-                    <CardTitle className="text-lg">{asset.tag}</CardTitle>
+                    <CardTitle className="text-lg">"{asset.tag}</CardTitle>
                     <CardDescription>{asset.name}</CardDescription>
                   </div>
                   <Badge className={criticalityColors[asset.criticality]}>
@@ -1452,11 +1369,10 @@ export default function ActivityPlanner() {
       </div>
     </div>
   );
-
   const renderMaintenancePlans = () => (
     <div className=""
       <div className=""
-        <h2 className="text-2xl font-bold">Planos de Manutenção</h2>
+        <h2 className="text-lg">"Planos de Manutenção</h2>
         <CreateMaintenancePlanDialog onSuccess={() => {}} />
       </div>
       
@@ -1475,14 +1391,12 @@ export default function ActivityPlanner() {
       </Card>
     </div>
   );
-
   const renderWorkOrders = () => (
     <div className=""
       <div className=""
-        <h2 className="text-2xl font-bold">Ordens de Serviço</h2>
+        <h2 className="text-lg">"Ordens de Serviço</h2>
         <CreateWorkOrderDialog onSuccess={() => {}} />
       </div>
-
       <div className=""
         {workOrders?.data && Array.isArray(workOrders.data) && workOrders.data.length > 0 ? (
           workOrders.data.map((workOrder: WorkOrder) => (
@@ -1512,7 +1426,7 @@ export default function ActivityPlanner() {
                          workOrder.type === 'corrective' ? 'Corretiva' : 'Emergência'}
                       </Badge>
                     </div>
-                    <CardTitle className="text-lg">{workOrder.title}</CardTitle>
+                    <CardTitle className="text-lg">"{workOrder.title}</CardTitle>
                     <CardDescription className=""
                       {workOrder.description}
                     </CardDescription>
@@ -1520,18 +1434,17 @@ export default function ActivityPlanner() {
                   <WorkOrderWorkflow workOrder={workOrder} />
                 </div>
               </CardHeader>
-
               <CardContent className=""
                 <div className=""
                   <div className=""
                     <Settings className="h-4 w-4 text-gray-500" />
-                    <span className="text-muted-foreground">Ativo:</span>
-                    <span className="font-medium">Ativo-{workOrder.assetId}</span>
+                    <span className="text-lg">"Ativo:</span>
+                    <span className="text-lg">"Ativo-{workOrder.assetId}</span>
                   </div>
                   
                   <div className=""
                     <User className="h-4 w-4 text-gray-500" />
-                    <span className="text-muted-foreground">Técnico:</span>
+                    <span className="text-lg">"Técnico:</span>
                     <span className=""
                       {workOrder.assignedTechnicianId ? 'Atribuído' : 'Não atribuído'}
                     </span>
@@ -1539,21 +1452,19 @@ export default function ActivityPlanner() {
                   
                   <div className=""
                     <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="text-muted-foreground">Duração:</span>
-                    <span className="font-medium">{workOrder.estimatedDuration}h</span>
+                    <span className="text-lg">"Duração:</span>
+                    <span className="text-lg">"{workOrder.estimatedDuration}h</span>
                   </div>
                 </div>
-
                 {workOrder.scheduledStart && (
                   <div className=""
                     <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-muted-foreground">Agendado:</span>
+                    <span className="text-lg">"Agendado:</span>
                     <span className=""
                       {new Date(workOrder.scheduledStart).toLocaleString()}
                     </span>
                   </div>
                 )}
-
                 <div className=""
                   <Button size="sm" variant="outline" data-testid={"asset-card-
                     <Eye className="w-3 h-3 mr-1" />
@@ -1585,11 +1496,10 @@ export default function ActivityPlanner() {
       </div>
     </div>
   );
-
   const renderAnalytics = () => (
     <div className=""
       <div className=""
-        <h2 className="text-2xl font-bold">Analytics & Relatórios</h2>
+        <h2 className="text-lg">"Analytics & Relatórios</h2>
         <div className=""
           <Button variant="outline" size="sm" data-testid="button-export-analytics>
             <Download className="h-4 w-4 mr-2" />
@@ -1601,131 +1511,124 @@ export default function ActivityPlanner() {
           </Button>
         </div>
       </div>
-
       {/* KPI Cards */}
       <div className=""
         <Card className=""
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">MTBF Médio</CardTitle>
+            <CardTitle className="text-lg">"MTBF Médio</CardTitle>
             <BarChart3 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">127h</div>
+            <div className="text-lg">"127h</div>
             <p className=""
               +12% vs mês anterior
             </p>
           </CardContent>
         </Card>
-
         <Card className=""
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">MTTR Médio</CardTitle>
+            <CardTitle className="text-lg">"MTTR Médio</CardTitle>
             <Clock className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">2.4h</div>
+            <div className="text-lg">"2.4h</div>
             <p className=""
               -18% vs mês anterior
             </p>
           </CardContent>
         </Card>
-
         <Card className=""
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Disponibilidade</CardTitle>
+            <CardTitle className="text-lg">"Disponibilidade</CardTitle>
             <CheckCircle className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">98.7%</div>
+            <div className="text-lg">"98.7%</div>
             <p className=""
               +2.1% vs mês anterior
             </p>
           </CardContent>
         </Card>
-
         <Card className=""
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Custos Total</CardTitle>
+            <CardTitle className="text-lg">"Custos Total</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">R$ 24.7k</div>
+            <div className="text-lg">"R$ 24.7k</div>
             <p className=""
               -8% vs mês anterior
             </p>
           </CardContent>
         </Card>
       </div>
-
       {/* Charts and Reports */}
       <div className=""
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Tendência de Manutenções</CardTitle>
+            <CardTitle className="text-lg">"Tendência de Manutenções</CardTitle>
             <CardDescription>Preventivas vs Corretivas (últimos 6 meses)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className=""
               <div className=""
                 <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">Gráfico de tendências</p>
-                <p className="text-xs text-gray-400">Dados simulados para demonstração</p>
+                <p className="text-lg">"Gráfico de tendências</p>
+                <p className="text-lg">"Dados simulados para demonstração</p>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Distribuição por Criticidade</CardTitle>
+            <CardTitle className="text-lg">"Distribuição por Criticidade</CardTitle>
             <CardDescription>Ativos por nível de criticidade</CardDescription>
           </CardHeader>
           <CardContent>
             <div className=""
               <div className=""
                 <div className=""
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-sm">Crítica</span>
+                  <div className="text-lg">"</div>
+                  <span className="text-lg">"Crítica</span>
                 </div>
-                <span className="text-sm font-medium">24%</span>
+                <span className="text-lg">"24%</span>
               </div>
               <Progress value={24} className="h-2" />
               
               <div className=""
                 <div className=""
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-sm">Alta</span>
+                  <div className="text-lg">"</div>
+                  <span className="text-lg">"Alta</span>
                 </div>
-                <span className="text-sm font-medium">38%</span>
+                <span className="text-lg">"38%</span>
               </div>
               <Progress value={38} className="h-2" />
               
               <div className=""
                 <div className=""
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <span className="text-sm">Média</span>
+                  <div className="text-lg">"</div>
+                  <span className="text-lg">"Média</span>
                 </div>
-                <span className="text-sm font-medium">26%</span>
+                <span className="text-lg">"26%</span>
               </div>
               <Progress value={26} className="h-2" />
               
               <div className=""
                 <div className=""
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">Baixa</span>
+                  <div className="text-lg">"</div>
+                  <span className="text-lg">"Baixa</span>
                 </div>
-                <span className="text-sm font-medium">12%</span>
+                <span className="text-lg">"12%</span>
               </div>
               <Progress value={12} className="h-2" />
             </div>
           </CardContent>
         </Card>
       </div>
-
       {/* Performance Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Performance por Ativo</CardTitle>
+          <CardTitle className="text-lg">"Performance por Ativo</CardTitle>
           <CardDescription>Métricas detalhadas dos principais ativos</CardDescription>
         </CardHeader>
         <CardContent>
@@ -1742,48 +1645,48 @@ export default function ActivityPlanner() {
             </TableHeader>
             <TableBody>
               <TableRow>
-                <TableCell className="font-medium">EQ-001 - Compressor Principal</TableCell>
+                <TableCell className="text-lg">"EQ-001 - Compressor Principal</TableCell>
                 <TableCell>
                   <div className=""
                     <span>99.2%</span>
-                    <Badge variant="outline" className="bg-green-50 text-green-700">Excelente</Badge>
+                    <Badge variant="outline" className="text-lg">"Excelente</Badge>
                   </div>
                 </TableCell>
                 <TableCell>145h</TableCell>
                 <TableCell>1.8h</TableCell>
                 <TableCell>3</TableCell>
                 <TableCell>
-                  <Badge className="bg-green-100 text-green-800">Operacional</Badge>
+                  <Badge className="text-lg">"Operacional</Badge>
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">EQ-002 - Bomba Hidráulica</TableCell>
+                <TableCell className="text-lg">"EQ-002 - Bomba Hidráulica</TableCell>
                 <TableCell>
                   <div className=""
                     <span>97.8%</span>
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Bom</Badge>
+                    <Badge variant="outline" className="text-lg">"Bom</Badge>
                   </div>
                 </TableCell>
                 <TableCell>98h</TableCell>
                 <TableCell>3.2h</TableCell>
                 <TableCell>5</TableCell>
                 <TableCell>
-                  <Badge className="bg-orange-100 text-orange-800">Manutenção</Badge>
+                  <Badge className="text-lg">"Manutenção</Badge>
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">EQ-003 - Motor Elétrico</TableCell>
+                <TableCell className="text-lg">"EQ-003 - Motor Elétrico</TableCell>
                 <TableCell>
                   <div className=""
                     <span>94.5%</span>
-                    <Badge variant="outline" className="bg-orange-50 text-orange-700">Regular</Badge>
+                    <Badge variant="outline" className="text-lg">"Regular</Badge>
                   </div>
                 </TableCell>
                 <TableCell>76h</TableCell>
                 <TableCell>4.1h</TableCell>
                 <TableCell>7</TableCell>
                 <TableCell>
-                  <Badge className="bg-red-100 text-red-800">Atenção</Badge>
+                  <Badge className="text-lg">"Atenção</Badge>
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -1792,7 +1695,6 @@ export default function ActivityPlanner() {
       </Card>
     </div>
   );
-
   return (
     <div className=""
       <div className=""
@@ -1803,7 +1705,6 @@ export default function ActivityPlanner() {
           Gerencie ativos, planos de manutenção e ordens de serviço de forma integrada
         </p>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className=""
           <TabsTrigger value="dashboard" data-testid="tab-dashboard>
@@ -1828,31 +1729,24 @@ export default function ActivityPlanner() {
             Analytics
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="dashboard" className=""
           {renderDashboard()}
         </TabsContent>
-
         <TabsContent value="assets" className=""
           {renderAssets()}
         </TabsContent>
-
         <TabsContent value="plans" className=""
           {renderMaintenancePlans()}
         </TabsContent>
-
         <TabsContent value="workorders" className=""
           {renderWorkOrders()}
         </TabsContent>
-
         <TabsContent value="technicians" className=""
           <TechnicianAllocationPanel />
         </TabsContent>
-
         <TabsContent value="scheduler" className=""
           <MaintenanceScheduler />
         </TabsContent>
-
         <TabsContent value="analytics" className=""
           {renderAnalytics()}
         </TabsContent>

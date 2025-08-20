@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowUp, ArrowDown } from "lucide-react";
-
 interface MetricCardProps {
   title: string;
   value: string | number;
@@ -12,7 +11,6 @@ interface MetricCardProps {
   icon: ReactNode;
   gradientClass: string;
 }
-
 export function MetricCard({ title, value, change, icon, gradientClass }: MetricCardProps) {
   return (
     <Card className="metric-card cursor-pointer hover:shadow-lg transition-shadow>
@@ -24,9 +22,9 @@ export function MetricCard({ title, value, change, icon, gradientClass }: Metric
             </div>
           </div>
           <div className="ml-4 flex-1>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
+            <p className="text-lg">"{title}</p>
             <div className="flex items-baseline>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
+              <p className="text-lg">"{value}</p>
               {change && (
                 <p className={`ml-2 flex items-baseline text-sm font-semibold ${
                   change.type === "increase" ? "text-green-600" : "text-red-600"

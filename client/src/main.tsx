@@ -2,7 +2,6 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import "./i18n";
-
 // Suppress ResizeObserver warnings globally
 const originalConsoleError = console.error;
 console.error = (...args) => {
@@ -15,5 +14,4 @@ console.error = (...args) => {
   }
   originalConsoleError.apply(console, args);
 };
-
 createRoot(document.getElementById("root")!).render(<App />);

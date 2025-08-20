@@ -3,7 +3,6 @@
  * Clean Architecture - React implementation
  * Following 1qa.md enterprise patterns
  */
-
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -49,11 +48,9 @@ import {
   AlertCircle,
   FileCheck
 } from 'lucide-react';
-
 // ✅ Form Schemas following 1qa.md patterns
 const gdprReportSchema = z.object({
   // Localization temporarily disabled
-
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   reportType: z.enum([
@@ -68,9 +65,7 @@ const gdprReportSchema = z.object({
   dueDate: z.string().optional(),
   reportData: z.record(z.any()).optional()
 });
-
 type GdprReportFormData = z.infer<typeof gdprReportSchema>;
-
 interface GdprReport {
   id: string;
   title: string;
@@ -87,7 +82,6 @@ interface GdprReport {
   approvedAt?: string;
   publishedAt?: string;
 }
-
 interface GdprMetrics {
   totalReports: number;
   activeReports: number;
@@ -98,24 +92,20 @@ interface GdprMetrics {
   reportsThisMonth: number;
   reportsLastMonth: number;
 }
-
 export default function GdprCompliance() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-
   // ✅ Queries following 1qa.md patterns
   const { data: reports, isLoading: reportsLoading, refetch: refetchReports } = useQuery({
     queryKey: ['/api/gdpr-compliance/reports'],
     queryFn: () => apiRequest('/api/gdpr-compliance/reports')
   });
-
   const { data: metricsData, isLoading: metricsLoading } = useQuery({
     queryKey: ['/api/gdpr-compliance/metrics'],
     queryFn: () => apiRequest('/api/gdpr-compliance/metrics')
   });
-
   // ✅ Mutations following 1qa.md patterns
   const createReportMutation = useMutation({
     mutationFn: (data: GdprReportFormData) => apiRequest('/api/gdpr-compliance/reports', {
@@ -131,7 +121,6 @@ export default function GdprCompliance() {
       toast({ title: 'Erro ao criar relatório GDPR', variant: 'destructive' });
     }
   });
-
   const updateReportMutation = useMutation({
     mutationFn: ({ id, ...data }: { id: string } & Partial<GdprReportFormData>) =>
       apiRequest("
@@ -147,7 +136,6 @@ export default function GdprCompliance() {
       toast({ title: 'Erro ao atualizar relatório GDPR', variant: 'destructive' });
     }
   });
-
   // ✅ Report Type Translation
   const getReportTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -166,7 +154,6 @@ export default function GdprCompliance() {
     };
     return labels[type] || type;
   };
-
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       'draft': 'Rascunho',
@@ -178,7 +165,6 @@ export default function GdprCompliance() {
     };
     return labels[status] || status;
   };
-
   const getPriorityLabel = (priority: string) => {
     const labels: Record<string, string> = {
       'low': 'Baixa',
@@ -189,7 +175,6 @@ export default function GdprCompliance() {
     };
     return labels[priority] || priority;
   };
-
   // ✅ CreateGdprReportDialog Component
   const CreateGdprReportDialog = () => {
     const form = useForm<GdprReportFormData>({
@@ -200,12 +185,10 @@ export default function GdprCompliance() {
         priority: 'medium'
       }
     });
-
     const onSubmit = (data: GdprReportFormData) => {
       createReportMutation.mutate(data);
       form.reset();
     };
-
     return (
       <Dialog>
         <DialogTrigger asChild>
@@ -233,7 +216,6 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="reportType"
@@ -265,7 +247,6 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <FormField
                   control={form.control}
@@ -291,7 +272,6 @@ export default function GdprCompliance() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="riskLevel"
@@ -317,7 +297,6 @@ export default function GdprCompliance() {
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="dueDate"
@@ -331,7 +310,6 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="description"
@@ -345,7 +323,6 @@ export default function GdprCompliance() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button type="submit" disabled={createReportMutation.isPending} data-testid="button-submit-report>
                   {createReportMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
@@ -357,7 +334,6 @@ export default function GdprCompliance() {
       </Dialog>
     );
   };
-
   // ✅ Dashboard rendering
   const renderDashboard = () => {
     const metrics: GdprMetrics = metricsData?.data?.metrics || {
@@ -370,11 +346,10 @@ export default function GdprCompliance() {
       reportsThisMonth: 0,
       reportsLastMonth: 0
     };
-
     return (
       <div className=""
         <div className=""
-          <h2 className="text-2xl font-bold">Dashboard GDPR Compliance</h2>
+          <h2 className="text-lg">"Dashboard GDPR Compliance</h2>
           <div className=""
             <Button variant="outline" size="sm" onClick={() => refetchReports()} data-testid="button-refresh>
               <RefreshCw className="w-4 h-4 mr-2" />
@@ -386,104 +361,94 @@ export default function GdprCompliance() {
             </Button>
           </div>
         </div>
-
         {/* Metrics Cards */}
         <div className=""
           <Card data-testid="card-total-reports>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Total de Relatórios</CardTitle>
+              <CardTitle className="text-lg">"Total de Relatórios</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics.totalReports}</div>
+              <div className="text-lg">"{metrics.totalReports}</div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-active-reports>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Relatórios Ativos</CardTitle>
+              <CardTitle className="text-lg">"Relatórios Ativos</CardTitle>
               <Activity className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{metrics.activeReports}</div>
+              <div className="text-lg">"{metrics.activeReports}</div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-overdue-reports>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Relatórios Vencidos</CardTitle>
+              <CardTitle className="text-lg">"Relatórios Vencidos</CardTitle>
               <AlertTriangle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{metrics.overdueReports}</div>
+              <div className="text-lg">"{metrics.overdueReports}</div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-compliance-score>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Score de Compliance</CardTitle>
+              <CardTitle className="text-lg">"Score de Compliance</CardTitle>
               <BarChart3 className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{metrics.averageComplianceScore}%</div>
+              <div className="text-lg">"{metrics.averageComplianceScore}%</div>
               <Progress value={metrics.averageComplianceScore} className="mt-2" />
             </CardContent>
           </Card>
         </div>
-
         {/* Additional metrics */}
         <div className=""
           <Card data-testid="card-high-risk>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Relatórios de Alto Risco</CardTitle>
+              <CardTitle className="text-lg">"Relatórios de Alto Risco</CardTitle>
               <AlertCircle className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{metrics.highRiskReports}</div>
-              <p className="text-xs text-muted-foreground">Requerem atenção imediata</p>
+              <div className="text-lg">"{metrics.highRiskReports}</div>
+              <p className="text-lg">"Requerem atenção imediata</p>
             </CardContent>
           </Card>
-
           <Card data-testid="card-this-month>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Este Mês</CardTitle>
+              <CardTitle className="text-lg">"Este Mês</CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics.reportsThisMonth}</div>
+              <div className="text-lg">"{metrics.reportsThisMonth}</div>
               <p className=""
                 {metrics.reportsThisMonth > metrics.reportsLastMonth ? '+' : ''}
                 {metrics.reportsThisMonth - metrics.reportsLastMonth} vs mês anterior
               </p>
             </CardContent>
           </Card>
-
           <Card data-testid="card-completed>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
+              <CardTitle className="text-lg">"Concluídos</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{metrics.completedReports}</div>
-              <p className="text-xs text-muted-foreground">Aprovados e publicados</p>
+              <div className="text-lg">"{metrics.completedReports}</div>
+              <p className="text-lg">"Aprovados e publicados</p>
             </CardContent>
           </Card>
         </div>
       </div>
     );
   };
-
   // ✅ Reports listing rendering
   const renderReports = () => {
     const reportsData = reports?.data || [];
-
     return (
       <div className=""
         <div className=""
-          <h2 className="text-2xl font-bold">Relatórios GDPR</h2>
+          <h2 className="text-lg">"Relatórios GDPR</h2>
           <CreateGdprReportDialog />
         </div>
-
         {/* Filters */}
         <div className=""
           <div className=""
@@ -509,7 +474,6 @@ export default function GdprCompliance() {
             </SelectContent>
           </Select>
         </div>
-
         {/* Reports Grid */}
         <div className=""
           {reportsData && Array.isArray(reportsData) && reportsData.length > 0 ? (
@@ -544,7 +508,7 @@ export default function GdprCompliance() {
                           </Badge>
                         )}
                       </div>
-                      <CardTitle className="text-lg">{report.title}</CardTitle>
+                      <CardTitle className="text-lg">"{report.title}</CardTitle>
                       <CardDescription className=""
                         {getReportTypeLabel(report.reportType)}
                         {report.description && "
@@ -553,18 +517,17 @@ export default function GdprCompliance() {
                     
                     {report.complianceScore && (
                       <div className=""
-                        <div className="text-sm text-muted-foreground">Score</div>
-                        <div className="text-2xl font-bold text-green-600">{report.complianceScore}%</div>
+                        <div className="text-lg">"Score</div>
+                        <div className="text-lg">"{report.complianceScore}%</div>
                       </div>
                     )}
                   </div>
                 </CardHeader>
-
                 <CardContent className=""
                   <div className=""
                     <div className=""
                       <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-muted-foreground">Criado:</span>
+                      <span className="text-lg">"Criado:</span>
                       <span className=""
                         {new Date(report.createdAt).toLocaleDateString()}
                       </span>
@@ -573,7 +536,7 @@ export default function GdprCompliance() {
                     {report.dueDate && (
                       <div className=""
                         <Clock className="h-4 w-4 text-gray-500" />
-                        <span className="text-muted-foreground">Vencimento:</span>
+                        <span className="text-lg">"Vencimento:</span>
                         <span className={`font-medium ${
                           new Date(report.dueDate) < new Date() ? 'text-red-600' : ''
                         >
@@ -585,12 +548,11 @@ export default function GdprCompliance() {
                     {report.assignedUserId && (
                       <div className=""
                         <Users className="h-4 w-4 text-gray-500" />
-                        <span className="text-muted-foreground">Responsável:</span>
-                        <span className="font-medium">Atribuído</span>
+                        <span className="text-lg">"Responsável:</span>
+                        <span className="text-lg">"Atribuído</span>
                       </div>
                     )}
                   </div>
-
                   <div className=""
                     <Button size="sm" variant="outline" data-testid={"
                       <Eye className="w-3 h-3 mr-1" />
@@ -633,7 +595,6 @@ export default function GdprCompliance() {
       </div>
     );
   };
-
   return (
     <div className=""
       <div className=""
@@ -645,7 +606,6 @@ export default function GdprCompliance() {
             Sistema completo de gestão de compliance GDPR e proteção de dados
           </p>
         </div>
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className=""
           <TabsList className=""
             <TabsTrigger value="dashboard" data-testid="tab-dashboard>
@@ -665,15 +625,12 @@ export default function GdprCompliance() {
               Auditoria
             </TabsTrigger>
           </TabsList>
-
           <TabsContent value="dashboard" className=""
             {renderDashboard()}
           </TabsContent>
-
           <TabsContent value="reports" className=""
             {renderReports()}
           </TabsContent>
-
           <TabsContent value="templates" className=""
             <Card>
               <CardHeader>
@@ -689,7 +646,6 @@ export default function GdprCompliance() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="audit" className=""
             <Card>
               <CardHeader>

@@ -1,8 +1,6 @@
-
 /**
  * Palette de componentes disponíveis para arrastar para o canvas
  */
-
 import React from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { Button } from '../ui/button'
@@ -27,7 +25,6 @@ import {
   Image,
   Star
 } from 'lucide-react'
-
 interface ComponentType {
   id: string
   type: string
@@ -38,7 +35,6 @@ interface ComponentType {
   defaultProperties: Record<string, any>
   isPopular?: boolean
 }
-
 const componentTypes: ComponentType[] = [
   // Básicos
   {
@@ -108,7 +104,6 @@ const componentTypes: ComponentType[] = [
       required: false
     }
   },
-
   // Seleção
   {
     id: 'select',
@@ -169,7 +164,6 @@ const componentTypes: ComponentType[] = [
       required: false
     }
   },
-
   // Data e Hora
   {
     id: 'date',
@@ -196,7 +190,6 @@ const componentTypes: ComponentType[] = [
       required: false
     }
   },
-
   // Mídia
   {
     id: 'upload',
@@ -226,7 +219,6 @@ const componentTypes: ComponentType[] = [
       required: false
     }
   },
-
   // Avançados
   {
     id: 'location',
@@ -266,11 +258,9 @@ const componentTypes: ComponentType[] = [
     }
   }
 ]
-
 interface DraggableComponentProps {
   component: ComponentType
 }
-
 const DraggableComponent: React.FC<DraggableComponentProps> = ({ component }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: component.id,
@@ -280,15 +270,12 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({ component }) =>
       defaultProperties: component.defaultProperties
     }
   })
-
   const style = transform ? {
     transform: "px, 0)`,
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 999 : 1
   } : undefined
-
   const Icon = component.icon
-
   return (
     <div
       ref={setNodeRef}
@@ -301,7 +288,7 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({ component }) =>
         <CardContent className="p-3>
           <div className="flex items-center gap-2 mb-2>
             <Icon className="w-5 h-5 text-blue-600" />
-            <span className="font-medium text-sm">{component.label}</span>
+            <span className="text-lg">"{component.label}</span>
             {component.isPopular && (
               <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
             )}
@@ -314,7 +301,6 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({ component }) =>
     </div>
   )
 }
-
 export const ComponentPalette: React.FC = () => {
   const categorizedComponents = {
     basic: componentTypes.filter(c => c.category === 'basic'),
@@ -323,24 +309,20 @@ export const ComponentPalette: React.FC = () => {
     media: componentTypes.filter(c => c.category === 'media'),
     advanced: componentTypes.filter(c => c.category === 'advanced')
   }
-
   const popularComponents = componentTypes.filter(c => c.isPopular)
-
   return (
     <div className="h-full flex flex-col>
       <div className="p-4 border-b>
-        <h3 className="font-semibold text-lg mb-1">Componentes</h3>
-        <p className="text-sm text-gray-600">Arraste para adicionar ao template</p>
+        <h3 className="text-lg">"Componentes</h3>
+        <p className="text-lg">"Arraste para adicionar ao template</p>
       </div>
-
       <div className="flex-1 overflow-y-auto>
         <Tabs defaultValue="popular" className="w-full>
           <TabsList className="grid w-full grid-cols-3 m-2>
-            <TabsTrigger value="popular" className="text-xs">Populares</TabsTrigger>
-            <TabsTrigger value="all" className="text-xs">Todos</TabsTrigger>
-            <TabsTrigger value="categories" className="text-xs">Categorias</TabsTrigger>
+            <TabsTrigger value="popular" className="text-lg">"Populares</TabsTrigger>
+            <TabsTrigger value="all" className="text-lg">"Todos</TabsTrigger>
+            <TabsTrigger value="categories" className="text-lg">"Categorias</TabsTrigger>
           </TabsList>
-
           <TabsContent value="popular" className="p-2>
             <div className="space-y-2>
               {popularComponents.map(component => (
@@ -348,7 +330,6 @@ export const ComponentPalette: React.FC = () => {
               ))}
             </div>
           </TabsContent>
-
           <TabsContent value="all" className="p-2>
             <div className="space-y-2>
               {componentTypes.map(component => (
@@ -356,7 +337,6 @@ export const ComponentPalette: React.FC = () => {
               ))}
             </div>
           </TabsContent>
-
           <TabsContent value="categories" className="p-2 space-y-4>
             <div>
               <div className="flex items-center gap-2 mb-2>
@@ -368,7 +348,6 @@ export const ComponentPalette: React.FC = () => {
                 ))}
               </div>
             </div>
-
             <div>
               <div className="flex items-center gap-2 mb-2>
                 <Badge variant="outline">Seleção</Badge>
@@ -379,7 +358,6 @@ export const ComponentPalette: React.FC = () => {
                 ))}
               </div>
             </div>
-
             <div>
               <div className="flex items-center gap-2 mb-2>
                 <Badge variant="outline">Data/Hora</Badge>
@@ -390,7 +368,6 @@ export const ComponentPalette: React.FC = () => {
                 ))}
               </div>
             </div>
-
             <div>
               <div className="flex items-center gap-2 mb-2>
                 <Badge variant="outline">Mídia</Badge>
@@ -401,7 +378,6 @@ export const ComponentPalette: React.FC = () => {
                 ))}
               </div>
             </div>
-
             <div>
               <div className="flex items-center gap-2 mb-2>
                 <Badge variant="outline">Avançados</Badge>

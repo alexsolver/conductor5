@@ -1,13 +1,11 @@
 import { FileCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-
 interface ApprovalRequestModalProps {
   ticketId: string;
   isOpen: boolean;
   onClose: () => void;
 }
-
 export default function ApprovalRequestModal({ ticketId, isOpen, onClose }: ApprovalRequestModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -21,7 +19,6 @@ export default function ApprovalRequestModal({ ticketId, isOpen, onClose }: Appr
             Módulo em desenvolvimento - Gerenciamento de fluxos de aprovação para tickets.
           </DialogDescription>
         </DialogHeader>
-
         <Card className="border-dashed>
           <CardContent className="flex flex-col items-center justify-center py-12>
             <FileCheck className="w-16 h-16 text-gray-400 mb-4" />

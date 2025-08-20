@@ -35,7 +35,6 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
 interface UserGroup {
   id: string;
   name: string;
@@ -45,7 +44,6 @@ interface UserGroup {
   memberships?: Array<{ id: string; userId: string; role: string }>;
   memberCount: number;
 }
-
 interface TeamMember {
   id: string;
   name: string;
@@ -55,31 +53,25 @@ interface TeamMember {
   role?: string;
   position?: string;
 }
-
 interface UserGroupsProps {
   tenantAdmin?: boolean;
 }
-
 export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Estados principais
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
   const [activeTab, setActiveTab] = useState("info");
-
   // Estados do formulário
   const [formData, setFormData] = useState({
     name: "",
     description: ""
   });
-
   // Estados para gerenciamento de membros
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
-
   // Query para buscar grupos
   const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
@@ -99,7 +91,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       return { groups: [] };
     }
   });
-
   // Query para buscar membros da equipe - usando API que funciona
   const { data: teamMembersData, isLoading: teamMembersLoading } = useQuery<TeamMember[]>({
     queryKey: ["/api/user-management/users"],
@@ -119,7 +110,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       return [];
     }
   });
-
   // Query para buscar membros do grupo atual
   const { data: currentGroupMembers, refetch: refetchCurrentGroupMembers } = useQuery({
     queryKey: ["/api/user-management/groups", editingGroup?.id, "members"],
@@ -133,7 +123,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       return [];
     }
   });
-
   // Mutation para criar grupo
   const createGroupMutation = useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
@@ -156,7 +145,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
   });
-
   // Mutation para atualizar grupo
   const updateGroupMutation = useMutation({
     mutationFn: async (data: { id: string; name: string; description?: string }) => {
@@ -182,7 +170,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
   });
-
   // Mutation para deletar grupo
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
@@ -203,7 +190,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
   });
-
   // Mutation para adicionar usuário ao grupo
   const addUserToGroupMutation = useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
@@ -213,7 +199,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to add user to group');
       }
-
       return await response.json();
     },
     onSuccess: () => {
@@ -238,7 +223,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
   });
-
   // Mutation para remover usuário do grupo
   const removeUserFromGroupMutation = useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
@@ -248,7 +232,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to remove user from group');
       }
-
       return await response.json();
     },
     onSuccess: () => {
@@ -273,7 +256,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
   });
-
   // Função para alternar usuário no grupo
   const toggleUserInGroup = async (groupId: string, userId: string, isCurrentlyInGroup: boolean) => {
     try {
@@ -292,7 +274,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     }
   };
-
   // Efeito para sincronizar formulário quando editando
   useEffect(() => {
     if (editingGroup) {
@@ -303,14 +284,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       setActiveTab("info");
     }
   }, [editingGroup]);
-
   // Efeito para sincronizar usuários selecionados apenas quando abrir o dialog
   useEffect(() => {
     if (editingGroup && currentGroupMembers && Array.isArray(currentGroupMembers)) {
       setSelectedUsers(currentGroupMembers);
     }
   }, [editingGroup?.id]); // Só executa quando mudar o grupo sendo editado
-
   // Função para fechar diálogo
   const handleCloseDialog = () => {
     setEditingGroup(null);
@@ -318,7 +297,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     setSelectedUsers([]);
     setActiveTab("info");
   };
-
   // Função para criar grupo
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -332,7 +310,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     }
     createGroupMutation.mutate(formData);
   };
-
   // Função para atualizar grupo
   const handleUpdateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -350,13 +327,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       description: formData.description
     });
   };
-
   // Function to toggle user membership in group
   const handleToggleUserInGroup = async (userId: string, shouldBeInGroup: boolean) => {
     if (!editingGroup || isUpdatingMemberships) return;
-
     setIsUpdatingMemberships(true);
-
     try {
       if (shouldBeInGroup) {
         // Add user to group  
@@ -389,37 +363,29 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       setIsUpdatingMemberships(false);
     }
   };
-
   // Função para salvar alterações nos membros do grupo
   const handleSaveMembershipChanges = async () => {
     if (!editingGroup) return;
-
     setIsUpdatingMemberships(true);
-
     try {
       // Buscar membros atuais do grupo
       const membersResponse = await apiRequest('GET', "/members`);
       const currentMembersData = await membersResponse.json();
       const currentMemberIds = currentMembersData.members?.map((m: any) => m.userId) || [];
-
       // Determinar usuários para adicionar e remover
       const usersToAdd = selectedUsers.filter(userId => !currentMemberIds.includes(userId));
       const usersToRemove = currentMemberIds.filter((userId: string) => !selectedUsers.includes(userId));
-
       // Executar operações sequencialmente para melhor controle de erro
       for (const userId of usersToAdd) {
         await addUserToGroupMutation.mutateAsync({ groupId: editingGroup.id, userId });
       }
-
       for (const userId of usersToRemove) {
         await removeUserFromGroupMutation.mutateAsync({ groupId: editingGroup.id, userId });
       }
-
       toast({
         title: '[TRANSLATION_NEEDED]',
         description: "Membros do grupo atualizados com sucesso",
       });
-
       refetchGroups();
     } catch (error: any) {
       console.error('[TRANSLATION_NEEDED]', error);
@@ -433,31 +399,27 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       setIsUpdatingMemberships(false);
     }
   };
-
   // Função para confirmar exclusão
   const handleDeleteGroup = (group: UserGroup) => {
     if (window.confirm(""?`)) {
       deleteGroupMutation.mutate(group.id);
     }
   };
-
   const groups = groupsData?.groups || [];
-
   if (groupsLoading) {
     return (
       <div className="flex items-center justify-center p-8>
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Carregando grupos...</span>
+        <span className="text-lg">"Carregando grupos...</span>
       </div>
     );
   }
-
   return (
     <div className="space-y-6>
       {/* Header */}
       <div className="flex items-center justify-between>
         <div>
-          <h3 className="text-lg font-semibold">Grupos de Usuários</h3>
+          <h3 className="text-lg">"Grupos de Usuários</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400>
             Organize usuários em grupos para facilitar o gerenciamento de permissões
           </p>
@@ -526,7 +488,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Lista de Grupos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4>
         {groups.length === 0 ? (
@@ -553,7 +514,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
               <CardHeader className="pb-3>
                 <div className="flex items-start justify-between>
                   <div className="flex-1 min-w-0>
-                    <CardTitle className="text-base truncate">{group.name}</CardTitle>
+                    <CardTitle className="text-lg">"{group.name}</CardTitle>
                     {group.description && (
                       <CardDescription className="mt-1 text-sm>
                         {group.description}
@@ -598,7 +559,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
           ))
         )}
       </div>
-
       {/* Dialog de Edição */}
       <Dialog open={!!editingGroup} onOpenChange={() => handleCloseDialog()}>
         <DialogContent className="max-w-2xl max-h-[80vh]>
@@ -608,7 +568,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
               Gerencie as informações e membros do grupo
             </DialogDescription>
           </DialogHeader>
-
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2>
               <TabsTrigger value="info">Informações</TabsTrigger>
@@ -616,7 +575,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 Membros ({editingGroup?.memberCount || editingGroup?.memberships?.length || selectedUsers.length || 0})
               </TabsTrigger>
             </TabsList>
-
             <TabsContent value="info" className="space-y-4>
               <form onSubmit={handleUpdateGroup} className="space-y-4>
                 <div className="space-y-2>
@@ -660,20 +618,18 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 </div>
               </form>
             </TabsContent>
-
             <TabsContent value="members" className="space-y-4>
               <div className="space-y-4>
                 <div className="flex items-center justify-between>
-                  <h4 className="text-sm font-medium">Gerenciar Membros</h4>
+                  <h4 className="text-lg">"Gerenciar Membros</h4>
                   <Badge variant="outline>
                     {selectedUsers.length} selecionados
                   </Badge>
                 </div>
-
                 {teamMembersLoading ? (
                   <div className="flex items-center justify-center py-8>
                     <Loader2 className="h-6 w-6 animate-spin" />
-                    <span className="ml-2">Carregando membros...</span>
+                    <span className="text-lg">"Carregando membros...</span>
                   </div>
                 ) : (
                   <ScrollArea className="h-64 border rounded-lg p-4>
@@ -712,7 +668,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                               <div className="flex-1 min-w-0 ml-2>
                                 <div className="flex items-center space-x-2>
                                   <User className="h-4 w-4 text-gray-400" />
-                                  <span className="font-medium truncate">{member.name}</span>
+                                  <span className="text-lg">"{member.name}</span>
                                 </div>
                                 <p className="text-xs text-gray-500 truncate>
                                   {member.email} {member.position && "
@@ -735,7 +691,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                     </div>
                   </ScrollArea>
                 )}
-
                 <div className="flex justify-end>
                   <Button variant="outline" onClick={handleCloseDialog}>
                     <X className="h-4 w-4 mr-2" />

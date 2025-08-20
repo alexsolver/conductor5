@@ -6,7 +6,6 @@ import { Progress } from '@/components/ui/progress';
 import { Upload, File, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface UploadedFile {
   id: string;
   name: string;
@@ -16,7 +15,6 @@ interface UploadedFile {
   progress: number;
   url?: string;
 }
-
 interface FileUploadZoneProps {
   onFilesUploaded: (files: UploadedFile[]) => void;
   maxFiles?: number;
@@ -24,10 +22,8 @@ interface FileUploadZoneProps {
   acceptedTypes?: string[];
   className?: string;
 }
-
 export function FileUploadZone({
   // Localization temporarily disabled
-
   onFilesUploaded,
   maxFiles = 5,
   maxFileSize = 10,
@@ -35,7 +31,6 @@ export function FileUploadZone({
   className = ''
 }: FileUploadZoneProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
@@ -45,9 +40,7 @@ export function FileUploadZone({
       status: 'uploading' as const,
       progress: 0
     }));
-
     setUploadedFiles(prev => [...prev, ...newFiles]);
-
     // Simulate upload process for each file
     for (const fileData of newFiles) {
       try {
@@ -62,7 +55,6 @@ export function FileUploadZone({
             )
           );
         }
-
         // Mark as completed
         setUploadedFiles(prev => 
           prev.map(f => 
@@ -76,12 +68,10 @@ export function FileUploadZone({
               : f
           )
         );
-
         toast({
           title: "✅ Arquivo enviado",
           description: " foi enviado com sucesso.`
         });
-
       } catch (error) {
         setUploadedFiles(prev => 
           prev.map(f => 
@@ -90,7 +80,6 @@ export function FileUploadZone({
               : f
           )
         );
-
         toast({
           title: '[TRANSLATION_NEEDED]',
           description: ".`,
@@ -98,25 +87,21 @@ export function FileUploadZone({
         });
       }
     }
-
     // Notify parent component
     const completedFiles = uploadedFiles.filter(f => f.status === 'completed');
     onFilesUploaded(completedFiles);
   }, [uploadedFiles, onFilesUploaded]);
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     maxFiles,
     maxSize: maxFileSize * 1024 * 1024, // Convert MB to bytes
     accept: acceptedTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {})
   });
-
   const removeFile = (fileId: string) => {
     setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
     const updatedFiles = uploadedFiles.filter(f => f.id !== fileId && f.status === 'completed');
     onFilesUploaded(updatedFiles);
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -124,9 +109,8 @@ export function FileUploadZone({
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
   return (
-    <div className="space-y-4 ">
+    <div className="text-lg">"
       {/* Drop Zone */}
       <div
         {...getRootProps()}
@@ -153,11 +137,10 @@ export function FileUploadZone({
           Formatos: PDF, DOC, DOCX, TXT, Imagens
         </p>
       </div>
-
       {/* File List */}
       {uploadedFiles.length > 0 && (
         <div className="space-y-3>
-          <h4 className="text-sm font-medium text-gray-700">Arquivos Anexados</h4>
+          <h4 className="text-lg">"Arquivos Anexados</h4>
           {uploadedFiles.map((file) => (
             <div
               key={file.id}
@@ -190,7 +173,6 @@ export function FileUploadZone({
                   )}
                 </div>
               </div>
-
               <div className="flex items-center space-x-2>
                 {file.status === 'completed' && (
                   <CheckCircle className="h-4 w-4 text-green-500" />

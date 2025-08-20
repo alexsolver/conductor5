@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 // import useLocalization from '@/hooks/useLocalization';
-
 // Import user management components from old system
 import { UserList } from "@/components/user-management/UserList";
 import { UserGroups } from "@/components/user-management/UserGroups";
@@ -59,10 +58,8 @@ import {
   Monitor
 } from "lucide-react";
 import { Link } from "wouter";
-
 export default function TeamManagement() {
   // Localization temporarily disabled
-
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
@@ -72,13 +69,11 @@ export default function TeamManagement() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
   const [filterGroup, setFilterGroup] = useState("all");
-
   // Dialog states for user management
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
-
   // Handle successful user creation
   const handleUserCreated = () => {
     setShowCreateUser(false);
@@ -89,7 +84,6 @@ export default function TeamManagement() {
     queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
     queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
   };
-
   // Handle successful user invitation
   const handleUserInvited = () => {
     setShowInviteUser(false);
@@ -100,72 +94,60 @@ export default function TeamManagement() {
     queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
     queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
   };
-
   // Fetch team overview data
   const { data: teamOverview, isLoading: overviewLoading } = useQuery({
     queryKey: ['/api/team-management/overview'],
     enabled: !!user,
   });
-
   // Fetch team members
   const { data: teamMembers, isLoading: membersLoading } = useQuery({
     queryKey: ['/api/team-management/members'],
     enabled: !!user,
   });
-
   // Fetch team stats
   const { data: teamStats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/team-management/stats'],
     enabled: !!user,
   });
-
   // Fetch performance data
   const { data: performanceData } = useQuery({
     queryKey: ['/api/team-management/performance'],
     enabled: !!user,
   });
-
   // Fetch skills matrix
   const { data: skillsMatrix, isLoading: skillsLoading } = useQuery({
     queryKey: ['/api/team-management/skills-matrix'],
     enabled: !!user,
   });
-
   // Fetch old system data for consolidated functionality
   const { data: tenantStats, isLoading: tenantStatsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/team/stats"],
     enabled: !!user,
     refetchInterval: 30000,
   });
-
   // Usar user-management/users que funciona em vez de tenant-admin/team/members
   const { data: userManagementData, isLoading: tenantMembersLoading } = useQuery({
     queryKey: ["/api/user-management/users"],
     enabled: !!user,
     refetchInterval: 60000,
   });
-
   // Extrair users do objeto retornado
   const tenantMembers = userManagementData?.users || [];
-
   // Fetch groups for filter
   const { data: groupsData } = useQuery({
     queryKey: ['/api/user-management/groups'],
     enabled: !!user,
   });
-
   // Fetch departments for filter
   const { data: departmentsData } = useQuery({
     queryKey: ['/api/team-management/departments'],
     enabled: !!user,
   });
-
   // Fetch roles for filter
   const { data: rolesData } = useQuery({
     queryKey: ['/api/team-management/roles'],
     enabled: !!user,
   });
-
   // Filter team members - usando tenantMembers que funciona
   const membersArray = Array.isArray(tenantMembers) ? tenantMembers : 
                        (tenantMembers && Array.isArray(tenantMembers.members) ? tenantMembers.members : []);
@@ -186,10 +168,8 @@ export default function TeamManagement() {
                         (Array.isArray(member.groupIds) && member.groupIds.some(groupId => 
                           String(groupId) === String(filterGroup)
                         ));
-
     return matchesSearch && matchesDepartment && matchesStatus && matchesRole && matchesGroup;
   });
-
   // Mutation to toggle member status
   const toggleMemberStatusMutation = useMutation({
     mutationFn: async ({ memberId, newStatus }: { memberId: string, newStatus: string }) => {
@@ -210,7 +190,6 @@ export default function TeamManagement() {
       });
     },
   });
-
   // Handle edit member
   const handleEditMember = (member: any) => {
     console.log('TeamManagement - Opening edit dialog with member:', member);
@@ -225,7 +204,6 @@ export default function TeamManagement() {
     setEditingMember(member);
     setShowEditDialog(true);
   };
-
   // Handle toggle member status
   const handleToggleMemberStatus = async (member: any) => {
     if (!member || !member.id) {
@@ -249,7 +227,6 @@ export default function TeamManagement() {
       });
     }
   };
-
   // Handle export team data
   const handleExportTeamData = () => {
     if (!teamMembers || teamMembers.length === 0) {
@@ -260,7 +237,6 @@ export default function TeamManagement() {
       });
       return;
     }
-
     try {
       // Prepare data for export
       const exportData = filteredMembers.map(member => ({
@@ -275,14 +251,12 @@ export default function TeamManagement() {
         'Metas Concluídas': member.completedGoals,
         'Última Atividade': new Date(member.lastActive).toLocaleDateString('pt-BR')
       }));
-
       // Convert to CSV
       const headers = Object.keys(exportData[0]).join(',');
       const csvContent = [
         headers,
         ...exportData.map(row => Object.values(row).map(value => ""`).join(','))
       ].join('\n');
-
       // Create and download file
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -293,7 +267,6 @@ export default function TeamManagement() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       toast({
         title: "Dados exportados",
         description: " membros exportados com sucesso.`,
@@ -306,30 +279,28 @@ export default function TeamManagement() {
       });
     }
   };
-
   if (overviewLoading || membersLoading || statsLoading) {
     return (
       <div className=""
         <div className=""
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="text-lg">"</div>
           <div className=""
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              <div key={i} className="text-lg">"</div>
             ))}
           </div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="text-lg">"</div>
         </div>
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestão de Equipe</h1>
-          <p className="text-gray-600 dark:text-gray-400">Sistema integrado de gestão de recursos humanos</p>
+          <h1 className="text-lg">"Gestão de Equipe</h1>
+          <p className="text-lg">"Sistema integrado de gestão de recursos humanos</p>
         </div>
         <div className=""
           <Button 
@@ -356,14 +327,13 @@ export default function TeamManagement() {
           </Button>
         </div>
       </div>
-
       {/* Quick Stats Cards */}
       <div className=""
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Membros</p>
+                <p className="text-lg">"Total de Membros</p>
                 <p className=""
                   {teamStats?.totalMembers ?? 0}
                 </p>
@@ -372,12 +342,11 @@ export default function TeamManagement() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ativos Hoje</p>
+                <p className="text-lg">"Ativos Hoje</p>
                 <p className=""
                   {teamStats?.activeToday ?? 0}
                 </p>
@@ -386,12 +355,11 @@ export default function TeamManagement() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Approval</p>
+                <p className="text-lg">"Pending Approval</p>
                 <p className=""
                   {teamStats?.pendingApprovals ?? 0}
                 </p>
@@ -400,12 +368,11 @@ export default function TeamManagement() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Performance Média</p>
+                <p className="text-lg">"Performance Média</p>
                 <p className=""
                   {teamStats?.averagePerformance ?? 0}%
                 </p>
@@ -415,52 +382,50 @@ export default function TeamManagement() {
           </CardContent>
         </Card>
       </div>
-
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className=""
         <TabsList className=""
           <TabsTrigger value="overview" className=""
             <BarChart3 className="h-3 w-3" />
-            <span className="text-xs">Visão Geral</span>
+            <span className="text-lg">"Visão Geral</span>
           </TabsTrigger>
           <TabsTrigger value="members" className=""
             <Users className="h-3 w-3" />
-            <span className="text-xs">Membros</span>
+            <span className="text-lg">"Membros</span>
           </TabsTrigger>
           <TabsTrigger value="groups" className=""
             <Building className="h-3 w-3" />
-            <span className="text-xs">Grupos</span>
+            <span className="text-lg">"Grupos</span>
           </TabsTrigger>
           <TabsTrigger value="roles" className=""
             <Shield className="h-3 w-3" />
-            <span className="text-xs">Papéis</span>
+            <span className="text-lg">"Papéis</span>
           </TabsTrigger>
           <TabsTrigger value="invitations" className=""
             <Mail className="h-3 w-3" />
-            <span className="text-xs">Convites</span>
+            <span className="text-lg">"Convites</span>
           </TabsTrigger>
           <TabsTrigger value="sessions" className=""
             <Monitor className="h-3 w-3" />
-            <span className="text-xs">Sessões</span>
+            <span className="text-lg">"Sessões</span>
           </TabsTrigger>
           <TabsTrigger value="activity" className=""
             <Activity className="h-3 w-3" />
-            <span className="text-xs">Atividade</span>
+            <span className="text-lg">"Atividade</span>
           </TabsTrigger>
           <TabsTrigger value="performance" className=""
             <Target className="h-3 w-3" />
-            <span className="text-xs">Performance</span>
+            <span className="text-lg">"Performance</span>
           </TabsTrigger>
           <TabsTrigger value="skills" className=""
             <Award className="h-3 w-3" />
-            <span className="text-xs">Habilidades</span>
+            <span className="text-lg">"Habilidades</span>
           </TabsTrigger>
           <TabsTrigger value="analytics" className=""
             <TrendingUp className="h-3 w-3" />
-            <span className="text-xs">Analytics</span>
+            <span className="text-lg">"Analytics</span>
           </TabsTrigger>
         </TabsList>
-
         {/* Overview Tab */}
         <TabsContent value="overview>
           <div className=""
@@ -475,8 +440,8 @@ export default function TeamManagement() {
                   <div className=""
                     {[1, 2, 3, 4].map((i) => (
                       <div key={i} className=""
-                        <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
-                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                        <div className="text-lg">"</div>
+                        <div className="text-lg">"</div>
                       </div>
                     ))}
                   </div>
@@ -485,10 +450,10 @@ export default function TeamManagement() {
                     <div key={dept.name} className=""
                       <div className=""
                         <Building className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">{dept.name}</span>
+                        <span className="text-lg">"{dept.name}</span>
                       </div>
                       <div className=""
-                        <span className="text-sm text-gray-600">{dept.count}</span>
+                        <span className="text-lg">"{dept.count}</span>
                         <Progress value={dept.percentage} className="w-20" />
                       </div>
                     </div>
@@ -500,7 +465,6 @@ export default function TeamManagement() {
                 )}
               </CardContent>
             </Card>
-
             {/* Recent Activities */}
             <Card>
               <CardHeader>
@@ -512,10 +476,10 @@ export default function TeamManagement() {
                   <div className=""
                     {[1, 2, 3].map((i) => (
                       <div key={i} className=""
-                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="text-lg">"</div>
                         <div className=""
-                          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                          <div className="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
+                          <div className="text-lg">"</div>
+                          <div className="text-lg">"</div>
                         </div>
                       </div>
                     ))}
@@ -525,7 +489,7 @@ export default function TeamManagement() {
                     <div key={index} className=""
                       <Activity className="h-4 w-4 text-blue-500" />
                       <div className=""
-                        <p className="text-sm font-medium">{activity.description}</p>
+                        <p className="text-lg">"{activity.description}</p>
                         <p className=""
                           {activity.user && " - "
                           {typeof activity.timestamp === 'string' ? activity.timestamp : new Date(activity.timestamp).toLocaleString('pt-BR')}
@@ -540,7 +504,6 @@ export default function TeamManagement() {
                 )}
               </CardContent>
             </Card>
-
             {/* Skills Overview */}
             <Card>
               <CardHeader>
@@ -552,8 +515,8 @@ export default function TeamManagement() {
                   <div className=""
                     {[1, 2, 3, 4].map((i) => (
                       <div key={i} className=""
-                        <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
-                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                        <div className="text-lg">"</div>
+                        <div className="text-lg">"</div>
                       </div>
                     ))}
                   </div>
@@ -562,10 +525,10 @@ export default function TeamManagement() {
                     <div key={skill.name} className=""
                       <div className=""
                         <Award className="h-4 w-4 text-yellow-500" />
-                        <span className="font-medium">{skill.name}</span>
+                        <span className="text-lg">"{skill.name}</span>
                       </div>
                       <div className=""
-                        <span className="text-sm text-gray-600">{skill.count} pessoas</span>
+                        <span className="text-lg">"{skill.count} pessoas</span>
                         <Badge variant={skill.level === 'Avançado' ? 'default' : 'secondary'}>
                           {skill.level}
                         </Badge>
@@ -579,7 +542,6 @@ export default function TeamManagement() {
                 )}
               </CardContent>
             </Card>
-
             {/* Quick Actions */}
             <Card>
               <CardHeader>
@@ -627,7 +589,6 @@ export default function TeamManagement() {
             </Card>
           </div>
         </TabsContent>
-
         {/* Members Tab */}
         <TabsContent value="members>
           <Card>
@@ -731,19 +692,17 @@ export default function TeamManagement() {
                   </Select>
                 </div>
               </div>
-
               {/* Members List */}
               <div className=""
                 {/* Table Header */}
                 <div className=""
-                  <div className="col-span-3">Membro</div>
-                  <div className="col-span-2">Posição</div>
-                  <div className="col-span-2">Departamento</div>
-                  <div className="col-span-2">Email</div>
-                  <div className="col-span-1">Status</div>
-                  <div className="col-span-2 text-right">Ações</div>
+                  <div className="text-lg">"Membro</div>
+                  <div className="text-lg">"Posição</div>
+                  <div className="text-lg">"Departamento</div>
+                  <div className="text-lg">"Email</div>
+                  <div className="text-lg">"Status</div>
+                  <div className="text-lg">"Ações</div>
                 </div>
-
                 {/* Table Body */}
                 <div className=""
                   {filteredMembers && filteredMembers.length > 0 ? filteredMembers.map((member: any) => (
@@ -764,21 +723,18 @@ export default function TeamManagement() {
                           </p>
                         </div>
                       </div>
-
                       {/* Position */}
                       <div className=""
                         <span className=""
                           {member.position || 'Não informado'}
                         </span>
                       </div>
-
                       {/* Department */}
                       <div className=""
                         <span className=""
                           {member.department || 'Geral'}
                         </span>
                       </div>
-
                       {/* Email */}
                       <div className=""
                         <div className=""
@@ -788,7 +744,6 @@ export default function TeamManagement() {
                           </span>
                         </div>
                       </div>
-
                       {/* Status */}
                       <div className=""
                         <div className=""
@@ -813,7 +768,6 @@ export default function TeamManagement() {
                           )}
                         </div>
                       </div>
-
                       {/* Actions */}
                       <div className=""
                         <Button
@@ -861,7 +815,6 @@ export default function TeamManagement() {
                     </div>
                   )}
                 </div>
-
                 {/* Empty State */}
                 {filteredMembers.length === 0 && (
                   <div className=""
@@ -875,17 +828,15 @@ export default function TeamManagement() {
                   </div>
                 )}
               </div>
-
               {filteredMembers.length === 0 && (
                 <div className=""
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Nenhum membro encontrado com os filtros aplicados</p>
+                  <p className="text-lg">"Nenhum membro encontrado com os filtros aplicados</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Performance Tab */}
         <TabsContent value="performance>
           <div className=""
@@ -904,19 +855,18 @@ export default function TeamManagement() {
                         </span>
                       </div>
                       <div>
-                        <p className="font-medium">{person.name}</p>
-                        <p className="text-sm text-gray-600">{person.role}</p>
+                        <p className="text-lg">"{person.name}</p>
+                        <p className="text-lg">"{person.role}</p>
                       </div>
                     </div>
                     <div className=""
                       <Progress value={person.performance} className="w-20" />
-                      <span className="text-sm font-medium">{person.performance}%</span>
+                      <span className="text-lg">"{person.performance}%</span>
                     </div>
                   </div>
                 )) : []}
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Metas e Objetivos</CardTitle>
@@ -928,7 +878,7 @@ export default function TeamManagement() {
                   performanceData.goals.map((goal: any, index: number) => (
                     <div key={index} className=""
                       <div className=""
-                        <h4 className="font-medium">{goal.name}</h4>
+                        <h4 className="text-lg">"{goal.name}</h4>
                         <Badge variant={goal.percentage >= 100 ? 'default' : goal.percentage >= 75 ? 'secondary' : 'destructive'}>
                           {goal.percentage >= 100 ? 'Concluído' : goal.percentage >= 75 ? 'Em Progresso' : 'Atrasado'}
                         </Badge>
@@ -944,14 +894,13 @@ export default function TeamManagement() {
                   <div className=""
                     <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p>Nenhuma meta encontrada</p>
-                    <p className="text-sm">Configure metas para a equipe</p>
+                    <p className="text-lg">"Configure metas para a equipe</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
         </TabsContent>
-
         {/* Skills Tab */}
         <TabsContent value="skills>
           <Card>
@@ -977,32 +926,26 @@ export default function TeamManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Groups Tab */}
         <TabsContent value="groups" className=""
           <UserGroups tenantAdmin={true} />
         </TabsContent>
-
         {/* Roles Tab */}
         <TabsContent value="roles" className=""
           <CustomRoles tenantAdmin={true} />
         </TabsContent>
-
         {/* Invitations Tab */}
         <TabsContent value="invitations" className=""
           <UserInvitations tenantAdmin={true} />
         </TabsContent>
-
         {/* Sessions Tab */}
         <TabsContent value="sessions" className=""
           <UserSessions tenantAdmin={true} />
         </TabsContent>
-
         {/* Activity Tab */}
         <TabsContent value="activity" className=""
           <UserActivity tenantAdmin={true} />
         </TabsContent>
-
         {/* Schedules Tab */}
         <TabsContent value="schedules>
           <Card>
@@ -1026,7 +969,6 @@ export default function TeamManagement() {
                     </Button>
                   </Link>
                 </div>
-
                 <div className=""
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className=""
@@ -1043,7 +985,6 @@ export default function TeamManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Absence Tab */}
         <TabsContent value="absence>
           <Card>
@@ -1067,7 +1008,6 @@ export default function TeamManagement() {
                     </Button>
                   </Link>
                 </div>
-
                 <div className=""
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className=""
@@ -1084,7 +1024,6 @@ export default function TeamManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* Analytics Tab */}
         <TabsContent value="analytics>
           <div className=""
@@ -1105,7 +1044,6 @@ export default function TeamManagement() {
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Compliance e Auditoria</CardTitle>
@@ -1126,7 +1064,6 @@ export default function TeamManagement() {
           </div>
         </TabsContent>
       </Tabs>
-
       {/* User Management Dialogs */}
       <CreateUserDialog 
         open={showCreateUser} 

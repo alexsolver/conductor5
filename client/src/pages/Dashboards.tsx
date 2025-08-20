@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -32,11 +31,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
 // ✅ 1QA.MD COMPLIANCE: Enhanced schema following Zendesk patterns
 const dashboardSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Dashboard name is required"),
   description: z.string().optional(),
   layoutType: z.enum(["grid", "flex", "masonry", "custom"]),
@@ -63,9 +60,7 @@ const dashboardSchema = z.object({
     hiddenWidgets: z.array(z.string()).default([]),
   }).optional(),
 });
-
 type DashboardFormData = z.infer<typeof dashboardSchema>;
-
 // ✅ 1QA.MD COMPLIANCE: Zendesk-style interface definitions
 interface Dashboard {
   id: string;
@@ -117,7 +112,6 @@ interface Dashboard {
     lastUpdated: string;
   };
 }
-
 // ✅ 1QA.MD COMPLIANCE: Zendesk Dashboard Templates
 const ZENDESK_DASHBOARD_TEMPLATES = [
   {
@@ -193,7 +187,6 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
     featured: true
   }
 ];
-
 // ✅ 1QA.MD COMPLIANCE: Zendesk-style navigation breadcrumbs
 const ZendeskBreadcrumbs = ({ currentView }: { currentView: string }) => (
   <div className=""
@@ -207,7 +200,6 @@ const ZendeskBreadcrumbs = ({ currentView }: { currentView: string }) => (
     </span>
   </div>
 );
-
 // ✅ 1QA.MD COMPLIANCE: Zendesk-style template showcase
 const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (template: any) => void }) => (
   <div className=""
@@ -215,8 +207,8 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
     <div>
       <div className=""
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Featured Templates</h2>
-          <p className="text-gray-600 dark:text-gray-400">Get started quickly with our most popular dashboards</p>
+          <h2 className="text-lg">"Featured Templates</h2>
+          <p className="text-lg">"Get started quickly with our most popular dashboards</p>
         </div>
         <Button variant="outline" size="sm>
           <BookOpen className="w-4 h-4 mr-2" />
@@ -266,16 +258,15 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
         ))}
       </div>
     </div>
-
     {/* Categories */}
     <div>
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Browse by Category</h3>
+      <h3 className="text-lg">"Browse by Category</h3>
       <div className=""
         {["Support", "Performance", '[TRANSLATION_NEEDED]', "Compliance"].map((category) => (
           <Card key={category} className=""
             <CardContent className=""
               <Folder className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <h4 className="font-medium">{category}</h4>
+              <h4 className="text-lg">"{category}</h4>
               <p className=""
                 {ZENDESK_DASHBOARD_TEMPLATES.filter(t => t.category === category).length} templates
               </p>
@@ -286,12 +277,10 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
     </div>
   </div>
 );
-
 // ✅ 1QA.MD COMPLIANCE: Enhanced Zendesk-style dashboard card with FIXED WORKING BUTTONS
 const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; onRefresh: () => void }) => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working toggle favorite mutation
   const toggleFavorite = useMutation({
     mutationFn: async () => {
@@ -316,7 +305,6 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
       });
     },
   });
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working duplicate mutation
   const duplicateDashboard = useMutation({
     mutationFn: async () => {
@@ -341,7 +329,6 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
       });
     },
   });
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working delete mutation
   const deleteDashboard = useMutation({
     mutationFn: async () => {
@@ -366,7 +353,6 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
       });
     },
   });
-
   const getStatusIcon = () => {
     switch (dashboard.status) {
       case "active": return <CheckCircle className="w-4 h-4 text-green-500" />;
@@ -375,7 +361,6 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
       default: return <Clock className="w-4 h-4 text-gray-500" />;
     }
   };
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working dashboard open handler
   const handleOpenDashboard = async () => {
     try {
@@ -396,13 +381,11 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
       });
     }
   };
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working edit handler
   const handleEditDashboard = () => {
     console.log("[DASHBOARD-EDIT] Navigating to edit dashboard: ", dashboard.id);
     setLocation("/dashboard/" + dashboard.id + "/edit");
   };
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working share handler
   const handleShareDashboard = async () => {
     try {
@@ -430,7 +413,6 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
       });
     }
   };
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working delete confirmation
   const handleDeleteConfirmation = () => {
     const confirmed = window.confirm("Are you sure you want to delete this item? This action cannot be undone.");
@@ -438,7 +420,6 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
       deleteDashboard.mutate();
     }
   };
-
   return (
     <Card className=""
       <CardHeader className=""
@@ -481,7 +462,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
                     <div className=""
                       {dashboard.owner.name.charAt(0)}
                     </div>
-                    <span className="text-xs text-gray-500">{dashboard.owner.name}</span>
+                    <span className="text-lg">"{dashboard.owner.name}</span>
                   </div>
                 )}
                 {dashboard.collaborators && dashboard.collaborators.length > 0 && (
@@ -586,41 +567,39 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
         {/* Metrics Row */}
         <div className=""
           <div className=""
-            <div className="font-semibold text-gray-900 dark:text-gray-100">{dashboard.widgetCount}</div>
-            <div className="text-gray-500">Widgets</div>
+            <div className="text-lg">"{dashboard.widgetCount}</div>
+            <div className="text-lg">"Widgets</div>
           </div>
           <div className=""
-            <div className="font-semibold text-gray-900 dark:text-gray-100">{dashboard.viewCount}</div>
-            <div className="text-gray-500">Views</div>
+            <div className="text-lg">"{dashboard.viewCount}</div>
+            <div className="text-lg">"Views</div>
           </div>
           <div className=""
             <div className=""
               {dashboard.refreshInterval}s
             </div>
-            <div className="text-gray-500">Refresh</div>
+            <div className="text-lg">"Refresh</div>
           </div>
         </div>
-
         {/* Insights */}
         {dashboard.insights && (
           <div className=""
             <div className=""
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Dashboard Insights</span>
+              <span className="text-lg">"Dashboard Insights</span>
               <TrendingUp className="w-4 h-4 text-green-500" />
             </div>
             <div className=""
               <div>
-                <span className="text-gray-500">Performance: </span>
-                <span className="font-medium text-green-600">{dashboard.insights.performance}%</span>
+                <span className="text-lg">"Performance: </span>
+                <span className="text-lg">"{dashboard.insights.performance}%</span>
               </div>
               <div>
-                <span className="text-gray-500">Engagement: </span>
-                <span className="font-medium text-blue-600">{dashboard.insights.engagement}%</span>
+                <span className="text-lg">"Engagement: </span>
+                <span className="text-lg">"{dashboard.insights.engagement}%</span>
               </div>
             </div>
           </div>
         )}
-
         {/* Action Buttons */}
         <div className=""
           <div className=""
@@ -660,7 +639,6 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     </Card>
   );
 };
-
 // ✅ 1QA.MD COMPLIANCE: Enhanced create dashboard dialog with FIXED MODAL STATE MANAGEMENT
 const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) => {
   const [open, setOpen] = useState(false);
@@ -697,7 +675,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
       },
     },
   });
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Create dashboard mutation with proper error handling
   const createDashboardMutation = useMutation({
     mutationFn: async (data: DashboardFormData) => {
@@ -739,19 +716,16 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
       setIsSubmitting(false);
     },
   });
-
   const steps = [
     { title: "Template", icon: BookOpen },
     { title: "Basic Info", icon: FileText },
     { title: "Configuration", icon: Settings },
   ];
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Form submission handler
   const onSubmit = (data: DashboardFormData) => {
     console.log("[DASHBOARD-CREATE] Form submitted with data:", data);
     createDashboardMutation.mutate(data);
   };
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Modal reset function
   const handleModalReset = () => {
     console.log("[DASHBOARD-CREATE] Resetting modal state");
@@ -761,7 +735,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
     setIsSubmitting(false);
     form.reset();
   };
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Modal close handler to prevent auto-close
   const handleModalChange = (newOpen: boolean) => {
     if (!newOpen && !isSubmitting) {
@@ -774,7 +747,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
     }
     // Prevent auto-close during submission by not calling setOpen(false)
   };
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Step navigation
   const handleNextStep = () => {
     if (currentStep === 0 && !selectedTemplate) {
@@ -789,13 +761,11 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
       setCurrentStep(currentStep + 1);
     }
   };
-
   const handlePreviousStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
-
   return (
     <Dialog open={open} onOpenChange={handleModalChange}>
       <DialogTrigger asChild>
@@ -811,7 +781,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
             <span>Create New Dashboard</span>
           </DialogTitle>
         </DialogHeader>
-
         {/* Zendesk-style Step Progress */}
         <div className=""
           {steps.map((step, index) => (
@@ -834,7 +803,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
             </div>
           ))}
         </div>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className=""
             
@@ -842,8 +810,8 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
             {currentStep === 0 && (
               <div className=""
                 <div className=""
-                  <h3 className="text-lg font-semibold mb-2">Choose a Template</h3>
-                  <p className="text-gray-600">Start with a pre-built template or create from scratch</p>
+                  <h3 className="text-lg">"Choose a Template</h3>
+                  <p className="text-lg">"Start with a pre-built template or create from scratch</p>
                 </div>
                 
                 <div className=""
@@ -858,8 +826,8 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       <div className=""
                         <Plus className="w-6 h-6 text-gray-500" />
                       </div>
-                      <h4 className="font-semibold mb-1">Blank Dashboard</h4>
-                      <p className="text-sm text-gray-600">Start from scratch with a clean slate</p>
+                      <h4 className="text-lg">"Blank Dashboard</h4>
+                      <p className="text-lg">"Start from scratch with a clean slate</p>
                     </CardContent>
                   </Card>
                   
@@ -878,11 +846,11 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                             <template.icon className="w-5 h-5" />
                           </div>
                           <div className=""
-                            <h4 className="font-semibold text-sm mb-1 truncate">{template.name}</h4>
-                            <p className="text-xs text-gray-600 line-clamp-2">{template.description}</p>
+                            <h4 className="text-lg">"{template.name}</h4>
+                            <p className="text-lg">"{template.description}</p>
                             <div className=""
                               <span>{template.widgets} widgets</span>
-                              <Badge variant="secondary" className="text-xs">{template.popularity}</Badge>
+                              <Badge variant="secondary" className="text-lg">"{template.popularity}</Badge>
                             </div>
                           </div>
                         </div>
@@ -892,7 +860,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                 </div>
               </div>
             )}
-
             {/* Step 1: Basic Info */}
             {currentStep === 1 && (
               <div className=""
@@ -930,7 +897,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="tags"
@@ -949,13 +915,12 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                 />
               </div>
             )}
-
             {/* Step 2: Configuration */}
             {currentStep === 2 && (
               <div className=""
                 <div className=""
                   <div className=""
-                    <h4 className="font-semibold">Layout & Appearance</h4>
+                    <h4 className="text-lg">"Layout & Appearance</h4>
                     
                     <FormField
                       control={form.control}
@@ -979,7 +944,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="isPublic"
@@ -1001,9 +965,8 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       )}
                     />
                   </div>
-
                   <div className=""
-                    <h4 className="font-semibold">Real-time Settings</h4>
+                    <h4 className="text-lg">"Real-time Settings</h4>
                     
                     <FormField
                       control={form.control}
@@ -1025,7 +988,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                         </FormItem>
                       )}
                     />
-
                     {form.watch("isRealTime") && (
                       <FormField
                         control={form.control}
@@ -1055,7 +1017,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                 </div>
               </div>
             )}
-
             {/* Navigation Buttons */}
             <div className=""
               <Button
@@ -1103,7 +1064,6 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
     </Dialog>
   );
 };
-
 // ✅ 1QA.MD COMPLIANCE: Main Dashboards component with REAL API DATA and FIXED WORKING CONTROLS
 export default function Dashboards() {
   const [, setLocation] = useLocation();
@@ -1113,7 +1073,6 @@ export default function Dashboards() {
   const [layoutFilter, setLayoutFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [viewMode, setViewMode] = useState("grid");
-
   // ✅ 1QA.MD COMPLIANCE: REAL API DATA with enhanced error handling
   const { data: dashboardsResponse, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/reports-dashboards/dashboards"],
@@ -1132,7 +1091,6 @@ export default function Dashboards() {
     staleTime: 30000,
     refetchOnWindowFocus: false,
   });
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Process real API data with proper error handling
   const dashboards: Dashboard[] = (() => {
     if (error) {
@@ -1160,7 +1118,6 @@ export default function Dashboards() {
     console.log(`⚠️ [DASHBOARDS-API] No data available, showing empty state");
     return [];
   })();
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working filters
   const filteredDashboards = dashboards.filter((dashboard: Dashboard) => {
     const matchesSearch = dashboard.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1175,7 +1132,6 @@ export default function Dashboards() {
     
     return matchesSearch && matchesLayout && matchesTab;
   });
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working sorting
   const sortedDashboards = [...filteredDashboards].sort((a, b) => {
     switch (sortBy) {
@@ -1191,13 +1147,11 @@ export default function Dashboards() {
         return 0;
     }
   });
-
   // ✅ 1QA.MD COMPLIANCE: FIXED Working refresh handler
   const handleRefresh = () => {
     console.log(`🔄 [DASHBOARDS-REFRESH] Refreshing dashboards list...");
     refetch();
   };
-
   return (
     <div className=""
       {/* ✅ 1QA.MD COMPLIANCE: Zendesk-style header */}
@@ -1235,7 +1189,6 @@ export default function Dashboards() {
           </div>
         </div>
       </div>
-
       <div className=""
         {/* ✅ 1QA.MD COMPLIANCE: Zendesk-style navigation tabs */}
         <Tabs value={activeView} onValueChange={setActiveView} className=""
@@ -1253,14 +1206,12 @@ export default function Dashboards() {
               <span>Insights</span>
             </TabsTrigger>
           </TabsList>
-
           {/* Templates View */}
           <TabsContent value="templates" className=""
             <ZendeskTemplateShowcase onSelectTemplate={(template) => {
               console.log('[TRANSLATION_NEEDED]', template);
             }} />
           </TabsContent>
-
           {/* Insights View */}
           <TabsContent value="insights" className=""
             <div className=""
@@ -1268,9 +1219,9 @@ export default function Dashboards() {
                 <CardContent className=""
                   <div className=""
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Dashboards</p>
-                      <p className="text-3xl font-bold text-gray-900">{dashboards.length}</p>
-                      <p className="text-sm text-green-600">Real API data</p>
+                      <p className="text-lg">"Total Dashboards</p>
+                      <p className="text-lg">"{dashboards.length}</p>
+                      <p className="text-lg">"Real API data</p>
                     </div>
                     <BarChart3 className="w-8 h-8 text-blue-600" />
                   </div>
@@ -1281,11 +1232,11 @@ export default function Dashboards() {
                 <CardContent className=""
                   <div className=""
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Active Dashboards</p>
+                      <p className="text-lg">"Active Dashboards</p>
                       <p className=""
                         {dashboards.filter(d => d.status === "active").length}
                       </p>
-                      <p className="text-sm text-green-600">Live data</p>
+                      <p className="text-lg">"Live data</p>
                     </div>
                     <Users className="w-8 h-8 text-green-600" />
                   </div>
@@ -1296,11 +1247,11 @@ export default function Dashboards() {
                 <CardContent className=""
                   <div className=""
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Views</p>
+                      <p className="text-lg">"Total Views</p>
                       <p className=""
                         {dashboards.reduce((acc: number, d: Dashboard) => acc + d.viewCount, 0)}
                       </p>
-                      <p className="text-sm text-green-600">From API</p>
+                      <p className="text-lg">"From API</p>
                     </div>
                     <Eye className="w-8 h-8 text-purple-600" />
                   </div>
@@ -1311,13 +1262,13 @@ export default function Dashboards() {
                 <CardContent className=""
                   <div className=""
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Avg. Performance</p>
+                      <p className="text-lg">"Avg. Performance</p>
                       <p className=""
                         {dashboards.length > 0 ? 
                           Math.round(dashboards.reduce((acc, d) => acc + (d.insights?.performance || 0), 0) / dashboards.length) 
                           : 0}%
                       </p>
-                      <p className="text-sm text-green-600">Calculated</p>
+                      <p className="text-lg">"Calculated</p>
                     </div>
                     <TrendingUp className="w-8 h-8 text-orange-600" />
                   </div>
@@ -1334,8 +1285,8 @@ export default function Dashboards() {
                   {dashboards.slice(0, 5).map((dashboard: Dashboard) => (
                     <div key={dashboard.id} className=""
                       <div className=""
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="font-medium">{dashboard.name}</span>
+                        <div className="text-lg">"</div>
+                        <span className="text-lg">"{dashboard.name}</span>
                       </div>
                       <div className=""
                         <span>{dashboard.viewCount} views</span>
@@ -1353,7 +1304,6 @@ export default function Dashboards() {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Dashboards View */}
           <TabsContent value="dashboards" className=""
             {/* ✅ 1QA.MD COMPLIANCE: FIXED Working filters and search */}
@@ -1415,7 +1365,6 @@ export default function Dashboards() {
                   </div>
                 </div>
               </div>
-
               {/* ✅ 1QA.MD COMPLIANCE: FIXED Working filter tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className=""
@@ -1433,7 +1382,6 @@ export default function Dashboards() {
                     Live ({dashboards.filter(d => d.isRealTime).length})
                   </TabsTrigger>
                 </TabsList>
-
                 <TabsContent value={activeTab} className=""
                   {isLoading ? (
                     <div className=""

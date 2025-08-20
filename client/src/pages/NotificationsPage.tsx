@@ -30,7 +30,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-
 // Types
 interface Notification {
   id: string;
@@ -52,7 +51,6 @@ interface Notification {
   canBeSent: boolean;
   requiresEscalation: boolean;
 }
-
 interface NotificationStats {
   overview: {
     total: number;
@@ -72,11 +70,9 @@ interface NotificationStats {
     lastMonth: number;
   };
 }
-
 // Form schemas
 const createNotificationSchema = z.object({
   // Localization temporarily disabled
-
   type: z.string().min(1, 'Type is required'),
   severity: z.enum(['low', 'medium', 'high', 'critical']),
   title: z.string().min(1, 'Title is required').max(500, 'Title too long'),
@@ -88,9 +84,7 @@ const createNotificationSchema = z.object({
   relatedEntityType: z.string().optional(),
   relatedEntityId: z.string().optional()
 });
-
 type CreateNotificationForm = z.infer<typeof createNotificationSchema>;
-
 // Severity color mapping
 const severityColors = {
   low: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -98,7 +92,6 @@ const severityColors = {
   high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
   critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
 };
-
 // Status color mapping
 const statusColors = {
   pending: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
@@ -107,7 +100,6 @@ const statusColors = {
   failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
   expired: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
 };
-
 export default function NotificationsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -119,7 +111,6 @@ export default function NotificationsPage() {
     page: 1
   });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-
   // Form
   const form = useForm<CreateNotificationForm>({
     resolver: zodResolver(createNotificationSchema),
@@ -129,7 +120,6 @@ export default function NotificationsPage() {
       type: 'system_maintenance'
     }
   });
-
   // Queries
   const { data: notifications, isLoading: notificationsLoading, refetch: refetchNotifications } = useQuery({
     queryKey: ['/api/notifications', filters],
@@ -150,7 +140,6 @@ export default function NotificationsPage() {
       return response.json();
     },
   });
-
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/notifications/stats'],
     queryFn: async () => {
@@ -164,7 +153,6 @@ export default function NotificationsPage() {
       return response.json();
     },
   });
-
   // Mutations
   const createMutation = useMutation({
     mutationFn: async (data: CreateNotificationForm) => {
@@ -196,7 +184,6 @@ export default function NotificationsPage() {
       });
     }
   });
-
   const processMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch('/api/notifications/process', {
@@ -224,7 +211,6 @@ export default function NotificationsPage() {
       });
     }
   });
-
   const markAsReadMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       const response = await fetch('/api/notifications/bulk-read', {
@@ -253,19 +239,15 @@ export default function NotificationsPage() {
       });
     }
   });
-
   const onSubmit = (data: CreateNotificationForm) => {
     createMutation.mutate(data);
   };
-
   const handleProcessNotifications = () => {
     processMutation.mutate();
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="w-4 h-4" />;
@@ -276,12 +258,11 @@ export default function NotificationsPage() {
       default: return <Bell className="w-4 h-4" />;
     }
   };
-
   return (
     <div className="container mx-auto p-6 space-y-6" data-testid="notifications-page>
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Notifications & Alerts</h1>
+          <h1 className="text-lg">"Notifications & Alerts</h1>
           <p className=""
             Manage system notifications and alerts delivery
           </p>
@@ -343,7 +324,6 @@ export default function NotificationsPage() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="severity"
@@ -368,7 +348,6 @@ export default function NotificationsPage() {
                       )}
                     />
                   </div>
-
                   <FormField
                     control={form.control}
                     name="title"
@@ -386,7 +365,6 @@ export default function NotificationsPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="message"
@@ -405,7 +383,6 @@ export default function NotificationsPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="channels"
@@ -436,7 +413,7 @@ export default function NotificationsPage() {
                                 }}
                                 data-testid={"
                               />
-                              <span className="text-sm">{channel.label}</span>
+                              <span className="text-lg">"{channel.label}</span>
                             </label>
                           ))}
                         </div>
@@ -444,7 +421,6 @@ export default function NotificationsPage() {
                       </FormItem>
                     )}
                   />
-
                   <div className=""
                     <Button 
                       type="button" 
@@ -468,7 +444,6 @@ export default function NotificationsPage() {
           </Dialog>
         </div>
       </div>
-
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList>
           <TabsTrigger value="notifications" data-testid="tab-notifications>
@@ -480,7 +455,6 @@ export default function NotificationsPage() {
             Statistics
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="notifications" className=""
           {/* Filters */}
           <Card>
@@ -528,7 +502,6 @@ export default function NotificationsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <Label htmlFor="type-filter">Type</Label>
                   <Select value={filters.type} onValueChange={(value) => 
@@ -547,7 +520,6 @@ export default function NotificationsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className=""
                   <Button 
                     onClick={() => setFilters({ status: '', type: '', severity: '', page: 1 })}
@@ -560,13 +532,12 @@ export default function NotificationsPage() {
               </div>
             </CardContent>
           </Card>
-
           {/* Notifications List */}
           <div className=""
             {notificationsLoading ? (
               <Card>
                 <CardContent className=""
-                  <div className="text-center">Loading notifications...</div>
+                  <div className="text-lg">"Loading notifications...</div>
                 </CardContent>
               </Card>
             ) : notifications?.success && notifications.data?.notifications?.length > 0 ? (
@@ -654,53 +625,51 @@ export default function NotificationsPage() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="stats" className=""
           {statsLoading ? (
-            <div className="text-center py-8">Loading statistics...</div>
+            <div className="text-lg">"Loading statistics...</div>
           ) : stats?.success && stats.data ? (
             <div className=""
               {/* Overview Stats */}
               <Card data-testid="stats-total>
                 <CardHeader className=""
-                  <CardTitle className="text-sm font-medium">Total</CardTitle>
+                  <CardTitle className="text-lg">"Total</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{(stats.data as any).overview?.total || 0}</div>
-                  <p className="text-xs text-muted-foreground">All notifications</p>
+                  <div className="text-lg">"{(stats.data as any).overview?.total || 0}</div>
+                  <p className="text-lg">"All notifications</p>
                 </CardContent>
               </Card>
               
               <Card data-testid="stats-pending>
                 <CardHeader className=""
-                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                  <CardTitle className="text-lg">"Pending</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">{(stats.data as any).overview?.pending || 0}</div>
-                  <p className="text-xs text-muted-foreground">Awaiting delivery</p>
+                  <div className="text-lg">"{(stats.data as any).overview?.pending || 0}</div>
+                  <p className="text-lg">"Awaiting delivery</p>
                 </CardContent>
               </Card>
               
               <Card data-testid="stats-delivered>
                 <CardHeader className=""
-                  <CardTitle className="text-sm font-medium">Delivered</CardTitle>
+                  <CardTitle className="text-lg">"Delivered</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{(stats.data as any).overview?.delivered || 0}</div>
-                  <p className="text-xs text-muted-foreground">Successfully delivered</p>
+                  <div className="text-lg">"{(stats.data as any).overview?.delivered || 0}</div>
+                  <p className="text-lg">"Successfully delivered</p>
                 </CardContent>
               </Card>
               
               <Card data-testid="stats-failed>
                 <CardHeader className=""
-                  <CardTitle className="text-sm font-medium">Failed</CardTitle>
+                  <CardTitle className="text-lg">"Failed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{(stats.data as any).overview?.failed || 0}</div>
-                  <p className="text-xs text-muted-foreground">Delivery failed</p>
+                  <div className="text-lg">"{(stats.data as any).overview?.failed || 0}</div>
+                  <p className="text-lg">"Delivery failed</p>
                 </CardContent>
               </Card>
-
               {/* Recent Activity */}
               <Card className="md:col-span-2" data-testid="stats-recent-activity>
                 <CardHeader>
@@ -710,20 +679,19 @@ export default function NotificationsPage() {
                   <div className=""
                     <div className=""
                       <span>Last 24 hours:</span>
-                      <span className="font-semibold">{(stats.data as any).recentActivity?.last24Hours || 0}</span>
+                      <span className="text-lg">"{(stats.data as any).recentActivity?.last24Hours || 0}</span>
                     </div>
                     <div className=""
                       <span>Last week:</span>
-                      <span className="font-semibold">{(stats.data as any).recentActivity?.lastWeek || 0}</span>
+                      <span className="text-lg">"{(stats.data as any).recentActivity?.lastWeek || 0}</span>
                     </div>
                     <div className=""
                       <span>Last month:</span>
-                      <span className="font-semibold">{(stats.data as any).recentActivity?.lastMonth || 0}</span>
+                      <span className="text-lg">"{(stats.data as any).recentActivity?.lastMonth || 0}</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-
               {/* Type Distribution */}
               <Card className="md:col-span-2" data-testid="stats-type-distribution>
                 <CardHeader>
@@ -733,8 +701,8 @@ export default function NotificationsPage() {
                   <div className=""
                     {Object.entries((stats.data as any).distribution?.byType || {}).map(([type, count]) => (
                       <div key={type} className=""
-                        <span className="capitalize">{type.replace('_', ' ')}:</span>
-                        <span className="font-semibold">{count as number}</span>
+                        <span className="text-lg">"{type.replace('_', ' ')}:</span>
+                        <span className="text-lg">"{count as number}</span>
                       </div>
                     ))}
                   </div>

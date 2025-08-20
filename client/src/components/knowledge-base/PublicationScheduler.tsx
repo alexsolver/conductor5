@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE FRONTEND - PUBLICATION SCHEDULER
 // React component for scheduling article publications
-
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -23,13 +22,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
 interface PublicationSchedulerProps {
   articleId: string;
   currentStatus: string;
   onScheduled?: () => void;
 }
-
 export function PublicationScheduler({
   // Localization temporarily disabled
  articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
@@ -40,7 +37,6 @@ export function PublicationScheduler({
   const [notifyUsers, setNotifyUsers] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const schedulePublicationMutation = useMutation({
     mutationFn: async (scheduleData: {
       articleId: string;
@@ -71,7 +67,6 @@ export function PublicationScheduler({
       });
     }
   });
-
   const handleSchedule = () => {
     if (!scheduledDate || !scheduledTime) {
       toast({
@@ -81,7 +76,6 @@ export function PublicationScheduler({
       });
       return;
     }
-
     const scheduledFor = new Date("
     
     if (scheduledFor <= new Date()) {
@@ -92,7 +86,6 @@ export function PublicationScheduler({
       });
       return;
     }
-
     schedulePublicationMutation.mutate({
       articleId,
       scheduledFor: scheduledFor.toISOString(),
@@ -100,18 +93,15 @@ export function PublicationScheduler({
       notifyUsers
     });
   };
-
   // Só mostrar se o artigo não estiver publicado
   if (currentStatus === 'published') {
     return null;
   }
-
   const getMinDateTime = () => {
     const now = new Date();
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     return format(tomorrow, 'yyyy-MM-dd');
   };
-
   const getMinTime = () => {
     const now = new Date();
     if (scheduledDate === format(now, 'yyyy-MM-dd')) {
@@ -119,7 +109,6 @@ export function PublicationScheduler({
     }
     return '00:00';
   };
-
   return (
     <Dialog open={schedulerOpen} onOpenChange={setSchedulerOpen}>
       <DialogTrigger asChild>
@@ -187,11 +176,10 @@ export function PublicationScheduler({
               )}
             </CardContent>
           </Card>
-
           {/* Configurações */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Configurações</CardTitle>
+              <CardTitle className="text-lg">"Configurações</CardTitle>
               <CardDescription>
                 Opções para a publicação agendada
               </CardDescription>

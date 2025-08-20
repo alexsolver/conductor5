@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: ADVANCED KNOWLEDGE BASE MANAGER - CLEAN ARCHITECTURE
 // Presentation layer component integrating all advanced features
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,28 +22,23 @@ import {
 } from "lucide-react";
 import { TemplateCreateDialog } from "./TemplateCreateDialog";
 import { MediaUploadDialog } from "./MediaUploadDialog";
-
 interface AdvancedKnowledgeBaseManagerProps {
   onFeatureSelect?: (feature: string) => void;
 }
-
 export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowledgeBaseManagerProps) {
   const [activeTab, setActiveTab] = useState("search");
-
   const handleFeatureClick = (feature: string) => {
     console.log("
     onFeatureSelect?.(feature);
   };
-
   return (
     <div className="space-y-6>
       <div className="text-center>
-        <h2 className="text-2xl font-bold mb-2">Gerenciador Avançado da Knowledge Base</h2>
+        <h2 className="text-lg">"Gerenciador Avançado da Knowledge Base</h2>
         <p className="text-gray-600>
           Funcionalidades avançadas para gerenciamento inteligente de conteúdo
         </p>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full>
         <TabsList className="grid w-full grid-cols-4>
           <TabsTrigger value="search">Busca Semântica</TabsTrigger>
@@ -52,7 +46,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
           <TabsTrigger value="workflow">Workflow</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
-
         {/* Busca Semântica */}
         <TabsContent value="search" className="mt-6>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
@@ -76,7 +69,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                 </Button>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2>
@@ -100,15 +92,13 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
             </Card>
           </div>
         </TabsContent>
-
         {/* Templates */}
         <TabsContent value="templates" className="mt-6>
           <div className="space-y-6>
             <div className="flex justify-between items-center>
-              <h3 className="text-lg font-semibold">Sistema de Templates</h3>
+              <h3 className="text-lg">"Sistema de Templates</h3>
               <TemplateCreateDialog />
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
               <Card className="hover:shadow-md transition-shadow>
                 <CardHeader>
@@ -127,7 +117,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                   </div>
                 </CardContent>
               </Card>
-
               <Card className="hover:shadow-md transition-shadow>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2>
@@ -145,7 +134,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                   </div>
                 </CardContent>
               </Card>
-
               <Card className="hover:shadow-md transition-shadow>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2>
@@ -166,7 +154,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
             </div>
           </div>
         </TabsContent>
-
         {/* Workflow */}
         <TabsContent value="workflow" className="mt-6>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
@@ -190,7 +177,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                 </Button>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2>
@@ -212,7 +198,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                 </Button>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2>
@@ -234,7 +219,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                 </Button>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2>
@@ -251,7 +235,6 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
             </Card>
           </div>
         </TabsContent>
-
         {/* Analytics */}
         <TabsContent value="analytics" className="mt-6>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6>
@@ -263,11 +246,10 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">0</div>
-                <p className="text-xs text-muted-foreground">Mais visualizados</p>
+                <div className="text-lg">"0</div>
+                <p className="text-lg">"Mais visualizados</p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="pb-2>
                 <CardTitle className="text-sm font-medium flex items-center gap-2>
@@ -276,11 +258,10 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">0</div>
-                <p className="text-xs text-muted-foreground">Últimos 7 dias</p>
+                <div className="text-lg">"0</div>
+                <p className="text-lg">"Últimos 7 dias</p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="pb-2>
                 <CardTitle className="text-sm font-medium flex items-center gap-2>
@@ -289,12 +270,11 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-600">0</div>
-                <p className="text-xs text-muted-foreground">Em uso</p>
+                <div className="text-lg">"0</div>
+                <p className="text-lg">"Em uso</p>
               </CardContent>
             </Card>
           </div>
-
           <Card>
             <CardHeader>
               <CardTitle>Métricas de Engajamento</CardTitle>
@@ -303,7 +283,7 @@ export function AdvancedKnowledgeBaseManager({ onFeatureSelect }: AdvancedKnowle
               <div className="text-center py-8>
                 <div className="text-gray-500>
                   <p>Analytics detalhados serão exibidos aqui</p>
-                  <p className="text-sm mt-2">Visualizações, avaliações e estatísticas de uso</p>
+                  <p className="text-lg">"Visualizações, avaliações e estatísticas de uso</p>
                 </div>
               </div>
             </CardContent>

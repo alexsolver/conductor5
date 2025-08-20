@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: KNOWLEDGE BASE TICKET TAB - CLEAN ARCHITECTURE
 // React component following modern patterns with comprehensive functionality
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -23,7 +22,6 @@ import {
   Link as LinkIcon,
   Loader2
 } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,11 +35,9 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-
 interface KnowledgeBaseTicketTabProps {
   ticketId: string;
 }
-
 interface KnowledgeBaseArticle {
   id: string;
   title: string;
@@ -57,10 +53,8 @@ interface KnowledgeBaseArticle {
   createdAt: string;
   updatedAt: string;
 }
-
 const categoryLabels: Record<string, string> = {
   // Localization temporarily disabled
-
   technical_support: 'Suporte Técnico',
   troubleshooting: 'Solução de Problemas',
   user_guide: 'Guia do Usuário',
@@ -72,7 +66,6 @@ const categoryLabels: Record<string, string> = {
   best_practice: 'Melhores Práticas',
   other: 'Outros'
 };
-
 export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ ticketId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -82,16 +75,13 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeTab, setActiveTab] = useState('related');
-
   console.log('🔧 [KB-TAB] Rendering Knowledge Base tab for ticket:', ticketId);
-
   // Fetch articles related to this ticket
   const { data: relatedArticlesData, isLoading: relatedLoading } = useQuery({
     queryKey: ["/related`],
     enabled: !!ticketId,
     staleTime: 5 * 60 * 1000,
   });
-
   // Search articles
   const { data: searchResultsData, isLoading: searchLoading, refetch: searchArticles } = useQuery({
     queryKey: [`/api/knowledge-base/articles`, { 
@@ -102,7 +92,6 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     enabled: false, // Manual trigger
     staleTime: 2 * 60 * 1000,
   });
-
   // Link article to ticket mutation
   const linkArticleMutation = useMutation({
     mutationFn: async ({ articleId, relationType }: { articleId: string, relationType?: string }) => {
@@ -128,7 +117,6 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
       });
     },
   });
-
   // Rate article mutation
   const rateArticleMutation = useMutation({
     mutationFn: async ({ articleId, rating }: { articleId: string, rating: number }) => {
@@ -156,7 +144,6 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
       });
     },
   });
-
   // Handle search
   const handleSearch = () => {
     if (searchQuery.trim() || (selectedCategory && selectedCategory !== 'all')) {
@@ -168,18 +155,16 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
       setActiveTab('search');
     }
   };
-
   // Handle Enter key in search
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
   };
-
   // Render article card
   const renderArticleCard = (article: KnowledgeBaseArticle, showLinkButton = false) => {
     return (
-      <Card key={article.id} className="transition-all duration-200 hover:shadow-md ">
+      <Card key={article.id} className="text-lg">"
         <CardHeader className="pb-3>
           <div className="flex items-start justify-between>
             <div className="flex-1>
@@ -202,14 +187,12 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                   </Badge>
                 ))}
               </div>
-
               {article.summary && (
                 <p className="text-sm text-gray-600 mb-3 line-clamp-3>
                   {article.summary}
                 </p>
               )}
             </div>
-
             <div className="flex flex-col gap-1 ml-4>
               {showLinkButton && (
                 <Button
@@ -244,7 +227,6 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             </div>
           </div>
         </CardHeader>
-
         <CardContent className="pt-0>
           <div className="flex items-center justify-between text-xs text-gray-500>
             <div className="flex items-center gap-4>
@@ -258,7 +240,6 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                 {new Date(article.publishedAt || article.createdAt).toLocaleDateString('pt-BR')}
               </span>
             </div>
-
             <div className="flex items-center gap-2>
               <Button
                 variant="ghost"
@@ -287,10 +268,8 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
       </Card>
     );
   };
-
   const relatedArticles = (relatedArticlesData as any)?.success ? (relatedArticlesData as any).data : [];
   const searchResults = (searchResultsData as any)?.success ? (searchResultsData as any).data : [];
-
   return (
     <div className="space-y-6" data-testid="knowledge-base-tab>
       {/* Header */}
@@ -300,13 +279,12 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             <BookOpen className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Base de Conhecimento</h2>
+            <h2 className="text-lg">"Base de Conhecimento</h2>
             <p className="text-sm text-gray-600>
               Artigos relacionados e busca na base de conhecimento
             </p>
           </div>
         </div>
-
         <div className="flex items-center gap-2>
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -326,7 +304,6 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
           </Button>
         </div>
       </div>
-
       {/* Search Section */}
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200>
         <CardContent className="p-4>
@@ -355,7 +332,6 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                 ))}
               </SelectContent>
             </Select>
-
             <Button 
               onClick={handleSearch}
               disabled={searchLoading}
@@ -372,13 +348,11 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
               )}
             </Button>
           </div>
-
           <p className="text-xs text-blue-700>
             💡 Dica: Use palavras-chave relacionadas ao problema para encontrar artigos relevantes
           </p>
         </CardContent>
       </Card>
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full>
@@ -391,13 +365,12 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             Resultados da Busca ({searchResults.length})
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="related" className="mt-6>
           <div className="space-y-4>
             {relatedLoading ? (
               <div className="flex items-center justify-center py-12>
                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                <span className="text-gray-600">Carregando artigos relacionados...</span>
+                <span className="text-lg">"Carregando artigos relacionados...</span>
               </div>
             ) : relatedArticles.length > 0 ? (
               <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'space-y-3'}>
@@ -408,7 +381,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             ) : (
               <Card className="p-8 text-center text-gray-500>
                 <BookOpen className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                <h3 className="font-medium mb-2">Nenhum artigo relacionado</h3>
+                <h3 className="text-lg">"Nenhum artigo relacionado</h3>
                 <p className="text-sm>
                   Não há artigos da base de conhecimento vinculados a este ticket ainda.
                 </p>
@@ -419,13 +392,12 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="search" className="mt-6>
           <div className="space-y-4>
             {searchLoading ? (
               <div className="flex items-center justify-center py-12>
                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                <span className="text-gray-600">Pesquisando na base de conhecimento...</span>
+                <span className="text-lg">"Pesquisando na base de conhecimento...</span>
               </div>
             ) : searchResults.length > 0 ? (
               <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'space-y-3'}>
@@ -436,7 +408,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             ) : activeTab === 'search' ? (
               <Card className="p-8 text-center text-gray-500>
                 <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                <h3 className="font-medium mb-2">Nenhum resultado encontrado</h3>
+                <h3 className="text-lg">"Nenhum resultado encontrado</h3>
                 <p className="text-sm>
                   Tente usar termos de busca diferentes ou ajustar os filtros.
                 </p>
@@ -444,7 +416,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
             ) : (
               <Card className="p-8 text-center text-gray-500>
                 <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                <h3 className="font-medium mb-2">Digite algo para pesquisar</h3>
+                <h3 className="text-lg">"Digite algo para pesquisar</h3>
                 <p className="text-sm>
                   Use a barra de busca acima para encontrar artigos na base de conhecimento.
                 </p>

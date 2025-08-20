@@ -13,7 +13,6 @@ import { Plus, Edit, Trash2, Search, Package, DollarSign, User, Tag } from "luci
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 // import useLocalization from '@/hooks/useLocalization';
-
 interface CustomerItemMapping {
   id: string;
   tenant_id: string;
@@ -34,10 +33,8 @@ interface CustomerItemMapping {
   customer_last_name: string;
   customer_email: string;
 }
-
 export function CustomerItemMappings() {
   // Localization temporarily disabled
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,7 +54,6 @@ export function CustomerItemMappings() {
     special_instructions: "",
     notes: ""
   });
-
   // Get user data for tenant context
   const { data: userData } = useQuery({
     queryKey: ['/api/auth/me'],
@@ -66,9 +62,7 @@ export function CustomerItemMappings() {
       return response.json();
     }
   });
-
   const tenantId = userData?.tenantId;
-
   // Fetch customer item mappings
   const { data: mappingsData, isLoading: mappingsLoading, refetch } = useQuery({
     queryKey: ['/api/materials-services/customer-item-mappings', tenantId, searchTerm, selectedCustomer],
@@ -88,7 +82,6 @@ export function CustomerItemMappings() {
     },
     enabled: !!tenantId,
   });
-
   // Fetch customer companies for filter
   const { data: customerCompaniesData } = useQuery({
     queryKey: ['/api/companies'],
@@ -99,7 +92,6 @@ export function CustomerItemMappings() {
     },
     enabled: !!tenantId,
   });
-
   // Fetch items for creating new mappings
   const { data: itemsData } = useQuery({
     queryKey: ['/api/materials-services/items'],
@@ -110,7 +102,6 @@ export function CustomerItemMappings() {
     },
     enabled: !!tenantId,
   });
-
   // Create/Update mapping mutation
   const createMappingMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -149,7 +140,6 @@ export function CustomerItemMappings() {
       });
     }
   });
-
   // Delete mapping mutation
   const deleteMappingMutation = useMutation({
     mutationFn: async (mappingId: string) => {
@@ -175,7 +165,6 @@ export function CustomerItemMappings() {
       });
     }
   });
-
   const resetForm = () => {
     setFormData({
       customer_id: "",
@@ -188,7 +177,6 @@ export function CustomerItemMappings() {
       notes: ""
     });
   };
-
   const handleEdit = (mapping: CustomerItemMapping) => {
     setEditingMapping(mapping);
     setFormData({
@@ -203,20 +191,17 @@ export function CustomerItemMappings() {
     });
     setDialogOpen(true);
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createMappingMutation.mutate(formData);
   };
-
   const mappings = mappingsData?.data || [];
-
   return (
     <div className=""
       <div className=""
         <div className=""
           <div>
-            <h1 className="text-3xl font-bold">Personalização de Itens por Cliente</h1>
+            <h1 className="text-lg">"Personalização de Itens por Cliente</h1>
             <p className=""
               Gerencie SKUs e configurações personalizadas para cada cliente
             </p>
@@ -275,7 +260,6 @@ export function CustomerItemMappings() {
                     </Select>
                   </div>
                 </div>
-
                 <div className=""
                   <div>
                     <Label htmlFor="custom_sku">SKU Personalizado</Label>
@@ -296,7 +280,6 @@ export function CustomerItemMappings() {
                     />
                   </div>
                 </div>
-
                 <div>
                   <Label htmlFor="custom_name">Nome Personalizado</Label>
                   <Input
@@ -306,7 +289,6 @@ export function CustomerItemMappings() {
                     placeholder="Nome como aparece para o cliente"
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="custom_description">Descrição Personalizada</Label>
                   <Textarea
@@ -316,7 +298,6 @@ export function CustomerItemMappings() {
                     placeholder="Descrição específica para este cliente"
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="special_instructions">Instruções Especiais</Label>
                   <Textarea
@@ -326,7 +307,6 @@ export function CustomerItemMappings() {
                     placeholder="Instruções de instalação, uso ou manuseio"
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="notes">Observações</Label>
                   <Textarea
@@ -336,7 +316,6 @@ export function CustomerItemMappings() {
                     placeholder='[TRANSLATION_NEEDED]'
                   />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                     Cancelar
@@ -349,7 +328,6 @@ export function CustomerItemMappings() {
             </DialogContent>
           </Dialog>
         </div>
-
         {/* Filtros */}
         <Card>
           <CardContent className=""
@@ -400,7 +378,6 @@ export function CustomerItemMappings() {
             </div>
           </CardContent>
         </Card>
-
         {/* Estatísticas */}
         <div className=""
           <Card>
@@ -408,8 +385,8 @@ export function CustomerItemMappings() {
               <div className=""
                 <Package className="h-4 w-4 text-blue-500" />
                 <div>
-                  <p className="text-sm font-medium">Total de Mapeamentos</p>
-                  <p className="text-2xl font-bold">{mappings.length}</p>
+                  <p className="text-lg">"Total de Mapeamentos</p>
+                  <p className="text-lg">"{mappings.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -419,7 +396,7 @@ export function CustomerItemMappings() {
               <div className=""
                 <User className="h-4 w-4 text-green-500" />
                 <div>
-                  <p className="text-sm font-medium">Clientes Ativos</p>
+                  <p className="text-lg">"Clientes Ativos</p>
                   <p className=""
                     {new Set(mappings.map((m: CustomerItemMapping) => m.customer_id)).size}
                   </p>
@@ -427,10 +404,8 @@ export function CustomerItemMappings() {
               </div>
             </CardContent>
           </Card>
-
         </div>
       </div>
-
       {/* Tabela de Mapeamentos */}
       <Card>
         <CardHeader>
@@ -438,7 +413,7 @@ export function CustomerItemMappings() {
         </CardHeader>
         <CardContent>
           {mappingsLoading ? (
-            <div className="text-center py-8">Carregando mapeamentos...</div>
+            <div className="text-lg">"Carregando mapeamentos...</div>
           ) : mappings.length === 0 ? (
             <div className=""
               Nenhum mapeamento encontrado. Crie o primeiro mapeamento personalizado!
@@ -470,7 +445,7 @@ export function CustomerItemMappings() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{mapping.item_name}</div>
+                        <div className="text-lg">"{mapping.item_name}</div>
                         <div className=""
                           {mapping.item_integration_code} • {mapping.item_type}
                         </div>
@@ -481,7 +456,7 @@ export function CustomerItemMappings() {
                     </TableCell>
                     <TableCell>
                       <div className=""
-                        <div className="font-medium">{mapping.custom_name}</div>
+                        <div className="text-lg">"{mapping.custom_name}</div>
                         {mapping.customer_reference && (
                           <div className=""
                             Ref: {mapping.customer_reference}
@@ -489,7 +464,6 @@ export function CustomerItemMappings() {
                         )}
                       </div>
                     </TableCell>
-
                     <TableCell>
                       <Badge variant={mapping.is_active ? "default" : "secondary>
                         {mapping.is_active ? "Ativo" : "Inativo"

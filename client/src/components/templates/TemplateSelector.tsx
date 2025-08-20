@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { apiRequest } from '@/lib/queryClient';
 import { Search, Star, Clock, Users, Filter } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface TemplatePreview {
   id: string;
   name: string;
@@ -25,13 +24,11 @@ interface TemplatePreview {
   default_title: string;
   default_description: string;
 }
-
 interface TemplateSelectorProps {
   companyId?: string;
   onSelectTemplate: (template: TemplatePreview) => void;
   onCancel: () => void;
 }
-
 export default function TemplateSelector({
   // Localization temporarily disabled
  
@@ -42,7 +39,6 @@ export default function TemplateSelector({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showPopularOnly, setShowPopularOnly] = useState(false);
-
   // Fetch templates
   const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ['/api/ticket-templates/company', companyId],
@@ -51,9 +47,7 @@ export default function TemplateSelector({
       return response.json();
     },
   });
-
   const templates = Array.isArray(templatesResponse?.data) ? templatesResponse.data : [];
-
   // Fetch categories
   const { data: categoriesResponse } = useQuery({
     queryKey: ['/api/ticket-templates/categories'],
@@ -62,9 +56,7 @@ export default function TemplateSelector({
       return response.json();
     },
   });
-
   const categories = Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [];
-
   // Fetch popular templates
   const { data: popularResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', companyId, 'popular'],
@@ -73,9 +65,7 @@ export default function TemplateSelector({
       return response.json();
     },
   });
-
   const popularTemplates = Array.isArray(popularResponse?.data) ? popularResponse.data : [];
-
   // Filter templates
   const filteredTemplates = templates.filter((template: TemplatePreview) => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -85,7 +75,6 @@ export default function TemplateSelector({
     
     return matchesSearch && matchesCategory && matchesPopular;
   });
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'low': return 'bg-green-100 text-green-800';
@@ -95,7 +84,6 @@ export default function TemplateSelector({
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getPriorityLabel = (priority: string) => {
     switch (priority) {
       case 'low': return 'Baixa';
@@ -105,13 +93,12 @@ export default function TemplateSelector({
       default: return priority;
     }
   };
-
   return (
     <div className="space-y-6>
       {/* Header */}
       <div className="flex justify-between items-center>
         <div>
-          <h2 className="text-2xl font-bold">Selecionar Template</h2>
+          <h2 className="text-lg">"Selecionar Template</h2>
           <p className="text-muted-foreground>
             Escolha um template para acelerar a criação do ticket
           </p>
@@ -120,7 +107,6 @@ export default function TemplateSelector({
           Cancelar
         </Button>
       </div>
-
       {/* Popular Templates Quick Selection */}
       {popularTemplates.length > 0 && (
         <Card>
@@ -140,7 +126,7 @@ export default function TemplateSelector({
                   onClick={() => onSelectTemplate(template)}
                 >
                   <div className="space-y-1>
-                    <div className="font-medium">{template.name}</div>
+                    <div className="text-lg">"{template.name}</div>
                     <div className="text-xs text-muted-foreground>
                       {template.category} • Usado {template.usage_count} vezes
                     </div>
@@ -151,7 +137,6 @@ export default function TemplateSelector({
           </CardContent>
         </Card>
       )}
-
       {/* Filters */}
       <Card>
         <CardContent className="p-4>
@@ -192,11 +177,10 @@ export default function TemplateSelector({
           </div>
         </CardContent>
       </Card>
-
       {/* Templates Grid */}
       {isLoading ? (
         <div className="text-center py-12>
-          <p className="text-muted-foreground">Carregando templates...</p>
+          <p className="text-lg">"Carregando templates...</p>
         </div>
       ) : filteredTemplates.length === 0 ? (
         <div className="text-center py-12>
@@ -217,7 +201,7 @@ export default function TemplateSelector({
             >
               <CardHeader className="pb-3>
                 <div className="flex justify-between items-start>
-                  <CardTitle className="text-lg">{template.name}</CardTitle>
+                  <CardTitle className="text-lg">"{template.name}</CardTitle>
                   {popularTemplates.some((p: TemplatePreview) => p.id === template.id) && (
                     <Star className="w-4 h-4 text-yellow-500 fill-current" />
                   )}
@@ -258,7 +242,6 @@ export default function TemplateSelector({
                       <span>Usado: {template.usage_count || 0} vezes</span>
                     </div>
                   </div>
-
                   <div className="pt-2 border-t>
                     <p className="text-xs text-muted-foreground font-medium>
                       Preview: {template.default_title || 'Título será preenchido automaticamente'}

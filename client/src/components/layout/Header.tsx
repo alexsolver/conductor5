@@ -8,13 +8,10 @@ import { useAuth } from {"User Profile"}@/hooks/useAuth{"User Profile"};
 import { useQuery } from {"User Profile"}@tanstack/react-query{"User Profile"};
 import { apiRequest } from {"User Profile"}@/lib/queryClient{"User Profile"};
 import { LanguageSelector } from '@/components/LanguageSelector';
-
 export function Header() {
   const { t } = useTranslation();
-
   const { user, logoutMutation } = useAuth();
   const [, setLocation] = useLocation();
-
   // ✅ 1QA.MD: Query para obter dados completos do perfil com avatar atualizado
   const { data: userProfile } = useQuery({
     queryKey: ['/api/user/profile'],
@@ -27,7 +24,6 @@ export function Header() {
     staleTime: 5 * 60 * 1000, // 5 minutos para permitir atualizações
     refetchOnWindowFocus: false,
   });
-
   // Query para verificar status do timecard
   const { data: timecardStatus } = useQuery({
     queryKey: ['/api/timecard/current-status'],
@@ -39,10 +35,8 @@ export function Header() {
     enabled: !!user,
     refetchInterval: 30000, // Atualizar a cada 30 segundos
   });
-
   // Determinar se usuário está trabalhando
   const isWorking = timecardStatus?.status === 'working';
-
   return (
     <div className={"User Profile"}relative z-10 flex-shrink-0 flex h-16 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700{"User Profile"}>
       <Button
@@ -51,7 +45,6 @@ export function Header() {
       >
         <Menu className={"User Profile"}h-5 w-5{"User Profile"} />
       </Button>
-
       <div className={"User Profile"}flex-1 px-4 flex justify-between items-center{"User Profile"}>
         <div className={"User Profile"}flex items-center space-x-4{"User Profile"}>
           <Link href={"User Profile"}/{"User Profile"}>
@@ -83,7 +76,6 @@ export function Header() {
           </Link>
           {/* Removed: Projects link - module completely eliminated */}
         </div>
-
         <div className={"User Profile"}flex items-center space-x-4{"User Profile"}>
           {/* Timecard Working Status - Only visible when user is working */}
           {isWorking && (
@@ -98,7 +90,6 @@ export function Header() {
               <span className={"User Profile"}absolute top-0 right-0 block h-2 w-2 rounded-full bg-green-500 ring-2 ring-white dark:ring-gray-800 animate-pulse{"User Profile"}></span>
             </Button>
           )}
-
           {/* Notifications */}
           <Button
             variant={"User Profile"}ghost{"User Profile"
@@ -108,7 +99,6 @@ export function Header() {
             <Bell className={"User Profile"}h-5 w-5{"User Profile"} />
             <span className={"User Profile"}absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-800{"User Profile"}></span>
           </Button>
-
           {/* User Profile Dropdown */}
           {user && (
             <DropdownMenu>

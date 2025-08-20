@@ -29,11 +29,9 @@ import {
 } from "../../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-
 // Record type definitions
 const RECORD_TYPES = {
   // Localization temporarily disabled
-
   local: {
     label: "Local",
     icon: MapPin,
@@ -77,7 +75,6 @@ const RECORD_TYPES = {
     sections: ["Identificação"]
   }
 };
-
 // Main component
 function LocationsNewContent() {
   const { toast } = useToast();
@@ -86,7 +83,6 @@ function LocationsNewContent() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
-
   // Dynamic schema selection per 1qa.md Clean Architecture
   const getSchemaForType = useCallback((recordType: string) => {
     switch (recordType) {
@@ -100,7 +96,6 @@ function LocationsNewContent() {
       default: return localSchema;
     }
   }, []);
-
   // Dynamic default values per record type following 1qa.md
   const getDefaultValues = useCallback((recordType: string) => {
     const baseDefaults = {
@@ -109,7 +104,6 @@ function LocationsNewContent() {
       descricao: "",
       codigoIntegracao: ""
     };
-
     switch (recordType) {
       case 'rota-dinamica':
         return {
@@ -146,76 +140,59 @@ function LocationsNewContent() {
         return baseDefaults;
     }
   }, []);
-
   // Form setup with dynamic schema per 1qa.md
   const form = useForm<any>({
     resolver: zodResolver(getSchemaForType(activeRecordType)),
     defaultValues: getDefaultValues(activeRecordType)
   });
-
   // Reset form when record type changes following 1qa.md pattern
   React.useEffect(() => {
     form.reset(getDefaultValues(activeRecordType));
   }, [activeRecordType, form, getDefaultValues]);
-
   // Data queries for each record type - using proper authentication from queryClient
   const localQuery = useQuery({
     queryKey: [`/api/locations-new/local`]
   });
-
   const regiaoQuery = useQuery({
     queryKey: [`/api/locations-new/regiao`]
   });
-
   const rotaDinamicaQuery = useQuery({
     queryKey: [`/api/locations-new/rota-dinamica`]
   });
-
   const trechoQuery = useQuery({
     queryKey: [`/api/locations-new/trecho`]
   });
-
   const rotaTrechoQuery = useQuery({
     queryKey: [`/api/locations-new/rota-trecho`]
   });
-
   const areaQuery = useQuery({
     queryKey: [`/api/locations-new/area`]
   });
-
   const agrupamentoQuery = useQuery({
     queryKey: [`/api/locations-new/agrupamento`]
   });
-
   // Stats queries
   const localStatsQuery = useQuery({
     queryKey: [`/api/locations-new/local/stats`]
   });
-
   const regiaoStatsQuery = useQuery({
     queryKey: [`/api/locations-new/regiao/stats`]
   });
-
   const rotaDinamicaStatsQuery = useQuery({
     queryKey: [`/api/locations-new/rota-dinamica/stats`]
   });
-
   const trechoStatsQuery = useQuery({
     queryKey: [`/api/locations-new/trecho/stats`]
   });
-
   const rotaTrechoStatsQuery = useQuery({
     queryKey: [`/api/locations-new/rota-trecho/stats`]
   });
-
   const areaStatsQuery = useQuery({
     queryKey: [`/api/locations-new/area/stats`]
   });
-
   const agrupamentoStatsQuery = useQuery({
     queryKey: [`/api/locations-new/agrupamento/stats`]
   });
-
   // Organize queries into objects for easier access
   const queries = {
     local: localQuery,
@@ -226,7 +203,6 @@ function LocationsNewContent() {
     area: areaQuery,
     agrupamento: agrupamentoQuery
   };
-
   const statsQueries = {
     localStats: localStatsQuery,
     regiaoStats: regiaoStatsQuery,
@@ -236,21 +212,18 @@ function LocationsNewContent() {
     areaStats: areaStatsQuery,
     agrupamentoStats: agrupamentoStatsQuery
   };
-
   // Get current data safely - ✅ 1qa.md compliant: fix data path
   const getCurrentData = useCallback(() => {
     const currentQuery = queries[activeRecordType as keyof typeof queries];
     // Backend returns data directly, not nested in records
     return (currentQuery?.data as any)?.data || [];
   }, [queries, activeRecordType]);
-
   // Get current stats safely
   const getCurrentStats = useCallback(() => {
     const statsKey = "Stats` as keyof typeof statsQueries;
     const currentStatsQuery = statsQueries[statsKey];
     return (currentStatsQuery?.data as any)?.data || { total: 0, active: 0, inactive: 0 };
   }, [statsQueries, activeRecordType]);
-
   // Create mutation using apiRequest
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -276,7 +249,6 @@ function LocationsNewContent() {
       });
     }
   });
-
   // Submit handler with debug logging per 1qa.md
   const onSubmit = useCallback((data: any) => {
     console.log('🔍 [FORM-SUBMIT] Form data:', data);
@@ -288,7 +260,6 @@ function LocationsNewContent() {
     console.log('🔍 [FORM-SUBMIT] Proceeding with mutation...');
     createMutation.mutate(data);
   }, [createMutation, activeRecordType, form]);
-
   // Filtered data
   const filteredData = useMemo(() => {
     const data = getCurrentData();
@@ -296,26 +267,22 @@ function LocationsNewContent() {
       const matchesSearch = !searchTerm || 
         item.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.descricao?.toLowerCase().includes(searchTerm.toLowerCase());
-
       const matchesStatus = statusFilter === "all" || 
         (statusFilter === "active" && item.ativo) ||
         (statusFilter === "inactive" && !item.ativo);
-
       return matchesSearch && matchesStatus;
     });
   }, [getCurrentData, searchTerm, statusFilter]);
-
   const currentStats = getCurrentStats();
   const currentRecordType = RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES];
-
   return (
     <div className=""
       {/* Header with stats */}
       <div className=""
         <div className=""
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Localizações</h1>
-            <p className="text-muted-foreground">Sistema completo para gestão de 7 tipos de registros geográficos</p>
+            <h1 className="text-lg">"Gerenciamento de Localizações</h1>
+            <p className="text-lg">"Sistema completo para gestão de 7 tipos de registros geográficos</p>
           </div>
           <div className=""
             <Dialog>
@@ -345,7 +312,7 @@ function LocationsNewContent() {
                   <TabsContent value="padroes" className=""
                     <div className=""
                       <div className=""
-                        <h3 className="text-lg font-semibold">Padrões Cadastrados</h3>
+                        <h3 className="text-lg">"Padrões Cadastrados</h3>
                         <Button size="sm>
                           <Plus className="h-4 w-4 mr-2" />
                           Novo Padrão
@@ -362,7 +329,7 @@ function LocationsNewContent() {
                             <CardContent className=""
                               <div className=""
                                 <div>
-                                  <h4 className="font-semibold">{padrao.nome}</h4>
+                                  <h4 className="text-lg">"{padrao.nome}</h4>
                                   <p className=""
                                     {padrao.horario} • {padrao.dias} • {padrao.entidades} entidades associadas
                                   </p>
@@ -385,11 +352,11 @@ function LocationsNewContent() {
                   
                   <TabsContent value="associacoes" className=""
                     <div className=""
-                      <h3 className="text-lg font-semibold">Associar Horários às Entidades</h3>
+                      <h3 className="text-lg">"Associar Horários às Entidades</h3>
                       
                       <div className=""
                         <div className=""
-                          <h4 className="font-medium">Selecionar Padrão de Horário</h4>
+                          <h4 className="text-lg">"Selecionar Padrão de Horário</h4>
                           <Select>
                             <SelectTrigger>
                               <SelectValue placeholder='[TRANSLATION_NEEDED]' />
@@ -403,7 +370,7 @@ function LocationsNewContent() {
                         </div>
                         
                         <div className=""
-                          <h4 className="font-medium">Aplicar a Entidades</h4>
+                          <h4 className="text-lg">"Aplicar a Entidades</h4>
                           <div className=""
                             {[
                               { tipo: "Local", nome: "Matriz São Paulo", ativo: true },
@@ -416,7 +383,7 @@ function LocationsNewContent() {
                                 <Badge variant="outline" className=""
                                   {entidade.tipo}
                                 </Badge>
-                                <span className="text-sm">{entidade.nome}</span>
+                                <span className="text-lg">"{entidade.nome}</span>
                               </div>
                             ))}
                           </div>
@@ -432,7 +399,6 @@ function LocationsNewContent() {
                 </Tabs>
               </DialogContent>
             </Dialog>
-
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -456,7 +422,7 @@ function LocationsNewContent() {
                       <div className=""
                         <div className=""
                           <MapPin className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Identificação</h3>
+                          <h3 className="text-lg">"Identificação</h3>
                         </div>
                     
                     <div className=""
@@ -571,12 +537,11 @@ function LocationsNewContent() {
                       )}
                     />
                   </div>
-
                   {/* SEÇÃO 2: CONTATO */}
                   <div className=""
                     <div className=""
                       <Phone className="h-5 w-5 text-green-500" />
-                      <h3 className="text-lg font-semibold">Contato</h3>
+                      <h3 className="text-lg">"Contato</h3>
                     </div>
                     
                     <FormField
@@ -623,12 +588,11 @@ function LocationsNewContent() {
                       />
                     </div>
                   </div>
-
                   {/* SEÇÃO 3: ENDEREÇO COM CEP LOOKUP */}
                   <div className=""
                     <div className=""
                       <MapPin className="h-5 w-5 text-purple-500" />
-                      <h3 className="text-lg font-semibold">Endereço</h3>
+                      <h3 className="text-lg">"Endereço</h3>
                     </div>
                     
                     <div className=""
@@ -780,12 +744,11 @@ function LocationsNewContent() {
                       )}
                     />
                   </div>
-
                   {/* SEÇÃO 4: GEOLOCALIZAÇÃO COM MAPA INTERATIVO */}
                   <div className=""
                     <div className=""
                       <Map className="h-5 w-5 text-red-500" />
-                      <h3 className="text-lg font-semibold">Georreferenciamento</h3>
+                      <h3 className="text-lg">"Georreferenciamento</h3>
                     </div>
                     
                     <Alert>
@@ -833,12 +796,11 @@ function LocationsNewContent() {
                       </Button>
                     </div>
                   </div>
-
                   {/* SEÇÃO 5: TEMPO E DISPONIBILIDADE */}
                   <div className=""
                     <div className=""
                       <Clock className="h-5 w-5 text-orange-500" />
-                      <h3 className="text-lg font-semibold">Tempo e Disponibilidade</h3>
+                      <h3 className="text-lg">"Tempo e Disponibilidade</h3>
                     </div>
                     
                     <FormField
@@ -865,7 +827,7 @@ function LocationsNewContent() {
                     />
                     
                     <div className=""
-                      <h4 className="font-medium">Feriados</h4>
+                      <h4 className="text-lg">"Feriados</h4>
                       <div className=""
                         <Button type="button" variant="outline" size="sm>
                           Buscar Feriados Municipais
@@ -881,7 +843,6 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-
                   {/* MODAL REGIÃO */}
                   {activeRecordType === 'regiao' && (
                     <>
@@ -889,7 +850,7 @@ function LocationsNewContent() {
                       <div className=""
                         <div className=""
                           <MapPin className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Identificação</h3>
+                          <h3 className="text-lg">"Identificação</h3>
                         </div>
                         
                         <div className=""
@@ -958,12 +919,11 @@ function LocationsNewContent() {
                           )}
                         />
                       </div>
-
                       {/* SEÇÃO 2: RELACIONAMENTOS */}
                       <div className=""
                         <div className=""
                           <Users className="h-5 w-5 text-green-500" />
-                          <h3 className="text-lg font-semibold">Relacionamentos</h3>
+                          <h3 className="text-lg">"Relacionamentos</h3>
                         </div>
                         
                         <div className=""
@@ -1004,12 +964,11 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
-
                       {/* SEÇÃO 3: GEOLOCALIZAÇÃO */}
                       <div className=""
                         <div className=""
                           <MapPin className="h-5 w-5 text-red-500" />
-                          <h3 className="text-lg font-semibold">Geolocalização</h3>
+                          <h3 className="text-lg">"Geolocalização</h3>
                         </div>
                         
                         <div className=""
@@ -1056,12 +1015,11 @@ function LocationsNewContent() {
                           )}
                         />
                       </div>
-
                       {/* SEÇÃO 4: ENDEREÇO BASE */}
                       <div className=""
                         <div className=""
                           <Home className="h-5 w-5 text-orange-500" />
-                          <h3 className="text-lg font-semibold">Endereço Base</h3>
+                          <h3 className="text-lg">"Endereço Base</h3>
                         </div>
                         
                         <div className=""
@@ -1212,7 +1170,6 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-
                   {/* MODAL ROTA DINÂMICA */}
                   {activeRecordType === 'rota-dinamica' && (
                     <>
@@ -1220,7 +1177,7 @@ function LocationsNewContent() {
                       <div className=""
                         <div className=""
                           <Route className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Identificação</h3>
+                          <h3 className="text-lg">"Identificação</h3>
                         </div>
                         
                         <div className=""
@@ -1275,12 +1232,11 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
-
                       {/* SEÇÃO 2: PLANEJAMENTO DA ROTA */}
                       <div className=""
                         <div className=""
                           <Calendar className="h-5 w-5 text-purple-500" />
-                          <h3 className="text-lg font-semibold">Planejamento da Rota</h3>
+                          <h3 className="text-lg">"Planejamento da Rota</h3>
                         </div>
                         
                         <div className=""
@@ -1314,14 +1270,13 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-
                   {/* MODAL TRECHO */}
                   {activeRecordType === 'trecho' && (
                     <>
                       <div className=""
                         <div className=""
                           <ArrowRight className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Identificação do Trecho</h3>
+                          <h3 className="text-lg">"Identificação do Trecho</h3>
                         </div>
                         
                         <div className=""
@@ -1410,14 +1365,13 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-
                   {/* MODAL ROTA DE TRECHO */}
                   {activeRecordType === 'rota-trecho' && (
                     <>
                       <div className=""
                         <div className=""
                           <Network className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Definição da Rota</h3>
+                          <h3 className="text-lg">"Definição da Rota</h3>
                         </div>
                         
                         <div className=""
@@ -1459,7 +1413,7 @@ function LocationsNewContent() {
                         </div>
                         
                         <div className=""
-                          <h4 className="font-medium">Definição do Trecho - Múltiplos Registros</h4>
+                          <h4 className="text-lg">"Definição do Trecho - Múltiplos Registros</h4>
                           <div className=""
                             <Table>
                               <TableHeader>
@@ -1512,14 +1466,13 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-
                   {/* MODAL ÁREA */}
                   {activeRecordType === 'area' && (
                     <>
                       <div className=""
                         <div className=""
                           <Layers className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Identificação</h3>
+                          <h3 className="text-lg">"Identificação</h3>
                         </div>
                         
                         <div className=""
@@ -1590,12 +1543,11 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
-
                       {/* SEÇÃO 2: CLASSIFICAÇÃO */}
                       <div className=""
                         <div className=""
                           <Grid3X3 className="h-5 w-5 text-teal-500" />
-                          <h3 className="text-lg font-semibold">Classificação</h3>
+                          <h3 className="text-lg">"Classificação</h3>
                         </div>
                         
                         <FormField
@@ -1651,14 +1603,13 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-
                   {/* MODAL AGRUPAMENTO */}
                   {activeRecordType === 'agrupamento' && (
                     <>
                       <div className=""
                         <div className=""
                           <Folder className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">Identificação</h3>
+                          <h3 className="text-lg">"Identificação</h3>
                         </div>
                         
                         <div className=""
@@ -1729,32 +1680,30 @@ function LocationsNewContent() {
                           />
                         </div>
                       </div>
-
                       {/* SEÇÃO 2: SELEÇÃO DE ÁREAS */}
                       <div className=""
                         <div className=""
                           <Map className="h-5 w-5 text-indigo-500" />
-                          <h3 className="text-lg font-semibold">Seleção de Áreas</h3>
+                          <h3 className="text-lg">"Seleção de Áreas</h3>
                         </div>
                         
                         <div className=""
-                          <h4 className="font-medium">Áreas Disponíveis</h4>
+                          <h4 className="text-lg">"Áreas Disponíveis</h4>
                           <div className=""
                             {['Área Centro', 'Área Norte', 'Área Sul', 'Área Leste'].map((area, index) => (
                               <div key={index} className=""
                                 <Checkbox id={"
                                 <label htmlFor={"
-                                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                                  <div className="text-lg">"</div>
                                   <span>{area}</span>
-                                  <Badge variant="outline" className="text-xs">Faixa CEP</Badge>
+                                  <Badge variant="outline" className="text-lg">"Faixa CEP</Badge>
                                 </label>
                               </div>
                             ))}
                           </div>
                         </div>
-
                         <div className=""
-                          <h4 className="font-medium">Adicionar Faixas de CEP</h4>
+                          <h4 className="text-lg">"Adicionar Faixas de CEP</h4>
                           <div className=""
                             <FormField
                               control={form.control}
@@ -1792,7 +1741,6 @@ function LocationsNewContent() {
                       </div>
                     </>
                   )}
-
                   <div className=""
                     <Button 
                       type="button" 
@@ -1811,44 +1759,42 @@ function LocationsNewContent() {
             </Dialog>
           </div>
         </div>
-
         {/* Stats cards */}
         <div className=""
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
+              <CardTitle className="text-lg">"Total</CardTitle>
               <currentRecordType.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentStats.total || 0}</div>
-              <p className="text-xs text-muted-foreground">registros cadastrados</p>
+              <div className="text-lg">"{currentStats.total || 0}</div>
+              <p className="text-lg">"registros cadastrados</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Ativos</CardTitle>
+              <CardTitle className="text-lg">"Ativos</CardTitle>
               <div className="h-4 w-4 rounded-full bg-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentStats.active || 0}</div>
-              <p className="text-xs text-muted-foreground">em funcionamento</p>
+              <div className="text-lg">"{currentStats.active || 0}</div>
+              <p className="text-lg">"em funcionamento</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className=""
-              <CardTitle className="text-sm font-medium">Inativos</CardTitle>
+              <CardTitle className="text-lg">"Inativos</CardTitle>
               <div className="h-4 w-4 rounded-full bg-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{currentStats.inactive || 0}</div>
-              <p className="text-xs text-muted-foreground">desabilitados</p>
+              <div className="text-lg">"{currentStats.inactive || 0}</div>
+              <p className="text-lg">"desabilitados</p>
             </CardContent>
           </Card>
         </div>
       </div>
-
       {/* Tabs for record types */}
       <Tabs value={activeRecordType} onValueChange={setActiveRecordType}>
         <TabsList className=""
@@ -1859,7 +1805,6 @@ function LocationsNewContent() {
             </TabsTrigger>
           ))}
         </TabsList>
-
         {Object.keys(RECORD_TYPES).map((recordType) => (
           <TabsContent key={recordType} value={recordType} className=""
             {/* Search and filters */}
@@ -1886,7 +1831,6 @@ function LocationsNewContent() {
                 </SelectContent>
               </Select>
             </div>
-
             {/* Data table */}
             <Card>
               <CardHeader>
@@ -1906,7 +1850,7 @@ function LocationsNewContent() {
                     <TableBody>
                       {filteredData.map((item: any) => (
                         <TableRow key={item.id}>
-                          <TableCell className="font-medium">{item.nome}</TableCell>
+                          <TableCell className="text-lg">"{item.nome}</TableCell>
                           <TableCell>{item.codigoIntegracao || item.codigo_integracao || "-"}</TableCell>
                           <TableCell>
                             <Badge variant={item.ativo ? "default" : "secondary>
@@ -1941,7 +1885,6 @@ function LocationsNewContent() {
     </div>
   );
 }
-
 export default function LocationsNew() {
   return <LocationsNewContent />;
 }

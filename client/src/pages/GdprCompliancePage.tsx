@@ -3,7 +3,6 @@
  * Interface para gerenciamento completo de compliance GDPR/LGPD
  * Following 1qa.md enterprise standards
  */
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,11 +24,9 @@ import { FormDescription } from '@/components/ui/form';
 import { Shield, FileText, AlertTriangle, Settings, BarChart3, Download, Trash2, Edit } from 'lucide-react';
 import { z } from 'zod';
 // import useLocalization from '@/hooks/useLocalization';
-
 // Schemas de validação
 const cookieConsentSchema = z.object({
   // Localization temporarily disabled
-
   consentType: z.enum(['cookies_necessary', 'cookies_statistics', 'cookies_marketing', 'data_processing', 'communications', 'profiling', 'third_party_sharing']),
   granted: z.boolean(),
   consentVersion: z.string().min(1),
@@ -37,12 +34,10 @@ const cookieConsentSchema = z.object({
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
 });
-
 const dataSubjectRequestSchema = z.object({
   requestType: z.enum(['access', 'portability', 'rectification', 'erasure', 'restriction', 'objection', 'complaint']),
   requestDetails: z.string().optional(),
 });
-
 const securityIncidentSchema = z.object({
   incidentType: z.string().min(1),
   severity: z.enum(['minimal', 'low', 'medium', 'high', 'very_high']),
@@ -50,33 +45,27 @@ const securityIncidentSchema = z.object({
   description: z.string().min(1),
   affectedUserCount: z.number().optional(),
 });
-
 type CookieConsentForm = z.infer<typeof cookieConsentSchema>;
 type DataSubjectRequestForm = z.infer<typeof dataSubjectRequestSchema>;
 type SecurityIncidentForm = z.infer<typeof securityIncidentSchema>;
-
 export default function GdprCompliancePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // ✅ Fetch compliance metrics - ADMIN ONLY
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['/api/gdpr-compliance/metrics'],
     enabled: true,
   });
-
   // ✅ Fetch admin data subject requests - ALL USERS
   const { data: dataRequests } = useQuery({
     queryKey: ['/api/gdpr-compliance/admin/data-subject-requests'],
     enabled: true,
   });
-
   // ✅ Fetch security incidents - ADMIN ONLY
   const { data: securityIncidents } = useQuery({
     queryKey: ['/api/gdpr-compliance/security-incidents'],
     enabled: true,
   });
-
   // ✅ Cookie Consent Form
   const cookieForm = useForm<CookieConsentForm>({
     resolver: zodResolver(cookieConsentSchema),
@@ -86,7 +75,6 @@ export default function GdprCompliancePage() {
       consentVersion: '1.0',
     },
   });
-
   // ✅ Data Subject Request Form
   const requestForm = useForm<DataSubjectRequestForm>({
     resolver: zodResolver(dataSubjectRequestSchema),
@@ -94,7 +82,6 @@ export default function GdprCompliancePage() {
       requestType: 'access',
     },
   });
-
   // ✅ Security Incident Form
   const incidentForm = useForm<SecurityIncidentForm>({
     resolver: zodResolver(securityIncidentSchema),
@@ -102,7 +89,6 @@ export default function GdprCompliancePage() {
       severity: 'medium',
     },
   });
-
   // ✅ Mutations
   const createCookieConsent = useMutation({
     mutationFn: (data: CookieConsentForm) => apiRequest('/api/gdpr-compliance/cookie-consents', {
@@ -118,7 +104,6 @@ export default function GdprCompliancePage() {
       toast({ title: "Erro ao registrar consentimento", variant: "destructive" });
     },
   });
-
   const createDataSubjectRequest = useMutation({
     mutationFn: (data: DataSubjectRequestForm) => apiRequest('/api/gdpr-compliance/data-subject-requests', {
       method: 'POST',
@@ -133,7 +118,6 @@ export default function GdprCompliancePage() {
       toast({ title: "Erro ao criar solicitação", variant: "destructive" });
     },
   });
-
   const createSecurityIncident = useMutation({
     mutationFn: (data: SecurityIncidentForm) => apiRequest('/api/gdpr-compliance/security-incidents', {
       method: 'POST',
@@ -148,7 +132,6 @@ export default function GdprCompliancePage() {
       toast({ title: "Erro ao reportar incidente", variant: "destructive" });
     },
   });
-
   const exportUserData = useMutation({
     mutationFn: () => apiRequest('/api/gdpr-compliance/export-user-data'),
     onSuccess: (data) => {
@@ -160,7 +143,6 @@ export default function GdprCompliancePage() {
       toast({ title: "Erro ao exportar dados", variant: "destructive" });
     },
   });
-
   return (
     <div className="container mx-auto py-6 space-y-6" data-testid="gdpr-compliance-page>
       <div className=""
@@ -174,7 +156,6 @@ export default function GdprCompliancePage() {
           </p>
         </div>
       </div>
-
       {/* ✅ Compliance Dashboard - seguindo padrão 1qa.md */}
       {metrics?.data && (
         <div className=""
@@ -190,7 +171,6 @@ export default function GdprCompliancePage() {
               </div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-pending-requests>
             <CardHeader className=""
               <CardTitle className=""
@@ -203,7 +183,6 @@ export default function GdprCompliancePage() {
               </div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-overdue-requests>
             <CardHeader className=""
               <CardTitle className=""
@@ -216,7 +195,6 @@ export default function GdprCompliancePage() {
               </div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-compliance-score>
             <CardHeader className=""
               <CardTitle className=""
@@ -231,7 +209,6 @@ export default function GdprCompliancePage() {
           </Card>
         </div>
       )}
-
       {/* ✅ Fallback Dashboard quando não há métricas */}
       {!metrics?.data && !metricsLoading && (
         <div className=""
@@ -242,10 +219,9 @@ export default function GdprCompliancePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">0</div>
+              <div className="text-lg">"0</div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-pending-requests>
             <CardHeader className=""
               <CardTitle className=""
@@ -253,10 +229,9 @@ export default function GdprCompliancePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">0</div>
+              <div className="text-lg">"0</div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-overdue-requests>
             <CardHeader className=""
               <CardTitle className=""
@@ -264,10 +239,9 @@ export default function GdprCompliancePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">0</div>
+              <div className="text-lg">"0</div>
             </CardContent>
           </Card>
-
           <Card data-testid="card-compliance-score>
             <CardHeader className=""
               <CardTitle className=""
@@ -275,12 +249,11 @@ export default function GdprCompliancePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">92%</div>
+              <div className="text-lg">"92%</div>
             </CardContent>
           </Card>
         </div>
       )}
-
       <Tabs defaultValue="consents" className=""
         <TabsList className=""
           <TabsTrigger value="consents" data-testid="tab-consents>
@@ -302,7 +275,6 @@ export default function GdprCompliancePage() {
             Exportar/Deletar
           </TabsTrigger>
         </TabsList>
-
         {/* ✅ 1. Cookie Consents Tab */}
         <TabsContent value="consents" className=""
           <Card>
@@ -344,7 +316,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={cookieForm.control}
                     name="granted"
@@ -361,7 +332,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={cookieForm.control}
                     name="consentVersion"
@@ -375,7 +345,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <Button 
                     type="submit" 
                     className="w-full"
@@ -389,7 +358,6 @@ export default function GdprCompliancePage() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* ✅ 3-7. Data Subject Requests Tab */}
         <TabsContent value="requests" className=""
           <Card>
@@ -431,7 +399,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={requestForm.control}
                     name="requestDetails"
@@ -449,7 +416,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <Button 
                     type="submit" 
                     className="w-full"
@@ -462,7 +428,6 @@ export default function GdprCompliancePage() {
               </Form>
             </CardContent>
           </Card>
-
           {/* ✅ List existing requests */}
           {dataRequests?.data && (
             <Card>
@@ -474,7 +439,7 @@ export default function GdprCompliancePage() {
                   {dataRequests.data.map((request: any) => (
                     <div key={request.id} className=""
                       <div>
-                        <div className="font-medium">{request.requestType}</div>
+                        <div className="text-lg">"{request.requestType}</div>
                         <div className=""
                           Criado em: {new Date(request.createdAt).toLocaleDateString('pt-BR')}
                         </div>
@@ -489,7 +454,6 @@ export default function GdprCompliancePage() {
             </Card>
           )}
         </TabsContent>
-
         {/* ✅ 10. Security Incidents Tab */}
         <TabsContent value="incidents" className=""
           <Card>
@@ -518,7 +482,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={incidentForm.control}
                     name="severity"
@@ -543,7 +506,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={incidentForm.control}
                     name="title"
@@ -557,7 +519,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={incidentForm.control}
                     name="description"
@@ -575,7 +536,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={incidentForm.control}
                     name="affectedUserCount"
@@ -595,7 +555,6 @@ export default function GdprCompliancePage() {
                       </FormItem>
                     )}
                   />
-
                   <Button 
                     type="submit" 
                     className="w-full"
@@ -609,7 +568,6 @@ export default function GdprCompliancePage() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* ✅ Admin Dashboard Tab */}
         <TabsContent value="preferences" className=""
           <Card>
@@ -631,7 +589,6 @@ export default function GdprCompliancePage() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* ✅ Reports Tab - Nova funcionalidade seguindo 1qa.md */}
         <TabsContent value="reports" className=""
           <div className=""
@@ -649,19 +606,19 @@ export default function GdprCompliancePage() {
                 {dataRequests?.data ? (
                   <div className=""
                     <div className=""
-                      <span className="text-sm">Total de Solicitações:</span>
+                      <span className="text-lg">"Total de Solicitações:</span>
                       <Badge variant="secondary">{dataRequests.data.length || 0}</Badge>
                     </div>
                     <div className=""
-                      <span className="text-sm">Acesso aos Dados:</span>
+                      <span className="text-lg">"Acesso aos Dados:</span>
                       <Badge variant="outline">{dataRequests.data.filter(req => req.requestType === 'access').length}</Badge>
                     </div>
                     <div className=""
-                      <span className="text-sm">Exclusão/Esquecimento:</span>
+                      <span className="text-lg">"Exclusão/Esquecimento:</span>
                       <Badge variant="outline">{dataRequests.data.filter(req => req.requestType === 'erasure').length}</Badge>
                     </div>
                     <div className=""
-                      <span className="text-sm">Portabilidade:</span>
+                      <span className="text-lg">"Portabilidade:</span>
                       <Badge variant="outline">{dataRequests.data.filter(req => req.requestType === 'portability').length}</Badge>
                     </div>
                   </div>
@@ -672,7 +629,6 @@ export default function GdprCompliancePage() {
                 )}
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className=""
@@ -686,21 +642,21 @@ export default function GdprCompliancePage() {
               <CardContent>
                 <div className=""
                   <div className=""
-                    <span className="text-sm">Score Geral:</span>
+                    <span className="text-lg">"Score Geral:</span>
                     <div className=""
-                      <Badge className="bg-green-100 text-green-800 border-green-300">92%</Badge>
+                      <Badge className="text-lg">"92%</Badge>
                     </div>
                   </div>
                   <div className=""
-                    <span className="text-sm">Consentimentos:</span>
+                    <span className="text-lg">"Consentimentos:</span>
                     <Badge variant="secondary">Ativo</Badge>
                   </div>
                   <div className=""
-                    <span className="text-sm">Políticas Atualizadas:</span>
+                    <span className="text-lg">"Políticas Atualizadas:</span>
                     <Badge variant="secondary">Sim</Badge>
                   </div>
                   <div className=""
-                    <span className="text-sm">Auditoria:</span>
+                    <span className="text-lg">"Auditoria:</span>
                     <Badge variant="secondary">Funcionando</Badge>
                   </div>
                   <div className=""
@@ -713,7 +669,6 @@ export default function GdprCompliancePage() {
             </Card>
           </div>
         </TabsContent>
-
         {/* ✅ Export/Delete Data Tab */}
         <TabsContent value="export" className=""
           <Card>
@@ -733,7 +688,6 @@ export default function GdprCompliancePage() {
                 <Download className="w-4 h-4 mr-2" />
                 {exportUserData.isPending ? 'Exportando...' : 'Exportar Meus Dados (Direito de Acesso)'}
               </Button>
-
               <div className=""
                 <div className=""
                   ⚠️ Ação irreversível: Esta ação deletará todos os seus dados permanentemente
@@ -754,18 +708,15 @@ export default function GdprCompliancePage() {
     </div>
   );
 }
-
 // ✅ Componente para Gestão de Políticas de Privacidade - ADMIN ONLY
 function PrivacyPolicyManagement() {
   const { toast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
-
   // ✅ Fetch current privacy policies
   const { data: policies, refetch: refetchPolicies } = useQuery({
     queryKey: ['/api/gdpr-compliance/admin/privacy-policies'],
     enabled: true,
   });
-
   // ✅ Form for creating new policy
   const policyForm = useForm<{
     title: string;
@@ -792,7 +743,6 @@ function PrivacyPolicyManagement() {
       requiresAcceptance: true
     }
   });
-
   // ✅ Create new policy mutation - Fixed token issue following 1qa.md
   const createPolicyMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -820,14 +770,11 @@ function PrivacyPolicyManagement() {
         },
         body: JSON.stringify(data)
       });
-
       const result = await response.json();
       console.log('🔍 [CREATE-POLICY] Response:', result);
-
       if (!response.ok) {
         throw new Error(result.message || ": Failed to create policy`);
       }
-
       return result;
     },
     onSuccess: () => {
@@ -845,7 +792,6 @@ function PrivacyPolicyManagement() {
       });
     }
   });
-
   // ✅ Activate policy mutation - Fixed token issue following 1qa.md
   const activatePolicyMutation = useMutation({
     mutationFn: async (policyId: string) => {
@@ -863,13 +809,10 @@ function PrivacyPolicyManagement() {
           'Authorization': "
         }
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         throw new Error(result.message || 'Failed to activate policy');
       }
-
       return result;
     },
     onSuccess: () => {
@@ -877,13 +820,12 @@ function PrivacyPolicyManagement() {
       refetchPolicies();
     }
   });
-
   return (
     <div className=""
       {/* ✅ Header e Controles */}
       <div className=""
         <div>
-          <h3 className="text-lg font-medium">Gestão de Políticas de Privacidade</h3>
+          <h3 className="text-lg">"Gestão de Políticas de Privacidade</h3>
           <p className=""
             Gerencie políticas de privacidade, termos de uso e políticas de cookies
           </p>
@@ -896,7 +838,6 @@ function PrivacyPolicyManagement() {
           Nova Política
         </Button>
       </div>
-
       {/* ✅ Lista de Políticas Existentes */}
       <div className=""
         {(policies as any)?.data && (policies as any).data.length > 0 ? (
@@ -905,7 +846,7 @@ function PrivacyPolicyManagement() {
               <div className=""
                 <div className=""
                   <div className=""
-                    <h4 className="font-medium">{policy.title}</h4>
+                    <h4 className="text-lg">"{policy.title}</h4>
                     <Badge variant={policy.isActive ? "default" : "secondary>
                       {policy.isActive ? "Ativa" : "Inativa"
                     </Badge>
@@ -944,7 +885,7 @@ function PrivacyPolicyManagement() {
         ) : (
           <Card className=""
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h4 className="font-medium mb-2">Nenhuma política encontrada</h4>
+            <h4 className="text-lg">"Nenhuma política encontrada</h4>
             <p className=""
               Crie sua primeira política de privacidade
             </p>
@@ -954,7 +895,6 @@ function PrivacyPolicyManagement() {
           </Card>
         )}
       </div>
-
       {/* ✅ Dialog para Criar Nova Política */}
       <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
         <DialogContent className=""
@@ -996,7 +936,6 @@ function PrivacyPolicyManagement() {
                   )}
                 />
               </div>
-
               <div className=""
                 <FormField
                   control={policyForm.control}
@@ -1020,7 +959,6 @@ function PrivacyPolicyManagement() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={policyForm.control}
                   name="effectiveDate"
@@ -1035,7 +973,6 @@ function PrivacyPolicyManagement() {
                   )}
                 />
               </div>
-
               <FormField
                 control={policyForm.control}
                 name="content"
@@ -1057,14 +994,13 @@ function PrivacyPolicyManagement() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={policyForm.control}
                 name="requiresAcceptance"
                 render={({ field }) => (
                   <FormItem className=""
                     <div className=""
-                      <FormLabel className="text-base">Requer Aceitação</FormLabel>
+                      <FormLabel className="text-lg">"Requer Aceitação</FormLabel>
                       <FormDescription>
                         Usuários precisarão aceitar esta política explicitamente
                       </FormDescription>
@@ -1078,7 +1014,6 @@ function PrivacyPolicyManagement() {
                   </FormItem>
                 )}
               />
-
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
                   Cancelar

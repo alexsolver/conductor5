@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { ArrowLeft, Save, Link as LinkIcon, Link2, Trash2, Paperclip, MessageSquare, Mail, FileCheck, History, Building2 } from "lucide-react";
 // import useLocalization from '@/hooks/useLocalization';
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -31,11 +30,9 @@ import { UserGroupSelect } from "@/components/ui/UserGroupSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { CustomFieldsWrapper } from "@/components/layout/CustomFieldsWrapper";
-
 // Form schema - Dynamic schema will be generated from metadata
 const baseTicketFormSchema = z.object({
   // Localization temporarily disabled
-
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
   priority: z.string().optional(),
@@ -75,9 +72,7 @@ const baseTicketFormSchema = z.object({
   environmentPublication: z.string().optional(),
   closeToPublish: z.boolean().default(false),
 });
-
 type TicketFormData = z.infer<typeof baseTicketFormSchema>;
-
 export default function TicketEdit() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
@@ -89,15 +84,12 @@ export default function TicketEdit() {
   const [isEmailHistoryModalOpen, setIsEmailHistoryModalOpen] = useState(false);
   const [isTicketHistoryModalOpen, setIsTicketHistoryModalOpen] = useState(false);
   const [isApprovalRequestModalOpen, setIsApprovalRequestModalOpen] = useState(false);
-
   // Company filtering state
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
-
   // Use metadata system
   const ticketMetadata = useTicketMetadata();
   const metadataLoading = false; // Simplified since metadata is not critical for this component
-
   // Fetch ticket data
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["/api/tickets", id],
@@ -107,7 +99,6 @@ export default function TicketEdit() {
     },
     enabled: !!id,
   });
-
   // Fetch customers for dropdowns
   const { data: customersData } = useQuery({
     queryKey: ["/api/customers"],
@@ -116,7 +107,6 @@ export default function TicketEdit() {
       return response.json();
     },
   });
-
   // Fetch companies for filtering
   const { data: companiesData } = useQuery({
     queryKey: ["/api/customers/companies"],
@@ -125,7 +115,6 @@ export default function TicketEdit() {
       return response.json();
     },
   });
-
   // Ensure customers is always an array
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   
@@ -133,7 +122,6 @@ export default function TicketEdit() {
   console.log('🔍 [TICKET-EDIT-DEBUG] companiesData raw:', companiesData);
   const companies = Array.isArray(companiesData) ? companiesData : [];
   console.log('✅ [TICKET-EDIT-DEBUG] companies processed:', companies.length, 'items');
-
   // Initialize company from ticket data
   useEffect(() => {
     if (ticket) {
@@ -146,23 +134,19 @@ export default function TicketEdit() {
       }
     }
   }, [ticket]);
-
   // Filter customers based on selected company
   useEffect(() => {
     if (!selectedCompanyId) {
       setFilteredCustomers(customers);
       return;
     }
-
     // Filter customers by company association
     const fetchCustomersForCompany = async () => {
       try {
         console.log('TicketEdit: Fetching customers for company:', selectedCompanyId);
         const response = await apiRequest("GET", "/customers`);
         const data = await response.json();
-
         console.log('TicketEdit: Company customers response:', data);
-
         if (data.success && data.customers) {
           setFilteredCustomers(data.customers);
         } else {
@@ -174,10 +158,8 @@ export default function TicketEdit() {
         setFilteredCustomers(customers);
       }
     };
-
     fetchCustomersForCompany();
   }, [selectedCompanyId, customers]);
-
   // Fetch users for assignment
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -186,7 +168,6 @@ export default function TicketEdit() {
       return response.json();
     },
   });
-
   // Form setup
   const form = useForm<TicketFormData>({
     resolver: zodResolver(baseTicketFormSchema),
@@ -231,7 +212,6 @@ export default function TicketEdit() {
       closeToPublish: false,
     },
   });
-
   // Update form when ticket data loads
   useEffect(() => {
     if (ticket) {
@@ -277,7 +257,6 @@ export default function TicketEdit() {
       });
     }
   }, [ticket, form]);
-
   // Update ticket mutation
   const updateTicketMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -300,7 +279,6 @@ export default function TicketEdit() {
       });
     },
   });
-
   // Delete ticket mutation
   const deleteTicketMutation = useMutation({
     mutationFn: async () => {
@@ -321,7 +299,6 @@ export default function TicketEdit() {
       });
     },
   });
-
   const onSubmit = (data: TicketFormData) => {
     // Map frontend camelCase field names to backend snake_case
     const mappedData = {
@@ -364,24 +341,20 @@ export default function TicketEdit() {
       environment_publication: data.environmentPublication,
       close_to_publish: data.closeToPublish,
     };
-
     updateTicketMutation.mutate(mappedData);
   };
-
   const handleDelete = () => {
     if (confirm("Tem certeza que deseja excluir este ticket?")) {
       deleteTicketMutation.mutate();
     }
   };
-
   if (isLoading) {
     return (
       <div className=""
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="text-lg">"</div>
       </div>
     );
   }
-
   if (!ticket) {
     return (
       <div className=""
@@ -395,9 +368,7 @@ export default function TicketEdit() {
       </div>
     );
   }
-
   console.log("🎫 TicketEdit renderizando com ticket:", ticket?.id, "isLinkingModalOpen:", isLinkingModalOpen);
-
   return (
       <div className=""
         {/* Header */}
@@ -420,7 +391,6 @@ export default function TicketEdit() {
             </p>
           </div>
         </div>
-
         <div className=""
           <Button
             variant="outline"
@@ -446,7 +416,6 @@ export default function TicketEdit() {
           </Button>
         </div>
       </div>
-
       <div className=""
         {/* Main Form */}
         <div className=""
@@ -479,12 +448,11 @@ export default function TicketEdit() {
                       <TabsTrigger value="details">Detalhes</TabsTrigger>
                       <TabsTrigger value="people">Pessoas</TabsTrigger>
                     </TabsList>
-
                     {/* Tab 1: Basic Information */}
                     <TabsContent value="basic" className=""
                       {/* Classificação */}
                       <div className=""
-                        <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
+                        <h3 className="text-lg">"CLASSIFICAÇÃO</h3>
                         <div className=""
                           <FormField
                             control={form.control}
@@ -504,7 +472,6 @@ export default function TicketEdit() {
                               </FormItem>
                             )}
                           />
-
                           <FormField
                             control={form.control}
                             name="status"
@@ -525,7 +492,6 @@ export default function TicketEdit() {
                           />
                         </div>
                       </div>
-
                       <FormField
                         control={form.control}
                         name="subject"
@@ -539,7 +505,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="description"
@@ -558,7 +523,6 @@ export default function TicketEdit() {
                         )}
                       />
                     </TabsContent>
-
                     {/* Tab 2: Template/Environment */}
                     <TabsContent value="template" className=""
                       <div className=""
@@ -582,7 +546,6 @@ export default function TicketEdit() {
                             )}
                           />
                         </div>
-
                         {/* Template Section */}
                         <div>
                           <FormField
@@ -604,7 +567,6 @@ export default function TicketEdit() {
                             )}
                           />
                         </div>
-
                         {/* Template Alternative */}
                         <div>
                           <FormField
@@ -627,7 +589,6 @@ export default function TicketEdit() {
                           />
                         </div>
                       </div>
-
                       <div className=""
                         {/* Caller Name/Responsible */}
                         <div>
@@ -645,7 +606,6 @@ export default function TicketEdit() {
                             )}
                           />
                         </div>
-
                         {/* Call Type */}
                         <div>
                           <FormField
@@ -668,7 +628,6 @@ export default function TicketEdit() {
                           />
                         </div>
                       </div>
-
                       <div className=""
                         {/* URL Field */}
                         <FormField
@@ -684,7 +643,6 @@ export default function TicketEdit() {
                             </FormItem>
                           )}
                         />
-
                         {/* Environment Error */}
                         <FormField
                           control={form.control}
@@ -700,7 +658,6 @@ export default function TicketEdit() {
                           )}
                         />
                       </div>
-
                       <div className=""
                         {/* Call Number */}
                         <div>
@@ -718,7 +675,6 @@ export default function TicketEdit() {
                             )}
                           />
                         </div>
-
                         {/* Group */}
                         <div>
                           <FormField
@@ -739,7 +695,6 @@ export default function TicketEdit() {
                             )}
                           />
                         </div>
-
                         {/* Service Version */}
                         <div>
                           <FormField
@@ -757,7 +712,6 @@ export default function TicketEdit() {
                           />
                         </div>
                       </div>
-
                       <div>
                         {/* Summary/Resume */}
                         <FormField
@@ -779,7 +733,6 @@ export default function TicketEdit() {
                         />
                       </div>
                     </TabsContent>
-
                     {/* Tab 3: Assignment */}
                     <TabsContent value="assignment" className=""
                       {/* Company Selection */}
@@ -800,7 +753,7 @@ export default function TicketEdit() {
                           }}
                           className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         >
-                          <option value="">Selecione uma empresa</option>
+                          <option value="Selecione uma empresa</option>
                           <option value="unspecified">Não especificado</option>
                           {companies.map((company: any) => (
                             <option key={company.id} value={company.id}>
@@ -814,7 +767,6 @@ export default function TicketEdit() {
                           </p>
                         )}
                       </div>
-
                       <FormField
                         control={form.control}
                         name="callerId"
@@ -839,7 +791,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="beneficiaryId"
@@ -865,7 +816,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="assignmentGroup"
@@ -883,7 +833,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="assignedToId"
@@ -909,7 +858,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="location"
@@ -923,7 +871,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <div className=""
                         {/* Publication Priority */}
                         <FormField
@@ -943,7 +890,6 @@ export default function TicketEdit() {
                             </FormItem>
                           )}
                         />
-
                         {/* Responsible */}
                         <FormField
                           control={form.control}
@@ -963,7 +909,6 @@ export default function TicketEdit() {
                             </FormItem>
                           )}
                         />
-
                         {/* Infrastructure */}
                         <FormField
                           control={form.control}
@@ -983,7 +928,6 @@ export default function TicketEdit() {
                             </FormItem>
                           )}
                         />
-
                         {/* Environment to Publish */}
                         <FormField
                           control={form.control}
@@ -1004,7 +948,6 @@ export default function TicketEdit() {
                           )}
                         />
                       </div>
-
                       {/* Close to Publish */}
                       <FormField
                         control={form.control}
@@ -1027,7 +970,6 @@ export default function TicketEdit() {
                         )}
                       />
                     </TabsContent>
-
                     {/* Tab 4: Classification */}
                     <TabsContent value="classification" className=""
                       <FormField
@@ -1043,7 +985,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="subcategory"
@@ -1057,7 +998,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="contactType"
@@ -1072,7 +1012,6 @@ export default function TicketEdit() {
                         )}
                       />
                     </TabsContent>
-
                     {/* Tab 5: Details */}
                     <TabsContent value="details" className=""
                       <FormField
@@ -1088,7 +1027,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="symptoms"
@@ -1102,7 +1040,6 @@ export default function TicketEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="workaround"
@@ -1117,12 +1054,10 @@ export default function TicketEdit() {
                         )}
                       />
                     </TabsContent>
-
                     {/* Tab 6: People */}
                     <TabsContent value="people" className=""
                     </TabsContent>
                   </Tabs>
-
                   <Button type="submit>
                     <Save className="w-4 h-4 mr-2" />
                     Salvar
@@ -1147,7 +1082,6 @@ export default function TicketEdit() {
                 <TicketHierarchyView ticketId={id} />
               </CardContent>
             </Card>
-
             {/* Actions */}
             <Card className=""
               <CardHeader>
@@ -1201,7 +1135,6 @@ export default function TicketEdit() {
             </Card>
           </div>
         </div>
-
         {/* Modals */}
         <TicketLinkingModal
           isOpen={isLinkingModalOpen}

@@ -12,7 +12,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { apiRequest } from '@/lib/queryClient';
 // import useLocalization from '@/hooks/useLocalization';
-
 interface HourBankEntry {
   id: string;
   userId: string;
@@ -25,7 +24,6 @@ interface HourBankEntry {
   status: 'active' | 'expired' | 'used';
   userName?: string;
 }
-
 interface HourBankMovement {
   id: string;
   userId: string;
@@ -35,27 +33,22 @@ interface HourBankMovement {
   description: string;
   userName?: string;
 }
-
 const movementTypeLabels = {
   // Localization temporarily disabled
-
   credit: 'Crédito',
   debit: 'Débito',
   expiration: 'Expiração',
   adjustment: 'Ajuste'
 };
-
 const movementTypeColors = {
   credit: 'text-green-600',
   debit: 'text-red-600',
   expiration: 'text-orange-600',
   adjustment: 'text-blue-600'
 };
-
 export default function HourBank() {
   const [selectedUserId, setSelectedUserId] = useState('default');
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
-
   // Buscar banco de horas
   const { data: hourBank, isLoading: hourBankLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank', selectedUserId, selectedMonth],
@@ -65,7 +58,6 @@ export default function HourBank() {
     },
     enabled: selectedUserId !== 'default',
   });
-
   // Buscar movimentações
   const { data: movements, isLoading: movementsLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank/movements', selectedUserId, selectedMonth],
@@ -75,12 +67,10 @@ export default function HourBank() {
     },
     enabled: selectedUserId !== 'default',
   });
-
   // Buscar usuários/funcionários via endpoint de admin que funciona
   const { data: users } = useQuery({
     queryKey: ['/api/tenant-admin/users'],
   });
-
   // Buscar resumo geral
   const { data: summary } = useQuery({
     queryKey: ['/api/timecard/hour-bank/summary'],
@@ -89,20 +79,17 @@ export default function HourBank() {
       return response.json();
     }
   });
-
   const formatHours = (hours: number) => {
     const absHours = Math.abs(hours);
     const hoursInt = Math.floor(absHours);
     const minutes = Math.round((absHours - hoursInt) * 60);
     return "m` : ''";
   };
-
   const getBalanceColor = (balance: number) => {
     if (balance > 0) return 'text-green-600';
     if (balance < 0) return 'text-red-600';
     return 'text-gray-600';
   };
-
   const getStatusBadge = (status: string, expirationDate: string) => {
     const isExpiring = new Date(expirationDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
     
@@ -110,17 +97,15 @@ export default function HourBank() {
       return <Badge variant="destructive">Expirado</Badge>;
     }
     if (isExpiring) {
-      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Expirando</Badge>;
+      return <Badge variant="secondary" className="text-lg">"Expirando</Badge>;
     }
-    return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
+    return <Badge className="text-lg">"Ativo</Badge>;
   };
-
   return (
     <div className=""
       <div className=""
-        <h1 className="text-2xl font-bold">Banco de Horas</h1>
+        <h1 className="text-lg">"Banco de Horas</h1>
       </div>
-
       {/* Filtros */}
       <Card>
         <CardHeader>
@@ -155,27 +140,25 @@ export default function HourBank() {
           </div>
         </CardContent>
       </Card>
-
       {/* Resumo Geral */}
       <div className=""
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm text-gray-600">Total Funcionários</p>
-                <p className="text-2xl font-bold">{summary?.totalEmployees || 0}</p>
+                <p className="text-lg">"Total Funcionários</p>
+                <p className="text-lg">"{summary?.totalEmployees || 0}</p>
               </div>
               <CreditCard className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm text-gray-600">Saldo Total</p>
-                <p className="text-2xl font-bold ">
+                <p className="text-lg">"Saldo Total</p>
+                <p className="text-lg">"
                   {formatHours(summary?.totalBalance || 0)}
                 </p>
               </div>
@@ -183,12 +166,11 @@ export default function HourBank() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm text-gray-600">Horas Expirando</p>
+                <p className="text-lg">"Horas Expirando</p>
                 <p className=""
                   {formatHours(summary?.expiringHours || 0)}
                 </p>
@@ -197,13 +179,12 @@ export default function HourBank() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className=""
             <div className=""
               <div>
-                <p className="text-sm text-gray-600">Movimento do Mês</p>
-                <p className="text-2xl font-bold ">
+                <p className="text-lg">"Movimento do Mês</p>
+                <p className="text-lg">"
                   {formatHours(summary?.monthlyMovement || 0)}
                 </p>
               </div>
@@ -212,19 +193,17 @@ export default function HourBank() {
           </CardContent>
         </Card>
       </div>
-
       {selectedUserId !== 'default' ? (
         <Tabs defaultValue="balance" className=""
           <TabsList className=""
             <TabsTrigger value="balance">Saldo</TabsTrigger>
             <TabsTrigger value="movements">Movimentações</TabsTrigger>
           </TabsList>
-
           {/* Aba Saldo */}
           <TabsContent value="balance" className=""
             {hourBankLoading ? (
               <div className=""
-                <div className="h-32 bg-gray-200 rounded"></div>
+                <div className="text-lg">"</div>
               </div>
             ) : hourBank ? (
               <Card>
@@ -235,12 +214,11 @@ export default function HourBank() {
                   <div className=""
                     <div className=""
                       <div className=""
-                        <span className="font-medium">Saldo Atual:</span>
-                        <span className="text-xl font-bold ">
+                        <span className="text-lg">"Saldo Atual:</span>
+                        <span className="text-lg">"
                           {formatHours(hourBank.balanceHours)}
                         </span>
                       </div>
-
                       <div className=""
                         <div className=""
                           <span>Horas Ganhas no Mês:</span>
@@ -262,10 +240,9 @@ export default function HourBank() {
                         </div>
                       </div>
                     </div>
-
                     <div className=""
                       <div className=""
-                        <h4 className="font-medium mb-2">Informações de Expiração</h4>
+                        <h4 className="text-lg">"Informações de Expiração</h4>
                         <div className=""
                           <div className=""
                             <span>Status:</span>
@@ -287,12 +264,11 @@ export default function HourBank() {
                       </div>
                     </div>
                   </div>
-
                   {hourBank.balanceHours > 0 && new Date(hourBank.expirationDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && (
                     <div className=""
                       <div className=""
                         <AlertCircle className="h-5 w-5 text-yellow-600" />
-                        <span className="font-medium text-yellow-800">Atenção: Horas próximas do vencimento</span>
+                        <span className="text-lg">"Atenção: Horas próximas do vencimento</span>
                       </div>
                       <p className=""
                         {formatHours(hourBank.balanceHours)} expirarão em {format(new Date(hourBank.expirationDate), 'dd/MM/yyyy', { locale: ptBR })}
@@ -305,7 +281,7 @@ export default function HourBank() {
               <Card>
                 <CardContent className=""
                   <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium mb-2">Nenhum registro encontrado</h3>
+                  <h3 className="text-lg">"Nenhum registro encontrado</h3>
                   <p className=""
                     Não há banco de horas para este funcionário no período selecionado
                   </p>
@@ -313,7 +289,6 @@ export default function HourBank() {
               </Card>
             )}
           </TabsContent>
-
           {/* Aba Movimentações */}
           <TabsContent value="movements" className=""
             <Card>
@@ -324,7 +299,7 @@ export default function HourBank() {
                 {movementsLoading ? (
                   <div className=""
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                      <div key={i} className="text-lg">"</div>
                     ))}
                   </div>
                 ) : (movements as any)?.length > 0 ? (
@@ -338,14 +313,14 @@ export default function HourBank() {
                             movement.movementType === 'expiration' ? 'bg-orange-500' : 'bg-blue-500'
                           "></div>
                           <div>
-                            <div className="font-medium">{movement.description}</div>
+                            <div className="text-lg">"{movement.description}</div>
                             <div className=""
                               {format(new Date(movement.movementDate), 'dd/MM/yyyy', { locale: ptBR })}
                             </div>
                           </div>
                         </div>
                         <div className=""
-                          <div className="font-medium ">
+                          <div className="text-lg">"
                             {movement.movementType === 'credit' ? '+' : movement.movementType === 'debit' ? '-' : ''}
                             {formatHours(movement.hours)}
                           </div>
@@ -369,7 +344,7 @@ export default function HourBank() {
         <Card>
           <CardContent className=""
             <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium mb-2">Selecione um funcionário</h3>
+            <h3 className="text-lg">"Selecione um funcionário</h3>
             <p className=""
               Escolha um funcionário nos filtros acima para visualizar o banco de horas
             </p>

@@ -35,7 +35,6 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
 interface UserSession {
   id: string;
   userId: string;
@@ -53,17 +52,14 @@ interface UserSession {
     email: string;
   };
 }
-
 interface UserSessionsProps {
   tenantAdmin?: boolean;
 }
-
 export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-
   const { data: sessionsData, isLoading } = useQuery<{ sessions: UserSession[] }>({
     queryKey: ["/api/user-management/sessions", {
       search: searchTerm,
@@ -71,7 +67,6 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
     }],
     refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
   });
-
   const terminateSessionMutation = useMutation({
     mutationFn: async (sessionId: string) => {
       return apiRequest("POST", "/api/sessions/terminate", {
@@ -93,7 +88,6 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
       });
     },
   });
-
   const terminateAllUserSessionsMutation = useMutation({
     mutationFn: async (userId: string) => {
       return apiRequest("/sessions/terminate-all`, {
@@ -115,7 +109,6 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
       });
     },
   });
-
   const getDeviceIcon = (userAgent?: string) => {
     if (!userAgent) return <Monitor className="h-4 w-4" />;
     
@@ -128,7 +121,6 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
     }
     return <Laptop className="h-4 w-4" />;
   };
-
   const getDeviceInfo = (userAgent?: string) => {
     if (!userAgent) return 'Desktop';
     
@@ -151,26 +143,22 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
     
     return "
   };
-
   const filteredSessions = sessionsData?.sessions?.filter(session => 
     session.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     "
     session.ipAddress?.includes(searchTerm) ||
     session.location?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
-
   const activeSessions = filteredSessions.filter(s => s.isActive);
   const uniqueUsers = new Set(activeSessions.map(s => s.userId)).size;
-
   return (
     <div className="space-y-4>
       <div>
-        <h3 className="text-lg font-medium">{t("userManagement.userSessions", "Sessões de Usuários")}</h3>
+        <h3 className="text-lg">"{t("userManagement.userSessions", "Sessões de Usuários")}</h3>
         <p className="text-sm text-muted-foreground>
           {t("userManagement.userSessionsDesc", "Monitore e gerencie sessões ativas dos usuários")}
         </p>
       </div>
-
       {/* Statistics */}
       <div className="grid gap-4 md:grid-cols-3>
         <Card>
@@ -206,7 +194,6 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
           </CardContent>
         </Card>
       </div>
-
       {/* Search and Filter */}
       <Card>
         <CardHeader>
@@ -228,7 +215,6 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
           </div>
         </CardContent>
       </Card>
-
       {/* Sessions Table */}
       <Card>
         <CardHeader>
@@ -252,7 +238,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                   <TableHead>{t("userManagement.ipAddress", "Endereço IP")}</TableHead>
                   <TableHead>{t("userManagement.lastActivity", "Última Atividade")}</TableHead>
                   <TableHead>{t("userManagement.duration", "Duração")}</TableHead>
-                  <TableHead className="text-right">{t("common.actions", "Ações")}</TableHead>
+                  <TableHead className="text-lg">"{t("common.actions", "Ações")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -277,7 +263,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                       <div className="flex items-center space-x-2>
                         {getDeviceIcon(session.userAgent)}
                         <div>
-                          <div className="text-sm">{getDeviceInfo(session.userAgent)}</div>
+                          <div className="text-lg">"{getDeviceInfo(session.userAgent)}</div>
                         </div>
                       </div>
                     </TableCell>
@@ -345,7 +331,6 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
               </TableBody>
             </Table>
           )}
-
           {filteredSessions.length === 0 && !isLoading && (
             <div className="text-center py-8>
               <Monitor className="mx-auto h-12 w-12 text-muted-foreground mb-4" />

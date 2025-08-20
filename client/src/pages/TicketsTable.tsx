@@ -33,7 +33,6 @@ import { ResponsiveTicketsTable } from "@/components/tickets/ResponsiveTicketsTa
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
 // import useLocalization from '@/hooks/useLocalization';
-
 // ✅ SCHEMA DINÂMICO para ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
   // Basic Fields
@@ -44,34 +43,27 @@ const ticketSchema = z.object({
   impact: z.string().refine(val => ['low', 'medium', 'high', 'critical'].includes(val), "Impacto inválido").optional(),
   urgency: z.string().refine(val => ['low', 'medium', 'high'].includes(val), "Urgência inválida").optional(),
   state: z.string().refine(val => ['new', 'in_progress', 'resolved', 'closed', 'cancelled'].includes(val), "Estado inválido").optional(),
-
   // Assignment Fields - Enhanced for flexible person referencing
   companyId: z.string().min(1, "Empresa é obrigatória"),
   callerId: z.string().min(1, "Cliente é obrigatório"),
   callerType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de cliente inválido").default("customer"),
   beneficiaryId: z.string().optional(), // Optional - defaults to callerId
   beneficiaryType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de beneficiário inválido").optional(),
-
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
-
   // Communication Fields
   contactType: z.string().refine(val => ["email", "phone", "self_service", "chat"].includes(val), "Tipo de contato inválido").optional(),
-
   // Business Fields
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
-
   // Using subject field directly - no legacy conversion needed
   subject: z.string().min(1, "Título do ticket é obrigatório"),
   status: z.string().refine(val => ["open", "in_progress", "resolved", "closed"].includes(val), "Status inválido").optional(),
   tags: z.array(z.string()).default([]),
 });
-
 type TicketFormData = z.infer<typeof ticketSchema>;
-
 // Rich Text Editor Component
 function RichTextEditor({ value, onChange, disabled = false }: { value: string, onChange: (value: string) => void, disabled?: boolean }) {
   const editor = useEditor({
@@ -82,11 +74,9 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
     },
     editable: !disabled,
   });
-
   if (!editor) {
     return null;
   }
-
   return (
     <div className=""
       {!disabled && (
@@ -163,7 +153,6 @@ function RichTextEditor({ value, onChange, disabled = false }: { value: string, 
     </div>
   );
 }
-
 interface Ticket {
   id: string;
   subject: string;
@@ -204,10 +193,8 @@ interface Ticket {
     email: string;
   };
 }
-
 const TicketsTable = React.memo(() => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -220,18 +207,14 @@ const TicketsTable = React.memo(() => {
   const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
-
   // Estados para expansão de relacionamentos
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
   const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
   const [ticketsWithRelationships, setTicketsWithRelationships] = useState<Set<string>>(new Set());
-
   // Hook para buscar cores dos campos personalizados com estado aprimorado
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading, isReady: isFieldColorsReady } = useFieldColors();
-
   // Hook para resolver nomes de empresas
   const { getCompanyName } = useCompanyNameResolver();
-
   // Debug das cores dos campos
   React.useEffect(() => {
     if (!isFieldColorsLoading) {
@@ -240,26 +223,22 @@ const TicketsTable = React.memo(() => {
         getFieldColor: typeof getFieldColor,
         getFieldLabel: typeof getFieldLabel
       });
-
       // Testar algumas cores específicas
       const testPriorities = ['low', 'medium', 'high', 'critical'];
       const testStatuses = ['new', 'open', 'in_progress', 'resolved', 'closed'];
       const testCategories = ['support', 'hardware', 'software', 'network', 'access', 'other'];
-
       console.log('🎨 Testing priority colors:');
       testPriorities.forEach(p => {
         const color = getFieldColor('priority', p);
         const label = getFieldLabel('priority', p);
         console.log("Debug log");
       });
-
       console.log('🎨 Testing status colors:');
       testStatuses.forEach(s => {
         const color = getFieldColor('status', s);
         const label = getFieldLabel('status', s);
         console.log("Debug log");
       });
-
       console.log('🎨 Testing category colors:');
       testCategories.forEach(c => {
         const color = getFieldColor('category', c);
@@ -268,7 +247,6 @@ const TicketsTable = React.memo(() => {
       });
     }
   }, [isFieldColorsLoading, getFieldColor, getFieldLabel]);
-
   // Status mapping simplificado - usar valores diretos do banco
   const statusMapping: Record<string, string> = {
     'new': 'new',
@@ -277,26 +255,22 @@ const TicketsTable = React.memo(() => {
     'resolved': 'resolved',
     'closed': 'closed'
   };
-
   const priorityMapping: Record<string, string> = {
     'low': 'low',
     'medium': 'medium',
     'high': 'high',
     'critical': 'critical'
   };
-
   const impactMapping: Record<string, string> = {
     'low': 'baixo',
     'medium': 'medio',
     'high': 'alto'
   };
-
   const urgencyMapping: Record<string, string> = {
     'low': 'low',
     'medium': 'medium',
     'high': 'high'
   };
-
   const categoryMapping: Record<string, string> = {
     'hardware': 'hardware',
     'software': 'software',
@@ -309,17 +283,14 @@ const TicketsTable = React.memo(() => {
     'financial': 'financial',
     'infrastructure': 'infrastructure'
   };
-
   // Função helper para obter cor com fallback durante carregamento
   const getFieldColorWithFallback = (fieldName: string, value: string): string => {
     // 🚨 CORREÇÃO: Sempre tentar obter cor, mesmo durante carregamento
     const color = getFieldColor(fieldName, value);
-
     // Se encontrou cor nas configurações, usar ela
     if (color && color !== '#6b7280') {
       return color;
     }
-
     // Fallback para cores padrão da empresa Default (mesmo durante carregamento)
     const defaultColors: Record<string, Record<string, string>> = {
       category: {
@@ -353,10 +324,8 @@ const TicketsTable = React.memo(() => {
         'critical': '#dc2626'
       }
     };
-
     return defaultColors[fieldName]?.[value] || '#6b7280';
   };
-
   // Serviço centralizado de mapeamento de dados
   const dataMapper = useMemo(() => ({
     status: (value: string): string => {
@@ -364,22 +333,18 @@ const TicketsTable = React.memo(() => {
       // Manter valores do banco diretos - sem tradução
       return statusMapping[value.toLowerCase()] || value;
     },
-
     priority: (value: string): string => {
       if (!value) return 'medium';
       return priorityMapping[value.toLowerCase()] || value;
     },
-
     impact: (value: string): string => {
       if (!value) return 'low';
       return impactMapping[value.toLowerCase()] || value;
     },
-
     urgency: (value: string): string => {
       if (!value) return 'medium';
       return urgencyMapping[value.toLowerCase()] || value;
     },
-
     category: (value: string): string => {
       if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
         return 'support'; // Valor padrão
@@ -388,33 +353,27 @@ const TicketsTable = React.memo(() => {
       return value.toLowerCase();
     }
   }), [statusMapping, priorityMapping, impactMapping, urgencyMapping, categoryMapping]);
-
   // Função de mapeamento para status
   const mapStatusValue = (value: string): string => {
     return dataMapper.status(value);
   };
-
   // Função de mapeamento para prioridade
   const mapPriorityValue = (value: string): string => {
     return dataMapper.priority(value);
   };
-
   // Função de mapeamento para impacto
   const mapImpactValue = (value: string): string => {
     return dataMapper.impact(value);
   };
-
   // Função de mapeamento para urgência
   const mapUrgencyValue = (value: string): string => {
     return dataMapper.urgency(value);
   };
-
   // Função de mapeamento para categoria com fallback mais robusto
   const mapCategoryValue = (value: string): string => {
     if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
       return ''; // Retornar vazio ao invés de forçar suporte_tecnico
     }
-
     // Mapeamento de valores legados para valores configurados
     const categoryLegacyMapping: Record<string, string> = {
       'support': 'suporte_tecnico',
@@ -428,11 +387,9 @@ const TicketsTable = React.memo(() => {
       'financial': 'financeiro',
       'infrastructure': 'suporte_tecnico'
     };
-
     const normalizedValue = value.toLowerCase().trim();
     return categoryLegacyMapping[normalizedValue] || normalizedValue;
   };
-
   // Estados para criação de visualização
   const [newViewName, setNewViewName] = useState("");
   const [newViewDescription, setNewViewDescription] = useState("");
@@ -440,17 +397,14 @@ const TicketsTable = React.memo(() => {
     "number", "subject", "customer", "category", "status", "priority", "created"
   ]);
   const [isPublicView, setIsPublicView] = useState(false);
-
   // Estados para gerenciar visualizações
   const [isManageViewsOpen, setIsManageViewsOpen] = useState(false);
   const [editingView, setEditingView] = useState<any>(null);
   const [columnsOrder, setColumnsOrder] = useState<any[]>([]);
-
   // Estados para redimensionamento de colunas
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
   const [isResizing, setIsResizing] = useState(false);
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
-
   // Campos disponíveis para seleção em visualizações (expandido)
   const availableColumns = [
     { id: "number", label: "Número" },
@@ -477,11 +431,9 @@ const TicketsTable = React.memo(() => {
     { id: "satisfaction", label: "Satisfação" }
   ];
   const itemsPerPage = 20;
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
-
   // 🔧 [1QA-COMPLIANCE] Queries seguindo Clean Architecture
   const {
     data: ticketsData,
@@ -502,7 +454,6 @@ const TicketsTable = React.memo(() => {
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (priorityFilter !== 'all') params.append('priority', priorityFilter);
       if (searchTerm) params.append('search', searchTerm);
-
       const response = await apiRequest("GET", "/api/tickets"
       ); if (!response.ok) throw new Error("Failed to fetch tickets");
       return response.json();
@@ -510,7 +461,6 @@ const TicketsTable = React.memo(() => {
     staleTime: 2 * 60 * 1000, // 2 minutos
     gcTime: 5 * 60 * 1000, // 5 minutos
   });
-
   // 🔧 [1QA-COMPLIANCE] Query para views seguindo Clean Architecture
   const {
     data: ticketViews = [],
@@ -525,7 +475,6 @@ const TicketsTable = React.memo(() => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
-
   // 🔧 [1QA-COMPLIANCE] Query para usuários seguindo Clean Architecture
   const {
     data: users = []
@@ -539,7 +488,6 @@ const TicketsTable = React.memo(() => {
     },
     staleTime: 5 * 60 * 1000,
   });
-
   // 🔧 [1QA-COMPLIANCE] Query para empresas seguindo Clean Architecture
   const {
     data: companiesResponse = { companies: [] }
@@ -558,61 +506,46 @@ const TicketsTable = React.memo(() => {
     },
     staleTime: 5 * 60 * 1000,
   });
-
   const companies = companiesResponse?.companies || [];
-
   // 🔧 [1QA-COMPLIANCE] Processar dados de tickets seguindo Clean Architecture
   const tickets = useMemo(() => {
     if (!ticketsData) return [];
-
     console.log('🔍 [DEBUG] ticketsData structure:', JSON.stringify(ticketsData, null, 2));
-
     // ✅ CRITICAL FIX: Backend returns { success: true, data: [...] } directly
     if (ticketsData.success && Array.isArray(ticketsData.data)) {
       console.log('✅ [SUCCESS] Found tickets in ticketsData.data:', ticketsData.data.length);
       return ticketsData.data;
     }
-
     // Standard Clean Architecture response structure with nested tickets
     if (ticketsData.success && ticketsData.data?.tickets && Array.isArray(ticketsData.data.tickets)) {
       console.log('✅ [SUCCESS] Found tickets in ticketsData.data.tickets:', ticketsData.data.tickets.length);
       return ticketsData.data.tickets;
     }
-
     // Legacy support for direct data property
     if (ticketsData.data?.tickets && Array.isArray(ticketsData.data.tickets)) {
       console.log('✅ [SUCCESS] Found tickets in legacy data.tickets:', ticketsData.data.tickets.length);
       return ticketsData.data.tickets;
     }
-
     // Direct tickets array (fallback)
     if (ticketsData.tickets && Array.isArray(ticketsData.tickets)) {
       console.log('✅ [SUCCESS] Found tickets in direct tickets:', ticketsData.tickets.length);
       return ticketsData.tickets;
     }
-
     // Raw array (ultimate fallback)
     if (Array.isArray(ticketsData)) {
       console.log('✅ [SUCCESS] Found tickets as raw array:', ticketsData.length);
       return ticketsData;
     }
-
     console.log('❌ [ERROR] No tickets found in any expected format');
     return [];
   }, [ticketsData]);
-
   // 🔧 [1QA-COMPLIANCE] Paginação seguindo Clean Architecture
   const pagination = useMemo(() => {
     if (!ticketsData) return { total: 0, totalPages: 0 };
-
     const total = ticketsData.total || ticketsData.pagination?.total || tickets.length;
     const totalPages = Math.ceil(total / itemsPerPage);
-
     return { total, totalPages };
   }, [ticketsData, tickets.length, itemsPerPage]);
-
-
-
   // 🔧 [1QA-COMPLIANCE] Verificar se um ticket tem relacionamentos - Clean Architecture
   // 🔧 [1QA-COMPLIANCE] Buscar relacionamentos seguindo Clean Architecture
   // 🔧 [1QA-COMPLIANCE] Função para expandir relacionamentos seguindo Clean Architecture
@@ -626,16 +559,13 @@ const TicketsTable = React.memo(() => {
       });
       return;
     }
-
     // Se não está expandido, expande e busca relacionamentos se necessário
     if (!ticketRelationships[ticketId]) {
       try {
         console.log("
         const response = await apiRequest("GET", "/api/tickets"/relationships`);
         const data = await response.json();
-
         console.log(":`, data);
-
         let relationships: any[] = [];
         if (data.success && Array.isArray(data.data)) {
           relationships = data.data;
@@ -647,14 +577,11 @@ const TicketsTable = React.memo(() => {
           // Handle case where data.data is an object with ticket relationships
           relationships = Object.values(data.data).flat();
         }
-
         console.log("
-
         setTicketRelationships(prev => ({
           ...prev,
           [ticketId]: relationships
         }));
-
         // Always update the relationships map, even if empty
         if (relationships.length > 0) {
           setTicketsWithRelationships(prev => new Set(Array.from(prev).concat([ticketId])));
@@ -671,26 +598,21 @@ const TicketsTable = React.memo(() => {
         }));
       }
     }
-
     setExpandedTickets(prev => new Set(Array.from(prev).concat([ticketId])));
   }, [expandedTickets, ticketRelationships]);
-
   // 🔧 [1QA-COMPLIANCE] Inicialização de relacionamentos seguindo Clean Architecture
   useEffect(() => {
     if (tickets.length > 0) {
       console.log(" tickets`);
-
       // ✅ Inicialização completa dos relacionamentos - removido cache para debug
       const batchResults: Record<string, any[]> = {};
       const ticketsWithRelationshipsSet = new Set<string>();
-
       Promise.all(
         tickets.map(async (ticket: any) => {
           try {
             console.log("
             const response = await apiRequest("GET", "/relationships`);
             const data = await response.json();
-
             let relationships: any[] = [];
             if (data?.success && Array.isArray(data.data)) {
               relationships = data.data;
@@ -699,10 +621,8 @@ const TicketsTable = React.memo(() => {
             } else if (Array.isArray(data)) {
               relationships = data;
             }
-
             // Sempre atualizar o batch, mesmo se vazio
             batchResults[ticket.id] = relationships;
-
             if (relationships.length > 0) {
               console.log(" relacionamentos`);
               ticketsWithRelationshipsSet.add(ticket.id);
@@ -719,10 +639,8 @@ const TicketsTable = React.memo(() => {
         console.log(" tickets`);
         setTicketRelationships(batchResults);
         setTicketsWithRelationships(ticketsWithRelationshipsSet);
-
         console.log(`🎯 [RELATIONSHIP-DEBUG] Tickets com relacionamentos:`, Array.from(ticketsWithRelationshipsSet));
         console.log(`🎯 [RELATIONSHIP-DEBUG] Batch results:`, Object.keys(batchResults).map(id => ({ id, count: batchResults[id].length })));
-
         // ✅ [1QA-COMPLIANCE] Debug final do estado
         console.log(`🔍 [RELATIONSHIP-STATE] ticketRelationships keys:`, Object.keys(batchResults));
         console.log(`🔍 [RELATIONSHIP-STATE] ticketsWithRelationships size:`, ticketsWithRelationshipsSet.size);
@@ -734,7 +652,6 @@ const TicketsTable = React.memo(() => {
       });
     }
   }, [tickets]);
-
   // Obter visualização ativa
   const activeView = ticketViews.find((view: any) => view.id === selectedViewId);
   const activeColumns = activeView?.columns || [
@@ -748,12 +665,10 @@ const TicketsTable = React.memo(() => {
     { id: "urgency", label: "Urgência", visible: true, order: 8, width: 120 },
     { id: "created", label: "Criado", visible: true, order: 9, width: 150 }
   ];
-
   // Filtrar apenas colunas visíveis e ordenar
   const visibleColumns = activeColumns
     .filter((col: any) => col.visible)
     .sort((a: any, b: any) => a.order - b.order);
-
   // Componente de célula otimizado com React.memo e useMemo
   const TableCellComponent = memo(({ column, ticket }: { column: any, ticket: Ticket }) => {
     const cellStyle = useMemo(() => ({
@@ -761,7 +676,6 @@ const TicketsTable = React.memo(() => {
       minWidth: getColumnWidth(column.id),
       maxWidth: getColumnWidth(column.id)
     }), [column.id, columnWidths]);
-
     const memoizedCellContent = useMemo(() => {
       switch (column.id) {
         case 'number':
@@ -802,7 +716,6 @@ const TicketsTable = React.memo(() => {
             if ((ticket as any).caller_email) return (ticket as any).caller_email;
             return 'Cliente não informado';
           })();
-
           const customerEmail = (() => {
             if ((ticket as any).caller_email) return (ticket as any).caller_email;
             if ((ticket as any).customer_email) return (ticket as any).customer_email;
@@ -810,7 +723,6 @@ const TicketsTable = React.memo(() => {
             if (ticket.customer?.email) return ticket.customer.email;
             return 'Email não informado';
           })();
-
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <div>
@@ -836,7 +748,6 @@ const TicketsTable = React.memo(() => {
             if ((ticket as any).company_name) {
               return (ticket as any).company_name;
             }
-
             // Se temos um ID da empresa, resolver o nome
             const companyId = (ticket as any).company_id;
             if (companyId) {
@@ -848,10 +759,8 @@ const TicketsTable = React.memo(() => {
                 }
               }
             }
-
             return 'Empresa não informada';
           })();
-
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <div className="font-medium truncate" title={companyName}>
@@ -861,34 +770,26 @@ const TicketsTable = React.memo(() => {
           );
         case 'category':
           const rawCategoryValue = (ticket as any).category;
-
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas (não apenas loading)
           if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
-                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+                <div className="text-lg">"</div>
               </TableCell>
             );
           }
-
           const categoryValue = mapCategoryValue(rawCategoryValue);
-
           // Tentar buscar cor pelo valor original primeiro, depois pelo normalizado
           const categoryColor = getFieldColor('category', rawCategoryValue) ||
                                getFieldColor('category', categoryValue) ||
                                '#3b82f6';
-
           // Debug log para verificar se a cor está sendo encontrada
           if (process.env.NODE_ENV === 'development') {
             console.log("
           }
-
           const categoryLabel = getFieldLabel('category', rawCategoryValue) ||
                                getFieldLabel('category', categoryValue) ||
                                rawCategoryValue;
-
-
-
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <DynamicBadge
@@ -906,15 +807,13 @@ const TicketsTable = React.memo(() => {
           if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
-                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+                <div className="text-lg">"</div>
               </TableCell>
             );
           }
-
           const statusValue = mapStatusValue((ticket as any).state || ticket.status);
           const statusColor = getFieldColorWithFallback('status', statusValue);
           const statusLabel = getFieldLabel('status', statusValue);
-
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <DynamicBadge
@@ -932,15 +831,13 @@ const TicketsTable = React.memo(() => {
           if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
-                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+                <div className="text-lg">"</div>
               </TableCell>
             );
           }
-
           const priorityValue = mapPriorityValue(ticket.priority);
           const priorityColor = getFieldColorWithFallback('priority', priorityValue);
           const priorityLabel = getFieldLabel('priority', priorityValue);
-
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <DynamicBadge
@@ -958,11 +855,10 @@ const TicketsTable = React.memo(() => {
           if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
-                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+                <div className="text-lg">"</div>
               </TableCell>
             );
           }
-
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <DynamicBadge
@@ -988,7 +884,7 @@ const TicketsTable = React.memo(() => {
                   </div>
                 </div>
               ) : (
-                <span className="text-gray-400">Unassigned</span>
+                <span className="text-lg">"Unassigned</span>
               )}
             </TableCell>
           );
@@ -1024,27 +920,23 @@ const TicketsTable = React.memo(() => {
           );
         case 'subcategory':
           const rawSubcategoryValue = (ticket as any).subcategory;
-
           if (!rawSubcategoryValue) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
-                <span className="text-gray-400 text-sm">-</span>
+                <span className="text-lg">"-</span>
               </TableCell>
             );
           }
-
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
           if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
-                <div className="h-5 w-20 bg-gray-200 animate-pulse rounded"></div>
+                <div className="text-lg">"</div>
               </TableCell>
             );
           }
-
           const subcategoryColor = getFieldColor('subcategory', rawSubcategoryValue) || '#64748b';
           const subcategoryLabel = getFieldLabel('subcategory', rawSubcategoryValue) || rawSubcategoryValue;
-
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <DynamicBadge
@@ -1062,11 +954,10 @@ const TicketsTable = React.memo(() => {
           if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
-                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+                <div className="text-lg">"</div>
               </TableCell>
             );
           }
-
           return (
             <TableCell>
               <DynamicBadge
@@ -1146,32 +1037,26 @@ const TicketsTable = React.memo(() => {
               {(ticket as any).satisfaction ? "/5` : '-'}
             </TableCell>
           );
-
         default:
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
-              <div className="truncate">-</div>
+              <div className="text-lg">"-</div>
             </TableCell>
           );
       }
     }, [column.id, ticket, cellStyle, getFieldColorWithFallback, getFieldLabel, mapCategoryValue, mapStatusValue, mapPriorityValue, mapImpactValue, mapUrgencyValue]);
-
     return memoizedCellContent;
   });
-
   // Função de renderização otimizada
   const renderCell = useCallback((column: any, ticket: Ticket, key?: string) => (
     <TableCellComponent key={key || "
   ), []);
-
   // Otimizar comparação do TableCellComponent com comparação personalizada
   TableCellComponent.displayName = 'TableCellComponent';
-
   // Função de comparação personalizada aprimorada para evitar re-renders desnecessários
   const areEqual = (prevProps: any, nextProps: any) => {
     // Comparação rápida de referência primeiro
     if (prevProps === nextProps) return true;
-
     // Comparações específicas otimizadas
     const sameColumn = prevProps.column.id === nextProps.column.id;
     const sameTicket = prevProps.ticket.id === nextProps.ticket.id;
@@ -1179,12 +1064,9 @@ const TicketsTable = React.memo(() => {
     const sameStatus = prevProps.ticket.status === nextProps.ticket.status;
     const samePriority = prevProps.ticket.priority === nextProps.ticket.priority;
     const sameSubject = prevProps.ticket.subject === nextProps.ticket.subject;
-
     return sameColumn && sameTicket && sameUpdatedAt && sameStatus && samePriority && sameSubject;
   };
-
   const OptimizedTableCell = memo(TableCellComponent, areEqual);
-
   // Mutations para gerenciar visualizações
   const createViewMutation = useMutation({
     mutationFn: async (viewData: any) => {
@@ -1207,7 +1089,6 @@ const TicketsTable = React.memo(() => {
       });
     }
   });
-
   const updateViewMutation = useMutation({
     mutationFn: async ({ id, viewData }: { id: string, viewData: any }) => {
       return apiRequest('PUT', "
@@ -1228,7 +1109,6 @@ const TicketsTable = React.memo(() => {
       });
     }
   });
-
   const deleteViewMutation = useMutation({
     mutationFn: async (id: string) => {
       return apiRequest('DELETE', "
@@ -1251,9 +1131,6 @@ const TicketsTable = React.memo(() => {
       });
     }
   });
-
-
-
   // Reset form para nova visualização
   const resetNewViewForm = () => {
     setNewViewName("");
@@ -1261,7 +1138,6 @@ const TicketsTable = React.memo(() => {
     setSelectedColumns(["number", "subject", "customer", "category", "status", "priority", "urgency", "created"]);
     setIsPublicView(false);
   };
-
   // Handle create new view
   const handleCreateView = () => {
     if (!newViewName.trim()) {
@@ -1272,7 +1148,6 @@ const TicketsTable = React.memo(() => {
       });
       return;
     }
-
     // Mapear colunas selecionadas para o formato esperado pelo schema
     const columnsData = [
       { id: "number", label: "Número", visible: selectedColumns.includes("number"), order: 1, width: 120 },
@@ -1286,7 +1161,6 @@ const TicketsTable = React.memo(() => {
       { id: "assigned_to", label: "Responsável", visible: selectedColumns.includes("assigned_to"), order: 9, width: 150 },
       { id: "created", label: "Criado", visible: selectedColumns.includes("created"), order: 10, width: 150 }
     ];
-
     const viewData = {
       name: newViewName,
       description: newViewDescription || "",
@@ -1297,14 +1171,12 @@ const TicketsTable = React.memo(() => {
       isDefault: false,
       pageSize: 25
     };
-
     if (editingView) {
       updateViewMutation.mutate({ id: editingView.id, viewData });
     } else {
       createViewMutation.mutate(viewData);
     }
   };
-
   // Handle edit existing view
   const handleEditView = (view: any) => {
     setEditingView(view);
@@ -1315,14 +1187,12 @@ const TicketsTable = React.memo(() => {
     setSelectedColumns(view.columns?.map((col: any) => col.id) || []);
     setIsPublicView(view.isPublic || false);
   };
-
   // Handle delete view
   const handleDeleteView = (viewId: string) => {
     if (window.confirm("Tem certeza que deseja excluir esta visualização?")) {
       deleteViewMutation.mutate(viewId);
     }
   };
-
   // Handle column reordering
   const moveColumn = (fromIndex: number, toIndex: number) => {
     const newColumns = [...selectedColumns];
@@ -1330,7 +1200,6 @@ const TicketsTable = React.memo(() => {
     newColumns.splice(toIndex, 0, movedColumn);
     setSelectedColumns(newColumns);
   };
-
   // Reset dialog on close
   const handleDialogClose = (open: boolean) => {
     if (!open) {
@@ -1339,30 +1208,24 @@ const TicketsTable = React.memo(() => {
     }
     setIsNewViewDialogOpen(open);
   };
-
   // Funções para redimensionamento de colunas
   const getColumnWidth = (columnId: string) => {
     return columnWidths[columnId] || 150; // largura padrão
   };
-
   const handleMouseDown = useCallback((e: React.MouseEvent, columnId: string) => {
     e.preventDefault();
     setIsResizing(true);
     setResizingColumn(columnId);
-
     const startX = e.pageX;
     const startWidth = getColumnWidth(columnId);
     let rafId: number;
     let debounceTimeout: NodeJS.Timeout;
     let lastUpdateTime = 0;
-
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId) cancelAnimationFrame(rafId);
-
       rafId = requestAnimationFrame(() => {
         const now = Date.now();
         const newWidth = Math.max(80, startWidth + (e.pageX - startX));
-
         // Throttle de updates para melhor performance - máximo a cada 16ms
         if (now - lastUpdateTime >= 16) {
           setColumnWidths(prev => ({
@@ -1371,7 +1234,6 @@ const TicketsTable = React.memo(() => {
           }));
           lastUpdateTime = now;
         }
-
         // Debounce para localStorage - 300ms
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
@@ -1380,24 +1242,19 @@ const TicketsTable = React.memo(() => {
         }, 300);
       });
     };
-
     const handleMouseUp = () => {
       setIsResizing(false);
       setResizingColumn(null);
       if (rafId) cancelAnimationFrame(rafId);
-
       // Salvar no localStorage apenas no final
       const finalWidth = getColumnWidth(columnId);
       localStorage.setItem("
-
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   }, [getColumnWidth, setColumnWidths, setIsResizing, setResizingColumn]);
-
   // Componente para handle de redimensionamento
   const ResizeHandle = ({ columnId }: { columnId: string }) => (
     <div
@@ -1408,7 +1265,6 @@ const TicketsTable = React.memo(() => {
       }}
     />
   );
-
   // Debug logging
   console.log('TicketsTable data:', {
     ticketsError,
@@ -1421,7 +1277,6 @@ const TicketsTable = React.memo(() => {
     usersCount: users.length,
     hasToken: !!localStorage.getItem('accessToken')
   });
-
   // Form setup
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
@@ -1438,7 +1293,6 @@ const TicketsTable = React.memo(() => {
       callerType: "customer",
       beneficiaryId: "",
       beneficiaryType: "customer",
-
       assignedToId: "unassigned",
       assignmentGroup: "",
       location: "",
@@ -1451,9 +1305,7 @@ const TicketsTable = React.memo(() => {
       tags: [],
     },
   });
-
   // Remove synchronization logic - no longer needed
-
   // Mutação para criar ticket
   const createTicketMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -1461,13 +1313,11 @@ const TicketsTable = React.memo(() => {
       try {
         const response = await apiRequest("POST", "/api/tickets", data);
         console.log('📡 API Response status:', response.status);
-
         if (!response.ok) {
           const errorData = await response.json();
           console.error('❌ API Error Response:', errorData);
           throw new Error(errorData.message || "Erro ao criar ticket");
         }
-
         const result = await response.json();
         console.log('✅ API Success Response:', result);
         return result;
@@ -1496,14 +1346,9 @@ const TicketsTable = React.memo(() => {
       });
     },
   });
-
-
-
   const onSubmit = (data: TicketFormData) => {
     console.log('🚀 Form submission started with data:', data);
-
     // Remove legacy compatibility - using subject directly
-
     // Validate required fields
     if (!data.subject && !data.description) {
       console.error('❌ Subject or description is required');
@@ -1514,7 +1359,6 @@ const TicketsTable = React.memo(() => {
       });
       return;
     }
-
     if (!data.companyId) {
       console.error('❌ Company is required');
       toast({
@@ -1524,7 +1368,6 @@ const TicketsTable = React.memo(() => {
       });
       return;
     }
-
     if (!data.callerId) {
       console.error('❌ Customer is required');
       toast({
@@ -1534,14 +1377,11 @@ const TicketsTable = React.memo(() => {
       });
       return;
     }
-
     // Use subject field directly
     const subject = data.subject || data.description?.substring(0, 100) || "";
-
     const submitData = {
       // Core ticket fields (using ServiceNow-style naming)
       subject: subject,
-
       description: data.description,
       priority: data.priority,
       status: data.state || data.status || "open",
@@ -1550,7 +1390,6 @@ const TicketsTable = React.memo(() => {
       subcategory: data.subcategory || "",
       impact: data.impact || "medium",
       urgency: data.urgency || "medium",
-
       // People assignments
       customerId: data.callerId, // Map callerId to customerId for backend
       caller_id: data.callerId,
@@ -1559,52 +1398,40 @@ const TicketsTable = React.memo(() => {
       beneficiary_type: data.beneficiaryType || data.callerType || "customer",
       assigned_to_id: data.assignedToId === "unassigned" ? null : data.assignedToId,
       assignment_group: data.assignmentGroup || "",
-
       // Company relationship
       company_id: data.companyId,
-
       // Contact and location info
       contact_type: data.contactType || "email",
       location: data.location || "",
-
       // Business fields
       business_impact: data.businessImpact || "",
       symptoms: data.symptoms || "",
       workaround: data.workaround || "",
-
       // Additional fields
       tags: data.tags || [],
     };
-
     console.log('Submitting ticket data:', submitData);
     createTicketMutation.mutate(submitData);
   };
-
   const handleEdit = (ticket: any) => {
     console.log('Edit ticket:', ticket.id);
     navigate("
   };
-
   const handleDelete = (ticketId: string) => {
     if (confirm("Are you sure you want to delete this ticket?")) {
       // Redirect to the unified page where delete functionality is handled
       console.log('Delete ticket:', ticketId);
     }
   };
-
-
-
   // Reset page when filters change
   const filteredData = useMemo(() => {
     setCurrentPage(1);
     return tickets;
   }, [searchTerm, statusFilter, priorityFilter]);
-
   const TicketForm = () => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
               console.error('❌ Form validation errors:', errors);
-
               // Extract specific error messages with better detail
               const errorMessages = [];
               if (errors.subject) {
@@ -1619,11 +1446,9 @@ const TicketsTable = React.memo(() => {
               if (errors.callerId) {
                 errorMessages.push(errors.callerId.message || 'Cliente é obrigatório');
               }
-
               const errorText = errorMessages.length > 0
                 ? errorMessages.join('. ')
                 : 'Por favor, preencha todos os campos obrigatórios';
-
               toast({
                 title: 'Erro de Validação',
                 description: errorText,
@@ -1632,8 +1457,7 @@ const TicketsTable = React.memo(() => {
             })} className=""
         {/* Basic Information */}
         <div className=""
-          <h3 className="text-lg font-medium">Basic Information</h3>
-
+          <h3 className="text-lg">"Basic Information</h3>
           <FormField
             control={form.control}
             name="description"
@@ -1651,7 +1475,6 @@ const TicketsTable = React.memo(() => {
               </FormItem>
             )}
           />
-
           <div className=""
             <FormField
               control={form.control}
@@ -1671,7 +1494,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="subcategory"
@@ -1687,11 +1509,9 @@ const TicketsTable = React.memo(() => {
             />
           </div>
         </div>
-
         {/* Priority & Impact */}
         <div className=""
-          <h3 className="text-lg font-medium">Priority & Impact</h3>
-
+          <h3 className="text-lg">"Priority & Impact</h3>
           <div className=""
             <FormField
               control={form.control}
@@ -1711,7 +1531,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="impact"
@@ -1730,7 +1549,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="urgency"
@@ -1751,11 +1569,9 @@ const TicketsTable = React.memo(() => {
             />
           </div>
         </div>
-
         {/* Assignment */}
         <div className=""
-          <h3 className="text-lg font-medium">Assignment</h3>
-
+          <h3 className="text-lg">"Assignment</h3>
           <div className=""
             <FormField
               control={form.control}
@@ -1787,7 +1603,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="beneficiaryId"
@@ -1809,7 +1624,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="assignedToId"
@@ -1834,7 +1648,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="assignmentGroup"
@@ -1852,7 +1665,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="location"
@@ -1866,7 +1678,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="contactType"
@@ -1892,11 +1703,9 @@ const TicketsTable = React.memo(() => {
             />
           </div>
         </div>
-
         {/* Business Impact */}
         <div className=""
-          <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
-
+          <h3 className="text-lg">"Business Impact & Analysis</h3>
           <FormField
             control={form.control}
             name="businessImpact"
@@ -1914,7 +1723,6 @@ const TicketsTable = React.memo(() => {
               </FormItem>
             )}
           />
-
           <div className=""
             <FormField
               control={form.control}
@@ -1933,7 +1741,6 @@ const TicketsTable = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="workaround"
@@ -1953,7 +1760,6 @@ const TicketsTable = React.memo(() => {
             />
           </div>
         </div>
-
         {/* Legacy Fields (Hidden but mapped) */}
         <FormField
           control={form.control}
@@ -1966,9 +1772,6 @@ const TicketsTable = React.memo(() => {
             />
           )}
         />
-
-
-
         <div className=""
           <Button
             type="button"
@@ -1994,9 +1797,6 @@ const TicketsTable = React.memo(() => {
       </form>
     </Form>
   );
-
-
-
   return (
     <LoadingStateProvider>
       <div className="space-y-6" style={{
@@ -2006,8 +1806,8 @@ const TicketsTable = React.memo(() => {
         {/* Header */}
         <div className=""
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
+            <h1 className="text-lg">"Support Tickets</h1>
+            <p className="text-lg">"Manage and track customer support requests</p>
           </div>
           <div className=""
             <Button
@@ -2042,7 +1842,7 @@ const TicketsTable = React.memo(() => {
         <CardContent className=""
           <div className=""
             <div className=""
-              <span className="text-sm font-medium">Visualização Ativa:</span>
+              <span className="text-lg">"Visualização Ativa:</span>
               <select
                 className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
                 value={selectedViewId}
@@ -2066,7 +1866,7 @@ const TicketsTable = React.memo(() => {
       {/* Filters */}
       <Card>
         <CardHeader className=""
-          <CardTitle className="text-lg">Filters</CardTitle>
+          <CardTitle className="text-lg">"Filters</CardTitle>
         </CardHeader>
         <CardContent>
           <div className=""
@@ -2130,7 +1930,6 @@ const TicketsTable = React.memo(() => {
           />
         </CardContent>
       </Card>
-
       {/* Pagination */}
       <div className=""
         <Button
@@ -2150,7 +1949,6 @@ const TicketsTable = React.memo(() => {
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
-
       {/* Modals */}
       <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
         <DialogContent className=""
@@ -2160,7 +1958,6 @@ const TicketsTable = React.memo(() => {
           <TicketForm />
         </DialogContent>
       </Dialog>
-
       {/* Modal para criar nova visualização */}
       <Dialog open={isNewViewDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent className=""
@@ -2182,7 +1979,6 @@ const TicketsTable = React.memo(() => {
                 placeholder="Digite o nome da visualização"
               />
             </div>
-
             {/* Descrição */}
             <div className=""
               <Label htmlFor="description">Descrição</Label>
@@ -2194,7 +1990,6 @@ const TicketsTable = React.memo(() => {
                 rows={3}
               />
             </div>
-
             {/* Seleção de colunas */}
             <div className=""
               <Label>Colunas Visíveis</Label>
@@ -2221,7 +2016,6 @@ const TicketsTable = React.memo(() => {
                 ))}
               </div>
             </div>
-
             {/* Opções adicionais */}
             <div className=""
               <Label>Opções</Label>
@@ -2239,7 +2033,6 @@ const TicketsTable = React.memo(() => {
               </div>
             </div>
           </div>
-
           <div className=""
             <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
               Cancelar
@@ -2250,7 +2043,6 @@ const TicketsTable = React.memo(() => {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Modal para gerenciar visualizações */}
       <Dialog open={isManageViewsOpen} onOpenChange={() => setIsManageViewsOpen((open) => !open)}>
         <DialogContent className=""
@@ -2264,8 +2056,8 @@ const TicketsTable = React.memo(() => {
             {ticketViews.map((view: any) => (
               <div key={view.id} className=""
                 <div>
-                  <h3 className="text-lg font-medium">{view.name}</h3>
-                  <p className="text-sm text-gray-500">{view.description || "Sem descrição"}</p>
+                  <h3 className="text-lg">"{view.name}</h3>
+                  <p className="text-lg">"{view.description || "Sem descrição"}</p>
                 </div>
                 <div className=""
                   <Button variant="outline" size="sm" onClick={() => handleEditView(view)}>
@@ -2282,7 +2074,6 @@ const TicketsTable = React.memo(() => {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Modal de Filtros Avançados */}
       <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
         <DialogContent className=""
@@ -2310,7 +2101,6 @@ const TicketsTable = React.memo(() => {
                   </SelectContent>
                 </Select>
               </div>
-
               {/* Filtro por Prioridade */}
               <div className=""
                 <Label>Prioridade</Label>
@@ -2327,7 +2117,6 @@ const TicketsTable = React.memo(() => {
                   </SelectContent>
                 </Select>
               </div>
-
               {/* Filtro por Empresa */}
               <div className=""
                 <Label>Empresa</Label>
@@ -2345,7 +2134,6 @@ const TicketsTable = React.memo(() => {
                   </SelectContent>
                 </Select>
               </div>
-
               {/* Filtro por Categoria */}
               <div className=""
                 <Label>Categoria</Label>
@@ -2362,7 +2150,6 @@ const TicketsTable = React.memo(() => {
                   </SelectContent>
                 </Select>
               </div>
-
               {/* Filtro por Responsável */}
               <div className=""
                 <Label>Responsável</Label>
@@ -2378,7 +2165,6 @@ const TicketsTable = React.memo(() => {
                   </SelectContent>
                 </Select>
               </div>
-
               {/* Filtro por Data de Criação */}
               <div className=""
                 <Label>Data de Criação</Label>
@@ -2422,7 +2208,6 @@ const TicketsTable = React.memo(() => {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Modal de Vinculação de Ticket */}
       <TicketLinkingModal
         isOpen={isLinkingModalOpen}
@@ -2433,7 +2218,5 @@ const TicketsTable = React.memo(() => {
     </LoadingStateProvider>
   );
 });
-
 TicketsTable.displayName = '[TRANSLATION_NEEDED]';
-
 export default TicketsTable;

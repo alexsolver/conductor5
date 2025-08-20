@@ -29,7 +29,6 @@ import {
   Calendar,
   Users
 } from 'lucide-react';
-
 interface PriceList {
   id: string;
   name: string;
@@ -42,7 +41,6 @@ interface PriceList {
   automaticMargin?: string;
   createdAt: string;
 }
-
 interface PriceListVersion {
   id: string;
   priceListId: string;
@@ -55,7 +53,6 @@ interface PriceListVersion {
   effectiveDate?: string;
   createdAt: string;
 }
-
 interface PricingRule {
   id: string;
   name: string;
@@ -67,7 +64,6 @@ interface PricingRule {
   validFrom?: string;
   validTo?: string;
 }
-
 interface LPUStats {
   totalLists: number;
   activeLists: number;
@@ -77,25 +73,20 @@ interface LPUStats {
   activeRules: number;
   approvalRate: number;
 }
-
 export default function LPUManagement() {
   // Localization temporarily disabled
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateListOpen, setIsCreateListOpen] = useState(false);
   const [isCreateRuleOpen, setIsCreateRuleOpen] = useState(false);
   const [selectedList, setSelectedList] = useState<PriceList | null>(null);
-
   // Fetch price lists
   const { data: priceLists = [], isLoading: listsLoading } = useQuery({
     queryKey: ['/api/materials-services/price-lists'],
     queryFn: () => apiRequest('GET', '/api/materials-services/price-lists')
   });
-
   // Fetch LPU stats with error handling
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery<LPUStats>({
     queryKey: ['/api/materials-services/lpu/stats'],
@@ -111,20 +102,17 @@ export default function LPUManagement() {
       });
     }
   });
-
   // Fetch pricing rules
   const { data: pricingRules = [] } = useQuery<PricingRule[]>({
     queryKey: ['/api/materials-services/pricing-rules'],
     queryFn: () => apiRequest('GET', '/api/materials-services/pricing-rules')
   });
-
   // Fetch versions for selected list
   const { data: versions = [] } = useQuery<PriceListVersion[]>({
     queryKey: ['/api/materials-services/price-lists', selectedList?.id, 'versions'],
     queryFn: () => apiRequest('GET', "/versions`),
     enabled: !!selectedList
   });
-
   // Create price list mutation
   const createPriceListMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/materials-services/price-lists', data),
@@ -138,7 +126,6 @@ export default function LPUManagement() {
       toast({ title: 'Erro ao criar lista de preços', variant: 'destructive' });
     }
   });
-
   // Create pricing rule mutation
   const createRuleMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/materials-services/pricing-rules', data),
@@ -151,7 +138,6 @@ export default function LPUManagement() {
       toast({ title: 'Erro ao criar regra de precificação', variant: 'destructive' });
     }
   });
-
   // Submit for approval mutation
   const submitApprovalMutation = useMutation({
     mutationFn: (versionId: string) => apiRequest('POST', "/submit`),
@@ -163,7 +149,6 @@ export default function LPUManagement() {
       toast({ title: 'Erro ao enviar para aprovação', variant: 'destructive' });
     }
   });
-
   // Approve price list mutation
   const approveMutation = useMutation({
     mutationFn: (versionId: string) => apiRequest('POST', "/approve`),
@@ -175,7 +160,6 @@ export default function LPUManagement() {
       toast({ title: 'Erro ao aprovar lista', variant: 'destructive' });
     }
   });
-
   // Filter price lists
   const filteredPriceLists = priceLists.filter((list: PriceList) => {
     const matchesSearch = list.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -185,7 +169,6 @@ export default function LPUManagement() {
                          (statusFilter === 'inactive' && !list.isActive);
     return matchesSearch && matchesStatus;
   });
-
   const getStatusBadge = (status: string) => {
     const variants = {
       draft: 'outline',
@@ -194,7 +177,6 @@ export default function LPUManagement() {
       active: 'default',
       archived: 'outline'
     } as const;
-
     const labels = {
       draft: 'Rascunho',
       pending_approval: 'Pendente',
@@ -202,12 +184,10 @@ export default function LPUManagement() {
       active: 'Ativo',
       archived: 'Arquivado'
     };
-
     return <Badge variant={variants[status as keyof typeof variants] || 'outline'}>
       {labels[status as keyof typeof labels] || status}
     </Badge>;
   };
-
   const getRuleTypeBadge = (type: string) => {
     const labels = {
       markup: 'Markup',
@@ -215,18 +195,15 @@ export default function LPUManagement() {
       fixed: 'Fixo',
       tier: 'Escalonado'
     };
-
     return <Badge variant="outline">{labels[type as keyof typeof labels] || type}</Badge>;
   };
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">LPU - Lista de Preços Unificada</h1>
-          <p className="text-muted-foreground">Gestão completa de precificação com workflow de aprovação</p>
+          <h1 className="text-lg">"LPU - Lista de Preços Unificada</h1>
+          <p className="text-lg">"Gestão completa de precificação com workflow de aprovação</p>
         </div>
-
         <div className=""
           <Dialog open={isCreateListOpen} onOpenChange={setIsCreateListOpen}>
             <DialogTrigger asChild>
@@ -266,7 +243,6 @@ export default function LPUManagement() {
                     <Input name="code" required placeholder="Ex: LC2025" />
                   </div>
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="version">Versão</Label>
@@ -290,7 +266,6 @@ export default function LPUManagement() {
                     <Input name="automaticMargin" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="validFrom">Válido De *</Label>
@@ -301,12 +276,10 @@ export default function LPUManagement() {
                     <Input name="validTo" type="date" />
                   </div>
                 </div>
-
                 <div className=""
                   <Label htmlFor="notes">Observações</Label>
                   <Textarea name="notes" placeholder='[TRANSLATION_NEEDED]' />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateListOpen(false)}>
                     Cancelar
@@ -318,7 +291,6 @@ export default function LPUManagement() {
               </form>
             </DialogContent>
           </Dialog>
-
           <Dialog open={isCreateRuleOpen} onOpenChange={setIsCreateRuleOpen}>
             <DialogTrigger asChild>
               <Button variant="outline>
@@ -350,7 +322,6 @@ export default function LPUManagement() {
                   <Label htmlFor="name">Nome da Regra *</Label>
                   <Input name="name" required placeholder="Ex: Desconto por Volume" />
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="type">Tipo de Regra</Label>
@@ -371,7 +342,6 @@ export default function LPUManagement() {
                     <Input name="priority" type="number" defaultValue="0" />
                   </div>
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="conditions">Condição</Label>
@@ -382,7 +352,6 @@ export default function LPUManagement() {
                     <Input name="action" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="validFrom">Válido De</Label>
@@ -393,7 +362,6 @@ export default function LPUManagement() {
                     <Input name="validTo" type="date" />
                   </div>
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateRuleOpen(false)}>
                     Cancelar
@@ -407,62 +375,57 @@ export default function LPUManagement() {
           </Dialog>
         </div>
       </div>
-
       {/* Statistics Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
+            <CardTitle className="text-lg">"Total de Listas</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalLists || 0}</div>
+            <div className="text-lg">"{stats?.totalLists || 0}</div>
             <p className=""
               {stats?.activeLists || 0} listas ativas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Pendente Aprovação</CardTitle>
+            <CardTitle className="text-lg">"Pendente Aprovação</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.pendingApproval || 0}</div>
+            <div className="text-lg">"{stats?.pendingApproval || 0}</div>
             <p className=""
               aguardando análise
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
+            <CardTitle className="text-lg">"Taxa de Aprovação</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.approvalRate || 0}%</div>
+            <div className="text-lg">"{stats?.approvalRate || 0}%</div>
             <p className=""
               {stats?.approvedVersions || 0} aprovadas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Regras Ativas</CardTitle>
+            <CardTitle className="text-lg">"Regras Ativas</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.activeRules || 0}</div>
+            <div className="text-lg">"{stats?.activeRules || 0}</div>
             <p className=""
               regras configuradas
             </p>
           </CardContent>
         </Card>
       </div>
-
       {/* Main Content Tabs */}
       <Tabs defaultValue="lists" className=""
         <TabsList>
@@ -471,7 +434,6 @@ export default function LPUManagement() {
           <TabsTrigger value="rules">Regras de Precificação</TabsTrigger>
           <TabsTrigger value="dynamic">Precificação Dinâmica</TabsTrigger>
         </TabsList>
-
         <TabsContent value="lists" className=""
           {/* Filters */}
           <div className=""
@@ -495,11 +457,10 @@ export default function LPUManagement() {
               </SelectContent>
             </Select>
           </div>
-
           {/* Price Lists */}
           <div className=""
             {listsLoading ? (
-              <div className="text-center py-8">Carregando listas...</div>
+              <div className="text-lg">"Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
               <div className=""
                 Nenhuma lista encontrada
@@ -511,7 +472,7 @@ export default function LPUManagement() {
                     <div className=""
                       <div className=""
                         <div className=""
-                          <h3 className="font-semibold">{list.name}</h3>
+                          <h3 className="text-lg">"{list.name}</h3>
                           <Badge variant={list.isActive ? 'default' : 'outline'}>
                             {list.isActive ? 'Ativa' : 'Inativa'}
                           </Badge>
@@ -529,7 +490,6 @@ export default function LPUManagement() {
                           )}
                         </div>
                       </div>
-
                       <div className=""
                         <Button
                           variant="outline"
@@ -539,7 +499,6 @@ export default function LPUManagement() {
                           <FileText className="w-4 h-4 mr-1" />
                           Versões
                         </Button>
-
                         <Button variant="outline" size="sm>
                           <DollarSign className="w-4 h-4 mr-1" />
                           Itens
@@ -552,7 +511,6 @@ export default function LPUManagement() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="versions" className=""
           {selectedList ? (
             <Card>
@@ -582,7 +540,7 @@ export default function LPUManagement() {
                     <TableBody>
                       {versions.map((version) => (
                         <TableRow key={version.id}>
-                          <TableCell className="font-medium">{version.version}</TableCell>
+                          <TableCell className="text-lg">"{version.version}</TableCell>
                           <TableCell>{getStatusBadge(version.status)}</TableCell>
                           <TableCell>
                             {new Date(version.createdAt).toLocaleDateString('pt-BR')}
@@ -640,7 +598,6 @@ export default function LPUManagement() {
             </Card>
           )}
         </TabsContent>
-
         <TabsContent value="rules" className=""
           <div className=""
             {pricingRules.length === 0 ? (
@@ -654,7 +611,7 @@ export default function LPUManagement() {
                     <div className=""
                       <div className=""
                         <div className=""
-                          <h3 className="font-semibold">{rule.name}</h3>
+                          <h3 className="text-lg">"{rule.name}</h3>
                           {getRuleTypeBadge(rule.type)}
                           <Badge variant={rule.active ? 'default' : 'outline'}>
                             {rule.active ? 'Ativa' : 'Inativa'}
@@ -671,7 +628,6 @@ export default function LPUManagement() {
                           </div>
                         )}
                       </div>
-
                       <div className=""
                         <Button variant="outline" size="sm>
                           <Settings className="w-4 h-4 mr-1" />
@@ -685,7 +641,6 @@ export default function LPUManagement() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="dynamic" className=""
           <Card>
             <CardHeader>

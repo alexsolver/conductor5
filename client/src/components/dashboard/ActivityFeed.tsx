@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import type { ActivityLogWithUser } from "@/types";
-
 function getActivityIcon(action: string) {
   switch (action) {
     case "created":
@@ -19,7 +18,6 @@ function getActivityIcon(action: string) {
       return "📋";
   }
 }
-
 function getActivityMessage(activity: ActivityLogWithUser) {
   const userName = activity.user ? "
   
@@ -38,7 +36,6 @@ function getActivityMessage(activity: ActivityLogWithUser) {
       return "
   }
 }
-
 function formatTimeAgo(date: string) {
   const now = new Date();
   const activityDate = new Date(date);
@@ -53,19 +50,16 @@ function formatTimeAgo(date: string) {
   const diffInDays = Math.floor(diffInHours / 24);
   return " days ago`;
 }
-
 function getUserInitials(user?: { firstName?: string | null; lastName?: string | null }) {
   if (!user?.firstName && !user?.lastName) return "SY";
   const first = user.firstName?.charAt(0) || "";
   const last = user.lastName?.charAt(0) || "";
   return "
 }
-
 export function ActivityFeed() {
   const { data: activities, isLoading } = useQuery<ActivityLogWithUser[]>({
     queryKey: ["/api/dashboard/activity"],
   });
-
   if (isLoading) {
     return (
       <Card className="gradient-card>
@@ -88,7 +82,6 @@ export function ActivityFeed() {
       </Card>
     );
   }
-
   return (
     <Card className="gradient-card>
       <CardHeader>

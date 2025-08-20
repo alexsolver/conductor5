@@ -8,13 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface AttachmentsModalProps {
   ticketId: string;
   isOpen: boolean;
   onClose: () => void;
 }
-
 interface Attachment {
   id: string;
   filename: string;
@@ -24,14 +22,12 @@ interface Attachment {
   uploadedAt: string;
   source: 'user' | 'email';
 }
-
 export default function AttachmentsModal({
   // Localization temporarily disabled
  ticketId, isOpen, onClose }: AttachmentsModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Fetch attachments
   const { data: attachments = [], isLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "attachments"],
@@ -41,7 +37,6 @@ export default function AttachmentsModal({
     },
     enabled: isOpen,
   });
-
   // Upload attachment mutation
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -78,7 +73,6 @@ export default function AttachmentsModal({
       });
     },
   });
-
   // Delete attachment mutation
   const deleteMutation = useMutation({
     mutationFn: async (attachmentId: string) => {
@@ -100,7 +94,6 @@ export default function AttachmentsModal({
       });
     },
   });
-
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -116,24 +109,20 @@ export default function AttachmentsModal({
       setSelectedFile(file);
     }
   };
-
   const handleUpload = () => {
     if (selectedFile) {
       uploadMutation.mutate(selectedFile);
     }
   };
-
   const formatFileSize = (bytes: number) => {
     const sizes = ["Bytes", "KB", "MB", "GB"];
     if (bytes === 0) return "0 Byte";
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + " " + sizes[i];
   };
-
   const handleDownload = (attachment: Attachment) => {
     window.open("/download`, '_blank');
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto>
@@ -146,7 +135,6 @@ export default function AttachmentsModal({
             Gerencie arquivos anexados ao ticket. Limite máximo: 30MB por arquivo.
           </DialogDescription>
         </DialogHeader>
-
         <div className="space-y-6>
           {/* Upload Section */}
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6>
@@ -169,13 +157,12 @@ export default function AttachmentsModal({
                 </p>
               </div>
             </div>
-
             {selectedFile && (
               <div className="mt-4 p-4 bg-gray-50 rounded-lg>
                 <div className="flex items-center justify-between>
                   <div className="flex items-center space-x-2>
                     <FileIcon className="w-5 h-5 text-blue-500" />
-                    <span className="text-sm font-medium">{selectedFile.name}</span>
+                    <span className="text-lg">"{selectedFile.name}</span>
                     <Badge variant="outline">{formatFileSize(selectedFile.size)}</Badge>
                   </div>
                   <div className="flex space-x-2>
@@ -198,20 +185,19 @@ export default function AttachmentsModal({
               </div>
             )}
           </div>
-
           {/* Attachments List */}
           <div className="space-y-4>
-            <h3 className="text-lg font-medium">Arquivos Anexados ({attachments.length})</h3>
+            <h3 className="text-lg">"Arquivos Anexados ({attachments.length})</h3>
             
             {isLoading ? (
               <div className="text-center py-8>
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-500">Carregando anexos...</p>
+                <div className="text-lg">"</div>
+                <p className="text-lg">"Carregando anexos...</p>
               </div>
             ) : attachments.length === 0 ? (
               <div className="text-center py-8>
                 <FileIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">Nenhum arquivo anexado</p>
+                <p className="text-lg">"Nenhum arquivo anexado</p>
               </div>
             ) : (
               <div className="space-y-2>
@@ -223,7 +209,7 @@ export default function AttachmentsModal({
                     <div className="flex items-center space-x-3>
                       <FileIcon className="w-6 h-6 text-blue-500" />
                       <div>
-                        <p className="font-medium">{attachment.filename}</p>
+                        <p className="text-lg">"{attachment.filename}</p>
                         <div className="flex items-center space-x-2 text-xs text-gray-500>
                           <Badge variant={attachment.source === 'email' ? 'default' : 'secondary'}>
                             {attachment.source === 'email' ? 'Email' : 'Upload'}

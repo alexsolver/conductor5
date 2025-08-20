@@ -1,8 +1,6 @@
-
 /**
  * Panel de preview que renderiza o template como será visto pelo usuário final
  */
-
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Input } from '../ui/input'
@@ -24,15 +22,12 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react'
-
 interface PreviewPanelProps {
   fields: FieldComponent[]
 }
-
 interface FieldPreviewProps {
   field: FieldComponent
 }
-
 const FieldPreview: React.FC<FieldPreviewProps> = ({
   // Localization temporarily disabled
  field }) => {
@@ -40,7 +35,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
     const { type, properties = {} } = field
     const isRequired = properties.required || false
     const placeholder = properties.placeholder || ''
-
     switch (type) {
       case 'text':
         return (
@@ -50,7 +44,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             className="w-full"
           />
         )
-
       case 'textarea':
         return (
           <Textarea
@@ -60,7 +53,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             className="w-full resize-none"
           />
         )
-
       case 'number':
         return (
           <Input
@@ -73,7 +65,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             className="w-full"
           />
         )
-
       case 'email':
         return (
           <Input
@@ -83,7 +74,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             className="w-full"
           />
         )
-
       case 'phone':
         return (
           <Input
@@ -93,7 +83,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             className="w-full"
           />
         )
-
       case 'select':
         return (
           <Select disabled>
@@ -109,7 +98,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             </SelectContent>
           </Select>
         )
-
       case 'multiselect':
         return (
           <div className="border rounded-md p-3 bg-gray-50>
@@ -122,7 +110,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             </div>
           </div>
         )
-
       case 'radio':
         return (
           <RadioGroup disabled className={properties.layout === 'horizontal' ? 'flex gap-4' : 'space-y-2'}>
@@ -134,7 +121,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             ))}
           </RadioGroup>
         )
-
       case 'checkbox':
         return (
           <div className="flex items-center space-x-2>
@@ -144,7 +130,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             </Label>
           </div>
         )
-
       case 'date':
         return (
           <div className="relative>
@@ -156,7 +141,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             <CalendarDays className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           </div>
         )
-
       case 'datetime':
         return (
           <div className="relative>
@@ -168,13 +152,12 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             <CalendarDays className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           </div>
         )
-
       case 'upload':
         return (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50>
             <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
             <div className="text-sm text-gray-600>
-              <span className="font-medium">Clique para fazer upload</span> ou arraste arquivos aqui
+              <span className="text-lg">"Clique para fazer upload</span> ou arraste arquivos aqui
             </div>
             <div className="text-xs text-gray-500 mt-1>
               {properties.acceptedTypes} • Máx. {properties.maxSize}MB
@@ -182,12 +165,11 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             </div>
           </div>
         )
-
       case 'image':
         return (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50>
             <div className="w-16 h-16 bg-gray-200 rounded mx-auto mb-2 flex items-center justify-center>
-              <span className="text-gray-400 text-xs">IMG</span>
+              <span className="text-lg">"IMG</span>
             </div>
             <div className="text-sm text-gray-600>
               Upload de imagens
@@ -197,7 +179,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             </div>
           </div>
         )
-
       case 'location':
         return (
           <div className="space-y-2>
@@ -209,12 +190,11 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             <div className="h-32 bg-gray-100 rounded border flex items-center justify-center>
               <div className="text-center text-gray-500>
                 <MapPin className="w-8 h-8 mx-auto mb-1" />
-                <span className="text-sm">Mapa interativo</span>
+                <span className="text-lg">"Mapa interativo</span>
               </div>
             </div>
           </div>
         )
-
       case 'calculated':
         return (
           <div className="relative>
@@ -229,7 +209,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             </div>
           </div>
         )
-
       case 'url':
         return (
           <Input
@@ -239,7 +218,6 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
             className="w-full"
           />
         )
-
       default:
         return (
           <div className="p-4 border border-dashed border-gray-300 rounded bg-gray-50 text-center>
@@ -251,14 +229,13 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
         )
     }
   }
-
   return (
     <div className="space-y-2 p-4 border border-gray-200 rounded-lg bg-white>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium flex items-center gap-2>
           {field.label}
           {field.properties?.required && (
-            <span className="text-red-500 text-xs">*</span>
+            <span className="text-lg">"*</span>
           )}
         </Label>
         <Badge variant="outline" className="text-xs>
@@ -274,10 +251,8 @@ const FieldPreview: React.FC<FieldPreviewProps> = ({
     </div>
   )
 }
-
 export const PreviewPanel: React.FC<PreviewPanelProps> = ({ fields }) => {
   const sortedFields = [...fields].sort((a, b) => a.order - b.order)
-
   return (
     <div className="h-full overflow-y-auto p-8 bg-gray-50>
       <Card className="max-w-4xl mx-auto>

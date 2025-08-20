@@ -33,10 +33,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
-
 const companySchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Nome da empresa é obrigatório"),
   displayName: z.string().optional(),
   description: z.string().optional(),
@@ -50,7 +48,6 @@ const companySchema = z.object({
   subscriptionTier: z.enum(["basic", "professional", "enterprise"]).default("basic"),
   status: z.enum(["active", "inactive", "suspended"]).default("active")
 });
-
 interface Company {
   id: string;
   name: string;
@@ -67,7 +64,6 @@ interface Company {
   createdAt: string;
   updatedAt: string;
 }
-
 export default function Companies() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -78,14 +74,12 @@ export default function Companies() {
    // Associate multiple customers modal
    const [isAssociateModalOpen, setIsAssociateModalOpen] = useState(false);
    const [selectedCompanyForAssociation, setSelectedCompanyForAssociation] = useState<any>(null);
-
   // Query para buscar companies
   const { data: companiesData, isLoading } = useQuery({
     queryKey: ['/api/companies'],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
   // Handle different response formats from the API
   const companies = (() => {
     console.log('🔍 [COMPANIES-DEBUG] Raw API response:', companiesData);
@@ -108,7 +102,6 @@ export default function Companies() {
     console.log('❌ [COMPANIES-DEBUG] Unknown format, returning empty array');
     return [];
   })();
-
   // Mutation para criar company
   const createCompanyMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/customers/companies', data),
@@ -129,7 +122,6 @@ export default function Companies() {
       });
     }
   });
-
   // Mutation para atualizar company
   const updateCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
@@ -158,24 +150,20 @@ export default function Companies() {
       });
     }
   });
-
   // Mutation para deletar company
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) => apiRequest('DELETE', "
     onSuccess: async (data, deletedId) => {
       console.log('Company deleted successfully:', { deletedId, response: data });
-
       // Validate response
       if (!data || (data as any).success === false) {
         throw new Error((data as any)?.message || 'Falha na exclusão da empresa');
       }
-
       // Optimistic update: remove from cache immediately
       queryClient.setQueryData(['/api/companies'], (oldData: any) => {
         if (!oldData || !Array.isArray(oldData)) return oldData;
         return oldData.filter(company => company.id !== deletedId);
       });
-
       // Invalidate and refetch only necessary queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['/api/companies'] }),
@@ -186,7 +174,6 @@ export default function Companies() {
           refetchType: 'inactive' 
         })
       ]);
-
       toast({
         title: '[TRANSLATION_NEEDED]',
         description: "Empresa excluída com sucesso!",
@@ -194,14 +181,11 @@ export default function Companies() {
     },
     onError: (error: any) => {
       console.error('[TRANSLATION_NEEDED]', error);
-
       // Revert optimistic update if it was applied
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
-
       const errorMessage = error?.response?.data?.message || 
                           error?.message || 
                           '[TRANSLATION_NEEDED]';
-
       toast({
         title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
@@ -209,7 +193,6 @@ export default function Companies() {
       });
     }
   });
-
   // Forms
   const createForm = useForm({
     resolver: zodResolver(companySchema),
@@ -226,7 +209,6 @@ export default function Companies() {
       status: "active"
     }
   });
-
   const editForm = useForm({
     resolver: zodResolver(companySchema),
     defaultValues: {
@@ -242,11 +224,9 @@ export default function Companies() {
       status: "active"
     }
   });
-
   const handleCreateCompany = (data: any) => {
     createCompanyMutation.mutate(data);
   };
-
   const handleEditCompany = (company: Company) => {
     setSelectedCompany(company);
     editForm.reset({
@@ -263,7 +243,6 @@ export default function Companies() {
     });
     setIsEditDialogOpen(true);
   };
-
   const handleUpdateCompany = (data: any) => {
     if (selectedCompany) {
       console.log('[FRONTEND] Updating company with data:', {
@@ -274,13 +253,11 @@ export default function Companies() {
       updateCompanyMutation.mutate({ id: selectedCompany.id, data });
     }
   };
-
   const handleDeleteCompany = (company: Company) => {
     if (window.confirm(""?`)) {
       deleteCompanyMutation.mutate(company.id);
     }
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -289,7 +266,6 @@ export default function Companies() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getSizeIcon = (size?: string) => {
     switch (size) {
       case 'startup': return <Star className="w-4 h-4" />;
@@ -300,7 +276,6 @@ export default function Companies() {
       default: return <Building2 className="w-4 h-4" />;
     }
   };
-
   const filteredCompanies = companies.filter((company: Company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -309,45 +284,37 @@ export default function Companies() {
     // Always put Default company first
     const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
     const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
-
     if (aIsDefault && !bIsDefault) return -1;
     if (!aIsDefault && bIsDefault) return 1;
-
     // Secondary sort by status (active first)
     if (a.status === 'active' && b.status !== 'active') return -1;
     if (a.status !== 'active' && b.status === 'active') return 1;
-
     // Tertiary sort alphabetically
     return (a.displayName || a.name).localeCompare(b.displayName || b.name);
   });
-
   const handleOpenAssociateModal = (company: any) => {
     setSelectedCompanyForAssociation(company);
     setIsAssociateModalOpen(true);
   };
-
   const handleCloseAssociateModal = () => {
     setIsAssociateModalOpen(false);
     setSelectedCompanyForAssociation(null);
   };
-
     const handleAssociationSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
   };
-
-
   if (isLoading) {
     return (
       <div className=""
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+        <div className="text-lg">"</div>
         <div className=""
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className=""
               <CardContent className=""
                 <div className=""
-                  <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="text-lg">"</div>
+                  <div className="text-lg">"</div>
+                  <div className="text-lg">"</div>
                 </div>
               </CardContent>
             </Card>
@@ -356,7 +323,6 @@ export default function Companies() {
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Header */}
@@ -413,7 +379,6 @@ export default function Companies() {
                     )}
                   />
                 </div>
-
                 <FormField
                   control={createForm.control}
                   name="description"
@@ -427,7 +392,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <FormField
                     control={createForm.control}
@@ -467,7 +431,6 @@ export default function Companies() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <FormField
                     control={createForm.control}
@@ -496,7 +459,6 @@ export default function Companies() {
                     )}
                   />
                 </div>
-
                 <FormField
                   control={createForm.control}
                   name="website"
@@ -510,7 +472,6 @@ export default function Companies() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <FormField
                     control={createForm.control}
@@ -557,7 +518,6 @@ export default function Companies() {
                     )}
                   />
                 </div>
-
                 <div className=""
                   <Button 
                     type="button" 
@@ -579,7 +539,6 @@ export default function Companies() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Busca */}
       <div className=""
         <div className=""
@@ -595,7 +554,6 @@ export default function Companies() {
           {filteredCompanies.length} empresa{filteredCompanies.length !== 1 ? 's' : ''}
         </Badge>
       </div>
-
       {/* Lista de empresas */}
       <div className=""
         {filteredCompanies.map((company: Company) => (
@@ -660,7 +618,6 @@ export default function Companies() {
                   {company.description}
                 </p>
               )}
-
               <div className=""
                 {company.industry && (
                   <div className=""
@@ -694,13 +651,11 @@ export default function Companies() {
                   </div>
                 )}
               </div>
-
               {/* Customers Section */}
               <CompanyCustomersSection 
                 companyId={company.id}
                 onAssociateCustomers={() => handleOpenAssociateModal(company)}
               />
-
               {/* Company Footer with Actions */}
               <div className=""
                 <div className=""
@@ -730,7 +685,6 @@ export default function Companies() {
                       !c.name?.toLowerCase().includes('default') && 
                       !c.displayName?.toLowerCase().includes('default')
                     ).length > 0;
-
                     // Show activate/deactivate option for Default company only if there are other companies
                     if (isDefaultCompany && hasOtherCompanies) {
                       const isActiveCompany = company.status === 'active' || company.isActive;
@@ -769,7 +723,6 @@ export default function Companies() {
                                 }
                                 return oldData;
                               });
-
                               // Use the correct mutation endpoint
                               await updateCompanyMutation.mutateAsync({ id: company.id, data: updateData });
                               
@@ -804,7 +757,6 @@ export default function Companies() {
                         </Button>
                       );
                     }
-
                     // Show delete for non-default companies or if it's the only company
                     return (
                       <Button
@@ -825,7 +777,6 @@ export default function Companies() {
           </Card>
         ))}
       </div>
-
       {filteredCompanies.length === 0 && !isLoading && (
         <div className=""
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
@@ -846,7 +797,6 @@ export default function Companies() {
           )}
         </div>
       )}
-
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl" aria-describedby="edit-company-description>
@@ -886,7 +836,6 @@ export default function Companies() {
                   )}
                 />
               </div>
-
               <FormField
                 control={editForm.control}
                 name="description"
@@ -900,7 +849,6 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <FormField
                   control={editForm.control}
@@ -940,7 +888,6 @@ export default function Companies() {
                   )}
                 />
               </div>
-
               <div className=""
                 <FormField
                   control={editForm.control}
@@ -969,7 +916,6 @@ export default function Companies() {
                   )}
                 />
               </div>
-
               <FormField
                 control={editForm.control}
                 name="website"
@@ -983,7 +929,6 @@ export default function Companies() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <FormField
                   control={editForm.control}
@@ -1030,7 +975,6 @@ export default function Companies() {
                   )}
                 />
               </div>
-
               <div className=""
                 <Button 
                   type="button" 
@@ -1054,7 +998,6 @@ export default function Companies() {
           </Form>
         </DialogContent>
       </Dialog>
-
       {/* Associate Multiple Customers Modal */}
       <AssociateMultipleCustomersModal
         isOpen={isAssociateModalOpen}

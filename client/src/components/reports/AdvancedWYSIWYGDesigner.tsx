@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
 // import { useLocalization } from '@/hooks/useLocalization';
@@ -21,12 +20,10 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-
 // Zendesk-style design components
 const DESIGN_COMPONENTS = [
   {
   // Localization temporarily disabled
-
     id: 'text',
     name: 'Text',
     icon: Type,
@@ -142,7 +139,6 @@ const DESIGN_COMPONENTS = [
     }
   }
 ];
-
 // Zendesk-style color palette
 const COLOR_PALETTE = [
   '#000000', '#4A4A4A', '#9B9B9B', '#FFFFFF',
@@ -152,7 +148,6 @@ const COLOR_PALETTE = [
   '#D32F2F', '#E53935', '#F44336', '#EF5350',
   '#7B1FA2', '#8E24AA', '#9C27B0', '#BA68C8'
 ];
-
 // Font options
 const FONT_FAMILIES = [
   { value: 'Arial', label: 'Arial' },
@@ -162,14 +157,12 @@ const FONT_FAMILIES = [
   { value: 'Georgia', label: 'Georgia' },
   { value: 'Verdana', label: 'Verdana' }
 ];
-
 interface WYSIWYGDesignerProps {
   onDesignChange?: (design: any) => void;
   initialDesign?: any;
   data?: any;
   onSave: (report: { name?: string; description?: string; design?: any }) => void;
 }
-
 export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign, data, onSave }: WYSIWYGDesignerProps) {
   const defaultDesign = {
     components: [],
@@ -188,16 +181,13 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
   };
   
   const [design, setDesign] = useState(initialDesign || defaultDesign);
-
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [activeTab, setActiveTab] = useState('components');
   const [draggedComponent, setDraggedComponent] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-
   const canvasRef = useRef(null);
-
   useEffect(() => {
     if (initialDesign) {
       setDesign({
@@ -208,15 +198,12 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       });
     }
   }, [initialDesign]);
-
   useEffect(() => {
     onDesignChange?.(design);
   }, [design, onDesignChange]);
-
   const addComponent = (componentType, position = null) => {
     const componentTemplate = DESIGN_COMPONENTS.find(c => c.id === componentType);
     if (!componentTemplate) return;
-
     const newComponent = {
       id: "
       type: componentType,
@@ -225,15 +212,12 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       props: { ...componentTemplate.defaultProps },
       zIndex: design?.components?.length || 0
     };
-
     setDesign(prev => ({
       ...prev,
       components: [...(prev.components || []), newComponent]
     }));
-
     setSelectedComponent(newComponent.id);
   };
-
   const updateComponent = (componentId, updates) => {
     setDesign(prev => ({
       ...prev,
@@ -242,7 +226,6 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       )
     }));
   };
-
   const deleteComponent = (componentId) => {
     setDesign(prev => ({
       ...prev,
@@ -253,11 +236,9 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       setSelectedComponent(null);
     }
   };
-
   const duplicateComponent = (componentId) => {
     const component = design?.components?.find(c => c.id === componentId);
     if (!component) return;
-
     const newComponent = {
       ...component,
       id: "
@@ -266,34 +247,27 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
         y: component.position.y + 20
       }
     };
-
     setDesign(prev => ({
       ...prev,
       components: [...(prev.components || []), newComponent]
     }));
   };
-
   const handleDragStart = (e, componentType) => {
     setDraggedComponent(componentType);
     e.dataTransfer.effectAllowed = 'copy';
   };
-
   const handleDrop = (e) => {
     e.preventDefault();
     if (!draggedComponent) return;
-
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-
     addComponent(draggedComponent, { x, y });
     setDraggedComponent(null);
   };
-
   const handleDragOver = (e) => {
     e.preventDefault();
   };
-
   const handleSave = () => {
     onSave({
       name: design.settings.title,
@@ -301,26 +275,22 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
       design: design
     });
   };
-
   const selectedComponentData = design?.components?.find(c => c.id === selectedComponent);
-
   return (
     <TooltipProvider>
       <div className="h-screen flex bg-gray-50>
         {/* Left Sidebar - Component Library */}
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col>
           <div className="p-4 border-b>
-            <h3 className="text-lg font-semibold text-gray-900">Design Studio</h3>
-            <p className="text-sm text-gray-600">Drag components to build your report</p>
+            <h3 className="text-lg">"Design Studio</h3>
+            <p className="text-lg">"Drag components to build your report</p>
           </div>
-
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1>
             <TabsList className="grid w-full grid-cols-3 mx-4 mt-4>
               <TabsTrigger value="components">Components</TabsTrigger>
               <TabsTrigger value="styles">Styles</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
             </TabsList>
-
             <TabsContent value="components" className="flex-1 p-4 space-y-4>
               {/* Component Categories */}
               {['content', 'data', 'media', 'layout'].map((category) => (
@@ -357,7 +327,6 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                 </div>
               ))}
             </TabsContent>
-
             <TabsContent value="styles" className="flex-1 p-4>
               {selectedComponentData ? (
                 <ComponentStyleEditor 
@@ -367,11 +336,10 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               ) : (
                 <div className="text-center py-8>
                   <Palette className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">Select a component to edit styles</p>
+                  <p className="text-lg">"Select a component to edit styles</p>
                 </div>
               )}
             </TabsContent>
-
             <TabsContent value="data" className="flex-1 p-4>
               {selectedComponentData && ['chart', 'table', 'kpi'].includes(selectedComponentData.type) ? (
                 <ComponentDataEditor 
@@ -382,13 +350,12 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               ) : (
                 <div className="text-center py-8>
                   <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">Select a data component to configure</p>
+                  <p className="text-lg">"Select a data component to configure</p>
                 </div>
               )}
             </TabsContent>
           </Tabs>
         </div>
-
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col>
           {/* Toolbar */}
@@ -436,7 +403,6 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                 </Button>
               </div>
             </div>
-
             <div className="flex items-center space-x-2>
               <Button variant="outline" size="sm>
                 <Download className="h-4 w-4 mr-2" />
@@ -452,7 +418,6 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               </Button>
             </div>
           </div>
-
           {/* Canvas */}
           <div className="flex-1 overflow-auto bg-gray-100 p-8>
             <div
@@ -477,7 +442,6 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                   }}
                 />
               )}
-
               {/* Render Components */}
               {design?.components?.map((component) => (
                 <DesignComponent
@@ -491,7 +455,6 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                   onDuplicate={() => duplicateComponent(component.id)}
                 />
               ))}
-
               {/* Empty state */}
               {(!design?.components || design.components.length === 0) && !previewMode && (
                 <div className="absolute inset-0 flex items-center justify-center>
@@ -513,12 +476,11 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
             </div>
           </div>
         </div>
-
         {/* Right Sidebar - Properties */}
         {selectedComponentData && !previewMode && (
           <div className="w-80 bg-white border-l border-gray-200 p-4>
             <div className="flex items-center justify-between mb-4>
-              <h3 className="text-lg font-semibold text-gray-900">Properties</h3>
+              <h3 className="text-lg">"Properties</h3>
               <div className="flex items-center space-x-2>
                 <Button
                   variant="ghost"
@@ -536,7 +498,6 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                 </Button>
               </div>
             </div>
-
             <ComponentProperties
               component={selectedComponentData}
               onUpdate={(updates) => updateComponent(selectedComponent, updates)}
@@ -547,18 +508,15 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
     </TooltipProvider>
   );
 }
-
 // Component Renderer
 function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, onDelete, onDuplicate }) {
   const [isDragging, setIsDragging] = useState(false);
-
   const handleMouseDown = (e) => {
     if (isPreview) return;
     e.stopPropagation();
     
     const startX = e.clientX - component.position.x;
     const startY = e.clientY - component.position.y;
-
     const handleMouseMove = (e) => {
       setIsDragging(true);
       onUpdate({
@@ -568,17 +526,14 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
         }
       });
     };
-
     const handleMouseUp = () => {
       setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
-
   const renderComponentContent = () => {
     switch (component.type) {
       case 'text':
@@ -596,7 +551,6 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
             {component.props.content}
           </div>
         );
-
       case 'chart':
         return (
           <div className="w-full h-full border border-gray-300 rounded flex items-center justify-center bg-gray-50>
@@ -608,7 +562,6 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
             </div>
           </div>
         );
-
       case 'table':
         return (
           <div className="w-full h-full border border-gray-300 rounded>
@@ -616,11 +569,10 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
               <Table className="h-4 w-4 text-gray-600" />
             </div>
             <div className="p-2>
-              <p className="text-sm text-gray-600">Data Table</p>
+              <p className="text-lg">"Data Table</p>
             </div>
           </div>
         );
-
       case 'kpi':
         return (
           <div 
@@ -630,14 +582,13 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
               color: component.props.textColor
             }}
           >
-            <div className="text-2xl font-bold">{component.props.value}</div>
-            <div className="text-sm">{component.props.title}</div>
+            <div className="text-lg">"{component.props.value}</div>
+            <div className="text-lg">"{component.props.title}</div>
             {component.props.trend && (
-              <div className="text-xs mt-1">{component.props.trend}</div>
+              <div className="text-lg">"{component.props.trend}</div>
             )}
           </div>
         );
-
       case 'image':
         return (
           <img
@@ -647,7 +598,6 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
             style={{ borderRadius: "px` }}
           />
         );
-
       case 'divider':
         return (
           <div
@@ -659,7 +609,6 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
             }}
           />
         );
-
       case 'container':
         return (
           <div
@@ -672,15 +621,13 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
               boxShadow: component.props.shadow ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
             }}
           >
-            <p className="text-sm text-gray-600">Container</p>
+            <p className="text-lg">"Container</p>
           </div>
         );
-
       default:
         return <div>Unknown component</div>;
     }
   };
-
   return (
     <div
       className="absolute cursor-pointer ${isSelected && !isPreview ? 'ring-2 ring-blue-500' : ''} ""
@@ -709,13 +656,12 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
     </div>
   );
 }
-
 // Component Style Editor
 function ComponentStyleEditor({ component, onUpdate }) {
   return (
     <div className="space-y-4>
       <div>
-        <Label className="text-sm font-medium">Position</Label>
+        <Label className="text-lg">"Position</Label>
         <div className="grid grid-cols-2 gap-2 mt-1>
           <Input
             type="number"
@@ -735,9 +681,8 @@ function ComponentStyleEditor({ component, onUpdate }) {
           />
         </div>
       </div>
-
       <div>
-        <Label className="text-sm font-medium">Size</Label>
+        <Label className="text-lg">"Size</Label>
         <div className="grid grid-cols-2 gap-2 mt-1>
           <Input
             type="number"
@@ -757,11 +702,10 @@ function ComponentStyleEditor({ component, onUpdate }) {
           />
         </div>
       </div>
-
       {(component.type === 'text' || component.type === 'heading') && (
         <>
           <div>
-            <Label className="text-sm font-medium">Font Size</Label>
+            <Label className="text-lg">"Font Size</Label>
             <Slider
               value={[component.props.fontSize]}
               onValueChange={([value]) => onUpdate({
@@ -772,11 +716,10 @@ function ComponentStyleEditor({ component, onUpdate }) {
               step={1}
               className="mt-2"
             />
-            <span className="text-xs text-gray-500">{component.props.fontSize}px</span>
+            <span className="text-lg">"{component.props.fontSize}px</span>
           </div>
-
           <div>
-            <Label className="text-sm font-medium">Color</Label>
+            <Label className="text-lg">"Color</Label>
             <div className="grid grid-cols-6 gap-1 mt-2>
               {COLOR_PALETTE.map((color) => (
                 <button
@@ -790,9 +733,8 @@ function ComponentStyleEditor({ component, onUpdate }) {
               ))}
             </div>
           </div>
-
           <div>
-            <Label className="text-sm font-medium">Font Weight</Label>
+            <Label className="text-lg">"Font Weight</Label>
             <Select
               value={component.props.fontWeight}
               onValueChange={(value) => onUpdate({
@@ -814,13 +756,12 @@ function ComponentStyleEditor({ component, onUpdate }) {
     </div>
   );
 }
-
 // Component Data Editor
 function ComponentDataEditor({ component, onUpdate, availableData }) {
   return (
     <div className="space-y-4>
       <div>
-        <Label className="text-sm font-medium">Data Source</Label>
+        <Label className="text-lg">"Data Source</Label>
         <Select
           value={component.props.dataSource}
           onValueChange={(value) => onUpdate({
@@ -837,10 +778,9 @@ function ComponentDataEditor({ component, onUpdate, availableData }) {
           </SelectContent>
         </Select>
       </div>
-
       {component.type === 'chart' && (
         <div>
-          <Label className="text-sm font-medium">Chart Type</Label>
+          <Label className="text-lg">"Chart Type</Label>
           <Select
             value={component.props.chartType}
             onValueChange={(value) => onUpdate({
@@ -862,19 +802,17 @@ function ComponentDataEditor({ component, onUpdate, availableData }) {
     </div>
   );
 }
-
 // Component Properties Editor
 function ComponentProperties({ component, onUpdate }) {
   return (
     <div className="space-y-4>
       <div>
-        <Label className="text-sm font-medium">Component Type</Label>
-        <Badge variant="outline" className="mt-1">{component.type}</Badge>
+        <Label className="text-lg">"Component Type</Label>
+        <Badge variant="outline" className="text-lg">"{component.type}</Badge>
       </div>
-
       {(component.type === 'text' || component.type === 'heading') && (
         <div>
-          <Label className="text-sm font-medium">Content</Label>
+          <Label className="text-lg">"Content</Label>
           <Input
             value={component.props.content}
             onChange={(e) => onUpdate({
@@ -884,11 +822,10 @@ function ComponentProperties({ component, onUpdate }) {
           />
         </div>
       )}
-
       {component.type === 'kpi' && (
         <>
           <div>
-            <Label className="text-sm font-medium">Title</Label>
+            <Label className="text-lg">"Title</Label>
             <Input
               value={component.props.title}
               onChange={(e) => onUpdate({
@@ -898,7 +835,7 @@ function ComponentProperties({ component, onUpdate }) {
             />
           </div>
           <div>
-            <Label className="text-sm font-medium">Value</Label>
+            <Label className="text-lg">"Value</Label>
             <Input
               value={component.props.value}
               onChange={(e) => onUpdate({

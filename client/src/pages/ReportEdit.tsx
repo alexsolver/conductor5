@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from 'wouter';
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -22,11 +21,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-
 // Schema for report editing
 const reportSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Report name is required"),
   description: z.string().optional(),
   dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard", "locations", "omnibridge"]),
@@ -37,9 +34,7 @@ const reportSchema = z.object({
   scheduleConfig: z.string().optional(),
   accessLevel: z.enum(["private", "team", "company", "public"]).default("private"),
 });
-
 type ReportFormData = z.infer<typeof reportSchema>;
-
 export default function ReportEdit() {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute('/reports/:id/edit');
@@ -48,17 +43,14 @@ export default function ReportEdit() {
   const [query, setQuery] = useState<any>({});
   const [wysiwygDesign, setWysiwygDesign] = useState<any>({});
   const [isUpdating, setIsUpdating] = useState(false);
-
   const { toast } = useToast();
   const reportId = params?.id;
-
   // Fetch existing report data
   const { data: reportData, isLoading, error } = useQuery({
     queryKey: ["/api/reports-dashboards/reports", reportId],
     queryFn: () => apiRequest("GET", "
     enabled: !!reportId,
   });
-
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
@@ -68,7 +60,6 @@ export default function ReportEdit() {
       schedulingEnabled: false,
     },
   });
-
   // Update form when data is loaded
   useEffect(() => {
     if (reportData?.data) {
@@ -84,7 +75,6 @@ export default function ReportEdit() {
         scheduleType: report.scheduleConfig?.type,
         scheduleConfig: report.scheduleConfig ? JSON.stringify(report.scheduleConfig) : undefined,
       });
-
       // Determine report type based on existing data
       if (report.wysiwygDesign) {
         setReportType('wysiwyg');
@@ -97,7 +87,6 @@ export default function ReportEdit() {
       }
     }
   }, [reportData, form]);
-
   const updateReportMutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
       const reportData = {
@@ -125,7 +114,6 @@ export default function ReportEdit() {
       });
     },
   });
-
   const deleteReportMutation = useMutation({
     mutationFn: () => apiRequest("DELETE", "
     onSuccess: () => {
@@ -144,7 +132,6 @@ export default function ReportEdit() {
       });
     },
   });
-
   const handleUpdateReport = async (data: ReportFormData) => {
     setIsUpdating(true);
     try {
@@ -153,18 +140,15 @@ export default function ReportEdit() {
       setIsUpdating(false);
     }
   };
-
   const handleDeleteReport = () => {
     if (window.confirm('Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.')) {
       deleteReportMutation.mutate();
     }
   };
-
   const handleQueryChange = (newQuery: any) => {
     console.log('✅ [QUERY-BUILDER] Query updated:', newQuery);
     setQuery(newQuery);
   };
-
   const handleWysiwygSave = (design: any) => {
     console.log('✅ [WYSIWYG] Design saved:', design);
     setWysiwygDesign(design);
@@ -175,12 +159,10 @@ export default function ReportEdit() {
       form.setValue('description', design.description);
     }
   };
-
   if (!match) {
     setLocation("/reports");
     return null;
   }
-
   if (isLoading) {
     return (
       <div className=""
@@ -191,13 +173,12 @@ export default function ReportEdit() {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className=""
         <Card>
           <CardContent className=""
-            <p className="text-red-600">Erro ao carregar relatório: {error.message}</p>
+            <p className="text-lg">"Erro ao carregar relatório: {error.message}</p>
             <Button
               onClick={() => setLocation("/reports")}
               className="mt-4"
@@ -209,7 +190,6 @@ export default function ReportEdit() {
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Header */}
@@ -265,9 +245,7 @@ export default function ReportEdit() {
           </Button>
         </div>
       </div>
-
       <Separator />
-
       {/* Report Type Display */}
       <Card>
         <CardHeader>
@@ -278,27 +256,25 @@ export default function ReportEdit() {
             <Card className={reportType === 'standard' ? 'ring-2 ring-primary' : 'opacity-50'}>
               <CardContent className=""
                 <BarChart3 className="w-8 h-8 mx-auto mb-3 text-primary" />
-                <h4 className="font-semibold mb-2">Relatório Padrão</h4>
+                <h4 className="text-lg">"Relatório Padrão</h4>
                 <p className=""
                   Seleção simples de fonte de dados e campos básicos
                 </p>
               </CardContent>
             </Card>
-
             <Card className={reportType === 'advanced' ? 'ring-2 ring-primary' : 'opacity-50'}>
               <CardContent className=""
                 <Database className="w-8 h-8 mx-auto mb-3 text-primary" />
-                <h4 className="font-semibold mb-2">Query Builder Avançado</h4>
+                <h4 className="text-lg">"Query Builder Avançado</h4>
                 <p className=""
                   Construção completa com filtros, períodos, joins e SQL
                 </p>
               </CardContent>
             </Card>
-
             <Card className={reportType === 'wysiwyg' ? 'ring-2 ring-primary' : 'opacity-50'}>
               <CardContent className=""
                 <Palette className="w-8 h-8 mx-auto mb-3 text-primary" />
-                <h4 className="font-semibold mb-2">WYSIWYG Designer</h4>
+                <h4 className="text-lg">"WYSIWYG Designer</h4>
                 <p className=""
                   Designer visual para relatórios e PDFs personalizados
                 </p>
@@ -307,7 +283,6 @@ export default function ReportEdit() {
           </div>
         </CardContent>
       </Card>
-
       {/* Main Configuration Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className=""
@@ -342,7 +317,6 @@ export default function ReportEdit() {
             Preview
           </TabsTrigger>
         </TabsList>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleUpdateReport)} className=""
             {/* Basic Configuration Tab */}
@@ -370,7 +344,6 @@ export default function ReportEdit() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="description"
@@ -389,7 +362,6 @@ export default function ReportEdit() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="category"
@@ -417,7 +389,6 @@ export default function ReportEdit() {
                     />
                   </CardContent>
                 </Card>
-
                 <Card>
                   <CardHeader>
                     <CardTitle>Configurações de Acesso</CardTitle>
@@ -446,7 +417,6 @@ export default function ReportEdit() {
                         </FormItem>
                       )}
                     />
-
                     {reportType === 'standard' && (
                       <>
                         <FormField
@@ -475,7 +445,6 @@ export default function ReportEdit() {
                             </FormItem>
                           )}
                         />
-
                         <FormField
                           control={form.control}
                           name="chartType"
@@ -498,7 +467,7 @@ export default function ReportEdit() {
                                   >
                                     <CardContent className=""
                                       <type.icon className="w-6 h-6 mx-auto mb-1" />
-                                      <div className="text-xs">{type.label}</div>
+                                      <div className="text-lg">"{type.label}</div>
                                     </CardContent>
                                   </Card>
                                 ))}
@@ -513,7 +482,6 @@ export default function ReportEdit() {
                 </Card>
               </div>
             </TabsContent>
-
             {/* Builder Tab */}
             <TabsContent value="builder" className=""
               {reportType === 'wysiwyg' && (
@@ -531,7 +499,6 @@ export default function ReportEdit() {
                   </CardContent>
                 </Card>
               )}
-
               {reportType === 'advanced' && (
                 <Card>
                   <CardHeader>
@@ -548,7 +515,6 @@ export default function ReportEdit() {
                   </CardContent>
                 </Card>
               )}
-
               {reportType === 'standard' && (
                 <Card>
                   <CardHeader>
@@ -574,7 +540,6 @@ export default function ReportEdit() {
                 </Card>
               )}
             </TabsContent>
-
             {/* Schedule Tab */}
             <TabsContent value="schedule" className=""
               <Card>
@@ -588,7 +553,7 @@ export default function ReportEdit() {
                     render={({ field }) => (
                       <FormItem className=""
                         <div className=""
-                          <FormLabel className="text-base">Habilitar Agendamento</FormLabel>
+                          <FormLabel className="text-lg">"Habilitar Agendamento</FormLabel>
                           <div className=""
                             Execute este relatório automaticamente
                           </div>
@@ -604,7 +569,6 @@ export default function ReportEdit() {
                       </FormItem>
                     )}
                   />
-
                   {form.watch('schedulingEnabled') && (
                     <>
                       <FormField
@@ -630,7 +594,6 @@ export default function ReportEdit() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="scheduleConfig"
@@ -654,7 +617,6 @@ export default function ReportEdit() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             {/* Preview Tab */}
             <TabsContent value="preview" className=""
               <Card>
@@ -665,41 +627,39 @@ export default function ReportEdit() {
                   <div className=""
                     <div className=""
                       <div>
-                        <h4 className="font-semibold text-lg">{form.watch('name') || 'Nome do Relatório'}</h4>
-                        <p className="text-muted-foreground">{form.watch('description') || 'Sem descrição'}</p>
+                        <h4 className="text-lg">"{form.watch('name') || 'Nome do Relatório'}</h4>
+                        <p className="text-lg">"{form.watch('description') || 'Sem descrição'}</p>
                       </div>
                       
                       <div className=""
                         <div>
-                          <span className="font-medium">Tipo:</span>
-                          <div className="capitalize">{reportType}</div>
+                          <span className="text-lg">"Tipo:</span>
+                          <div className="text-lg">"{reportType}</div>
                         </div>
                         <div>
-                          <span className="font-medium">Categoria:</span>
-                          <div className="capitalize">{form.watch('category')}</div>
+                          <span className="text-lg">"Categoria:</span>
+                          <div className="text-lg">"{form.watch('category')}</div>
                         </div>
                         <div>
-                          <span className="font-medium">Acesso:</span>
-                          <div className="capitalize">{form.watch('accessLevel')}</div>
+                          <span className="text-lg">"Acesso:</span>
+                          <div className="text-lg">"{form.watch('accessLevel')}</div>
                         </div>
                         <div>
-                          <span className="font-medium">Agendamento:</span>
+                          <span className="text-lg">"Agendamento:</span>
                           <div>{form.watch('schedulingEnabled') ? 'Ativo' : 'Inativo'}</div>
                         </div>
                       </div>
-
                       {reportType === 'wysiwyg' && wysiwygDesign.elements?.length > 0 && (
                         <div>
-                          <span className="font-medium">WYSIWYG Elements:</span>
+                          <span className="text-lg">"WYSIWYG Elements:</span>
                           <div className=""
                             {wysiwygDesign.elements.length} elementos configurados
                           </div>
                         </div>
                       )}
-
                       {reportType === 'advanced' && query.dataSource && (
                         <div>
-                          <span className="font-medium">Query Configuration:</span>
+                          <span className="text-lg">"Query Configuration:</span>
                           <div className=""
                             Fonte: {query.dataSource}, Tabelas: {query.selectedTables?.length || 0}
                           </div>

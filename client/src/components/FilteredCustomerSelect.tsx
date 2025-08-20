@@ -4,7 +4,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { apiRequest } from '@/lib/queryClient';
 import { useCompanyCustomers } from '@/hooks/useCompanyCustomers';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface FilteredCustomerSelectProps {
   value?: string;
   onChange: (value: string) => void;
@@ -13,7 +12,6 @@ interface FilteredCustomerSelectProps {
   disabled?: boolean;
   className?: string;
 }
-
 export function FilteredCustomerSelect({
   // Localization temporarily disabled
  
@@ -32,17 +30,13 @@ export function FilteredCustomerSelect({
       return response.json();
     },
   });
-
   // Buscar clientes da empresa se uma empresa foi selecionada
   const { data: companyCustomersData, isLoading: isLoadingCompanyCustomers } = useCompanyCustomers(
     selectedCompanyId && selectedCompanyId !== 'unspecified' ? selectedCompanyId : ''
   );
-
   const isLoading = isLoadingCustomers || (selectedCompanyId && selectedCompanyId !== 'unspecified' && isLoadingCompanyCustomers);
-
   // Determinar quais clientes mostrar baseado EXCLUSIVAMENTE na empresa
   let customersToShow = [];
-
   if (selectedCompanyId && selectedCompanyId !== 'unspecified') {
     // Empresa selecionada - mostrar APENAS clientes desta empresa
     if (isLoadingCompanyCustomers) {
@@ -67,7 +61,6 @@ export function FilteredCustomerSelect({
       customersCount: customersToShow.length
     });
   }
-
   if (isLoading) {
     return (
       <Select disabled>
@@ -77,7 +70,6 @@ export function FilteredCustomerSelect({
       </Select>
     );
   }
-
   console.log('[FilteredCustomerSelect] Render:', { 
     value, 
     disabled, 
@@ -88,7 +80,6 @@ export function FilteredCustomerSelect({
       return foundCustomer ? (foundCustomer.fullName || foundCustomer.name || foundCustomer.email) : 'NOT FOUND';
     })()
   });
-
   return (
     <Select 
       value={value || '__none__'} 
@@ -116,7 +107,6 @@ export function FilteredCustomerSelect({
                                   customer.email || 'Cliente sem nome';
               // Ensure customer.id is not empty or undefined
               const customerId = customer.id || "
-
               return (
                 <SelectItem key={customerId} value={customerId}>
                   <div className="flex flex-col>

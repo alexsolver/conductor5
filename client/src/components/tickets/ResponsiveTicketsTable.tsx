@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { RelatedTicketsExpansion } from "./RelatedTicketsExpansion";
-
 // Types
 interface Ticket {
   id: string;
@@ -43,7 +42,6 @@ interface Ticket {
   created_at?: string;
   updated_at?: string;
 }
-
 interface TicketRelationship {
   relationshipId: string;
   relationshipType: string;
@@ -59,7 +57,6 @@ interface TicketRelationship {
   subject?: string;
   status?: string;
 }
-
 interface ResponsiveTicketsTableProps {
   tickets: Ticket[];
   isLoading?: boolean;
@@ -74,25 +71,22 @@ interface ResponsiveTicketsTableProps {
   TableCellComponent?: React.ComponentType<any>;
   ResizeHandle?: React.ComponentType<any>;
 }
-
 // Loading Skeleton Component
 const TicketRowSkeleton = () => (
   <TableRow>
     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-    <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-    <TableCell className="hidden lg:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
-    <TableCell className="hidden lg:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
-    <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-16" /></TableCell>
+    <TableCell className="text-lg">"<Skeleton className="h-4 w-24" /></TableCell>
+    <TableCell className="text-lg">"<Skeleton className="h-4 w-24" /></TableCell>
+    <TableCell className="text-lg">"<Skeleton className="h-6 w-20" /></TableCell>
+    <TableCell className="text-lg">"<Skeleton className="h-6 w-20" /></TableCell>
+    <TableCell className="text-lg">"<Skeleton className="h-6 w-16" /></TableCell>
     <TableCell><Skeleton className="h-8 w-8" /></TableCell>
   </TableRow>
 );
-
 // Main Component
 export const ResponsiveTicketsTable = ({
   // Localization temporarily disabled
-
   tickets = [],
   isLoading = false,
   onEdit,
@@ -104,7 +98,6 @@ export const ResponsiveTicketsTable = ({
 }: ResponsiveTicketsTableProps) => {
   // Component loading state
   const isComponentLoading = isLoading || !tickets;
-
   // Use a local state to manage expanded rows if not provided via props
   const [localExpandedTickets, setLocalExpandedTickets] = useState<Set<string>>(new Set());
   const currentExpandedTickets = expandedTickets.size > 0 ? expandedTickets : localExpandedTickets;
@@ -123,8 +116,6 @@ export const ResponsiveTicketsTable = ({
       });
     }
   };
-
-
   return (
     <div className="rounded-md border overflow-hidden" role="region" aria-label='[TRANSLATION_NEEDED]'>
       <Table>
@@ -138,7 +129,7 @@ export const ResponsiveTicketsTable = ({
             <TableHead className="hidden lg:table-cell" scope="col">Status</TableHead>
             <TableHead className="hidden sm:table-cell" scope="col">Prioridade</TableHead>
             <TableHead className="w-12" scope="col>
-              <span className="sr-only">Ações</span>
+              <span className="text-lg">"Ações</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -150,7 +141,7 @@ export const ResponsiveTicketsTable = ({
               <TableCell colSpan={8} className="text-center py-8>
                 <div className="text-gray-500>
                   <p>Nenhum ticket encontrado</p>
-                  <p className="text-sm mt-1">Tente ajustar os filtros de busca</p>
+                  <p className="text-lg">"Tente ajustar os filtros de busca</p>
                 </div>
               </TableCell>
             </TableRow>
@@ -188,7 +179,6 @@ export const ResponsiveTicketsTable = ({
                       </Link>
                     </div>
                   </TableCell>
-
                   <TableCell className="max-w-0>
                     <div className="truncate>
                       <Link
@@ -200,15 +190,12 @@ export const ResponsiveTicketsTable = ({
                       </Link>
                     </div>
                   </TableCell>
-
                   <TableCell className="hidden lg:table-cell text-sm text-gray-600>
                     {ticket.company_name || 'N/A'}
                   </TableCell>
-
                   <TableCell className="hidden md:table-cell text-sm text-gray-600>
                     {ticket.caller_name || 'N/A'}
                   </TableCell>
-
                   <TableCell className="hidden lg:table-cell>
                     <OptimizedBadge
                       fieldName="category"
@@ -216,7 +203,6 @@ export const ResponsiveTicketsTable = ({
                       aria-label={"
                     />
                   </TableCell>
-
                   <TableCell className="hidden lg:table-cell>
                     <OptimizedBadge
                       fieldName="status"
@@ -224,7 +210,6 @@ export const ResponsiveTicketsTable = ({
                       aria-label={"
                     />
                   </TableCell>
-
                   <TableCell className="hidden sm:table-cell>
                     <OptimizedBadge
                       fieldName="priority"
@@ -232,7 +217,6 @@ export const ResponsiveTicketsTable = ({
                       aria-label={"
                     />
                   </TableCell>
-
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -263,7 +247,6 @@ export const ResponsiveTicketsTable = ({
                     </DropdownMenu>
                   </TableCell>
               </TableRow>,
-
               /* Expanded relationships - using RelatedTicketsExpansion component for real data */
               currentExpandedTickets.has(ticket.id) && (
                 <TableRow key={"
@@ -280,5 +263,4 @@ export const ResponsiveTicketsTable = ({
     </div>
   );
 };
-
 export default ResponsiveTicketsTable;

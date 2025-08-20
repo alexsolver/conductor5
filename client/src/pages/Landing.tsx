@@ -2,11 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Users, BarChart3, Shield, Globe, Headphones } from "lucide-react";
 // import useLocalization from '@/hooks/useLocalization';
-
 const features = [
   {
   // Localization temporarily disabled
-
     icon: Headphones,
     title: "Omnichannel Support",
     description: "Manage tickets from email, chat, phone, and social media in one unified platform.",
@@ -37,25 +35,24 @@ const features = [
     description: "Automate responses, routing, and workflows to improve efficiency and reduce response times.",
   },
 ];
-
 export default function Landing() {
   return (
     <div className=""
       {/* Hero Section */}
       <div className=""
-        <div className="absolute inset-0 gradient-primary opacity-10"></div>
+        <div className="text-lg">"</div>
         <div className=""
           <div className=""
             <div className=""
               <div className=""
                 <Zap className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-5xl font-bold gradient-text">Conductor</h1>
+              <h1 className="text-lg">"Conductor</h1>
             </div>
             
             <h2 className=""
               Customer Support
-              <span className="gradient-text block">Reimagined</span>
+              <span className="text-lg">"Reimagined</span>
             </h2>
             
             <p className=""
@@ -82,7 +79,6 @@ export default function Landing() {
           </div>
         </div>
       </div>
-
       {/* Features Section */}
       <div className=""
         <div className=""
@@ -94,7 +90,6 @@ export default function Landing() {
             your team needs to deliver exceptional customer experiences.
           </p>
         </div>
-
         <div className=""
           {features.map((feature, index) => (
             <Card key={index} className=""
@@ -115,7 +110,6 @@ export default function Landing() {
           ))}
         </div>
       </div>
-
       {/* CTA Section */}
       <div className=""
         <div className=""
@@ -138,7 +132,6 @@ export default function Landing() {
           </div>
         </div>
       </div>
-
       {/* Footer */}
       <footer className=""
         <div className=""
@@ -147,7 +140,7 @@ export default function Landing() {
               <div className=""
                 <Zap className="w-4 h-4 text-white" />
               </div>
-              <span className="text-white font-semibold">Conductor</span>
+              <span className="text-lg">"Conductor</span>
             </div>
             <p className=""
               © 2025 Conductor. All rights reserved.

@@ -18,10 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import SimpleMapWithButtons from "@/components/SimpleMapWithButtons";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 const regiaoSchema = z.object({
   // Localization temporarily disabled
-
   ativo: z.boolean().default(true),
   nome: z.string().min(1, "Nome é obrigatório").max(200),
   descricao: z.string().optional(),
@@ -43,24 +41,19 @@ const regiaoSchema = z.object({
   numero: z.string().optional(),
   complemento: z.string().optional(),
 });
-
 type RegiaoFormData = z.infer<typeof regiaoSchema>;
-
 interface RegiaoFormProps {
   onSubmit: (data: RegiaoFormData) => void;
   isSubmitting?: boolean;
   onCancel?: () => void;
 }
-
 const TIPO_LOGRADOURO_OPTIONS = [
   'Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo'
 ];
-
 // Componentes de seleção
 function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
   const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -69,7 +62,6 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
     }
     return token;
   };
-
   const { data: clientes = [] } = useQuery({
     queryKey: ['/api/locations-new/integration/customers'],
     queryFn: async () => {
@@ -84,16 +76,13 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
       return [];
     }
   });
-
   const toggleCliente = (clienteId: string) => {
     const newValue = value.includes(clienteId)
       ? value.filter(id => id !== clienteId)
       : [...value, clienteId];
     onChange(newValue);
   };
-
   const selectedClientes = clientes.filter((c: any) => value.includes(c.id));
-
   return (
     <div className="space-y-2>
       <div className="relative>
@@ -109,7 +98,6 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
-
         {isOpen && (
           <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
             {clientes.map((cliente: any) => (
@@ -120,15 +108,14 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
               >
                 <Checkbox checked={value.includes(cliente.id)} />
                 <div className="flex-1>
-                  <p className="text-sm font-medium">{cliente.name}</p>
-                  <p className="text-xs text-gray-500">{cliente.email}</p>
+                  <p className="text-lg">"{cliente.name}</p>
+                  <p className="text-lg">"{cliente.email}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
-
       {selectedClientes.length > 0 && (
         <div className="flex flex-wrap gap-1>
           {selectedClientes.map((cliente: any) => (
@@ -145,10 +132,8 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
     </div>
   );
 }
-
 function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: string) => void }) {
   const { refreshToken } = useAuth();
-
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -157,7 +142,6 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
     }
     return token;
   };
-
   const { data: tecnicos = [] } = useQuery({
     queryKey: ['/api/locations-new/integration/tecnicos'],
     queryFn: async () => {
@@ -172,7 +156,6 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
       return [];
     }
   });
-
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
@@ -183,8 +166,8 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
         {tecnicos.map((tecnico: any) => (
           <SelectItem key={tecnico.id} value={tecnico.id}>
             <div>
-              <p className="font-medium">{tecnico.name}</p>
-              <p className="text-sm text-gray-500">{tecnico.email} - {tecnico.role}</p>
+              <p className="text-lg">"{tecnico.name}</p>
+              <p className="text-lg">"{tecnico.email} - {tecnico.role}</p>
             </div>
           </SelectItem>
         ))}
@@ -192,11 +175,9 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
     </Select>
   );
 }
-
 function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
   const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -205,7 +186,6 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
     }
     return token;
   };
-
   const { data: grupos = [] } = useQuery({
     queryKey: ['/api/locations-new/integration/grupos'],
     queryFn: async () => {
@@ -220,16 +200,13 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
       return [];
     }
   });
-
   const toggleGrupo = (grupoId: string) => {
     const newValue = value.includes(grupoId)
       ? value.filter(id => id !== grupoId)
       : [...value, grupoId];
     onChange(newValue);
   };
-
   const selectedGrupos = grupos.filter((g: any) => value.includes(g.id));
-
   return (
     <div className="space-y-2>
       <div className="relative>
@@ -245,7 +222,6 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
-
         {isOpen && (
           <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
             {grupos.map((grupo: any) => (
@@ -256,7 +232,7 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
               >
                 <Checkbox checked={value.includes(grupo.id)} />
                 <div className="flex-1>
-                  <p className="text-sm font-medium">{grupo.name}</p>
+                  <p className="text-lg">"{grupo.name}</p>
                   <p className="text-xs text-gray-500>
                     {grupo.description} ({grupo.memberCount} membro(s))
                   </p>
@@ -266,7 +242,6 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
           </div>
         )}
       </div>
-
       {selectedGrupos.length > 0 && (
         <div className="flex flex-wrap gap-1>
           {selectedGrupos.map((grupo: any) => (
@@ -283,11 +258,9 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
     </div>
   );
 }
-
 function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (value: string[]) => void }) {
   const { refreshToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -296,7 +269,6 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
     }
     return token;
   };
-
   const { data: locais = [] } = useQuery({
     queryKey: ['/api/locations-new/integration/locais'],
     queryFn: async () => {
@@ -311,16 +283,13 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
       return [];
     }
   });
-
   const toggleLocal = (localId: string) => {
     const newValue = value.includes(localId)
       ? value.filter(id => id !== localId)
       : [...value, localId];
     onChange(newValue);
   };
-
   const selectedLocais = locais.filter((l: any) => value.includes(l.id));
-
   return (
     <div className="space-y-2>
       <div className="relative>
@@ -336,7 +305,6 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
           }
           <ChevronDown className="h-4 w-4" />
         </Button>
-
         {isOpen && (
           <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
             {locais.map((local: any) => (
@@ -347,15 +315,14 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
               >
                 <Checkbox checked={value.includes(local.id)} />
                 <div className="flex-1>
-                  <p className="text-sm font-medium">{local.name}</p>
-                  <p className="text-xs text-gray-500">{local.displayName}</p>
+                  <p className="text-lg">"{local.name}</p>
+                  <p className="text-lg">"{local.displayName}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
-
       {selectedLocais.length > 0 && (
         <div className="flex flex-wrap gap-1>
           {selectedLocais.map((local: any) => (
@@ -372,13 +339,11 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
     </div>
   );
 }
-
 export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }: RegiaoFormProps) {
   const { toast } = useToast();
   const { refreshToken } = useAuth();
   const [showMap, setShowMap] = useState(false);
   const [newCep, setNewCep] = useState("");
-
   const form = useForm<RegiaoFormData>({
     resolver: zodResolver(regiaoSchema),
     defaultValues: {
@@ -396,10 +361,8 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       tecnicoPrincipalId: "none",
     },
   });
-
   const { register, handleSubmit, setValue, watch, formState: { errors } } = form;
   const watchedValues = watch();
-
   const getValidToken = async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -408,10 +371,8 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
     }
     return token;
   };
-
   const handleCepLookup = async (cep: string) => {
     if (!cep || cep.length < 8) return;
-
     try {
       const validToken = await getValidToken();
       const response = await fetch("
@@ -420,7 +381,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           'Content-Type': 'application/json',
         },
       });
-
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -443,7 +403,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             'Content-Type': 'application/json',
           },
         });
-
         if (retryResponse.ok) {
           const data = await retryResponse.json();
           if (data.success) {
@@ -467,7 +426,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       });
     }
   };
-
   const handleMapCoordinateSelect = (lat: number, lng: number) => {
     setValue('latitude', lat.toString());
     setValue('longitude', lng.toString());
@@ -477,7 +435,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       description: "
     });
   };
-
   const addCepAbrangido = () => {
     if (newCep.trim()) {
       const currentCeps = watchedValues.cepsAbrangidos || [];
@@ -485,21 +442,17 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       setNewCep("");
     }
   };
-
   const removeCepAbrangido = (index: number) => {
     const currentCeps = watchedValues.cepsAbrangidos || [];
     setValue('cepsAbrangidos', currentCeps.filter((_, i) => i !== index));
   };
-
   const handleFormSubmit = async (data: RegiaoFormData) => {
     try {
       const validToken = await getValidToken();
-
       const processedData = {
           ...data,
           tecnicoPrincipalId: data.tecnicoPrincipalId === "none" ? undefined : data.tecnicoPrincipalId
       };
-
       // Add the token to the data or pass it to onSubmit
       const response = await fetch('/api/locations-new/regiao', {
         method: 'POST',
@@ -509,7 +462,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         },
         body: JSON.stringify(processedData),
       });
-
       if (response.ok) {
         const result = await response.json();
         toast({
@@ -521,7 +473,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         // Token expired, refresh and retry
         await refreshToken();
         const freshToken = localStorage.getItem('accessToken');
-
         const retryResponse = await fetch('/api/locations-new/regiao', {
           method: 'POST',
           headers: {
@@ -530,7 +481,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           },
           body: JSON.stringify(processedData),
         });
-
         if (retryResponse.ok) {
           const result = await retryResponse.json();
           toast({
@@ -563,7 +513,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       });
     }
   };
-
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
       {/* Identificação */}
@@ -582,7 +531,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             />
             <Label>Ativo</Label>
           </div>
-
           <div>
             <Label htmlFor="nome">Nome *</Label>
             <Input
@@ -592,10 +540,9 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               className={errors.nome ? "border-red-500" : ""
             />
             {errors.nome && (
-              <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
+              <p className="text-lg">"{errors.nome.message}</p>
             )}
           </div>
-
           <div>
             <Label htmlFor="descricao">Descrição</Label>
             <Textarea
@@ -605,7 +552,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               rows={3}
             />
           </div>
-
           <div>
             <Label htmlFor="codigoIntegracao">Código de Integração</Label>
             <Input
@@ -616,7 +562,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
         </CardContent>
       </Card>
-
       {/* Relacionamentos */}
       <Card>
         <CardHeader>
@@ -633,7 +578,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               onChange={(clientes) => setValue('clientesVinculados', clientes)}
             />
           </div>
-
           <div>
             <Label>Técnico Principal</Label>
             <TecnicoSelect
@@ -641,7 +585,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               onChange={(tecnicoId) => setValue('tecnicoPrincipalId', tecnicoId)}
             />
           </div>
-
           <div>
             <Label>Grupos Vinculados (Multi-seleção)</Label>
             <GruposMultiSelect
@@ -649,7 +592,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               onChange={(grupos) => setValue('gruposVinculados', grupos)}
             />
           </div>
-
           <div>
             <Label>Locais de Atendimento Vinculados (Multi-seleção)</Label>
             <LocaisMultiSelect
@@ -659,7 +601,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
         </CardContent>
       </Card>
-
       {/* Geolocalização */}
       <Card>
         <CardHeader>
@@ -689,7 +630,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               />
             </div>
           </div>
-
           <div className="flex gap-2>
             <Button
               type="button"
@@ -713,7 +653,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               </Button>
             )}
           </div>
-
           {showMap && (
             <div className="border rounded-lg p-4>
               <SimpleMapWithButtons
@@ -724,9 +663,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               />
             </div>
           )}
-
           <Separator />
-
           <div>
             <Label>CEPs Abrangidos ou Próximos</Label>
             <div className="flex gap-2 mt-2>
@@ -756,7 +693,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
         </CardContent>
       </Card>
-
       {/* Endereço Base */}
       <Card>
         <CardHeader>
@@ -782,7 +718,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               </Button>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-4>
             <div>
               <Label htmlFor="pais">País</Label>
@@ -801,7 +736,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               />
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-4>
             <div>
               <Label htmlFor="municipio">Município</Label>
@@ -820,7 +754,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               />
             </div>
           </div>
-
           <div>
             <Label htmlFor="tipoLogradouro">Tipo de Logradouro</Label>
             <Select onValueChange={(value) => setValue('tipoLogradouro', value)}>
@@ -836,7 +769,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               </SelectContent>
             </Select>
           </div>
-
           <div>
             <Label htmlFor="logradouro">Logradouro</Label>
             <Input
@@ -845,7 +777,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               placeholder="Nome da rua, avenida, etc."
             />
           </div>
-
           <div className="grid grid-cols-2 gap-4>
             <div>
               <Label htmlFor="numero">Número</Label>
@@ -866,7 +797,6 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </div>
         </CardContent>
       </Card>
-
       {/* Actions */}
       <div className="flex justify-end gap-2>
         {onCancel && (

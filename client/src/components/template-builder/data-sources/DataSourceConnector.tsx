@@ -1,8 +1,6 @@
-
 /**
  * Conector de fontes de dados para campos do template builder
  */
-
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
 import { Button } from '../../ui/button'
@@ -28,7 +26,6 @@ import {
   Eye,
   Download
 } from 'lucide-react'
-
 interface DataSource {
   id: string
   name: string
@@ -48,16 +45,13 @@ interface DataSource {
   status: 'idle' | 'loading' | 'success' | 'error'
   error?: string
 }
-
 interface DataSourceConnectorProps {
   field: any
   onUpdate: (dataSource: DataSource) => void
   onClose: () => void
 }
-
 export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
   // Localization temporarily disabled
-
   field,
   onUpdate,
   onClose
@@ -74,15 +68,12 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
   
   const [testResult, setTestResult] = useState<any[]>([])
   const [isTesting, setIsTesting] = useState(false)
-
   // Testar conexão com fonte de dados
   const testDataSource = async () => {
     setIsTesting(true)
     setDataSource(prev => ({ ...prev, status: 'loading', error: undefined }))
-
     try {
       let data: any[] = []
-
       switch (dataSource.type) {
         case 'api':
           data = await fetchFromAPI()
@@ -97,7 +88,6 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
           data = await executeFunction()
           break
       }
-
       setTestResult(data)
       setDataSource(prev => ({
         ...prev,
@@ -105,7 +95,6 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
         status: 'success',
         lastFetch: new Date()
       }))
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '[TRANSLATION_NEEDED]'
       setDataSource(prev => ({
@@ -117,13 +106,10 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       setIsTesting(false)
     }
   }
-
   // Buscar dados de API
   const fetchFromAPI = async (): Promise<any[]> => {
     const { url, method = 'GET', headers = {}, body } = dataSource.config
-
     if (!url) throw new Error('URL da API é obrigatória')
-
     const requestConfig: RequestInit = {
       method,
       headers: {
@@ -131,24 +117,18 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
         ...headers
       }
     }
-
     if (method === 'POST' && body) {
       requestConfig.body = body
     }
-
     const response = await fetch(url, requestConfig)
-
     if (!response.ok) {
       throw new Error("
     }
-
     const data = await response.json()
-
     // Aplicar transformação se definida
     if (dataSource.config.transform) {
       return transformData(data, dataSource.config.transform)
     }
-
     // Se for array, retornar direto. Senão, tentar extrair array de propriedade
     if (Array.isArray(data)) {
       return data
@@ -160,13 +140,10 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       return [data]
     }
   }
-
   // Buscar dados do banco de dados
   const fetchFromDatabase = async (): Promise<any[]> => {
     const { query } = dataSource.config
-
     if (!query) throw new Error('Query SQL é obrigatória')
-
     // Fazer requisição para endpoint do backend
     const response = await fetch('/api/data-sources/query', {
       method: 'POST',
@@ -175,21 +152,16 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       },
       body: JSON.stringify({ query })
     })
-
     if (!response.ok) {
       throw new Error("
     }
-
     const result = await response.json()
     return result.data || []
   }
-
   // Processar dados estáticos
   const parseStaticData = (): any[] => {
     const { body } = dataSource.config
-
     if (!body) return []
-
     try {
       const parsed = JSON.parse(body)
       return Array.isArray(parsed) ? parsed : [parsed]
@@ -204,13 +176,10 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
         }))
     }
   }
-
   // Executar função personalizada
   const executeFunction = async (): Promise<any[]> => {
     const { body } = dataSource.config
-
     if (!body) throw new Error('Código da função é obrigatório')
-
     try {
       // Contexto seguro para execução
       const context = {
@@ -220,21 +189,17 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
         Math: Math,
         JSON: JSON
       }
-
       const func = new Function('context', `
         with(context) {
           ${body}
         }
       `)
-
       const result = await func(context)
       return Array.isArray(result) ? result : [result]
-
     } catch (error) {
       throw new Error("
     }
   }
-
   // Transformar dados
   const transformData = (data: any, transformCode: string): any[] => {
     try {
@@ -249,7 +214,6 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       throw new Error("
     }
   }
-
   // Salvar e aplicar fonte de dados
   const handleSave = () => {
     onUpdate({
@@ -257,20 +221,18 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       lastFetch: new Date()
     })
   }
-
   return (
     <div className="h-full flex flex-col bg-white border-l>
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between>
         <div className="flex items-center gap-2>
           <Database className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold">Fonte de Dados</h3>
+          <h3 className="text-lg">"Fonte de Dados</h3>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           ×
         </Button>
       </div>
-
       {/* Content */}
       <div className="flex-1 overflow-y-auto>
         <Tabs defaultValue="config" className="h-full>
@@ -279,20 +241,18 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
             <TabsTrigger value="test">Teste</TabsTrigger>
             <TabsTrigger value="preview">Preview</TabsTrigger>
           </TabsList>
-
           {/* Configuration Tab */}
           <TabsContent value="config" className="p-4 space-y-4>
             <div>
-              <Label className="text-sm font-medium">Nome da Fonte</Label>
+              <Label className="text-lg">"Nome da Fonte</Label>
               <Input
                 value={dataSource.name}
                 onChange={(e) => setDataSource(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Nome descritivo da fonte de dados"
               />
             </div>
-
             <div>
-              <Label className="text-sm font-medium">Tipo de Fonte</Label>
+              <Label className="text-lg">"Tipo de Fonte</Label>
               <Select
                 value={dataSource.type}
                 onValueChange={(type: any) => setDataSource(prev => ({ 
@@ -332,11 +292,10 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
                 </SelectContent>
               </Select>
             </div>
-
             {/* Static Data */}
             {dataSource.type === 'static' && (
               <div>
-                <Label className="text-sm font-medium">Dados (JSON ou Lista)</Label>
+                <Label className="text-lg">"Dados (JSON ou Lista)</Label>
                 <Textarea
                   value={dataSource.config.body || ''}
                   onChange={(e) => setDataSource(prev => ({
@@ -347,9 +306,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
   {"value": "opt1", "label": "Opção 1"},
   {"value": "opt2", "label": "Opção 2"
 ]
-
 ou
-
 Opção 1
 Opção 2
 Opção 3"
@@ -358,12 +315,11 @@ Opção 3"
                 />
               </div>
             )}
-
             {/* API Configuration */}
             {dataSource.type === 'api' && (
               <div className="space-y-3>
                 <div>
-                  <Label className="text-sm font-medium">URL da API</Label>
+                  <Label className="text-lg">"URL da API</Label>
                   <Input
                     value={dataSource.config.url || ''}
                     onChange={(e) => setDataSource(prev => ({
@@ -373,9 +329,8 @@ Opção 3"
                     placeholder="https://api.exemplo.com/dados"
                   />
                 </div>
-
                 <div>
-                  <Label className="text-sm font-medium">Método HTTP</Label>
+                  <Label className="text-lg">"Método HTTP</Label>
                   <Select
                     value={dataSource.config.method || 'GET'}
                     onValueChange={(method: any) => setDataSource(prev => ({
@@ -392,10 +347,9 @@ Opção 3"
                     </SelectContent>
                   </Select>
                 </div>
-
                 {dataSource.config.method === 'POST' && (
                   <div>
-                    <Label className="text-sm font-medium">Body (JSON)</Label>
+                    <Label className="text-lg">"Body (JSON)</Label>
                     <Textarea
                       value={dataSource.config.body || ''}
                       onChange={(e) => setDataSource(prev => ({
@@ -407,9 +361,8 @@ Opção 3"
                     />
                   </div>
                 )}
-
                 <div>
-                  <Label className="text-sm font-medium">Transformação (JavaScript)</Label>
+                  <Label className="text-lg">"Transformação (JavaScript)</Label>
                   <Textarea
                     value={dataSource.config.transform || ''}
                     onChange={(e) => setDataSource(prev => ({
@@ -426,11 +379,10 @@ Opção 3"
                 </div>
               </div>
             )}
-
             {/* Database Configuration */}
             {dataSource.type === 'database' && (
               <div>
-                <Label className="text-sm font-medium">Query SQL</Label>
+                <Label className="text-lg">"Query SQL</Label>
                 <Textarea
                   value={dataSource.config.query || ''}
                   onChange={(e) => setDataSource(prev => ({
@@ -443,11 +395,10 @@ Opção 3"
                 />
               </div>
             )}
-
             {/* Function Configuration */}
             {dataSource.type === 'function' && (
               <div>
-                <Label className="text-sm font-medium">Código JavaScript</Label>
+                <Label className="text-lg">"Código JavaScript</Label>
                 <Textarea
                   value={dataSource.config.body || ''}
                   onChange={(e) => setDataSource(prev => ({
@@ -465,11 +416,10 @@ return data.map(item => ({
                 />
               </div>
             )}
-
             {/* Cache Settings */}
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg>
               <div>
-                <Label className="text-sm font-medium">Cache de Dados</Label>
+                <Label className="text-lg">"Cache de Dados</Label>
                 <p className="text-xs text-gray-500>
                   Armazenar resultados em cache para melhor performance
                 </p>
@@ -483,11 +433,10 @@ return data.map(item => ({
               />
             </div>
           </TabsContent>
-
           {/* Test Tab */}
           <TabsContent value="test" className="p-4 space-y-4>
             <div className="flex items-center justify-between>
-              <h4 className="font-medium">Testar Fonte de Dados</h4>
+              <h4 className="text-lg">"Testar Fonte de Dados</h4>
               <Button 
                 onClick={testDataSource} 
                 disabled={isTesting}
@@ -501,7 +450,6 @@ return data.map(item => ({
                 Testar
               </Button>
             </div>
-
             {dataSource.status === 'loading' && (
               <Alert>
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -510,7 +458,6 @@ return data.map(item => ({
                 </AlertDescription>
               </Alert>
             )}
-
             {dataSource.status === 'success' && (
               <Alert className="border-green-200 bg-green-50>
                 <CheckCircle className="w-4 h-4 text-green-600" />
@@ -519,7 +466,6 @@ return data.map(item => ({
                 </AlertDescription>
               </Alert>
             )}
-
             {dataSource.status === 'error' && (
               <Alert className="border-red-200 bg-red-50>
                 <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -528,10 +474,9 @@ return data.map(item => ({
                 </AlertDescription>
               </Alert>
             )}
-
             {testResult.length > 0 && (
               <div>
-                <h5 className="font-medium mb-2">Dados de Exemplo:</h5>
+                <h5 className="text-lg">"Dados de Exemplo:</h5>
                 <div className="bg-gray-50 p-3 rounded border max-h-60 overflow-y-auto>
                   <pre className="text-xs>
                     {JSON.stringify(testResult.slice(0, 5), null, 2)}
@@ -545,11 +490,10 @@ return data.map(item => ({
               </div>
             )}
           </TabsContent>
-
           {/* Preview Tab */}
           <TabsContent value="preview" className="p-4 space-y-4>
             <div>
-              <h4 className="font-medium mb-3">Preview do Campo</h4>
+              <h4 className="text-lg">"Preview do Campo</h4>
               <div className="border rounded p-4 bg-gray-50>
                 <Label className="text-sm font-medium mb-2 block>
                   {field.label}
@@ -576,7 +520,6 @@ return data.map(item => ({
                 )}
               </div>
             </div>
-
             {dataSource.lastFetch && (
               <p className="text-xs text-gray-500>
                 Última atualização: {dataSource.lastFetch.toLocaleString('pt-BR')}
@@ -585,7 +528,6 @@ return data.map(item => ({
           </TabsContent>
         </Tabs>
       </div>
-
       {/* Footer */}
       <div className="p-4 border-t flex gap-2>
         <Button onClick={handleSave} className="flex-1>
@@ -598,5 +540,4 @@ return data.map(item => ({
     </div>
   )
 }
-
 export default DataSourceConnector

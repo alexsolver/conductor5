@@ -18,8 +18,6 @@ import { useToast } from "@/hooks/use-toast";
 import LeafletMapSelector from "@/components/LeafletMapSelector";
 import MapSelector from '@/components/MapSelector';
 // import { useLocalization } from '@/hooks/useLocalization';
-
-
 interface LocalFormProps {
   onSubmit: (data: NewLocal) => void;
   initialData?: Partial<NewLocal>;
@@ -27,34 +25,27 @@ interface LocalFormProps {
   onSuccess?: () => void; // Added for success callback
   onClose?: () => void; // Added for close callback
 }
-
 interface TeamMember {
   id: string;
   name: string;
   email: string;
   role: string;
 }
-
-
-
 interface Holiday {
   data: string;
   nome: string;
   incluir: boolean;
 }
-
 interface HolidaysByType {
   municipais: Holiday[];
   estaduais: Holiday[];
   federais: Holiday[];
 }
-
 interface Indisponibilidade {
   dataInicio: string;
   dataFim: string;
   observacao: string;
 }
-
 interface AddressData {
   cep: string;
   logradouro: string;
@@ -62,11 +53,9 @@ interface AddressData {
   localidade: string;
   uf: string;
 }
-
 const TIPOS_LOGRADOURO = [
   'Rua', 'Avenida', 'Travessa', 'Alameda', 'Rodovia', 'Estrada', 'Praça', 'Largo'
 ];
-
 const FUSOS_HORARIO = [
   'America/Sao_Paulo',
   'America/Manaus',
@@ -74,14 +63,12 @@ const FUSOS_HORARIO = [
   'America/Boa_Vista',
   'America/Noronha'
 ];
-
 export default function LocalForm({
   // Localization temporarily disabled
  onSubmit, initialData, isLoading, onSuccess, onClose }: LocalFormProps) {
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
-
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingHolidays, setLoadingHolidays] = useState(false);
   const [holidays, setHolidays] = useState<HolidaysByType>({
@@ -99,8 +86,6 @@ export default function LocalForm({
   const [showIndisponibilidadesDialog, setShowIndisponibilidadesDialog] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([-15.7942, -47.8822]); // Default to Brasília
-
-
   const form = useForm<NewLocal>({
     resolver: zodResolver(localSchema),
     defaultValues: {
@@ -110,7 +95,6 @@ export default function LocalForm({
       ...initialData
     }
   });
-
   // Load team members on mount
   useEffect(() => {
     loadTeamMembers();
@@ -121,28 +105,23 @@ export default function LocalForm({
       setIndisponibilidades(initialData.indisponibilidades as Indisponibilidade[]);
     }
   }, [initialData]);
-
   const loadTeamMembers = async () => {
     try {
       const validToken = await validateAndRefreshToken();
-
       if (!validToken) {
         console.error('No valid token for team members fetch');
         setTeamMembers([]);
         return;
       }
-
       const response = await fetch('/api/team-management/members', {
         headers: {
           'Authorization': "
           'Content-Type': 'application/json'
         }
       });
-
       if (response.ok) {
         const members = await response.json();
         console.log('LocalForm: Raw team members response:', members);
-
         if (Array.isArray(members)) {
           const formattedMembers = members
             .filter(member => member.id && (member.name || member.firstName || member.lastName))
@@ -152,7 +131,6 @@ export default function LocalForm({
               email: member.email || 'Sem email',
               role: member.position || member.role || 'Membro da Equipe'
             }));
-
           console.log('LocalForm: Formatted team members:', formattedMembers);
           setTeamMembers(formattedMembers);
         } else {
@@ -169,11 +147,9 @@ export default function LocalForm({
       setTeamMembers([]);
     }
   };
-
     // Token validation and refresh
     const validateAndRefreshToken = async () => {
       const currentToken = localStorage.getItem('accessToken');
-
       if (!currentToken) {
         console.log('No token found, attempting refresh');
         try {
@@ -184,7 +160,6 @@ export default function LocalForm({
               'Content-Type': 'application/json'
             }
           });
-
           if (response.ok) {
             const data = await response.json();
             localStorage.setItem('accessToken', data.accessToken);
@@ -196,12 +171,10 @@ export default function LocalForm({
         }
         return null;
       }
-
       // Check if token is expired
       try {
         const payload = JSON.parse(atob(currentToken.split('.')[1]));
         const isExpired = payload.exp * 1000 < Date.now();
-
         if (isExpired) {
           console.log('Token expired, refreshing');
           const response = await fetch('/api/auth/refresh', {
@@ -211,7 +184,6 @@ export default function LocalForm({
               'Content-Type': 'application/json'
             }
           });
-
           if (response.ok) {
             const data = await response.json();
             localStorage.setItem('accessToken', data.accessToken);
@@ -222,14 +194,11 @@ export default function LocalForm({
       } catch (error) {
         console.error('Token validation error:', error);
       }
-
       return currentToken;
     };
-
     useEffect(() => {
       validateAndRefreshToken();
     }, []);
-
   const buscarCep = async (cep: string) => {
     const cleanCep = cep.replace(/\D/g, '');
     
@@ -241,11 +210,9 @@ export default function LocalForm({
       });
       return;
     }
-
     setLoadingAddress(true);
     try {
       console.log('🔍 [CEP-LOOKUP] Searching for CEP:', cleanCep);
-
       // Get valid token
       const validToken = await validateAndRefreshToken();
       if (!validToken) {
@@ -256,7 +223,6 @@ export default function LocalForm({
         });
         return;
       }
-
       // Try internal API endpoint first
       const response = await fetch("
         headers: {
@@ -264,13 +230,10 @@ export default function LocalForm({
           'Content-Type': 'application/json',
         },
       });
-
       console.log('📡 [CEP-LOOKUP] Internal API response status:', response.status);
-
       if (response.ok) {
         const result = await response.json();
         console.log('✅ [CEP-LOOKUP] Internal API success:', result);
-
         if (result.success && result.data) {
           const data = result.data;
           
@@ -279,10 +242,8 @@ export default function LocalForm({
           form.setValue('bairro', data.bairro || '');
           form.setValue('municipio', data.localidade || '');
           form.setValue('estado', data.uf || '');
-
           // Get coordinates for the address
           await buscarCoordenadas(data);
-
           toast({
             title: "CEP encontrado",
             description: "
@@ -290,7 +251,6 @@ export default function LocalForm({
           return;
         }
       }
-
       // Fallback to ViaCEP direct API
       console.log('🔄 [CEP-LOOKUP] Trying ViaCEP fallback');
       const viaCepResponse = await fetch("/json/`);
@@ -298,19 +258,15 @@ export default function LocalForm({
       if (!viaCepResponse.ok) {
         throw new Error('ViaCEP service unavailable');
       }
-
       const viaCepData = await viaCepResponse.json();
       console.log('📡 [CEP-LOOKUP] ViaCEP response:', viaCepData);
-
       if (viaCepData && !viaCepData.erro) {
         console.log('✅ [CEP-LOOKUP] ViaCEP success');
-
         // Update form fields
         form.setValue('logradouro', viaCepData.logradouro || '');
         form.setValue('bairro', viaCepData.bairro || '');
         form.setValue('municipio', viaCepData.localidade || '');
         form.setValue('estado', viaCepData.uf || '');
-
         // Get coordinates for the address
         await buscarCoordenadas({
           cep: viaCepData.cep,
@@ -319,7 +275,6 @@ export default function LocalForm({
           localidade: viaCepData.localidade || '',
           uf: viaCepData.uf || ''
         });
-
         toast({
           title: "CEP encontrado",
           description: "
@@ -343,24 +298,19 @@ export default function LocalForm({
       setLoadingAddress(false);
     }
   };
-
   const buscarCoordenadas = async (addressData: AddressData) => {
     const endereco = ", Brasil`;
-
     try {
       const response = await fetch(
         "
       );
       const data = await response.json();
-
       if (data && data[0]) {
         const lat = parseFloat(data[0].lat);
         const lon = parseFloat(data[0].lon);
-
         form.setValue('latitude', lat.toString());
         form.setValue('longitude', lon.toString());
         setMapCenter([lat, lon]);
-
         form.setValue('geoCoordenadas', {
           latitude: lat,
           longitude: lon,
@@ -378,7 +328,6 @@ export default function LocalForm({
       });
     }
   };
-
   const handleMapCoordinateSelect = (lat: number, lng: number) => {
     console.log('🗺️ [MAP-SELECT] Coordinates selected:', { lat, lng });
     form.setValue('latitude', lat.toString());
@@ -390,7 +339,6 @@ export default function LocalForm({
       description: "
     });
   };
-
   const openMapSelector = () => {
     console.log('🗺️ [MAP-MODAL] Opening map selector');
     
@@ -418,11 +366,9 @@ export default function LocalForm({
     
     setShowMapModal(true);
   };
-
   const buscarFeriados = async () => {
     const municipio = form.getValues('municipio');
     const estado = form.getValues('estado');
-
     if (!municipio || !estado) {
       toast({
         title: "Dados incompletos",
@@ -431,13 +377,10 @@ export default function LocalForm({
       });
       return;
     }
-
     setLoadingHolidays(true);
     try {
       const currentYear = new Date().getFullYear();
-
       console.log('🔍 [HOLIDAYS-FETCH] Starting holidays fetch:', { municipio, estado, currentYear });
-
       // Get valid token
       const validToken = await validateAndRefreshToken();
       if (!validToken) {
@@ -448,7 +391,6 @@ export default function LocalForm({
         });
         return;
       }
-
       // Call holidays API endpoint
       const response = await fetch("
         headers: {
@@ -456,18 +398,14 @@ export default function LocalForm({
           'Content-Type': 'application/json'
         }
       });
-
       console.log('📡 [HOLIDAYS-FETCH] API response status:', response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ [HOLIDAYS-FETCH] API error:', response.status, errorText);
         throw new Error("
       }
-
       const result = await response.json();
       console.log('✅ [HOLIDAYS-FETCH] API result:', result);
-
       if (result.success && result.data) {
         // Ensure the data structure matches what the UI expects
         const formattedData = {
@@ -475,13 +413,10 @@ export default function LocalForm({
           estaduais: result.data.estaduais || [],
           municipais: result.data.municipais || []
         };
-
         console.log('✅ [HOLIDAYS-FETCH] Formatted data:', formattedData);
-
         setHolidays(formattedData);
         setSelectedHolidays(formattedData); // Initialize selected holidays
         setShowHolidaysDialog(true);
-
         toast({
           title: "Feriados encontrados",
           description: "
@@ -490,7 +425,6 @@ export default function LocalForm({
         console.error('❌ [HOLIDAYS-FETCH] Invalid API response:', result);
         throw new Error(result.message || 'Dados de feriados não encontrados');
       }
-
     } catch (error) {
       console.error('❌ [HOLIDAYS-FETCH] Error:', error);
       toast({
@@ -502,7 +436,6 @@ export default function LocalForm({
       setLoadingHolidays(false);
     }
   };
-
   const toggleHoliday = (type: keyof HolidaysByType, index: number) => {
     setSelectedHolidays(prev => ({
       ...prev,
@@ -511,7 +444,6 @@ export default function LocalForm({
       )
     }));
   };
-
   const salvarFeriados = () => {
     form.setValue('feriadosIncluidos', selectedHolidays);
     setShowHolidaysDialog(false);
@@ -520,7 +452,6 @@ export default function LocalForm({
       description: "Configuração de feriados atualizada"
     });
   };
-
   const adicionarIndisponibilidade = () => {
     const novaIndisponibilidade: Indisponibilidade = {
       dataInicio: '',
@@ -529,11 +460,9 @@ export default function LocalForm({
     };
     setIndisponibilidades([...indisponibilidades, novaIndisponibilidade]);
   };
-
   const removerIndisponibilidade = (index: number) => {
     setIndisponibilidades(indisponibilidades.filter((_, i) => i !== index));
   };
-
   const salvarIndisponibilidades = () => {
     form.setValue('indisponibilidades', indisponibilidades);
     setShowIndisponibilidadesDialog(false);
@@ -542,12 +471,10 @@ export default function LocalForm({
       description: "Períodos de indisponibilidade atualizados"
     });
   };
-
   const handleSubmit = async (data: any) => {
     try {
       console.log('🔄 [LOCAL-FORM] Starting form submission...');
       console.log('📝 [LOCAL-FORM] Form data:', JSON.stringify(data, null, 2));
-
       // Validar token de acesso
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -559,7 +486,6 @@ export default function LocalForm({
         });
         return;
       }
-
       // Validar dados básicos antes de enviar
       if (!data.nome || typeof data.nome !== 'string' || data.nome.trim().length === 0) {
         console.error('❌ [LOCAL-FORM] Nome field validation failed');
@@ -570,9 +496,7 @@ export default function LocalForm({
         });
         return;
       }
-
       console.log('🌐 [LOCAL-FORM] Making API request to /api/locations-new/local');
-
       // Fazer requisição
       const response = await fetch('/api/locations-new/local', {
         method: 'POST',
@@ -583,25 +507,20 @@ export default function LocalForm({
         },
         body: JSON.stringify(data)
       });
-
       console.log('📡 [LOCAL-FORM] Response received:', {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok,
         headers: Object.fromEntries(response.headers.entries())
       });
-
       // Verificar content-type da resposta
       const contentType = response.headers.get('content-type');
       console.log('📋 [LOCAL-FORM] Content-Type:', contentType);
-
       let result: any;
-
       // Tentar ler resposta como JSON
       try {
         const responseText = await response.text();
         console.log('📄 [LOCAL-FORM] Raw response text:', responseText.substring(0, 500));
-
         if (!responseText) {
           console.error('❌ [LOCAL-FORM] Empty response from server');
           toast({
@@ -611,7 +530,6 @@ export default function LocalForm({
           });
           return;
         }
-
         // Verificar se é HTML (página de erro)
         if (responseText.trim().startsWith('<!DOCTYPE') || 
             responseText.trim().startsWith('<html') ||
@@ -621,13 +539,10 @@ export default function LocalForm({
           console.error('🔍 [LOCAL-FORM] HTML content preview:', responseText.substring(0, 1000));
           console.error('🔍 [LOCAL-FORM] Response status:', response.status);
           console.error('🔍 [LOCAL-FORM] Response headers:', Object.fromEntries(response.headers.entries()));
-
           // Tentar extrair informação de erro do HTML se possível
           const titleMatch = responseText.match(/<title>(.*?)<\/title>/i);
           const errorTitle = titleMatch ? titleMatch[1] : '[TRANSLATION_NEEDED]';
-
           let errorMessage = "O servidor retornou uma página de erro em vez de dados JSON.";
-
           // Verificar se é erro 500, 404, etc.
           if (response.status >= 500) {
             errorMessage = '[TRANSLATION_NEEDED]';
@@ -636,7 +551,6 @@ export default function LocalForm({
           } else if (response.status >= 400) {
             errorMessage = '[TRANSLATION_NEEDED]';
           }
-
           toast({
             title: '[TRANSLATION_NEEDED]',
             description: errorMessage,
@@ -644,7 +558,6 @@ export default function LocalForm({
           });
           return;
         }
-
         // Verificar se parece com JSON antes de parsear
         const trimmed = responseText.trim();
         if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
@@ -656,18 +569,15 @@ export default function LocalForm({
           });
           return;
         }
-
         // Tentar parsear JSON
         result = JSON.parse(responseText);
         console.log('✅ [LOCAL-FORM] Successfully parsed JSON:', result);
-
       } catch (parseError) {
         console.error('❌ [LOCAL-FORM] JSON parsing error:', parseError);
         console.error('❌ [LOCAL-FORM] Parse error details:', {
           name: parseError.name,
           message: parseError.message
         });
-
         toast({
           title: '[TRANSLATION_NEEDED]',
           description: "
@@ -675,17 +585,14 @@ export default function LocalForm({
         });
         return;
       }
-
       // Processar resposta baseada no status HTTP
       if (response.ok && result?.success) {
         console.log('✅ [LOCAL-FORM] Local created successfully');
-
         toast({
           title: '[TRANSLATION_NEEDED]',
           description: result.message || "Local criado com sucesso!",
           variant: "default"
         });
-
         // Callbacks de sucesso
         if (onSuccess) {
           console.log('🔄 [LOCAL-FORM] Calling onSuccess callback');
@@ -695,18 +602,15 @@ export default function LocalForm({
           console.log('🔄 [LOCAL-FORM] Calling onClose callback');  
           onClose();
         }
-
       } else {
         // Erro do servidor ou validação
         console.error('❌ [LOCAL-FORM] Server returned error:', {
           status: response.status,
           result: result
         });
-
         const errorMessage = result?.message || result?.error || '[TRANSLATION_NEEDED]';
         const errorDetails = result?.details ? 
           result.details.map((d: any) => "
-
         toast({
           title: '[TRANSLATION_NEEDED]',
           description: errorDetails ? 
@@ -715,10 +619,8 @@ export default function LocalForm({
           variant: "destructive"
         });
       }
-
     } catch (networkError) {
       console.error('❌ [LOCAL-FORM] Network or unexpected error:', networkError);
-
       if (networkError instanceof TypeError && networkError.message.includes('Failed to fetch')) {
         toast({
           title: '[TRANSLATION_NEEDED]',
@@ -734,7 +636,6 @@ export default function LocalForm({
       }
     }
   };
-
   return (
     <div className="space-y-6>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6>
@@ -754,7 +655,6 @@ export default function LocalForm({
               />
               <Label>Ativo</Label>
             </div>
-
             <div>
               <Label htmlFor="nome">Nome *</Label>
               <Input
@@ -764,10 +664,9 @@ export default function LocalForm({
                 className="mt-1"
               />
               {form.formState.errors.nome && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.nome.message}</p>
+                <p className="text-lg">"{form.formState.errors.nome.message}</p>
               )}
             </div>
-
             <div>
               <Label htmlFor="descricao">Descrição</Label>
               <Textarea
@@ -777,10 +676,9 @@ export default function LocalForm({
                 className="mt-1"
               />
               {form.formState.errors.descricao && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.descricao.message}</p>
+                <p className="text-lg">"{form.formState.errors.descricao.message}</p>
               )}
             </div>
-
             <div>
               <Label htmlFor="codigoIntegracao">Código de Integração</Label>
               <Input
@@ -790,7 +688,6 @@ export default function LocalForm({
                 className="mt-1"
               />
             </div>
-
             <div>
               <Label htmlFor="tipoClienteFavorecido">Cliente ou Favorecido</Label>
               <Select 
@@ -816,7 +713,6 @@ export default function LocalForm({
                 </SelectContent>
               </Select>
             </div>
-
             <div>
               <Label htmlFor="tecnicoPrincipalId">Técnico Principal</Label>
               <Select 
@@ -831,7 +727,7 @@ export default function LocalForm({
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex flex-col>
                         <span>{member.name}</span>
-                        <span className="text-sm text-gray-500">{member.role} - {member.email}</span>
+                        <span className="text-lg">"{member.role} - {member.email}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -840,7 +736,6 @@ export default function LocalForm({
             </div>
           </CardContent>
         </Card>
-
         {/* Seção 2: Contato */}
         <Card>
           <CardHeader>
@@ -860,10 +755,9 @@ export default function LocalForm({
                 className="mt-1"
               />
               {form.formState.errors.email && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.email.message}</p>
+                <p className="text-lg">"{form.formState.errors.email.message}</p>
               )}
             </div>
-
             <div className="grid grid-cols-3 gap-4>
               <div>
                 <Label htmlFor="ddd">DDD</Label>
@@ -887,7 +781,6 @@ export default function LocalForm({
             </div>
           </CardContent>
         </Card>
-
         {/* Seção 3: Endereço */}
         <Card>
           <CardHeader>
@@ -927,7 +820,7 @@ export default function LocalForm({
                   }}
                 />
                 {form.formState.errors.cep && (
-                  <p className="text-sm text-red-500 mt-1">{form.formState.errors.cep.message}</p>
+                  <p className="text-lg">"{form.formState.errors.cep.message}</p>
                 )}
               </div>
               <div className="flex items-end>
@@ -957,7 +850,6 @@ export default function LocalForm({
                 </Button>
               </div>
             </div>
-
             <div>
               <Label htmlFor="pais">País</Label>
               <Input
@@ -966,7 +858,6 @@ export default function LocalForm({
                 className="mt-1"
               />
             </div>
-
             <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="estado">Estado</Label>
@@ -987,7 +878,6 @@ export default function LocalForm({
                 />
               </div>
             </div>
-
             <div>
               <Label htmlFor="bairro">Bairro</Label>
               <Input
@@ -997,7 +887,6 @@ export default function LocalForm({
                 className="mt-1"
               />
             </div>
-
             <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="tipoLogradouro">Tipo de Logradouro</Label>
@@ -1027,7 +916,6 @@ export default function LocalForm({
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4>
               <div>
                 <Label htmlFor="numero">Número</Label>
@@ -1050,7 +938,6 @@ export default function LocalForm({
             </div>
           </CardContent>
         </Card>
-
         {/* Seção 4: Georreferenciamento */}
         <Card>
           <CardHeader>
@@ -1072,10 +959,9 @@ export default function LocalForm({
                     className={form.formState.errors.latitude ? 'border-red-500' : ''}
                   />
                   {form.formState.errors.latitude && (
-                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.latitude.message}</p>
+                    <p className="text-lg">"{form.formState.errors.latitude.message}</p>
                   )}
                 </div>
-
                 <div>
                   <Label htmlFor="longitude">Longitude</Label>
                   <Input
@@ -1087,10 +973,9 @@ export default function LocalForm({
                     className={form.formState.errors.longitude ? 'border-red-500' : ''}
                   />
                   {form.formState.errors.longitude && (
-                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.longitude.message}</p>
+                    <p className="text-lg">"{form.formState.errors.longitude.message}</p>
                   )}
                 </div>
-
                 <div className="flex items-end>
                   <Button
                     type="button"
@@ -1104,7 +989,6 @@ export default function LocalForm({
                   </Button>
                 </div>
               </div>
-
             <div className="space-y-2>
               {(form.watch('latitude') && form.watch('longitude')) && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-md>
@@ -1125,7 +1009,6 @@ export default function LocalForm({
             </div>
           </CardContent>
         </Card>
-
         {/* Seção 5: Tempo e Disponibilidade */}
         <Card>
           <CardHeader>
@@ -1153,7 +1036,6 @@ export default function LocalForm({
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2>
               <Button
                 type="button"
@@ -1165,7 +1047,6 @@ export default function LocalForm({
                 <Calendar className="h-4 w-4 mr-2" />
                 {loadingHolidays ? 'Buscando...' : '[TRANSLATION_NEEDED]'}
               </Button>
-
               {Object.values(selectedHolidays).some(arr => arr.some(h => h.incluir)) && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-md>
                   <p className="text-sm text-blue-700>
@@ -1174,7 +1055,6 @@ export default function LocalForm({
                 </div>
               )}
             </div>
-
             <div className="space-y-2>
               <Button
                 type="button"
@@ -1185,7 +1065,6 @@ export default function LocalForm({
                 <Plus className="h-4 w-4 mr-2" />
                 Gerenciar Indisponibilidades
               </Button>
-
               {indisponibilidades.length > 0 && (
                 <div className="p-3 bg-orange-50 border border-orange-200 rounded-md>
                   <p className="text-sm text-orange-700>
@@ -1196,7 +1075,6 @@ export default function LocalForm({
             </div>
           </CardContent>
         </Card>
-
         <div className="flex justify-end space-x-4>
           <Button 
             type="submit" 
@@ -1206,7 +1084,6 @@ export default function LocalForm({
           </Button>
         </div>
       </form>
-
       {/* Dialog de Feriados */}
       <Dialog open={showHolidaysDialog} onOpenChange={setShowHolidaysDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto>
@@ -1229,7 +1106,7 @@ export default function LocalForm({
                         checked={selectedHolidays[type as keyof HolidaysByType]?.[index]?.incluir || false}
                         onCheckedChange={() => toggleHoliday(type as keyof HolidaysByType, index)}
                       />
-                      <span className="text-sm">{holiday.nome}</span>
+                      <span className="text-lg">"{holiday.nome}</span>
                       <span className="text-xs text-gray-500>
                         {new Date(holiday.data).toLocaleDateString()}
                       </span>
@@ -1249,7 +1126,6 @@ export default function LocalForm({
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Dialog de Indisponibilidades */}
       <Dialog open={showIndisponibilidadesDialog} onOpenChange={setShowIndisponibilidadesDialog}>
         <DialogContent className="max-w-2xl>
@@ -1263,7 +1139,7 @@ export default function LocalForm({
             {indisponibilidades.map((item, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3>
                 <div className="flex justify-between items-center>
-                  <span className="font-medium">Período {index + 1}</span>
+                  <span className="text-lg">"Período {index + 1}</span>
                   <Button
                     type="button"
                     variant="outline"
@@ -1313,7 +1189,6 @@ export default function LocalForm({
                 </div>
               </div>
             ))}
-
             <Button
               type="button"
               variant="outline"
@@ -1334,7 +1209,6 @@ export default function LocalForm({
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Dialog do Mapa */}
       <Dialog open={showMapModal} onOpenChange={setShowMapModal}>
         <DialogContent className="max-w-4xl max-h-[90vh]>

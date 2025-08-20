@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { apiRequest } from '@/lib/queryClient';
 import { BarChart3, TrendingUp, Clock, Users, Star, Calendar } from 'lucide-react';
-
 interface TemplateStats {
   total_templates: number;
   active_templates: number;
@@ -28,11 +27,9 @@ interface TemplateStats {
     success_rate: number;
   };
 }
-
 interface TemplateAnalyticsProps {
   companyId?: string;
 }
-
 export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyticsProps) {
   // Fetch comprehensive stats
   const { data: statsResponse, isLoading } = useQuery({
@@ -42,9 +39,7 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
       return response.json();
     },
   });
-
   const stats: TemplateStats = statsResponse?.data?.[0] || {};
-
   // Fetch popular templates
   const { data: popularResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', companyId, 'popular'],
@@ -53,29 +48,25 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
       return response.json();
     },
   });
-
   const popularTemplates = Array.isArray(popularResponse?.data) ? popularResponse.data : [];
-
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6>
         {[...Array(8)].map((_, i) => (
           <Card key={i} className="animate-pulse>
             <CardContent className="p-6>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-8 bg-gray-200 rounded"></div>
+              <div className="text-lg">"</div>
+              <div className="text-lg">"</div>
             </CardContent>
           </Card>
         ))}
       </div>
     );
   }
-
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Nunca';
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
-
   const getCategoryColor = (index: number) => {
     const colors = [
       'bg-blue-100 text-blue-800',
@@ -87,7 +78,6 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
     ];
     return colors[index % colors.length];
   };
-
   return (
     <div className="space-y-6>
       {/* Overview Cards */}
@@ -96,51 +86,47 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
           <CardContent className="p-6>
             <div className="flex items-center justify-between>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total de Templates</p>
-                <p className="text-2xl font-bold">{stats.total_templates || 0}</p>
+                <p className="text-lg">"Total de Templates</p>
+                <p className="text-lg">"{stats.total_templates || 0}</p>
               </div>
               <BarChart3 className="w-8 h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6>
             <div className="flex items-center justify-between>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Templates Ativos</p>
-                <p className="text-2xl font-bold">{stats.active_templates || 0}</p>
+                <p className="text-lg">"Templates Ativos</p>
+                <p className="text-lg">"{stats.active_templates || 0}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6>
             <div className="flex items-center justify-between>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Uso Médio</p>
-                <p className="text-2xl font-bold">{Math.round(stats.avg_usage || 0)}</p>
+                <p className="text-lg">"Uso Médio</p>
+                <p className="text-lg">"{Math.round(stats.avg_usage || 0)}</p>
               </div>
               <Users className="w-8 h-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6>
             <div className="flex items-center justify-between>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Mais Usado</p>
-                <p className="text-2xl font-bold">{stats.max_usage || 0}</p>
+                <p className="text-lg">"Mais Usado</p>
+                <p className="text-lg">"{stats.max_usage || 0}</p>
               </div>
               <Star className="w-8 h-8 text-yellow-500" />
             </div>
           </CardContent>
         </Card>
       </div>
-
       {/* Performance Metrics */}
       {stats.performance_metrics && (
         <Card>
@@ -185,7 +171,6 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
           </CardContent>
         </Card>
       )}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6>
         {/* Templates por Categoria */}
         <Card>
@@ -203,7 +188,7 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2>
-                      <span className="text-sm font-medium">{item.count}</span>
+                      <span className="text-lg">"{item.count}</span>
                       <div className="w-20 bg-gray-200 rounded-full h-2>
                         <div 
                           className="bg-blue-500 h-2 rounded-full"
@@ -217,11 +202,10 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">Nenhum dado de categoria disponível</p>
+              <p className="text-lg">"Nenhum dado de categoria disponível</p>
             )}
           </CardContent>
         </Card>
-
         {/* Templates Mais Usados */}
         <Card>
           <CardHeader>
@@ -240,12 +224,12 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
                         {index + 1}
                       </div>
                       <div>
-                        <p className="font-medium">{template.name}</p>
-                        <p className="text-xs text-muted-foreground">{template.category}</p>
+                        <p className="text-lg">"{template.name}</p>
+                        <p className="text-lg">"{template.category}</p>
                       </div>
                     </div>
                     <div className="text-right>
-                      <p className="font-semibold">{template.usage_count}</p>
+                      <p className="text-lg">"{template.usage_count}</p>
                       <p className="text-xs text-muted-foreground>
                         {formatDate(template.last_used)}
                       </p>
@@ -254,12 +238,11 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">Nenhum template foi usado ainda</p>
+              <p className="text-lg">"Nenhum template foi usado ainda</p>
             )}
           </CardContent>
         </Card>
       </div>
-
       {/* Usage Trends */}
       {stats.usage_trends && stats.usage_trends.length > 0 && (
         <Card>
@@ -277,7 +260,7 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
               </div>
               {stats.usage_trends.slice(-7).map((trend) => (
                 <div key={trend.date} className="flex items-center justify-between>
-                  <span className="text-sm">{formatDate(trend.date)}</span>
+                  <span className="text-lg">"{formatDate(trend.date)}</span>
                   <div className="flex items-center gap-2>
                     <div className="w-32 bg-gray-200 rounded-full h-2>
                       <div 
@@ -287,7 +270,7 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
                         }}
                       />
                     </div>
-                    <span className="text-sm font-medium w-8 text-right">{trend.usage_count}</span>
+                    <span className="text-lg">"{trend.usage_count}</span>
                   </div>
                 </div>
               ))}

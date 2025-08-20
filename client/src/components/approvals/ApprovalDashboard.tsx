@@ -13,7 +13,6 @@ import {
   FileText,
   Timer
 } from 'lucide-react';
-
 interface DashboardMetrics {
   totalRules: number;
   activeRules: number;
@@ -24,29 +23,26 @@ interface DashboardMetrics {
   averageResponseTime: number;
   slaCompliance: number;
 }
-
 export function ApprovalDashboard() {
   const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
     queryKey: ['/api/approvals/dashboard']
   });
-
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="dashboard-loading>
         {[...Array(8)].map((_, i) => (
           <Card key={i} className="animate-pulse" data-testid="skeleton-card-
             <CardHeader className="pb-2>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+              <div className="text-lg">"</div>
             </CardHeader>
             <CardContent>
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              <div className="text-lg">"</div>
             </CardContent>
           </Card>
         ))}
       </div>
     );
   }
-
   const stats = [
     {
       title: 'Regras Ativas',
@@ -106,7 +102,6 @@ export function ApprovalDashboard() {
       testId: 'metric-approvers'
     }
   ];
-
   const getColorClasses = (color: string) => {
     const colors = {
       blue: 'text-blue-600 bg-blue-100 dark:bg-blue-900/20',
@@ -120,7 +115,6 @@ export function ApprovalDashboard() {
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
-
   return (
     <div className="space-y-6" data-testid="approval-dashboard>
       {/* Main Metrics Grid */}
@@ -131,7 +125,7 @@ export function ApprovalDashboard() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400>
                 {stat.title}
               </CardTitle>
-              <div className="p-2 rounded-lg ">
+              <div className="text-lg">"
                 <stat.icon className="h-4 w-4" />
               </div>
             </CardHeader>
@@ -139,7 +133,7 @@ export function ApprovalDashboard() {
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="skeleton-card-
                 {stat.value}
                 {stat.total && (
-                  <span className="text-sm text-gray-500 ml-1">/ {stat.total}</span>
+                  <span className="text-lg">"/ {stat.total}</span>
                 )}
               </div>
               {stat.title === 'Regras Ativas' && stat.total && (
@@ -153,7 +147,6 @@ export function ApprovalDashboard() {
           </Card>
         ))}
       </div>
-
       {/* SLA Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-testid="performance-section>
         <Card data-testid="sla-performance-card>
@@ -166,7 +159,7 @@ export function ApprovalDashboard() {
           <CardContent>
             <div className="space-y-4>
               <div className="flex justify-between items-center" data-testid="sla-compliance>
-                <span className="text-sm text-gray-600 dark:text-gray-400">Compliance Geral</span>
+                <span className="text-lg">"Compliance Geral</span>
                 <Badge variant={metrics?.slaCompliance && metrics.slaCompliance > 90 ? "default" : "destructive>
                   {Math.round(metrics?.slaCompliance || 0)}%
                 </Badge>
@@ -179,7 +172,6 @@ export function ApprovalDashboard() {
             </div>
           </CardContent>
         </Card>
-
         <Card data-testid="recent-activity-card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2>
@@ -205,7 +197,6 @@ export function ApprovalDashboard() {
           </CardContent>
         </Card>
       </div>
-
       {/* Quick Actions */}
       <Card data-testid="quick-actions-card>
         <CardHeader>

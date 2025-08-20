@@ -43,7 +43,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
 interface EnhancedUser {
   id: string;
   email: string;
@@ -65,11 +64,9 @@ interface EnhancedUser {
   }>;
   sessions?: Array<{ id: string; isActive: boolean; lastActivity: string }>;
 }
-
 interface UserListProps {
   tenantAdmin?: boolean;
 }
-
 export function UserList({ tenantAdmin = false }: UserListProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -77,14 +74,12 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<EnhancedUser | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
-
   // Fetch users (different endpoint for tenant admin vs saas admin)
   const apiEndpoint = tenantAdmin ? "/api/tenant-admin/team/users" : "/api/user-management/users";
   const { data: usersData, isLoading } = useQuery<{ users: EnhancedUser[] }>({
     queryKey: [apiEndpoint],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
-
   // Enhanced user details query
   const { data: userDetails } = useQuery<{ user: EnhancedUser }>({
     queryKey: ["/api/user-management/users", selectedUser?.id, {
@@ -96,7 +91,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
     }],
     enabled: !!selectedUser?.id,
   });
-
   const toggleUserStatus = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       const endpoint = tenantAdmin ? "/api/saas-admin/users" : "/api/users"
@@ -120,17 +114,14 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
       });
     },
   });
-
   const filteredUsers = usersData?.users?.filter(user => 
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     "
   ) || [];
-
   const handleViewUser = (user: any) => {
     setSelectedUser(user);
     setShowUserDetails(true);
   };
-
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'saas_admin':
@@ -145,7 +136,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
         return 'secondary';
     }
   };
-
   const getRoleDisplayName = (role: string) => {
     const roleNames: Record<string, string> = {
       'saas_admin': 'SaaS Admin',
@@ -155,7 +145,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
     };
     return roleNames[role] || role;
   };
-
   return (
     <>
       <Card>
@@ -194,7 +183,7 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   <TableHead>{t("userManagement.role", "Papel")}</TableHead>
                   <TableHead>{t("userManagement.status", "Status")}</TableHead>
                   <TableHead>{t("userManagement.lastLogin", "Último Login")}</TableHead>
-                  <TableHead className="text-right">{t("common.actions", "Ações")}</TableHead>
+                  <TableHead className="text-lg">"{t("common.actions", "Ações")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -268,7 +257,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
           )}
         </CardContent>
       </Card>
-
       {/* User Details Dialog */}
       <Dialog open={showUserDetails} onOpenChange={setShowUserDetails}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
@@ -280,13 +268,12 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
               {selectedUser && "
             </DialogDescription>
           </DialogHeader>
-
           {userDetails?.user && (
             <div className="space-y-6>
               {/* Basic Information */}
               <div className="grid grid-cols-2 gap-4>
                 <div>
-                  <h4 className="font-semibold mb-2">{t("userManagement.basicInfo", "Informações Básicas")}</h4>
+                  <h4 className="text-lg">"{t("userManagement.basicInfo", "Informações Básicas")}</h4>
                   <div className="space-y-2 text-sm>
                     <div><strong>Email:</strong> {userDetails.user.email}</div>
                     <div><strong>Telefone:</strong> {userDetails.user.phone || "Não informado"}</div>
@@ -295,14 +282,13 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">{t("userManagement.accountInfo", "Informações da Conta")}</h4>
+                  <h4 className="text-lg">"{t("userManagement.accountInfo", "Informações da Conta")}</h4>
                   <div className="space-y-2 text-sm>
                     <div><strong>Criado em:</strong> {format(new Date(userDetails.user.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}</div>
                     <div><strong>Último login:</strong> {userDetails.user.lastLogin ? format(new Date(userDetails.user.lastLogin), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "Nunca"}</div>
                   </div>
                 </div>
               </div>
-
               {/* Groups */}
               {userDetails.user.groups && userDetails.user.groups.length > 0 && (
                 <div>
@@ -319,7 +305,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   </div>
                 </div>
               )}
-
               {/* Permissions */}
               {userDetails.user.permissions && userDetails.user.permissions.length > 0 && (
                 <div>
@@ -357,7 +342,6 @@ export function UserList({ tenantAdmin = false }: UserListProps) {
                   </div>
                 </div>
               )}
-
               {/* Active Sessions */}
               {userDetails.user.sessions && userDetails.user.sessions.length > 0 && (
                 <div>

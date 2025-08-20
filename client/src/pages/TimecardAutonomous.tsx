@@ -10,25 +10,21 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 // import useLocalization from '@/hooks/useLocalization';
-
 /**
  * Timecard page specifically designed for Autonomous workers
  * Uses different terminology but same backend functionality as CLT timecard
  */
 export default function TimecardAutonomous() {
   // Localization temporarily disabled
-
   const { terminology, isLoading: employmentLoading } = useEmploymentDetection();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentTime, setCurrentTime] = useState(new Date());
-
   // Update clock every second
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
   // Fetch current timecard status - reuses CLT backend
   const { data: timecardStatus, isLoading: statusLoading } = useQuery({
     queryKey: ['/api/timecard/status'],
@@ -38,7 +34,6 @@ export default function TimecardAutonomous() {
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
-
   // Fetch today's records - reuses CLT backend
   const { data: todayRecords } = useQuery({
     queryKey: ['/api/timecard/today'],
@@ -48,7 +43,6 @@ export default function TimecardAutonomous() {
     },
     refetchInterval: 60000, // Refresh every minute
   });
-
   // Clock action mutation - reuses CLT backend
   const clockActionMutation = useMutation({
     mutationFn: async (actionType: string) => {
@@ -76,57 +70,52 @@ export default function TimecardAutonomous() {
       });
     },
   });
-
   const handleClockAction = (actionType: string) => {
     clockActionMutation.mutate(actionType);
   };
-
   if (employmentLoading || statusLoading) {
     return (
-      <div className="p-4"
-        <div className="p-4"
+      <div className="p-4">
+        <div className="p-4">
           <Clock className="mx-auto h-8 w-8 animate-spin text-blue-500" />
-          <p className="mt-2 text-sm text-gray-500">Carregando controle de jornada...</p>
+          <p className="text-lg">"Carregando controle de jornada...</p>
         </div>
       </div>
     );
   }
-
   const currentStatus = timecardStatus?.status || 'offline';
   const isWorking = currentStatus === 'working';
   const isOnBreak = currentStatus === 'on_break';
-
   return (
-    <div className="p-4"
+    <div className="p-4">
       {/* Header */}
-      <div className="p-4"
+      <div className="p-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{terminology.pageTitle}</h1>
-          <p className="p-4"
+          <h1 className="text-lg">"{terminology.pageTitle}</h1>
+          <p className="p-4">
             Sistema de {terminology.recordLabel.toLowerCase()} para profissionais autônomos
           </p>
         </div>
-        <div className="p-4"
-          <div className="p-4"
+        <div className="p-4">
+          <div className="p-4">
             {format(currentTime, 'HH:mm:ss')}
           </div>
-          <div className="p-4"
+          <div className="p-4">
             {format(currentTime, 'EEEE, dd \'de\' MMMM \'de\' yyyy', { locale: ptBR })}
           </div>
         </div>
       </div>
-
       {/* Status Card */}
-      <Card className="p-4"
-        <CardHeader className="p-4"
-          <CardTitle className="p-4"
+      <Card className="p-4">
+        <CardHeader className="p-4">
+          <CardTitle className="p-4">
             <Clock className="h-5 w-5" />
             Status Atual da Jornada
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="p-4"
-            <div className="p-4"
+          <div className="p-4">
+            <div className="p-4">
               <Badge 
                 variant={isWorking ? 'default' : isOnBreak ? 'secondary' : 'outline'}
                 className={`${
@@ -139,13 +128,13 @@ export default function TimecardAutonomous() {
                  isOnBreak ? terminology.statusLabels.onBreak :
                  terminology.statusLabels.offline}
               </Badge>
-              <span className="p-4"
+              <span className="p-4">
                 {timecardStatus?.lastAction && 
                   "
                 }
               </span>
             </div>
-            <div className="p-4"
+            <div className="p-4">
               {timecardStatus?.todayTotalTime && 
                 "
               }
@@ -153,24 +142,23 @@ export default function TimecardAutonomous() {
           </div>
         </CardContent>
       </Card>
-
       {/* Action Buttons */}
       <Card>
         <CardHeader>
-          <CardTitle className="p-4"
+          <CardTitle className="p-4">
             <Play className="h-5 w-5" />
             {terminology.entryExitLabel}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="p-4"
+          <div className="p-4">
             <Button
               onClick={() => handleClockAction('clock_in')}
               disabled={isWorking || clockActionMutation.isPending}
               className="h-16 flex flex-col gap-1 bg-green-600 hover:bg-green-700"
             >
               <Play className="h-5 w-5" />
-              <span className="text-xs">{terminology.actionLabels.clockIn}</span>
+              <span className="text-lg">"{terminology.actionLabels.clockIn}</span>
             </Button>
             
             <Button
@@ -180,7 +168,7 @@ export default function TimecardAutonomous() {
               className="h-16 flex flex-col gap-1"
             >
               <Pause className="h-5 w-5" />
-              <span className="text-xs">{terminology.actionLabels.break}</span>
+              <span className="text-lg">"{terminology.actionLabels.break}</span>
             </Button>
             
             <Button
@@ -190,7 +178,7 @@ export default function TimecardAutonomous() {
               className="h-16 flex flex-col gap-1"
             >
               <Play className="h-5 w-5" />
-              <span className="text-xs">{terminology.actionLabels.return}</span>
+              <span className="text-lg">"{terminology.actionLabels.return}</span>
             </Button>
             
             <Button
@@ -199,78 +187,76 @@ export default function TimecardAutonomous() {
               className="h-16 flex flex-col gap-1 bg-red-600 hover:bg-red-700"
             >
               <Square className="h-5 w-5" />
-              <span className="text-xs">{terminology.actionLabels.clockOut}</span>
+              <span className="text-lg">"{terminology.actionLabels.clockOut}</span>
             </Button>
           </div>
         </CardContent>
       </Card>
-
       {/* Today's Records */}
       <Card>
         <CardHeader>
-          <CardTitle className="p-4"
+          <CardTitle className="p-4">
             <Calendar className="h-5 w-5" />
             Registros de Hoje
           </CardTitle>
         </CardHeader>
         <CardContent>
           {todayRecords?.records?.length > 0 ? (
-            <div className="p-4"
+            <div className="p-4">
               {todayRecords.records.map((record: any, index: number) => (
-                <div key={index} className="p-4"
-                  <div className="p-4"
+                <div key={index} className="p-4">
+                  <div className="p-4">
                     <div className={`w-3 h-3 rounded-full ${
                       record.type === 'clock_in' ? 'bg-green-500' :
                       record.type === 'clock_out' ? 'bg-red-500' :
                       record.type === 'break_start' ? 'bg-yellow-500' :
                       'bg-blue-500'
                     " />
-                    <span className="p-4"
+                    <span className="p-4">
                       {record.type === 'clock_in' ? terminology.actionLabels.clockIn :
                        record.type === 'clock_out' ? terminology.actionLabels.clockOut :
                        record.type === 'break_start' ? terminology.actionLabels.break :
                        terminology.actionLabels.return}
                     </span>
                   </div>
-                  <div className="p-4"
+                  <div className="p-4">
                     {format(new Date(record.timestamp), 'HH:mm:ss')}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-4"
+            <div className="p-4">
               <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2">Nenhum registro encontrado hoje</p>
-              <p className="text-sm">Registre seu primeiro {terminology.actionLabels.clockIn.toLowerCase()}</p>
+              <p className="text-lg">"Nenhum registro encontrado hoje</p>
+              <p className="text-lg">"Registre seu primeiro {terminology.actionLabels.clockIn.toLowerCase()}</p>
             </div>
           )}
         </CardContent>
       </Card>
-
       {/* Quick Access */}
-      <div className="p-4"
-        <Card className="p-4"
-          <CardContent className="p-4"
+      <div className="p-4">
+        <Card className="p-4">
+          <CardContent className="p-4">
             <FileText className="mx-auto h-8 w-8 text-blue-500 mb-2" />
-            <h3 className="font-medium">{terminology.reportLabel}</h3>
-            <p className="text-sm text-gray-500">Visualizar registros mensais</p>
+            <h3 className="text-lg">"{terminology.reportLabel}</h3>
+            <p className="text-lg">"Visualizar registros mensais</p>
           </CardContent>
         </Card>
         
-        <Card className="p-4"
-          <CardContent className="p-4"
+        <Card className="p-4">
+          <CardContent className="p-4">
             <Clock className="mx-auto h-8 w-8 text-purple-500 mb-2" />
-            <h3 className="font-medium">{terminology.timeControlLabel}</h3>
-            <p className="text-sm text-gray-500">Acompanhar horas trabalhadas</p>
+            <h3 className="text-lg">"{terminology.timeControlLabel}</h3>
+            <p className="text-lg">"Acompanhar horas trabalhadas</p>
           </CardContent>
         </Card>
         
-        <Card className="p-4"
-          <CardContent className="p-4"
+        <Card className="p-4">
+          <CardContent className="p-4">
             <CheckCircle className="mx-auto h-8 w-8 text-green-500 mb-2" />
-            <h3 className="font-medium">{terminology.approvalLabel}</h3>
-            <p className="text-sm text-gray-500">Status de validação</p>
+            <h3 className="text-lg">"{terminology.approvalLabel}</h3>
+            <p className="text-lg">"Status de validação</p>
           </CardContent>
         </Card>
       </div>

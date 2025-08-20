@@ -32,11 +32,9 @@ import {
   Archive,
   Users
 } from 'lucide-react';
-
 // ======================================
 // TYPES AND SCHEMAS
 // ======================================
-
 interface TicketSLA {
   id: string;
   name: string;
@@ -53,7 +51,6 @@ interface TicketSLA {
   createdAt: string;
   updatedAt: string;
 }
-
 interface SlaRule {
   id: string;
   slaId: string;
@@ -66,7 +63,6 @@ interface SlaRule {
   };
   isActive: boolean;
 }
-
 interface StatusTimeout {
   id: string;
   slaId: string;
@@ -75,7 +71,6 @@ interface StatusTimeout {
   escalationAction: string;
   notificationRecipients: string[];
 }
-
 interface SlaMetrics {
   totalSlas: number;
   activeSlas: number;
@@ -84,11 +79,9 @@ interface SlaMetrics {
   avgResolutionTime: number;
   escalationCount: number;
 }
-
 // Validation schemas
 const slaFormSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   slaLevel: z.enum(['L1', 'L2', 'L3']),
@@ -101,7 +94,6 @@ const slaFormSchema = z.object({
     environment: z.array(z.string()).optional(),
   }).optional()
 });
-
 const ruleFormSchema = z.object({
   ruleName: z.string().min(1, 'Nome da regra é obrigatório'),
   conditions: z.any(),
@@ -110,18 +102,15 @@ const ruleFormSchema = z.object({
   escalationThreshold: z.number().min(1, 'Limite de escalação deve ser maior que 0'),
   isActive: z.boolean().default(true)
 });
-
 const timeoutFormSchema = z.object({
   statusName: z.string().min(1, 'Nome do status é obrigatório'),
   maxIdleTime: z.number().min(1, 'Tempo máximo deve ser maior que 0'),
   escalationAction: z.string().min(1, 'Ação de escalação é obrigatória'),
   notificationRecipients: z.array(z.string()).optional()
 });
-
 // ======================================
 // MAIN COMPONENT
 // ======================================
-
 export default function TenantAdminSLAs() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedSla, setSelectedSla] = useState<TicketSLA | null>(null);
@@ -131,33 +120,26 @@ export default function TenantAdminSLAs() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // ======================================
   // DATA FETCHING
   // ======================================
-
   const { data: slas = [], isLoading: isLoadingSlas } = useQuery({
     queryKey: ['/api/sla/tickets-slas'],
     refetchInterval: 30000
   });
-
   const { data: metrics, isLoading: isLoadingMetrics } = useQuery<SlaMetrics>({
     queryKey: ['/api/sla/metrics/compliance-stats'],
     refetchInterval: 60000
   });
-
   const { data: ticketMetadata } = useQuery({
     queryKey: ['/api/ticket-metadata/field-configurations']
   });
-
   const { data: fieldOptions } = useQuery({
     queryKey: ['/api/ticket-metadata/field-options']
   });
-
   // ======================================
   // MUTATIONS
   // ======================================
-
   const createSlaMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await fetch('/api/sla/tickets-slas', {
@@ -178,7 +160,6 @@ export default function TenantAdminSLAs() {
       toast({ title: '[TRANSLATION_NEEDED]', variant: 'destructive' });
     }
   });
-
   const updateSlaMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const response = await fetch("
@@ -197,7 +178,6 @@ export default function TenantAdminSLAs() {
       toast({ title: '[TRANSLATION_NEEDED]', variant: 'destructive' });
     }
   });
-
   const deleteSlaMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await fetch("
@@ -213,11 +193,9 @@ export default function TenantAdminSLAs() {
       toast({ title: '[TRANSLATION_NEEDED]', variant: 'destructive' });
     }
   });
-
   // ======================================
   // FORM HANDLERS
   // ======================================
-
   const slaForm = useForm({
     resolver: zodResolver(slaFormSchema),
     defaultValues: {
@@ -228,28 +206,23 @@ export default function TenantAdminSLAs() {
       metadata: {}
     }
   });
-
   const handleCreateSla = (data: any) => {
     createSlaMutation.mutate(data);
   };
-
   const handleToggleSlaStatus = (sla: TicketSLA) => {
     updateSlaMutation.mutate({
       id: sla.id,
       data: { ...sla, isActive: !sla.isActive }
     });
   };
-
   const handleDeleteSla = (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este SLA?')) {
       deleteSlaMutation.mutate(id);
     }
   };
-
   // ======================================
   // COMPONENT HELPERS
   // ======================================
-
   const getSlaLevelColor = (level: string) => {
     switch (level) {
       case 'L1': return 'bg-red-100 text-red-800';
@@ -258,72 +231,65 @@ export default function TenantAdminSLAs() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getStatusColor = (isActive: boolean) => {
     return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
   };
-
   // ======================================
   // RENDER COMPONENTS
   // ======================================
-
   const renderOverviewTab = () => (
     <div className=""
       {/* Metrics Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de SLAs</CardTitle>
+            <CardTitle className="text-lg">"Total de SLAs</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.totalSlas || 0}</div>
+            <div className="text-lg">"{metrics?.totalSlas || 0}</div>
             <p className=""
               {metrics?.activeSlas || 0} ativos
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Taxa de Compliance</CardTitle>
+            <CardTitle className="text-lg">"Taxa de Compliance</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.complianceRate || 0}%</div>
+            <div className="text-lg">"{metrics?.complianceRate || 0}%</div>
             <p className=""
               Últimos 30 dias
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Tempo de Resposta</CardTitle>
+            <CardTitle className="text-lg">"Tempo de Resposta</CardTitle>
             <Timer className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.avgResponseTime || 0}h</div>
+            <div className="text-lg">"{metrics?.avgResponseTime || 0}h</div>
             <p className=""
               Média mensal
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Escalações</CardTitle>
+            <CardTitle className="text-lg">"Escalações</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.escalationCount || 0}</div>
+            <div className="text-lg">"{metrics?.escalationCount || 0}</div>
             <p className=""
               Este mês
             </p>
           </CardContent>
         </Card>
       </div>
-
       {/* SLA List */}
       <Card>
         <CardHeader>
@@ -343,7 +309,7 @@ export default function TenantAdminSLAs() {
         <CardContent>
           {isLoadingSlas ? (
             <div className=""
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="text-lg">"</div>
             </div>
           ) : (
             <div className=""
@@ -351,7 +317,7 @@ export default function TenantAdminSLAs() {
                 <div key={sla.id} className=""
                   <div className=""
                     <div className=""
-                      <h3 className="font-semibold">{sla.name}</h3>
+                      <h3 className="text-lg">"{sla.name}</h3>
                       <Badge className={getSlaLevelColor(sla.slaLevel)}>
                         {sla.slaLevel}
                       </Badge>
@@ -360,7 +326,7 @@ export default function TenantAdminSLAs() {
                       </Badge>
                     </div>
                     {sla.description && (
-                      <p className="text-sm text-muted-foreground mb-2">{sla.description}</p>
+                      <p className="text-lg">"{sla.description}</p>
                     )}
                     <div className=""
                       {sla.metadata?.priority && (
@@ -402,7 +368,6 @@ export default function TenantAdminSLAs() {
       </Card>
     </div>
   );
-
   const renderRulesTab = () => (
     <Card>
       <CardHeader>
@@ -426,7 +391,6 @@ export default function TenantAdminSLAs() {
       </CardContent>
     </Card>
   );
-
   const renderStatusTimeoutsTab = () => (
     <Card>
       <CardHeader>
@@ -450,7 +414,6 @@ export default function TenantAdminSLAs() {
       </CardContent>
     </Card>
   );
-
   const renderEscalationsTab = () => (
     <Card>
       <CardHeader>
@@ -466,7 +429,6 @@ export default function TenantAdminSLAs() {
       </CardContent>
     </Card>
   );
-
   const renderMetricsTab = () => (
     <div className=""
       <div className=""
@@ -483,7 +445,6 @@ export default function TenantAdminSLAs() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle className=""
@@ -500,18 +461,16 @@ export default function TenantAdminSLAs() {
       </div>
     </div>
   );
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">Sistema de SLA</h1>
+          <h1 className="text-lg">"Sistema de SLA</h1>
           <p className=""
             Gerencie acordos de nível de serviço integrados aos metadados de tickets
           </p>
         </div>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className=""
         <TabsList className=""
           <TabsTrigger value="overview" className=""
@@ -535,14 +494,12 @@ export default function TenantAdminSLAs() {
             Métricas
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="overview">{renderOverviewTab()}</TabsContent>
         <TabsContent value="rules">{renderRulesTab()}</TabsContent>
         <TabsContent value="timeouts">{renderStatusTimeoutsTab()}</TabsContent>
         <TabsContent value="escalations">{renderEscalationsTab()}</TabsContent>
         <TabsContent value="metrics">{renderMetricsTab()}</TabsContent>
       </Tabs>
-
       {/* Create SLA Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className=""
@@ -602,7 +559,6 @@ export default function TenantAdminSLAs() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={slaForm.control}
                 name="isActive"
@@ -623,7 +579,6 @@ export default function TenantAdminSLAs() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button
                   type="button"

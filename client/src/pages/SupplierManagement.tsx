@@ -33,7 +33,6 @@ import {
   AlertCircle,
   CheckCircle
 } from "lucide-react";
-
 interface Supplier {
   id: string;
   name: string;
@@ -60,7 +59,6 @@ interface Supplier {
   createdAt: string;
   updatedAt: string;
 }
-
 interface SupplierStats {
   totalSuppliers: number;
   activeSuppliers: number;
@@ -69,27 +67,22 @@ interface SupplierStats {
   totalValue: number;
   averageRating: number;
 }
-
 export function SupplierManagement() {
   // Localization temporarily disabled
-
   const [selectedTab, setSelectedTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Fetch suppliers data
   const { data: suppliersResponse, isLoading: isLoadingSuppliers } = useQuery({
     queryKey: ["/api/materials-services/suppliers"],
     enabled: true
   });
   const suppliers: Supplier[] = (suppliersResponse as any)?.data || [];
-
   // Fetch supplier statistics
   const { data: statsResponse } = useQuery({
     queryKey: ["/api/materials-services/suppliers/stats"],
@@ -103,7 +96,6 @@ export function SupplierManagement() {
     totalValue: 0,
     averageRating: 0
   };
-
   // Create supplier mutation
   const createSupplierMutation = useMutation({
     mutationFn: async (data: Partial<Supplier>) => {
@@ -123,7 +115,6 @@ export function SupplierManagement() {
       });
     }
   });
-
   // Update supplier mutation
   const updateSupplierMutation = useMutation({
     mutationFn: async ({ id, ...data }: Partial<Supplier> & { id: string }) => {
@@ -144,7 +135,6 @@ export function SupplierManagement() {
       });
     }
   });
-
   // Delete supplier mutation
   const deleteSupplierMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -163,7 +153,6 @@ export function SupplierManagement() {
       });
     }
   });
-
   // Filter suppliers
   const filteredSuppliers = suppliers.filter((supplier: Supplier) => {
     const matchesSearch = supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -173,7 +162,6 @@ export function SupplierManagement() {
     
     return matchesSearch && matchesStatus;
   });
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -182,7 +170,6 @@ export function SupplierManagement() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'active': return 'Ativo';
@@ -191,7 +178,6 @@ export function SupplierManagement() {
       default: return 'Indefinido';
     }
   };
-
   const renderStarRating = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -200,7 +186,6 @@ export function SupplierManagement() {
       />
     ));
   };
-
   const handleCreateSupplier = (formData: FormData) => {
     const supplierData = {
       name: formData.get('name') as string,
@@ -225,13 +210,10 @@ export function SupplierManagement() {
       isPreferred: false,
       rating: 5
     };
-
     createSupplierMutation.mutate(supplierData);
   };
-
   const handleEditSupplier = (formData: FormData) => {
     if (!selectedSupplier) return;
-
     const supplierData = {
       id: selectedSupplier.id,
       name: formData.get('name') as string,
@@ -255,24 +237,21 @@ export function SupplierManagement() {
       status: formData.get('status') as 'active' | 'inactive' | 'blocked',
       isPreferred: formData.get('isPreferred') === 'true'
     };
-
     updateSupplierMutation.mutate(supplierData);
   };
-
   if (isLoadingSuppliers) {
     return (
       <div className=""
-        <div className="text-center">Carregando fornecedores...</div>
+        <div className="text-lg">"Carregando fornecedores...</div>
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">Gestão de Fornecedores</h1>
+          <h1 className="text-lg">"Gestão de Fornecedores</h1>
           <p className=""
             Gerencie fornecedores, contratos e relacionamentos comerciais
           </p>
@@ -282,51 +261,47 @@ export function SupplierManagement() {
           Novo Fornecedor
         </Button>
       </div>
-
       {/* Statistics Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Fornecedores</CardTitle>
+            <CardTitle className="text-lg">"Total de Fornecedores</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{supplierStats.totalSuppliers}</div>
+            <div className="text-lg">"{supplierStats.totalSuppliers}</div>
             <p className=""
               {supplierStats.activeSuppliers} ativos
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Fornecedores Preferenciais</CardTitle>
+            <CardTitle className="text-lg">"Fornecedores Preferenciais</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{supplierStats.preferredSuppliers}</div>
+            <div className="text-lg">"{supplierStats.preferredSuppliers}</div>
             <p className=""
               Classificação especial
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
+            <CardTitle className="text-lg">"Total de Pedidos</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{supplierStats.totalOrders}</div>
+            <div className="text-lg">"{supplierStats.totalOrders}</div>
             <p className=""
               Este ano
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
+            <CardTitle className="text-lg">"Avaliação Média</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -339,7 +314,6 @@ export function SupplierManagement() {
           </CardContent>
         </Card>
       </div>
-
       {/* Filters and Search */}
       <div className=""
         <div className=""
@@ -365,7 +339,6 @@ export function SupplierManagement() {
           </SelectContent>
         </Select>
       </div>
-
       {/* Suppliers Table */}
       <Card>
         <CardHeader>
@@ -387,12 +360,12 @@ export function SupplierManagement() {
                   </div>
                   <div>
                     <div className=""
-                      <h3 className="font-semibold">{supplier.name}</h3>
+                      <h3 className="text-lg">"{supplier.name}</h3>
                       {supplier.isPreferred && (
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">{supplier.code} • {supplier.documentNumber}</p>
+                    <p className="text-lg">"{supplier.code} • {supplier.documentNumber}</p>
                     <div className=""
                       <span className=""
                         <Mail className="h-3 w-3" />
@@ -405,7 +378,6 @@ export function SupplierManagement() {
                     </div>
                   </div>
                 </div>
-
                 <div className=""
                   <div className=""
                     <div className=""
@@ -452,7 +424,6 @@ export function SupplierManagement() {
                 </div>
               </div>
             ))}
-
             {filteredSuppliers.length === 0 && (
               <div className=""
                 Nenhum fornecedor encontrado
@@ -461,7 +432,6 @@ export function SupplierManagement() {
           </div>
         </CardContent>
       </Card>
-
       {/* Create Supplier Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className=""
@@ -535,12 +505,10 @@ export function SupplierManagement() {
                 <Input id="deliveryTerms" name="deliveryTerms" placeholder="5 dias úteis" />
               </div>
             </div>
-
             <div className=""
               <Label htmlFor="notes">Observações</Label>
               <Textarea id="notes" name="notes" rows={3} />
             </div>
-
             <div className=""
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancelar
@@ -552,7 +520,6 @@ export function SupplierManagement() {
           </form>
         </DialogContent>
       </Dialog>
-
       {/* Edit Supplier Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className=""
@@ -620,7 +587,6 @@ export function SupplierManagement() {
                   </Select>
                 </div>
               </div>
-
               <div className=""
                 <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                   Cancelar

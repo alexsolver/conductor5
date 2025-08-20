@@ -12,24 +12,19 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 const formSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   category: z.string().min(1, "Categoria é obrigatória"),
 });
-
 interface InternalFormBuilderProps {
   onClose: () => void;
 }
-
 export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
   const { toast } = useToast();
   const [fields, setFields] = useState<any[]>([]);
   const [actions, setActions] = useState<any[]>([]);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,7 +33,6 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
       category: "general",
     },
   });
-
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       toast({
@@ -54,7 +48,6 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
       });
     }
   };
-
   const addField = () => {
     setFields([...fields, {
       id: Date.now(),
@@ -65,17 +58,14 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
       placeholder: "",
     }]);
   };
-
   const removeField = (id: number) => {
     setFields(fields.filter(field => field.id !== id));
   };
-
   const updateField = (id: number, updates: any) => {
     setFields(fields.map(field => 
       field.id === id ? { ...field, ...updates } : field
     ));
   };
-
   return (
     <div className="space-y-6>
       <Form {...form}>
@@ -99,7 +89,6 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="description"
@@ -113,7 +102,6 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="category"
@@ -140,7 +128,6 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
               />
             </CardContent>
           </Card>
-
           {/* Fields */}
           <Card>
             <CardHeader>
@@ -175,7 +162,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                       
                       <div className="grid grid-cols-2 gap-4>
                         <div>
-                          <label className="text-sm font-medium">Nome do Campo</label>
+                          <label className="text-lg">"Nome do Campo</label>
                           <Input
                             value={field.name}
                             onChange={(e) => updateField(field.id, { name: e.target.value })}
@@ -183,7 +170,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium">Rótulo</label>
+                          <label className="text-lg">"Rótulo</label>
                           <Input
                             value={field.label}
                             onChange={(e) => updateField(field.id, { label: e.target.value })}
@@ -197,7 +184,6 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
               )}
             </CardContent>
           </Card>
-
           {/* Actions */}
           <Card>
             <CardHeader>
@@ -209,7 +195,6 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
               </p>
             </CardContent>
           </Card>
-
           {/* Submit */}
           <div className="flex justify-end space-x-4>
             <Button type="button" variant="outline" onClick={onClose}>

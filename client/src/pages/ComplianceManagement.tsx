@@ -32,7 +32,6 @@ import {
   Users,
   Star
 } from 'lucide-react';
-
 interface ComplianceAudit {
   id: string;
   title: string;
@@ -45,7 +44,6 @@ interface ComplianceAudit {
   findings: number;
   createdAt: string;
 }
-
 interface ComplianceCertification {
   id: string;
   name: string;
@@ -57,7 +55,6 @@ interface ComplianceCertification {
   scope: string;
   documentUrl?: string;
 }
-
 interface ComplianceAlert {
   id: string;
   type: 'expiration' | 'audit' | 'violation' | 'reminder';
@@ -70,7 +67,6 @@ interface ComplianceAlert {
   relatedEntityType?: string;
   relatedEntityId?: string;
 }
-
 interface ComplianceScore {
   id: string;
   entityType: string;
@@ -81,7 +77,6 @@ interface ComplianceScore {
   notes?: string;
   breakdown?: any;
 }
-
 interface ComplianceStats {
   audits: {
     total: number;
@@ -105,10 +100,8 @@ interface ComplianceStats {
   overallScore: number;
   complianceLevel: string;
 }
-
 export default function ComplianceManagement() {
   // Localization temporarily disabled
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -117,45 +110,35 @@ export default function ComplianceManagement() {
   const [isCreateAuditOpen, setIsCreateAuditOpen] = useState(false);
   const [isCreateCertOpen, setIsCreateCertOpen] = useState(false);
   const [isCreateEvidenceOpen, setIsCreateEvidenceOpen] = useState(false);
-
   // Fetch compliance stats
   const { data: stats } = useQuery<ComplianceStats>({
     queryKey: ['/api/materials-services/compliance/stats'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/stats')
   });
-
   // Fetch audits
   const { data: auditsResponse, isLoading: auditsLoading } = useQuery({
     queryKey: ['/api/materials-services/compliance/audits'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/audits')
   });
-
   const audits = auditsResponse?.data || auditsResponse || [];
-
   // Fetch certifications
   const { data: certificationsResponse } = useQuery({
     queryKey: ['/api/materials-services/compliance/certifications'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/certifications')
   });
-
   const certifications = certificationsResponse?.data || certificationsResponse || [];
-
   // Fetch alerts
   const { data: alertsResponse } = useQuery({
     queryKey: ['/api/materials-services/compliance/alerts'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/alerts')
   });
-
   const alerts = alertsResponse?.data || alertsResponse || [];
-
   // Fetch compliance scores
   const { data: scoresResponse } = useQuery({
     queryKey: ['/api/materials-services/compliance/scores'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/scores')
   });
-
   const scores = scoresResponse?.data || scoresResponse || [];
-
   // Create audit mutation
   const createAuditMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/materials-services/compliance/audits', data),
@@ -169,7 +152,6 @@ export default function ComplianceManagement() {
       toast({ title: 'Erro ao criar auditoria', variant: 'destructive' });
     }
   });
-
   // Create certification mutation
   const createCertificationMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/materials-services/compliance/certifications', data),
@@ -182,7 +164,6 @@ export default function ComplianceManagement() {
       toast({ title: 'Erro ao criar certificação', variant: 'destructive' });
     }
   });
-
   // Create evidence mutation
   const createEvidenceMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/materials-services/compliance/evidence', data),
@@ -195,7 +176,6 @@ export default function ComplianceManagement() {
       toast({ title: 'Erro ao criar evidência', variant: 'destructive' });
     }
   });
-
   // Acknowledge alert mutation
   const acknowledgeAlertMutation = useMutation({
     mutationFn: (alertId: string) => apiRequest('POST', "/acknowledge`),
@@ -207,7 +187,6 @@ export default function ComplianceManagement() {
       toast({ title: 'Erro ao reconhecer alerta', variant: 'destructive' });
     }
   });
-
   // Generate expiration alerts mutation
   const generateAlertsMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/materials-services/compliance/alerts/generate-expiration'),
@@ -219,7 +198,6 @@ export default function ComplianceManagement() {
       toast({ title: 'Erro ao gerar alertas', variant: 'destructive' });
     }
   });
-
   const getStatusBadge = (status: string, type: 'audit' | 'cert' | 'alert') => {
     if (type === 'audit') {
       const variants = {
@@ -252,7 +230,6 @@ export default function ComplianceManagement() {
     
     return <Badge variant="outline">{status}</Badge>;
   };
-
   const getSeverityBadge = (severity: string) => {
     const variants = {
       low: 'outline',
@@ -263,20 +240,18 @@ export default function ComplianceManagement() {
     
     return <Badge variant={variants[severity as keyof typeof variants] || 'outline'}>{severity}</Badge>;
   };
-
   const getComplianceColor = (score: number) => {
     if (score >= 90) return 'text-green-600';
     if (score >= 75) return 'text-yellow-600';
     if (score >= 60) return 'text-orange-600';
     return 'text-red-600';
   };
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">Gestão de Compliance</h1>
-          <p className="text-muted-foreground">Sistema completo de auditorias, certificações e evidências</p>
+          <h1 className="text-lg">"Gestão de Compliance</h1>
+          <p className="text-lg">"Sistema completo de auditorias, certificações e evidências</p>
         </div>
         
         <div className=""
@@ -336,17 +311,14 @@ export default function ComplianceManagement() {
                     <Input name="scheduledDate" type="date" />
                   </div>
                 </div>
-
                 <div className=""
                   <Label htmlFor="scope">Escopo</Label>
                   <Input name="scope" placeholder="Ex: Processos produtivos e qualidade" />
                 </div>
-
                 <div className=""
                   <Label htmlFor="objectives">Objetivos</Label>
                   <Textarea name="objectives" placeholder="Descreva os objetivos da auditoria..." />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateAuditOpen(false)}>
                     Cancelar
@@ -358,7 +330,6 @@ export default function ComplianceManagement() {
               </form>
             </DialogContent>
           </Dialog>
-
           <Dialog open={isCreateCertOpen} onOpenChange={setIsCreateCertOpen}>
             <DialogTrigger asChild>
               <Button variant="outline>
@@ -389,7 +360,6 @@ export default function ComplianceManagement() {
                   <Label htmlFor="name">Nome da Certificação *</Label>
                   <Input name="name" required placeholder="Ex: ISO 9001:2015" />
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="standard">Norma/Padrão</Label>
@@ -400,12 +370,10 @@ export default function ComplianceManagement() {
                     <Input name="certifyingBody" placeholder="Ex: ABNT" />
                   </div>
                 </div>
-
                 <div className=""
                   <Label htmlFor="scope">Escopo</Label>
                   <Textarea name="scope" placeholder="Descreva o escopo da certificação..." />
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="issueDate">Data de Emissão</Label>
@@ -416,7 +384,6 @@ export default function ComplianceManagement() {
                     <Input name="expirationDate" type="date" />
                   </div>
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateCertOpen(false)}>
                     Cancelar
@@ -428,7 +395,6 @@ export default function ComplianceManagement() {
               </form>
             </DialogContent>
           </Dialog>
-
           <Button 
             variant="outline"
             onClick={() => generateAlertsMutation.mutate()}
@@ -439,16 +405,15 @@ export default function ComplianceManagement() {
           </Button>
         </div>
       </div>
-
       {/* Statistics Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Score Geral</CardTitle>
+            <CardTitle className="text-lg">"Score Geral</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold ">
+            <div className="text-lg">"
               {stats?.overallScore || 0}
             </div>
             <p className=""
@@ -456,60 +421,55 @@ export default function ComplianceManagement() {
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Auditorias</CardTitle>
+            <CardTitle className="text-lg">"Auditorias</CardTitle>
             <FileSearch className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.audits?.total || 0}</div>
+            <div className="text-lg">"{stats?.audits?.total || 0}</div>
             <p className=""
               {stats?.audits?.completed || 0} concluídas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Certificações</CardTitle>
+            <CardTitle className="text-lg">"Certificações</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.certifications?.total || 0}</div>
+            <div className="text-lg">"{stats?.certifications?.total || 0}</div>
             <p className=""
               {stats?.certifications?.active || 0} ativas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Alertas Ativos</CardTitle>
+            <CardTitle className="text-lg">"Alertas Ativos</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.alerts?.active || 0}</div>
+            <div className="text-lg">"{stats?.alerts?.active || 0}</div>
             <p className=""
               {stats?.alerts?.critical || 0} críticos
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Vencendo</CardTitle>
+            <CardTitle className="text-lg">"Vencendo</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.certifications?.expiring || 0}</div>
+            <div className="text-lg">"{stats?.certifications?.expiring || 0}</div>
             <p className=""
               próximos 30 dias
             </p>
           </CardContent>
         </Card>
       </div>
-
       {/* Main Content Tabs */}
       <Tabs defaultValue="audits" className=""
         <TabsList>
@@ -519,11 +479,10 @@ export default function ComplianceManagement() {
           <TabsTrigger value="scores">Scores</TabsTrigger>
           <TabsTrigger value="evidence">Evidências</TabsTrigger>
         </TabsList>
-
         <TabsContent value="audits" className=""
           <div className=""
             {auditsLoading ? (
-              <div className="text-center py-8">Carregando auditorias...</div>
+              <div className="text-lg">"Carregando auditorias...</div>
             ) : audits.length === 0 ? (
               <div className=""
                 Nenhuma auditoria encontrada
@@ -535,7 +494,7 @@ export default function ComplianceManagement() {
                     <div className=""
                       <div className=""
                         <div className=""
-                          <h3 className="font-semibold">{audit.title}</h3>
+                          <h3 className="text-lg">"{audit.title}</h3>
                           {getStatusBadge(audit.status, 'audit')}
                         </div>
                         <p className=""
@@ -568,7 +527,6 @@ export default function ComplianceManagement() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="certifications" className=""
           <div className=""
             {certifications.length === 0 ? (
@@ -582,7 +540,7 @@ export default function ComplianceManagement() {
                     <div className=""
                       <div className=""
                         <div className=""
-                          <h3 className="font-semibold">{cert.name}</h3>
+                          <h3 className="text-lg">"{cert.name}</h3>
                           {getStatusBadge(cert.status, 'cert')}
                         </div>
                         <p className=""
@@ -594,7 +552,7 @@ export default function ComplianceManagement() {
                             <span>Vence: {new Date(cert.expirationDate).toLocaleDateString('pt-BR')}</span>
                           )}
                         </div>
-                        <p className="text-sm">{cert.scope}</p>
+                        <p className="text-lg">"{cert.scope}</p>
                       </div>
                       
                       <div className=""
@@ -616,7 +574,6 @@ export default function ComplianceManagement() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="alerts" className=""
           <div className=""
             {alerts.length === 0 ? (
@@ -630,14 +587,14 @@ export default function ComplianceManagement() {
                     <div className=""
                       <div className=""
                         <div className=""
-                          <h3 className="font-semibold">{alert.title}</h3>
+                          <h3 className="text-lg">"{alert.title}</h3>
                           {getSeverityBadge(alert.severity)}
                           {getStatusBadge(alert.status, 'alert')}
                         </div>
                         <p className=""
                           Tipo: {alert.type} | Disparado: {new Date(alert.triggerDate).toLocaleDateString('pt-BR')}
                         </p>
-                        <p className="text-sm">{alert.description}</p>
+                        <p className="text-lg">"{alert.description}</p>
                         {alert.dueDate && (
                           <div className=""
                             <Clock className="w-4 h-4" />
@@ -666,7 +623,6 @@ export default function ComplianceManagement() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="scores" className=""
           <div className=""
             {scores.length === 0 ? (
@@ -680,11 +636,11 @@ export default function ComplianceManagement() {
                     <div className=""
                       <div className=""
                         <div className=""
-                          <h3 className="font-semibold">Score de Compliance</h3>
+                          <h3 className="text-lg">"Score de Compliance</h3>
                           <Badge variant="outline">{score.entityType}</Badge>
                         </div>
                         <div className=""
-                          <div className="text-3xl font-bold ">
+                          <div className="text-lg">"
                             {parseFloat(score.score).toFixed(1)}
                           </div>
                           <div className=""
@@ -695,7 +651,7 @@ export default function ComplianceManagement() {
                           Avaliado em: {new Date(score.assessedAt).toLocaleDateString('pt-BR')}
                           {score.assessedBy && "
                         </p>
-                        {score.notes && <p className="text-sm">{score.notes}</p>}
+                        {score.notes && <p className="text-lg">"{score.notes}</p>}
                       </div>
                     </div>
                   </CardContent>
@@ -704,7 +660,6 @@ export default function ComplianceManagement() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="evidence" className=""
           <Card>
             <CardHeader>

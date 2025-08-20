@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: FRONTEND COMPONENT - CLEAN ARCHITECTURE
 // Presentation layer component following modern React patterns
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +11,9 @@ import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Layers } from "lucide-react";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface TemplateCreateDialogProps {
   onSuccess?: () => void;
 }
-
 export function TemplateCreateDialog({
   // Localization temporarily disabled
  onSuccess }: TemplateCreateDialogProps) {
@@ -28,17 +25,14 @@ export function TemplateCreateDialog({
     category: "",
     defaultTags: ""
   });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const response = await apiRequest('POST', '/api/knowledge-base/templates', {
         ...formData,
         defaultTags: formData.defaultTags.split(',').map(tag => tag.trim()).filter(Boolean)
       });
-
       if (response.ok) {
         toast({
           title: '[TRANSLATION_NEEDED]',
@@ -60,7 +54,6 @@ export function TemplateCreateDialog({
       setIsLoading(false);
     }
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -96,7 +89,6 @@ export function TemplateCreateDialog({
               data-testid="textarea-template-description"
             />
           </div>
-
           <div>
             <Label htmlFor="category">Categoria</Label>
             <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
@@ -112,7 +104,6 @@ export function TemplateCreateDialog({
               </SelectContent>
             </Select>
           </div>
-
           <div>
             <Label htmlFor="defaultTags">Tags Padrão</Label>
             <Input
@@ -123,7 +114,6 @@ export function TemplateCreateDialog({
               data-testid="input-template-tags"
             />
           </div>
-
           <div className="flex justify-end gap-2>
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
               Cancelar

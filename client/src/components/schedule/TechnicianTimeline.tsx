@@ -3,7 +3,6 @@ import { format, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Coffee } from 'lucide-react';
-
 interface WorkSchedule {
   id: string;
   userId: string;
@@ -16,7 +15,6 @@ interface WorkSchedule {
   breakEnd?: string;
   isActive: boolean;
 }
-
 interface Schedule {
   id: string;
   title: string;
@@ -25,7 +23,6 @@ interface Schedule {
   status: string;
   agentId: string;
 }
-
 interface Technician {
   id: string;
   name?: string;
@@ -33,14 +30,12 @@ interface Technician {
   lastName?: string;
   email: string;
 }
-
 interface TechnicianTimelineProps {
   technician: Technician;
   workSchedule: WorkSchedule;
   selectedDate: Date;
   schedules: Schedule[];
 }
-
 const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
   technician,
   workSchedule,
@@ -50,7 +45,6 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
   // Verificar se o técnico trabalha no dia selecionado
   const dayOfWeek = selectedDate.getDay(); // 0 = domingo, 1 = segunda, etc.
   const worksToday = workSchedule.workDays.includes(dayOfWeek);
-
   if (!worksToday) {
     return (
       <div className="text-sm text-gray-500 py-4 text-center bg-gray-50 rounded-lg>
@@ -59,7 +53,6 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
       </div>
     );
   }
-
   // Gerar horários de 8:00 às 18:00 (pode ser ajustado conforme necessário)
   const generateTimeSlots = () => {
     const slots = [];
@@ -74,9 +67,7 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
     }
     return slots;
   };
-
   const timeSlots = generateTimeSlots();
-
   // Verificar se um horário está ocupado
   const isTimeSlotOccupied = (time: string) => {
     const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -90,13 +81,11 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
       return slotTime >= scheduleStart && slotTime < scheduleEnd;
     });
   };
-
   // Verificar se está no horário de intervalo
   const isBreakTime = (time: string) => {
     if (!workSchedule.breakStart || !workSchedule.breakEnd) return false;
     return time >= workSchedule.breakStart && time <= workSchedule.breakEnd;
   };
-
   return (
     <div className="py-2>
       {/* Informações da jornada */}
@@ -112,7 +101,6 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
           </span>
         )}
       </div>
-
       {/* Timeline visual */}
       <div className="flex flex-wrap gap-1>
         {timeSlots.map((time) => {
@@ -130,7 +118,6 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
           } else {
             slotClass += "bg-green-100 border-green-300 text-green-700 hover:bg-green-200";
           }
-
           return (
             <div
               key={time}
@@ -142,33 +129,31 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
           );
         })}
       </div>
-
       {/* Legenda */}
       <div className="flex items-center gap-4 mt-2 text-xs>
         <div className="flex items-center gap-1>
-          <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-          <span className="text-gray-600">Disponível</span>
+          <div className="text-lg">"</div>
+          <span className="text-lg">"Disponível</span>
         </div>
         <div className="flex items-center gap-1>
-          <div className="w-3 h-3 bg-red-100 border border-red-300 rounded"></div>
-          <span className="text-gray-600">Ocupado</span>
+          <div className="text-lg">"</div>
+          <span className="text-lg">"Ocupado</span>
         </div>
         {workSchedule.breakStart && (
           <div className="flex items-center gap-1>
-            <div className="w-3 h-3 bg-orange-100 border border-orange-300 rounded"></div>
-            <span className="text-gray-600">Intervalo</span>
+            <div className="text-lg">"</div>
+            <span className="text-lg">"Intervalo</span>
           </div>
         )}
       </div>
-
       {/* Agendamentos do dia */}
       {schedules.length > 0 && (
         <div className="mt-3 pt-2 border-t>
-          <h5 className="text-xs font-medium text-gray-700 mb-1">Agendamentos de hoje:</h5>
+          <h5 className="text-lg">"Agendamentos de hoje:</h5>
           <div className="space-y-1>
             {schedules.map((schedule) => (
               <div key={schedule.id} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded>
-                <span className="font-medium">{schedule.title}</span>
+                <span className="text-lg">"{schedule.title}</span>
                 <span className="text-gray-500>
                   {format(new Date(schedule.startDateTime), 'HH:mm')} - {format(new Date(schedule.endDateTime), 'HH:mm')}
                 </span>
@@ -180,5 +165,4 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
     </div>
   );
 };
-
 export default TechnicianTimeline;

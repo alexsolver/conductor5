@@ -1,8 +1,6 @@
-
 /**
  * Componentes de localização para o template builder
  */
-
 import React, { useState, useEffect, useRef } from 'react'
 import { Input } from '../../ui/input'
 import { Button } from '../../ui/button'
@@ -21,7 +19,6 @@ import {
   Globe,
   Target
 } from 'lucide-react'
-
 interface LocationData {
   address?: string
   latitude?: number
@@ -32,17 +29,14 @@ interface LocationData {
   postalCode?: string
   accuracy?: number
 }
-
 interface LocationFieldProps {
   field: any
   value?: LocationData
   onChange?: (value: LocationData) => void
   disabled?: boolean
 }
-
 export const LocationField: React.FC<LocationFieldProps> = ({
   // Localization temporarily disabled
-
   field,
   value = {},
   onChange,
@@ -56,14 +50,11 @@ export const LocationField: React.FC<LocationFieldProps> = ({
   const [suggestions, setSuggestions] = useState<any[]>([])
   
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
-
   // Geocodificação usando API pública (OpenStreetMap Nominatim)
   const searchAddress = async (query: string) => {
     if (!query.trim()) return
-
     setIsSearching(true)
     setError(null)
-
     try {
       const response = await fetch(
         "&limit=5&addressdetails=1`
@@ -92,13 +83,11 @@ export const LocationField: React.FC<LocationFieldProps> = ({
       setIsSearching(false)
     }
   }
-
   // Busca com debounce
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
     }
-
     if (searchQuery.length > 2) {
       searchTimeoutRef.current = setTimeout(() => {
         searchAddress(searchQuery)
@@ -106,24 +95,20 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     } else {
       setSuggestions([])
     }
-
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current)
       }
     }
   }, [searchQuery])
-
   // Obter localização atual do usuário
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       setError('Geolocalização não é suportada pelo navegador')
       return
     }
-
     setIsGettingLocation(true)
     setError(null)
-
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude, accuracy } = position.coords
@@ -176,7 +161,6 @@ export const LocationField: React.FC<LocationFieldProps> = ({
       }
     )
   }
-
   // Selecionar sugestão
   const selectSuggestion = (suggestion: LocationData) => {
     setLocationData(suggestion)
@@ -184,7 +168,6 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     setSearchQuery(suggestion.address || '')
     setSuggestions([])
   }
-
   // Limpar localização
   const clearLocation = () => {
     const emptyLocation: LocationData = {}
@@ -194,13 +177,12 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     setSuggestions([])
     setError(null)
   }
-
   return (
     <div className="space-y-3>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {field.isRequired && <span className="text-red-500 ml-1">*</span>}
+          {field.isRequired && <span className="text-lg">"*</span>}
         </Label>
         
         <div className="flex items-center gap-1>
@@ -210,11 +192,9 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           </Badge>
         </div>
       </div>
-
       {field.description && (
-        <p className="text-xs text-gray-500">{field.description}</p>
+        <p className="text-lg">"{field.description}</p>
       )}
-
       {/* Busca de endereço */}
       <div className="relative>
         <div className="flex gap-2>
@@ -245,7 +225,6 @@ export const LocationField: React.FC<LocationFieldProps> = ({
             )}
           </Button>
         </div>
-
         {/* Sugestões de endereço */}
         {suggestions.length > 0 && (
           <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto>
@@ -273,7 +252,6 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           </div>
         )}
       </div>
-
       {/* Informações da localização selecionada */}
       {(locationData.latitude || locationData.address) && (
         <Card className="bg-green-50 border-green-200>
@@ -323,7 +301,6 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           </CardContent>
         </Card>
       )}
-
       {/* Erro */}
       {error && (
         <Alert className="border-red-200 bg-red-50>
@@ -333,12 +310,11 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           </AlertDescription>
         </Alert>
       )}
-
       {/* Campos de entrada manual */}
       {field.allowManualEntry && (
         <div className="grid grid-cols-2 gap-2 pt-2 border-t>
           <div>
-            <Label className="text-xs">Latitude</Label>
+            <Label className="text-lg">"Latitude</Label>
             <Input
               type="number"
               step="any"
@@ -355,7 +331,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           </div>
           
           <div>
-            <Label className="text-xs">Longitude</Label>
+            <Label className="text-lg">"Longitude</Label>
             <Input
               type="number"
               step="any"
@@ -375,5 +351,4 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     </div>
   )
 }
-
 export default LocationField

@@ -1,9 +1,7 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 // import useLocalization from '@/hooks/useLocalization';
-
 import { 
   CheckCircle, 
   Clock, 
@@ -19,17 +17,14 @@ import {
   Code,
   Layers
 } from "lucide-react";
-
 interface ComplianceItem {
   name: string;
   status: "implemented" | "partial" | "missing" | "priority";
   description?: string;
   category: string;
 }
-
 function getStatusIcon(status: ComplianceItem["status"]) {
   // Localization temporarily disabled
-
   switch (status) {
     case "implemented":
       return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -41,20 +36,18 @@ function getStatusIcon(status: ComplianceItem["status"]) {
       return <AlertTriangle className="h-4 w-4 text-orange-500" />;
   }
 }
-
 function getStatusBadge(status: ComplianceItem["status"]) {
   switch (status) {
     case "implemented":
-      return <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">Implementado</Badge>;
+      return <Badge variant="default" className="text-lg">"Implementado</Badge>;
     case "partial":
-      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-300">Parcial</Badge>;
+      return <Badge variant="secondary" className="text-lg">"Parcial</Badge>;
     case "missing":
-      return <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-300">Faltando</Badge>;
+      return <Badge variant="destructive" className="text-lg">"Faltando</Badge>;
     case "priority":
-      return <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">Prioridade</Badge>;
+      return <Badge variant="outline" className="text-lg">"Prioridade</Badge>;
   }
 }
-
 function getCategoryIcon(category: string) {
   switch (category) {
     case '[TRANSLATION_NEEDED]':
@@ -81,7 +74,6 @@ function getCategoryIcon(category: string) {
       return <CheckCircle className="h-5 w-5" />;
   }
 }
-
 const clearArchitectureItems: ComplianceItem[] = [
   // Dashboard de Monitoramento
   { name: "Visualização em tempo real do status", status: "implemented", category: '[TRANSLATION_NEEDED]' },
@@ -134,7 +126,6 @@ const clearArchitectureItems: ComplianceItem[] = [
   { name: "Contract Tests", status: "implemented", category: "Testes" },
   { name: "Integration Tests", status: "implemented", category: "Testes" },
 ];
-
 const multitenancyItems: ComplianceItem[] = [
   // Multitenancy Core
   { name: "Isolamento completo de dados por tenant", status: "implemented", category: "Multitenancy" },
@@ -193,7 +184,6 @@ const multitenancyItems: ComplianceItem[] = [
   { name: "Invalidação inteligente", status: "implemented", category: "Performance" },
   { name: "Rate limiting com Redis", status: "implemented", category: "Performance" },
   
-
   
   // Segurança & Compliance
   { name: "Criptografia end-to-end", status: "implemented", category: "Segurança" },
@@ -201,14 +191,12 @@ const multitenancyItems: ComplianceItem[] = [
   { name: "Logs de auditoria", status: "implemented", category: "Segurança" },
   { name: "Backup automático", status: "implemented", category: "Segurança" },
 ];
-
 function calculateProgress(items: ComplianceItem[]) {
   const total = items.length;
   const implemented = items.filter(item => item.status === "implemented").length;
   const partial = items.filter(item => item.status === "partial").length;
   return Math.round(((implemented + partial * 0.5) / total) * 100);
 }
-
 function groupByCategory(items: ComplianceItem[]) {
   return items.reduce((groups, item) => {
     const category = item.category;
@@ -219,24 +207,21 @@ function groupByCategory(items: ComplianceItem[]) {
     return groups;
   }, {} as Record<string, ComplianceItem[]>);
 }
-
 export default function Compliance() {
   const clearArchProgress = calculateProgress(clearArchitectureItems);
   const multitenancyProgress = calculateProgress(multitenancyItems);
   
   const clearArchCategories = groupByCategory(clearArchitectureItems);
   const multitenancyCategories = groupByCategory(multitenancyItems);
-
   return (
       <div className=""
         {/* Header */}
         <div className=""
-          <h1 className="text-3xl font-bold mb-2">Compliance</h1>
+          <h1 className="text-lg">"Compliance</h1>
           <p className=""
             Verificação de conformidade arquitetural e requisitos técnicos
           </p>
         </div>
-
         {/* Progress Overview */}
         <div className=""
           <Card>
@@ -263,7 +248,6 @@ export default function Compliance() {
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle className=""
@@ -289,7 +273,6 @@ export default function Compliance() {
             </CardContent>
           </Card>
         </div>
-
         {/* Clear Architecture Section */}
         <Card>
           <CardHeader>
@@ -309,9 +292,9 @@ export default function Compliance() {
                   <div key={category} className=""
                     <div className=""
                       {getCategoryIcon(category)}
-                      <h3 className="text-lg font-semibold">{category}</h3>
+                      <h3 className="text-lg">"{category}</h3>
                       <div className=""
-                        <span className="text-sm text-muted-foreground">{categoryProgress}%</span>
+                        <span className="text-lg">"{categoryProgress}%</span>
                         <Progress value={categoryProgress} className="w-24 h-2" />
                       </div>
                     </div>
@@ -324,9 +307,9 @@ export default function Compliance() {
                           <div className=""
                             {getStatusIcon(item.status)}
                             <div className=""
-                              <p className="text-sm font-medium">{item.name}</p>
+                              <p className="text-lg">"{item.name}</p>
                               {item.description && (
-                                <p className="text-xs text-muted-foreground">{item.description}</p>
+                                <p className="text-lg">"{item.description}</p>
                               )}
                             </div>
                           </div>
@@ -340,7 +323,6 @@ export default function Compliance() {
             </div>
           </CardContent>
         </Card>
-
         {/* Multitenancy Requirements Section */}
         <Card>
           <CardHeader>
@@ -360,9 +342,9 @@ export default function Compliance() {
                   <div key={category} className=""
                     <div className=""
                       {getCategoryIcon(category)}
-                      <h3 className="text-lg font-semibold">{category}</h3>
+                      <h3 className="text-lg">"{category}</h3>
                       <div className=""
-                        <span className="text-sm text-muted-foreground">{categoryProgress}%</span>
+                        <span className="text-lg">"{categoryProgress}%</span>
                         <Progress value={categoryProgress} className="w-24 h-2" />
                       </div>
                     </div>
@@ -375,9 +357,9 @@ export default function Compliance() {
                           <div className=""
                             {getStatusIcon(item.status)}
                             <div className=""
-                              <p className="text-sm font-medium">{item.name}</p>
+                              <p className="text-lg">"{item.name}</p>
                               {item.description && (
-                                <p className="text-xs text-muted-foreground">{item.description}</p>
+                                <p className="text-lg">"{item.description}</p>
                               )}
                             </div>
                           </div>

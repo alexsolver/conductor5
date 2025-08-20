@@ -1,23 +1,20 @@
 import { ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
-
 interface AppShellProps {
   children: ReactNode;
 }
-
 export function AppShell({ children }: AppShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900>
+    <div className="text-lg">"
       <Sidebar 
         collapsed={sidebarCollapsed} 
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} 
       />
-      <div className="flex flex-col flex-1 overflow-hidden>
+      <div className="text-lg">"
         <Header />
-        <main className="flex-1 relative overflow-y-auto focus:outline-none ml-[10px] mr-[10px]>
+        <main className="text-lg">"
           {children}
         </main>
       </div>

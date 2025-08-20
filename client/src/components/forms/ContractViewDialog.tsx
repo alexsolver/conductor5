@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: VIEW CONTRACT DIALOG
 // Clean Architecture - Frontend View Component for Contract Details
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Eye, Calendar, DollarSign, FileText, Users, MapPin, Clock } from 'lucide-react';
@@ -17,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-
 // Status and types mapping
 const contractStatuses = [
   {
@@ -29,7 +27,6 @@ const contractStatuses = [
   { value: 'finished', label: 'Finalizado', color: 'bg-gray-100 text-gray-800' },
   { value: 'canceled', label: '[TRANSLATION_NEEDED]', color: 'bg-red-100 text-red-800' },
 ];
-
 const contractTypes = [
   { value: 'service', label: 'Serviço' },
   { value: 'supply', label: 'Fornecimento' },
@@ -37,7 +34,6 @@ const contractTypes = [
   { value: 'rental', label: 'Locação' },
   { value: 'sla', label: 'SLA' },
 ];
-
 const priorities = [
   { value: 'low', label: 'Baixa', color: 'bg-gray-100 text-gray-800' },
   { value: 'medium', label: 'Média', color: 'bg-blue-100 text-blue-800' },
@@ -45,15 +41,12 @@ const priorities = [
   { value: 'critical', label: 'Crítica', color: 'bg-red-100 text-red-800' },
   { value: 'emergency', label: 'Emergencial', color: 'bg-purple-100 text-purple-800' },
 ];
-
 interface ContractViewDialogProps {
   contractId: string;
   children?: React.ReactNode;
 }
-
 export function ContractViewDialog({ contractId, children }: ContractViewDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-
   // ✅ 1QA.MD COMPLIANCE: FETCH CONTRACT DATA
   const { data: contractData, isLoading } = useQuery({
     queryKey: ['/api/contracts', contractId],
@@ -64,18 +57,15 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
     },
     enabled: isOpen && !!contractId,
   });
-
   const formatCurrency = (value: number, currency = 'BRL') => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: currency,
     }).format(value);
   };
-
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('pt-BR');
   };
-
   const getStatusBadge = (status: string) => {
     const statusConfig = contractStatuses.find(s => s.value === status);
     return (
@@ -84,7 +74,6 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
       </Badge>
     );
   };
-
   const getPriorityBadge = (priority: string) => {
     const priorityConfig = priorities.find(p => p.value === priority);
     return (
@@ -93,7 +82,6 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
       </Badge>
     );
   };
-
   const getTypeBadge = (type: string) => {
     const typeConfig = contractTypes.find(t => t.value === type);
     return (
@@ -102,7 +90,6 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
       </Badge>
     );
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild data-testid={"
@@ -122,10 +109,9 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
             Visualização completa das informações do contrato
           </DialogDescription>
         </DialogHeader>
-
         {isLoading ? (
           <div className="flex items-center justify-center py-8>
-            <div className="text-muted-foreground">Carregando dados do contrato...</div>
+            <div className="text-lg">"Carregando dados do contrato...</div>
           </div>
         ) : contractData ? (
           <div className="space-y-6>
@@ -156,7 +142,6 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                 </CardContent>
               )}
             </Card>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
               {/* Financial Information */}
               <Card>
@@ -169,13 +154,13 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                 <CardContent className="space-y-4>
                   <div className="grid grid-cols-2 gap-4>
                     <div>
-                      <p className="text-sm font-medium">Valor Total</p>
+                      <p className="text-lg">"Valor Total</p>
                       <p className="text-lg font-bold text-blue-600" data-testid="contract-total-value>
                         {formatCurrency(contractData.totalValue, contractData.currency)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium">Valor Mensal</p>
+                      <p className="text-lg">"Valor Mensal</p>
                       <p className="text-lg font-bold text-green-600" data-testid="contract-monthly-value>
                         {formatCurrency(contractData.monthlyValue, contractData.currency)}
                       </p>
@@ -184,19 +169,18 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                   <Separator />
                   <div className="grid grid-cols-2 gap-4>
                     <div>
-                      <p className="text-sm font-medium">Moeda</p>
+                      <p className="text-lg">"Moeda</p>
                       <p data-testid="contract-currency">{contractData.currency}</p>
                     </div>
                     {contractData.paymentTerms && (
                       <div>
-                        <p className="text-sm font-medium">Prazo de Pagamento</p>
+                        <p className="text-lg">"Prazo de Pagamento</p>
                         <p data-testid="contract-payment-terms">{contractData.paymentTerms} dias</p>
                       </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
-
               {/* Timeline Information */}
               <Card>
                 <CardHeader>
@@ -208,11 +192,11 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                 <CardContent className="space-y-4>
                   <div className="grid grid-cols-2 gap-4>
                     <div>
-                      <p className="text-sm font-medium">Data de Início</p>
+                      <p className="text-lg">"Data de Início</p>
                       <p data-testid="contract-start-date">{formatDate(contractData.startDate)}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium">Data de Término</p>
+                      <p className="text-lg">"Data de Término</p>
                       <p data-testid="contract-end-date">{formatDate(contractData.endDate)}</p>
                     </div>
                   </div>
@@ -220,7 +204,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                   <div className="space-y-2>
                     <div className="flex items-center gap-2>
                       <Clock className="h-4 w-4" />
-                      <span className="text-sm font-medium">Renovação Automática:</span>
+                      <span className="text-lg">"Renovação Automática:</span>
                       <Badge variant={contractData.autoRenewal ? "default" : "secondary>
                         {contractData.autoRenewal ? "Sim" : "Não"
                       </Badge>
@@ -233,7 +217,6 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                   </div>
                 </CardContent>
               </Card>
-
               {/* Management Information */}
               <Card>
                 <CardHeader>
@@ -245,19 +228,19 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                 <CardContent className="space-y-4>
                   {contractData.managerId && (
                     <div>
-                      <p className="text-sm font-medium">Gerente Responsável</p>
+                      <p className="text-lg">"Gerente Responsável</p>
                       <p data-testid="contract-manager">{contractData.managerId}</p>
                     </div>
                   )}
                   {contractData.technicalManagerId && (
                     <div>
-                      <p className="text-sm font-medium">Gerente Técnico</p>
+                      <p className="text-lg">"Gerente Técnico</p>
                       <p data-testid="contract-technical-manager">{contractData.technicalManagerId}</p>
                     </div>
                   )}
                   {contractData.customerCompanyId && (
                     <div>
-                      <p className="text-sm font-medium">Empresa Cliente</p>
+                      <p className="text-lg">"Empresa Cliente</p>
                       <p data-testid="contract-customer">{contractData.customerCompanyId}</p>
                     </div>
                   )}
@@ -265,14 +248,13 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                     <div className="flex items-center gap-2>
                       <MapPin className="h-4 w-4" />
                       <div>
-                        <p className="text-sm font-medium">Localização</p>
+                        <p className="text-lg">"Localização</p>
                         <p data-testid="contract-location">{contractData.locationId}</p>
                       </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
-
               {/* Terms and Conditions */}
               {contractData.termsConditions && (
                 <Card>
@@ -292,7 +274,6 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                 </Card>
               )}
             </div>
-
             {/* Audit Information */}
             <Card>
               <CardHeader>
@@ -301,13 +282,13 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 text-sm>
                   <div>
-                    <p className="font-medium">Criado em:</p>
+                    <p className="text-lg">"Criado em:</p>
                     <p data-testid="contract-created-at>
                       {contractData.createdAt ? formatDate(contractData.createdAt) : 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <p className="font-medium">Última atualização:</p>
+                    <p className="text-lg">"Última atualização:</p>
                     <p data-testid="contract-updated-at>
                       {contractData.updatedAt ? formatDate(contractData.updatedAt) : 'N/A'}
                     </p>
@@ -318,7 +299,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
           </div>
         ) : (
           <div className="text-center py-8>
-            <p className="text-muted-foreground">Contrato não encontrado</p>
+            <p className="text-lg">"Contrato não encontrado</p>
           </div>
         )}
       </DialogContent>

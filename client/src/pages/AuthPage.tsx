@@ -8,32 +8,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
-
-
 export default function AuthPage() {
   const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const { t } = useTranslation();
-
   // ✅ CRITICAL FIX: Não limpar tokens automaticamente na página de auth
   // Isso pode estar causando problemas durante o processo de login
   
-
   // Redirect if already authenticated
   if (isAuthenticated) {
     window.location.href = "/";
     return null;
   }
-
   const LoginForm = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       loginMutation.mutate({ email, password });
     };
-
     return (
       <form onSubmit={handleSubmit} className=""
         <div className=""
@@ -77,7 +70,6 @@ export default function AuthPage() {
       </form>
     );
   };
-
   const RegisterForm = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -85,7 +77,6 @@ export default function AuthPage() {
     const [lastName, setLastName] = useState("");
     const [companyName, setCompanyName] = useState("");
     const [workspaceName, setWorkspaceName] = useState("");
-
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       registerMutation.mutate({ 
@@ -98,7 +89,6 @@ export default function AuthPage() {
         role: 'tenant_admin' // First user becomes tenant admin
       });
     };
-
     return (
       <form onSubmit={handleSubmit} className=""
         <div className=""
@@ -194,18 +184,16 @@ export default function AuthPage() {
       </form>
     );
   };
-
   if (isLoading) {
     return (
       <div className=""
         <div className=""
           <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-          <span className="text-lg text-slate-600 dark:text-slate-300">Loading...</span>
+          <span className="text-lg">"Loading...</span>
         </div>
       </div>
     );
   }
-
   return (
     <div className=""
       <div className=""
@@ -219,10 +207,9 @@ export default function AuthPage() {
               Your comprehensive customer support platform
             </p>
           </div>
-
           <Card className=""
             <CardHeader className=""
-              <CardTitle className="text-2xl">Get Started</CardTitle>
+              <CardTitle className="text-lg">"Get Started</CardTitle>
               <CardDescription>
                 Sign in to your account or create a new one
               </CardDescription>
@@ -233,11 +220,9 @@ export default function AuthPage() {
                   <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
                 </TabsList>
-
                 <TabsContent value="login" className=""
                   <LoginForm />
                 </TabsContent>
-
                 <TabsContent value="register" className=""
                   <RegisterForm />
                 </TabsContent>
@@ -245,7 +230,6 @@ export default function AuthPage() {
             </CardContent>
           </Card>
         </div>
-
         {/* Right side - Hero Section */}
         <div className=""
           <div className=""
@@ -260,7 +244,6 @@ export default function AuthPage() {
               Streamline Your Support Operations
             </h2>
           </div>
-
           <div className=""
             <div className=""
               <div className=""
@@ -269,13 +252,12 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Ticket Management</h3>
+                <h3 className="text-lg">"Ticket Management</h3>
                 <p className=""
                   Create, assign, and track support tickets with ease
                 </p>
               </div>
             </div>
-
             <div className=""
               <div className=""
                 <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-600" fill="currentColor>
@@ -285,15 +267,12 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Customer Database</h3>
+                <h3 className="text-lg">"Customer Database</h3>
                 <p className=""
                   Maintain detailed customer profiles and history
                 </p>
               </div>
             </div>
-
-
-
             <div className=""
               <div className=""
                 <svg viewBox="0 0 24 24" className="w-5 h-5 text-orange-600" fill="currentColor>
@@ -301,7 +280,7 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Analytics Dashboard</h3>
+                <h3 className="text-lg">"Analytics Dashboard</h3>
                 <p className=""
                   Monitor performance with detailed insights
                 </p>

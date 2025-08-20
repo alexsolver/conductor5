@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +12,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Route, MapPin, Plus, Trash2, Edit } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 // Local selector component
 const LocalSelector = ({
   // Localization temporarily disabled
@@ -29,7 +27,6 @@ const LocalSelector = ({
       return result.data?.records || result.data || [];
     }
   });
-
   return (
     <div className="space-y-2>
       <Label>{label}</Label>
@@ -43,7 +40,7 @@ const LocalSelector = ({
               <div className="flex items-center gap-2>
                 <MapPin className="h-4 w-4 text-gray-500" />
                 <div>
-                  <div className="font-medium">{local.nome}</div>
+                  <div className="text-lg">"{local.nome}</div>
                   {local.municipio && local.estado && (
                     <div className="text-sm text-gray-500>
                       {local.municipio}, {local.estado}
@@ -63,13 +60,11 @@ const LocalSelector = ({
     </div>
   );
 };
-
 // Segment editing modal/form
 const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst = false, isLast = false, previousDestination = null }) => {
   const [localOrigem, setLocalOrigem] = useState(segment?.localOrigemId || '');
   const [localDestino, setLocalDestino] = useState(segment?.localDestinoId || '');
   const [nomeTrecho, setNomeTrecho] = useState(segment?.nomeTrecho || '');
-
   const handleSave = () => {
     if (!localOrigem || !localDestino) return;
     
@@ -80,7 +75,6 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
       ordem: segment?.ordem || 1
     });
   };
-
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-gray-50>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
@@ -103,7 +97,6 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
             </SelectContent>
           </Select>
         </div>
-
         <div>
           <Label>TRECHO (Nome/Código)</Label>
           <Input
@@ -113,7 +106,6 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
             maxLength={200}
           />
         </div>
-
         <div>
           <Label>PARA (Local de Destino) *</Label>
           <Select value={localDestino} onValueChange={setLocalDestino}>
@@ -130,7 +122,6 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
           </Select>
         </div>
       </div>
-
       <div className="flex justify-end space-x-2>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
@@ -146,12 +137,10 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
     </div>
   );
 };
-
 export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
   const [trechos, setTrechos] = useState([]);
   const [editingSegment, setEditingSegment] = useState(null);
   const [addingSegment, setAddingSegment] = useState(false);
-
   const form = useForm({
     resolver: zodResolver(rotaTrechoComSegmentosSchema),
     defaultValues: {
@@ -162,10 +151,8 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
       trechos: []
     }
   });
-
   const { register, handleSubmit, formState: { errors }, setValue, watch } = form;
   const watchedValues = useWatch({ control: form.control });
-
   const { data: locais = [] } = useQuery({
     queryKey: ['/api/locations-new/local'],
     queryFn: async () => {
@@ -177,12 +164,10 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
       return result.data?.records || result.data || [];
     }
   });
-
   const getLocalName = (localId) => {
     const local = locais.find(l => l.id === localId);
     return local ? local.nome : 'Local não encontrado';
   };
-
   const addSegment = (segmentData) => {
     const newSegment = {
       ...segmentData,
@@ -193,7 +178,6 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
     setValue('trechos', updatedTrechos);
     setAddingSegment(false);
   };
-
   const editSegment = (index, segmentData) => {
     const updatedTrechos = [...trechos];
     updatedTrechos[index] = { ...segmentData, ordem: index + 1 };
@@ -201,33 +185,27 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
     setValue('trechos', updatedTrechos);
     setEditingSegment(null);
   };
-
   const removeSegment = (index) => {
     const updatedTrechos = trechos.filter((_, i) => i !== index).map((t, i) => ({ ...t, ordem: i + 1 }));
     setTrechos(updatedTrechos);
     setValue('trechos', updatedTrechos);
   };
-
   const handleFormSubmit = async (data) => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
         throw new Error('Token de autenticação não encontrado');
       }
-
       const payload = JSON.parse(atob(token.split('.')[1]));
       const tenantId = payload.tenantId;
-
       if (!tenantId) {
         throw new Error('Tenant ID não encontrado no token');
       }
-
       const formData = {
         ...data,
         tenantId,
         trechos: trechos
       };
-
       console.log('RotaTrechoForm - Submitting data:', formData);
       await onSubmit(formData);
     } catch (error) {
@@ -235,33 +213,27 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
       throw error;
     }
   };
-
   const isValidRoute = () => {
     if (!watchedValues.localAId || !watchedValues.localBId || trechos.length === 0) {
       return false;
     }
-
     // Check if first segment starts from Local A
     if (trechos[0]?.localOrigemId !== watchedValues.localAId) {
       return false;
     }
-
     // Check if last segment ends at Local B
     const lastTrecho = trechos[trechos.length - 1];
     if (lastTrecho?.localDestinoId !== watchedValues.localBId) {
       return false;
     }
-
     // Check segment connectivity
     for (let i = 0; i < trechos.length - 1; i++) {
       if (trechos[i].localDestinoId !== trechos[i + 1].localOrigemId) {
         return false;
       }
     }
-
     return true;
   };
-
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6>
       {/* Identificação */}
@@ -286,7 +258,6 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
               onCheckedChange={(checked) => setValue('ativo', checked)}
             />
           </div>
-
           <div>
             <Label htmlFor="idRota">ID da Rota *</Label>
             <Input
@@ -296,7 +267,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
               maxLength={100}
             />
             {errors.idRota && (
-              <p className="text-sm text-red-500 mt-1">{errors.idRota.message}</p>
+              <p className="text-lg">"{errors.idRota.message}</p>
             )}
             <div className="text-xs text-gray-500 mt-1>
               {watchedValues.idRota?.length || 0}/100 caracteres
@@ -304,7 +275,6 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
           </div>
         </CardContent>
       </Card>
-
       {/* Definição do Trecho */}
       <Card>
         <CardHeader>
@@ -320,10 +290,9 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 placeholder='[TRANSLATION_NEEDED]'
               />
               {errors.localAId && (
-                <p className="text-sm text-red-500 mt-1">{errors.localAId.message}</p>
+                <p className="text-lg">"{errors.localAId.message}</p>
               )}
             </div>
-
             <div>
               <LocalSelector
                 value={watchedValues.localBId}
@@ -332,13 +301,12 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 placeholder='[TRANSLATION_NEEDED]'
               />
               {errors.localBId && (
-                <p className="text-sm text-red-500 mt-1">{errors.localBId.message}</p>
+                <p className="text-lg">"{errors.localBId.message}</p>
               )}
             </div>
           </div>
         </CardContent>
       </Card>
-
       {/* Múltiplos Trechos */}
       <Card>
         <CardHeader>
@@ -366,7 +334,6 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
               previousDestination={trechos.length > 0 ? trechos[trechos.length - 1].localDestinoId : watchedValues.localAId}
             />
           )}
-
           {editingSegment !== null && (
             <SegmentForm
               segment={trechos[editingSegment]}
@@ -378,7 +345,6 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
               previousDestination={editingSegment > 0 ? trechos[editingSegment - 1].localDestinoId : watchedValues.localAId}
             />
           )}
-
           {trechos.length > 0 && (
             <div className="border rounded-lg>
               <Table>
@@ -394,7 +360,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 <TableBody>
                   {trechos.map((trecho, index) => (
                     <TableRow key={index}>
-                      <TableCell className="font-mono">{index + 1}</TableCell>
+                      <TableCell className="text-lg">"{index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2>
                           <MapPin className="h-4 w-4 text-gray-500" />
@@ -437,15 +403,13 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
               </Table>
             </div>
           )}
-
           {trechos.length === 0 && (
             <div className="text-center py-8 text-gray-500>
               <Route className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>Nenhum trecho adicionado</p>
-              <p className="text-sm">Clique em "Adicionar Trecho" para começar</p>
+              <p className="text-lg">"Clique em "Adicionar Trecho" para começar</p>
             </div>
           )}
-
           {/* Validations Display */}
           {trechos.length > 0 && (
             <div className="space-y-2>
@@ -474,7 +438,6 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
           )}
         </CardContent>
       </Card>
-
       {/* Actions */}
       <div className="flex justify-end space-x-2>
         <Button type="button" variant="outline" onClick={onCancel}>

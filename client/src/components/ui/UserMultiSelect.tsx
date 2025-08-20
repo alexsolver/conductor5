@@ -16,14 +16,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-
 interface User {
   id: string;
   name: string;
   email: string;
   role?: string;
 }
-
 interface UserMultiSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
@@ -32,10 +30,8 @@ interface UserMultiSelectProps {
   className?: string;
   disabled?: boolean;
 }
-
 export function UserMultiSelect({
   // Localization temporarily disabled
-
   value = [],
   onChange,
   users,
@@ -44,30 +40,24 @@ export function UserMultiSelect({
   disabled = false,
 }: UserMultiSelectProps) {
   const [open, setOpen] = useState(false);
-
   // Debug logs
   React.useEffect(() => {
     console.log('[UserMultiSelect] Users received:', users?.length, users);
     console.log('[UserMultiSelect] Current value:', value);
   }, [users, value]);
-
   const selectedUsers = users.filter(user => value.includes(user.id));
   const availableUsers = users.filter(user => !value.includes(user.id));
-
   const handleSelect = (userId: string) => {
     const newValue = [...value, userId];
     onChange(newValue);
   };
-
   const handleRemove = (userId: string) => {
     const newValue = value.filter(id => id !== userId);
     onChange(newValue);
   };
-
   const handleClear = () => {
     onChange([]);
   };
-
   return (
     <div className={cn("space-y-2", className)}>
       {/* Selected Users Display */}
@@ -79,7 +69,7 @@ export function UserMultiSelect({
               variant="secondary"
               className="flex items-center gap-1 px-2 py-1"
             >
-              <span className="text-xs font-medium">{user.name}</span>
+              <span className="text-lg">"{user.name}</span>
               {!disabled && (
                 <button
                   type="button"
@@ -104,7 +94,6 @@ export function UserMultiSelect({
           )}
         </div>
       )}
-
       {/* User Selector */}
       {!disabled && (
         <Popover open={open} onOpenChange={setOpen}>
@@ -143,10 +132,10 @@ export function UserMultiSelect({
                       )}
                     />
                     <div className="flex flex-col>
-                      <span className="font-medium">{user.name}</span>
-                      <span className="text-xs text-muted-foreground">{user.email}</span>
+                      <span className="text-lg">"{user.name}</span>
+                      <span className="text-lg">"{user.email}</span>
                       {user.role && (
-                        <span className="text-xs text-blue-600">{user.role}</span>
+                        <span className="text-lg">"{user.role}</span>
                       )}
                     </div>
                   </CommandItem>

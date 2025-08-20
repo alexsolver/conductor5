@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,6 @@ import { apiRequest } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface ApprovalRequest {
   id: string;
   versionId: string;
@@ -29,12 +27,10 @@ interface ApprovalRequest {
   approvalNotes?: string;
   changeDescription: string;
 }
-
 interface ApprovalWorkflowProps {
   templateId?: string;
   onApprovalComplete?: () => void;
 }
-
 export function ApprovalWorkflow({
   // Localization temporarily disabled
  templateId, onApprovalComplete }: ApprovalWorkflowProps) {
@@ -42,20 +38,17 @@ export function ApprovalWorkflow({
   const [approvalNotes, setApprovalNotes] = useState('');
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
   const queryClient = useQueryClient();
-
   // Buscar aprovações pendentes
   const { data: pendingApprovals } = useQuery({
     queryKey: ['/api/template-versions/pending-approvals'],
     queryFn: () => apiRequest('GET', '/api/template-versions/pending-approvals')
   });
-
   // Buscar histórico de aprovações para template específico
   const { data: approvalHistory } = useQuery({
     queryKey: ['/api/template-versions/approvals', templateId],
     queryFn: () => apiRequest('GET', "
     enabled: !!templateId
   });
-
   const approveVersionMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/template-versions/approve', data),
     onSuccess: () => {
@@ -66,17 +59,14 @@ export function ApprovalWorkflow({
       onApprovalComplete?.();
     }
   });
-
   const handleApproval = async () => {
     if (!selectedRequest) return;
-
     await approveVersionMutation.mutateAsync({
       versionId: selectedRequest.versionId,
       approved: approvalAction === 'approve',
       approvalNotes: approvalNotes.trim() || undefined
     });
   };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
@@ -87,38 +77,34 @@ export function ApprovalWorkflow({
         return <Clock className="w-4 h-4 text-yellow-600" />;
     }
   };
-
   const getStatusBadge = (status: string) => {
     const variants = {
       pending: 'secondary',
       approved: 'default',
       rejected: 'destructive'
     } as const;
-
     return (
       <Badge variant={variants[status as keyof typeof variants] || 'secondary'}>
         {status === 'pending' ? 'Pendente' : status === 'approved' ? 'Aprovado' : 'Rejeitado'}
       </Badge>
     );
   };
-
   return (
     <div className="space-y-6>
       {/* Header */}
       <div className="flex items-center justify-between>
         <div className="flex items-center gap-2>
           <CheckCircle className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold">Workflow de Aprovação</h3>
+          <h3 className="text-lg">"Workflow de Aprovação</h3>
         </div>
         <Badge variant="outline>
           {pendingApprovals?.data?.length || 0} pendentes
         </Badge>
       </div>
-
       {/* Aprovações Pendentes */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Aprovações Pendentes</CardTitle>
+          <CardTitle className="text-lg">"Aprovações Pendentes</CardTitle>
         </CardHeader>
         <CardContent>
           {pendingApprovals?.data?.length > 0 ? (
@@ -131,7 +117,7 @@ export function ApprovalWorkflow({
                   <div className="flex items-center gap-4>
                     {getStatusIcon(request.status)}
                     <div>
-                      <p className="font-medium">{request.templateName}</p>
+                      <p className="text-lg">"{request.templateName}</p>
                       <p className="text-sm text-gray-500>
                         Versão {request.version} • {request.changeDescription}
                       </p>
@@ -188,12 +174,11 @@ export function ApprovalWorkflow({
           )}
         </CardContent>
       </Card>
-
       {/* Histórico de Aprovações */}
       {templateId && approvalHistory?.data && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Histórico de Aprovações</CardTitle>
+            <CardTitle className="text-lg">"Histórico de Aprovações</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3>
@@ -202,10 +187,10 @@ export function ApprovalWorkflow({
                   {getStatusIcon(item.status)}
                   <div className="flex-1>
                     <div className="flex items-center justify-between mb-2>
-                      <span className="font-medium">Versão {item.version}</span>
+                      <span className="text-lg">"Versão {item.version}</span>
                       {getStatusBadge(item.status)}
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{item.changeDescription}</p>
+                    <p className="text-lg">"{item.changeDescription}</p>
                     {item.approvalNotes && (
                       <div className="bg-gray-50 p-2 rounded text-sm>
                         <MessageSquare className="w-3 h-3 inline mr-1" />
@@ -228,7 +213,6 @@ export function ApprovalWorkflow({
     </div>
   );
 }
-
 interface ApprovalDialogProps {
   request: ApprovalRequest;
   approvalNotes: string;
@@ -238,7 +222,6 @@ interface ApprovalDialogProps {
   onApprove: () => void;
   isLoading: boolean;
 }
-
 function ApprovalDialog({
   request,
   approvalNotes,
@@ -253,29 +236,26 @@ function ApprovalDialog({
       {/* Informações da Solicitação */}
       <div className="space-y-4>
         <div>
-          <Label className="text-sm font-medium">Template</Label>
-          <p className="text-sm text-gray-600">{request.templateName}</p>
+          <Label className="text-lg">"Template</Label>
+          <p className="text-lg">"{request.templateName}</p>
         </div>
         
         <div className="grid grid-cols-2 gap-4>
           <div>
-            <Label className="text-sm font-medium">Versão</Label>
-            <p className="text-sm text-gray-600">{request.version}</p>
+            <Label className="text-lg">"Versão</Label>
+            <p className="text-lg">"{request.version}</p>
           </div>
           <div>
-            <Label className="text-sm font-medium">Solicitado por</Label>
-            <p className="text-sm text-gray-600">{request.requestedBy}</p>
+            <Label className="text-lg">"Solicitado por</Label>
+            <p className="text-lg">"{request.requestedBy}</p>
           </div>
         </div>
-
         <div>
-          <Label className="text-sm font-medium">Descrição das Mudanças</Label>
-          <p className="text-sm text-gray-600">{request.changeDescription}</p>
+          <Label className="text-lg">"Descrição das Mudanças</Label>
+          <p className="text-lg">"{request.changeDescription}</p>
         </div>
       </div>
-
       <Separator />
-
       {/* Ação de Aprovação */}
       <div className="space-y-4>
         <div>
@@ -300,7 +280,6 @@ function ApprovalDialog({
             </SelectContent>
           </Select>
         </div>
-
         <div>
           <Label htmlFor="approval-notes>
             Comentários {approvalAction === 'reject' ? '(obrigatório)' : '(opcional)'}
@@ -318,7 +297,6 @@ function ApprovalDialog({
           />
         </div>
       </div>
-
       {/* Ações */}
       <div className="flex justify-end gap-3>
         <Button variant="outline" disabled={isLoading}>

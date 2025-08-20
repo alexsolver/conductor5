@@ -21,14 +21,12 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-
 interface IntegrityCheck {
   isValid: boolean;
   errors: string[];
   timestamp: string;
   tenantId: string;
 }
-
 interface AuditLogEntry {
   id: string;
   action: string;
@@ -40,7 +38,6 @@ interface AuditLogEntry {
   ipAddress: string;
   auditHash: string;
 }
-
 interface ComplianceReport {
   id: string;
   reportType: string;
@@ -52,7 +49,6 @@ interface ComplianceReport {
   createdAt: string;
   isSubmittedToAuthorities: boolean;
 }
-
 interface BackupStatus {
   backupDate: string;
   recordCount: number;
@@ -61,7 +57,6 @@ interface BackupStatus {
   verificationDate?: string;
   compressionType: string;
 }
-
 interface DigitalKey {
   id: string;
   keyName: string;
@@ -71,13 +66,10 @@ interface DigitalKey {
   createdAt: string;
   isExpired: boolean;
 }
-
 export default function CLTCompliance() {
   // Localization temporarily disabled
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Mutation para reconstituir cadeia de integridade
   const rebuildIntegrityMutation = useMutation({
     mutationFn: async () => {
@@ -86,7 +78,7 @@ export default function CLTCompliance() {
     onSuccess: (data) => {
       toast({
         title: "Cadeia Reconstituída",
-        description: " registros corrigidos com sucesso`,
+        description: " registros corrigidos com sucesso",
         variant: "default"
       });
       // Atualiza a verificação de integridade
@@ -105,37 +97,31 @@ export default function CLTCompliance() {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
   });
-
   // 🔴 Verificação de Integridade
   const { data: integrityCheck, isLoading: integrityLoading } = useQuery({
     queryKey: ['/api/timecard/compliance/integrity-check'],
     retry: false
   });
-
   // 🔴 Logs de Auditoria
   const { data: auditLogs, isLoading: auditLoading } = useQuery({
     queryKey: ['/api/timecard/compliance/audit-log'],
     retry: false
   });
-
   // 🔴 Status dos Backups
   const { data: backupStatus, isLoading: backupLoading } = useQuery({
     queryKey: ['/api/timecard/compliance/backups'],
     retry: false
   });
-
   // 🔴 Chaves Digitais
   const { data: digitalKeys, isLoading: keysLoading } = useQuery({
     queryKey: ['/api/timecard/compliance/keys'],
     retry: false
   });
-
   // 🔴 Relatórios de Compliance
   const { data: complianceReports, isLoading: reportsLoading } = useQuery({
     queryKey: ['/api/timecard/compliance/reports'],
     retry: false
   });
-
   // 🔴 Gerar Relatório
   const generateReportMutation = useMutation({
     mutationFn: async (data: { reportType: string; periodStart: string; periodEnd: string }) => {
@@ -157,7 +143,6 @@ export default function CLTCompliance() {
       });
     }
   });
-
   // 🔴 Verificar Backup
   const verifyBackupMutation = useMutation({
     mutationFn: async (backupDate: string) => {
@@ -172,7 +157,6 @@ export default function CLTCompliance() {
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/compliance/backups'] });
     }
   });
-
   const handleGenerateReport = () => {
     generateReportMutation.mutate({
       reportType: 'MONTHLY',
@@ -180,7 +164,6 @@ export default function CLTCompliance() {
       periodEnd: selectedPeriod.end
     });
   };
-
   return (
     <div className=""
       <div className=""
@@ -194,7 +177,6 @@ export default function CLTCompliance() {
           </p>
         </div>
       </div>
-
       <Tabs defaultValue="integrity" className=""
         <TabsList className=""
           <TabsTrigger value="integrity">Integridade</TabsTrigger>
@@ -203,7 +185,6 @@ export default function CLTCompliance() {
           <TabsTrigger value="keys">Chaves</TabsTrigger>
           <TabsTrigger value="reports">Relatórios</TabsTrigger>
         </TabsList>
-
         {/* 🔴 VERIFICAÇÃO DE INTEGRIDADE */}
         <TabsContent value="integrity>
           <Card>
@@ -219,7 +200,7 @@ export default function CLTCompliance() {
             <CardContent>
               {integrityLoading ? (
                 <div className=""
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="text-lg">"</div>
                 </div>
               ) : integrityCheck ? (
                 <div className=""
@@ -249,13 +230,13 @@ export default function CLTCompliance() {
                   
                   <div className=""
                     <div>
-                      <span className="font-medium">Status:</span>
+                      <span className="text-lg">"Status:</span>
                       <Badge className={integrityCheck.isValid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800>
                         {integrityCheck.isValid ? 'VÁLIDA' : 'INVÁLIDA'}
                       </Badge>
                     </div>
                     <div>
-                      <span className="font-medium">Verificado em:</span>
+                      <span className="text-lg">"Verificado em:</span>
                       <span className=""
                         {new Date(integrityCheck.timestamp).toLocaleString('pt-BR')}
                       </span>
@@ -308,7 +289,6 @@ export default function CLTCompliance() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* 🔴 TRILHA DE AUDITORIA */}
         <TabsContent value="audit>
           <Card>
@@ -324,7 +304,7 @@ export default function CLTCompliance() {
             <CardContent>
               {auditLoading ? (
                 <div className=""
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="text-lg">"</div>
                 </div>
               ) : auditLogs?.logs ? (
                 <div className=""
@@ -349,10 +329,10 @@ export default function CLTCompliance() {
                       
                       <div className=""
                         <div>
-                          <span className="font-medium">IP:</span> {log.ipAddress}
+                          <span className="text-lg">"IP:</span> {log.ipAddress}
                         </div>
                         <div>
-                          <span className="font-medium">Hash:</span>
+                          <span className="text-lg">"Hash:</span>
                           <code className=""
                             {log.auditHash.substring(0, 16)}...
                           </code>
@@ -361,7 +341,7 @@ export default function CLTCompliance() {
                       
                       {log.reason && (
                         <div className=""
-                          <span className="font-medium">Motivo:</span> {log.reason}
+                          <span className="text-lg">"Motivo:</span> {log.reason}
                         </div>
                       )}
                     </div>
@@ -378,7 +358,6 @@ export default function CLTCompliance() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* 🔴 STATUS DOS BACKUPS */}
         <TabsContent value="backups>
           <Card>
@@ -394,7 +373,7 @@ export default function CLTCompliance() {
             <CardContent>
               {backupLoading ? (
                 <div className=""
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="text-lg">"</div>
                 </div>
               ) : backupStatus?.backups ? (
                 <div className=""
@@ -403,22 +382,21 @@ export default function CLTCompliance() {
                       <div className=""
                         {backupStatus.summary?.totalBackups || 0}
                       </div>
-                      <div className="text-blue-600">Total Backups</div>
+                      <div className="text-lg">"Total Backups</div>
                     </div>
                     <div className=""
                       <div className=""
                         {backupStatus.summary?.verifiedBackups || 0}
                       </div>
-                      <div className="text-green-600">Verificados</div>
+                      <div className="text-lg">"Verificados</div>
                     </div>
                     <div className=""
                       <div className=""
                         {Math.round((backupStatus.summary?.totalSize || 0) / 1024 / 1024)}MB
                       </div>
-                      <div className="text-purple-600">Tamanho Total</div>
+                      <div className="text-lg">"Tamanho Total</div>
                     </div>
                   </div>
-
                   <div className=""
                     {backupStatus.backups.slice(0, 15).map((backup: BackupStatus, index: number) => (
                       <div key={index} className=""
@@ -442,7 +420,6 @@ export default function CLTCompliance() {
                             <span>{backup.compressionType}</span>
                           </div>
                         </div>
-
                         <Button
                           size="sm"
                           variant="outline"
@@ -466,7 +443,6 @@ export default function CLTCompliance() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* 🔴 CHAVES DIGITAIS */}
         <TabsContent value="keys>
           <Card>
@@ -482,7 +458,7 @@ export default function CLTCompliance() {
             <CardContent>
               {keysLoading ? (
                 <div className=""
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="text-lg">"</div>
                 </div>
               ) : digitalKeys?.keys ? (
                 <div className=""
@@ -491,35 +467,34 @@ export default function CLTCompliance() {
                       <div className=""
                         {digitalKeys.summary?.totalKeys || 0}
                       </div>
-                      <div className="text-blue-600">Total Chaves</div>
+                      <div className="text-lg">"Total Chaves</div>
                     </div>
                     <div className=""
                       <div className=""
                         {digitalKeys.summary?.activeKeys || 0}
                       </div>
-                      <div className="text-green-600">Ativas</div>
+                      <div className="text-lg">"Ativas</div>
                     </div>
                     <div className=""
                       <div className=""
                         {digitalKeys.summary?.expiredKeys || 0}
                       </div>
-                      <div className="text-orange-600">Expiradas</div>
+                      <div className="text-lg">"Expiradas</div>
                     </div>
                     <div className=""
                       <div className=""
                         {digitalKeys.summary?.revokedKeys || 0}
                       </div>
-                      <div className="text-red-600">Revogadas</div>
+                      <div className="text-lg">"Revogadas</div>
                     </div>
                   </div>
-
                   <div className=""
                     {digitalKeys.keys.map((key: DigitalKey) => (
                       <div key={key.id} className=""
                         <div className=""
                           <div className=""
                             <Lock className="h-4 w-4" />
-                            <span className="font-medium">{key.keyName}</span>
+                            <span className="text-lg">"{key.keyName}</span>
                           </div>
                           <div className=""
                             <Badge className={
@@ -538,13 +513,13 @@ export default function CLTCompliance() {
                         
                         <div className=""
                           <div>
-                            <span className="font-medium">Criada em:</span>
+                            <span className="text-lg">"Criada em:</span>
                             <span className=""
                               {new Date(key.createdAt).toLocaleDateString('pt-BR')}
                             </span>
                           </div>
                           <div>
-                            <span className="font-medium">Expira em:</span>
+                            <span className="text-lg">"Expira em:</span>
                             <span className=""
                               {new Date(key.expiresAt).toLocaleDateString('pt-BR')}
                             </span>
@@ -565,7 +540,6 @@ export default function CLTCompliance() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* 🔴 RELATÓRIOS DE COMPLIANCE */}
         <TabsContent value="reports>
           <Card>
@@ -581,7 +555,7 @@ export default function CLTCompliance() {
             <CardContent className=""
               <div className=""
                 <div>
-                  <label className="text-sm font-medium">Data Inicial</label>
+                  <label className="text-lg">"Data Inicial</label>
                   <input
                     type="date"
                     className="block w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
@@ -590,7 +564,7 @@ export default function CLTCompliance() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Data Final</label>
+                  <label className="text-lg">"Data Final</label>
                   <input
                     type="date"
                     className="block w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
@@ -605,10 +579,9 @@ export default function CLTCompliance() {
                   {generateReportMutation.isPending ? 'Gerando...' : 'Gerar Relatório'}
                 </Button>
               </div>
-
               {reportsLoading ? (
                 <div className=""
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="text-lg">"</div>
                 </div>
               ) : complianceReports?.reports ? (
                 <div className=""
@@ -616,7 +589,7 @@ export default function CLTCompliance() {
                     <div key={report.id} className=""
                       <div className=""
                         <div className=""
-                          <span className="font-medium">{report.reportType}</span>
+                          <span className="text-lg">"{report.reportType}</span>
                           <Badge variant="outline>
                             {new Date(report.periodStart).toLocaleDateString('pt-BR')} - {' '}
                             {new Date(report.periodEnd).toLocaleDateString('pt-BR')}

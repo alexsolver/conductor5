@@ -28,7 +28,6 @@ import {
   Clock,
   Settings
 } from 'lucide-react';
-
 interface Asset {
   id: string;
   name: string;
@@ -44,7 +43,6 @@ interface Asset {
   warrantyExpiry?: string;
   createdAt: string;
 }
-
 interface AssetMaintenance {
   id: string;
   assetId: string;
@@ -56,7 +54,6 @@ interface AssetMaintenance {
   description: string;
   cost?: string;
 }
-
 interface AssetStats {
   totalAssets: number;
   activeAssets: number;
@@ -66,10 +63,8 @@ interface AssetStats {
   completedMaintenance: number;
   maintenanceCompletionRate: number;
 }
-
 export default function AssetManagement() {
   // Localization temporarily disabled
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -78,33 +73,25 @@ export default function AssetManagement() {
   const [isCreateAssetOpen, setIsCreateAssetOpen] = useState(false);
   const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-
   // Fetch assets
   const { data: assetsResponse, isLoading: assetsLoading } = useQuery({
     queryKey: ['/api/materials-services/assets']
   });
-
   const assets = Array.isArray(assetsResponse) ? assetsResponse : [];
-
   // Fetch asset stats
   const { data: stats } = useQuery<AssetStats>({
     queryKey: ['/api/materials-services/assets/stats']
   });
-
   // Fetch asset hierarchy
   const { data: hierarchyResponse } = useQuery({
     queryKey: ['/api/materials-services/assets/hierarchy']
   });
-
   const hierarchy = Array.isArray(hierarchyResponse) ? hierarchyResponse : [];
-
   // Fetch maintenance records
   const { data: maintenanceResponse } = useQuery<AssetMaintenance[]>({
     queryKey: ['/api/materials-services/assets/maintenance']
   });
-
   const maintenance = Array.isArray(maintenanceResponse) ? maintenanceResponse : [];
-
   // Create asset mutation
   const createAssetMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/materials-services/assets', data),
@@ -118,7 +105,6 @@ export default function AssetManagement() {
       toast({ title: 'Erro ao criar ativo', variant: 'destructive' });
     }
   });
-
   // Create maintenance mutation
   const createMaintenanceMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/materials-services/assets/maintenance', data),
@@ -131,7 +117,6 @@ export default function AssetManagement() {
       toast({ title: 'Erro ao agendar manutenção', variant: 'destructive' });
     }
   });
-
   // Generate QR Code mutation
   const generateQRMutation = useMutation({
     mutationFn: (assetId: string) => apiRequest('POST', "/api/assets/qr-code"),
@@ -143,7 +128,6 @@ export default function AssetManagement() {
       toast({ title: 'Erro ao gerar QR Code', variant: 'destructive' });
     }
   });
-
   // Filter assets
   const filteredAssets = assets.filter((asset: Asset) => {
     const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -151,7 +135,6 @@ export default function AssetManagement() {
     const matchesStatus = statusFilter === 'all' || asset.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
   const getStatusBadge = (status: string) => {
     const variants = {
       active: 'default',
@@ -162,7 +145,6 @@ export default function AssetManagement() {
     
     return <Badge variant={variants[status as keyof typeof variants] || 'outline'}>{status}</Badge>;
   };
-
   const getPriorityBadge = (priority: string) => {
     const variants = {
       low: 'outline',
@@ -173,13 +155,12 @@ export default function AssetManagement() {
     
     return <Badge variant={variants[priority as keyof typeof variants] || 'outline'}>{priority}</Badge>;
   };
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold">Controle de Ativos</h1>
-          <p className="text-muted-foreground">Gestão completa de ativos com geolocalização e QR codes</p>
+          <h1 className="text-lg">"Controle de Ativos</h1>
+          <p className="text-lg">"Gestão completa de ativos com geolocalização e QR codes</p>
         </div>
         
         <div className=""
@@ -241,7 +222,6 @@ export default function AssetManagement() {
                     </Select>
                   </div>
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="assetLevel">Nível do Ativo</Label>
@@ -261,12 +241,10 @@ export default function AssetManagement() {
                     <Input name="acquisitionCost" type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
-
                 <div className=""
                   <Label htmlFor="warrantyExpiry">Data de Vencimento da Garantia</Label>
                   <Input name="warrantyExpiry" type="date" />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateAssetOpen(false)}>
                     Cancelar
@@ -278,7 +256,6 @@ export default function AssetManagement() {
               </form>
             </DialogContent>
           </Dialog>
-
           <Dialog open={isMaintenanceOpen} onOpenChange={setIsMaintenanceOpen}>
             <DialogTrigger asChild>
               <Button variant="outline>
@@ -319,7 +296,6 @@ export default function AssetManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className=""
                   <div className=""
                     <Label htmlFor="type">Tipo de Manutenção</Label>
@@ -349,17 +325,14 @@ export default function AssetManagement() {
                     </Select>
                   </div>
                 </div>
-
                 <div className=""
                   <Label htmlFor="scheduledDate">Data Agendada</Label>
                   <Input name="scheduledDate" type="datetime-local" required />
                 </div>
-
                 <div className=""
                   <Label htmlFor="description">Descrição</Label>
                   <Textarea name="description" required placeholder="Descreva os trabalhos a serem realizados..." />
                 </div>
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsMaintenanceOpen(false)}>
                     Cancelar
@@ -373,51 +346,47 @@ export default function AssetManagement() {
           </Dialog>
         </div>
       </div>
-
       {/* Statistics Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
+            <CardTitle className="text-lg">"Total de Ativos</CardTitle>
             <Package2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalAssets || 0}</div>
+            <div className="text-lg">"{stats?.totalAssets || 0}</div>
             <p className=""
               {stats?.activeAssets || 0} ativos ativos
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Em Manutenção</CardTitle>
+            <CardTitle className="text-lg">"Em Manutenção</CardTitle>
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.maintenanceAssets || 0}</div>
+            <div className="text-lg">"{stats?.maintenanceAssets || 0}</div>
             <p className=""
               {stats?.scheduledMaintenance || 0} agendadas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Taxa de Conclusão</CardTitle>
+            <CardTitle className="text-lg">"Taxa de Conclusão</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.maintenanceCompletionRate || 0}%</div>
+            <div className="text-lg">"{stats?.maintenanceCompletionRate || 0}%</div>
             <p className=""
               {stats?.completedMaintenance || 0} concluídas
             </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">QR Codes</CardTitle>
+            <CardTitle className="text-lg">"QR Codes</CardTitle>
             <QrCode className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -430,7 +399,6 @@ export default function AssetManagement() {
           </CardContent>
         </Card>
       </div>
-
       {/* Main Content Tabs */}
       <Tabs defaultValue="assets" className=""
         <TabsList>
@@ -439,7 +407,6 @@ export default function AssetManagement() {
           <TabsTrigger value="hierarchy">Hierarquia</TabsTrigger>
           <TabsTrigger value="meters">Medidores</TabsTrigger>
         </TabsList>
-
         <TabsContent value="assets" className=""
           {/* Filters */}
           <div className=""
@@ -465,11 +432,10 @@ export default function AssetManagement() {
               </SelectContent>
             </Select>
           </div>
-
           {/* Assets List */}
           <div className=""
             {assetsLoading ? (
-              <div className="text-center py-8">Carregando ativos...</div>
+              <div className="text-lg">"Carregando ativos...</div>
             ) : filteredAssets.length === 0 ? (
               <div className=""
                 Nenhum ativo encontrado
@@ -481,7 +447,7 @@ export default function AssetManagement() {
                     <div className=""
                       <div className=""
                         <div className=""
-                          <h3 className="font-semibold">{asset.name}</h3>
+                          <h3 className="text-lg">"{asset.name}</h3>
                           {getStatusBadge(asset.status)}
                         </div>
                         <p className=""
@@ -527,7 +493,6 @@ export default function AssetManagement() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="maintenance" className=""
           <div className=""
             {maintenance.length === 0 ? (
@@ -541,7 +506,7 @@ export default function AssetManagement() {
                     <div className=""
                       <div className=""
                         <div className=""
-                          <h3 className="font-semibold">{m.description}</h3>
+                          <h3 className="text-lg">"{m.description}</h3>
                           {getPriorityBadge(m.priority)}
                         </div>
                         <p className=""
@@ -568,7 +533,6 @@ export default function AssetManagement() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="hierarchy" className=""
           <Card>
             <CardHeader>
@@ -593,7 +557,6 @@ export default function AssetManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="meters" className=""
           <Card>
             <CardHeader>

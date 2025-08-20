@@ -9,7 +9,6 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit3, Save, X } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 export interface CustomField {
   id: string;
   name: string;
@@ -29,13 +28,11 @@ export interface CustomField {
   options?: { value: string; label: string }[];
   order: number;
 }
-
 interface CustomFieldsEditorProps {
   fields: CustomField[];
   onChange: (fields: CustomField[]) => void;
   readOnly?: boolean;
 }
-
 export default function CustomFieldsEditor({
   // Localization temporarily disabled
  fields, onChange, readOnly = false }: CustomFieldsEditorProps) {
@@ -48,7 +45,6 @@ export default function CustomFieldsEditor({
     hidden: false,
     order: fields.length + 1
   });
-
   const fieldTypes = [
     { value: 'text', label: 'Texto' },
     { value: 'number', label: 'Número' },
@@ -59,10 +55,8 @@ export default function CustomFieldsEditor({
     { value: 'textarea', label: 'Texto Longo' },
     { value: 'boolean', label: 'Verdadeiro/Falso' }
   ];
-
   const addField = () => {
     if (!newField.name || !newField.label) return;
-
     const field: CustomField = {
       id: "
       name: newField.name!,
@@ -77,7 +71,6 @@ export default function CustomFieldsEditor({
       options: newField.options,
       order: newField.order!
     };
-
     onChange([...fields, field]);
     setNewField({
       name: '',
@@ -88,43 +81,34 @@ export default function CustomFieldsEditor({
       order: fields.length + 2
     });
   };
-
   const updateField = (id: string, updates: Partial<CustomField>) => {
     onChange(fields.map(field => 
       field.id === id ? { ...field, ...updates } : field
     ));
   };
-
   const removeField = (id: string) => {
     onChange(fields.filter(field => field.id !== id));
   };
-
   const moveField = (id: string, direction: 'up' | 'down') => {
     const index = fields.findIndex(field => field.id === id);
     if (index === -1) return;
-
     const newFields = [...fields];
     if (direction === 'up' && index > 0) {
       [newFields[index], newFields[index - 1]] = [newFields[index - 1], newFields[index]];
     } else if (direction === 'down' && index < fields.length - 1) {
       [newFields[index], newFields[index + 1]] = [newFields[index + 1], newFields[index]];
     }
-
     // Update order values
     newFields.forEach((field, idx) => {
       field.order = idx + 1;
     });
-
     onChange(newFields);
   };
-
   const FieldEditor = ({ field, isNew = false }: { field: Partial<CustomField>; isNew?: boolean }) => {
     const [localField, setLocalField] = useState(field);
-
     const updateLocalField = (updates: Partial<CustomField>) => {
       setLocalField({ ...localField, ...updates });
     };
-
     const saveField = () => {
       if (isNew) {
         setNewField(localField);
@@ -133,25 +117,21 @@ export default function CustomFieldsEditor({
         setEditingField(null);
       }
     };
-
     const addOption = () => {
       const options = localField.options || [];
       updateLocalField({
         options: [...options, { value: "
       });
     };
-
     const updateOption = (index: number, key: 'value' | 'label', value: string) => {
       const options = [...(localField.options || [])];
       options[index][key] = value;
       updateLocalField({ options });
     };
-
     const removeOption = (index: number) => {
       const options = localField.options || [];
       updateLocalField({ options: options.filter((_, i) => i !== index) });
     };
-
     return (
       <Card className="border-2 border-blue-200>
         <CardHeader className="pb-3>
@@ -202,7 +182,6 @@ export default function CustomFieldsEditor({
               />
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
             <div>
               <Label>Tipo de Campo</Label>
@@ -231,7 +210,6 @@ export default function CustomFieldsEditor({
               />
             </div>
           </div>
-
           <div>
             <Label>Texto de Ajuda</Label>
             <Textarea
@@ -241,7 +219,6 @@ export default function CustomFieldsEditor({
               rows={2}
             />
           </div>
-
           <div className="flex gap-4>
             <div className="flex items-center space-x-2>
               <Switch
@@ -258,7 +235,6 @@ export default function CustomFieldsEditor({
               <Label>Campo Oculto</Label>
             </div>
           </div>
-
           {(localField.type === 'select' || localField.type === 'multiselect') && (
             <div>
               <div className="flex justify-between items-center mb-2>
@@ -297,13 +273,12 @@ export default function CustomFieldsEditor({
       </Card>
     );
   };
-
   if (readOnly) {
     return (
       <div className="space-y-4>
-        <h3 className="text-lg font-semibold">Campos Customizados</h3>
+        <h3 className="text-lg">"Campos Customizados</h3>
         {fields.length === 0 ? (
-          <p className="text-muted-foreground">Nenhum campo customizado definido.</p>
+          <p className="text-lg">"Nenhum campo customizado definido.</p>
         ) : (
           <div className="space-y-3>
             {fields.map(field => (
@@ -311,12 +286,12 @@ export default function CustomFieldsEditor({
                 <CardContent className="p-4>
                   <div className="flex justify-between items-start>
                     <div>
-                      <h4 className="font-medium">{field.label}</h4>
+                      <h4 className="text-lg">"{field.label}</h4>
                       <p className="text-sm text-muted-foreground>
                         {fieldTypes.find(t => t.value === field.type)?.label} • {field.name}
                       </p>
                       {field.helpText && (
-                        <p className="text-xs text-muted-foreground mt-1">{field.helpText}</p>
+                        <p className="text-lg">"{field.helpText}</p>
                       )}
                     </div>
                     <div className="flex gap-1>
@@ -332,14 +307,12 @@ export default function CustomFieldsEditor({
       </div>
     );
   }
-
   return (
     <div className="space-y-6>
       <div className="flex justify-between items-center>
-        <h3 className="text-lg font-semibold">Campos Customizados</h3>
+        <h3 className="text-lg">"Campos Customizados</h3>
         <Badge variant="outline">{fields.length} campos</Badge>
       </div>
-
       {/* Existing Fields */}
       <div className="space-y-3>
         {fields.map(field => (
@@ -350,12 +323,12 @@ export default function CustomFieldsEditor({
               ) : (
                 <div className="flex justify-between items-start>
                   <div className="flex-1>
-                    <h4 className="font-medium">{field.label}</h4>
+                    <h4 className="text-lg">"{field.label}</h4>
                     <p className="text-sm text-muted-foreground>
                       {fieldTypes.find(t => t.value === field.type)?.label} • {field.name}
                     </p>
                     {field.helpText && (
-                      <p className="text-xs text-muted-foreground mt-1">{field.helpText}</p>
+                      <p className="text-lg">"{field.helpText}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2>
@@ -382,7 +355,6 @@ export default function CustomFieldsEditor({
           </Card>
         ))}
       </div>
-
       {/* Add New Field */}
       {editingField === null && (
         <FieldEditor field={newField} isNew />

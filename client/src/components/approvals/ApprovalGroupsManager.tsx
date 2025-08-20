@@ -3,7 +3,6 @@
  * Permite criar e configurar grupos para agentes, clientes e beneficiários
  * Seguindo padrões 1qa.md
  */
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Users, Edit, Trash2, UserPlus, X } from 'lucide-react';
@@ -18,7 +17,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface ApprovalGroup {
   id: string;
   name: string;
@@ -28,7 +26,6 @@ interface ApprovalGroup {
   members?: ApprovalGroupMember[];
   createdAt: string;
 }
-
 interface ApprovalGroupMember {
   id: string;
   memberType: 'user' | 'customer' | 'beneficiary';
@@ -37,23 +34,19 @@ interface ApprovalGroupMember {
   memberEmail?: string;
   role: string;
 }
-
 const groupTypeLabels = {
   // Localization temporarily disabled
-
   agents: 'Agentes',
   clients: '[TRANSLATION_NEEDED]',
   beneficiaries: 'Beneficiários',
   mixed: 'Misto'
 };
-
 const groupTypeBadgeVariants = {
   agents: 'default',
   clients: 'secondary',
   beneficiaries: 'outline',
   mixed: 'destructive'
 } as const;
-
 export function ApprovalGroupsManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<ApprovalGroup | null>(null);
@@ -63,10 +56,8 @@ export function ApprovalGroupsManager() {
     description: '',
     groupType: 'agents' as 'agents' | 'clients' | 'beneficiaries' | 'mixed'
   });
-
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   // Fetch approval groups
   const { data: groupsData, isLoading } = useQuery({
     queryKey: ['/api/approvals/groups'],
@@ -82,9 +73,7 @@ export function ApprovalGroupsManager() {
       return response.json();
     }
   });
-
   const groups = groupsData?.data || [];
-
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: typeof createForm) => {
@@ -124,7 +113,6 @@ export function ApprovalGroupsManager() {
       });
     }
   });
-
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
@@ -161,7 +149,6 @@ export function ApprovalGroupsManager() {
       });
     }
   });
-
   const handleCreateGroup = () => {
     console.log('🔧 [HANDLE-CREATE-GROUP] Formulário atual:', createForm);
     if (!createForm.name.trim()) {
@@ -173,28 +160,24 @@ export function ApprovalGroupsManager() {
       });
       return;
     }
-
     console.log('✅ [HANDLE-CREATE-GROUP] Iniciando criação do grupo');
     createGroupMutation.mutate(createForm);
   };
-
   const handleDeleteGroup = (groupId: string) => {
     if (confirm('Tem certeza que deseja excluir este grupo? Esta ação não pode ser desfeita.')) {
       deleteGroupMutation.mutate(groupId);
     }
   };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8>
         <div className="text-center>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Carregando grupos...</p>
+          <div className="text-lg">"</div>
+          <p className="text-lg">"Carregando grupos...</p>
         </div>
       </div>
     );
   }
-
   return (
     <div className="space-y-6>
       {/* Header */}
@@ -280,7 +263,6 @@ export function ApprovalGroupsManager() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Groups List */}
       {groups.length === 0 ? (
         <Card>
@@ -307,7 +289,7 @@ export function ApprovalGroupsManager() {
             <Card key={group.id}>
               <CardHeader className="flex flex-row items-start justify-between>
                 <div className="space-y-1>
-                  <CardTitle className="text-lg">{group.name}</CardTitle>
+                  <CardTitle className="text-lg">"{group.name}</CardTitle>
                   {group.description && (
                     <CardDescription>{group.description}</CardDescription>
                   )}

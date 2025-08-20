@@ -7,7 +7,6 @@ import "@uppy/dashboard/dist/style.min.css";
 import AwsS3 from "@uppy/aws-s3";
 import type { UploadResult } from "@uppy/core";
 import { Button } from "@/components/ui/button";
-
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
@@ -21,7 +20,6 @@ interface ObjectUploaderProps {
   buttonClassName?: string;
   children: ReactNode;
 }
-
 /**
  * A file upload component that renders as a button and provides a modal interface for
  * file management.
@@ -75,13 +73,11 @@ export function ObjectUploader({
         onComplete?.(result);
       })
   );
-
   return (
     <div>
       <Button onClick={() => setShowModal(true)} className={buttonClassName}>
         {children}
       </Button>
-
       <DashboardModal
         uppy={uppy}
         open={showModal}

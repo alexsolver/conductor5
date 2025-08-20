@@ -4,11 +4,9 @@ import { Link2, ExternalLink } from 'lucide-react';
 import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { OptimizedBadge } from './OptimizedBadge';
-
 interface RelatedTicketsExpansionProps {
   ticketId: string;
 }
-
 interface RelatedTicket {
   id: string;
   number?: string;
@@ -25,7 +23,6 @@ interface RelatedTicket {
     priority?: string;
   };
 }
-
 export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionProps) {
   // Fetch real related tickets data from API
   const { data: relatedTicketsData, isLoading, error } = useQuery({
@@ -41,7 +38,6 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
     staleTime: 2 * 60 * 1000, // 2 minutes cache
     refetchOnWindowFocus: false,
   });
-
   if (isLoading) {
     return (
       <div className="p-4 bg-gray-50 border-t>
@@ -55,7 +51,6 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
       </div>
     );
   }
-
   if (error) {
     console.error('🔗 [RELATED-TICKETS] Error fetching relationships:', error);
     return (
@@ -70,7 +65,6 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
       </div>
     );
   }
-
   // Add comprehensive debugging
   if (relatedTicketsData) {
     console.log('🔗 [RELATED-TICKETS] Full API response debug:', {
@@ -83,49 +77,40 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
       resultsProperty: relatedTicketsData?.results
     });
   }
-
   // Extract relationships from API response with better error handling
   let relationships = [];
-
   if (relatedTicketsData) {
     console.log('🔗 [RELATED-TICKETS] Raw data structure:', relatedTicketsData);
-
     // Try different possible data structures
     relationships = relatedTicketsData.data ||
                    relatedTicketsData.relationships ||
                    relatedTicketsData.results ||
                    (Array.isArray(relatedTicketsData) ? relatedTicketsData : []);
   }
-
   console.log('🔗 [RELATED-TICKETS] Processing relationships:', {
     hasData: !!relatedTicketsData,
     relationships,
     relationshipsLength: relationships.length || 0,
     firstRelationship: relationships[0] || null
   });
-
   return (
     <div className="p-4 bg-gray-50 border-t>
       <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2>
         <Link2 className="h-4 w-4" />
         Tickets Vinculados ({relationships.length})
       </h4>
-
       {relationships.length > 0 ? (
         <div className="space-y-2>
           {relationships.map((rel: RelatedTicket, index: number) => {
             console.log('🔗 [RELATED-TICKETS] Processing relationship item:', rel);
-
             // Extract ticket data with improved fallbacks following 1qa.md patterns
             const relatedTicket = rel.targetTicket || rel.relatedTicket || rel;
-
             // ✅ [1QA-COMPLIANCE] Critical fix: Use actual ticket data, not relationship ID
             const ticketId = rel.relatedTicketId ||
                            rel.targetTicketId ||
                            relatedTicket.id ||
                            rel.target_ticket_id ||
                            rel.source_ticket_id;
-
             const ticketNumber = rel.relatedTicketNumber ||
                                rel.targetTicketNumber ||
                                relatedTicket.number ||
@@ -133,7 +118,6 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                                rel.target_ticket_number ||
                                rel.source_ticket_number ||
                                "
-
             const ticketSubject = rel.relatedTicketSubject ||
                                 rel.targetTicketSubject ||
                                 relatedTicket.subject ||
@@ -141,7 +125,6 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                                 rel.target_ticket_subject ||
                                 rel.source_ticket_subject ||
                                 'Ticket relacionado';
-
             const ticketStatus = rel.relatedTicketStatus ||
                                rel.targetTicketStatus ||
                                relatedTicket.status ||
@@ -149,7 +132,6 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                                rel.target_ticket_status ||
                                rel.source_ticket_status ||
                                'open';
-
             const ticketPriority = rel.relatedTicketPriority ||
                                  rel.targetTicketPriority ||
                                  relatedTicket.priority ||
@@ -157,12 +139,10 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                                  rel.target_ticket_priority ||
                                  rel.source_ticket_priority ||
                                  'medium';
-
             const relationshipType = rel.relationshipType ||
                                    rel.relationship_type ||
                                    rel.type ||
                                    'related';
-
             // Map relationship types to Portuguese following 1qa.md
             const getRelationshipLabel = (type: string) => {
               const typeMap: Record<string, string> = {
@@ -184,7 +164,6 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
               };
               return typeMap[type?.toLowerCase()] || type || 'Relacionado';
             };
-
             console.log('🔗 [RELATED-TICKETS] Rendering relationship:', {
               index,
               rel,
@@ -204,13 +183,11 @@ export function RelatedTicketsExpansion({ ticketId }: RelatedTicketsExpansionPro
                 relationshipType
               }
             });
-
             // Skip if we don't have minimum required data
             if (!ticketId && !ticketNumber) {
               console.warn('🔗 [RELATED-TICKETS] Skipping relationship due to missing data:', rel);
               return null;
             }
-
             return (
               <div
                 key={"

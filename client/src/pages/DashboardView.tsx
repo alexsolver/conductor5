@@ -13,12 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 // ✅ INTEGRAÇÃO DO SISTEMA DE GOVERNANÇA DE DASHBOARDS
 import { GovernedWidgetRenderer } from "@/components/dashboard/GovernedWidgetRenderer";
 import type { GovernedCard } from "@shared/dashboard-governance-schema";
 import { useAuth } from "@/hooks/useAuth";
-
 interface DashboardWidget {
   id: string;
   name: string;
@@ -36,7 +34,6 @@ interface DashboardWidget {
   };
   isVisible: boolean;
 }
-
 interface Dashboard {
   id: string;
   name: string;
@@ -54,10 +51,8 @@ interface Dashboard {
   status: "active" | "paused" | "error" | "draft";
   widgets?: DashboardWidget[];
 }
-
 const widgetTypeIcons = {
   // Localization temporarily disabled
-
   chart: BarChart3,
   table: Table,
   metric: LineChart,
@@ -65,7 +60,6 @@ const widgetTypeIcons = {
   text: FileText,
   image: Monitor,
 };
-
 // Widget Content Renderer - following 1qa.md patterns with REAL DATA
 function WidgetContent({ widget }: { widget: DashboardWidget }) {
   // ✅ 1QA.MD COMPLIANCE: Connect to real API endpoints for authentic data
@@ -79,7 +73,6 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
       default: return null;
     }
   };
-
   const endpoint = getApiEndpoint(widget.config.dataSource);
   
   const { data: realData, isLoading } = useQuery({
@@ -87,11 +80,9 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
     enabled: !!endpoint,
     retry: false,
   });
-
   // ✅ 1QA.MD COMPLIANCE: Process real data instead of generating fake data
   const processRealData = (rawData: any, dataSource: string, widgetType: string) => {
     if (!rawData) return null;
-
     switch (dataSource) {
       case 'tickets':
         if (rawData.success && rawData.data) {
@@ -120,7 +111,6 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           };
         }
         break;
-
       case 'timecard':
         if (rawData.status) {
           return {
@@ -132,7 +122,6 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           };
         }
         break;
-
       case 'customers':
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
@@ -143,7 +132,6 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           };
         }
         break;
-
       case 'users':
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
@@ -154,7 +142,6 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           };
         }
         break;
-
       case 'materials':
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
@@ -166,27 +153,23 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         }
         break;
     }
-
     return null;
   };
-
   const widgetData = processRealData(realData, widget.config.dataSource, widget.type);
-
   if (isLoading) {
     return (
       <div className=""
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="text-lg">"</div>
       </div>
     );
   }
-
   // ✅ 1QA.MD COMPLIANCE: Show error state for failed real data loading
   if (!widgetData && !isLoading) {
     return (
       <div className=""
         <div className=""
           <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-500" />
-          <p className="text-sm">Erro ao carregar dados</p>
+          <p className="text-lg">"Erro ao carregar dados</p>
           <p className=""
             Fonte: {widget.config.dataSource}
           </p>
@@ -194,9 +177,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
       </div>
     );
   }
-
   const IconComponent = widgetTypeIcons[widget.type];
-
   switch (widget.type) {
     case 'metric':
       return (
@@ -208,7 +189,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
             {widgetData?.label || widget.name}
           </div>
           {widgetData?.change && (
-            <div className="text-xs mt-1 ">
+            <div className="text-lg">"
               {widgetData.change >= 0 ? '↗' : '↘'} {Math.abs(widgetData.change)}%
             </div>
           )}
@@ -221,13 +202,12 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           <div className=""
             <div className=""
               <BarChart3 className="w-16 h-16 text-purple-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-gray-800">{widgetData?.value || '0'}</div>
-              <div className="text-sm text-gray-600">{widgetData?.label || 'Chart Data'}</div>
+              <div className="text-lg">"{widgetData?.value || '0'}</div>
+              <div className="text-lg">"{widgetData?.label || 'Chart Data'}</div>
             </div>
           </div>
         </div>
       );
-
     case 'table':
       return (
         <div className=""
@@ -245,14 +225,13 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
             <div className=""
               <div className=""
                 <Table className="w-12 h-12 mx-auto mb-2" />
-                <p className="text-sm">Data Table</p>
-                <p className="text-xs text-gray-400">Loading data...</p>
+                <p className="text-lg">"Data Table</p>
+                <p className="text-lg">"Loading data...</p>
               </div>
             </div>
           )}
         </div>
       );
-
     default:
       return (
         <div className=""
@@ -271,9 +250,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
       );
   }
 }
-
 // ✅ 1QA.MD COMPLIANCE: Removed fake data generators - using only real data
-
 // Simple Widget Designer Component - following 1qa.md patterns
 function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) => void; dashboardId: string }) {
   const [widgetConfig, setWidgetConfig] = useState({
@@ -285,19 +262,17 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
       chartType: "bar",
     },
   });
-
   const handleSave = () => {
     if (!widgetConfig.name.trim()) {
       return;
     }
     onSave(widgetConfig);
   };
-
   return (
     <div className=""
       <div className=""
         <div>
-          <label className="text-sm font-medium">Widget Name</label>
+          <label className="text-lg">"Widget Name</label>
           <Input
             value={widgetConfig.name}
             onChange={(e) => setWidgetConfig(prev => ({ ...prev, name: e.target.value }))}
@@ -305,9 +280,8 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
             data-testid="input-widget-name"
           />
         </div>
-
         <div>
-          <label className="text-sm font-medium">Widget Type</label>
+          <label className="text-lg">"Widget Type</label>
           <Select 
             value={widgetConfig.type} 
             onValueChange={(value: any) => setWidgetConfig(prev => ({ ...prev, type: value }))}
@@ -325,9 +299,8 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
             </SelectContent>
           </Select>
         </div>
-
         <div>
-          <label className="text-sm font-medium">Data Source</label>
+          <label className="text-lg">"Data Source</label>
           <Select 
             value={widgetConfig.config.dataSource} 
             onValueChange={(value) => setWidgetConfig(prev => ({
@@ -347,7 +320,6 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
             </SelectContent>
           </Select>
         </div>
-
         <div className=""
           <Button onClick={handleSave} disabled={!widgetConfig.name.trim()} data-testid="button-save-widget>
             <CheckCircle className="w-4 h-4 mr-2" />
@@ -358,7 +330,6 @@ function SimpleWidgetDesigner({ onSave, dashboardId }: { onSave: (widget: any) =
     </div>
   );
 }
-
 function DashboardView() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
@@ -375,7 +346,6 @@ function DashboardView() {
   const [editableWidgets, setEditableWidgets] = useState<DashboardWidget[]>([]);
   const [showWidgetDesigner, setShowWidgetDesigner] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
-
   // Following 1qa.md patterns for data fetching - called unconditionally
   const { data: dashboardResponse, isLoading, error } = useQuery({
     queryKey: ["
@@ -383,17 +353,14 @@ function DashboardView() {
     enabled: !!id,
     retry: false,
   });
-
   // ✅ SISTEMA DE GOVERNANÇA ATIVO: Carregar configurações de governança
   const { data: governanceData } = useQuery({
     queryKey: [`/api/dashboards/governance/data-sources`],
     enabled: !!id && !!dashboardResponse,
   });
-
   // ✅ GOVERNANÇA: Converter widgets antigos em cards governados
   const generateGovernedCards = (dashboardData: any): GovernedCard[] => {
     if (!dashboardData?.data?.widgets) return [];
-
     return dashboardData.data.widgets.map((widget: DashboardWidget, index: number): GovernedCard => ({
       id: widget.id,
       name: widget.name,
@@ -475,7 +442,6 @@ function DashboardView() {
       is_active: widget.isVisible
     }));
   };
-
   const mapWidgetTypeToCardType = (widgetType: string): any => {
     const typeMap: Record<string, any> = {
       'metric': 'kpi_simple',
@@ -487,9 +453,7 @@ function DashboardView() {
     };
     return typeMap[widgetType] || 'kpi_simple';
   };
-
   const governedCards = dashboardResponse ? generateGovernedCards(dashboardResponse) : [];
-
   // Extract dashboard from response - moved before useEffect
   const dashboard: Dashboard = (dashboardResponse as any)?.data || {
     id: id || '',
@@ -541,30 +505,27 @@ function DashboardView() {
       },
     ]
   };
-
   // ✅ 1QA.MD COMPLIANCE: useEffect with controlled dependencies to prevent infinite loop
   useEffect(() => {
     if (isEditMode && dashboard?.widgets && editableWidgets.length === 0) {
       setEditableWidgets([...dashboard.widgets]);
     }
   }, [isEditMode, dashboard?.widgets]); // Fixed dependencies to avoid infinite loop
-
   // Early returns after all hooks are called
   if (isLoading) {
     return (
       <div className=""
         <div className=""
-          <div className="h-8 bg-gray-200 rounded w-64"></div>
+          <div className="text-lg">"</div>
           <div className=""
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+              <div key={i} className="text-lg">"</div>
             ))}
           </div>
         </div>
       </div>
     );
   }
-
   if (error || !dashboardResponse) {
     return (
       <div className=""
@@ -583,7 +544,6 @@ function DashboardView() {
       </div>
     );
   }
-
   // Edit mode functions - following 1qa.md patterns
   const addWidget = (widgetConfig: any) => {
     const newWidget: DashboardWidget = {
@@ -598,12 +558,10 @@ function DashboardView() {
     setShowWidgetDesigner(false);
     toast({ title: "Widget added", description: " has been added to the dashboard.` });
   };
-
   const removeWidget = (widgetId: string) => {
     setEditableWidgets(prev => prev.filter(w => w.id !== widgetId));
     toast({ title: "Widget removed", description: "Widget has been removed from the dashboard." });
   };
-
   const saveDashboard = async () => {
     try {
       // Save dashboard configuration following 1qa.md patterns
@@ -629,24 +587,20 @@ function DashboardView() {
       });
     }
   };
-
   // Dashboard handlers following 1qa.md patterns
   const handleRefresh = () => {
     window.location.reload();
   };
-
   const handleShare = () => {
     const dashboardUrl = "
     navigator.clipboard.writeText(dashboardUrl);
     toast({ title: "Link copied", description: "Dashboard link copied to clipboard." });
   };
-
   const handleFullscreen = () => {
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();
     }
   };
-
   return (
     <div className=""
       {/* Header */}
@@ -765,7 +719,6 @@ function DashboardView() {
           </div>
         </div>
       </div>
-
       {/* Dashboard Canvas */}
       <div className=""
         {isEditMode && showWidgetDesigner && (
@@ -788,7 +741,6 @@ function DashboardView() {
             </CardContent>
           </Card>
         )}
-
         {/* 🎯 SISTEMA DE GOVERNANÇA ATIVO - Cards Governados */}
         <div className=""
           {isEditMode && showWidgetDesigner && (
@@ -869,5 +821,4 @@ function DashboardView() {
     </div>
   );
 }
-
 export default DashboardView;

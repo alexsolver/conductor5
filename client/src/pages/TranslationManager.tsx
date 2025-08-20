@@ -2,7 +2,6 @@
  * Translation Manager Page
  * SaaS Admin interface for managing translations across all languages
  */
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -35,26 +34,21 @@ import {
   XCircle
 } from "lucide-react";
 // import useLocalization from '@/hooks/useLocalization';
-
 // Schema for translation updates
 const updateTranslationSchema = z.object({
   translations: z.record(z.any())
 });
-
 type UpdateTranslationFormData = z.infer<typeof updateTranslationSchema>;
-
 interface Language {
   code: string;
   name: string;
   flag: string;
 }
-
 interface TranslationData {
   language: string;
   translations: Record<string, any>;
   lastModified: string;
 }
-
 export default function TranslationManager() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -63,41 +57,36 @@ export default function TranslationManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [newKeyDialog, setNewKeyDialog] = useState(false);
-
   // Verificar se usuário é SaaS admin
   if (user?.role !== 'saas_admin') {
     return (
-      <div className="p-4"
+      <div className="p-4">
         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="p-4"
+        <h1 className="p-4">
           Acesso Negado
         </h1>
-        <p className="p-4"
+        <p className="p-4">
           Esta página é restrita para administradores da plataforma SaaS.
         </p>
       </div>
     );
   }
-
   // Query para idiomas disponíveis
   const { data: languagesData, isLoading: isLoadingLanguages } = useQuery({
     queryKey: ['/api/translations/languages'],
     staleTime: 5 * 60 * 1000,
   });
-
   // Query para traduções do idioma selecionado
   const { data: translationData, isLoading: isLoadingTranslations } = useQuery({
     queryKey: ['/api/translations', selectedLanguage],
     staleTime: 60 * 1000,
     enabled: !!selectedLanguage
   });
-
   // Query para todas as chaves de tradução
   const { data: allKeysData, isLoading: isLoadingKeys } = useQuery({
     queryKey: ['/api/translations/keys/all'],
     staleTime: 2 * 60 * 1000,
   });
-
   // Form para edição de traduções
   const form = useForm<UpdateTranslationFormData>({
     resolver: zodResolver(updateTranslationSchema),
@@ -105,14 +94,12 @@ export default function TranslationManager() {
       translations: {}
     }
   });
-
   // Atualizar form quando translations carregam
   useEffect(() => {
     if (translationData && (translationData as any).translations) {
       form.reset({ translations: (translationData as any).translations });
     }
   }, [translationData, form]);
-
   // Mutation para salvar traduções
   const saveTranslationMutation = useMutation({
     mutationFn: async (data: UpdateTranslationFormData) => {
@@ -135,7 +122,6 @@ export default function TranslationManager() {
       });
     }
   });
-
   // Mutation para restaurar backup
   const restoreBackupMutation = useMutation({
     mutationFn: async () => {
@@ -157,22 +143,18 @@ export default function TranslationManager() {
       });
     }
   });
-
   const onSubmit = (data: UpdateTranslationFormData) => {
     saveTranslationMutation.mutate(data);
   };
-
   const handleRestore = () => {
     if (confirm("Confirma a exclusão do backup?"))) {
       restoreBackupMutation.mutate();
     }
   };
-
   // Função para buscar valor nested
   const getNestedValue = (obj: any, path: string): any => {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   };
-
   // Função para definir valor nested
   const setNestedValue = (obj: any, path: string, value: any) => {
     const keys = path.split('.');
@@ -183,24 +165,22 @@ export default function TranslationManager() {
     }, obj);
     target[lastKey] = value;
   };
-
   // Filtrar chaves baseado na busca
   const filteredKeys = (allKeysData as any)?.keys?.filter((key: string) => 
     key.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
-
   return (
-    <div className="p-4"
-      <div className="p-4"
+    <div className="p-4">
+      <div className="p-4">
         <div>
-          <h1 className="p-4"
+          <h1 className="p-4">
             Gerenciador de Traduções
           </h1>
-          <p className="p-4"
+          <p className="p-4">
             Gerencie traduções em todos os idiomas suportados
           </p>
         </div>
-        <div className="p-4"
+        <div className="p-4">
           <Button 
             variant="outline" 
             onClick={handleRestore}
@@ -218,11 +198,10 @@ export default function TranslationManager() {
           </Button>
         </div>
       </div>
-
       {/* Language Selector */}
       <Card>
         <CardHeader>
-          <CardTitle className="p-4"
+          <CardTitle className="p-4">
             <Languages className="w-5 h-5" />
             Selecionar Idioma
           </CardTitle>
@@ -231,7 +210,7 @@ export default function TranslationManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="p-4"
+          <div className="p-4">
             {isLoadingLanguages ? (
               <div>Carregando idiomas...</div>
             ) : (
@@ -242,7 +221,7 @@ export default function TranslationManager() {
                   onClick={() => setSelectedLanguage(lang.code)}
                   className="flex items-center gap-2"
                 >
-                  <span className="text-lg">{lang.flag}</span>
+                  <span className="text-lg">"{lang.flag}</span>
                   {lang.name}
                 </Button>
               ))
@@ -250,11 +229,10 @@ export default function TranslationManager() {
           </div>
         </CardContent>
       </Card>
-
       {/* Search */}
       <Card>
-        <CardContent className="p-4"
-          <div className="p-4"
+        <CardContent className="p-4">
+          <div className="p-4">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <Input
               placeholder='Buscar chaves de tradução'
@@ -265,20 +243,18 @@ export default function TranslationManager() {
           </div>
         </CardContent>
       </Card>
-
       {/* Translation Tabs */}
-      <Tabs defaultValue="editor" className="p-4"
-          <TabsList className="p-4"
+      <Tabs defaultValue="editor" className="p-4">
+          <TabsList className="p-4">
             <TabsTrigger value="editor">Editor de Traduções</TabsTrigger>
             <TabsTrigger value="completion">Completude Automática</TabsTrigger>
             <TabsTrigger value="keys">Todas as Chaves</TabsTrigger>
           </TabsList>
-
         {/* Translation Editor Tab */}
-        <TabsContent value="editor" className="p-4"
+        <TabsContent value="editor" className="p-4">
           <Card>
             <CardHeader>
-              <CardTitle className="p-4"
+              <CardTitle className="p-4">
                 <Edit3 className="w-5 h-5" />
                 Editor de Traduções - {selectedLanguage}
               </CardTitle>
@@ -290,24 +266,23 @@ export default function TranslationManager() {
             </CardHeader>
             <CardContent>
               {isLoadingTranslations ? (
-                <div className="text-center py-8">Carregando traduções...</div>
+                <div className="text-lg">"Carregando traduções...</div>
               ) : (
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="p-4"
-                    <div className="p-4"
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="p-4">
+                    <div className="p-4">
                       {filteredKeys.map((key: string) => {
                         const currentValue = getNestedValue(form.watch('translations'), key);
                         return (
-                          <div key={key} className="p-4"
-                            <div className="p-4"
-                              <Label className="p-4"
+                          <div key={key} className="p-4">
+                            <div className="p-4">
+                              <Label className="p-4">
                                 {key}
                               </Label>
-                              <Badge variant="secondary" className="p-4"
+                              <Badge variant="secondary" className="p-4">
                                 {typeof currentValue === 'string' ? 'Texto' : 'Objeto'}
                               </Badge>
                             </div>
-
                             {typeof currentValue === 'string' ? (
                               <Textarea
                                 value={currentValue || ''}
@@ -320,8 +295,8 @@ export default function TranslationManager() {
                                 className="min-h-20"
                               />
                             ) : (
-                              <div className="p-4"
-                                <pre className="p-4"
+                              <div className="p-4">
+                                <pre className="p-4">
                                   {JSON.stringify(currentValue, null, 2)}
                                 </pre>
                               </div>
@@ -330,9 +305,8 @@ export default function TranslationManager() {
                         );
                       })}
                     </div>
-
                     {filteredKeys.length === 0 && (
-                      <div className="p-4"
+                      <div className="p-4">
                         {searchTerm ? 'Nenhuma chave encontrada para a busca' : 'Nenhuma tradução encontrada'}
                       </div>
                     )}
@@ -342,10 +316,9 @@ export default function TranslationManager() {
             </CardContent>
           </Card>
         </TabsContent>
-
-          <TabsContent value="completion" className="p-4"
-            <div className="p-4"
-              <h3 className="text-lg font-semibold">Completar Traduções Automaticamente</h3>
+          <TabsContent value="completion" className="p-4">
+            <div className="p-4">
+              <h3 className="text-lg">"Completar Traduções Automaticamente</h3>
               <Button 
                 onClick={async () => {
                   try {
@@ -385,11 +358,10 @@ export default function TranslationManager() {
             </div>
             <TranslationCompletionPanel />
           </TabsContent>
-
-          <TabsContent value="keys" className="p-4"
+          <TabsContent value="keys" className="p-4">
             <Card>
               <CardHeader>
-                <CardTitle className="p-4"
+                <CardTitle className="p-4">
                   <Globe className="w-5 h-5" />
                   Todas as Chaves de Tradução
                 </CardTitle>
@@ -399,15 +371,15 @@ export default function TranslationManager() {
               </CardHeader>
               <CardContent>
                 {isLoadingKeys ? (
-                  <div className="text-center py-8">Carregando chaves...</div>
+                  <div className="text-lg">"Carregando chaves...</div>
                 ) : (
-                  <div className="p-4"
+                  <div className="p-4">
                     {((allKeysData as any)?.keys || []).map((key: string) => (
-                      <div key={key} className="p-4"
-                        <Label className="p-4"
+                      <div key={key} className="p-4">
+                        <Label className="p-4">
                           {key}
                         </Label>
-                        <Badge variant="outline" className="p-4"
+                        <Badge variant="outline" className="p-4">
                           {key.split('.').length > 1 ? 'Nested' : 'Top Level'}
                         </Badge>
                       </div>
@@ -418,49 +390,46 @@ export default function TranslationManager() {
             </Card>
           </TabsContent>
       </Tabs>
-
       {/* Statistics */}
-      <div className="p-4"
+      <div className="p-4">
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-sm font-medium">Total de Chaves</CardTitle>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">"Total de Chaves</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="p-4">
               {((allKeysData as any)?.keys || []).length}
             </div>
-            <p className="p-4"
+            <p className="p-4">
               Chaves de tradução no sistema
             </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-sm font-medium">Idiomas Suportados</CardTitle>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">"Idiomas Suportados</CardTitle>
             <Languages className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="p-4">
               {((languagesData as any)?.languages || []).length}
             </div>
-            <p className="p-4"
+            <p className="p-4">
               Idiomas disponíveis
             </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="p-4"
-            <CardTitle className="text-sm font-medium">Idioma Atual</CardTitle>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">"Idioma Atual</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="p-4"
+            <div className="p-4">
               {selectedLanguage.toUpperCase()}
             </div>
-            <p className="p-4"
+            <p className="p-4">
               Idioma sendo editado
             </p>
           </CardContent>

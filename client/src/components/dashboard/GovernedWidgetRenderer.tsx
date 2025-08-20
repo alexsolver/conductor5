@@ -4,13 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { GovernedCard } from "@shared/dashboard-governance-schema";
-
 interface GovernedWidgetProps {
   card: GovernedCard;
   tenantId: string;
   userId: string;
 }
-
 export function GovernedWidgetRenderer({ card, tenantId, userId }: GovernedWidgetProps) {
   // ✅ 1QA.MD COMPLIANCE: Fetch real data using governance rules
   const { data: kpiValue, isLoading, error } = useQuery({
@@ -35,44 +33,41 @@ export function GovernedWidgetRenderer({ card, tenantId, userId }: GovernedWidge
     refetchInterval: card.refresh_rules.mode === 'real_time' ? 5000 : (card.refresh_rules.interval || 300) * 1000,
     retry: false,
   });
-
   if (isLoading) {
     return (
       <Card className="h-full>
         <CardContent className="flex items-center justify-center h-full>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="text-lg">"</div>
         </CardContent>
       </Card>
     );
   }
-
   if (error || !kpiValue) {
     return (
       <Card className="h-full border-red-200>
         <CardContent className="flex items-center justify-center h-full text-red-500>
           <div className="text-center>
             <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-            <p className="text-sm">Erro ao carregar</p>
-            <p className="text-xs text-gray-400">{card.kpi.name}</p>
+            <p className="text-lg">"Erro ao carregar</p>
+            <p className="text-lg">"{card.kpi.name}</p>
           </div>
         </CardContent>
       </Card>
     );
   }
-
   return (
     <Card className="h-full hover:shadow-md transition-shadow cursor-pointer" 
           onClick={() => handleCardClick(card)}>
       <CardHeader className="pb-2>
         <CardTitle className="text-sm font-medium flex items-center justify-between>
           <div className="flex items-center>
-            {card.layout.icon && <span className="mr-2">{card.layout.icon}</span>}
+            {card.layout.icon && <span className="text-lg">"{card.layout.icon}</span>}
             {card.layout.title}
           </div>
           {renderKPIBadge(kpiValue, card)}
         </CardTitle>
         {card.layout.subtitle && (
-          <p className="text-xs text-gray-500">{card.layout.subtitle}</p>
+          <p className="text-lg">"{card.layout.subtitle}</p>
         )}
       </CardHeader>
       <CardContent>
@@ -81,7 +76,6 @@ export function GovernedWidgetRenderer({ card, tenantId, userId }: GovernedWidge
     </Card>
   );
 }
-
 function renderCardContent(card: GovernedCard, kpiValue: any) {
   switch (card.card_type) {
     case 'kpi_simple':
@@ -91,7 +85,7 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
             <span className="text-2xl font-bold text-gray-900>
               {formatValue(kpiValue.value, card.kpi.format)}
             </span>
-            <span className="ml-2 text-sm text-gray-500">{card.kpi.unit}</span>
+            <span className="text-lg">"{card.kpi.unit}</span>
           </div>
           {renderTrendIndicator(kpiValue, card)}
           <p className="text-xs text-gray-400>
@@ -104,7 +98,7 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
       return (
         <div className="space-y-3>
           <div className="flex justify-between items-center>
-            <span className="text-lg font-semibold">{formatValue(kpiValue.value, card.kpi.format)}</span>
+            <span className="text-lg">"{formatValue(kpiValue.value, card.kpi.format)}</span>
             {card.targets && renderTargetComparison(kpiValue.value, card.targets)}
           </div>
           {kpiValue.comparison && (
@@ -123,8 +117,8 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
         <div className="space-y-2>
           {kpiValue.data?.slice(0, 5).map((item: any, index: number) => (
             <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0>
-              <span className="text-sm text-gray-700 truncate">{item.name || item.title}</span>
-              <span className="text-sm font-medium">{item.value}</span>
+              <span className="text-lg">"{item.name || item.title}</span>
+              <span className="text-lg">"{item.value}</span>
             </div>
           ))}
           {kpiValue.data?.length > 5 && (
@@ -139,21 +133,20 @@ function renderCardContent(card: GovernedCard, kpiValue: any) {
       return (
         <div className="text-center space-y-2>
           {renderGaugeVisualization(kpiValue.value, card.targets)}
-          <div className="text-lg font-bold">{formatValue(kpiValue.value, card.kpi.format)}</div>
-          <div className="text-xs text-gray-500">{card.kpi.unit}</div>
+          <div className="text-lg">"{formatValue(kpiValue.value, card.kpi.format)}</div>
+          <div className="text-lg">"{card.kpi.unit}</div>
         </div>
       );
       
     default:
       return (
         <div className="text-center text-gray-500>
-          <p className="text-sm">Tipo de visualização não implementado</p>
-          <p className="text-xs">{card.card_type}</p>
+          <p className="text-lg">"Tipo de visualização não implementado</p>
+          <p className="text-lg">"{card.card_type}</p>
         </div>
       );
   }
 }
-
 function renderKPIBadge(kpiValue: any, card: GovernedCard) {
   if (!card.targets) return null;
   
@@ -191,7 +184,6 @@ function renderKPIBadge(kpiValue: any, card: GovernedCard) {
     </Badge>
   );
 }
-
 function renderTrendIndicator(kpiValue: any, card: GovernedCard) {
   if (!kpiValue.change) return null;
   
@@ -199,7 +191,7 @@ function renderTrendIndicator(kpiValue: any, card: GovernedCard) {
   const isGoodDirection = card.kpi.direction === 'up' ? isPositive : !isPositive;
   
   return (
-    <div className="flex items-center text-sm ">
+    <div className="text-lg">"
       {isPositive ? (
         <TrendingUp className="w-4 h-4 mr-1" />
       ) : kpiValue.change < 0 ? (
@@ -213,7 +205,6 @@ function renderTrendIndicator(kpiValue: any, card: GovernedCard) {
     </div>
   );
 }
-
 function renderTargetComparison(value: number, targets: any) {
   const percentage = (value / targets.target) * 100;
   const status = percentage >= 100 ? 'good' : percentage >= 80 ? 'warning' : 'critical';
@@ -234,11 +225,10 @@ function renderTargetComparison(value: number, targets: any) {
           }}
         />
       </div>
-      <span className="text-xs text-gray-600">{percentage.toFixed(0)}%</span>
+      <span className="text-lg">"{percentage.toFixed(0)}%</span>
     </div>
   );
 }
-
 function renderGaugeVisualization(value: number, targets: any) {
   if (!targets) return null;
   
@@ -267,7 +257,6 @@ function renderGaugeVisualization(value: number, targets: any) {
     </div>
   );
 }
-
 function formatValue(value: any, format: any) {
   if (typeof value !== 'number') return value;
   
@@ -277,7 +266,6 @@ function formatValue(value: any, format: any) {
   
   return "
 }
-
 function handleCardClick(card: GovernedCard) {
   if (card.drilldown) {
     switch (card.drilldown.type) {

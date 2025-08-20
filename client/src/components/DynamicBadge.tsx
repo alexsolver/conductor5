@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { filterDOMProps } from '@/utils/propFiltering';
 import { useDynamicColors } from '@/hooks/useDynamicColors';
-
 interface DynamicBadgeProps {
   variant?: 'default' | 'secondary' | 'destructive' | 'outline';
   children: React.ReactNode;
@@ -16,18 +15,15 @@ interface DynamicBadgeProps {
   isLoading?: boolean;
   [key: string]: any;
 }
-
 // Sistema inteligente de conversão hex → Tailwind (fallback)
 const convertHexToTailwindClass = (hex: string): string => {
   if (!hex) return 'bg-slate-600 text-white border-slate-600';
-
   // Hash simples para gerar cor consistente
   let hash = 0;
   for (let i = 0; i < hex.length; i++) {
     hash = ((hash << 5) - hash) + hex.charCodeAt(i);
     hash = hash & hash;
   }
-
   // Paleta profissional
   const tailwindClasses = [
     'bg-blue-600 text-white border-blue-600',
@@ -39,10 +35,8 @@ const convertHexToTailwindClass = (hex: string): string => {
     'bg-lime-600 text-white border-lime-600',
     'bg-orange-600 text-white border-orange-600'
   ];
-
   return tailwindClasses[Math.abs(hash) % tailwindClasses.length];
 };
-
 // ✅ COMPONENTE 100% DINÂMICO - sem hard-coded mappings
 const DynamicBadge: React.FC<DynamicBadgeProps> = ({
   children,
@@ -54,7 +48,6 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
   ...props
 }) => {
   const { getFieldColor, getFieldLabel, isLoading: colorsLoading } = useDynamicColors();
-
   // Se está carregando, mostrar estado de loading
   if (isLoading || colorsLoading) {
     return (
@@ -66,11 +59,9 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
       </Badge>
     );
   }
-
   // 🎨 SISTEMA 100% DINÂMICO - usar cores e labels direto do banco
   let colorResult = { color: '#64748b', textColor: '#ffffff', className: 'bg-slate-600 text-white border-slate-600' };
   let displayText = children;
-
   if (fieldName && value) {
     colorResult = getFieldColor(fieldName, value);
     // 🏷️ CORREÇÃO: Usar label do banco em vez do valor interno
@@ -80,10 +71,8 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
     colorResult = { color: colorHex, textColor: '#ffffff', className: convertHexToTailwindClass(colorHex) };
     console.log("
   }
-
   // Filtrar props antes de passar para o componente
   const filteredProps = filterDOMProps(props);
-
   return (
     <Badge
       className={cn('border', className)}
@@ -98,6 +87,5 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
     </Badge>
   );
 };
-
 export default DynamicBadge;
 export { DynamicBadge };

@@ -1,13 +1,11 @@
 // ✅ 1QA.MD COMPLIANCE: QUERY BUILDER COMPONENT
 // Dynamic query builder for SLA rules following Clean Architecture
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Filter } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 // SLA Schema imports - following 1qa.md
 import type {
   QueryRule,
@@ -16,11 +14,9 @@ import type {
   LogicalOperator,
   TicketField
 } from '@shared/schema-sla';
-
 // ======================================
 // QUERY BUILDER OPTIONS
 // ======================================
-
 const operatorOptions = [
   {
   // Localization temporarily disabled
@@ -39,7 +35,6 @@ const operatorOptions = [
   { value: 'in', label: 'Está em' },
   { value: 'not_in', label: 'Não está em' }
 ];
-
 const fieldOptions = [
   { value: 'status', label: 'Status' },
   { value: 'priority', label: 'Prioridade' },
@@ -62,21 +57,17 @@ const fieldOptions = [
   { value: 'createdAt', label: 'Data de Criação' },
   { value: 'updatedAt', label: 'Data de Atualização' }
 ];
-
 // ======================================
 // COMPONENT INTERFACE
 // ======================================
-
 interface QueryBuilderProps {
   value: QueryBuilder;
   onChange: (value: QueryBuilder) => void;
   className?: string;
 }
-
 // ======================================
 // MAIN COMPONENT
 // ======================================
-
 export function QueryBuilderComponent({ value, onChange, className = '' }: QueryBuilderProps) {
   const addRule = () => {
     const newRule: QueryRule = {
@@ -91,7 +82,6 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
       rules: [...value.rules, newRule]
     });
   };
-
   const removeRule = (index: number) => {
     const newRules = value.rules.filter((_, i) => i !== index);
     onChange({
@@ -99,7 +89,6 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
       rules: newRules
     });
   };
-
   const updateRule = (index: number, rule: QueryRule) => {
     const newRules = [...value.rules];
     newRules[index] = rule;
@@ -108,11 +97,10 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
       rules: newRules
     });
   };
-
   return (
-    <div className="space-y-4 ">
+    <div className="text-lg">"
       <div className="flex items-center justify-between>
-        <h4 className="font-medium">Regras de Aplicação</h4>
+        <h4 className="text-lg">"Regras de Aplicação</h4>
         <Button
           type="button"
           variant="outline"
@@ -124,12 +112,11 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
           Adicionar Regra
         </Button>
       </div>
-
       {value.rules.length === 0 ? (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center>
           <Filter className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-          <p className="text-gray-500">Nenhuma regra configurada</p>
-          <p className="text-sm text-gray-400">Clique em "Adicionar Regra" para começar</p>
+          <p className="text-lg">"Nenhuma regra configurada</p>
+          <p className="text-lg">"Clique em "Adicionar Regra" para começar</p>
         </div>
       ) : (
         <div className="space-y-3>
@@ -153,7 +140,6 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     </Select>
                   </div>
                 )}
-
                 {/* Campo */}
                 <div className={index > 0 ? "col-span-3" : "col-span-4>
                   <Select
@@ -172,7 +158,6 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     </SelectContent>
                   </Select>
                 </div>
-
                 {/* Operador */}
                 <div className="col-span-3>
                   <Select
@@ -191,7 +176,6 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     </SelectContent>
                   </Select>
                 </div>
-
                 {/* Valor */}
                 <div className="col-span-4>
                   <Input
@@ -201,7 +185,6 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     data-testid={"
                   />
                 </div>
-
                 {/* Botão remover */}
                 <div className="col-span-1>
                   <Button
@@ -219,11 +202,10 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
           ))}
         </div>
       )}
-
       {value.rules.length > 1 && (
         <div className="border-t pt-4>
           <div className="flex items-center space-x-4>
-            <span className="text-sm font-medium">Operador lógico global:</span>
+            <span className="text-lg">"Operador lógico global:</span>
             <Select
               value={value.logicalOperator}
               onValueChange={(val) => onChange({ ...value, logicalOperator: val as LogicalOperator })}
@@ -242,5 +224,4 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
     </div>
   );
 }
-
 export default QueryBuilderComponent;

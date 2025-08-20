@@ -1,8 +1,6 @@
-
 /**
  * Editor de regras de validação para campos
  */
-
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
 import { Button } from '../../ui/button'
@@ -21,7 +19,6 @@ import {
   Code,
   Info
 } from 'lucide-react'
-
 interface ValidationRule {
   id: string
   type: 'required' | 'minLength' | 'maxLength' | 'pattern' | 'custom' | 'range'
@@ -29,22 +26,18 @@ interface ValidationRule {
   message: string
   isActive: boolean
 }
-
 interface PropertyValidationRulesProps {
   fieldType: string
   validationRules: ValidationRule[]
   onUpdate: (rules: ValidationRule[]) => void
 }
-
 export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = ({
   // Localization temporarily disabled
-
   fieldType,
   validationRules,
   onUpdate
 }) => {
   const [rules, setRules] = useState<ValidationRule[]>(validationRules || [])
-
   const addRule = (type: ValidationRule['type']) => {
     const newRule: ValidationRule = {
       id: "
@@ -57,7 +50,6 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
     setRules(updatedRules)
     onUpdate(updatedRules)
   }
-
   const updateRule = (index: number, updates: Partial<ValidationRule>) => {
     const updatedRules = rules.map((rule, i) =>
       i === index ? { ...rule, ...updates } : rule
@@ -65,13 +57,11 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
     setRules(updatedRules)
     onUpdate(updatedRules)
   }
-
   const removeRule = (index: number) => {
     const updatedRules = rules.filter((_, i) => i !== index)
     setRules(updatedRules)
     onUpdate(updatedRules)
   }
-
   const getDefaultMessage = (type: ValidationRule['type']): string => {
     const messages = {
       required: 'Este campo é obrigatório',
@@ -83,39 +73,32 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
     }
     return messages[type]
   }
-
   const getAvailableRuleTypes = () => {
     const baseRules = [
       { value: 'required', label: 'Campo Obrigatório' },
       { value: 'custom', label: 'Validação Customizada' }
     ]
-
     const textRules = [
       { value: 'minLength', label: 'Comprimento Mínimo' },
       { value: 'maxLength', label: 'Comprimento Máximo' },
       { value: 'pattern', label: 'Expressão Regular' }
     ]
-
     const numberRules = [
       { value: 'range', label: 'Faixa de Valores' }
     ]
-
     if (['text', 'textarea', 'email', 'phone'].includes(fieldType)) {
       return [...baseRules, ...textRules]
     }
-
     if (['number'].includes(fieldType)) {
       return [...baseRules, ...numberRules]
     }
-
     return baseRules
   }
-
   return (
     <div className="space-y-4>
       <div className="flex items-center justify-between>
         <div>
-          <h4 className="text-sm font-medium">Regras de Validação</h4>
+          <h4 className="text-lg">"Regras de Validação</h4>
           <p className="text-xs text-gray-500>
             Configure validações personalizadas para este campo
           </p>
@@ -134,7 +117,6 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
           </SelectContent>
         </Select>
       </div>
-
       <div className="space-y-3>
         {rules.map((rule, index) => (
           <Card key={rule.id} className="p-3>
@@ -163,11 +145,10 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
-
             {rule.type === 'minLength' && (
               <div className="grid grid-cols-2 gap-2 mb-2>
                 <div>
-                  <Label className="text-xs">Comprimento Mínimo</Label>
+                  <Label className="text-lg">"Comprimento Mínimo</Label>
                   <Input
                     type="number"
                     min="0"
@@ -178,11 +159,10 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                 </div>
               </div>
             )}
-
             {rule.type === 'maxLength' && (
               <div className="grid grid-cols-2 gap-2 mb-2>
                 <div>
-                  <Label className="text-xs">Comprimento Máximo</Label>
+                  <Label className="text-lg">"Comprimento Máximo</Label>
                   <Input
                     type="number"
                     min="1"
@@ -193,10 +173,9 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                 </div>
               </div>
             )}
-
             {rule.type === 'pattern' && (
               <div className="mb-2>
-                <Label className="text-xs">Expressão Regular</Label>
+                <Label className="text-lg">"Expressão Regular</Label>
                 <Input
                   value={rule.value || ''}
                   onChange={(e) => updateRule(index, { value: e.target.value })}
@@ -208,11 +187,10 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                 </p>
               </div>
             )}
-
             {rule.type === 'range' && (
               <div className="grid grid-cols-2 gap-2 mb-2>
                 <div>
-                  <Label className="text-xs">Valor Mínimo</Label>
+                  <Label className="text-lg">"Valor Mínimo</Label>
                   <Input
                     type="number"
                     value={rule.value ? String(rule.value).split(',')[0] : ''}
@@ -224,7 +202,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Valor Máximo</Label>
+                  <Label className="text-lg">"Valor Máximo</Label>
                   <Input
                     type="number"
                     value={rule.value ? String(rule.value).split(',')[1] : ''}
@@ -237,10 +215,9 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                 </div>
               </div>
             )}
-
             {rule.type === 'custom' && (
               <div className="mb-2>
-                <Label className="text-xs">Função de Validação</Label>
+                <Label className="text-lg">"Função de Validação</Label>
                 <Textarea
                   value={rule.value || ''}
                   onChange={(e) => updateRule(index, { value: e.target.value })}
@@ -251,9 +228,8 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                 />
               </div>
             )}
-
             <div>
-              <Label className="text-xs">Mensagem de Erro</Label>
+              <Label className="text-lg">"Mensagem de Erro</Label>
               <Input
                 value={rule.message}
                 onChange={(e) => updateRule(index, { message: e.target.value })}
@@ -263,16 +239,14 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
             </div>
           </Card>
         ))}
-
         {rules.length === 0 && (
           <div className="text-center py-6 text-gray-500>
             <Info className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Nenhuma regra de validação configurada</p>
-            <p className="text-xs">Use o menu acima para adicionar validações</p>
+            <p className="text-lg">"Nenhuma regra de validação configurada</p>
+            <p className="text-lg">"Use o menu acima para adicionar validações</p>
           </div>
         )}
       </div>
-
       {rules.length > 0 && (
         <div className="p-3 bg-blue-50 rounded-lg>
           <div className="flex items-start gap-2>

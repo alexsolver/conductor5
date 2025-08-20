@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -18,7 +17,6 @@ L.Icon.Default.mergeOptions({
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
-
 interface LeafletMapProps {
   initialLat: number;
   initialLng: number;
@@ -32,13 +30,11 @@ interface LeafletMapProps {
   };
   onLocationSelect: (lat: number, lng: number) => void;
 }
-
 interface SearchResult {
   display_name: string;
   lat: string;
   lon: string;
 }
-
 export function LeafletMap({
   // Localization temporarily disabled
  initialLat, initialLng, addressData, onLocationSelect }: LeafletMapProps) {
@@ -49,7 +45,6 @@ export function LeafletMap({
   const [isSearching, setIsSearching] = useState(false);
   const [mapKey, setMapKey] = useState(0); // Force re-render key
   const { toast } = useToast();
-
   // Clean up function
   const cleanupMap = useCallback(() => {
     try {
@@ -66,19 +61,14 @@ export function LeafletMap({
       console.warn('Cleanup error:', error);
     }
   }, []);
-
   // Initialize map
   useEffect(() => {
     if (!mapRef.current) return;
-
     // Clean up any existing map
     cleanupMap();
-
     let mounted = true;
-
     const initMap = () => {
       if (!mapRef.current || !mounted) return;
-
       try {
         // Create map instance
         const map = L.map(mapRef.current, {
@@ -89,14 +79,12 @@ export function LeafletMap({
           zoomAnimation: false,
           markerZoomAnimation: false
         }).setView([initialLat, initialLng], 13);
-
         // Add tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
           minZoom: 3
         }).addTo(map);
-
         // Add click handler
         map.on('click', (e) => {
           if (!mounted) return;
@@ -104,12 +92,9 @@ export function LeafletMap({
           updateMarker(lat, lng);
           onLocationSelect(lat, lng);
         });
-
         mapInstanceRef.current = map;
-
         // Add initial marker
         updateMarker(initialLat, initialLng);
-
         // Force map to resize
         setTimeout(() => {
           if (mapInstanceRef.current && mounted) {
@@ -120,17 +105,14 @@ export function LeafletMap({
         console.error('Map initialization error:', error);
       }
     };
-
     // Initialize with delay
     const timeoutId = setTimeout(initMap, 200);
-
     return () => {
       mounted = false;
       clearTimeout(timeoutId);
       cleanupMap();
     };
   }, [mapKey, initialLat, initialLng, cleanupMap]);
-
   // Initialize search query with address data
   useEffect(() => {
     if (addressData) {
@@ -147,17 +129,14 @@ export function LeafletMap({
       }
     }
   }, [addressData]);
-
   const updateMarker = useCallback((lat: number, lng: number) => {
     if (!mapInstanceRef.current) return;
-
     try {
       // Remove existing marker
       if (markerRef.current) {
         mapInstanceRef.current.removeLayer(markerRef.current);
         markerRef.current = null;
       }
-
       // Add new marker
       const marker = L.marker([lat, lng], {
         riseOnHover: true
@@ -165,13 +144,11 @@ export function LeafletMap({
         .addTo(mapInstanceRef.current)
         .bindPopup("
         .openPopup();
-
       markerRef.current = marker;
     } catch (error) {
       console.error('Marker update error:', error);
     }
   }, []);
-
   const searchLocation = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -181,7 +158,6 @@ export function LeafletMap({
       });
       return;
     }
-
     setIsSearching(true);
     try {
       // Try local cities first
@@ -203,7 +179,6 @@ export function LeafletMap({
         });
         return;
       }
-
       // Try external API
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -224,7 +199,6 @@ export function LeafletMap({
       if (!response.ok) {
         throw new Error("
       }
-
       const results: SearchResult[] = await response.json();
       
       if (results.length > 0) {
@@ -266,7 +240,6 @@ export function LeafletMap({
       setIsSearching(false);
     }
   };
-
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({
@@ -276,7 +249,6 @@ export function LeafletMap({
       });
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
@@ -309,7 +281,6 @@ export function LeafletMap({
       }
     );
   };
-
   // Local city database
   const searchLocalCities = (query: string) => {
     const cities = [
@@ -329,7 +300,6 @@ export function LeafletMap({
       { name: 'Santos, SP', lat: -23.9618, lng: -46.3322, keywords: ['santos'] },
       { name: 'São Bernardo do Campo, SP', lat: -23.6914, lng: -46.5646, keywords: ['sao bernardo', 'bernardo'] }
     ];
-
     const queryLower = query.toLowerCase();
     
     for (const city of cities) {
@@ -340,12 +310,10 @@ export function LeafletMap({
     
     return null;
   };
-
   // Force reset if we get errors
   const resetMap = () => {
     setMapKey(prev => prev + 1);
   };
-
   return (
     <div className="w-full space-y-4>
       {/* Search Controls */}
@@ -383,7 +351,6 @@ export function LeafletMap({
           ↻
         </Button>
       </div>
-
       {/* Map Container */}
       <div className="relative border rounded-lg overflow-hidden>
         <div

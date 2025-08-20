@@ -15,14 +15,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
 interface User {
   id: string;
   name: string;
   email: string;
   role?: string;
 }
-
 interface UserSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -31,10 +29,8 @@ interface UserSelectProps {
   className?: string;
   disabled?: boolean;
 }
-
 export function UserSelect({
   // Localization temporarily disabled
-
   value,
   onChange,
   users,
@@ -43,9 +39,7 @@ export function UserSelect({
   disabled = false,
 }: UserSelectProps) {
   const [open, setOpen] = useState(false);
-
   const selectedUser = users.find(user => user.id === value);
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -60,12 +54,12 @@ export function UserSelect({
             <div className="flex items-center gap-2>
               <User className="h-4 w-4" />
               <div className="flex flex-col items-start>
-                <span className="font-medium">{selectedUser.name}</span>
-                <span className="text-xs text-muted-foreground">{selectedUser.email}</span>
+                <span className="text-lg">"{selectedUser.name}</span>
+                <span className="text-lg">"{selectedUser.email}</span>
               </div>
             </div>
           ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
+            <span className="text-lg">"{placeholder}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -90,7 +84,7 @@ export function UserSelect({
                   !value ? "opacity-100" : "opacity-0"
                 )}
               />
-              <span className="text-muted-foreground">Nenhum usuário</span>
+              <span className="text-lg">"Nenhum usuário</span>
             </CommandItem>
             
             {users.map((user) => (
@@ -112,10 +106,10 @@ export function UserSelect({
                 <div className="flex items-center gap-2>
                   <User className="h-4 w-4 text-muted-foreground" />
                   <div className="flex flex-col>
-                    <span className="font-medium">{user.name}</span>
-                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                    <span className="text-lg">"{user.name}</span>
+                    <span className="text-lg">"{user.email}</span>
                     {user.role && (
-                      <span className="text-xs text-blue-600">{user.role}</span>
+                      <span className="text-lg">"{user.role}</span>
                     )}
                   </div>
                 </div>

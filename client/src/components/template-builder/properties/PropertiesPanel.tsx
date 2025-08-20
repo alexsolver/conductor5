@@ -1,8 +1,6 @@
-
 /**
  * Painel de propriedades para editar configurações dos campos
  */
-
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
 import { Button } from '../../ui/button'
@@ -25,20 +23,17 @@ import {
   CheckCircle,
   Info
 } from 'lucide-react'
-
 interface PropertiesPanelProps {
   field: FieldComponent
   onUpdate: (updates: Partial<FieldComponent>) => void
   onClose: () => void
 }
-
 interface FieldOption {
   value: string
   label: string
   color?: string
   isDefault?: boolean
 }
-
 export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   field,
   onUpdate,
@@ -48,12 +43,10 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   const [options, setOptions] = useState<FieldOption[]>(field.properties?.options || [])
   const [newOptionValue, setNewOptionValue] = useState('')
   const [newOptionLabel, setNewOptionLabel] = useState('')
-
   useEffect(() => {
     setLocalField(field)
     setOptions(field.properties?.options || [])
   }, [field])
-
   const handlePropertyChange = (key: string, value: any) => {
     const updatedField = {
       ...localField,
@@ -64,7 +57,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     }
     setLocalField(updatedField)
   }
-
   const handleValidationChange = (key: string, value: any) => {
     const updatedField = {
       ...localField,
@@ -75,7 +67,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     }
     setLocalField(updatedField)
   }
-
   const handleSave = () => {
     const updates = {
       ...localField,
@@ -86,7 +77,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     }
     onUpdate(updates)
   }
-
   const addOption = () => {
     if (newOptionValue && newOptionLabel) {
       const newOption: FieldOption = {
@@ -99,39 +89,33 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       setNewOptionLabel('')
     }
   }
-
   const removeOption = (index: number) => {
     setOptions(options.filter((_, i) => i !== index))
   }
-
   const updateOption = (index: number, updates: Partial<FieldOption>) => {
     setOptions(options.map((option, i) => 
       i === index ? { ...option, ...updates } : option
     ))
   }
-
   const setDefaultOption = (index: number) => {
     setOptions(options.map((option, i) => ({
       ...option,
       isDefault: i === index
     })))
   }
-
   const needsOptions = ['select', 'multiselect', 'radio'].includes(field.type)
-
   return (
     <div className="h-full flex flex-col bg-white border-l>
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between>
         <div className="flex items-center gap-2>
           <Settings className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold">Propriedades do Campo</h3>
+          <h3 className="text-lg">"Propriedades do Campo</h3>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X className="w-4 h-4" />
         </Button>
       </div>
-
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4>
         <Tabs defaultValue="general" className="w-full>
@@ -140,12 +124,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             <TabsTrigger value="validation">Validação</TabsTrigger>
             <TabsTrigger value="advanced">Avançado</TabsTrigger>
           </TabsList>
-
           {/* Aba Geral */}
           <TabsContent value="general" className="space-y-4>
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Informações Básicas</CardTitle>
+                <CardTitle className="text-lg">"Informações Básicas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3>
                 <div>
@@ -160,7 +143,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     placeholder="Digite o rótulo..."
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="description">Descrição (Opcional)</Label>
                   <Textarea
@@ -171,7 +153,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     rows={2}
                   />
                 </div>
-
                 {['text', 'textarea', 'email', 'url'].includes(field.type) && (
                   <div>
                     <Label htmlFor="placeholder">Texto de Exemplo</Label>
@@ -183,7 +164,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     />
                   </div>
                 )}
-
                 {field.type === 'textarea' && (
                   <div>
                     <Label htmlFor="rows">Número de Linhas</Label>
@@ -197,7 +177,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     />
                   </div>
                 )}
-
                 <div className="flex items-center justify-between>
                   <div>
                     <Label>Campo Obrigatório</Label>
@@ -210,7 +189,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     onCheckedChange={(checked) => handlePropertyChange('required', checked)}
                   />
                 </div>
-
                 <div className="flex items-center justify-between>
                   <div>
                     <Label>Campo Oculto</Label>
@@ -225,7 +203,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 </div>
               </CardContent>
             </Card>
-
             {/* Opções para campos de seleção */}
             {needsOptions && (
               <Card>
@@ -277,7 +254,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                       </div>
                     ))}
                   </div>
-
                   {/* Adicionar nova opção */}
                   <div className="space-y-2 p-3 bg-gray-50 rounded>
                     <div className="grid grid-cols-2 gap-2>
@@ -308,12 +284,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               </Card>
             )}
           </TabsContent>
-
           {/* Aba Validação */}
           <TabsContent value="validation" className="space-y-4>
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Regras de Validação</CardTitle>
+                <CardTitle className="text-lg">"Regras de Validação</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3>
                 {(['text', 'textarea', 'email', 'url'].includes(field.type)) && (
@@ -329,7 +304,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                         placeholder="Ex: 3"
                       />
                     </div>
-
                     <div>
                       <Label htmlFor="maxLength">Tamanho Máximo</Label>
                       <Input
@@ -343,7 +317,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     </div>
                   </>
                 )}
-
                 {field.type === 'number' && (
                   <>
                     <div>
@@ -356,7 +329,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                         placeholder="Ex: 0"
                       />
                     </div>
-
                     <div>
                       <Label htmlFor="max">Valor Máximo</Label>
                       <Input
@@ -367,7 +339,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                         placeholder="Ex: 100"
                       />
                     </div>
-
                     <div>
                       <Label htmlFor="step">Incremento</Label>
                       <Input
@@ -381,7 +352,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     </div>
                   </>
                 )}
-
                 <div>
                   <Label htmlFor="customValidation">Mensagem de Erro Personalizada</Label>
                   <Input
@@ -394,12 +364,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Aba Avançado */}
           <TabsContent value="advanced" className="space-y-4>
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Configurações Avançadas</CardTitle>
+                <CardTitle className="text-lg">"Configurações Avançadas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3>
                 <div>
@@ -414,7 +383,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     Identificador único usado no banco de dados
                   </p>
                 </div>
-
                 <div>
                   <Label htmlFor="cssClass">Classes CSS Customizadas</Label>
                   <Input
@@ -424,7 +392,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     placeholder="Ex: custom-field highlight"
                   />
                 </div>
-
                 <div className="flex items-center justify-between>
                   <div>
                     <Label>Campo Somente Leitura</Label>
@@ -437,7 +404,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     onCheckedChange={(checked) => handlePropertyChange('readonly', checked)}
                   />
                 </div>
-
                 {field.type === 'calculated' && (
                   <div>
                     <Label htmlFor="formula">Fórmula de Cálculo</Label>
@@ -459,7 +425,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           </TabsContent>
         </Tabs>
       </div>
-
       {/* Footer */}
       <div className="p-4 border-t bg-gray-50>
         <div className="flex gap-2>

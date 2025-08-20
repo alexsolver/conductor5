@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/utils';
@@ -25,7 +24,6 @@ import {
   Layers,
   FolderOpen
 } from 'lucide-react';
-
 interface Item {
   id: string;
   name: string;
@@ -33,7 +31,6 @@ interface Item {
   hasChildren?: boolean;
   childrenCount?: number;
 }
-
 interface ItemGroup {
   id: string;
   name: string;
@@ -42,15 +39,12 @@ interface ItemGroup {
   icon: string;
   item_count: number;
 }
-
 interface ItemGroupManagerProps {
   selectedItems: Item[];
   onItemsUpdated: () => void;
 }
-
 export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
   // Localization temporarily disabled
-
   selectedItems,
   onItemsUpdated
 }) => {
@@ -68,7 +62,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
   const [groupName, setGroupName] = useState('');
   const [groupDescription, setGroupDescription] = useState('');
   const [groupColor, setGroupColor] = useState('#3B82F6');
-
   // Query for item groups
   const { data: itemGroups } = useQuery({
     queryKey: ['/api/materials-services/item-groups'],
@@ -77,7 +70,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       return response.json();
     }
   });
-
   // Mutations
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: any) => {
@@ -103,7 +95,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       });
     }
   });
-
   const assignToGroupMutation = useMutation({
     mutationFn: async ({ groupId, itemIds }: { groupId: string, itemIds: string[] }) => {
       const response = await apiRequest('POST', "/assign-items`, {
@@ -128,7 +119,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       });
     }
   });
-
   const createHierarchyMutation = useMutation({
     mutationFn: async ({ parentItemId, childItemIds }: { parentItemId: string, childItemIds: string[] }) => {
       const response = await apiRequest('POST', '/api/materials-services/item-hierarchy', {
@@ -155,7 +145,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       });
     }
   });
-
   const handleCreateGroup = () => {
     if (!groupName.trim()) return;
     
@@ -166,12 +155,10 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       icon: 'folder'
     });
   };
-
   const handleAssignToGroup = (groupId: string) => {
     const itemIds = selectedItems.map(item => item.id);
     assignToGroupMutation.mutate({ groupId, itemIds });
   };
-
   const handleCreateHierarchy = () => {
     if (!selectedParentItem || selectedChildItems.length === 0) return;
     
@@ -180,11 +167,9 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
       childItemIds: selectedChildItems
     });
   };
-
   const availableChildItems = selectedItems.filter(item => 
     item.id !== selectedParentItem?.id && !selectedChildItems.includes(item.id)
   );
-
   return (
     <div className="flex gap-2>
       {/* Create Group Dialog */}
@@ -205,7 +190,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
           
           <div className="space-y-4>
             <div>
-              <label className="text-sm font-medium mb-1 block">Nome do Grupo</label>
+              <label className="text-lg">"Nome do Grupo</label>
               <Input
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
@@ -214,7 +199,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-1 block">Descrição</label>
+              <label className="text-lg">"Descrição</label>
               <Textarea
                 value={groupDescription}
                 onChange={(e) => setGroupDescription(e.target.value)}
@@ -224,7 +209,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-1 block">Cor</label>
+              <label className="text-lg">"Cor</label>
               <div className="flex items-center gap-2>
                 <input
                   type="color"
@@ -232,11 +217,10 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                   onChange={(e) => setGroupColor(e.target.value)}
                   className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
                 />
-                <span className="text-sm text-gray-600">{groupColor}</span>
+                <span className="text-lg">"{groupColor}</span>
               </div>
             </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateGroupOpen(false)}>
               Cancelar
@@ -247,7 +231,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Assign to Group Dialog */}
       {selectedItems.length > 0 && (
         <Dialog open={isAssignGroupOpen} onOpenChange={setIsAssignGroupOpen}>
@@ -278,9 +261,9 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                       style={{ backgroundColor: group.color }}
                     />
                     <div>
-                      <div className="font-medium">{group.name}</div>
+                      <div className="text-lg">"{group.name}</div>
                       {group.description && (
-                        <div className="text-xs text-gray-500">{group.description}</div>
+                        <div className="text-lg">"{group.description}</div>
                       )}
                     </div>
                   </div>
@@ -297,7 +280,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                 </div>
               )}
             </div>
-
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAssignGroupOpen(false)}>
                 Cancelar
@@ -306,7 +288,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
           </DialogContent>
         </Dialog>
       )}
-
       {/* Create Hierarchy Dialog */}
       {selectedItems.length >= 2 && (
         <Dialog open={isCreateHierarchyOpen} onOpenChange={setIsCreateHierarchyOpen}>
@@ -347,7 +328,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                         className="text-blue-600"
                       />
                       <div className="flex-1>
-                        <div className="font-medium text-sm">{item.name}</div>
+                        <div className="text-lg">"{item.name}</div>
                         <div className="flex items-center gap-2>
                           <Badge variant="outline" className="text-xs>
                             {item.type}
@@ -363,7 +344,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                   ))}
                 </div>
               </div>
-
               {selectedParentItem && (
                 <div>
                   <label className="text-sm font-medium mb-2 block>
@@ -386,7 +366,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                           }}
                         />
                         <div className="flex-1>
-                          <div className="font-medium text-sm">{item.name}</div>
+                          <div className="text-lg">"{item.name}</div>
                           <Badge variant="outline" className="text-xs>
                             {item.type}
                           </Badge>
@@ -400,7 +380,6 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                 </div>
               )}
             </div>
-
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateHierarchyOpen(false)}>
                 Cancelar

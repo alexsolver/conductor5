@@ -15,17 +15,13 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 const bulkAssignmentSchema = z.object({
   // Localization temporarily disabled
-
   templateId: z.string().min(1, 'Template é obrigatório'),
   startDate: z.string().min(1, 'Data de início é obrigatória'),
   userIds: z.array(z.string()).min(1, 'Selecione pelo menos um funcionário'),
 });
-
 type BulkAssignmentForm = z.infer<typeof bulkAssignmentSchema>;
-
 interface User {
   id: string;
   first_name: string;
@@ -33,7 +29,6 @@ interface User {
   email: string;
   role: string;
 }
-
 interface ScheduleTemplate {
   id: string;
   name: string;
@@ -43,13 +38,11 @@ interface ScheduleTemplate {
   hoursPerDay: string;
   isActive: boolean;
 }
-
 export default function BulkScheduleAssignment() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [previewMode, setPreviewMode] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const form = useForm<BulkAssignmentForm>({
     resolver: zodResolver(bulkAssignmentSchema),
     defaultValues: {
@@ -58,7 +51,6 @@ export default function BulkScheduleAssignment() {
       userIds: [],
     },
   });
-
   // Buscar todos os tipos de escala disponíveis (templates customizados + tipos padrão)
   const { data: templatesResponse, isLoading: loadingTemplates } = useQuery({
     queryKey: ['/api/timecard/schedule-templates'],
@@ -68,9 +60,7 @@ export default function BulkScheduleAssignment() {
       return response;
     },
   });
-
   const templates = templatesResponse?.templates || [];
-
   // Buscar usuários disponíveis para escalas de trabalho
   const { data: availableUsersData, isLoading: loadingUsers } = useQuery({
     queryKey: ['/api/timecard/available-users'],
@@ -80,7 +70,6 @@ export default function BulkScheduleAssignment() {
       return response;
     },
   });
-
   // Transformar dados dos usuários para o formato esperado
   const availableUsers = availableUsersData?.users ? availableUsersData.users.map((user: any) => ({
     id: user.id,
@@ -89,7 +78,6 @@ export default function BulkScheduleAssignment() {
     email: user.email,
     role: user.role || 'Funcionário'
   })) : [];
-
   // Verificar escalas existentes para usuários selecionados
   const { data: existingSchedules = [] } = useQuery({
     queryKey: ['/api/timecard/schedules/by-users', selectedUsers],
@@ -100,7 +88,6 @@ export default function BulkScheduleAssignment() {
     },
     enabled: selectedUsers.length > 0,
   });
-
   // Mutation para aplicar escala em lote
   const applyScheduleMutation = useMutation({
     mutationFn: async (data: BulkAssignmentForm) => {
@@ -131,12 +118,10 @@ export default function BulkScheduleAssignment() {
       });
     },
   });
-
   // Atualizar form quando usuários são selecionados
   useEffect(() => {
     form.setValue('userIds', selectedUsers);
   }, [selectedUsers, form]);
-
   const handleUserSelection = (userId: string, checked: boolean) => {
     if (checked) {
       setSelectedUsers(prev => [...prev, userId]);
@@ -144,16 +129,13 @@ export default function BulkScheduleAssignment() {
       setSelectedUsers(prev => prev.filter(id => id !== userId));
     }
   };
-
   const selectAllUsers = () => {
     const allUserIds = availableUsers.map((user: any) => user.id);
     setSelectedUsers(allUserIds);
   };
-
   const clearSelection = () => {
     setSelectedUsers([]);
   };
-
   const onSubmit = (data: BulkAssignmentForm) => {
     if (!previewMode) {
       setPreviewMode(true);
@@ -161,15 +143,13 @@ export default function BulkScheduleAssignment() {
     }
     applyScheduleMutation.mutate(data);
   };
-
   const selectedTemplate = templates.find((t: ScheduleTemplate) => t.id === form.watch('templateId'));
   const usersWithConflicts = existingSchedules.map((schedule: any) => schedule.userId);
-
   return (
     <div className="p-4 space-y-6>
       <div className="flex justify-between items-center>
         <div>
-          <h2 className="text-2xl font-bold">Atribuição em Lote de Escalas</h2>
+          <h2 className="text-lg">"Atribuição em Lote de Escalas</h2>
           <p className="text-muted-foreground>
             Aplique um template de escala para múltiplos funcionários de uma vez
           </p>
@@ -178,7 +158,6 @@ export default function BulkScheduleAssignment() {
           {previewMode ? 'Modo Visualização' : 'Seleção'}
         </Badge>
       </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6>
@@ -215,7 +194,7 @@ export default function BulkScheduleAssignment() {
                             templates.map((template: any) => (
                               <SelectItem key={template.id} value={template.id}>
                                 <div className="flex flex-col>
-                                  <span className="font-medium">{template.name}</span>
+                                  <span className="text-lg">"{template.name}</span>
                                   <span className="text-sm text-muted-foreground>
                                     {template.scheduleType} • {template.description || 'Sem descrição'}
                                   </span>
@@ -229,7 +208,6 @@ export default function BulkScheduleAssignment() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="startDate"
@@ -248,10 +226,9 @@ export default function BulkScheduleAssignment() {
                     </FormItem>
                   )}
                 />
-
                 {selectedTemplate && (
                   <div className="mt-4 p-3 bg-muted rounded-lg>
-                    <h4 className="font-medium mb-2">Detalhes do Template</h4>
+                    <h4 className="text-lg">"Detalhes do Template</h4>
                     <div className="space-y-1 text-sm>
                       <p><strong>Tipo:</strong> {selectedTemplate.scheduleType}</p>
                       <p><strong>Dias por semana:</strong> {selectedTemplate.workDaysPerWeek}</p>
@@ -262,7 +239,6 @@ export default function BulkScheduleAssignment() {
                 )}
               </CardContent>
             </Card>
-
             {/* Seleção de Funcionários */}
             <Card>
               <CardHeader>
@@ -295,12 +271,11 @@ export default function BulkScheduleAssignment() {
                     Limpar Seleção
                   </Button>
                 </div>
-
                 <div className="max-h-64 overflow-y-auto space-y-2>
                   {loadingUsers ? (
-                    <p className="text-sm text-muted-foreground">Carregando funcionários...</p>
+                    <p className="text-lg">"Carregando funcionários...</p>
                   ) : availableUsers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Nenhum funcionário disponível</p>
+                    <p className="text-lg">"Nenhum funcionário disponível</p>
                   ) : (
                     availableUsers.map((user: any) => {
                       const hasConflict = usersWithConflicts.includes(user.id);
@@ -340,7 +315,6 @@ export default function BulkScheduleAssignment() {
                     })
                   )}
                 </div>
-
                 {usersWithConflicts.length > 0 && selectedUsers.some(id => usersWithConflicts.includes(id)) && (
                   <Alert className="mt-4>
                     <AlertCircle className="h-4 w-4" />
@@ -353,7 +327,6 @@ export default function BulkScheduleAssignment() {
               </CardContent>
             </Card>
           </div>
-
           {/* Preview da Atribuição */}
           {previewMode && (
             <Card>
@@ -369,21 +342,20 @@ export default function BulkScheduleAssignment() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4>
                   <div>
-                    <p className="text-sm font-medium">Template</p>
-                    <p className="text-sm text-muted-foreground">{selectedTemplate?.name}</p>
+                    <p className="text-lg">"Template</p>
+                    <p className="text-lg">"{selectedTemplate?.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Data de Início</p>
+                    <p className="text-lg">"Data de Início</p>
                     <p className="text-sm text-muted-foreground>
                       {new Date(form.watch('startDate')).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Funcionários</p>
-                    <p className="text-sm text-muted-foreground">{selectedUsers.length} selecionados</p>
+                    <p className="text-lg">"Funcionários</p>
+                    <p className="text-lg">"{selectedUsers.length} selecionados</p>
                   </div>
                 </div>
-
                 <div className="flex gap-2>
                   <Button
                     type="button"
@@ -402,7 +374,6 @@ export default function BulkScheduleAssignment() {
               </CardContent>
             </Card>
           )}
-
           {/* Botões de Ação */}
           {!previewMode && (
             <div className="flex justify-end gap-2>

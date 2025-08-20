@@ -16,13 +16,11 @@ import StarterKit from '@tiptap/starter-kit';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface InternalActionDetailsModalProps {
   internalAction: any;
   isOpen: boolean;
   onClose: () => void;
 }
-
 export default function InternalActionDetailsModal({
   // Localization temporarily disabled
  
@@ -41,7 +39,6 @@ export default function InternalActionDetailsModal({
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Initialize form data when action changes
   useEffect(() => {
     if (internalAction) {
@@ -55,7 +52,6 @@ export default function InternalActionDetailsModal({
       });
     }
   }, [internalAction]);
-
   // Rich text editor for description
   const editor = useEditor({
     extensions: [StarterKit],
@@ -65,14 +61,12 @@ export default function InternalActionDetailsModal({
     },
     editable: isEditing
   });
-
   // Update editor content when formData changes
   useEffect(() => {
     if (editor && formData.description !== editor.getHTML()) {
       editor.commands.setContent(formData.description);
     }
   }, [formData.description, editor]);
-
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
     queryKey: ["/api/user-management/users"],
@@ -82,7 +76,6 @@ export default function InternalActionDetailsModal({
     },
     enabled: isOpen && isEditing,
   });
-
   // Update internal action mutation
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -94,12 +87,10 @@ export default function InternalActionDetailsModal({
         title: '[TRANSLATION_NEEDED]',
         description: "Ação interna atualizada com sucesso",
       });
-
       // Invalidate queries to refresh
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", internalAction.ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/schedule/schedules"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets/internal-actions/schedule"] });
-
       setIsEditing(false);
     },
     onError: (error: Error) => {
@@ -110,7 +101,6 @@ export default function InternalActionDetailsModal({
       });
     },
   });
-
   const handleSave = () => {
     if (!formData.actionType.trim()) {
       toast({
@@ -120,10 +110,8 @@ export default function InternalActionDetailsModal({
       });
       return;
     }
-
     updateActionMutation.mutate(formData);
   };
-
   const handleCancel = () => {
     // Reset form to original data
     if (internalAction) {
@@ -138,9 +126,7 @@ export default function InternalActionDetailsModal({
     }
     setIsEditing(false);
   };
-
   if (!internalAction) return null;
-
   const actionTypeOptions = [
     { value: "analysis", label: "Análise" },
     { value: "development", label: "Desenvolvimento" },
@@ -153,14 +139,12 @@ export default function InternalActionDetailsModal({
     { value: "escalation", label: "Escalação" },
     { value: "other", label: "Outro" }
   ];
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col>
         <DialogHeader className="flex-shrink-0>
           <DialogTitle className="flex items-center gap-2>
-            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+            <div className="text-lg">"</div>
             Ação Interna - {internalAction.ticketNumber}
           </DialogTitle>
           <DialogDescription className="space-y-1>
@@ -179,14 +163,13 @@ export default function InternalActionDetailsModal({
             </Button>
           </DialogDescription>
         </DialogHeader>
-
         <div className="flex-1 overflow-y-auto space-y-6" style={{ maxHeight: 'calc(90vh - 180px)' }}>
           {/* Technical Info Card */}
           <Card className="border-purple-200 bg-purple-50>
             <CardContent className="p-4>
               <div className="grid grid-cols-1 gap-2>
                 <div className="space-y-1>
-                  <Label className="text-sm font-medium text-purple-700">Número da Ação</Label>
+                  <Label className="text-lg">"Número da Ação</Label>
                   <div className="text-xs text-purple-600 font-mono bg-white p-2 rounded border select-all>
                     {internalAction.actionNumber || internalAction.id}
                   </div>
@@ -194,7 +177,6 @@ export default function InternalActionDetailsModal({
               </div>
             </CardContent>
           </Card>
-
           {/* Assigned To Card - Highlighted */}
           <Card className="border-blue-200 bg-blue-50>
             <CardContent className="p-4>
@@ -231,13 +213,12 @@ export default function InternalActionDetailsModal({
               </div>
             </CardContent>
           </Card>
-
           {/* Action Info Card */}
           <Card>
             <CardContent className="p-4>
               <div className="grid grid-cols-2 gap-4>
                 <div className="space-y-2>
-                  <Label className="text-sm font-medium text-gray-700">Status</Label>
+                  <Label className="text-lg">"Status</Label>
                   <Badge 
                     variant={internalAction.status === 'completed' ? 'default' : 'secondary'}
                     className="w-fit"
@@ -246,9 +227,8 @@ export default function InternalActionDetailsModal({
                      internalAction.status === 'in_progress' ? 'Em andamento' : 'Pendente'}
                   </Badge>
                 </div>
-
                 <div className="space-y-2>
-                  <Label className="text-sm font-medium text-gray-700">Tipo de Ação</Label>
+                  <Label className="text-lg">"Tipo de Ação</Label>
                   {isEditing ? (
                     <Select
                       value={formData.actionType}
@@ -275,13 +255,12 @@ export default function InternalActionDetailsModal({
               </div>
             </CardContent>
           </Card>
-
           {/* Time and Type */}
           <Card>
             <CardContent className="p-4 space-y-4>
               <div className="grid grid-cols-2 gap-4>
                 <div className="space-y-2>
-                  <Label className="text-sm font-medium text-gray-700">Data/Hora Início</Label>
+                  <Label className="text-lg">"Data/Hora Início</Label>
                   {isEditing ? (
                     <Input
                       type="datetime-local"
@@ -295,9 +274,8 @@ export default function InternalActionDetailsModal({
                     </div>
                   )}
                 </div>
-
                 <div className="space-y-2>
-                  <Label className="text-sm font-medium text-gray-700">Data/Hora Fim</Label>
+                  <Label className="text-lg">"Data/Hora Fim</Label>
                   {isEditing ? (
                     <Input
                       type="datetime-local"
@@ -312,10 +290,9 @@ export default function InternalActionDetailsModal({
                   )}
                 </div>
               </div>
-
               <div className="grid grid-cols-1 gap-4>
                 <div className="space-y-2>
-                  <Label className="text-sm font-medium text-gray-700">Horas Estimadas</Label>
+                  <Label className="text-lg">"Horas Estimadas</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -334,11 +311,10 @@ export default function InternalActionDetailsModal({
               </div>
             </CardContent>
           </Card>
-
           {/* Description */}
           <Card>
             <CardContent className="p-4>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">Descrição</Label>
+              <Label className="text-lg">"Descrição</Label>
               {isEditing ? (
                 <div className="border rounded-md p-3 min-h-[120px]>
                   <EditorContent 
@@ -355,7 +331,6 @@ export default function InternalActionDetailsModal({
             </CardContent>
           </Card>
         </div>
-
         <div className="flex-shrink-0 flex justify-end gap-2 pt-4 border-t mt-4 bg-white>
           {!isEditing ? (
             <Button

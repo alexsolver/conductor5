@@ -2,7 +2,6 @@
  * ContractManagement - Página principal de gestão de contratos
  * Seguindo 1qa.md compliance e Clean Architecture patterns
  */
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Filter, FileText, DollarSign, Calendar, Users, Edit, Trash2, Eye } from 'lucide-react';
@@ -23,7 +22,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { CreateContractDialog } from '@/components/forms/CreateContractDialog';
 import { EditContractDialog } from '@/components/forms/EditContractDialog';
 import { ContractViewDialog } from '@/components/forms/ContractViewDialog';
-
 // Tipos de contrato
 const contractTypes = [
   {
@@ -34,7 +32,6 @@ const contractTypes = [
   { value: 'rental', label: 'Locação' },
   { value: 'sla', label: 'SLA' },
 ];
-
 const contractStatuses = [
   { value: 'draft', label: 'Rascunho', color: 'gray' },
   { value: 'analysis', label: 'Análise', color: 'yellow' },
@@ -42,7 +39,6 @@ const contractStatuses = [
   { value: 'active', label: 'Ativo', color: 'green' },
   { value: 'terminated', label: 'Encerrado', color: 'red' },
 ];
-
 const priorities = [
   { value: 'low', label: 'Baixa', color: 'gray' },
   { value: 'medium', label: 'Média', color: 'blue' },
@@ -50,7 +46,6 @@ const priorities = [
   { value: 'critical', label: 'Crítica', color: 'red' },
   { value: 'emergency', label: 'Emergencial', color: 'purple' },
 ];
-
 interface Contract {
   id: string;
   contractNumber: string;
@@ -67,25 +62,21 @@ interface Contract {
   description?: string;
   createdAt: string;
 }
-
 interface ContractFilters {
   search?: string;
   status?: string;
   contractType?: string;
   priority?: string;
 }
-
 export default function ContractManagement() {
   const [filters, setFilters] = useState<ContractFilters>({});
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Buscar métricas do dashboard
   const { data: dashboardMetrics } = useQuery({
     queryKey: ['/api/contracts/dashboard-metrics'],
   });
-
   // Buscar contratos
   const { data: contractsData, isLoading } = useQuery({
     queryKey: ['/api/contracts', filters],
@@ -98,10 +89,8 @@ export default function ContractManagement() {
       return response.json();
     },
   });
-
   const contracts = contractsData?.contracts || contractsData?.data?.contracts || [];
   const total = contractsData?.total || contractsData?.data?.total || 0;
-
   // Mutation para deletar contrato
   const deleteContractMutation = useMutation({
     mutationFn: async (contractId: string) => {
@@ -124,14 +113,12 @@ export default function ContractManagement() {
       });
     },
   });
-
   const formatCurrency = (value: number, currency = 'BRL') => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: currency,
     }).format(value);
   };
-
   const getStatusBadge = (status: string) => {
     const statusConfig = contractStatuses.find(s => s.value === status);
     return (
@@ -144,7 +131,6 @@ export default function ContractManagement() {
       </Badge>
     );
   };
-
   const getPriorityBadge = (priority: string) => {
     const priorityConfig = priorities.find(p => p.value === priority);
     return (
@@ -157,7 +143,6 @@ export default function ContractManagement() {
       </Badge>
     );
   };
-
   const getTypeBadge = (type: string) => {
     const typeConfig = contractTypes.find(t => t.value === type);
     return (
@@ -166,7 +151,6 @@ export default function ContractManagement() {
       </Badge>
     );
   };
-
   return (
     <div className=""
       <div className=""
@@ -189,7 +173,6 @@ export default function ContractManagement() {
             Novo Contrato
           </Button>
         </div>
-
         {/* Dialog para criar novo contrato */}
         <CreateContractDialog 
           open={isCreateDialogOpen} 
@@ -203,13 +186,12 @@ export default function ContractManagement() {
             Novo Contrato
           </Button>
         </CreateContractDialog>
-
         {/* Métricas do Dashboard */}
         {dashboardMetrics?.data && (
           <div className=""
             <Card className=""
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Contratos Ativos</CardTitle>
+                <CardTitle className="text-lg">"Contratos Ativos</CardTitle>
                 <FileText className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
@@ -218,10 +200,9 @@ export default function ContractManagement() {
                 </div>
               </CardContent>
             </Card>
-
             <Card className=""
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>
+                <CardTitle className="text-lg">"Rascunhos</CardTitle>
                 <FileText className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
@@ -230,10 +211,9 @@ export default function ContractManagement() {
                 </div>
               </CardContent>
             </Card>
-
             <Card className=""
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Vencendo em 30 dias</CardTitle>
+                <CardTitle className="text-lg">"Vencendo em 30 dias</CardTitle>
                 <Calendar className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
@@ -242,10 +222,9 @@ export default function ContractManagement() {
                 </div>
               </CardContent>
             </Card>
-
             <Card className=""
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
+                <CardTitle className="text-lg">"Receita Mensal</CardTitle>
                 <DollarSign className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
@@ -254,10 +233,9 @@ export default function ContractManagement() {
                 </div>
               </CardContent>
             </Card>
-
             <Card className=""
               <CardHeader className=""
-                <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+                <CardTitle className="text-lg">"Receita Total</CardTitle>
                 <DollarSign className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
@@ -268,7 +246,6 @@ export default function ContractManagement() {
             </Card>
           </div>
         )}
-
         {/* Filtros */}
         <Card className=""
           <CardHeader>
@@ -289,7 +266,6 @@ export default function ContractManagement() {
                   data-testid="input-search-contracts"
                 />
               </div>
-
               <Select 
                 value={filters.status || 'all'} 
                 onValueChange={(value) => setFilters({ ...filters, status: value === 'all' ? undefined : value })}
@@ -306,7 +282,6 @@ export default function ContractManagement() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Select 
                 value={filters.contractType || 'all'} 
                 onValueChange={(value) => setFilters({ ...filters, contractType: value === 'all' ? undefined : value })}
@@ -323,7 +298,6 @@ export default function ContractManagement() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Select 
                 value={filters.priority || 'all'} 
                 onValueChange={(value) => setFilters({ ...filters, priority: value === 'all' ? undefined : value })}
@@ -343,7 +317,6 @@ export default function ContractManagement() {
             </div>
           </CardContent>
         </Card>
-
         {/* Lista de Contratos */}
         <Card className=""
           <CardHeader>
@@ -354,7 +327,7 @@ export default function ContractManagement() {
           <CardContent>
             {isLoading ? (
               <div className=""
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <div className="text-lg">"</div>
               </div>
             ) : contracts.length === 0 ? (
               <div className=""
@@ -384,11 +357,9 @@ export default function ContractManagement() {
                           {getTypeBadge(contract.contractType)}
                           {getPriorityBadge(contract.priority)}
                         </div>
-
                         <p className="text-sm text-muted-foreground mb-2" data-testid={"
                           {contract.description || 'Sem descrição'}
                         </p>
-
                         <div className=""
                           <span data-testid={"
                             {new Date(contract.startDate).toLocaleDateString('pt-BR')} - {new Date(contract.endDate).toLocaleDateString('pt-BR')}
@@ -403,7 +374,6 @@ export default function ContractManagement() {
                           )}
                         </div>
                       </div>
-
                       <div className=""
                         <ContractViewDialog contractId={contract.id}>
                           <Button 

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,19 +15,16 @@ import { Users, MapPin, Grid3X3, Search } from "lucide-react";
 import { agrupamentoSchema, type NewAgrupamento } from "@/../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface AgrupamentoFormProps {
   onSubmit: (data: NewAgrupamento) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
-
 export default function AgrupamentoForm({
   // Localization temporarily disabled
  onSubmit, onCancel, isSubmitting = false }: AgrupamentoFormProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-
   const form = useForm<NewAgrupamento>({
     resolver: zodResolver(agrupamentoSchema),
     defaultValues: {
@@ -39,7 +35,6 @@ export default function AgrupamentoForm({
       areasVinculadas: []
     }
   });
-
   // Buscar áreas disponíveis
   const { data: areasData = [], isLoading: isLoadingAreas } = useQuery({
     queryKey: ['/api/locations-new/area'],
@@ -55,7 +50,6 @@ export default function AgrupamentoForm({
       return [];
     }
   });
-
   const handleFormSubmit = (data: NewAgrupamento) => {
     console.log('AgrupamentoForm - Submitting data:', data);
     
@@ -67,19 +61,15 @@ export default function AgrupamentoForm({
       });
       return;
     }
-
     onSubmit(data);
   };
-
   // Filtrar áreas baseado na busca
   const filteredAreas = areasData.filter((area: any) =>
     area.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     area.codigoIntegracao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     area.tipoArea?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   const selectedAreas = form.watch('areasVinculadas') || [];
-
   const toggleArea = (areaId: string) => {
     const currentAreas = selectedAreas;
     const newAreas = currentAreas.includes(areaId)
@@ -88,7 +78,6 @@ export default function AgrupamentoForm({
     
     form.setValue('areasVinculadas', newAreas);
   };
-
   const getAreaTypeLabel = (tipoArea: string) => {
     const types: { [key: string]: string } = {
       'faixa_cep': 'Faixa CEP',
@@ -100,7 +89,6 @@ export default function AgrupamentoForm({
     };
     return types[tipoArea] || tipoArea;
   };
-
   const getAreaTypeColor = (tipoArea: string) => {
     const colors: { [key: string]: string } = {
       'faixa_cep': 'bg-blue-100 text-blue-800',
@@ -112,14 +100,12 @@ export default function AgrupamentoForm({
     };
     return colors[tipoArea] || 'bg-gray-100 text-gray-800';
   };
-
   return (
     <div className="max-w-4xl mx-auto p-6>
       <div className="mb-6>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Novo Agrupamento</h2>
-        <p className="text-gray-600 dark:text-gray-400">Configure um novo agrupamento de áreas geográficas</p>
+        <h2 className="text-lg">"Novo Agrupamento</h2>
+        <p className="text-lg">"Configure um novo agrupamento de áreas geográficas</p>
       </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6>
           {/* Identificação */}
@@ -133,7 +119,7 @@ export default function AgrupamentoForm({
             <CardContent className="space-y-4>
               <div className="flex items-center justify-between>
                 <div className="space-y-0.5>
-                  <label htmlFor="ativo" className="text-sm font-medium">Status</label>
+                  <label htmlFor="ativo" className="text-lg">"Status</label>
                   <div className="text-sm text-muted-foreground>
                     Agrupamento ativo no sistema
                   </div>
@@ -153,7 +139,6 @@ export default function AgrupamentoForm({
                   )}
                 />
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4>
                 <FormField
                   control={form.control}
@@ -168,7 +153,6 @@ export default function AgrupamentoForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="codigoIntegracao"
@@ -183,7 +167,6 @@ export default function AgrupamentoForm({
                   )}
                 />
               </div>
-
               <FormField
                 control={form.control}
                 name="descricao"
@@ -202,7 +185,6 @@ export default function AgrupamentoForm({
               />
             </CardContent>
           </Card>
-
           {/* Seleção de Áreas */}
           <Card>
             <CardHeader>
@@ -227,12 +209,11 @@ export default function AgrupamentoForm({
                   className="pl-8"
                 />
               </div>
-
               {/* Lista de áreas disponíveis */}
               <ScrollArea className="h-64 border rounded-md p-4>
                 {isLoadingAreas ? (
                   <div className="flex items-center justify-center h-32>
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <div className="text-lg">"</div>
                   </div>
                 ) : filteredAreas.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-32 text-center>
@@ -296,11 +277,10 @@ export default function AgrupamentoForm({
                   </div>
                 )}
               </ScrollArea>
-
               {/* Resumo das áreas selecionadas */}
               {selectedAreas.length > 0 && (
                 <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg>
-                  <h4 className="text-sm font-medium mb-2">Áreas Selecionadas:</h4>
+                  <h4 className="text-lg">"Áreas Selecionadas:</h4>
                   <div className="flex flex-wrap gap-2>
                     {selectedAreas.map((areaId) => {
                       const area = areasData.find((a: any) => a.id === areaId);
@@ -322,7 +302,6 @@ export default function AgrupamentoForm({
               )}
             </CardContent>
           </Card>
-
           {/* Botões de Ação */}
           <div className="flex justify-end space-x-4 pt-4>
             <Button

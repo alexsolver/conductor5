@@ -1,6 +1,5 @@
 // ✅ 1QA.MD COMPLIANCE: KNOWLEDGE BASE TAB FOR TICKETS - CLEAN ARCHITECTURE
 // Presentation layer - integrates Knowledge Base with Ticket system
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BookOpen, Search, Link, Eye, ThumbsUp } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-
 interface SuggestedArticle {
   id: string;
   title: string;
@@ -18,19 +16,15 @@ interface SuggestedArticle {
   category: string;
   viewCount: number;
 }
-
 interface KnowledgeBaseTabProps {
   ticketId: string;
   category?: string;
   description?: string;
 }
-
 export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeBaseTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [linkedArticles, setLinkedArticles] = useState<string[]>([]);
-
   console.log('🔧 [KB-TAB] Rendering Knowledge Base tab for ticket:', ticketId);
-
   // Get suggested articles based on ticket content
   const { data: suggestions, isLoading: suggestionsLoading } = useQuery({
     queryKey: ['/api/knowledge-base/ticket-suggestions', ticketId, category, description],
@@ -49,7 +43,6 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
     },
     enabled: !!ticketId && !!category
   });
-
   // Search articles manually
   const { data: searchResults, isLoading: searchLoading } = useQuery({
     queryKey: ['/api/knowledge-base/articles', searchQuery],
@@ -63,7 +56,6 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
     },
     enabled: searchQuery.trim().length > 2
   });
-
   const handleLinkArticle = async (articleId: string) => {
     try {
       const response = await apiRequest('POST', "/link-ticket`, {
@@ -78,7 +70,6 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
       console.error('Failed to link article:', error);
     }
   };
-
   const renderArticleCard = (article: SuggestedArticle, isLinked = false) => (
     <Card key={article.id} className="mb-3" data-testid={"
       <CardHeader className="pb-2>
@@ -143,7 +134,6 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
       </CardContent>
     </Card>
   );
-
   return (
     <div className="space-y-4" data-testid="knowledge-base-tab>
       {/* Search Section */}
@@ -168,7 +158,6 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
           </div>
         </CardContent>
       </Card>
-
       {/* Suggested Articles */}
       {suggestions?.relevantArticles?.length > 0 && (
         <div>
@@ -196,7 +185,6 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
           )}
         </div>
       )}
-
       {/* Search Results */}
       {searchQuery.trim().length > 2 && (
         <div>
@@ -232,13 +220,12 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
           )}
         </div>
       )}
-
       {/* Empty State */}
       {!suggestions?.relevantArticles?.length && !searchQuery.trim() && (
         <Card>
           <CardContent className="p-6 text-center>
             <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-sm font-medium mb-1">Base de Conhecimento</h3>
+            <h3 className="text-lg">"Base de Conhecimento</h3>
             <p className="text-xs text-muted-foreground mb-4>
               Pesquise artigos relacionados ou veja sugestões automáticas baseadas no ticket
             </p>

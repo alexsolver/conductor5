@@ -26,11 +26,9 @@ import {
   Trash2,
   Star
 } from "lucide-react";
-
 // Schema para criação de habilidades
 const skillFormSchema = z.object({
   // Localization temporarily disabled
-
   name: z.string().min(1, "Nome é obrigatório").max(255),
   category: z.string().min(1, "Categoria é obrigatória"),
   suggestedCertification: z.string().optional(),
@@ -43,12 +41,9 @@ const skillFormSchema = z.object({
     description: z.string()
   })).optional(),
 });
-
 type SkillFormData = z.infer<typeof skillFormSchema>;
-
 // Categorias agora são carregadas dinamicamente do backend
 const DEFAULT_CATEGORIES = ["Técnica", "Operacional", "Administrativa"];
-
 // Opções padrão da escala
 const DEFAULT_SCALE_OPTIONS = [
   { level: 1, label: "Básico", description: "Conhecimento introdutório, precisa de supervisão" },
@@ -57,7 +52,6 @@ const DEFAULT_SCALE_OPTIONS = [
   { level: 4, label: "Especialista", description: "Referência técnica interna, resolve problemas críticos" },
   { level: 5, label: "Excelência", description: "Comprovada por resultados e avaliações de clientes" }
 ];
-
 interface Skill {
   id: string;
   name: string;
@@ -75,18 +69,15 @@ interface Skill {
     description: string;
   }>;
 }
-
 interface SkillsResponse {
   success: boolean;
   data: Skill[];
   count: number;
 }
-
 interface CategoriesResponse {
   success: boolean;
   data: string[];
 }
-
 interface CertificationData {
   userId: string;
   userName: string;
@@ -95,13 +86,11 @@ interface CertificationData {
   expiresAt: string;
   daysSinceExpiry?: number;
 }
-
 interface CertificationsResponse {
   success: boolean;
   data: CertificationData[];
   count: number;
 }
-
 export default function TechnicalSkills() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -109,33 +98,26 @@ export default function TechnicalSkills() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
   const [scaleOptions, setScaleOptions] = useState(DEFAULT_SCALE_OPTIONS);
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Queries
   const { data: skillsResponse, isLoading } = useQuery<SkillsResponse>({
     queryKey: ["/api/technical-skills/skills"],
   });
-
   const { data: categoriesResponse } = useQuery<CategoriesResponse>({
     queryKey: ["/api/technical-skills/skills/categories"],
   });
-
   const { data: expiredCertsResponse } = useQuery<CertificationsResponse>({
     queryKey: ["/api/technical-skills/certifications/expired"],
   });
-
   const { data: expiringCertsResponse } = useQuery<CertificationsResponse>({
     queryKey: ["/api/technical-skills/certifications/expiring"],
   });
-
   // Extract data from responses
   const skills = skillsResponse?.data || [];
   const categories = categoriesResponse?.data || [];
   const expiredCerts = expiredCertsResponse?.data || [];
   const expiringCerts = expiringCertsResponse?.data || [];
-
   // Forms
   const createForm = useForm<SkillFormData>({
     resolver: zodResolver(skillFormSchema),
@@ -149,11 +131,9 @@ export default function TechnicalSkills() {
       scaleOptions: DEFAULT_SCALE_OPTIONS,
     },
   });
-
   const editForm = useForm<SkillFormData>({
     resolver: zodResolver(skillFormSchema),
   });
-
   // Mutations
   const createSkillMutation = useMutation({
     mutationFn: (data: SkillFormData) => 
@@ -169,7 +149,6 @@ export default function TechnicalSkills() {
       toast({ title: "Erro ao criar habilidade", variant: "destructive" });
     },
   });
-
   const updateSkillMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: SkillFormData }) =>
       apiRequest("PUT", "/api/technical-skills/skills/" + id, data),
@@ -184,7 +163,6 @@ export default function TechnicalSkills() {
       toast({ title: "Erro ao atualizar habilidade", variant: "destructive" });
     },
   });
-
   const deleteSkillMutation = useMutation({
     mutationFn: (id: string) => 
       apiRequest("DELETE", "/api/technical-skills/skills/" + id),
@@ -197,7 +175,6 @@ export default function TechnicalSkills() {
       toast({ title: "Erro ao desativar habilidade", variant: "destructive" });
     },
   });
-
   // Event handlers
   const onCreateSubmit = (data: SkillFormData) => {
     const submitData = {
@@ -206,7 +183,6 @@ export default function TechnicalSkills() {
     };
     createSkillMutation.mutate(submitData);
   };
-
   const onEditSubmit = (data: SkillFormData) => {
     if (editingSkill) {
       const submitData = {
@@ -216,7 +192,6 @@ export default function TechnicalSkills() {
       updateSkillMutation.mutate({ id: editingSkill.id, data: submitData });
     }
   };
-
   const openEditDialog = (skill: Skill) => {
     setEditingSkill(skill);
     const skillScaleOptions = skill.scaleOptions || DEFAULT_SCALE_OPTIONS;
@@ -232,11 +207,9 @@ export default function TechnicalSkills() {
     });
     setIsEditDialogOpen(true);
   };
-
   const renderStars = (skillScaleOptions?: typeof DEFAULT_SCALE_OPTIONS) => {
     const options = skillScaleOptions || DEFAULT_SCALE_OPTIONS;
     const maxLevel = Math.max(...options.map(opt => opt.level));
-
     return (
       <div className=""
         {Array.from({ length: maxLevel }, (_, i) => (
@@ -251,7 +224,6 @@ export default function TechnicalSkills() {
       </div>
     );
   };
-
   const filteredSkills = skills?.filter(skill => {
     const matchesSearch = !searchTerm || 
       skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -259,16 +231,14 @@ export default function TechnicalSkills() {
     const matchesCategory = selectedCategory === "all" || skill.category === selectedCategory;
     return matchesSearch && matchesCategory && skill.isActive;
   }) || [];
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Habilidades Técnicas</h1>
-          <p className="text-gray-600">Gerencie habilidades técnicas e certificações dos usuários</p>
+          <h1 className="text-lg">"Habilidades Técnicas</h1>
+          <p className="text-lg">"Gerencie habilidades técnicas e certificações dos usuários</p>
         </div>
-
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -298,7 +268,6 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={createForm.control}
                   name="category"
@@ -333,14 +302,13 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-
                 {/* Editor de Opções da Escala */}
                 <div className=""
                   <FormLabel>Opções da Escala</FormLabel>
                   {scaleOptions.map((option, index) => (
                     <div key={option.level} className=""
                       <div className=""
-                        <span className="text-sm font-medium">{option.level}</span>
+                        <span className="text-lg">"{option.level}</span>
                       </div>
                       <div className=""
                         <Input
@@ -367,7 +335,6 @@ export default function TechnicalSkills() {
                     </div>
                   ))}
                 </div>
-
                 <FormField
                   control={createForm.control}
                   name="description"
@@ -381,7 +348,6 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={createForm.control}
                   name="suggestedCertification"
@@ -395,7 +361,6 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={createForm.control}
                   name="certificationValidityMonths"
@@ -414,7 +379,6 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={createForm.control}
                   name="observations"
@@ -428,7 +392,6 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-
                 <div className=""
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
@@ -442,54 +405,49 @@ export default function TechnicalSkills() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Stats Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Habilidades</CardTitle>
+            <CardTitle className="text-lg">"Total de Habilidades</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredSkills.length}</div>
-            <p className="text-xs text-muted-foreground">Habilidades ativas</p>
+            <div className="text-lg">"{filteredSkills.length}</div>
+            <p className="text-lg">"Habilidades ativas</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Certificações Vencidas</CardTitle>
+            <CardTitle className="text-lg">"Certificações Vencidas</CardTitle>
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{expiredCerts?.data?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Requerem atenção</p>
+            <div className="text-lg">"{expiredCerts?.data?.length || 0}</div>
+            <p className="text-lg">"Requerem atenção</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Vencendo em 30 dias</CardTitle>
+            <CardTitle className="text-lg">"Vencendo em 30 dias</CardTitle>
             <Award className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{expiringCerts?.data?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Certificações</p>
+            <div className="text-lg">"{expiringCerts?.data?.length || 0}</div>
+            <p className="text-lg">"Certificações</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Categorias</CardTitle>
+            <CardTitle className="text-lg">"Categorias</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categories?.data?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Diferentes áreas</p>
+            <div className="text-lg">"{categories?.data?.length || 0}</div>
+            <p className="text-lg">"Diferentes áreas</p>
           </CardContent>
         </Card>
       </div>
-
       {/* Filters */}
       <div className=""
         <div className=""
@@ -501,7 +459,6 @@ export default function TechnicalSkills() {
             className="pl-10"
           />
         </div>
-
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className=""
             <SelectValue />
@@ -516,16 +473,15 @@ export default function TechnicalSkills() {
           </SelectContent>
         </Select>
       </div>
-
       {/* Skills Grid */}
       <div className=""
         {isLoading ? (
           <div className=""
-            <div className="text-gray-500">Carregando habilidades...</div>
+            <div className="text-lg">"Carregando habilidades...</div>
           </div>
         ) : filteredSkills.length === 0 ? (
           <div className=""
-            <div className="text-gray-500">Nenhuma habilidade encontrada</div>
+            <div className="text-lg">"Nenhuma habilidade encontrada</div>
           </div>
         ) : (
           filteredSkills.map((skill) => (
@@ -533,7 +489,7 @@ export default function TechnicalSkills() {
               <CardHeader>
                 <div className=""
                   <div className=""
-                    <CardTitle className="text-lg">{skill.name}</CardTitle>
+                    <CardTitle className="text-lg">"{skill.name}</CardTitle>
                     <div className=""
                       <Badge variant="secondary">{skill.category}</Badge>
                       {renderStars(skill.scaleOptions)}
@@ -559,7 +515,7 @@ export default function TechnicalSkills() {
               </CardHeader>
               <CardContent>
                 {skill.description && (
-                  <p className="text-sm text-gray-600 mb-3">{skill.description}</p>
+                  <p className="text-lg">"{skill.description}</p>
                 )}
                 {skill.suggestedCertification && (
                   <div className=""
@@ -572,7 +528,6 @@ export default function TechnicalSkills() {
           ))
         )}
       </div>
-
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className=""
@@ -597,7 +552,6 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={editForm.control}
                 name="category"
@@ -632,14 +586,13 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-
               {/* Editor de Opções da Escala */}
               <div className=""
                 <FormLabel>Opções da Escala</FormLabel>
                 {scaleOptions.map((option, index) => (
                   <div key={option.level} className=""
                     <div className=""
-                      <span className="text-sm font-medium">{option.level}</span>
+                      <span className="text-lg">"{option.level}</span>
                     </div>
                     <div className=""
                       <Input
@@ -666,7 +619,6 @@ export default function TechnicalSkills() {
                   </div>
                 ))}
               </div>
-
               <FormField
                 control={editForm.control}
                 name="description"
@@ -680,7 +632,6 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={editForm.control}
                 name="suggestedCertification"
@@ -694,7 +645,6 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={editForm.control}
                 name="certificationValidityMonths"
@@ -713,7 +663,6 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={editForm.control}
                 name="observations"
@@ -727,7 +676,6 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                   Cancelar

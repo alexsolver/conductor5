@@ -2,7 +2,6 @@ import React from "react";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface FormValidationFeedbackProps {
   isValidating?: boolean;
   isValid?: boolean;
@@ -11,10 +10,8 @@ interface FormValidationFeedbackProps {
   className?: string;
   fieldName?: string;
 }
-
 export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
   // Localization temporarily disabled
-
   isValidating = false,
   isValid = false,
   isInvalid = false,
@@ -35,7 +32,6 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       </div>
     );
   }
-
   if (isValid && !isInvalid) {
     return (
       <div 
@@ -49,7 +45,6 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       </div>
     );
   }
-
   if (isInvalid && validationMessage) {
     return (
       <div 
@@ -63,10 +58,8 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       </div>
     );
   }
-
   return null;
 };
-
 // Enhanced form field wrapper with accessibility
 export const AccessibleFormField: React.FC<{
   children: React.ReactNode;
@@ -79,7 +72,6 @@ export const AccessibleFormField: React.FC<{
   const fieldId = React.useId();
   const errorId = "-error`;
   const descriptionId = "-description`;
-
   return (
     <div className={cn("space-y-2", className)}>
       <label 

@@ -32,7 +32,6 @@ import {
   Workflow,
   Building2
 } from "lucide-react";
-
 interface Ticket {
   id: string;
   subject: string;
@@ -40,7 +39,6 @@ interface Ticket {
   priority: string;
   number?: string;
 }
-
 interface TicketRelationship {
   id: string;
   relationshipType: string;
@@ -48,13 +46,11 @@ interface TicketRelationship {
   description?: string;
   createdAt: string;
 }
-
 interface TicketLinkingModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentTicket: Ticket;
 }
-
 const RELATIONSHIP_TYPES = [
   {
   // Localization temporarily disabled
@@ -65,7 +61,6 @@ const RELATIONSHIP_TYPES = [
   { value: "parent_child", label: "Pai/Filho", icon: GitBranch, description: "Relação hierárquica" },
   { value: "follows", label: "Segue", icon: Workflow, description: "Segue outro ticket" },
 ];
-
 export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: TicketLinkingModalProps) {
   // Early return if currentTicket is not provided
   if (!currentTicket) {
@@ -78,7 +73,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
-
   // Reset filters when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -88,12 +82,9 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       setPriorityFilter("all");
     }
   }, [isOpen]);
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Remove company fetch - não precisamos mais do filtro de empresa
-
   // Fetch all tickets and filter locally for better UX
   const { data: ticketsData, isLoading } = useQuery({
     queryKey: ["/api/tickets"],
@@ -102,16 +93,12 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       return response.json();
     },
   });
-
   // Ensure allTickets is always an array - correct data structure parsing
   const allTickets = Array.isArray(ticketsData?.data?.tickets) ? ticketsData.data.tickets : [];
-
   // Remove companies list - não usado mais
-
   // Filter tickets - APENAS mesma empresa do ticket principal conforme 1qa.md
   const filteredTickets = allTickets.filter((ticket: Ticket) => {
     if (currentTicket && ticket.id === currentTicket.id) return false;
-
     // FILTRO CRÍTICO: Apenas tickets da mesma empresa do ticket principal
     const currentTicketCompanyId = (currentTicket as any).companyId || (currentTicket as any).company_id;
     const ticketCompanyId = (ticket as any).company_id || (ticket as any).companyId;
@@ -119,19 +106,15 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     if (currentTicketCompanyId && ticketCompanyId !== currentTicketCompanyId) {
       return false;
     }
-
     // Status filter
     if (statusFilter !== "all" && ticket.status !== statusFilter) return false;
-
     // Priority filter  
     if (priorityFilter !== "all" && ticket.priority !== priorityFilter) return false;
-
     // Customer filter
     if (selectedCustomerId && selectedCustomerId !== "") {
       const ticketCustomerId = (ticket as any).customer_id || (ticket as any).customerId;
       if (!ticketCustomerId || ticketCustomerId !== selectedCustomerId) return false;
     }
-
     // Search filter
     if (searchTerm.length > 0) {
       const searchLower = searchTerm.toLowerCase();
@@ -139,10 +122,8 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
              (ticket.number && ticket.number.toLowerCase().includes(searchLower)) ||
              ticket.id.toLowerCase().includes(searchLower);
     }
-
     return true;
   });
-
   // Helper functions for multi-selection
   const toggleTicketSelection = (ticket: Ticket) => {
     setSelectedTickets(prev => {
@@ -154,11 +135,9 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       }
     });
   };
-
   const isTicketSelected = (ticket: Ticket) => {
     return selectedTickets.some(t => t.id === ticket.id);
   };
-
   // Get existing relationships - Clean Architecture endpoint only per 1qa.md
   const { data: relationships = [] } = useQuery<TicketRelationship[]>({
     queryKey: ["/api/ticket-relationships", currentTicket?.id, "relationships"],
@@ -170,7 +149,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     },
     enabled: !!currentTicket?.id,
   });
-
   // Create relationship mutation
   const createRelationshipMutation = useMutation({
     mutationFn: async (data: {
@@ -214,7 +192,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       });
     },
   });
-
   // Remove relationship mutation - Clean Architecture endpoint per 1qa.md
   const removeRelationshipMutation = useMutation({
     mutationFn: async (relationshipId: string) => {
@@ -247,7 +224,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       });
     },
   });
-
   const handleLinkTickets = () => {
     if (selectedTickets.length === 0 || !relationshipType) {
       toast({
@@ -257,7 +233,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       });
       return;
     }
-
     // Create relationships for all selected tickets
     selectedTickets.forEach(ticket => {
       createRelationshipMutation.mutate({
@@ -267,17 +242,14 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       });
     });
   };
-
   const getRelationshipIcon = (type: string) => {
     const relationshipType = RELATIONSHIP_TYPES.find(r => r.value === type);
     return relationshipType?.icon || Link2;
   };
-
   const getRelationshipLabel = (type: string) => {
     const relationshipType = RELATIONSHIP_TYPES.find(r => r.value === type);
     return relationshipType?.label || type;
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto>
@@ -287,12 +259,11 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
             <span>Tickets Vinculados {currentTicket.number || currentTicket.subject}</span>
           </DialogTitle>
         </DialogHeader>
-
         <div className="space-y-6>
           {/* Existing Relationships */}
           {relationships.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold mb-3">Vínculos Existentes</h3>
+              <h3 className="text-lg">"Vínculos Existentes</h3>
               <div className="space-y-2>
                 {relationships.map((rel) => {
                   const Icon = getRelationshipIcon(rel.relationshipType);
@@ -305,7 +276,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                         <Icon className="h-4 w-4 text-gray-500" />
                         <div>
                           <div className="flex items-center space-x-2>
-                            <span className="font-medium">#{rel.targetTicket?.number || "
+                            <span className="text-lg">"#{rel.targetTicket?.number || "
                             <Badge variant="outline>
                               {getRelationshipLabel(rel.relationshipType)}
                             </Badge>
@@ -331,10 +302,9 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
               </div>
             </div>
           )}
-
           {/* Link New Ticket */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Vincular Novo Ticket</h3>
+            <h3 className="text-lg">"Vincular Novo Ticket</h3>
             <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg>
               <div className="flex items-center gap-2>
                 <Building2 className="h-4 w-4 text-amber-600" />
@@ -346,7 +316,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                 Tickets só podem ser vinculados com outros da mesma empresa conforme regras de negócio
               </p>
             </div>
-
             {/* Search and Filters */}
             <div className="space-y-4>
               {/* Customer Filter - Só filtro de cliente, empresa é automática */}
@@ -365,7 +334,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                   </p>
                 </div>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4>
                 <div>
                   <Label htmlFor="search">Buscar Ticket</Label>
@@ -380,7 +348,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     />
                   </div>
                 </div>
-
                 <div>
                   <Label htmlFor="status-filter">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -397,7 +364,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <Label htmlFor="priority-filter">Prioridade</Label>
                   <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -414,11 +380,10 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                   </Select>
                 </div>
               </div>
-
               {/* Ticket List */}
               {isLoading ? (
                 <div className="flex items-center justify-center p-8>
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  <div className="text-lg">"</div>
                 </div>
               ) : (
                 <div className="border rounded-lg max-h-80 overflow-y-auto>
@@ -441,15 +406,13 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                           />
                           <div className="flex-1>
                             <div className="flex items-center space-x-2 flex-wrap gap-1>
-                              <span className="font-medium">#{ticket.number || "
-
+                              <span className="text-lg">"#{ticket.number || "
                               {/* Badge de Categoria */}
                               {(ticket as any).category && (
                                 <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200>
                                   {(ticket as any).category}
                                 </Badge>
                               )}
-
                               {/* Badge de Status */}
                               <Badge variant="outline" className={`text-xs ${
                                 ticket.status === 'new' ? 'bg-gray-50 text-gray-700 border-gray-200' :
@@ -466,7 +429,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                  ticket.status === 'closed' ? 'Fechado' :
                                  ticket.status}
                               </Badge>
-
                               {/* Badge de Prioridade */}
                               <Badge variant={
                                 ticket.priority === 'critical' ? 'destructive' :
@@ -485,7 +447,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                  ticket.priority === 'low' ? 'Baixa' :
                                  ticket.priority}
                               </Badge>
-
                               {/* Badge de Urgência */}
                               {(ticket as any).urgency && (
                                 <Badge variant="outline" className={`text-xs ${
@@ -515,16 +476,15 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                   )}
                 </div>
               )}
-
               {/* Selected Tickets Summary */}
               {selectedTickets.length > 0 && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg>
-                  <h4 className="font-medium mb-2">Tickets Selecionados ({selectedTickets.length})</h4>
+                  <h4 className="text-lg">"Tickets Selecionados ({selectedTickets.length})</h4>
                   <div className="space-y-2>
                     {selectedTickets.map(ticket => (
                       <div key={ticket.id} className="p-2 bg-white rounded border>
                         <div className="flex items-center justify-between mb-1>
-                          <span className="font-medium">#{ticket.number || "
+                          <span className="text-lg">"#{ticket.number || "
                           <button
                             onClick={() => toggleTicketSelection(ticket)}
                             className="text-red-500 hover:text-red-700 ml-2 text-lg leading-none"
@@ -539,7 +499,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                               {(ticket as any).category}
                             </Badge>
                           )}
-
                           {/* Badge de Status */}
                           <Badge variant="outline" className={`text-xs ${
                             ticket.status === 'new' ? 'bg-gray-50 text-gray-700 border-gray-200' :
@@ -556,7 +515,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                              ticket.status === 'closed' ? 'Fechado' :
                              ticket.status}
                           </Badge>
-
                           {/* Badge de Prioridade */}
                           <Badge className={`text-xs ${
                             ticket.priority === 'critical' ? 'bg-red-600 text-white' :
@@ -571,7 +529,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                              ticket.priority === 'low' ? 'Baixa' :
                              ticket.priority}
                           </Badge>
-
                           {/* Badge de Urgência */}
                           {(ticket as any).urgency && (
                             <Badge variant="outline" className={`text-xs ${
@@ -595,7 +552,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                   </div>
                 </div>
               )}
-
               {/* Relationship Type */}
               {selectedTickets.length > 0 && (
                 <div className="space-y-4>
@@ -620,7 +576,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div>
                     <Label htmlFor="description">Descrição (Opcional)</Label>
                     <Textarea
@@ -631,7 +586,6 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       rows={3}
                     />
                   </div>
-
                   <div className="flex justify-end space-x-2>
                     <Button variant="outline" onClick={onClose}>
                       Cancelar

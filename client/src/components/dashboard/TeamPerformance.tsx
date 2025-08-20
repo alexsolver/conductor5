@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight } from "lucide-react";
-
 // Mock team data - in real app this would come from API
 const teamMembers = [
   {
@@ -41,7 +40,6 @@ const teamMembers = [
     gradientClass: "gradient-warning",
   },
 ];
-
 export function TeamPerformance() {
   return (
     <Card className="gradient-card>

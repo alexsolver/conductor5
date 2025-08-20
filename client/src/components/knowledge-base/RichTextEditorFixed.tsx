@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
-
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -8,7 +7,6 @@ interface RichTextEditorProps {
   className?: string;
   readOnly?: boolean;
 }
-
 export function RichTextEditor({
   content,
   onChange,
@@ -17,18 +15,15 @@ export function RichTextEditor({
   readOnly = false
 }: RichTextEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = Math.max(300, textareaRef.current.scrollHeight) + 'px';
     }
   }, [content]);
-
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
   };
-
   if (readOnly) {
     return (
       <div
@@ -37,9 +32,8 @@ export function RichTextEditor({
       />
     );
   }
-
   return (
-    <div className="rich-text-editor ">
+    <div className="text-lg">"
       <Textarea
         ref={textareaRef}
         value={content}

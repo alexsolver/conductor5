@@ -6,11 +6,9 @@ import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/rea
 import { z } from "zod";
 import React from "react";
 // import useLocalization from '@/hooks/useLocalization';
-
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
   // Localization temporarily disabled
-
   let timeout: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
@@ -26,7 +24,6 @@ import {
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
   Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -39,7 +36,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
@@ -48,7 +44,6 @@ import { UserSelect } from "@/components/ui/UserSelect";
 import { UserMultiSelect } from "@/components/ui/UserMultiSelect";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
-
 import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
 import { TicketAttachmentUpload } from "@/components/TicketAttachmentUpload";
 import { GroupSelect } from "@/components/GroupSelect";
@@ -58,11 +53,9 @@ import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelec
 import { MaterialsServicesMiniSystem } from "@/components/MaterialsServicesMiniSystem";
 import { KnowledgeBaseTicketTab } from "@/components/KnowledgeBaseTicketTab";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
-
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
 import { Checkbox } from "@/components/ui/checkbox";
-
 const TicketDetails = React.memo(() => {
   const { id } = useParams<{ id: string }>();
   const [location, navigate] = useLocation();
@@ -70,11 +63,9 @@ const TicketDetails = React.memo(() => {
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
-
   // Extract query parameters from URL
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const openActionId = urlParams.get('openAction');
-
   // Fetch user groups for displaying names
   const { data: userGroupsData } = useQuery({
     queryKey: ['/api/user-groups'],
@@ -83,10 +74,8 @@ const TicketDetails = React.memo(() => {
       return response.json();
     },
   });
-
   // Sidebar sempre fixa e visível - tab padrão é informações
   const [activeTab, setActiveTab] = useState("informacoes");
-
   // Handle hash-based navigation for direct tab access
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
@@ -94,8 +83,6 @@ const TicketDetails = React.memo(() => {
       setActiveTab(hash);
     }
   }, []);
-
-
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   // 🔧 [1QA-COMPLIANCE] Estado local removido - usar queries diretamente per Clean Architecture
@@ -119,7 +106,6 @@ const TicketDetails = React.memo(() => {
   const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false);
   const [isBeneficiaryDetailsOpen, setIsBeneficiaryDetailsOpen] = useState(false);
   const [selectedAssignmentGroup, setSelectedAssignmentGroup] = useState<string>('');
-
   // 🚨 CRÍTICO: Form declaration must be BEFORE its first use
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketFormSchema),
@@ -134,26 +120,19 @@ const TicketDetails = React.memo(() => {
       contactType: "email" as const,
     }), []),
   });
-
   // Estados para modal de ação interna
   const [newInternalAction, setNewInternalAction] = useState('');
   const [internalActionType, setInternalActionType] = useState('');
   const [isPublicAction, setIsPublicAction] = useState(false);
-
   // Estados para edição de ação interna
   const [editActionModalOpen, setEditActionModalOpen] = useState(false);
   const [actionToEdit, setActionToEdit] = useState<any>(null);
-
   // Note: Automatic action opening moved after data processing
-
   // Test timer function - removed since using simple timer in modal
-
-
   // Basic information - consolidated into single tab
   const basicTabs = [
     { id: "basico", label: 'Informações', icon: FileText },
   ];
-
   // Fetch ticket attachments - moved here to avoid initialization error
   const { data: ticketAttachments, isLoading: attachmentsLoading, error: attachmentsError } = useQuery({
     queryKey: ["/api/tickets", id, "attachments"],
@@ -166,7 +145,6 @@ const TicketDetails = React.memo(() => {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
   // ✅ OTIMIZAÇÃO CORRIGIDA: Query principal com error handling robusto
   const { data: ticketResponse, isLoading, error: ticketError, refetch: refetchTicket } = useQuery({
     queryKey: ["/api/tickets", id],
@@ -200,10 +178,8 @@ const TicketDetails = React.memo(() => {
     },
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
-
   // Extract ticket from response data
   const ticket = ticketResponse?.success ? ticketResponse.data : null;
-
   // Fetch customers for dropdowns
   const { data: customersData } = useQuery({
     queryKey: ["/api/customers"],
@@ -212,7 +188,6 @@ const TicketDetails = React.memo(() => {
       return response.json();
     },
   });
-
   const { data: beneficiariesData } = useQuery({
     queryKey: ["/api/beneficiaries"],
     queryFn: async () => {
@@ -221,33 +196,27 @@ const TicketDetails = React.memo(() => {
       return data;
     },
   });
-
   // Fetch customers for selected company
   const [selectedCompanyCustomers, setSelectedCompanyCustomers] = useState<any[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
-
   // PROBLEMA 9 RESOLVIDO: Otimizar fetch de customers - sem logs redundantes
   useEffect(() => {
     const fetchCompanyCustomers = async () => {
       // CORREÇÃO CONFORME 1qa.md - usar companyId padrão
       const companyId = ticket?.companyId || ticket?.company_id;
-
       // Skip if no company
       if (!companyId || companyId === 'unspecified') {
         setSelectedCompanyCustomers([]);
         setSelectedCompany('');
         return;
       }
-
       // Only update if company actually changed
       if (selectedCompany !== companyId) {
         setSelectedCompany(companyId);
       }
-
       try {
         const response = await apiRequest("GET", "/api/customers");
         const data = await response.json();
-
         if (data.success && data.customers) {
           setSelectedCompanyCustomers(data.customers);
         } else {
@@ -258,12 +227,10 @@ const TicketDetails = React.memo(() => {
         setSelectedCompanyCustomers([]);
       }
     };
-
     if (ticket) {
       fetchCompanyCustomers();
     }
   }, [ticket?.companyId, ticket?.company_id]);
-
   // PROBLEMA 9 RESOLVIDO: Handle company change otimizado com debounce
   const handleCompanyChange = useCallback(
     debounce(async (newCompanyId: string) => {
@@ -271,24 +238,19 @@ const TicketDetails = React.memo(() => {
       if (newCompanyId === selectedCompany) {
         return;
       }
-
     // Otimização: Update UI primeiro, depois fetch data
     setSelectedCompany(newCompanyId);
     form.setValue('companyId', newCompanyId);
-
     // 🚨 CORREÇÃO CRÍTICA: Marcar campo como dirty para garantir que seja enviado
     form.trigger('companyId');
-
     // Reset customer selections only when changing company
     form.setValue('callerId', '');
     form.setValue('beneficiaryId', '');
-
     // Fetch new customers only if valid company selected
     if (newCompanyId && newCompanyId !== 'unspecified') {
       try {
         const response = await apiRequest("GET", "/api/customers");
         const data = await response.json();
-
         if (data.success && data.customers) {
           setSelectedCompanyCustomers(data.customers);
         } else {
@@ -304,7 +266,6 @@ const TicketDetails = React.memo(() => {
   }, 300), // 300ms debounce
   [selectedCompany]
 );
-
   // Handle customer selection with proper form updates
   const handleCustomerChange = useCallback((customerId: string, type: 'caller' | 'beneficiary') => {
     if (type === 'caller') {
@@ -317,7 +278,6 @@ const TicketDetails = React.memo(() => {
       form.setValue('beneficiaryId', customerId);
     }
   }, [form]);
-
   // Fetch users for assignment
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -326,7 +286,6 @@ const TicketDetails = React.memo(() => {
       return response.json();
     },
   });
-
   // Fetch companies for client company selection
   // Buscar dados da empresa quando ticket tem company_id
   const {
@@ -349,10 +308,8 @@ const TicketDetails = React.memo(() => {
       console.error('❌ [COMPANY-DATA] Error loading companies:', error);
     }
   });
-
   // Fetch field options for impact, urgency, and locations
   // Removendo queries antigas - impact e urgency agora usam DynamicSelect
-
   const { data: locationsData } = useQuery({
     queryKey: ["/api/locations"],
     queryFn: async () => {
@@ -360,7 +317,6 @@ const TicketDetails = React.memo(() => {
       return response.json();
     },
   });
-
   // Fetch ticket relationships (linked tickets) with optimized caching
   const { data: ticketRelationships } = useQuery({
     queryKey: ["/api/ticket-relationships", id, "relationships"],
@@ -374,7 +330,6 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
     retry: 2, // Reduce retry attempts for faster failure detection
   });
-
   // 🚀 OTIMIZAÇÃO: Individual queries with proper error handling and data extraction
   const { data: ticketHistoryData, isLoading: historyLoading, error: historyError } = useQuery({
     queryKey: ["/api/tickets", id, "history"],
@@ -390,7 +345,6 @@ const TicketDetails = React.memo(() => {
     refetchOnMount: false,
     retry: 1, // Reduce retry attempts
   });
-
   const { data: ticketCommunications, isLoading: communicationsLoading, error: communicationsError } = useQuery({
     queryKey: ["/api/tickets", id, "communications"],
     queryFn: async () => {
@@ -404,7 +358,6 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
-
   const { data: ticketNotes, isLoading: notesLoading, error: notesError } = useQuery({
     queryKey: ["/api/tickets", id, "notes"],
     queryFn: async () => {
@@ -418,7 +371,6 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
-
   const { data: ticketActions, isLoading: actionsLoading, error: actionsError } = useQuery({
     queryKey: ["/api/tickets", id, "actions"],
     queryFn: async () => {
@@ -430,17 +382,13 @@ const TicketDetails = React.memo(() => {
     staleTime: 90 * 1000,
     refetchOnWindowFocus: false,
   });
-
   // Fetch team users/members for assignments and followers
   const { data: usersData } = useQuery({
     queryKey: ["/api/users"],
   });
-
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-
   // Use company-specific customers if available, otherwise fall back to all customers
   const availableCustomers = selectedCompanyCustomers.length > 0 ? selectedCompanyCustomers : customers;
-
   // Transform users data for UserSelect and UserMultiSelect components
   const teamUsers = Array.isArray((usersData as any)?.users) ? (usersData as any).users.map((user: any) => ({
     id: user.id,
@@ -448,7 +396,6 @@ const TicketDetails = React.memo(() => {
     email: user.email,
     role: user.role || 'Usuário'
   })) : [];
-
   // Debug log to understand the data flow
   React.useEffect(() => {
     console.log('🔍 [DEBUG] UserMultiSelect data flow:', {
@@ -458,7 +405,6 @@ const TicketDetails = React.memo(() => {
       teamUsersLength: teamUsers.length
     });
   }, [usersData, teamUsers]);
-
   // 🔧 [1QA-COMPLIANCE] Dados processados diretamente das queries - Clean Architecture
   const communicationsData = useMemo(() => {
     if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
@@ -470,7 +416,6 @@ const TicketDetails = React.memo(() => {
     }
     return [];
   }, [ticketCommunications, ticketRelationships]);
-
   const attachmentsData = useMemo(() => {
     if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
       return ticketAttachments.data;
@@ -481,7 +426,6 @@ const TicketDetails = React.memo(() => {
     }
     return [];
   }, [ticketAttachments, ticketRelationships]);
-
   const notesData = useMemo(() => {
     if (ticketNotes?.success && Array.isArray(ticketNotes.data)) {
       return ticketNotes.data.map((note: any) => ({
@@ -506,13 +450,12 @@ const TicketDetails = React.memo(() => {
     }
     return [];
   }, [ticketNotes, ticketRelationships]);
-
   const internalActionsData = useMemo(() => {
     if (ticketActions?.success && Array.isArray(ticketActions.data)) {
       return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || "default-id"
-        createdByName: action.agent_name || action.created_by_nameeeee || action.createdByName || action.performed_by_name || 'Sistema',
+        createdByName: action.agent_name || action.created_by_nameeeeeeee || action.createdByName || action.performed_by_name || 'Sistema',
         actionType: action.action_type || action.actionType || action.type || 'Ação',
         content: action.content || action.description || action.summary || 'Sem descrição',
         is_public: action.is_public !== undefined ? action.is_public : action.isPublic !== undefined ? action.isPublic : false,
@@ -523,7 +466,7 @@ const TicketDetails = React.memo(() => {
       return ticketActions.data.map((action: any) => ({
         ...action,
         id: action.id || "default-id"
-        createdByName: action.agent_name || action.created_by_nameeeee || action.createdByName || action.performed_by_name || 'Sistema',
+        createdByName: action.agent_name || action.created_by_nameeeeeeee || action.createdByName || action.performed_by_name || 'Sistema',
         actionType: action.action_type || action.actionType || action.type || 'Ação',
         content: action.content || action.description || action.summary || 'Sem descrição',
         is_public: action.is_public !== undefined ? action.is_public : action.isPublic !== undefined ? action.isPublic : false,
@@ -533,7 +476,6 @@ const TicketDetails = React.memo(() => {
     }
     return [];
   }, [ticketActions]);
-
   const relatedTicketsData = useMemo(() => {
     if (ticketRelationships?.success && Array.isArray(ticketRelationships.data)) {
       return ticketRelationships.data.map((relationship: any) => ({
@@ -550,10 +492,8 @@ const TicketDetails = React.memo(() => {
     }
     return [];
   }, [ticketRelationships]);
-
   // ✅ [1QA-COMPLIANCE] Estado para história processada com dados de sessão
   const [processedHistoryData, setProcessedHistoryData] = useState<any[]>([]);
-
   const historyData = useMemo(() => {
     // Se temos dados processados com sessão, usar esses
     if (processedHistoryData && processedHistoryData.length > 0) {
@@ -567,7 +507,6 @@ const TicketDetails = React.memo(() => {
     }
     return [];
   }, [processedHistoryData, ticketHistoryData]);
-
   // ✅ [1QA-COMPLIANCE] Fetch planned materials seguindo Clean Architecture
   const { data: plannedMaterialsResponse, isLoading: plannedMaterialsLoading } = useQuery({
     queryKey: ["/planned-items`],
@@ -575,7 +514,6 @@ const TicketDetails = React.memo(() => {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
   // ✅ [1QA-COMPLIANCE] Fetch consumed materials seguindo Clean Architecture
   const { data: consumedMaterialsResponse, isLoading: consumedMaterialsLoading } = useQuery({
     queryKey: ["/consumed-items`],
@@ -583,7 +521,6 @@ const TicketDetails = React.memo(() => {
     staleTime: 3 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
   // ✅ [1QA-COMPLIANCE] Dados de materiais planejados seguindo Clean Architecture
   const plannedMaterialsData = useMemo(() => {
     if (plannedMaterialsResponse?.success && plannedMaterialsResponse?.data?.plannedItems) {
@@ -597,24 +534,17 @@ const TicketDetails = React.memo(() => {
     }
     return [];
   }, [plannedMaterialsResponse, plannedMaterialsLoading]);
-
   // ✅ [1QA-COMPLIANCE] Manter materialsData para compatibilidade com abas existentes
   const materialsData = useMemo(() => {
     let plannedArray = plannedMaterialsData;
     let consumedArray = [];
-
     if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
       consumedArray = Array.isArray(consumedMaterialsResponse.data)
         ? consumedMaterialsResponse.data
         : [];
     }
-
     return [...plannedArray, ...consumedArray];
   }, [plannedMaterialsData, consumedMaterialsResponse]);
-
-
-
-
   // ✅ [1QA-COMPLIANCE] Special functionality tabs seguindo Clean Architecture
   const getTabLabel = (baseLabel: string, count?: number) => {
     console.log("
@@ -623,16 +553,13 @@ const TicketDetails = React.memo(() => {
     }
     return baseLabel;
   };
-
   // ✅ [1QA-COMPLIANCE] Contador de materiais planejados seguindo padrão das outras abas
   const plannedMaterialsCount = plannedMaterialsData?.length || 0;
-
   console.log('🔧 [PLANNED-MATERIALS-COUNT] Count for tab:', {
     plannedMaterialsData: plannedMaterialsData?.length,
     plannedMaterialsCount,
     willShowCounter: plannedMaterialsCount > 0
   });
-
   const specialTabs = [
     {
       id: "attachments",
@@ -666,16 +593,13 @@ const TicketDetails = React.memo(() => {
       icon: Package
     },
   ];
-
   // 🔧 [1QA-COMPLIANCE] Direct computation for followers and tags
   const currentFollowers = ticket?.followers || [];
   const currentTags = ticket?.tags || [];
-
   // Get current followers list for follower management
   const getCurrentFollowerIds = () => {
     return currentFollowers.map(f => f.id || f);
   };
-
   // Handle automatic action opening from URL parameter - moved after data processing
   useEffect(() => {
     if (openActionId && internalActionsData.length > 0) {
@@ -688,19 +612,16 @@ const TicketDetails = React.memo(() => {
       }
     }
   }, [openActionId, internalActionsData, id, navigate]);
-
   // Set ticket-specific data
   useEffect(() => {
     if (ticket) {
       // Followers and tags processing moved to direct computation below
-
       // Sync assignment group state with ticket data
       if (ticket.assignmentGroupId || ticket.assignment_group_id) {
         setSelectedAssignmentGroup(ticket.assignmentGroupId || ticket.assignment_group_id);
       }
     }
   }, [ticketCommunications?.data, ticketAttachments?.data, ticketNotes?.data, ticketActions?.data, ticketRelationships?.data]);
-
   // Initialize real history data from API with comprehensive mapping
   useEffect(() => {
     if (ticketHistoryData?.success && Array.isArray(ticketHistoryData.data)) {
@@ -714,7 +635,6 @@ const TicketDetails = React.memo(() => {
             parsedMetadata = {};
           }
         }
-
         // 🔧 [1QA-COMPLIANCE] Debug específico para note_deleted
         if (item.action_type === 'note_deleted') {
           console.log('🔍 [HISTORY-DEBUG] Dados brutos da ação note_deleted:', {
@@ -732,7 +652,6 @@ const TicketDetails = React.memo(() => {
             }
           });
         }
-
         return {
           ...item,
           id: item.id || "
@@ -783,7 +702,6 @@ const TicketDetails = React.memo(() => {
           })()
         };
       });
-
       // 🔧 [1QA-COMPLIANCE] Debug dos dados mapeados para note_deleted
       const noteDeletedItems = mappedHistory.filter(item => item.action_type === 'note_deleted');
       if (noteDeletedItems.length > 0) {
@@ -800,7 +718,6 @@ const TicketDetails = React.memo(() => {
           }))
         });
       }
-
       console.log('🔍 [TICKET-HISTORY] Dados de sessão mapeados:', {
         totalItems: mappedHistory.length,
         itemsWithIP: mappedHistory.filter(h => h.ip_address && h.ip_address !== 'N/A').length,
@@ -813,13 +730,11 @@ const TicketDetails = React.memo(() => {
           action_type: h.action_type
         }))
       });
-
       // ✅ [1QA-COMPLIANCE] Atualizar estado com dados mapeados
       setProcessedHistoryData(mappedHistory);
       console.log('🔧 [STATE-UPDATE] História atualizada com dados de sessão mapeados');
     }
   }, [ticketHistoryData, historyError, historyLoading]);
-
   // File upload handlers
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -830,17 +745,14 @@ const TicketDetails = React.memo(() => {
       setDragActive(false);
     }
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
   };
-
   const handleFiles = (files: FileList) => {
     Array.from(files).forEach(file => {
       if (file.size > 200 * 1024 * 1024) { // 200MB limit
@@ -851,7 +763,6 @@ const TicketDetails = React.memo(() => {
         });
         return;
       }
-
       const newAttachment = {
         id: Date.now() + Math.random(),
         name: file.name,
@@ -861,32 +772,24 @@ const TicketDetails = React.memo(() => {
         description: "",
         file: file
       };
-
       // File upload functionality temporarily disabled during Clean Architecture refactor
     });
   };
-
   const addNote = async () => {
     if (!newNote.trim() || isAddingNote) return;
-
     setIsAddingNote(true);
-
     try {
       const response = await apiRequest("POST", "/api/tickets/" + id + "/notes", {
         content: newNote,
         ticketId: id
       });
-
       if (!response.ok) {
         throw new Error("
       }
-
       const result = await response.json();
-
       if (result.success) {
         // Note addition will refresh via query invalidation
         setNewNote("");
-
         toast({
           title: "Nota adicionada",
           description: "A nota foi salva com sucesso.",
@@ -896,7 +799,6 @@ const TicketDetails = React.memo(() => {
       }
     } catch (error) {
       console.error('Failed to add note:', error);
-
       toast({
         title: 'Erro',
         description: 'Erro ao Adicionar Nota, Tente Novamente',
@@ -906,15 +808,12 @@ const TicketDetails = React.memo(() => {
       setIsAddingNote(false);
     }
   };
-
   // 🔧 [1QA-COMPLIANCE] Função onNotesSubmit seguindo Clean Architecture
   const onNotesSubmit = async (data: any) => {
     if (!data?.content?.trim() || isSubmittingNote) {
       return;
     }
-
     setIsSubmittingNote(true);
-
     try {
       // Preparar payload seguindo especificação da API
       const payload = {
@@ -923,9 +822,7 @@ const TicketDetails = React.memo(() => {
         isInternal: data.isPrivate || false,
         isPublic: !(data.isPrivate || false)
       };
-
       const response = await apiRequest("POST", "/api/tickets/" + id + "/notes", payload);
-
       if (!response.ok) {
         const errorText = await response.text();
         // Verificar se é erro HTML (indica erro de servidor)
@@ -934,7 +831,6 @@ const TicketDetails = React.memo(() => {
         }
         throw new Error("
       }
-
       // Verificar content-type antes de tentar fazer parse JSON
       const contentType = response.headers.get("content-type");
       if (!contentType?.includes("application/json")) {
@@ -945,9 +841,7 @@ const TicketDetails = React.memo(() => {
         }
         throw new Error("
       }
-
       const result = await response.json();
-
       if (result.success) {
         // Invalidate queries in the correct order seguindo 1qa.md
         await Promise.all([
@@ -955,12 +849,10 @@ const TicketDetails = React.memo(() => {
           queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] }),
           queryClient.invalidateQueries({ queryKey: ["/api/tickets", id] })
         ]);
-
         // Reset form fields without affecting other form data
         form.setValue('content', '');
         form.setValue('noteType', 'general');
         form.setValue('isPrivate', false);
-
         toast({
           title: "Nota adicionada",
           description: "A nota foi salva com sucesso.",
@@ -970,9 +862,7 @@ const TicketDetails = React.memo(() => {
       }
     } catch (error) {
       console.error('❌ [NOTES-FRONTEND] Failed to add note:', error);
-
       let errorMessage = 'Erro ao Adicionar Nota, Tente Novamente';
-
       if (error instanceof Error) {
         if (error.message.includes('DOCTYPE') || error.message.includes('HTML')) {
           errorMessage = 'Erro do Servidor - Resposta HTML recebida ao invés de JSON. Contate o administrador.';
@@ -984,7 +874,6 @@ const TicketDetails = React.memo(() => {
           errorMessage = '[TRANSLATION_NEEDED]';
         }
       }
-
       toast({
         title: 'Erro',
         description: errorMessage,
@@ -994,11 +883,9 @@ const TicketDetails = React.memo(() => {
       setIsSubmittingNote(false);
     }
   };
-
   const removeAttachment = (id: number) => {
     // Attachment removal will refresh via query invalidation
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -1006,11 +893,9 @@ const TicketDetails = React.memo(() => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
   // 🚀 OTIMIZAÇÃO: Form reset otimizado com shallow comparison e memoização
   const formDataMemo = useMemo(() => {
     if (!ticket) return null;
-
     return {
       subject: ticket.subject || ticket.short_description || "",
       description: ticket.description || "",
@@ -1052,24 +937,18 @@ const TicketDetails = React.memo(() => {
     ticket?.assigned_to_id,
     ticket?.company_id,
   ]); // Dependency array expandida para capturar mudanças importantes
-
   useEffect(() => {
     if (formDataMemo && ticket && !isEditMode && !form.formState.isDirty) {
       form.reset(formDataMemo);
-
       // Update local states only if changed
       const newCompany = ticket.companyId || ticket.company_id;
       if (newCompany && newCompany !== selectedCompany) {
         setSelectedCompany(newCompany);
       }
-
       // Followers processing moved to direct computation pattern
       // Note: followers data now comes directly from ticket.followers via currentFollowers
     }
   }, [formDataMemo, selectedCompany, isEditMode]);
-
-
-
   // Update mutation
   const updateTicketMutation = useMutation({
     mutationFn: async (data: TicketFormData) => {
@@ -1082,7 +961,6 @@ const TicketDetails = React.memo(() => {
         title: '[TRANSLATION_NEEDED]',
         description: "Ticket atualizado com sucesso",
       });
-
       // 🚀 ATUALIZAÇÃO OTIMIZADA: Update imediato sem esperar invalidação
       // 1. Primeiro: Atualizar o cache do ticket específico IMEDIATAMENTE
       if (data?.success && data?.data) {
@@ -1090,7 +968,6 @@ const TicketDetails = React.memo(() => {
           success: true,
           data: data.data
         });
-
         // 2. Atualizar o form imediatamente com os dados salvos
         const freshFormData = {
           subject: data.data.subject || "",
@@ -1102,15 +979,12 @@ const TicketDetails = React.memo(() => {
           companyId: data.data.companyId || data.data.company_id || "",
           // ... outros campos conforme necessário
         };
-
         form.reset(freshFormData);
       }
-
       // 3. Invalidação em background (não bloqueia a UI)
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
       }, 200);
-
       setIsEditMode(false);
     },
     onError: (error) => {
@@ -1122,7 +996,6 @@ const TicketDetails = React.memo(() => {
       });
     },
   });
-
   // Delete mutation
   const deleteTicketMutation = useMutation({
     mutationFn: async () => {
@@ -1144,7 +1017,6 @@ const TicketDetails = React.memo(() => {
       });
     },
   });
-
   // Delete internal action mutation
   const deleteInternalActionMutation = useMutation({
     mutationFn: async (actionId: string) => {
@@ -1156,7 +1028,6 @@ const TicketDetails = React.memo(() => {
         title: '[TRANSLATION_NEEDED]',
         description: "Ação interna excluída com sucesso",
       });
-
       // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] });
@@ -1169,7 +1040,6 @@ const TicketDetails = React.memo(() => {
       });
     },
   });
-
   // Delete note mutation
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
@@ -1181,7 +1051,6 @@ const TicketDetails = React.memo(() => {
         title: '[TRANSLATION_NEEDED]',
         description: "Nota excluída com sucesso",
       });
-
       // Invalidate queries to refresh the notes list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "notes"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] });
@@ -1194,7 +1063,6 @@ const TicketDetails = React.memo(() => {
       });
     },
   });
-
   // 🔧 [1QA-COMPLIANCE] Mutation para deletar relacionamento seguindo Clean Architecture
   const deleteRelationshipMutation = useMutation({
     mutationFn: async (relationshipId: string) => {
@@ -1220,10 +1088,8 @@ const TicketDetails = React.memo(() => {
       });
     },
   });
-
   // ✅ SISTEMA DINÂMICO - Status são enviados diretamente como recebidos do form
   // Não há mais necessidade de mapeamento hard-coded
-
   const onSubmit = useCallback((data: TicketFormData) => {
     // CORREÇÃO CRÍTICA: Aplicar mapeamento completo Frontend→Backend seguindo 1qa.md
     const mappedData = {
@@ -1237,7 +1103,6 @@ const TicketDetails = React.memo(() => {
       action: data.action || '',
       impact: data.impact,
       urgency: data.urgency,
-
       // ✅ Assignment fields - mapeamento camelCase → snake_case
       caller_id: data.callerId || null,
       caller_type: data.callerType || 'customer',
@@ -1245,68 +1110,53 @@ const TicketDetails = React.memo(() => {
       beneficiary_type: data.beneficiaryType || 'customer',
       assigned_to_id: data.responsibleId || null,
       assignment_group: data.assignmentGroup || null,
-
       // ✅ Location field - campo texto livre
       location: data.location || '',
       contact_type: data.contactType || 'email',
-
       // ✅ Business impact fields
       business_impact: data.businessImpact || '',
       symptoms: data.symptoms || '',
       workaround: data.workaround || '',
       resolution: data.resolution || '', // Campo removido do schema
-
       // Time tracking fields removed - not present in current schema
-
       // ✅ Environment and metadata
       environment: data.environment || '',
       template_alternative: data.templateAlternative || '',
-
       // ✅ Linking fields
       link_ticket_number: data.linkTicketNumber || '',
       link_type: data.linkType || '',
       link_comment: data.linkComment || '',
-
       // ✅ Company relationship - usar estado atualizado com fallback
       company_id: selectedCompany || data.companyId || ticket?.companyId || ticket?.company_id || null,
-
       // Fields removed - not present in current schema: followers, tags
-
       // ✅ Metadata
       tenantId: ticket?.tenantId
     };
-
     // Remove campos undefined para evitar problemas no backend
     Object.keys(mappedData).forEach(key => {
       if (mappedData[key] === undefined) {
         delete mappedData[key];
       }
     });
-
     updateTicketMutation.mutate(mappedData);
   }, [selectedCompany, form, updateTicketMutation]);
-
   const handleDelete = () => {
     if (confirm("Tem certeza que deseja excluir este ticket?")) {
       deleteTicketMutation.mutate();
     }
   };
-
-
-
   if (isLoading) {
     return (
       <div className=""
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="text-lg">"</div>
       </div>
     );
   }
-
   if (ticketError) {
     return (
       <div className=""
         <div className=""
-          <p className="text-red-500">Erro ao carregar ticket: {ticketError.message}</p>
+          <p className="text-lg">"Erro ao carregar ticket: {ticketError.message}</p>
           <Button
             variant="outline"
             onClick={() => refetchTicket()}
@@ -1319,12 +1169,11 @@ const TicketDetails = React.memo(() => {
       </div>
     );
   }
-
   if (!ticket) {
     return (
       <div className=""
         <div className=""
-          <p className="text-gray-500">Ticket não encontrado</p>
+          <p className="text-lg">"Ticket não encontrado</p>
           <Button
             variant="outline"
             onClick={() => navigate("/tickets")}
@@ -1337,18 +1186,15 @@ const TicketDetails = React.memo(() => {
       </div>
     );
   }
-
   // Render tab content based on activeTab
   function renderTabContent() {
     switch (activeTab) {
       case "informacoes":
         return (
           <div className=""
-
             {/* Classificação */}
             <div className=""
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
-
+              <h3 className="text-lg">"CLASSIFICAÇÃO</h3>
               <div className=""
                 <FormField
                   control={form.control as any}
@@ -1383,7 +1229,6 @@ const TicketDetails = React.memo(() => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control as any}
                   name="status"
@@ -1417,7 +1262,6 @@ const TicketDetails = React.memo(() => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control as any}
                   name="urgency"
@@ -1449,7 +1293,6 @@ const TicketDetails = React.memo(() => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control as any}
                   name="impact"
@@ -1482,7 +1325,6 @@ const TicketDetails = React.memo(() => {
                   )}
                 />
               </div>
-
               {/* Campos individuais de categoria → subcategoria → ação (sem seção hierárquica) */}
               <div className=""
                 <FormField
@@ -1516,7 +1358,7 @@ const TicketDetails = React.memo(() => {
                                 {field.value || ticket?.category}
                               </DynamicBadge>
                             ) : (
-                              <span className="text-gray-400 text-sm">Não especificado</span>
+                              <span className="text-lg">"Não especificado</span>
                             )}
                           </div>
                         )}
@@ -1525,7 +1367,6 @@ const TicketDetails = React.memo(() => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control as any}
                   name="subcategory"
@@ -1557,7 +1398,7 @@ const TicketDetails = React.memo(() => {
                                 {field.value || ticket?.subcategory}
                               </DynamicBadge>
                             ) : (
-                              <span className="text-gray-400 text-sm">Não especificado</span>
+                              <span className="text-lg">"Não especificado</span>
                             )}
                           </div>
                         )}
@@ -1566,7 +1407,6 @@ const TicketDetails = React.memo(() => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control as any}
                   name="action"
@@ -1594,7 +1434,7 @@ const TicketDetails = React.memo(() => {
                                 {field.value || ticket?.action}
                               </DynamicBadge>
                             ) : (
-                              <span className="text-gray-400 text-sm">Não especificado</span>
+                              <span className="text-lg">"Não especificado</span>
                             )}
                           </div>
                         )}
@@ -1605,7 +1445,6 @@ const TicketDetails = React.memo(() => {
                 />
               </div>
             </div>
-
             <FormField
               control={form.control}
               name="subject"
@@ -1625,7 +1464,6 @@ const TicketDetails = React.memo(() => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="description"
@@ -1649,20 +1487,17 @@ const TicketDetails = React.memo(() => {
                 </FormItem>
               )}
             />
-
           </div>
         );
-
       case "attachments":
         return (
           <div className=""
             <div className=""
-              <h2 className="text-xl font-semibold">📎 Anexos</h2>
+              <h2 className="text-lg">"📎 Anexos</h2>
               <Badge variant="outline" className=""
                 {(attachmentsData && attachmentsData.length) || 0} anexo(s)
               </Badge>
             </div>
-
             {/* Upload Component with Description Field */}
             <TicketAttachmentUpload
               ticketId={id!}
@@ -1672,17 +1507,16 @@ const TicketDetails = React.memo(() => {
                 queryClient.invalidateQueries({ queryKey: ["/api/tickets", id] });
               }}
             />
-
             {/* Existing Attachments List */}
             {(attachmentsData && attachmentsData.length > 0) && (
               <div className=""
-                <h3 className="text-lg font-medium">Anexos Existentes ({attachmentsData.length})</h3>
+                <h3 className="text-lg">"Anexos Existentes ({attachmentsData.length})</h3>
                 {attachmentsData.map((attachment: any) => (
                   <div key={attachment.id} className=""
                     <div className=""
                       <FileText className="h-8 w-8 text-gray-400" />
                       <div>
-                        <p className="font-medium">{attachment.filename || attachment.original_filename || attachment.name || 'Arquivo sem nome'}</p>
+                        <p className="text-lg">"{attachment.filename || attachment.original_filename || attachment.name || 'Arquivo sem nome'}</p>
                         <p className=""
                           {attachment.file_size && !isNaN(Number(attachment.file_size))
                             ? formatFileSize(Number(attachment.file_size))
@@ -1700,7 +1534,7 @@ const TicketDetails = React.memo(() => {
                           }
                         </p>
                         {attachment.description && (
-                          <p className="text-sm text-gray-600 mt-1">{attachment.description}</p>
+                          <p className="text-lg">"{attachment.description}</p>
                         )}
                       </div>
                     </div>
@@ -1723,17 +1557,15 @@ const TicketDetails = React.memo(() => {
             )}
           </div>
         );
-
       case "notes":
         return (
           <div className=""
             <div className=""
-              <h2 className="text-xl font-semibold">📝 Notas</h2>
+              <h2 className="text-lg">"📝 Notas</h2>
               <Badge variant="outline" className=""
                 {notesData.length} nota(s)
               </Badge>
             </div>
-
             {/* Add New Note */}
             {/* 🔧 [1QA-COMPLIANCE] Notes Form seguindo Clean Architecture */}
             <div className=""
@@ -1760,7 +1592,6 @@ const TicketDetails = React.memo(() => {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <FormField
                   control={form.control}
@@ -1785,7 +1616,6 @@ const TicketDetails = React.memo(() => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="isPrivate"
@@ -1809,17 +1639,14 @@ const TicketDetails = React.memo(() => {
                   )}
                 />
               </div>
-
               <Button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-
                   const noteContent = form.getValues('content');
                   const noteType = form.getValues('noteType') || 'general';
                   const isPrivate = form.getValues('isPrivate') || false;
-
                   if (noteContent?.trim()) {
                     onNotesSubmit({
                       content: noteContent,
@@ -1841,11 +1668,10 @@ const TicketDetails = React.memo(() => {
                 )}
               </Button>
             </div>
-
             {/* Notes Timeline */}
             {notesData.length > 0 && (
               <div className=""
-                <h3 className="font-medium text-gray-700">Timeline de Notas</h3>
+                <h3 className="text-lg">"Timeline de Notas</h3>
                 <div className=""
                   {notesData
                     .slice()
@@ -1868,7 +1694,7 @@ const TicketDetails = React.memo(() => {
                                  'Data não disponível'}
                               </span>
                             </div>
-                            <p className="text-gray-800 whitespace-pre-wrap">{note.content}</p>
+                            <p className="text-lg">"{note.content}</p>
                           </div>
                           <Button
                             variant="ghost"
@@ -1889,37 +1715,33 @@ const TicketDetails = React.memo(() => {
                 </div>
               </div>
             )}
-
             {notesData.length === 0 && (
               <div className=""
                 <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                 <p>Nenhuma nota adicionada ainda</p>
-                <p className="text-sm">Use o formulário acima para adicionar a primeira nota</p>
+                <p className="text-lg">"Use o formulário acima para adicionar a primeira nota</p>
               </div>
             )}
           </div>
         );
-
       case "communications":
         return (
           <div className=""
             <div className=""
-              <h2 className="text-xl font-semibold">💬 Comunicação</h2>
+              <h2 className="text-lg">"💬 Comunicação</h2>
               <Badge variant="outline" className=""
                 {communicationsData.length} interação(ões)
               </Badge>
             </div>
-
             <div className=""
               <div className=""
-                <h3 className="font-medium text-gray-700">Timeline de Comunicação</h3>
+                <h3 className="text-lg">"Timeline de Comunicação</h3>
                 <div className=""
-                  <Badge variant="secondary" className="text-xs">Email</Badge>
-                  <Badge variant="secondary" className="text-xs">WhatsApp</Badge>
-                  <Badge variant="secondary" className="text-xs">Telefone</Badge>
+                  <Badge variant="secondary" className="text-lg">"Email</Badge>
+                  <Badge variant="secondary" className="text-lg">"WhatsApp</Badge>
+                  <Badge variant="secondary" className="text-lg">"Telefone</Badge>
                 </div>
               </div>
-
               {communicationsData.slice().reverse().map((comm: any) => (
                 <Card key={comm.id} className=""
                   <div className=""
@@ -1934,7 +1756,6 @@ const TicketDetails = React.memo(() => {
                       {comm.type === 'whatsapp' && <Send className="h-4 w-4" />}
                       {comm.type === 'call' && <Clock className="h-4 w-4" />}
                     </div>
-
                     {/* Communication Content */}
                     <div className=""
                       <div className=""
@@ -1950,15 +1771,12 @@ const TicketDetails = React.memo(() => {
                           {comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : 'Data não disponível'}
                         </span>
                       </div>
-
                       {comm.subject && (
                         <p className=""
                           Assunto: {comm.subject}
                         </p>
                       )}
-
-                      <p className="text-gray-800 text-sm mb-2">{comm.content}</p>
-
+                      <p className="text-lg">"{comm.content}</p>
                       <div className=""
                         <Badge
                           variant={comm.status === 'sent' ? 'default' :
@@ -1980,12 +1798,11 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
         );
-
       case "history":
         return (
           <div className=""
             <div className=""
-              <h2 className="text-xl font-semibold">📜 Histórico Completo</h2>
+              <h2 className="text-lg">"📜 Histórico Completo</h2>
               <div className=""
                 <Button
                   type="button"
@@ -2013,13 +1830,11 @@ const TicketDetails = React.memo(() => {
                 </Button>
               </div>
             </div>
-
             <div className=""
               <h3 className=""
                 <History className="h-4 w-4" />
                 {historyViewMode === 'simple' ? 'Todas as Interações' : 'Análise Técnica Detalhada'}
               </h3>
-
               <div className=""
                 {/* Real history data from API - filter out generic entries */}
                 {historyData.length > 0 ? historyData
@@ -2075,9 +1890,7 @@ const TicketDetails = React.memo(() => {
                       default: return { icon: Activity, color: 'gray' };
                     }
                   };
-
                   const { icon: Icon, color } = getActionIcon(historyItem.action_type);
-
                   return (
                     <div key={historyItem.id} className=""
                       <div className="absolute -left-6 w-3 h-3 bg-"-500 rounded-full"></div>
@@ -2134,35 +1947,33 @@ const TicketDetails = React.memo(() => {
                             ""`
                           )}
                         </p>
-
                         {/* 🔧 [1QA-COMPLIANCE] Dados de sessão visíveis diretamente no card principal */}
                         {historyViewMode === 'advanced' && (
                           <div className=""
                             <div className=""
                               <div>
-                                <span className="text-blue-700 font-semibold">Usuário:</span>
-                                <span className="ml-1 text-gray-800 font-medium">{historyItem.performed_by_name || historyItem.metadata?.user_name || 'Sistema'}</span>
+                                <span className="text-lg">"Usuário:</span>
+                                <span className="text-lg">"{historyItem.performed_by_name || historyItem.metadata?.user_name || 'Sistema'}</span>
                               </div>
                               <div>
-                                <span className="text-blue-700 font-semibold">IP:</span>
-                                <span className="ml-1 font-mono text-xs ">
+                                <span className="text-lg">"IP:</span>
+                                <span className="text-lg">"
                                   {historyItem.ip_address || 'N/A'}
                                 </span>
                               </div>
                             </div>
                             <div className=""
-                              <span className="text-blue-700 font-semibold">User-Agent:</span>
-                              <p className="text-xs break-all mt-1 p-1 rounded ">
+                              <span className="text-lg">"User-Agent:</span>
+                              <p className="text-lg">"
                                 {historyItem.user_agent || 'N/A'}
                               </p>
                             </div>
                             <div className=""
-                              <span className="text-blue-700 font-semibold">Session ID:</span>
-                              <span className="ml-1 font-mono text-xs ">
+                              <span className="text-lg">"Session ID:</span>
+                              <span className="text-lg">"
                                 {historyItem.session_id || 'N/A'}
                               </span>
                             </div>
-
                             {/* Metadados técnicos detalhados */}
                             {historyItem.metadata && Object.keys(historyItem.metadata).length > 0 && (
                               <div className=""
@@ -2189,7 +2000,6 @@ const TicketDetails = React.memo(() => {
                 )}
               </div>
             </div>
-
             {/* Related Tickets - usando dados reais do ticketRelationships */}
             <div className=""
               <h3 className=""
@@ -2213,7 +2023,7 @@ const TicketDetails = React.memo(() => {
                             {relTicket.status === 'open' ? 'Aberto' :
                              relTicket.status === 'in_progress' ? 'Em Progresso' : 'Fechado'}
                           </Badge>
-                          <span className="font-medium">{relTicket.number}</span>
+                          <span className="text-lg">"{relTicket.number}</span>
                         </div>
                         <Badge
                           variant={relTicket.priority === 'high' ? 'destructive' :
@@ -2224,8 +2034,8 @@ const TicketDetails = React.memo(() => {
                            relTicket.priority === 'medium' ? 'Média' : 'Baixa'}
                         </Badge>
                       </div>
-                      <h4 className="font-medium text-gray-800 mt-2">{relTicket.subject}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{relTicket.description}</p>
+                      <h4 className="text-lg">"{relTicket.subject}</h4>
+                      <p className="text-lg">"{relTicket.description}</p>
                       <div className=""
                         <span>Categoria: {relTicket.category}</span>
                         <span>
@@ -2241,20 +2051,18 @@ const TicketDetails = React.memo(() => {
                 <div className=""
                   <History className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                   <p>Nenhum ticket relacionado</p>
-                  <p className="text-sm">Tickets similares aparecerão automaticamente aqui</p>
+                  <p className="text-lg">"Tickets similares aparecerão automaticamente aqui</p>
                 </div>
               )}
             </div>
           </div>
         );
-
       case "internal-actions":
         return (
           <div className=""
             <div className=""
-              <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
+              <h2 className="text-lg">"⚙️ Ações Internas</h2>
               <div className=""
-
                 <Button
                   onClick={() => setShowInternalActionModal(true)}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
@@ -2264,13 +2072,12 @@ const TicketDetails = React.memo(() => {
                 </Button>
               </div>
             </div>
-
             <div className=""
               {internalActionsData.length === 0 ? (
                 <div className=""
                   <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">Nenhuma ação interna registrada</p>
-                  <p className="text-xs text-gray-400">Use o botão "Nova Ação" para começar</p>
+                  <p className="text-lg">"Nenhuma ação interna registrada</p>
+                  <p className="text-lg">"Use o botão "Nova Ação" para começar</p>
                 </div>
               ) : (
                 internalActionsData.map((action, index) => {
@@ -2292,10 +2099,9 @@ const TicketDetails = React.memo(() => {
                               Número: {action.action_number || action.actionNumber || action.id}
                             </div>
                           </div>
-
                           <div className=""
                             <User className="w-4 h-4 text-gray-600" />
-                            <span className="font-medium text-sm">{action.createdByName || action.agent_name || 'Sistema'}</span>
+                            <span className="text-lg">"{action.createdByName || action.agent_name || 'Sistema'}</span>
                             <Badge variant="secondary" className=""
                               {action.actionType || action.type || 'Ação'}
                             </Badge>
@@ -2329,9 +2135,8 @@ const TicketDetails = React.memo(() => {
                               {action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
                             </span>
                           </div>
-
                           <div className=""
-                            <p className="text-gray-800 whitespace-pre-wrap">{action.content || action.description}</p>
+                            <p className="text-lg">"{action.content || action.description}</p>
                             {action.time_spent && action.time_spent !== '0:00:00:00' && (
                               <div className=""
                                 <Clock className="w-3 h-3" />
@@ -2340,7 +2145,6 @@ const TicketDetails = React.memo(() => {
                             )}
                           </div>
                         </div>
-
                         <div className=""
                           <div className=""
                             <Button
@@ -2380,12 +2184,11 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
         );
-
       case "links":
         return (
           <div className=""
             <div className=""
-              <h2 className="text-xl font-semibold">🔗 Vínculos</h2>
+              <h2 className="text-lg">"🔗 Vínculos</h2>
               <div className=""
                 <Badge variant="outline" className=""
                   {relatedTicketsData.length} ticket(s) vinculado(s)
@@ -2402,13 +2205,12 @@ const TicketDetails = React.memo(() => {
                 </Button>
               </div>
             </div>
-
             <div className=""
               {relatedTicketsData.length === 0 ? (
                 <div className=""
                   <Link className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">Nenhum ticket vinculado</p>
-                  <p className="text-xs text-gray-400">Use o botão "Vincular" para conectar tickets relacionados</p>
+                  <p className="text-lg">"Nenhum ticket vinculado</p>
+                  <p className="text-lg">"Use o botão "Vincular" para conectar tickets relacionados</p>
                 </div>
               ) : (
                 relatedTicketsData.map((linkedTicket) => {
@@ -2431,7 +2233,6 @@ const TicketDetails = React.memo(() => {
                         return <Link2 className="h-4 w-4 text-gray-600" />;
                     }
                   };
-
                   const getRelationshipLabel = (type: string) => {
                     switch (type) {
                       case 'related':
@@ -2450,7 +2251,6 @@ const TicketDetails = React.memo(() => {
                         return 'Vinculado';
                     }
                   };
-
                   const getBorderColor = (type: string) => {
                     switch (type) {
                       case 'related':
@@ -2469,7 +2269,6 @@ const TicketDetails = React.memo(() => {
                         return 'border-l-gray-500';
                     }
                   };
-
                   return (
                     <Card key={">
                       <CardContent className=""
@@ -2483,11 +2282,9 @@ const TicketDetails = React.memo(() => {
                                   {getRelationshipLabel(linkedTicket.relationshipType)}
                                 </Badge>
                               </div>
-
                               <Badge variant="outline" className=""
                                 #{linkedTicket.targetTicket?.number || linkedTicket.number || 'T-000000'}
                               </Badge>
-
                               <DynamicBadge
                                 fieldName="status"
                                 value={linkedTicket.targetTicket?.status || linkedTicket.status}
@@ -2496,7 +2293,6 @@ const TicketDetails = React.memo(() => {
                               >
                                 {getFieldLabel('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
                               </DynamicBadge>
-
                               <DynamicBadge
                                 fieldName="priority"
                                 value={linkedTicket.targetTicket?.priority || linkedTicket.priority}
@@ -2506,11 +2302,9 @@ const TicketDetails = React.memo(() => {
                                 {getFieldLabel('priority', linkedTicket.targetTicket?.priority || linkedTicket.priority)}
                               </DynamicBadge>
                             </div>
-
                             <h4 className=""
                               {linkedTicket.subject || linkedTicket.targetTicket?.subject || 'Ticket relacionado'}
                             </h4>
-
                             {(linkedTicket.targetTicket?.description || linkedTicket.description) && (
                               <p className=""
                                 {typeof (linkedTicket.targetTicket?.description || linkedTicket.description) === 'string'
@@ -2518,7 +2312,6 @@ const TicketDetails = React.memo(() => {
                                   : 'Descrição não disponível'}
                               </p>
                             )}
-
                             <div className=""
                               <span className=""
                                 <Calendar className="w-3 h-3" />
@@ -2532,7 +2325,6 @@ const TicketDetails = React.memo(() => {
                                     })
                                   : 'Data não disponível'}
                               </span>
-
                               {linkedTicket.description && (
                                 <span className=""
                                   Rel. criado em {new Date().toLocaleDateString('pt-BR')}
@@ -2540,7 +2332,6 @@ const TicketDetails = React.memo(() => {
                               )}
                             </div>
                           </div>
-
                           <div className=""
                             <Button
                               variant="ghost"
@@ -2581,17 +2372,15 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
         );
-
       case "latest-interactions":
         return (
           <div className=""
             <div className=""
-              <h2 className="text-xl font-semibold">Últimas Interações</h2>
+              <h2 className="text-lg">"Últimas Interações</h2>
               <Badge variant="outline" className=""
                 Histórico do Solicitante
               </Badge>
             </div>
-
             {/* Informações do Solicitante */}
             <Card className=""
               <div className=""
@@ -2599,22 +2388,20 @@ const TicketDetails = React.memo(() => {
                   <User className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-blue-900">{ticket.customerName || 'Cliente'}</h3>
-                  <p className="text-sm text-blue-700">{ticket.customerEmail || ticket.contactEmail}</p>
+                  <h3 className="text-lg">"{ticket.customerName || 'Cliente'}</h3>
+                  <p className="text-lg">"{ticket.customerEmail || ticket.contactEmail}</p>
                   <p className=""
                     Cliente desde: {ticketRelationships?.customer_since || 'Data não disponível'} • Total de tickets: {ticketRelationships?.total_tickets || 0}
                   </p>
                 </div>
               </div>
             </Card>
-
             {/* Últimos Tickets do Solicitante */}
             <div className=""
               <h3 className=""
                 <History className="h-4 w-4" />
                 Últimos Tickets Abertos por {ticket.customerName || 'Este Cliente'}
               </h3>
-
               <div className=""
                 {/* Ticket Atual */}
                 <Card className=""
@@ -2624,8 +2411,8 @@ const TicketDetails = React.memo(() => {
                         ATUAL
                       </Badge>
                       <div className=""
-                        <p className="font-medium text-sm">#{ticket.number || ticket.ticketNumber || ticket.id?.slice(0, 8) || 'T-2024-001'}</p>
-                        <p className="text-sm text-gray-700 mt-1">{ticket.subject || 'Problema com sistema'}</p>
+                        <p className="text-lg">"#{ticket.number || ticket.ticketNumber || ticket.id?.slice(0, 8) || 'T-2024-001'}</p>
+                        <p className="text-lg">"{ticket.subject || 'Problema com sistema'}</p>
                         <p className=""
                           Criado em {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'hoje'}
                         </p>
@@ -2641,7 +2428,6 @@ const TicketDetails = React.memo(() => {
                     </Badge>
                   </div>
                 </Card>
-
                 {/* PROBLEMA 4 RESOLVIDO: Conectar dados reais de tickets relacionados */}
                 {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ?
                   ticketRelationships.related_tickets.map((relatedTicket: any, index: number) => (
@@ -2655,14 +2441,14 @@ const TicketDetails = React.memo(() => {
                              relatedTicket.status === 'closed' ? 'FECHADO' : 'ATIVO'}
                           </Badge>
                           <div className=""
-                            <p className="font-medium text-sm">#{relatedTicket.ticket_number || relatedTicket.id?.slice(0, 8)}</p>
-                            <p className="text-sm text-gray-700 mt-1">{relatedTicket.subject || 'Ticket relacionado'}</p>
+                            <p className="text-lg">"#{relatedTicket.ticket_number || relatedTicket.id?.slice(0, 8)}</p>
+                            <p className="text-lg">"{relatedTicket.subject || 'Ticket relacionado'}</p>
                             <p className=""
                               Criado em {relatedTicket.created_at ? new Date(relatedTicket.created_at).toLocaleDateString('pt-BR') : 'N/A'}
                               {relatedTicket.resolved_at && "
                             </p>
                             <div className=""
-                              <Badge variant="outline" className="text-xs">{relatedTicket.category || 'Geral'}</Badge>
+                              <Badge variant="outline" className="text-lg">"{relatedTicket.category || 'Geral'}</Badge>
                               <span className=""
                                 {relatedTicket.assigned_to_name && "
                               </span>
@@ -2686,39 +2472,37 @@ const TicketDetails = React.memo(() => {
                 }
               </div>
             </div>
-
             {/* PROBLEMA 4 RESOLVIDO: Estatísticas reais do cliente vindas da API */}
             <div className=""
               <Card className=""
                 <div className=""
                   <MessageSquare className="h-5 w-5 text-blue-600" />
                 </div>
-                <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.total_tickets || 0}</p>
-                <p className="text-xs text-gray-500">Total Tickets</p>
+                <p className="text-lg">"{ticketRelationships?.customer_stats?.total_tickets || 0}</p>
+                <p className="text-lg">"Total Tickets</p>
               </Card>
               <Card className=""
                 <div className=""
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
-                <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.resolved_tickets || 0}</p>
-                <p className="text-xs text-gray-500">Resolvidos</p>
+                <p className="text-lg">"{ticketRelationships?.customer_stats?.resolved_tickets || 0}</p>
+                <p className="text-lg">"Resolvidos</p>
               </Card>
               <Card className=""
                 <div className=""
                   <Clock className="h-5 w-5 text-yellow-600" />
                 </div>
-                <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.avg_resolution_time || 'N/A'}</p>
-                <p className="text-xs text-gray-500">Tempo Médio</p>
+                <p className="text-lg">"{ticketRelationships?.customer_stats?.avg_resolution_time || 'N/A'}</p>
+                <p className="text-lg">"Tempo Médio</p>
               </Card>
               <Card className=""
                 <div className=""
                   <Star className="h-5 w-5 text-purple-600" />
                 </div>
-                <p className="text-lg font-semibold">{ticketRelationships?.customer_stats?.satisfaction_rating || 'N/A'}</p>
-                <p className="text-xs text-gray-500">Satisfação</p>
+                <p className="text-lg">"{ticketRelationships?.customer_stats?.satisfaction_rating || 'N/A'}</p>
+                <p className="text-lg">"Satisfação</p>
               </Card>
             </div>
-
             {/* Padrões de Comportamento - dados reais da API */}
             {ticketRelationships?.customer_insights && (
               <Card className=""
@@ -2729,7 +2513,7 @@ const TicketDetails = React.memo(() => {
                 <div className=""
                   {ticketRelationships.customer_insights.map((insight: any, idx: number) => (
                     <div key={"
-                      <div className="w-2 h-2 rounded-full ""></div>
+                      <div className="w-2 h-2 rounded-full "</div>
                       <span>{insight.description}</span>
                     </div>
                   ))}
@@ -2738,26 +2522,21 @@ const TicketDetails = React.memo(() => {
             )}
           </div>
         );
-
       case "materials":
         return <MaterialsServicesMiniSystem ticketId={id} ticket={ticket} />;
-
       case "knowledge-base":
         return <KnowledgeBaseTicketTab ticketId={id} />;
-
       default:
         return (
           <div className=""
-            <h2 className="text-xl font-semibold mb-4">Funcionalidade em desenvolvimento</h2>
+            <h2 className="text-lg">"Funcionalidade em desenvolvimento</h2>
             <p>Esta aba ainda está sendo desenvolvida.</p>
           </div>
         );
     }
   }
-
   // 🚀 OTIMIZAÇÃO: Loading states específicos e informativos
   const isLoadingAnyData = isLoading || historyLoading || communicationsLoading || notesLoading || attachmentsLoading || actionsLoading;
-
   // Calculate loading progress
   const getLoadingProgress = () => {
     const states = [
@@ -2768,27 +2547,21 @@ const TicketDetails = React.memo(() => {
       { name: 'Anexos', loading: attachmentsLoading },
       { name: '[TRANSLATION_NEEDED]', loading: actionsLoading }
     ];
-
     const completed = states.filter(s => !s.loading).length;
     const total = states.length;
     const percentage = Math.round((completed / total) * 100);
-
     return { percentage, completed, total, states };
   };
-
   // Determine what is specifically loading
   const getLoadingMessage = () => {
     const progress = getLoadingProgress();
     const loadingItems = progress.states.filter(s => s.loading).map(s => s.name);
-
     if (loadingItems.length === 0) return "Carregamento concluído";
     if (loadingItems.length === 1) return '[TRANSLATION_NEEDED]';
     return '[TRANSLATION_NEEDED]';
   };
-
   if (isLoadingAnyData) {
     const progress = getLoadingProgress();
-
     return (
       <div className=""
         {/* Loading Sidebar - responsivo */}
@@ -2803,17 +2576,15 @@ const TicketDetails = React.memo(() => {
                 {getLoadingMessage()}
               </span>
             </div>
-
             {/* Progress Bar Animado */}
             <div className=""
               <div
                 className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out relative"
                 style={{ width: "%` }}
               >
-                <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+                <div className="text-lg">"</div>
               </div>
             </div>
-
             {/* Progress Bar */}
             <div className=""
               <div
@@ -2822,35 +2593,33 @@ const TicketDetails = React.memo(() => {
                 aria-label={"%"
               ></div>
             </div>
-
             <div className=""
               {progress.completed}/{progress.total} componentes carregados
             </div>
             <div className=""
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="text-lg">"</div>
+              <div className="text-lg">"</div>
+              <div className="text-lg">"</div>
             </div>
             {/* Loading progress indicators */}
             <div className=""
               <div className=""
-                <div className="flex items-center gap-2 ">
+                <div className="text-lg">"
                   {!isLoading ? '✅' : '⏳'} Dados básicos
                 </div>
-                <div className="flex items-center gap-2 ">
+                <div className="text-lg">"
                   {!historyLoading ? '✅' : '⏳'} Histórico
                 </div>
-                <div className="flex items-center gap-2 ">
+                <div className="text-lg">"
                   {!notesLoading ? '✅' : '⏳'} Notas
                 </div>
-                <div className="flex items-center gap-2 ">
+                <div className="text-lg">"
                   {!communicationsLoading ? '✅' : '⏳'} Comunicações
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         {/* Loading Main Content */}
         <div className=""
           <div className=""
@@ -2859,32 +2628,29 @@ const TicketDetails = React.memo(() => {
               Voltar
             </Button>
             <div className=""
-              <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
-              <div className="text-sm text-gray-500">{getLoadingMessage()}</div>
+              <div className="text-lg">"</div>
+              <div className="text-lg">"{getLoadingMessage()}</div>
             </div>
           </div>
-
           <div className=""
             <div className=""
-              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
+              <div className="text-lg">"</div>
+              <div className="text-lg">"</div>
+              <div className="text-lg">"</div>
             </div>
           </div>
         </div>
-
         {/* Loading Right Sidebar */}
         <div className=""
           <div className=""
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div key={i} className="text-lg">"</div>
             ))}
           </div>
         </div>
       </div>
     );
   }
-
   if (!ticket) {
     return (
       <div className=""
@@ -2898,20 +2664,17 @@ const TicketDetails = React.memo(() => {
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Left Sidebar - Responsivo */}
       <div className=""
         <div className=""
-
           {/* Empresa Cliente Section - Badge Destacado */}
           <div className=""
             <div className=""
               <Building2 className="h-4 w-4 text-blue-600" />
-              <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Empresa</span>
+              <span className="text-lg">"Empresa</span>
             </div>
-
             {isEditMode ? (
               <div className=""
                 <Select
@@ -2948,7 +2711,6 @@ const TicketDetails = React.memo(() => {
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
                   const industry = ticket.company?.industry || companyData?.industry;
                   const cnpj = ticket.company?.cnpj || companyData?.cnpj;
-
                   return (
                     <>
                       {industry && (
@@ -2980,16 +2742,14 @@ const TicketDetails = React.memo(() => {
               </Badge>
             )}
           </div>
-
           {/* Cliente/Solicitante e Favorecido Section */}
           <div className=""
             {/* Cliente/Solicitante */}
             <div>
               <div className=""
                 <User className="h-4 w-4 text-purple-600" />
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Cliente</span>
+                <span className="text-lg">"Cliente</span>
               </div>
-
               {isEditMode ? (
                 <FilteredCustomerSelect
                   value={form.getValues('callerId') || ''}
@@ -3014,7 +2774,6 @@ const TicketDetails = React.memo(() => {
                   {(() => {
                     const callerId = ticket.caller_id || ticket.callerId;
                     const customer = availableCustomers.find((c: any) => c.id === callerId);
-
                     if (!customer && callerId && callerId !== 'unspecified') {
                       const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
                       const fallbackCustomer = allCustomers.find((c: any) => c.id === callerId);
@@ -3025,11 +2784,9 @@ const TicketDetails = React.memo(() => {
                       }
                       return 'Cliente não encontrado';
                     }
-
                     if (!customer) {
                       return (callerId === 'unspecified' || !callerId) ? 'Não especificado' : 'Cliente não encontrado';
                     }
-
                     return customer.fullName || customer.name ||
                            " ${customer.lastName || ''.trim() ||
                            customer.email || 'Cliente sem nome';
@@ -3037,14 +2794,12 @@ const TicketDetails = React.memo(() => {
                 </Badge>
               )}
             </div>
-
             {/* Favorecido */}
             <div>
               <div className=""
                 <Users className="h-4 w-4 text-indigo-600" />
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Favorecido</span>
+                <span className="text-lg">"Favorecido</span>
               </div>
-
               {isEditMode ? (
                 <FilteredBeneficiarySelect
                   value={form.getValues('beneficiaryId') || ''}
@@ -3068,22 +2823,18 @@ const TicketDetails = React.memo(() => {
                   {(() => {
                     const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
                     let beneficiary = null;
-
                     if (beneficiariesData?.data?.beneficiaries && Array.isArray(beneficiariesData.data.beneficiaries)) {
                       beneficiary = beneficiariesData.data.beneficiaries.find((b: any) => b.id === beneficiaryId);
                     } else if (beneficiariesData?.beneficiaries && Array.isArray(beneficiariesData.beneficiaries)) {
                       beneficiary = beneficiariesData.beneficiaries.find((b: any) => b.id === beneficiaryId);
                     }
-
                     if (!beneficiary) {
                       beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) ||
                                   (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
                     }
-
                     if (!beneficiary) {
                       return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
                     }
-
                     const displayName = beneficiary.fullName || beneficiary.name ||
                            " ${beneficiary.lastName || ''.trim() ||
                            beneficiary.email || 'Favorecido sem nome';
@@ -3093,7 +2844,6 @@ const TicketDetails = React.memo(() => {
               )}
             </div>
           </div>
-
           {/* Impacto, Urgência e Local Section */}
           <div className=""
             {/* Local */}
@@ -3156,15 +2906,13 @@ const TicketDetails = React.memo(() => {
               </div>
             </div>
           </div>
-
           {/* Responsável Section */}
           <div className=""
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">RESPONSÁVEL</h3>
-
+            <h3 className="text-lg">"RESPONSÁVEL</h3>
             {/* Grupo de Atribuição */}
             <div className=""
               <div className=""
-                <label className="text-sm font-medium text-gray-700">Grupo de Atribuição</label>
+                <label className="text-lg">"Grupo de Atribuição</label>
                 {isEditMode ? (
                   <GroupSelect
                     value={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id || ''}
@@ -3181,7 +2929,7 @@ const TicketDetails = React.memo(() => {
                   <div className=""
                     {(() => {
                       const groupId = form.getValues('assignmentGroup') || ticket.assignment_group;
-                      if (!groupId) return <span className="text-gray-500">Não especificado</span>;
+                      if (!groupId) return <span className="text-lg">"Não especificado</span>;
                       const groups = userGroupsData?.data || [];
                       const group = groups.find((g: any) => g.id === groupId);
                       return <span>{group?.name || groupId}</span>;
@@ -3190,10 +2938,9 @@ const TicketDetails = React.memo(() => {
                 )}
               </div>
             </div>
-
             {/* Responsável */}
             <div className=""
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Responsável</label>
+              <label className="text-lg">"Responsável</label>
               {isEditMode ? (
                 <FilteredUserSelect
                   value={form.getValues('responsibleId') || ticket.assigned_to_id || ticket.responsibleId || ''}
@@ -3209,10 +2956,9 @@ const TicketDetails = React.memo(() => {
               )}
             </div>
           </div>
-
           {/* Seguidores Section */}
           <div className=""
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">SEGUIDORES</h3>
+            <h3 className="text-lg">"SEGUIDORES</h3>
             <div className=""
               <UserMultiSelect
                 value={form.getValues('followers') || ticket.followers || []}
@@ -3225,10 +2971,9 @@ const TicketDetails = React.memo(() => {
               />
             </div>
           </div>
-
           {/* Tags Section */}
           <div className=""
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Tags</h3>
+            <h3 className="text-lg">"Tags</h3>
             <div className=""
               <div className=""
                 {tags.length > 0 ? (
@@ -3246,10 +2991,9 @@ const TicketDetails = React.memo(() => {
                     </Badge>
                   ))
                 ) : (
-                  <div className="text-sm text-gray-500">Nenhuma tag</div>
+                  <div className="text-lg">"Nenhuma tag</div>
                 )}
               </div>
-
               <div className=""
                 <Input
                   type="text"
@@ -3279,19 +3023,17 @@ const TicketDetails = React.memo(() => {
               </div>
             </div>
           </div>
-
           {/* Status Section */}
           <div className=""
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Status de aprovação</h3>
-            <div className="text-sm text-gray-700">Normal</div>
+            <h3 className="text-lg">"Status de aprovação</h3>
+            <div className="text-lg">"Normal</div>
             <div className=""
               ✓ Configurado em 2 minutos
             </div>
           </div>
-
           {/* Custom Information */}
           <div className=""
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Personalize as informações do seu ticket</h3>
+            <h3 className="text-lg">"Personalize as informações do seu ticket</h3>
             <p className=""
               Use os campos de dados do ticket para calcular facilmente detalhes importantes.
             </p>
@@ -3304,15 +3046,13 @@ const TicketDetails = React.memo(() => {
               </Button>
             </div>
           </div>
-
           {/* Skills Section */}
           <div className=""
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Habilidades</h3>
-            <div className="text-xs text-gray-500">Aplicar macro</div>
+            <h3 className="text-lg">"Habilidades</h3>
+            <div className="text-lg">"Aplicar macro</div>
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <div className=""
         <div className=""
@@ -3324,10 +3064,9 @@ const TicketDetails = React.memo(() => {
                 Voltar
               </Button>
               <div className=""
-                <h1 className="text-lg lg:text-xl font-semibold break-words">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
+                <h1 className="text-lg">"Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
               </div>
             </div>
-
             <div className=""
               {!isEditMode ? (
                 <>
@@ -3338,7 +3077,7 @@ const TicketDetails = React.memo(() => {
                     className="flex items-center gap-2"
                   >
                     <Edit className="h-4 w-4" />
-                    <span className="hidden sm:inline">Editar</span>
+                    <span className="text-lg">"Editar</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -3347,7 +3086,7 @@ const TicketDetails = React.memo(() => {
                     className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">Excluir</span>
+                    <span className="text-lg">"Excluir</span>
                   </Button>
                 </>
               ) : (
@@ -3356,7 +3095,6 @@ const TicketDetails = React.memo(() => {
                     <X className="h-4 w-4 mr-2" />
                     Cancelar
                   </Button>
-
                   <Button
                     variant="default"
                     size="sm"
@@ -3369,7 +3107,6 @@ const TicketDetails = React.memo(() => {
                           const errorMessages = Object.entries(form.formState.errors)
                             .map(([field, error]) => "
                             .join('\n');
-
                           toast({
                             title: '[TRANSLATION_NEEDED]',
                             description: errorMessages ? "
@@ -3393,14 +3130,13 @@ const TicketDetails = React.memo(() => {
                     )}
                     <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2>
                       <Save className="h-4 w-4" />
-                      <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}</span>
+                      <span className="text-lg">"{updateTicketMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}</span>
                     </div>
                   </Button>
                 </>
               )}
             </div>
           </div>
-
           {/* Main Content */}
           <div className="h-full bg-white rounded-lg border p-6" id="tab-content" aria-live="polite>
             <Form {...form}>
@@ -3414,7 +3150,7 @@ const TicketDetails = React.memo(() => {
       {/* Right Sidebar - Navigation Tabs - Responsivo */}
       <div className=""
         <div className=""
-          <h3 className="font-semibold text-lg">Explorar</h3>
+          <h3 className="text-lg">"Explorar</h3>
         </div>
         <div
           className="p-2 lg:p-4 space-y-2"
@@ -3435,9 +3171,8 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
           >
             <FileText className="h-4 w-4" />
-            <span className="text-sm font-medium">Detalhes</span>
+            <span className="text-lg">"Detalhes</span>
           </button>
-
           {/* Campos Especiais - Nova ordem */}
           <button
             onClick={() => setActiveTab("communications")}
@@ -3449,13 +3184,12 @@ const TicketDetails = React.memo(() => {
           >
             <div className=""
               <MessageSquare className="h-4 w-4" />
-              <span className="text-sm font-medium">Comunicação</span>
+              <span className="text-lg">"Comunicação</span>
             </div>
             <Badge variant="outline" className=""
               {communicationsData?.length || 0}
             </Badge>
           </button>
-
           <button
             onClick={() => setActiveTab("attachments")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3469,13 +3203,12 @@ const TicketDetails = React.memo(() => {
           >
             <div className=""
               <Paperclip className="h-4 w-4" />
-              <span className="text-sm font-medium">Anexos</span>
+              <span className="text-lg">"Anexos</span>
             </div>
             <Badge variant="outline" className=""
               {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}
             </Badge>
           </button>
-
           <button
             onClick={() => setActiveTab("notes")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3490,13 +3223,12 @@ const TicketDetails = React.memo(() => {
           >
             <div className=""
               <FileText className="h-4 w-4" />
-              <span className="text-sm font-medium">Notas</span>
+              <span className="text-lg">"Notas</span>
             </div>
             <Badge variant="outline" className=""
               {notesData?.length || 0}
             </Badge>
           </button>
-
           <button
             onClick={() => setActiveTab("materials")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3509,9 +3241,8 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
           >
             <Package className="h-4 w-4" />
-            <span className="text-sm font-medium">Materiais e Serviços</span>
+            <span className="text-lg">"Materiais e Serviços</span>
           </button>
-
           {/* Base de Conhecimento Tab */}
           <button
             onClick={() => setActiveTab("knowledge-base")}
@@ -3526,9 +3257,8 @@ const TicketDetails = React.memo(() => {
             data-testid="tab-knowledge-base"
           >
             <BookOpen className="h-4 w-4" />
-            <span className="text-sm font-medium">Base de Conhecimento</span>
+            <span className="text-lg">"Base de Conhecimento</span>
           </button>
-
           <button
             onClick={() => setActiveTab("internal-actions")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3543,13 +3273,12 @@ const TicketDetails = React.memo(() => {
           >
             <div className=""
               <Settings className="h-4 w-4" />
-              <span className="text-sm font-medium">Ações Internas</span>
+              <span className="text-lg">"Ações Internas</span>
             </div>
             <Badge variant="outline" className=""
               {internalActionsData?.length || 0}
             </Badge>
           </button>
-
           <button
             onClick={() => setActiveTab("external-actions")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3564,13 +3293,12 @@ const TicketDetails = React.memo(() => {
           >
             <div className=""
               <ExternalLink className="h-4 w-4" />
-              <span className="text-sm font-medium">Ações Externas</span>
+              <span className="text-lg">"Ações Externas</span>
             </div>
             <Badge variant="outline" className=""
               0
             </Badge>
           </button>
-
           <button
             onClick={() => setActiveTab("history")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3583,9 +3311,8 @@ const TicketDetails = React.memo(() => {
             aria-controls="tab-content"
           >
             <History className="h-4 w-4" />
-            <span className="text-sm font-medium">Histórico</span>
+            <span className="text-lg">"Histórico</span>
           </button>
-
           <button
             onClick={() => setActiveTab("links")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3600,13 +3327,12 @@ const TicketDetails = React.memo(() => {
           >
             <div className=""
               <Link className="h-4 w-4" />
-              <span className="text-sm font-medium">Vínculos</span>
+              <span className="text-lg">"Vínculos</span>
             </div>
             <Badge variant="outline" className=""
               {relatedTicketsData?.length || 0}
             </Badge>
           </button>
-
           <button
             onClick={() => setActiveTab("latest-interactions")}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
@@ -3616,10 +3342,9 @@ const TicketDetails = React.memo(() => {
             "
           >
             <Clock className="h-4 w-4" />
-            <span className="text-sm font-medium">Últimas Interações</span>
+            <span className="text-lg">"Últimas Interações</span>
           </button>
         </div>
-
         {/* Quadro Informativo */}
         <div className=""
           <div className=""
@@ -3631,38 +3356,37 @@ const TicketDetails = React.memo(() => {
               </h4>
               <div className=""
                 <div className=""
-                  <span className="text-blue-700">Criação:</span>
-                  <span className="text-blue-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                  <span className="text-lg">"Criação:</span>
+                  <span className="text-lg">"{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
                 <div className=""
-                  <span className="text-blue-700">Vencimento:</span>
-                  <span className="text-blue-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                  <span className="text-lg">"Vencimento:</span>
+                  <span className="text-lg">"{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
                 <div className=""
-                  <span className="text-blue-700">Status:</span>
+                  <span className="text-lg">"Status:</span>
                   <Badge variant="outline" className=""
                     {ticket.status} - {ticket.daysInStatus || 0}d
                   </Badge>
                 </div>
                 {/* SLA Information */}
                 <div className=""
-                  <span className="text-blue-700">SLA:</span>
+                  <span className="text-lg">"SLA:</span>
                   <div className=""
                     <div
                       className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
                       title='[TRANSLATION_NEEDED]'
                       data-testid="sla-led-indicator"
                     />
-                    <span className="text-blue-900 font-medium text-xs">85% decorrido</span>
+                    <span className="text-lg">"85% decorrido</span>
                   </div>
                 </div>
               </div>
             </div>
-
             {/* Favorecido - Compacto */}
             <div className=""
               <div className=""
-                <h4 className="text-xs font-semibold text-gray-700">FAVORECIDO</h4>
+                <h4 className="text-lg">"FAVORECIDO</h4>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="ghost" size="sm" className=""
@@ -3686,12 +3410,12 @@ const TicketDetails = React.memo(() => {
                       />
                       <div className=""
                         <div className=""
-                          <span className="text-gray-600">RG:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
+                          <span className="text-lg">"RG:</span>
+                          <span className="text-lg">"{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
                         </div>
                         <div className=""
-                          <span className="text-gray-600">CPF/CNPJ:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
+                          <span className="text-lg">"CPF/CNPJ:</span>
+                          <span className="text-lg">"{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
                         </div>
                       </div>
                     </div>
@@ -3703,36 +3427,33 @@ const TicketDetails = React.memo(() => {
                   const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
                   const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) ||
                                     (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
-
                   const name = beneficiary ? (beneficiary.fullName || beneficiary.name ||
                              " ${beneficiary.lastName || ''.trim() || 'Nome não informado') : 'Não especificado';
                   const email = beneficiary?.email || 'Não informado';
                   const phone = beneficiary?.phone || beneficiary?.mobilePhone || 'Não informado';
-
                   return (
                     <>
                       <div className=""
-                        <span className="text-gray-600">Nome:</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
+                        <span className="text-lg">"Nome:</span>
+                        <span className="text-lg">"{name}</span>
                       </div>
                       <div className=""
-                        <span className="text-gray-600">E-mail:</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
+                        <span className="text-lg">"E-mail:</span>
+                        <span className="text-lg">"{email}</span>
                       </div>
                       <div className=""
-                        <span className="text-gray-600">Telefone:</span>
-                        <span className="text-gray-900 font-medium">{phone}</span>
+                        <span className="text-lg">"Telefone:</span>
+                        <span className="text-lg">"{phone}</span>
                       </div>
                     </>
                   );
                 })()}
               </div>
             </div>
-
             {/* Solicitante - Compacto */}
             <div>
               <div className=""
-                <h4 className="text-xs font-semibold text-gray-700">CLIENTE</h4>
+                <h4 className="text-lg">"CLIENTE</h4>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="ghost" size="sm" className=""
@@ -3755,12 +3476,12 @@ const TicketDetails = React.memo(() => {
                       />
                       <div className=""
                         <div className=""
-                          <span className="text-gray-600">RG:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
+                          <span className="text-lg">"RG:</span>
+                          <span className="text-lg">"{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
                         </div>
                         <div className=""
-                          <span className="text-gray-600">CPF/CNPJ:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
+                          <span className="text-lg">"CPF/CNPJ:</span>
+                          <span className="text-lg">"{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
                         </div>
                       </div>
                     </div>
@@ -3771,7 +3492,6 @@ const TicketDetails = React.memo(() => {
                 {(() => {
                   const callerId = ticket.caller_id || ticket.callerId;
                   const customer = availableCustomers.find((c: any) => c.id === callerId);
-
                   const name = customer ? (customer.fullName || customer.name ||
                              " ${customer.lastName || ''.trim() || 'Nome não informado') : 'Não especificado';
                   const email = customer?.email || 'Não informado';
@@ -3779,20 +3499,19 @@ const TicketDetails = React.memo(() => {
                                  customer?.address ?
                                  "
                   const addressNumber = customer?.addressNumber || '';
-
                   return (
                     <>
                       <div className=""
-                        <span className="text-gray-600">Nome:</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
+                        <span className="text-lg">"Nome:</span>
+                        <span className="text-lg">"{name}</span>
                       </div>
                       <div className=""
-                        <span className="text-gray-600">E-mail:</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
+                        <span className="text-lg">"E-mail:</span>
+                        <span className="text-lg">"{email}</span>
                       </div>
                       <div className=""
-                        <span className="text-gray-600">Endereço:</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{address}{addressNumber && "
+                        <span className="text-lg">"Endereço:</span>
+                        <span className="text-lg">"{address}{addressNumber && "
                       </div>
                     </>
                   );
@@ -3802,7 +3521,6 @@ const TicketDetails = React.memo(() => {
           </div>
         </div>
       </div>
-
       {/* Password Dialog for Sensitive Fields */}
       <Dialog open={showPasswordDialog.open} onOpenChange={(open) => setShowPasswordDialog({...showPasswordDialog, open})}>
         <DialogContent>
@@ -3852,14 +3570,12 @@ const TicketDetails = React.memo(() => {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* TicketLinkingModal */}
       <TicketLinkingModal
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
         currentTicket={ticket}
       />
-
       {/* Internal Action Modal */}
       <InternalActionModal
         ticketId={id || ''}
@@ -3871,7 +3587,6 @@ const TicketDetails = React.memo(() => {
         }}
         editAction={actionToEdit}
       />
-
       {/* Company Details Modal */}
       <Dialog open={isCompanyDetailsOpen} onOpenChange={setIsCompanyDetailsOpen}>
         <DialogContent className=""
@@ -3884,7 +3599,6 @@ const TicketDetails = React.memo(() => {
               Informações completas e gestão da empresa vinculada ao ticket
             </DialogDescription>
           </DialogHeader>
-
           <div className=""
             {/* Informações Básicas */}
             <Card>
@@ -3897,25 +3611,25 @@ const TicketDetails = React.memo(() => {
               <CardContent className=""
                 <div className=""
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Nome da Empresa</Label>
+                    <Label className="text-lg">"Nome da Empresa</Label>
                     <p className=""
                       {ticket?.company?.name || ticket?.company || 'Empresa Não Especificada'}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
+                    <Label className="text-lg">"CNPJ</Label>
                     <p className=""
                       {ticket?.company?.cnpj || 'Não informado'}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Setor</Label>
+                    <Label className="text-lg">"Setor</Label>
                     <p className=""
                       {ticket?.company?.industry || 'Não especificado'}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Porte</Label>
+                    <Label className="text-lg">"Porte</Label>
                     <p className=""
                       {ticket?.company?.size || 'Não especificado'}
                     </p>
@@ -3923,7 +3637,6 @@ const TicketDetails = React.memo(() => {
                 </div>
               </CardContent>
             </Card>
-
             {/* Contatos */}
             <Card>
               <CardHeader>
@@ -3935,25 +3648,25 @@ const TicketDetails = React.memo(() => {
               <CardContent>
                 <div className=""
                   <div className=""
-                    <Label className="text-sm font-medium text-gray-600">Email Principal</Label>
+                    <Label className="text-lg">"Email Principal</Label>
                     <p className=""
                       {ticket?.company?.email || 'contato@empresa.com'}
                     </p>
                   </div>
                   <div className=""
-                    <Label className="text-sm font-medium text-gray-600">Telefone</Label>
+                    <Label className="text-lg">"Telefone</Label>
                     <p className=""
                       {ticket?.company?.phone || '(11) 1234-5678'}
                     </p>
                   </div>
                   <div className=""
-                    <Label className="text-sm font-medium text-gray-600">Responsável Técnico</Label>
+                    <Label className="text-lg">"Responsável Técnico</Label>
                     <p className=""
                       {ticket?.company?.techContact || 'Não designado'}
                     </p>
                   </div>
                   <div className=""
-                    <Label className="text-sm font-medium text-gray-600">Gerente de Conta</Label>
+                    <Label className="text-lg">"Gerente de Conta</Label>
                     <p className=""
                       {ticket?.company?.accountManager || 'Não designado'}
                     </p>
@@ -3961,7 +3674,6 @@ const TicketDetails = React.memo(() => {
                 </div>
               </CardContent>
             </Card>
-
             {/* Endereço */}
             <Card>
               <CardHeader>
@@ -3973,31 +3685,31 @@ const TicketDetails = React.memo(() => {
               <CardContent>
                 <div className=""
                   <div className=""
-                    <Label className="text-sm font-medium text-gray-600">Logradouro</Label>
+                    <Label className="text-lg">"Logradouro</Label>
                     <p className=""
                       {ticket?.company?.address || 'Endereço não informado'}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">CEP</Label>
+                    <Label className="text-lg">"CEP</Label>
                     <p className=""
                       {ticket?.company?.zipCode || '00000-000'}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Cidade</Label>
+                    <Label className="text-lg">"Cidade</Label>
                     <p className=""
                       {ticket?.company?.city || 'Não informado'}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Estado</Label>
+                    <Label className="text-lg">"Estado</Label>
                     <p className=""
                       {ticket?.company?.state || 'SP'}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">País</Label>
+                    <Label className="text-lg">"País</Label>
                     <p className=""
                       {ticket?.company?.country || 'Brasil'}
                     </p>
@@ -4005,7 +3717,6 @@ const TicketDetails = React.memo(() => {
                 </div>
               </CardContent>
             </Card>
-
             {/* Estatísticas e Histórico */}
             <Card>
               <CardHeader>
@@ -4017,25 +3728,24 @@ const TicketDetails = React.memo(() => {
               <CardContent>
                 <div className=""
                   <div className=""
-                    <p className="text-2xl font-bold text-blue-600">12</p>
-                    <p className="text-xs text-gray-600">Total de Tickets</p>
+                    <p className="text-lg">"12</p>
+                    <p className="text-lg">"Total de Tickets</p>
                   </div>
                   <div className=""
-                    <p className="text-2xl font-bold text-green-600">9</p>
-                    <p className="text-xs text-gray-600">Resolvidos</p>
+                    <p className="text-lg">"9</p>
+                    <p className="text-lg">"Resolvidos</p>
                   </div>
                   <div className=""
-                    <p className="text-2xl font-bold text-orange-600">2h 15min</p>
-                    <p className="text-xs text-gray-600">Tempo Médio</p>
+                    <p className="text-lg">"2h 15min</p>
+                    <p className="text-lg">"Tempo Médio</p>
                   </div>
                   <div className=""
-                    <p className="text-2xl font-bold text-purple-600">4.8/5</p>
-                    <p className="text-xs text-gray-600">Satisfação</p>
+                    <p className="text-lg">"4.8/5</p>
+                    <p className="text-lg">"Satisfação</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
             {/* Ações Rápidas */}
             <div className=""
               <Button
@@ -4068,7 +3778,6 @@ const TicketDetails = React.memo(() => {
               </Button>
             </div>
           </div>
-
           <div className=""
             <Button
               variant="outline"
@@ -4079,7 +3788,6 @@ const TicketDetails = React.memo(() => {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Client Details Modal */}
       <Dialog open={isClientDetailsOpen} onOpenChange={setIsClientDetailsOpen}>
         <DialogContent className=""
@@ -4093,7 +3801,6 @@ const TicketDetails = React.memo(() => {
             {(() => {
               const callerId = ticket.caller_id || ticket.callerId;
               const customer = availableCustomers.find((c: any) => c.id === callerId);
-
               if (!customer && (!callerId || callerId === 'unspecified')) {
                 return (
                   <div className=""
@@ -4102,7 +3809,6 @@ const TicketDetails = React.memo(() => {
                   </div>
                 );
               }
-
               if (!customer) {
                 return (
                   <div className=""
@@ -4111,50 +3817,43 @@ const TicketDetails = React.memo(() => {
                   </div>
                 );
               }
-
               const customerName = customer.fullName || customer.name ||
                                  " ${customer.lastName || ''.trim() ||
                                  customer.email || 'Cliente sem nome';
-
               return (
                 <div className=""
                   <div className=""
                     <User className="h-6 w-6 mr-2" />
-                    <span className="font-semibold">{customerName}</span>
+                    <span className="text-lg">"{customerName}</span>
                   </div>
-
                   {customer.email && (
                     <div className=""
-                      <span className="text-sm font-medium text-gray-600">Email:</span>
-                      <span className="text-sm text-gray-900">{customer.email}</span>
+                      <span className="text-lg">"Email:</span>
+                      <span className="text-lg">"{customer.email}</span>
                     </div>
                   )}
-
                   {customer.phone && (
                     <div className=""
-                      <span className="text-sm font-medium text-gray-600">Telefone:</span>
-                      <span className="text-sm text-gray-900">{customer.phone}</span>
+                      <span className="text-lg">"Telefone:</span>
+                      <span className="text-lg">"{customer.phone}</span>
                     </div>
                   )}
-
                   {customer.cpf && (
                     <div className=""
-                      <span className="text-sm font-medium text-gray-600">CPF:</span>
-                      <span className="text-sm text-gray-900">{customer.cpf}</span>
+                      <span className="text-lg">"CPF:</span>
+                      <span className="text-lg">"{customer.cpf}</span>
                     </div>
                   )}
-
                   {customer.address && (
                     <div className=""
-                      <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
-                      <span className="text-sm text-gray-900">{customer.address}</span>
+                      <span className="text-lg">"Endereço:</span>
+                      <span className="text-lg">"{customer.address}</span>
                     </div>
                   )}
                 </div>
               );
             })()}
           </div>
-
           <div className=""
             <Button
               variant="outline"
@@ -4165,7 +3864,6 @@ const TicketDetails = React.memo(() => {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Beneficiary Details Modal */}
       <Dialog open={isBeneficiaryDetailsOpen} onOpenChange={setIsBeneficiaryDetailsOpen}>
         <DialogContent className=""
@@ -4180,7 +3878,6 @@ const TicketDetails = React.memo(() => {
               const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
               const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) ||
                                 (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
-
               if (!beneficiary && (!beneficiaryId || beneficiaryId === 'unspecified')) {
                 return (
                   <div className=""
@@ -4189,7 +3886,6 @@ const TicketDetails = React.memo(() => {
                   </div>
                 );
               }
-
               if (!beneficiary) {
                 return (
                   <div className=""
@@ -4198,50 +3894,43 @@ const TicketDetails = React.memo(() => {
                   </div>
                 );
               }
-
               const beneficiaryName = beneficiary.fullName || beneficiary.name ||
                                      " ${beneficiary.lastName || ''.trim() ||
                                      beneficiary.email || 'Favorecido sem nome';
-
               return (
                 <div className=""
                   <div className=""
                     <Users className="h-6 w-6 mr-2" />
-                    <span className="font-semibold">{beneficiaryName}</span>
+                    <span className="text-lg">"{beneficiaryName}</span>
                   </div>
-
                   {beneficiary.email && (
                     <div className=""
-                      <span className="text-sm font-medium text-gray-600">Email:</span>
-                      <span className="text-sm text-gray-900">{beneficiary.email}</span>
+                      <span className="text-lg">"Email:</span>
+                      <span className="text-lg">"{beneficiary.email}</span>
                     </div>
                   )}
-
                   {beneficiary.phone && (
                     <div className=""
-                      <span className="text-sm font-medium text-gray-600">Telefone:</span>
-                      <span className="text-sm text-gray-900">{beneficiary.phone}</span>
+                      <span className="text-lg">"Telefone:</span>
+                      <span className="text-lg">"{beneficiary.phone}</span>
                     </div>
                   )}
-
                   {beneficiary.cpf && (
                     <div className=""
-                      <span className="text-sm font-medium text-gray-600">CPF:</span>
-                      <span className="text-sm text-gray-900">{beneficiary.cpf}</span>
+                      <span className="text-lg">"CPF:</span>
+                      <span className="text-lg">"{beneficiary.cpf}</span>
                     </div>
                   )}
-
                   {beneficiary.address && (
                     <div className=""
-                      <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
-                      <span className="text-sm text-gray-900">{beneficiary.address}</span>
+                      <span className="text-lg">"Endereço:</span>
+                      <span className="text-lg">"{beneficiary.address}</span>
                     </div>
                   )}
                 </div>
               );
             })()}
           </div>
-
           <div className=""
             <Button
               variant="outline"
@@ -4252,18 +3941,14 @@ const TicketDetails = React.memo(() => {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* TicketLinkingModal */}
       <TicketLinkingModal
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
         currentTicket={ticket}
       />
-
     </div>
   );
 });
-
 TicketDetails.displayName = 'TicketDetails';
-
 export default TicketDetails;

@@ -1,24 +1,20 @@
 // ✅ 1QA.MD COMPLIANCE: FRONTEND COMPONENT - CLEAN ARCHITECTURE
 // Presentation layer component for media uploads
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { Upload, File, Image, Video } from "lucide-react";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface MediaUploadDialogProps {
   onSuccess?: (file: any) => void;
 }
-
 export function MediaUploadDialog({
   // Localization temporarily disabled
  onSuccess }: MediaUploadDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -28,7 +24,6 @@ export function MediaUploadDialog({
       setDragActive(false);
     }
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -38,13 +33,11 @@ export function MediaUploadDialog({
       handleFile(e.dataTransfer.files[0]);
     }
   };
-
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
     }
   };
-
   const handleFile = async (file: File) => {
     setIsUploading(true);
     
@@ -60,12 +53,10 @@ export function MediaUploadDialog({
         url: URL.createObjectURL(file),
         uploadedAt: new Date().toISOString()
       };
-
       toast({
         title: '[TRANSLATION_NEEDED]',
         description: "" enviado com sucesso!`,
       });
-
       setIsOpen(false);
       onSuccess?.(uploadedFile);
     } catch (error) {
@@ -78,13 +69,11 @@ export function MediaUploadDialog({
       setIsUploading(false);
     }
   };
-
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) return <Image className="h-8 w-8 text-blue-500" />;
     if (type.startsWith('video/')) return <Video className="h-8 w-8 text-purple-500" />;
     return <File className="h-8 w-8 text-gray-500" />;
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -134,7 +123,6 @@ export function MediaUploadDialog({
               {isUploading ? "Enviando..." : "Selecionar Arquivo"
             </Button>
           </div>
-
           <div className="text-xs text-gray-500>
             <p>Formatos aceitos:</p>
             <ul className="list-disc list-inside mt-1>

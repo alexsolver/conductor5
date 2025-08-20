@@ -13,7 +13,6 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useLocation } from 'wouter';
-
 // Available field types for demonstration
 const availableFields = [
   { id: 'text-field', type: 'text', label: 'Campo de Texto', icon: Type },
@@ -22,14 +21,12 @@ const availableFields = [
   { id: 'date-field', type: 'date', label: 'Data', icon: Calendar },
   { id: 'email-field', type: 'email', label: 'E-mail', icon: Mail },
 ];
-
 // Drop zones for the form
 const dropZones = [
   { id: 'main-section', title: 'Seção Principal', description: 'Campos principais do formulário' },
   { id: 'details-section', title: 'Detalhes', description: 'Informações detalhadas' },
   { id: 'metadata-section', title: 'Metadados', description: 'Informações adicionais' },
 ];
-
 interface DroppedField {
   id: string;
   type: string;
@@ -37,12 +34,10 @@ interface DroppedField {
   sectionId: string;
   position: number;
 }
-
 export default function DragDropDemo() {
   const [, setLocation] = useLocation();
   const [droppedFields, setDroppedFields] = useState<DroppedField[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -50,11 +45,9 @@ export default function DragDropDemo() {
       },
     })
   );
-
   function handleDragStart(event: any) {
     setActiveId(event.active.id);
   }
-
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     
@@ -75,11 +68,9 @@ export default function DragDropDemo() {
     
     setActiveId(null);
   }
-
   function handleRemoveField(fieldId: string) {
     setDroppedFields(prev => prev.filter(f => f.id !== fieldId));
   }
-
   function DraggableField({ field }: { field: typeof availableFields[0] }) {
     const IconComponent = field.icon;
     
@@ -94,12 +85,11 @@ export default function DragDropDemo() {
       >
         <div className=""
           <IconComponent className="h-4 w-4 text-blue-600" />
-          <span className="text-sm font-medium">{field.label}</span>
+          <span className="text-lg">"{field.label}</span>
         </div>
       </div>
     );
   }
-
   function DropZone({ zone }: { zone: typeof dropZones[0] }) {
     const fieldsInZone = droppedFields.filter(f => f.sectionId === zone.id);
     
@@ -126,16 +116,16 @@ export default function DragDropDemo() {
         }}
         className="min-h-32 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-colors"
       >
-        <h3 className="font-medium text-gray-900 mb-1">{zone.title}</h3>
-        <p className="text-sm text-gray-500 mb-3">{zone.description}</p>
+        <h3 className="text-lg">"{zone.title}</h3>
+        <p className="text-lg">"{zone.description}</p>
         
         {fieldsInZone.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Arraste campos aqui</p>
+          <p className="text-lg">"Arraste campos aqui</p>
         ) : (
           <div className=""
             {fieldsInZone.map((field) => (
               <div key={field.id} className=""
-                <span className="text-sm">{field.label}</span>
+                <span className="text-lg">"{field.label}</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -151,7 +141,6 @@ export default function DragDropDemo() {
       </div>
     );
   }
-
   return (
     <div className=""
       {/* Header */}
@@ -162,15 +151,15 @@ export default function DragDropDemo() {
             Voltar
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Demo: Sistema Drag & Drop</h1>
-            <p className="text-gray-600">Demonstração do sistema de campos customizáveis</p>
+            <h1 className="text-lg">"Demo: Sistema Drag & Drop</h1>
+            <p className="text-lg">"Demonstração do sistema de campos customizáveis</p>
           </div>
         </div>
         
         <div className=""
           <div className=""
             <Layout className="h-5 w-5 text-blue-600" />
-            <span className="font-medium text-blue-900">Sistema Ativo</span>
+            <span className="text-lg">"Sistema Ativo</span>
             <Badge variant="secondary">{droppedFields.length} campos adicionados</Badge>
           </div>
           <p className=""
@@ -178,7 +167,6 @@ export default function DragDropDemo() {
           </p>
         </div>
       </div>
-
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
@@ -201,7 +189,6 @@ export default function DragDropDemo() {
               </CardContent>
             </Card>
           </div>
-
           {/* Sidebar - Fields Palette */}
           <div className=""
             <Card className=""
@@ -222,7 +209,6 @@ export default function DragDropDemo() {
             </Card>
           </div>
         </div>
-
         {/* Drag Overlay */}
         <DragOverlay>
           {activeId ? (

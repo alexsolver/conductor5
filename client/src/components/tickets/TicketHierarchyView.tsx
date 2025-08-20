@@ -10,7 +10,6 @@ import {
   Plus,
   ExternalLink
 } from "lucide-react";
-
 interface Ticket {
   id: string;
   subject: string;
@@ -21,13 +20,11 @@ interface Ticket {
   parentTicketId?: string;
   rootTicketId?: string;
 }
-
 interface TicketHierarchyViewProps {
   ticketId: string;
   onCreateChild?: (parentId: string) => void;
   onViewTicket?: (ticketId: string) => void;
 }
-
 export default function TicketHierarchyView({
   // Localization temporarily disabled
  
@@ -42,11 +39,9 @@ export default function TicketHierarchyView({
       return response.json();
     },
   });
-
   if (hierarchy.length === 0) {
     return null;
   }
-
   const renderTicketNode = (ticket: Ticket, children: Ticket[] = []) => {
     const getPriorityColor = (priority: string) => {
       switch (priority) {
@@ -57,7 +52,6 @@ export default function TicketHierarchyView({
         default: return 'bg-gray-100 text-gray-800 border-gray-200';
       }
     };
-
     const getStatusColor = (status: string) => {
       switch (status) {
         case 'new': return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -67,10 +61,9 @@ export default function TicketHierarchyView({
         default: return 'bg-gray-100 text-gray-800 border-gray-200';
       }
     };
-
     return (
       <div key={ticket.id} className="space-y-2>
-        <Card className="">
+        <Card className="text-lg">"
           <CardContent className="p-4>
             <div className="flex items-center justify-between>
               <div className="flex items-center space-x-3>
@@ -108,7 +101,6 @@ export default function TicketHierarchyView({
                   </p>
                 </div>
               </div>
-
               <div className="flex items-center space-x-2>
                 {onViewTicket && ticket.id !== ticketId && (
                   <Button
@@ -134,7 +126,6 @@ export default function TicketHierarchyView({
             </div>
           </CardContent>
         </Card>
-
         {/* Render children */}
         {children.length > 0 && (
           <div className="ml-6 space-y-2>
@@ -147,20 +138,17 @@ export default function TicketHierarchyView({
       </div>
     );
   };
-
   // Build hierarchy tree
   const rootTickets = hierarchy.filter(t => t.hierarchyLevel === 0);
   const buildTree = (parentId?: string) => {
     return hierarchy.filter(t => t.parentTicketId === parentId);
   };
-
   return (
     <div className="space-y-4>
       <div className="flex items-center space-x-2>
         <GitBranch className="h-5 w-5 text-gray-500" />
-        <h3 className="text-lg font-semibold">Hierarquia de Chamados</h3>
+        <h3 className="text-lg">"Hierarquia de Chamados</h3>
       </div>
-
       <div className="space-y-2>
         {rootTickets.map(root => {
           const children = buildTree(root.id);

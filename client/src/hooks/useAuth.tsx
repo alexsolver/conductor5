@@ -3,7 +3,6 @@ import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query'
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useLocalization } from '@/hooks/useLocalization';
-
 interface User {
   id: string;
   email: string;
@@ -16,12 +15,10 @@ interface User {
   lastLoginAt: string | null;
   createdAt: string;
 }
-
 interface LoginData {
   email: string;
   password: string;
 }
-
 interface RegisterData {
   email: string;
   password: string;
@@ -32,7 +29,6 @@ interface RegisterData {
   role?: 'admin' | 'agent' | 'customer' | 'tenant_admin';
   tenantId?: string;
 }
-
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
@@ -42,12 +38,9 @@ interface AuthContextType {
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<{ user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }, Error, RegisterData>;
 }
-
 const AuthContext = createContext<AuthContextType | null>(null);
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
@@ -60,12 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
           credentials: 'include', // Include HTTP-only cookies
         });
-
         if (!response.ok) {
           console.warn("Auth warning: Response not OK");
           return null;
         }
-
         const userData = await response.json();
         console.log('✅ [AUTH-QUERY] Auth check successful');
         return userData || null;
@@ -81,7 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnMount: false, // Only fetch on mount if no data exists
     refetchOnReconnect: false, // Disable refetch on reconnect to prevent logout during operations
   });
-
   // Token refresh mechanism - HTTP-only cookies
   const attemptTokenRefresh = async (): Promise<boolean> => {
     try {
@@ -94,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         credentials: 'include', // Send HTTP-only cookies
       });
-
       if (response.ok) {
         const responseData = await response.json();
         console.log('✅ [REFRESH] Token refreshed successfully via HTTP-only cookies');
@@ -109,7 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
   };
-
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       console.log('🔐 [LOGIN] Starting login process...');
@@ -186,7 +174,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const errorMessage = error.message?.includes('400:') 
         ? error.message.split('400:')[1]?.trim() || 'Invalid credentials'
         : error.message || 'Please check your credentials and try again.';
-
       toast({
         title: 'Login failed',
         description: errorMessage,
@@ -194,7 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
   });
-
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
       try {
@@ -211,7 +197,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('tenantId', result.user.tenantId);
       }
       queryClient.setQueryData(['/api/auth/user'], result.user);
-
       if (result.tenant) {
         toast({
           title: 'Workspace Criado com Sucesso',
@@ -229,7 +214,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const errorMessage = error.message?.includes('400:') 
         ? error.message.split('400:')[1]?.trim() || 'Registration failed'
         : error.message || 'Please try again with a different email.';
-
       toast({
         title: 'Registration failed',
         description: errorMessage,
@@ -237,7 +221,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
   });
-
   const logoutMutation = useMutation({
     mutationFn: async () => {
       try {
@@ -271,7 +254,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.clear();
     },
   });
-
   const value = {
     user: user ?? null,
     isLoading,
@@ -281,18 +263,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logoutMutation,
     registerMutation,
   };
-
   return React.createElement(AuthContext.Provider, { value }, children);
 }
-
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-
   // With HTTP-only cookies, authentication state is managed server-side
   // No need for client-side token management
   return context;
 }
-

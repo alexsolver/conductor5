@@ -7,16 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Paperclip, Upload, X, File } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface TicketAttachmentUploadProps {
   ticketId: string;
   onUploadComplete?: () => void;
 }
-
 interface FileWithPreview extends File {
   preview?: string;
 }
-
 export function TicketAttachmentUpload({
   // Localization temporarily disabled
  ticketId, onUploadComplete }: TicketAttachmentUploadProps) {
@@ -25,7 +22,6 @@ export function TicketAttachmentUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const uploadMutation = useMutation({
     mutationFn: async (files: FileWithPreview[]) => {
       const formData = new FormData();
@@ -37,7 +33,6 @@ export function TicketAttachmentUpload({
       if (description.trim()) {
         formData.append('description', description.trim());
       }
-
       const response = await fetch("/attachments`, {
         method: 'POST',
         body: formData,
@@ -46,12 +41,10 @@ export function TicketAttachmentUpload({
         },
         credentials: 'include',
       });
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Upload failed');
       }
-
       return response.json();
     },
     onSuccess: (data) => {
@@ -77,10 +70,8 @@ export function TicketAttachmentUpload({
       });
     },
   });
-
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return;
-
     const fileArray = Array.from(files);
     const validFiles = fileArray.filter(file => {
       // Basic file validation
@@ -95,7 +86,6 @@ export function TicketAttachmentUpload({
       }
       return true;
     });
-
     const filesWithPreview = validFiles.map(file => {
       const fileWithPreview: FileWithPreview = file;
       
@@ -106,10 +96,8 @@ export function TicketAttachmentUpload({
       
       return fileWithPreview;
     });
-
     setSelectedFiles(prev => [...prev, ...filesWithPreview]);
   };
-
   const removeFile = (index: number) => {
     setSelectedFiles(prev => {
       const newFiles = [...prev];
@@ -121,23 +109,19 @@ export function TicketAttachmentUpload({
       return newFiles;
     });
   };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
   };
-
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     handleFileSelect(e.dataTransfer.files);
   };
-
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -145,7 +129,6 @@ export function TicketAttachmentUpload({
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
   return (
     <div className="space-y-4>
       {/* Upload Area */}
@@ -188,7 +171,6 @@ export function TicketAttachmentUpload({
           </div>
         </CardContent>
       </Card>
-
       {/* Description Field */}
       <div className="space-y-2>
         <Label htmlFor="attachment-description" className="text-sm font-medium text-gray-900>
@@ -206,11 +188,10 @@ export function TicketAttachmentUpload({
           {description.length}/500 caracteres
         </p>
       </div>
-
       {/* Selected Files */}
       {selectedFiles.length > 0 && (
         <div className="space-y-2>
-          <h4 className="text-sm font-medium text-gray-900">Selected Files:</h4>
+          <h4 className="text-lg">"Selected Files:</h4>
           {selectedFiles.map((file, index) => (
             <div 
               key={"

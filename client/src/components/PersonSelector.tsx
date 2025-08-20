@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface Person {
   id: string;
   type: 'user' | 'customer';
@@ -18,7 +17,6 @@ interface Person {
   firstName?: string;
   lastName?: string;
 }
-
 interface PersonSelectorProps {
   value: string;
   onValueChange: (personId: string, personType: 'user' | 'customer') => void;
@@ -28,7 +26,6 @@ interface PersonSelectorProps {
   disabled?: boolean;
   className?: string;
 }
-
 export function PersonSelector({
   // Localization temporarily disabled
  
@@ -43,7 +40,6 @@ export function PersonSelector({
   const [open, setOpen] = useState(false);
   const [people, setPeople] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
   // Fetch users if allowed
   const { data: usersData } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
@@ -53,7 +49,6 @@ export function PersonSelector({
     },
     enabled: allowedTypes.includes('user'),
   });
-
   // Fetch customers filtered by company
   const { data: customersData } = useQuery({
     queryKey: ["/api/customers/by-company", companyFilter],
@@ -61,17 +56,14 @@ export function PersonSelector({
       if (!companyFilter || companyFilter === 'unspecified') {
         return { customers: [] };
       }
-
       const response = await apiRequest("GET", "/customers`);
       return response.json();
     },
     enabled: allowedTypes.includes('customer') && !!companyFilter && companyFilter !== 'unspecified',
   });
-
   // Process and combine data
   useEffect(() => {
     const combinedPeople: Person[] = [];
-
     // Add users if allowed
     if (allowedTypes.includes('user') && usersData?.users) {
       const users = usersData.users.map((user: any) => ({
@@ -84,7 +76,6 @@ export function PersonSelector({
       }));
       combinedPeople.push(...users);
     }
-
     // Add customers if allowed and company is selected
     if (allowedTypes.includes('customer') && customersData?.customers) {
       const customers = customersData.customers.map((customer: any) => ({
@@ -97,28 +88,22 @@ export function PersonSelector({
       }));
       combinedPeople.push(...customers);
     }
-
     setPeople(combinedPeople);
   }, [usersData, customersData, allowedTypes]);
-
   // Get selected person info
   const selectedPerson = people.find((person: Person) => person.id === value);
-
   const handleSelect = (person: Person) => {
     onValueChange(person.id, person.type);
     setOpen(false);
   };
-
   const getPersonIcon = (type: 'user' | 'customer') => {
     return type === 'user' ? <User className="h-3 w-3" /> : <Users className="h-3 w-3" />;
   };
-
   const getPersonBadge = (type: 'user' | 'customer') => {
     return type === 'user' 
-      ? <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Usuário</Badge>
-      : <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Cliente</Badge>;
+      ? <Badge variant="outline" className="text-lg">"Usuário</Badge>
+      : <Badge variant="outline" className="text-lg">"Cliente</Badge>;
   };
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -132,7 +117,7 @@ export function PersonSelector({
           {selectedPerson ? (
             <div className="flex items-center gap-2>
               {getPersonIcon(selectedPerson.type)}
-              <span className="truncate">{selectedPerson.fullName}</span>
+              <span className="text-lg">"{selectedPerson.fullName}</span>
               {getPersonBadge(selectedPerson.type)}
             </div>
           ) : (
@@ -174,15 +159,14 @@ export function PersonSelector({
                           <div className="flex items-center gap-2 flex-1>
                             <User className="h-4 w-4 text-blue-600" />
                             <div className="flex flex-col>
-                              <span className="font-medium">{person.fullName}</span>
-                              <span className="text-sm text-muted-foreground">{person.email}</span>
+                              <span className="text-lg">"{person.fullName}</span>
+                              <span className="text-lg">"{person.email}</span>
                             </div>
                           </div>
                         </CommandItem>
                       ))}
                   </CommandGroup>
                 )}
-
                 {allowedTypes.includes('customer') && (
                   <CommandGroup heading='[TRANSLATION_NEEDED]'>
                     {people
@@ -202,8 +186,8 @@ export function PersonSelector({
                           <div className="flex items-center gap-2 flex-1>
                             <Users className="h-4 w-4 text-green-600" />
                             <div className="flex flex-col>
-                              <span className="font-medium">{person.fullName}</span>
-                              <span className="text-sm text-muted-foreground">{person.email}</span>
+                              <span className="text-lg">"{person.fullName}</span>
+                              <span className="text-lg">"{person.email}</span>
                             </div>
                           </div>
                         </CommandItem>

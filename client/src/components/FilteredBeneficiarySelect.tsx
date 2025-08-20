@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface FilteredBeneficiarySelectProps {
   value?: string;
   onChange: (value: string) => void;
@@ -12,7 +11,6 @@ interface FilteredBeneficiarySelectProps {
   disabled?: boolean;
   className?: string;
 }
-
 export function FilteredBeneficiarySelect({
   // Localization temporarily disabled
  
@@ -31,7 +29,6 @@ export function FilteredBeneficiarySelect({
       return response.json();
     },
   });
-
   // Buscar favorecidos do cliente se um cliente foi selecionado
   const { data: customerBeneficiariesData, isLoading: isLoadingCustomerBeneficiaries } = useQuery({
     queryKey: ['/api/customers', selectedCustomerId, 'beneficiaries'],
@@ -61,7 +58,6 @@ export function FilteredBeneficiarySelect({
     retry: 3,
     refetchOnWindowFocus: false,
   });
-
   const isLoading = isLoadingBeneficiaries || (selectedCustomerId && selectedCustomerId !== 'unspecified' && isLoadingCustomerBeneficiaries);
   
   // Determinar quais favorecidos mostrar baseado no cliente selecionado
@@ -105,7 +101,6 @@ export function FilteredBeneficiarySelect({
       beneficiariesCount: beneficiariesToShow.length
     });
   }
-
   if (isLoading) {
     return (
       <Select disabled>
@@ -115,7 +110,6 @@ export function FilteredBeneficiarySelect({
       </Select>
     );
   }
-
   return (
     <Select 
       value={value || '__none__'} 

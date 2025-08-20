@@ -1,6 +1,5 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Plus, Target } from "lucide-react";
-
 interface DropZoneProps {
   id: string;
   children?: React.ReactNode;
@@ -8,7 +7,6 @@ interface DropZoneProps {
   className?: string;
   showIndicator?: boolean;
 }
-
 export default function DropZone({ 
   id, 
   children, 
@@ -23,7 +21,6 @@ export default function DropZone({
       accepts: ['field']
     }
   });
-
   return (
     <div
       ref={setNodeRef}

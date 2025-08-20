@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ticket, Clock, Users, TrendingUp } from "lucide-react";
 // import useLocalization from "@/hooks/useLocalization";
-
 export default function Dashboard() {
   const { t } = useTranslation();
   const { formatDate, formatNumber } = useLocalization();
@@ -12,33 +11,30 @@ export default function Dashboard() {
     queryKey: ["/api/dashboard/stats"],
     retry: false,
   });
-
   const { data: activityResponse } = useQuery({
     queryKey: ["/api/dashboard/activity"],
     retry: false,
   });
-
   // Extract data from standardResponse format with proper type checking
   const stats = (statsResponse as any)?.data || {};
   const activity = (activityResponse as any)?.data || [];
-
   if (isLoading) {
     return (
       <div className=""
         <div className=""
           <div>
-            <div className="h-8 bg-gray-200 rounded w-48 animate-pulse mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
+            <div className="text-lg">"</div>
+            <div className="text-lg">"</div>
           </div>
         </div>
         <div className=""
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} className=""
               <CardHeader className=""
-                <div className="h-4 bg-gray-200 rounded w-24"></div>
+                <div className="text-lg">"</div>
               </CardHeader>
               <CardContent>
-                <div className="h-8 bg-gray-200 rounded w-16"></div>
+                <div className="text-lg">"</div>
               </CardContent>
             </Card>
           ))}
@@ -46,7 +42,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
   const metrics = [
     {
       title: t('dashboard.stats.active_tickets'),
@@ -73,16 +68,14 @@ export default function Dashboard() {
       trend: "100%",
     },
   ];
-
   return (
     <div className=""
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">'[TRANSLATION_NEEDED]'</h1>
-          <p className="text-gray-600 dark:text-gray-400">'[TRANSLATION_NEEDED]'</p>
+          <h1 className="text-lg">"'[TRANSLATION_NEEDED]'</h1>
+          <p className="text-lg">"'[TRANSLATION_NEEDED]'</p>
         </div>
       </div>
-
       {/* Metrics Grid */}
       <div className=""
         {metrics.map((metric) => (
@@ -94,13 +87,12 @@ export default function Dashboard() {
               <metric.icon className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metric.value}</div>
-              <p className="text-xs text-green-600 font-medium">{metric.trend} from last week</p>
+              <div className="text-lg">"{metric.value}</div>
+              <p className="text-lg">"{metric.trend} from last week</p>
             </CardContent>
           </Card>
         ))}
       </div>
-
       {/* Activity Feed */}
       <div className=""
         <Card>
@@ -111,10 +103,10 @@ export default function Dashboard() {
             <div className=""
               {activity?.slice(0, 5).map((item: any, index: number) => (
                 <div key={index} className=""
-                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+                  <div className="text-lg">"</div>
                   <div className=""
-                    <span className="font-medium">{item.action}</span>
-                    <span className="text-gray-600 dark:text-gray-400"> by {item.user?.firstName || 'User'}</span>
+                    <span className="text-lg">"{item.action}</span>
+                    <span className="text-lg">" by {item.user?.firstName || 'User'}</span>
                   </div>
                   <span className=""
                     {new Date(item.createdAt).toLocaleTimeString()}
@@ -128,7 +120,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
@@ -136,16 +127,16 @@ export default function Dashboard() {
           <CardContent>
             <div className=""
               <button className=""
-                <div className="font-medium">Create New Ticket</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Start a new support ticket</div>
+                <div className="text-lg">"Create New Ticket</div>
+                <div className="text-lg">"Start a new support ticket</div>
               </button>
               <button className=""
-                <div className="font-medium">Add Customer</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Register a new customer</div>
+                <div className="text-lg">"Add Customer</div>
+                <div className="text-lg">"Register a new customer</div>
               </button>
               <button className=""
-                <div className="font-medium">View Reports</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Check detailed analytics</div>
+                <div className="text-lg">"View Reports</div>
+                <div className="text-lg">"Check detailed analytics</div>
               </button>
             </div>
           </CardContent>

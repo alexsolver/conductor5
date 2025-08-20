@@ -23,8 +23,6 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-
-
 interface SecurityEvent {
   id: string;
   ip: string;
@@ -33,38 +31,31 @@ interface SecurityEvent {
   attempts: number;
   createdAt: string;
 }
-
 interface TwoFactorStatus {
   enabled: boolean;
   secret?: string;
   qrCodeUrl?: string;
 }
-
 interface AccountStatus {
   locked: boolean;
   twoFactorEnabled: boolean;
 }
-
 export default function SecuritySettings() {
   // Localization temporarily disabled
-
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [twoFactorToken, setTwoFactorToken] = useState('');
   const [setupStep, setSetupStep] = useState<'password' | 'qr' | 'verify'>('password');
-
   // Queries
   const { data: twoFactorStatus } = useQuery<TwoFactorStatus>({
     queryKey: ['/api/auth-security/2fa/status'],
     retry: false,
   });
-
   const { data: securityEvents } = useQuery<SecurityEvent[]>({
     queryKey: ['/api/auth-security/events'],
     retry: false,
   });
-
   // Mutations
   const magicLinkMutation = useMutation({
     mutationFn: async (email: string) => {
@@ -85,7 +76,6 @@ export default function SecuritySettings() {
       });
     },
   });
-
   const passwordResetMutation = useMutation({
     mutationFn: async (email: string) => {
       const response = await apiRequest('POST', '/api/auth-security/password-reset/request', { email });
@@ -105,7 +95,6 @@ export default function SecuritySettings() {
       });
     },
   });
-
   const twoFactorSetupMutation = useMutation({
     mutationFn: async (password: string) => {
       const response = await apiRequest('POST', '/api/auth-security/2fa/setup', { password });
@@ -131,7 +120,6 @@ export default function SecuritySettings() {
       });
     },
   });
-
   const twoFactorVerifyMutation = useMutation({
     mutationFn: async (token: string) => {
       const response = await apiRequest('POST', '/api/auth-security/2fa/verify', { token });
@@ -154,7 +142,6 @@ export default function SecuritySettings() {
       });
     },
   });
-
   const twoFactorToggleMutation = useMutation({
     mutationFn: async ({ enabled, token }: { enabled: boolean; token: string }) => {
       const response = await apiRequest('POST', '/api/auth-security/2fa/toggle', { enabled, token });
@@ -176,7 +163,6 @@ export default function SecuritySettings() {
       });
     },
   });
-
   const handleSendMagicLink = () => {
     if (!email) {
       toast({
@@ -188,7 +174,6 @@ export default function SecuritySettings() {
     }
     magicLinkMutation.mutate(email);
   };
-
   const handlePasswordReset = () => {
     if (!email) {
       toast({
@@ -200,7 +185,6 @@ export default function SecuritySettings() {
     }
     passwordResetMutation.mutate(email);
   };
-
   const handleSetupTwoFactor = () => {
     if (!password) {
       toast({
@@ -212,7 +196,6 @@ export default function SecuritySettings() {
     }
     twoFactorSetupMutation.mutate(password);
   };
-
   const handleVerifyTwoFactor = () => {
     if (!twoFactorToken) {
       toast({
@@ -224,7 +207,6 @@ export default function SecuritySettings() {
     }
     twoFactorVerifyMutation.mutate(twoFactorToken);
   };
-
   const handleToggleTwoFactor = (enabled: boolean) => {
     if (!twoFactorToken) {
       toast({
@@ -236,14 +218,12 @@ export default function SecuritySettings() {
     }
     twoFactorToggleMutation.mutate({ enabled, token: twoFactorToken });
   };
-
   return (
     <div className=""
         <div className=""
-          <h1 className="text-2xl font-semibold gradient-text mb-2">Security Settings</h1>
-          <p className="text-gray-600">Manage your account security and authentication methods</p>
+          <h1 className="text-lg">"Security Settings</h1>
+          <p className="text-lg">"Manage your account security and authentication methods</p>
         </div>
-
         <Tabs defaultValue="auth" className=""
           <TabsList className=""
             <TabsTrigger value="auth">Authentication</TabsTrigger>
@@ -251,7 +231,6 @@ export default function SecuritySettings() {
             <TabsTrigger value="events">Security Events</TabsTrigger>
             <TabsTrigger value="admin">Admin Tools</TabsTrigger>
           </TabsList>
-
           <TabsContent value="auth" className=""
             <div className=""
               <Card>
@@ -284,7 +263,6 @@ export default function SecuritySettings() {
                   </p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle className=""
@@ -318,7 +296,6 @@ export default function SecuritySettings() {
               </Card>
             </div>
           </TabsContent>
-
           <TabsContent value="2fa" className=""
             <Card>
               <CardHeader>
@@ -363,7 +340,6 @@ export default function SecuritySettings() {
                         </Button>
                       </div>
                     )}
-
                     {setupStep === 'qr' && twoFactorStatus?.qrCodeUrl && (
                       <div className=""
                         <Alert>
@@ -387,7 +363,6 @@ export default function SecuritySettings() {
                         </Button>
                       </div>
                     )}
-
                     {setupStep === 'verify' && (
                       <div className=""
                         <Alert>
@@ -449,7 +424,6 @@ export default function SecuritySettings() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="events" className=""
             <Card>
               <CardHeader>
@@ -467,7 +441,7 @@ export default function SecuritySettings() {
                           <AlertTriangle className="h-4 w-4 text-yellow-600" />
                         </div>
                         <div>
-                          <p className="font-medium">{event.eventType}</p>
+                          <p className="text-lg">"{event.eventType}</p>
                           <p className=""
                             {event.email} from {event.ip}
                           </p>
@@ -492,7 +466,6 @@ export default function SecuritySettings() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="admin" className=""
             <Card>
               <CardHeader>
@@ -511,13 +484,13 @@ export default function SecuritySettings() {
                 <div className=""
                   <div className=""
                     <div className=""
-                      <h4 className="font-medium mb-2">Rate Limit Status</h4>
+                      <h4 className="text-lg">"Rate Limit Status</h4>
                       <p className=""
                         Monitor and manage rate limiting for login attempts
                       </p>
                     </div>
                     <div className=""
-                      <h4 className="font-medium mb-2">Account Lockouts</h4>
+                      <h4 className="text-lg">"Account Lockouts</h4>
                       <p className=""
                         View and manage locked user accounts
                       </p>

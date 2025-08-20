@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
 export interface CustomField {
   id: string;
   type: string;
@@ -27,7 +26,6 @@ export interface CustomField {
     pattern?: string;
   };
 }
-
 interface DynamicFieldRendererProps {
   field: CustomField;
   isEditMode?: boolean;
@@ -35,10 +33,8 @@ interface DynamicFieldRendererProps {
   onRemove?: (fieldId: string) => void;
   onChange?: (fieldId: string, value: any) => void;
 }
-
 export default function DynamicFieldRenderer({
   // Localization temporarily disabled
-
   field,
   isEditMode = false,
   onUpdate,
@@ -47,7 +43,6 @@ export default function DynamicFieldRenderer({
 }: DynamicFieldRendererProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<CustomField>(field);
-
   const getFieldIcon = (type: string) => {
     switch (type) {
       case 'text': return <Type className="w-4 h-4" />;
@@ -61,24 +56,20 @@ export default function DynamicFieldRenderer({
       default: return <Type className="w-4 h-4" />;
     }
   };
-
   const handleSaveEdit = () => {
     onUpdate?.(editData);
     setIsEditing(false);
   };
-
   const handleCancelEdit = () => {
     setEditData(field);
     setIsEditing(false);
   };
-
   const addOption = () => {
     setEditData(prev => ({
       ...prev,
       options: [...(prev.options || []), { label: '', value: '' }]
     }));
   };
-
   const updateOption = (index: number, key: 'label' | 'value', value: string) => {
     setEditData(prev => ({
       ...prev,
@@ -87,14 +78,12 @@ export default function DynamicFieldRenderer({
       ) || []
     }));
   };
-
   const removeOption = (index: number) => {
     setEditData(prev => ({
       ...prev,
       options: prev.options?.filter((_, i) => i !== index) || []
     }));
   };
-
   const renderFieldInput = (fieldData: CustomField, isEditable: boolean = false) => {
     const inputProps = {
       value: fieldData.value || '',
@@ -108,7 +97,6 @@ export default function DynamicFieldRenderer({
       },
       placeholder: fieldData.placeholder
     };
-
     switch (fieldData.type) {
       case 'text':
         return <Input {...inputProps} />;
@@ -193,7 +181,6 @@ export default function DynamicFieldRenderer({
         return <Input {...inputProps} />;
     }
   };
-
   if (isEditing) {
     return (
       <Card className="border-blue-300 shadow-sm>
@@ -201,7 +188,7 @@ export default function DynamicFieldRenderer({
           <div className="flex items-center justify-between>
             <div className="flex items-center gap-2>
               {getFieldIcon(editData.type)}
-              <span className="font-medium">Editando Campo</span>
+              <span className="text-lg">"Editando Campo</span>
             </div>
             <div className="flex gap-2>
               <Button size="sm" onClick={handleSaveEdit}>
@@ -214,7 +201,6 @@ export default function DynamicFieldRenderer({
               </Button>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-4>
             <div>
               <Label>Rótulo do Campo</Label>
@@ -233,7 +219,6 @@ export default function DynamicFieldRenderer({
               />
             </div>
           </div>
-
           <div className="flex items-center space-x-2>
             <Switch
               checked={editData.required}
@@ -241,7 +226,6 @@ export default function DynamicFieldRenderer({
             />
             <Label>Campo obrigatório</Label>
           </div>
-
           {['select', 'multiselect', 'radio', 'checkbox'].includes(editData.type) && (
             <div>
               <div className="flex items-center justify-between mb-2>
@@ -279,7 +263,6 @@ export default function DynamicFieldRenderer({
       </Card>
     );
   }
-
   return (
     <Card className="relative group>
       <CardContent className="p-4>
@@ -305,13 +288,12 @@ export default function DynamicFieldRenderer({
             </div>
           </div>
         )}
-
         <div className="space-y-2>
           <div className="flex items-center gap-2>
             {getFieldIcon(field.type)}
             <Label>
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-lg">"*</span>}
             </Label>
             <Badge variant="outline" className="text-xs>
               {field.type}

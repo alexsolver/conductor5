@@ -17,13 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ScrollArea } from '../ui/scroll-area';
 import { Search, Users, Building2, AlertCircle, CheckCircle2, Check, UserCheck } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
-
 // Assume apiRequest is defined elsewhere and handles token, errors, and JSON parsing
 // Example signature: const apiRequest = async (method: string, url: string, body?: any) => Promise<any>;
-
 interface Customer {
   // Localization temporarily disabled
-
   id: string;
   firstName: string;
   lastName: string;
@@ -33,20 +30,17 @@ interface Customer {
   status: string;
   isAssociated?: boolean;
 }
-
 interface Company {
   id: string;
   name: string;
   displayName?: string;
 }
-
 interface AssociateMultipleCustomersModalProps {
   isOpen: boolean;
   onClose: () => void;
   company: Company | null;
   onSuccess: () => void;
 }
-
 const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalProps> = ({
   isOpen,
   onClose,
@@ -56,37 +50,29 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
   // Fetch all customers with association status
   useEffect(() => {
     if (isOpen && company) {
       fetchAllCustomers();
     }
   }, [isOpen, company]);
-
   const fetchAllCustomers = async () => {
     setIsLoading(true);
     setError(null);
-
     try {
       if (!company?.id) {
         throw new Error('ID da empresa não encontrado');
       }
-
       console.log('Fetching all customers and association status for company:', company.id);
-
       // Fetch all customers first using the working endpoint
       const allCustomersData = await apiRequest('GET', '/api/customers');
       const allCustomers = allCustomersData?.customers || [];
-
       // Fetch associated customers for this company using the working endpoint
       let associatedCustomers = [];
-
       try {
         const associatedData = await apiRequest('GET', "/associated`);
         associatedCustomers = Array.isArray(associatedData) ? associatedData : (associatedData?.data || []);
@@ -94,13 +80,11 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
         console.warn('Could not fetch associated customers, assuming none:', associatedError);
         associatedCustomers = [];
       }
-
       // Mark customers as associated or not
       const customersWithStatus = allCustomers.map((customer: Customer) => ({
         ...customer,
         isAssociated: associatedCustomers.some((associated: any) => associated.id === customer.id)
       }));
-
       setCustomers(customersWithStatus);
     } catch (error: any) {
       console.error('[TRANSLATION_NEEDED]', error);
@@ -109,20 +93,17 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       setIsLoading(false);
     }
   };
-
   const handleCustomerToggle = (customerId: string, isAssociated: boolean) => {
     // Only allow selection of customers who are not already associated
     if (isAssociated) {
       return;
     }
-
     setSelectedCustomerIds(prev => 
       prev.includes(customerId) 
         ? prev.filter(id => id !== customerId)
         : [...prev, customerId]
     );
   };
-
   const handleSelectAll = () => {
     const filteredCustomers = getFilteredCustomers();
     // Only include customers that are not already associated
@@ -131,7 +112,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       availableCustomers.every(customer => 
       selectedCustomerIds.includes(customer.id)
     );
-
     if (allAvailableSelected) {
       // Deselect all available filtered customers
       const availableIds = availableCustomers.map(c => c.id);
@@ -144,35 +124,29 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       setSelectedCustomerIds(prev => [...prev, ...newSelections]);
     }
   };
-
   const getFilteredCustomers = () => {
     return customers.filter(customer => {
       const searchLower = searchTerm.toLowerCase();
       const fullName = "
       const displayName = customer.customerType === 'PJ' ? customer.companyName : fullName;
-
       return (
         displayName?.toLowerCase().includes(searchLower) ||
         customer.email.toLowerCase().includes(searchLower)
       );
     });
   };
-
   const handleSubmit = async () => {
     if (selectedCustomerIds.length === 0) {
       setError('Selecione pelo menos um cliente');
       return;
     }
-
     setIsSubmitting(true);
     setError(null);
     setSuccess(null);
-
     try {
       let successCount = 0;
       let errorCount = 0;
       const errors: string[] = [];
-
       // Process customers sequentially to avoid overwhelming the server
       for (const customerId of selectedCustomerIds) {
         try {
@@ -180,22 +154,18 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
               companyId: company?.id,
               role: 'member',
             });
-
           if (!response.success) {
             throw new Error(response.message || 'Falha ao associar cliente');
           }
-
           successCount++;
         } catch (error: any) {
           errorCount++;
           errors.push("
           console.warn(":`, error);
         }
-
         // Small delay between requests to prevent rate limiting
         await new Promise(resolve => setTimeout(resolve, 100));
       }
-
       // Prepare result summary
       if (successCount > 0 && errorCount === 0) {
         setSuccess(" clientes associados com sucesso!`);
@@ -207,7 +177,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       } else {
         throw new Error("
       }
-
       // Create a summary data structure for backward compatibility
       const data = {
         success: true,
@@ -217,18 +186,14 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
           totalRequested: selectedCustomerIds.length
         }
       };
-
       console.log('Association completed:', data);
-
       // Reset form
       setSelectedCustomerIds([]);
-
       // Notify parent component
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 1500);
-
     } catch (error: any) {
       console.error('[TRANSLATION_NEEDED]', error);
       setError(error.message || 'Erro ao associar clientes');
@@ -236,7 +201,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       setIsSubmitting(false);
     }
   };
-
   const handleClose = () => {
     setSelectedCustomerIds([]);
     setSearchTerm('');
@@ -244,12 +208,10 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
     setSuccess(null);
     onClose();
   };
-
   const filteredCustomers = getFilteredCustomers();
   const availableCustomers = filteredCustomers.filter(customer => !customer.isAssociated);
   const allAvailableSelected = availableCustomers.length > 0 && 
     availableCustomers.every(customer => selectedCustomerIds.includes(customer.id));
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col>
@@ -263,7 +225,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
             <strong>{company?.displayName || company?.name}</strong>
           </DialogDescription>
         </DialogHeader>
-
         <div className="flex-1 space-y-4 overflow-hidden>
           {/* Search and filters */}
           <div className="space-y-3>
@@ -276,10 +237,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                 className="pl-10"
               />
             </div>
-
-
           </div>
-
           {/* Customer selection */}
           <div className="border rounded-lg>
             <div className="flex items-center justify-between p-3 border-b bg-gray-50>
@@ -296,11 +254,10 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                 {selectedCustomerIds.length} selecionados
               </Badge>
             </div>
-
             <ScrollArea className="h-64>
               {isLoading ? (
                 <div className="flex items-center justify-center p-8>
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="text-lg">"</div>
                 </div>
               ) : filteredCustomers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 text-gray-500>
@@ -314,7 +271,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                     const displayName = customer.customerType === 'PJ' 
                       ? customer.companyName 
                       : "
-
                     return (
                       <div
                         key={customer.id}
@@ -344,21 +300,18 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                             >
                               {displayName || customer.email}
                             </p>
-
                             {customer.isAssociated && (
                               <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300>
                                 <UserCheck className="w-3 h-3 mr-1" />
                                 Associado
                               </Badge>
                             )}
-
                             <Badge 
                               variant={customer.customerType === 'PJ' ? 'default' : 'secondary'}
                               className="text-xs"
                             >
                               {customer.customerType}
                             </Badge>
-
                             {customer.status !== 'Ativo' && (
                               <Badge variant="destructive" className="text-xs>
                                 {customer.status}
@@ -383,7 +336,6 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
               )}
             </ScrollArea>
           </div>
-
           {/* Messages */}
           {error && (
             <Alert variant="destructive>
@@ -391,15 +343,13 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
           {success && (
             <Alert className="border-green-200 bg-green-50>
               <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">{success}</AlertDescription>
+              <AlertDescription className="text-lg">"{success}</AlertDescription>
             </Alert>
           )}
         </div>
-
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
             Cancelar
@@ -411,7 +361,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div className="text-lg">"</div>
                 Associando...
               </div>
             ) : (
@@ -423,5 +373,4 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
     </Dialog>
   );
 };
-
 export default AssociateMultipleCustomersModal;

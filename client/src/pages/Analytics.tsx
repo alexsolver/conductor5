@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,7 +24,6 @@ import {
   Activity
 } from "lucide-react";
 import type { DashboardStats } from "@/types";
-
 // Mock data for analytics - in real app this would come from API
 const channelData = [
   { name: "Email", value: 45, color: "bg-blue-500" },
@@ -33,7 +31,6 @@ const channelData = [
   { name: "Phone", value: 15, color: "bg-yellow-500" },
   { name: "Social", value: 10, color: "bg-purple-500" },
 ];
-
 const satisfactionTrends = [
   { month: "Jan", score: 92 },
   { month: "Feb", score: 89 },
@@ -42,7 +39,6 @@ const satisfactionTrends = [
   { month: "May", score: 96 },
   { month: "Jun", score: 94 },
 ];
-
 const agentPerformance = [
   { name: "Sarah Adams", resolved: 156, avgTime: "2.3h", satisfaction: 97 },
   { name: "Mike Johnson", resolved: 142, avgTime: "3.1h", satisfaction: 94 },
@@ -50,7 +46,6 @@ const agentPerformance = [
   { name: "David Lee", resolved: 124, avgTime: "3.5h", satisfaction: 92 },
   { name: "Lisa Chen", resolved: 119, avgTime: "3.2h", satisfaction: 93 },
 ];
-
 const topIssues = [
   { issue: "Login Problems", count: 89, trend: "up" },
   { issue: "Payment Issues", count: 67, trend: "down" },
@@ -58,11 +53,9 @@ const topIssues = [
   { issue: "Bug Reports", count: 45, trend: "down" },
   { issue: "Account Setup", count: 34, trend: "up" },
 ];
-
 export default function Analytics() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-
   // Redirect to home if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -77,12 +70,10 @@ export default function Analytics() {
       return;
     }
   }, [isAuthenticated, isLoading, toast]);
-
   const { data: stats, isLoading: statsLoading, error } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
     retry: false,
   });
-
   // Handle unauthorized errors
   useEffect(() => {
     if (error && isUnauthorizedError(error as Error)) {
@@ -96,11 +87,9 @@ export default function Analytics() {
       }, 500);
     }
   }, [error, toast]);
-
   if (isLoading || !isAuthenticated) {
     return null;
   }
-
   return (
     <div className=""
       <div className=""
@@ -141,7 +130,6 @@ export default function Analytics() {
               </div>
             </CardContent>
           </Card>
-
           {/* Analytics Tabs */}
           <Tabs defaultValue="overview" className=""
             <TabsList className=""
@@ -150,7 +138,6 @@ export default function Analytics() {
               <TabsTrigger value="channels">Channels</TabsTrigger>
               <TabsTrigger value="trends">Trends</TabsTrigger>
             </TabsList>
-
             {/* Overview Tab */}
             <TabsContent value="overview" className=""
               {/* Key Metrics */}
@@ -164,9 +151,9 @@ export default function Analytics() {
                         </div>
                       </div>
                       <div className=""
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Tickets</p>
+                        <p className="text-lg">"Total Tickets</p>
                         <div className=""
-                          <p className="text-2xl font-semibold text-gray-900 dark:text-white">1,247</p>
+                          <p className="text-lg">"1,247</p>
                           <p className=""
                             <TrendingUp className="w-3 h-3 mr-1" />
                             8.2%
@@ -176,7 +163,6 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className=""
                   <CardContent className=""
                     <div className=""
@@ -186,9 +172,9 @@ export default function Analytics() {
                         </div>
                       </div>
                       <div className=""
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Response Time</p>
+                        <p className="text-lg">"Avg Response Time</p>
                         <div className=""
-                          <p className="text-2xl font-semibold text-gray-900 dark:text-white">2.3h</p>
+                          <p className="text-lg">"2.3h</p>
                           <p className=""
                             <TrendingDown className="w-3 h-3 mr-1" />
                             12%
@@ -198,7 +184,6 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className=""
                   <CardContent className=""
                     <div className=""
@@ -208,9 +193,9 @@ export default function Analytics() {
                         </div>
                       </div>
                       <div className=""
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">CSAT Score</p>
+                        <p className="text-lg">"CSAT Score</p>
                         <div className=""
-                          <p className="text-2xl font-semibold text-gray-900 dark:text-white">94%</p>
+                          <p className="text-lg">"94%</p>
                           <p className=""
                             <TrendingUp className="w-3 h-3 mr-1" />
                             2.1%
@@ -220,7 +205,6 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className=""
                   <CardContent className=""
                     <div className=""
@@ -230,9 +214,9 @@ export default function Analytics() {
                         </div>
                       </div>
                       <div className=""
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Resolution Rate</p>
+                        <p className="text-lg">"Resolution Rate</p>
                         <div className=""
-                          <p className="text-2xl font-semibold text-gray-900 dark:text-white">87%</p>
+                          <p className="text-lg">"87%</p>
                           <p className=""
                             <TrendingUp className="w-3 h-3 mr-1" />
                             3.5%
@@ -243,7 +227,6 @@ export default function Analytics() {
                   </CardContent>
                 </Card>
               </div>
-
               {/* Charts */}
               <div className=""
                 <Card className=""
@@ -257,13 +240,12 @@ export default function Analytics() {
                     <div className=""
                       <div className=""
                         <Activity className="h-16 w-16 text-purple-400 mb-4 mx-auto" />
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Volume trend visualization</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Monthly ticket volume over time</p>
+                        <p className="text-lg">"Volume trend visualization</p>
+                        <p className="text-lg">"Monthly ticket volume over time</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className=""
                   <CardHeader>
                     <CardTitle className=""
@@ -294,7 +276,6 @@ export default function Analytics() {
                 </Card>
               </div>
             </TabsContent>
-
             {/* Performance Tab */}
             <TabsContent value="performance" className=""
               <div className=""
@@ -331,7 +312,6 @@ export default function Analytics() {
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className=""
                   <CardHeader>
                     <CardTitle>Top Issues</CardTitle>
@@ -367,7 +347,6 @@ export default function Analytics() {
                 </Card>
               </div>
             </TabsContent>
-
             {/* Channels Tab */}
             <TabsContent value="channels" className=""
               <Card className=""
@@ -379,7 +358,7 @@ export default function Analytics() {
                     {channelData.map((channel) => (
                       <div key={channel.name} className=""
                         <div className=""
-                          <h4 className="font-medium text-gray-900 dark:text-white">{channel.name}</h4>
+                          <h4 className="text-lg">"{channel.name}</h4>
                           <div className="w-3 h-3 rounded-full" />
                         </div>
                         <p className=""
@@ -394,7 +373,6 @@ export default function Analytics() {
                 </CardContent>
               </Card>
             </TabsContent>
-
             {/* Trends Tab */}
             <TabsContent value="trends" className=""
               <Card className=""
@@ -405,8 +383,8 @@ export default function Analytics() {
                   <div className=""
                     <div className=""
                       <TrendingUp className="h-16 w-16 text-purple-400 mb-4 mx-auto" />
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Satisfaction trend chart</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Customer satisfaction over time</p>
+                      <p className="text-lg">"Satisfaction trend chart</p>
+                      <p className="text-lg">"Customer satisfaction over time</p>
                     </div>
                   </div>
                 </CardContent>

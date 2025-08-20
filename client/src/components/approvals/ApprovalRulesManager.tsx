@@ -13,7 +13,6 @@ import { Plus, Edit, Trash2, Play, Pause } from 'lucide-react';
 import { CompanySelector } from './CompanySelector';
 import { apiRequest } from '@/lib/queryClient';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface ApprovalRule {
   id: string;
   name: string;
@@ -27,10 +26,8 @@ interface ApprovalRule {
   createdAt: string;
   updatedAt: string;
 }
-
 export function ApprovalRulesManager() {
   // Localization temporarily disabled
-
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
   const [newRule, setNewRule] = useState({
@@ -43,13 +40,10 @@ export function ApprovalRulesManager() {
     queryConditions: {},
     approvalSteps: []
   });
-
   const queryClient = useQueryClient();
-
   const { data: rules, isLoading } = useQuery<{ data: ApprovalRule[] }>({
     queryKey: ['/api/approvals/rules']
   });
-
   const createRuleMutation = useMutation({
     mutationFn: async (ruleData: any) => {
       const response = await apiRequest('POST', '/api/approvals/rules', ruleData);
@@ -70,7 +64,6 @@ export function ApprovalRulesManager() {
       });
     }
   });
-
   const updateRuleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: any }) => {
       const response = await apiRequest('PUT', "
@@ -81,7 +74,6 @@ export function ApprovalRulesManager() {
       setEditingRule(null);
     }
   });
-
   const deleteRuleMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await apiRequest('DELETE', "
@@ -91,14 +83,12 @@ export function ApprovalRulesManager() {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/rules'] });
     }
   });
-
   const toggleRuleStatus = (rule: ApprovalRule) => {
     updateRuleMutation.mutate({
       id: rule.id,
       data: { ...rule, isActive: !rule.isActive }
     });
   };
-
   const handleCreateRule = () => {
     createRuleMutation.mutate({
       ...newRule,
@@ -116,11 +106,9 @@ export function ApprovalRulesManager() {
       }]
     });
   };
-
   const handleEditRule = (rule: ApprovalRule) => {
     setEditingRule(rule);
   };
-
   const handleUpdateRule = () => {
     if (editingRule) {
       updateRuleMutation.mutate({
@@ -129,13 +117,11 @@ export function ApprovalRulesManager() {
       });
     }
   };
-
   const handleDeleteRule = (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta regra?')) {
       deleteRuleMutation.mutate(id);
     }
   };
-
   const moduleTypes = [
     { value: 'tickets', label: '[TRANSLATION_NEEDED]' },
     { value: 'materials', label: 'Materiais/Serviços' },
@@ -143,21 +129,19 @@ export function ApprovalRulesManager() {
     { value: 'timecard', label: 'Timecard' },
     { value: 'contracts', label: 'Contratos' }
   ];
-
   if (isLoading) {
     return (
       <Card data-testid="rules-loading>
         <CardContent className="p-6>
           <div className="animate-pulse space-y-4>
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div key={i} className="text-lg">"</div>
             ))}
           </div>
         </CardContent>
       </Card>
     );
   }
-
   return (
     <div className="space-y-6" data-testid="approval-rules-manager>
       <Card data-testid="rules-header>
@@ -178,7 +162,7 @@ export function ApprovalRulesManager() {
                 <div className="space-y-4 mt-4>
                   <div className="grid grid-cols-2 gap-4>
                     <div>
-                      <label className="text-sm font-medium">Nome da Regra</label>
+                      <label className="text-lg">"Nome da Regra</label>
                       <Input
                         value={newRule.name}
                         onChange={(e) => setNewRule(prev => ({ ...prev, name: e.target.value }))}
@@ -187,7 +171,7 @@ export function ApprovalRulesManager() {
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Módulo</label>
+                      <label className="text-lg">"Módulo</label>
                       <Select
                         value={newRule.moduleType}
                         onValueChange={(value) => setNewRule(prev => ({ ...prev, moduleType: value }))}
@@ -214,10 +198,9 @@ export function ApprovalRulesManager() {
                     placeholder="Selecionar empresa (opcional para regra global)"
                     className="mb-4"
                   />
-
                   <div className="grid grid-cols-2 gap-4>
                     <div>
-                      <label className="text-sm font-medium">Prioridade</label>
+                      <label className="text-lg">"Prioridade</label>
                       <Input
                         type="number"
                         value={newRule.priority}
@@ -232,10 +215,9 @@ export function ApprovalRulesManager() {
                         onCheckedChange={(checked) => setNewRule(prev => ({ ...prev, isActive: checked }))}
                         data-testid="switch-active"
                       />
-                      <label className="text-sm font-medium">Regra Ativa</label>
+                      <label className="text-lg">"Regra Ativa</label>
                     </div>
                   </div>
-
                   <div className="flex justify-end space-x-2>
                     <Button 
                       variant="outline" 
@@ -258,7 +240,6 @@ export function ApprovalRulesManager() {
           </div>
         </CardHeader>
       </Card>
-
       <Card data-testid="rules-table-card>
         <CardContent className="p-0>
           <Table data-testid="rules-table>
@@ -336,7 +317,6 @@ export function ApprovalRulesManager() {
           </Table>
         </CardContent>
       </Card>
-
       {/* Edit Dialog */}
       {editingRule && (
         <Dialog open={!!editingRule} onOpenChange={() => setEditingRule(null)}>
@@ -347,7 +327,7 @@ export function ApprovalRulesManager() {
             <div className="space-y-4 mt-4>
               <div className="grid grid-cols-2 gap-4>
                 <div>
-                  <label className="text-sm font-medium">Nome da Regra</label>
+                  <label className="text-lg">"Nome da Regra</label>
                   <Input
                     value={editingRule.name}
                     onChange={(e) => setEditingRule(prev => prev ? { ...prev, name: e.target.value } : null)}
@@ -355,7 +335,7 @@ export function ApprovalRulesManager() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Prioridade</label>
+                  <label className="text-lg">"Prioridade</label>
                   <Input
                     type="number"
                     value={editingRule.priority}
@@ -372,9 +352,8 @@ export function ApprovalRulesManager() {
                   onCheckedChange={(checked) => setEditingRule(prev => prev ? { ...prev, isActive: checked } : null)}
                   data-testid="edit-switch-active"
                 />
-                <label className="text-sm font-medium">Regra Ativa</label>
+                <label className="text-lg">"Regra Ativa</label>
               </div>
-
               <div className="flex justify-end space-x-2>
                 <Button 
                   variant="outline" 

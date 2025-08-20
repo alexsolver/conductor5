@@ -34,14 +34,12 @@ import {
   ChevronDown,
   ChevronRight
 } from "lucide-react";
-
 // Schemas de validação
 const companySchema = z.object({
   id: z.string(),
   name: z.string(),
   active: z.boolean().default(true)
 });
-
 const categorySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
@@ -50,7 +48,6 @@ const categorySchema = z.object({
   active: z.boolean().default(true),
   sortOrder: z.number().default(1)
 });
-
 const subcategorySchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
@@ -60,7 +57,6 @@ const subcategorySchema = z.object({
   active: z.boolean().default(true),
   sortOrder: z.number().default(1)
 });
-
 const actionSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
@@ -70,7 +66,6 @@ const actionSchema = z.object({
   active: z.boolean().default(true),
   sortOrder: z.number().default(1)
 });
-
 const fieldOptionSchema = z.object({
   fieldName: z.string().min(1, "Nome do campo é obrigatório"),
   value: z.string().min(1, "Valor é obrigatório"),
@@ -91,7 +86,6 @@ const fieldOptionSchema = z.object({
   message: "Tipo de status é obrigatório para o campo Status",
   path: ["statusType"]
 });
-
 const numberingConfigSchema = z.object({
   prefix: z.string().min(1, "Prefixo é obrigatório"),
   firstSeparator: z.string().default(''),
@@ -100,13 +94,11 @@ const numberingConfigSchema = z.object({
   separator: z.string().default(''),
   resetYearly: z.boolean().default(true)
 });
-
 interface Company {
   id: string;
   name: string;
   active: boolean;
 }
-
 interface Category {
   id: string;
   name: string;
@@ -117,7 +109,6 @@ interface Category {
   sortOrder: number;
   companyId: string;
 }
-
 interface Subcategory {
   id: string;
   name: string;
@@ -128,7 +119,6 @@ interface Subcategory {
   active: boolean;
   sortOrder: number;
 }
-
 interface Action {
   id: string;
   name: string;
@@ -140,7 +130,6 @@ interface Action {
   active: boolean;
   sortOrder: number;
 }
-
 interface FieldOption {
   id: string;
   fieldName: string;
@@ -153,7 +142,6 @@ interface FieldOption {
   sortOrder: number;
   statusType?: 'open' | 'paused' | 'resolved' | 'closed';
 }
-
 interface NumberingConfig {
   id: string;
   prefix: string;
@@ -163,7 +151,6 @@ interface NumberingConfig {
   resetYearly: boolean;
   companyId: string;
 }
-
 const TicketConfiguration: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -173,7 +160,6 @@ const TicketConfiguration: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
-
   // Forms
   const categoryForm = useForm({
     resolver: zodResolver(categorySchema),
@@ -186,7 +172,6 @@ const TicketConfiguration: React.FC = () => {
       sortOrder: 1
     }
   });
-
   const subcategoryForm = useForm({
     resolver: zodResolver(subcategorySchema),
     defaultValues: {
@@ -199,7 +184,6 @@ const TicketConfiguration: React.FC = () => {
       sortOrder: 1
     }
   });
-
   const actionForm = useForm({
     resolver: zodResolver(actionSchema),
     defaultValues: {
@@ -212,7 +196,6 @@ const TicketConfiguration: React.FC = () => {
       sortOrder: 1
     }
   });
-
   const fieldOptionForm = useForm({
     resolver: zodResolver(fieldOptionSchema),
     defaultValues: {
@@ -227,7 +210,6 @@ const TicketConfiguration: React.FC = () => {
       statusType: undefined
     }
   });
-
   const numberingForm = useForm({
     resolver: zodResolver(numberingConfigSchema),
     defaultValues: {
@@ -239,7 +221,6 @@ const TicketConfiguration: React.FC = () => {
       resetYearly: true
     }
   });
-
   // Queries
   const { data: companies = [] } = useQuery({
     queryKey: ['/api/customers/companies'],
@@ -248,7 +229,6 @@ const TicketConfiguration: React.FC = () => {
       return response.json();
     }
   });
-
   const { data: categories = [] } = useQuery({
     queryKey: ['categories', selectedCompany],
     queryFn: async () => {
@@ -259,7 +239,6 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany
   });
-
   const { data: subcategories = [] } = useQuery({
     queryKey: ['subcategories', selectedCompany],
     queryFn: async () => {
@@ -270,7 +249,6 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany
   });
-
   const { data: actions = [] } = useQuery({
     queryKey: ['actions', selectedCompany],
     queryFn: async () => {
@@ -281,7 +259,6 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany
   });
-
   const { data: fieldOptions = [], refetch: refetchFieldOptions } = useQuery({
     queryKey: ['field-options', selectedCompany],
     queryFn: async () => {
@@ -291,13 +268,11 @@ const TicketConfiguration: React.FC = () => {
       const response = await apiRequest('GET', "/api/ticket-config/categories?companyId=" + selectedCompany);
       const result = await response.json();
       console.log('🔍 Field options query result for company:', selectedCompany, result);
-
       // Validate data structure
       if (!result.success || !Array.isArray(result.data)) {
         console.error('❌ Invalid field options response:', result);
         return [];
       }
-
       return result.data;
     },
     enabled: !!selectedCompany,
@@ -310,7 +285,6 @@ const TicketConfiguration: React.FC = () => {
     // Force network requests, ignore cache
     networkMode: 'always'
   });
-
   const { data: numberingConfig } = useQuery({
     queryKey: ['/api/ticket-config/numbering', selectedCompany],
     queryFn: async () => {
@@ -321,7 +295,6 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany
   });
-
   // Mutations
   const createCategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof categorySchema>) => {
@@ -338,7 +311,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Categoria criada com sucesso" });
     }
   });
-
   const createSubcategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof subcategorySchema>) => {
       const response = await apiRequest('POST', '/api/ticket-config/subcategories', {
@@ -358,7 +330,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Subcategoria criada com sucesso" });
     }
   });
-
   const createActionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof actionSchema>) => {
       const response = await apiRequest('POST', '/api/ticket-config/actions', {
@@ -374,7 +345,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Ação criada com sucesso" });
     }
   });
-
   // UPDATE MUTATIONS - Adicionando funcionalidade de edição
   const updateCategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof categorySchema> & { id: string }) => {
@@ -390,7 +360,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Categoria atualizada com sucesso" });
     }
   });
-
   const updateSubcategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof subcategorySchema> & { id: string }) => {
       const { id, ...updateData } = data;
@@ -405,7 +374,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Subcategoria atualizada com sucesso" });
     }
   });
-
   const updateActionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof actionSchema> & { id: string }) => {
       const { id, ...updateData } = data;
@@ -420,7 +388,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Ação atualizada com sucesso" });
     }
   });
-
   const createFieldOptionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof fieldOptionSchema>) => {
       const response = await apiRequest('POST', '/api/ticket-config/field-options', {
@@ -431,32 +398,25 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Field option created successfully:', result);
-
       // Complete cache reset strategy
       const queryKey = ['field-options', selectedCompany];
-
       // 1. Remove from cache
       queryClient.removeQueries({ queryKey });
-
       // 2. Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['field-options'] });
-
       // 3. Force immediate refetch with fresh data
       await queryClient.refetchQueries({ 
         queryKey, 
         type: 'active',
         exact: true 
       });
-
       // 4. Reset stale time to force immediate refresh
       queryClient.setQueryData(queryKey, undefined);
-
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ title: "Opção de campo criada com sucesso" });
     }
   });
-
   const saveNumberingMutation = useMutation({
     mutationFn: async (data: z.infer<typeof numberingConfigSchema>) => {
       const response = await apiRequest('POST', '/api/ticket-config/numbering', {
@@ -470,7 +430,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Configuração de numeração salva com sucesso" });
     }
   });
-
   const updateFieldOptionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof fieldOptionSchema> & { id: string }) => {
       const { id, ...updateData } = data;
@@ -502,7 +461,6 @@ const TicketConfiguration: React.FC = () => {
       });
     }
   });
-
   const updateFieldOptionStatusMutation = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       const response = await apiRequest('PUT', "/api/ticket-metadata/status", {
@@ -531,7 +489,6 @@ const TicketConfiguration: React.FC = () => {
       });
     }
   });
-
   const deleteFieldOptionMutation = useMutation({
     mutationFn: async (optionId: string) => {
       const response = await apiRequest('DELETE', "/api/ticket-config/categories?companyId=" + selectedCompany);
@@ -540,20 +497,16 @@ const TicketConfiguration: React.FC = () => {
     onSuccess: async () => {
       // Complete cache reset strategy
       const queryKey = ['field-options', selectedCompany];
-
       // 1. Remove from cache
       queryClient.removeQueries({ queryKey });
-
       // 2. Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['field-options'] });
-
       // 3. Force immediate refetch with fresh data
       await queryClient.refetchQueries({ 
         queryKey, 
         type: 'active',
         exact: true 
       });
-
       toast({ title: "Opção de campo excluída com sucesso" });
     },
     onError: (error: any) => {
@@ -564,7 +517,6 @@ const TicketConfiguration: React.FC = () => {
       });
     }
   });
-
   const deleteCategoryMutation = useMutation({
     mutationFn: async (categoryId: string) => {
       const response = await apiRequest('DELETE', "/api/ticket-config/categories?companyId=" + selectedCompany);
@@ -575,7 +527,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Categoria excluída com sucesso" });
     }
   });
-
   const deleteSubcategoryMutation = useMutation({
     mutationFn: async (subcategoryId: string) => {
       const response = await apiRequest('DELETE', "/api/ticket-config/categories?companyId=" + selectedCompany);
@@ -586,7 +537,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Subcategoria excluída com sucesso" });
     }
   });
-
   const deleteActionMutation = useMutation({
     mutationFn: async (actionId: string) => {
       const response = await apiRequest('DELETE', "/api/ticket-config/categories?companyId=" + selectedCompany);
@@ -597,7 +547,6 @@ const TicketConfiguration: React.FC = () => {
       toast({ title: "Ação excluída com sucesso" });
     }
   });
-
   // Mutation para copiar estrutura hierárquica
   const copyHierarchyMutation = useMutation({
     mutationFn: async () => {
@@ -642,7 +591,6 @@ const TicketConfiguration: React.FC = () => {
       });
     }
   });
-
   // Helper functions
   const toggleCategoryExpansion = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -653,10 +601,8 @@ const TicketConfiguration: React.FC = () => {
     }
     setExpandedCategories(newExpanded);
   };
-
   const openDialog = (type: string, item?: any) => {
     setEditingItem({ type, ...item });
-
     // Initialize form values based on dialog type
     if (type === 'subcategory') {
       const formData = {
@@ -708,42 +654,33 @@ const TicketConfiguration: React.FC = () => {
         statusType: item?.statusType || item?.status_type || undefined
       });
     }
-
     setDialogOpen(true);
   };
-
   const closeDialog = () => {
     setDialogOpen(false);
   };
-
   const handleCopyHierarchy = () => {
     if (confirm("Tem certeza que deseja copiar toda a estrutura hierárquica da empresa Default para esta empresa?\n\nEsta ação irá:\n• Copiar todas as categorias, subcategorias e ações\n• Copiar todas as opções de campos (status, prioridade, impacto, urgência)\n• Copiar configuração de numeração\n\nEsta operação não pode ser desfeita.")) {
       copyHierarchyMutation.mutate();
     }
   };
-
   const filteredCategories = categories.filter((cat: Category) =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   // Effect para carregar dados da numeração no form
   useEffect(() => {
     if (numberingConfig) {
       numberingForm.reset(numberingConfig);
     }
   }, [numberingConfig, numberingForm]);
-
-
-
   return (
     <div className=""
       <div className=""
-        <h1 className="text-3xl font-bold text-gray-900">Configurações de Tickets</h1>
+        <h1 className="text-lg">"Configurações de Tickets</h1>
         <p className=""
           Configure hierarquia, classificação e numeração dos tickets
         </p>
       </div>
-
       {/* Seletor de Empresa */}
       <Card className=""
         <CardHeader>
@@ -773,7 +710,7 @@ const TicketConfiguration: React.FC = () => {
           {selectedCompany && selectedCompany !== '00000000-0000-0000-0000-000000000001' && (
             <div className=""
               <div className=""
-                <h4 className="font-medium text-blue-900">Copiar Estrutura Hierárquica</h4>
+                <h4 className="text-lg">"Copiar Estrutura Hierárquica</h4>
                 <p className=""
                   Copie toda a estrutura hierárquica (categorias, subcategorias, ações e opções de campos) 
                   da empresa Default para esta empresa como ponto de partida.
@@ -800,7 +737,6 @@ const TicketConfiguration: React.FC = () => {
           )}
         </CardContent>
       </Card>
-
       {selectedCompany && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className=""
           <TabsList className=""
@@ -817,7 +753,6 @@ const TicketConfiguration: React.FC = () => {
               <span>Numeração</span>
             </TabsTrigger>
           </TabsList>
-
           {/* Tab: Hierarquia */}
           <TabsContent value="hierarchy" className=""
             {/* Header com estatísticas e ações */}
@@ -827,8 +762,8 @@ const TicketConfiguration: React.FC = () => {
                   <div className=""
                     <FolderTree className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Categorias</p>
-                      <p className="text-2xl font-bold">{categories.length}</p>
+                      <p className="text-lg">"Categorias</p>
+                      <p className="text-lg">"{categories.length}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -838,8 +773,8 @@ const TicketConfiguration: React.FC = () => {
                   <div className=""
                     <Settings className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Subcategorias</p>
-                      <p className="text-2xl font-bold">{subcategories.length}</p>
+                      <p className="text-lg">"Subcategorias</p>
+                      <p className="text-lg">"{subcategories.length}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -849,8 +784,8 @@ const TicketConfiguration: React.FC = () => {
                   <div className=""
                     <Plus className="w-5 h-5 text-orange-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Ações</p>
-                      <p className="text-2xl font-bold">{actions.length}</p>
+                      <p className="text-lg">"Ações</p>
+                      <p className="text-lg">"{actions.length}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -862,12 +797,11 @@ const TicketConfiguration: React.FC = () => {
                     className="w-full h-full flex flex-col items-center justify-center space-y-2"
                   >
                     <Plus className="w-6 h-6" />
-                    <span className="text-sm">Nova Categoria</span>
+                    <span className="text-lg">"Nova Categoria</span>
                   </Button>
                 </CardContent>
               </Card>
             </div>
-
             <Card>
               <CardHeader>
                 <div className=""
@@ -879,17 +813,17 @@ const TicketConfiguration: React.FC = () => {
                     <CardDescription className=""
                       <div className=""
                         <div className=""
-                          <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                          <div className="text-lg">"</div>
                           <span>Categoria (Nível 1)</span>
                         </div>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
                         <div className=""
-                          <div className="w-3 h-3 bg-green-500 rounded"></div>
+                          <div className="text-lg">"</div>
                           <span>Subcategoria (Nível 2)</span>
                         </div>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
                         <div className=""
-                          <div className="w-2 h-2 bg-orange-500 rounded"></div>
+                          <div className="text-lg">"</div>
                           <span>Ação (Nível 3)</span>
                         </div>
                       </div>
@@ -912,7 +846,7 @@ const TicketConfiguration: React.FC = () => {
                 {filteredCategories.length === 0 ? (
                   <div className=""
                     <FolderTree className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma categoria encontrada</h3>
+                    <h3 className="text-lg">"Nenhuma categoria encontrada</h3>
                     <p className=""
                       {searchTerm ? 'Tente ajustar os termos da busca.' : 'Comece criando sua primeira categoria.'}
                     </p>
@@ -944,7 +878,7 @@ const TicketConfiguration: React.FC = () => {
                             />
                             <div className=""
                               <div className=""
-                                <h4 className="font-semibold text-gray-900">{category.name}</h4>
+                                <h4 className="text-lg">"{category.name}</h4>
                                 <Badge variant={category.active ? "default" : "secondary"} className=""
                                   {category.active ? "Ativo" : "Inativo"
                                 </Badge>
@@ -953,7 +887,7 @@ const TicketConfiguration: React.FC = () => {
                                 </Badge>
                               </div>
                               {category.description && (
-                                <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                                <p className="text-lg">"{category.description}</p>
                               )}
                             </div>
                           </div>
@@ -995,7 +929,6 @@ const TicketConfiguration: React.FC = () => {
                             </Button>
                           </div>
                         </div>
-
                         {/* Conteúdo Expandido - Subcategorias */}
                         {expandedCategories.has(category.id) && (
                           <div className=""
@@ -1012,13 +945,13 @@ const TicketConfiguration: React.FC = () => {
                                       />
                                       <div className=""
                                         <div className=""
-                                          <span className="font-medium text-gray-900">{subcategory.name}</span>
+                                          <span className="text-lg">"{subcategory.name}</span>
                                           <Badge variant="outline" className=""
                                             {actions.filter(action => action.subcategoryId === subcategory.id).length} ações
                                           </Badge>
                                         </div>
                                         {subcategory.description && (
-                                          <p className="text-sm text-gray-600 mt-1">{subcategory.description}</p>
+                                          <p className="text-lg">"{subcategory.description}</p>
                                         )}
                                       </div>
                                     </div>
@@ -1053,7 +986,6 @@ const TicketConfiguration: React.FC = () => {
                                       </Button>
                                     </div>
                                   </div>
-
                                   {/* Ações da Subcategoria */}
                                   <div className=""
                                     {actions
@@ -1065,14 +997,14 @@ const TicketConfiguration: React.FC = () => {
                                               className="w-3 h-3 rounded border border-white shadow-sm"
                                               style={{ backgroundColor: action.color }}
                                             />
-                                            <span className="text-sm font-medium text-gray-900">{action.name}</span>
+                                            <span className="text-lg">"{action.name}</span>
                                             {action.estimatedTimeMinutes && (
                                               <Badge variant="outline" className=""
                                                 {action.estimatedTimeMinutes}min
                                               </Badge>
                                             )}
                                             {action.description && (
-                                              <span className="text-xs text-gray-500">- {action.description}</span>
+                                              <span className="text-lg">"- {action.description}</span>
                                             )}
                                           </div>
                                           <div className=""
@@ -1101,7 +1033,7 @@ const TicketConfiguration: React.FC = () => {
                                     {actions.filter(action => action.subcategoryId === subcategory.id).length === 0 && (
                                       <div className=""
                                         <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                        <p className="text-sm">Nenhuma ação cadastrada</p>
+                                        <p className="text-lg">"Nenhuma ação cadastrada</p>
                                         <Button
                                           variant="ghost"
                                           size="sm"
@@ -1116,11 +1048,10 @@ const TicketConfiguration: React.FC = () => {
                                   </div>
                                 </div>
                               ))}
-
                             {subcategories.filter(sub => sub.categoryId === category.id).length === 0 && (
                               <div className=""
                                 <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                <p className="text-sm mb-4">Nenhuma subcategoria cadastrada nesta categoria</p>
+                                <p className="text-lg">"Nenhuma subcategoria cadastrada nesta categoria</p>
                                 <Button
                                   variant="outline"
                                   onClick={() => openDialog('subcategory', { categoryId: category.id })}
@@ -1140,7 +1071,6 @@ const TicketConfiguration: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Tab: Classificação */}
           <TabsContent value="classification" className=""
             {/* Header com estatísticas gerais */}
@@ -1150,7 +1080,7 @@ const TicketConfiguration: React.FC = () => {
                   <div className=""
                     <Settings className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Status</p>
+                      <p className="text-lg">"Status</p>
                       <p className=""
                         {fieldOptions.filter(opt => opt.fieldName === 'status').length}
                       </p>
@@ -1163,7 +1093,7 @@ const TicketConfiguration: React.FC = () => {
                   <div className=""
                     <AlertTriangle className="w-5 h-5 text-orange-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Prioridades</p>
+                      <p className="text-lg">"Prioridades</p>
                       <p className=""
                         {fieldOptions.filter(opt => opt.fieldName === 'priority').length}
                       </p>
@@ -1176,7 +1106,7 @@ const TicketConfiguration: React.FC = () => {
                   <div className=""
                     <Hash className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Impactos</p>
+                      <p className="text-lg">"Impactos</p>
                       <p className=""
                         {fieldOptions.filter(opt => opt.fieldName === 'impact').length}
                       </p>
@@ -1189,7 +1119,7 @@ const TicketConfiguration: React.FC = () => {
                   <div className=""
                     <AlertTriangle className="w-5 h-5 text-red-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Urgências</p>
+                      <p className="text-lg">"Urgências</p>
                       <p className=""
                         {fieldOptions.filter(opt => opt.fieldName === 'urgency').length}
                       </p>
@@ -1198,7 +1128,6 @@ const TicketConfiguration: React.FC = () => {
                 </CardContent>
               </Card>
             </div>
-
             {/* Seções de classificação em formato de lista */}
             {[
               { 
@@ -1232,13 +1161,11 @@ const TicketConfiguration: React.FC = () => {
             ].map(({ key, title, description, icon: Icon, color }) => {
               // Ensure we have valid data and map database fields correctly
               const validFieldOptions = Array.isArray(fieldOptions) ? fieldOptions : [];
-
               const fieldOptionsForType = validFieldOptions
                 .filter((option: any) => {
                   // Handle both camelCase and snake_case field names from DB
                   const fieldName = option.fieldName || option.field_name;
                   const matches = fieldName === key;
-
                   if (key === 'status') {
                     console.log('🔍 Filtering status option:', {
                       displayLabel: option.displayLabel || option.display_label,
@@ -1264,13 +1191,11 @@ const TicketConfiguration: React.FC = () => {
                   statusType: option.statusType || option.status_type
                 }))
                 .sort((a, b) => a.sortOrder - b.sortOrder);
-
               console.log("🔍 Field options for " + key + ":", {
                 total: validFieldOptions.length,
                 filtered: fieldOptionsForType.length,
                 options: fieldOptionsForType.map(o => ({ label: o.displayLabel, value: o.value }))
               });
-
               return (
                 <Card key={key} className=""
                   <CardHeader className="bg-"-50 border-b>
@@ -1280,7 +1205,7 @@ const TicketConfiguration: React.FC = () => {
                           <Icon className="w-5 h-5 text-"-600" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg">{title}</CardTitle>
+                          <CardTitle className="text-lg">"{title}</CardTitle>
                           <CardDescription className=""
                             {description}
                           </CardDescription>
@@ -1324,12 +1249,12 @@ const TicketConfiguration: React.FC = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="w-12">#</TableHead>
+                            <TableHead className="text-lg">"#</TableHead>
                             <TableHead>Opção</TableHead>
                             <TableHead>Valor</TableHead>
                             {key === 'status' && <TableHead>Tipo</TableHead>}
                             <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
+                            <TableHead className="text-lg">"Ações</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1373,7 +1298,7 @@ const TicketConfiguration: React.FC = () => {
                                       }
                                     </Badge>
                                   ) : (
-                                    <span className="text-gray-400 text-sm">-</span>
+                                    <span className="text-lg">"-</span>
                                   )}
                                 </TableCell>
                               )}
@@ -1427,7 +1352,6 @@ const TicketConfiguration: React.FC = () => {
                 </Card>
               );
             })}
-
             {/* Card de dicas e boas práticas */}
             <Card className=""
               <CardHeader>
@@ -1439,7 +1363,7 @@ const TicketConfiguration: React.FC = () => {
               <CardContent className=""
                 <div className=""
                   <div>
-                    <h4 className="font-semibold mb-2">✨ Boas Práticas</h4>
+                    <h4 className="text-lg">"✨ Boas Práticas</h4>
                     <ul className=""
                       <li>• Mantenha o número de opções gerenciável (3-6 por campo)</li>
                       <li>• Use cores consistentes para facilitar identificação</li>
@@ -1448,7 +1372,7 @@ const TicketConfiguration: React.FC = () => {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2">🎯 Ordem de Importância</h4>
+                    <h4 className="text-lg">"🎯 Ordem de Importância</h4>
                     <ul className=""
                       <li>• Prioridade: Crítica → Alta → Média → Baixa</li>
                       <li>• Urgência: Imediata → Alta → Normal → Baixa</li>
@@ -1460,7 +1384,6 @@ const TicketConfiguration: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Tab: Numeração */}
           <TabsContent value="numbering" className=""
             <Card>
@@ -1535,7 +1458,6 @@ const TicketConfiguration: React.FC = () => {
                         )}
                       />
                     </div>
-
                     <div className=""
                       <FormField
                         control={numberingForm.control}
@@ -1576,17 +1498,15 @@ const TicketConfiguration: React.FC = () => {
                         />
                       </div>
                     </div>
-
                     <div className=""
-                      <Label className="font-medium">Visualização:</Label>
+                      <Label className="text-lg">"Visualização:</Label>
                       <div className=""
                         {numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || ''}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || ''}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -3)}123
                       </div>
                       <div className=""
-                        Exemplo: <span className="font-semibold">{numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || ''}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || ''}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -6)}000123</span>
+                        Exemplo: <span className="text-lg">"{numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || ''}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || ''}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -6)}000123</span>
                       </div>
                     </div>
-
                     <Button type="submit" disabled={saveNumberingMutation.isPending}>
                       <Save className="w-4 h-4 mr-2" />
                       {saveNumberingMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
@@ -1596,10 +1516,8 @@ const TicketConfiguration: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
         </Tabs>
       )}
-
       {/* Dialog para criação/edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className=""
@@ -1611,7 +1529,6 @@ const TicketConfiguration: React.FC = () => {
               {editingItem?.type === 'field-option' && 'Nova Opção de Campo'}
             </DialogTitle>
           </DialogHeader>
-
           {/* Formulário de Categoria */}
           {editingItem?.type === 'category' && (
             <Form {...categoryForm}>
@@ -1698,7 +1615,6 @@ const TicketConfiguration: React.FC = () => {
               </form>
             </Form>
           )}
-
           {/* Formulário de Subcategoria */}
           {editingItem?.type === 'subcategory' && (
             <Form {...subcategoryForm}>
@@ -1792,7 +1708,6 @@ const TicketConfiguration: React.FC = () => {
               </form>
             </Form>
           )}
-
           {/* Formulário de Ação */}
           {editingItem?.type === 'action' && (
             <Form {...actionForm}>
@@ -1886,7 +1801,6 @@ const TicketConfiguration: React.FC = () => {
               </form>
             </Form>
           )}
-
           {/* Formulário de Opção de Campo */}
           {editingItem?.type === 'field-option' && (
             <Form {...fieldOptionForm}>
@@ -1965,7 +1879,6 @@ const TicketConfiguration: React.FC = () => {
                     )}
                   />
                 </div>
-
                 {/* Campo de Tipo de Status - apenas para status */}
                 {fieldOptionForm.watch('fieldName') === 'status' && (
                   <FormField
@@ -2053,5 +1966,4 @@ const TicketConfiguration: React.FC = () => {
     </div>
   );
 };
-
 export default TicketConfiguration;

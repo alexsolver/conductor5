@@ -30,10 +30,8 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
 const integrationConfigSchema = z.object({
   // Localization temporarily disabled
-
   apiKey: z.string().min(1, "API Key é obrigatória"),
   baseUrl: z.string().optional().refine((val) => {
     if (!val || val === "") return true;
@@ -48,7 +46,6 @@ const integrationConfigSchema = z.object({
   temperature: z.number().min(0).max(2).optional(),
   enabled: z.boolean().default(true)
 });
-
 interface Integration {
   id: string;
   name: string;
@@ -60,13 +57,11 @@ interface Integration {
   lastTested?: string;
   config?: any;
 }
-
 export default function SaasAdminIntegrations() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
-
   // Verificar se usuário é SaaS admin
   if (!user || user.role !== 'saas_admin') {
     return (
@@ -81,13 +76,11 @@ export default function SaasAdminIntegrations() {
       </div>
     );
   }
-
   // Query para integrações
   const { data: integrationsData, isLoading } = useQuery({
     queryKey: ['/api/saas-admin/integrations'],
     staleTime: 5 * 60 * 1000,
   });
-
   // Form para configurar integração
   const configForm = useForm({
     resolver: zodResolver(integrationConfigSchema),
@@ -99,12 +92,10 @@ export default function SaasAdminIntegrations() {
       enabled: true
     }
   });
-
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
     mutationFn: async ({ integrationId, config }: { integrationId: string; config: any }) => {
       console.log('🔧 [SAAS-ADMIN-CONFIG] Salvando configuração:', { integrationId, hasApiKey: !!config.apiKey });
-
       // Sanitizar dados antes de enviar
       const sanitizedConfig = {
         ...config,
@@ -114,7 +105,6 @@ export default function SaasAdminIntegrations() {
         temperature: Number(config.temperature) || 0.7,
         enabled: Boolean(config.enabled)
       };
-
       const url = "/config`;
       return apiRequest('PUT', url, sanitizedConfig);
     },
@@ -136,10 +126,8 @@ export default function SaasAdminIntegrations() {
         message: error?.message,
         stack: error?.stack
       });
-
       // Extrair mensagem de erro mais específica
       let errorMessage = "Verifique os dados e tente novamente.";
-
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
@@ -147,7 +135,6 @@ export default function SaasAdminIntegrations() {
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-
       toast({
         title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
@@ -155,7 +142,6 @@ export default function SaasAdminIntegrations() {
       });
     }
   });
-
   // Mutation para testar integração
   const testIntegrationMutation = useMutation({
     mutationFn: async (integrationId: string) => {
@@ -178,7 +164,6 @@ export default function SaasAdminIntegrations() {
       console.log('✅ [SAAS-ADMIN-TEST] Result field:', data?.result);
       
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
-
       // Check both data.success and success fields
       const isSuccess = data?.success === true || data?.success === 'true';
       
@@ -198,14 +183,12 @@ export default function SaasAdminIntegrations() {
     },
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-TEST] Erro no teste:', error);
-
       let errorMessage = '[TRANSLATION_NEEDED]';
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-
       toast({
         title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
@@ -213,7 +196,6 @@ export default function SaasAdminIntegrations() {
       });
     }
   });
-
   // Use data from API when available, adding icons to each integration
   const integrations: Integration[] = integrationsData?.integrations?.map((integration: any) => ({
     ...integration,
@@ -252,7 +234,6 @@ export default function SaasAdminIntegrations() {
       config: {}
     }
   ];
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'connected': return 'text-green-600 bg-green-100';
@@ -261,7 +242,6 @@ export default function SaasAdminIntegrations() {
       default: return 'text-gray-600 bg-gray-100';
     }
   };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'connected': return <CheckCircle className="h-4 w-4" />;
@@ -270,7 +250,6 @@ export default function SaasAdminIntegrations() {
       default: return <AlertTriangle className="h-4 w-4" />;
     }
   };
-
   const onConfigureIntegration = (integration: Integration) => {
     console.log('🔧 [CONFIGURE] Opening config dialog for:', integration.id);
     console.log('🔧 [CONFIGURE] Integration config:', integration.config);
@@ -299,7 +278,6 @@ export default function SaasAdminIntegrations() {
     }
     setIsConfigDialogOpen(true);
   };
-
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
     if (selectedIntegration) {
       // Limpar baseUrl se for string vazia
@@ -307,14 +285,12 @@ export default function SaasAdminIntegrations() {
         ...data,
         baseUrl: data.baseUrl === "" ? undefined : data.baseUrl
       };
-
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
         config: cleanedData
       });
     }
   };
-
   return (
     <div className=""
       {/* Header */}
@@ -330,22 +306,20 @@ export default function SaasAdminIntegrations() {
           </div>
         </div>
       </div>
-
       {/* Stats Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total de Integrações</CardTitle>
+            <CardTitle className="text-lg">"Total de Integrações</CardTitle>
             <Plug className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{integrations.length}</div>
+            <div className="text-lg">"{integrations.length}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Conectadas</CardTitle>
+            <CardTitle className="text-lg">"Conectadas</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -354,10 +328,9 @@ export default function SaasAdminIntegrations() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Com Erro</CardTitle>
+            <CardTitle className="text-lg">"Com Erro</CardTitle>
             <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -366,10 +339,9 @@ export default function SaasAdminIntegrations() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Desconectadas</CardTitle>
+            <CardTitle className="text-lg">"Desconectadas</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -379,7 +351,6 @@ export default function SaasAdminIntegrations() {
           </CardContent>
         </Card>
       </div>
-
       {/* Integrações Cards */}
       <div className=""
         {integrations.map((integration) => {
@@ -393,13 +364,13 @@ export default function SaasAdminIntegrations() {
                       <IconComponent className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{integration.name}</CardTitle>
-                      <p className="text-sm text-gray-500">{integration.provider}</p>
+                      <CardTitle className="text-lg">"{integration.name}</CardTitle>
+                      <p className="text-lg">"{integration.provider}</p>
                     </div>
                   </div>
                   <Badge className={getStatusColor(integration.status)}>
                     {getStatusIcon(integration.status)}
-                    <span className="ml-1 capitalize">{integration.status}</span>
+                    <span className="text-lg">"{integration.status}</span>
                   </Badge>
                 </div>
               </CardHeader>
@@ -407,14 +378,12 @@ export default function SaasAdminIntegrations() {
                 <p className=""
                   {integration.description}
                 </p>
-
                 <div className=""
-                  <span className="text-sm font-medium">API Key:</span>
+                  <span className="text-lg">"API Key:</span>
                   <Badge variant={integration.apiKeyConfigured ? "default" : "secondary>
                     {integration.apiKeyConfigured ? "Configurada" : "Não configurada"
                   </Badge>
                 </div>
-
                 <div className=""
                   <Button 
                     size="sm" 
@@ -424,7 +393,6 @@ export default function SaasAdminIntegrations() {
                     <Settings className="h-4 w-4 mr-1" />
                     Configurar
                   </Button>
-
                   <Button 
                     size="sm" 
                     variant="outline"
@@ -435,7 +403,6 @@ export default function SaasAdminIntegrations() {
                     Testar
                   </Button>
                 </div>
-
                 {integration.lastTested && (
                   <p className=""
                     Último teste: {new Date(integration.lastTested).toLocaleDateString()}
@@ -446,7 +413,6 @@ export default function SaasAdminIntegrations() {
           );
         })}
       </div>
-
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
         <DialogContent className=""
@@ -455,7 +421,6 @@ export default function SaasAdminIntegrations() {
               Configurar {selectedIntegration?.name}
             </DialogTitle>
           </DialogHeader>
-
           <Form {...configForm}>
             <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className=""
               <FormField
@@ -475,7 +440,6 @@ export default function SaasAdminIntegrations() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={configForm.control}
                 name="baseUrl"
@@ -492,7 +456,6 @@ export default function SaasAdminIntegrations() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <FormField
                   control={configForm.control}
@@ -512,7 +475,6 @@ export default function SaasAdminIntegrations() {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={configForm.control}
                   name="temperature"
@@ -535,7 +497,6 @@ export default function SaasAdminIntegrations() {
                   )}
                 />
               </div>
-
               <FormField
                 control={configForm.control}
                 name="enabled"
@@ -558,7 +519,6 @@ export default function SaasAdminIntegrations() {
                   </FormItem>
                 )}
               />
-
               <div className=""
                 <Button 
                   type="button" 

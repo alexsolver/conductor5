@@ -1,8 +1,6 @@
-
 /**
  * Componentes de seleção para o template builder
  */
-
 import React from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select'
 import { Checkbox } from '../../ui/checkbox'
@@ -13,14 +11,12 @@ import { Button } from '../../ui/button'
 import { X } from 'lucide-react'
 import { FieldComponent } from '../DragDropCanvas'
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface SelectionFieldProps {
   field: FieldComponent
   value?: any
   onChange?: (value: any) => void
   disabled?: boolean
 }
-
 export const SelectField: React.FC<SelectionFieldProps> = ({
   // Localization temporarily disabled
  
@@ -31,15 +27,14 @@ export const SelectField: React.FC<SelectionFieldProps> = ({
 }) => {
   const { properties = {} } = field
   const options = properties.options || []
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">seleção única</Badge>
+        <Badge variant="outline" className="text-lg">"seleção única</Badge>
       </div>
       
       <Select
@@ -61,7 +56,7 @@ export const SelectField: React.FC<SelectionFieldProps> = ({
       </Select>
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
       
       <div className="text-xs text-gray-400>
@@ -70,7 +65,6 @@ export const SelectField: React.FC<SelectionFieldProps> = ({
     </div>
   )
 }
-
 export const MultiSelectField: React.FC<SelectionFieldProps> = ({ 
   field, 
   value = [], 
@@ -80,36 +74,31 @@ export const MultiSelectField: React.FC<SelectionFieldProps> = ({
   const { properties = {} } = field
   const options = properties.options || []
   const selectedValues = Array.isArray(value) ? value : []
-
   const handleToggleOption = (optionValue: string) => {
     if (disabled) return
-
     const newValues = selectedValues.includes(optionValue)
       ? selectedValues.filter(v => v !== optionValue)
       : [...selectedValues, optionValue]
     
     onChange?.(newValues)
   }
-
   const removeValue = (valueToRemove: string) => {
     if (disabled) return
     const newValues = selectedValues.filter(v => v !== valueToRemove)
     onChange?.(newValues)
   }
-
   const getOptionLabel = (optionValue: string) => {
     const option = options.find((opt: any) => opt.value === optionValue)
     return option?.label || optionValue
   }
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">múltipla seleção</Badge>
+        <Badge variant="outline" className="text-lg">"múltipla seleção</Badge>
       </div>
       
       {/* Valores selecionados */}
@@ -154,7 +143,7 @@ export const MultiSelectField: React.FC<SelectionFieldProps> = ({
       </div>
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
       
       <div className="text-xs text-gray-400>
@@ -163,7 +152,6 @@ export const MultiSelectField: React.FC<SelectionFieldProps> = ({
     </div>
   )
 }
-
 export const RadioField: React.FC<SelectionFieldProps> = ({ 
   field, 
   value = '', 
@@ -173,15 +161,14 @@ export const RadioField: React.FC<SelectionFieldProps> = ({
   const { properties = {} } = field
   const options = properties.options || []
   const layout = properties.layout || 'vertical'
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">botões de opção</Badge>
+        <Badge variant="outline" className="text-lg">"botões de opção</Badge>
       </div>
       
       <RadioGroup
@@ -207,12 +194,11 @@ export const RadioField: React.FC<SelectionFieldProps> = ({
       </RadioGroup>
       
       {properties.description && (
-        <p className="text-xs text-gray-500">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
     </div>
   )
 }
-
 export const CheckboxField: React.FC<SelectionFieldProps> = ({ 
   field, 
   value = false, 
@@ -220,15 +206,14 @@ export const CheckboxField: React.FC<SelectionFieldProps> = ({
   disabled = false 
 }) => {
   const { properties = {} } = field
-
   return (
     <div className="space-y-2>
       <div className="flex items-center justify-between>
         <Label className="text-sm font-medium>
           {field.label}
-          {properties.required && <span className="text-red-500 ml-1">*</span>}
+          {properties.required && <span className="text-lg">"*</span>}
         </Label>
-        <Badge variant="outline" className="text-xs">caixa de seleção</Badge>
+        <Badge variant="outline" className="text-lg">"caixa de seleção</Badge>
       </div>
       
       <div className="flex items-center space-x-2>
@@ -248,7 +233,7 @@ export const CheckboxField: React.FC<SelectionFieldProps> = ({
       </div>
       
       {properties.description && (
-        <p className="text-xs text-gray-500 mt-2">{properties.description}</p>
+        <p className="text-lg">"{properties.description}</p>
       )}
     </div>
   )

@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Plus, Play, Save } from 'lucide-react';
 // import { useLocalization } from '@/hooks/useLocalization';
-
 interface QueryCondition {
   id: string;
   field: string;
@@ -14,16 +13,13 @@ interface QueryCondition {
   value: string;
   logic?: 'AND' | 'OR';
 }
-
 interface QueryGroup {
   id: string;
   conditions: QueryCondition[];
   logic: 'AND' | 'OR';
 }
-
 export function QueryBuilder() {
   // Localization temporarily disabled
-
   const [currentModule, setCurrentModule] = useState('tickets');
   const [queryGroups, setQueryGroups] = useState<QueryGroup[]>([
     {
@@ -40,7 +36,6 @@ export function QueryBuilder() {
     }
   ]);
   const [queryPreview, setQueryPreview] = useState('');
-
   const moduleFields = {
     tickets: [
       { value: 'priority', label: 'Prioridade' },
@@ -67,7 +62,6 @@ export function QueryBuilder() {
       { value: 'categoryId', label: 'ID da Categoria' }
     ]
   };
-
   const operators = [
     { value: 'EQ', label: '=' },
     { value: 'NEQ', label: '≠' },
@@ -82,7 +76,6 @@ export function QueryBuilder() {
     { value: 'EXISTS', label: 'Existe' },
     { value: 'BETWEEN', label: 'Entre' }
   ];
-
   const addCondition = (groupId: string) => {
     setQueryGroups(prev => prev.map(group => 
       group.id === groupId 
@@ -102,7 +95,6 @@ export function QueryBuilder() {
         : group
     ));
   };
-
   const removeCondition = (groupId: string, conditionId: string) => {
     setQueryGroups(prev => prev.map(group => 
       group.id === groupId 
@@ -113,7 +105,6 @@ export function QueryBuilder() {
         : group
     ));
   };
-
   const updateCondition = (groupId: string, conditionId: string, field: keyof QueryCondition, value: string) => {
     setQueryGroups(prev => prev.map(group => 
       group.id === groupId 
@@ -128,7 +119,6 @@ export function QueryBuilder() {
         : group
     ));
   };
-
   const addGroup = () => {
     const newGroup: QueryGroup = {
       id: Date.now().toString(),
@@ -144,11 +134,9 @@ export function QueryBuilder() {
     };
     setQueryGroups(prev => [...prev, newGroup]);
   };
-
   const removeGroup = (groupId: string) => {
     setQueryGroups(prev => prev.filter(group => group.id !== groupId));
   };
-
   const generateQuery = () => {
     let query = '';
     queryGroups.forEach((group, groupIndex) => {
@@ -168,19 +156,16 @@ export function QueryBuilder() {
     
     setQueryPreview(query);
   };
-
   const testQuery = () => {
     // Simular teste da query
     console.log('Testing query:', queryPreview);
     alert('Query testada! Verifique o console para detalhes.');
   };
-
   const saveQuery = () => {
     // Salvar a query como regra
     console.log('Saving query as rule:', { module: currentModule, query: queryPreview });
     alert('Query salva como regra de aprovação!');
   };
-
   return (
     <div className="space-y-6" data-testid="query-builder>
       <Card data-testid="query-builder-header>
@@ -218,7 +203,6 @@ export function QueryBuilder() {
           </div>
         </CardContent>
       </Card>
-
       {/* Query Groups */}
       <div className="space-y-4" data-testid="query-groups>
         {queryGroups.map((group, groupIndex) => (
@@ -226,7 +210,7 @@ export function QueryBuilder() {
             <CardHeader className="pb-3>
               <div className="flex items-center justify-between>
                 <div className="flex items-center gap-2>
-                  <span className="font-medium">Grupo {groupIndex + 1}</span>
+                  <span className="text-lg">"Grupo {groupIndex + 1}</span>
                   {groupIndex > 0 && (
                     <Select 
                       value={group.logic} 
@@ -295,7 +279,6 @@ export function QueryBuilder() {
                         ))}
                       </SelectContent>
                     </Select>
-
                     <Select 
                       value={condition.operator} 
                       onValueChange={(value) => updateCondition(group.id, condition.id, 'operator', value)}
@@ -312,7 +295,6 @@ export function QueryBuilder() {
                         ))}
                       </SelectContent>
                     </Select>
-
                     <Input
                       placeholder="Valor"
                       value={condition.value}
@@ -320,7 +302,6 @@ export function QueryBuilder() {
                       className="flex-1"
                       data-testid={"
                     />
-
                     <Button
                       variant="ghost"
                       size="sm"
@@ -348,7 +329,6 @@ export function QueryBuilder() {
           </Card>
         ))}
       </div>
-
       {/* Query Preview */}
       <Card data-testid="query-preview-card>
         <CardHeader>

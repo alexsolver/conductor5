@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -82,7 +81,6 @@ import {
   SkipForward,
   FastForward
 } from 'lucide-react';
-
 interface FlowNode {
   id: string;
   type: 'trigger' | 'condition' | 'action' | 'response' | 'integration' | 'delay' | 'ai' | 'webhook' | 'branch' | 'loop' | 'variable' | 'validation' | 'transfer' | 'form' | 'media' | 'location' | 'payment' | 'calendar' | 'menu';
@@ -94,7 +92,6 @@ interface FlowNode {
   isStartNode?: boolean;
   isEndNode?: boolean;
 }
-
 interface FlowConnection {
   id: string;
   from: string;
@@ -102,7 +99,6 @@ interface FlowConnection {
   label?: string;
   condition?: string;
 }
-
 interface ChatbotFlow {
   id: string;
   name: string;
@@ -117,7 +113,6 @@ interface ChatbotFlow {
     language: string;
   };
 }
-
 interface Chatbot {
   id: string;
   tenantId: string;
@@ -134,7 +129,6 @@ interface Chatbot {
     userSatisfaction: number;
   };
 }
-
 // Node types with comprehensive options
 const nodeTypes = [
   // Triggers
@@ -180,7 +174,6 @@ const nodeTypes = [
     description: 'Ativado por horário/data',
     color: 'bg-blue-500'
   },
-
   // Conditions
   { 
     id: 'condition-text', 
@@ -214,7 +207,6 @@ const nodeTypes = [
     description: 'Verifica horário/data',
     color: 'bg-yellow-500'
   },
-
   // Actions
   { 
     id: 'action-send-message', 
@@ -280,7 +272,6 @@ const nodeTypes = [
     description: 'Adiciona tag ao usuário',
     color: 'bg-green-500'
   },
-
   // Response Types
   { 
     id: 'response-text', 
@@ -322,7 +313,6 @@ const nodeTypes = [
     description: 'Coleta dados do usuário',
     color: 'bg-purple-500'
   },
-
   // Integrations
   { 
     id: 'integration-whatsapp', 
@@ -388,7 +378,6 @@ const nodeTypes = [
     description: 'Integração com CRM',
     color: 'bg-indigo-500'
   },
-
   // AI & Advanced
   { 
     id: 'ai-nlp', 
@@ -422,7 +411,6 @@ const nodeTypes = [
     description: 'Sistema de recomendações',
     color: 'bg-pink-500'
   },
-
   // Flow Control
   { 
     id: 'flow-delay', 
@@ -480,7 +468,6 @@ const nodeTypes = [
     description: 'Transfere para atendente',
     color: 'bg-orange-500'
   },
-
   // Validation
   { 
     id: 'validation-email', 
@@ -515,7 +502,6 @@ const nodeTypes = [
     color: 'bg-cyan-500'
   }
 ];
-
 export default function ChatbotVisualEditor() {
   const { user } = useAuth();
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -536,7 +522,6 @@ export default function ChatbotVisualEditor() {
   const [draggedNode, setDraggedNode] = useState<FlowNode | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isNodeDragging, setIsNodeDragging] = useState(false);
-
   const [newChatbotData, setNewChatbotData] = useState({
     name: '',
     description: '',
@@ -545,11 +530,9 @@ export default function ChatbotVisualEditor() {
     fallbackToHuman: true,
     aiEnabled: false
   });
-
   useEffect(() => {
     fetchChatbots();
   }, [user?.tenantId]);
-
   const fetchChatbots = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -558,7 +541,6 @@ export default function ChatbotVisualEditor() {
         'Content-Type': 'application/json',
         'x-tenant-id': user?.tenantId || ''
       };
-
       const response = await fetch('/api/omnibridge/chatbots', { headers });
       
       if (response.ok) {
@@ -625,7 +607,6 @@ export default function ChatbotVisualEditor() {
       setChatbots([]);
     }
   };
-
   const handleCreateChatbot = async () => {
     try {
       const newChatbot: Chatbot = {
@@ -667,7 +648,6 @@ export default function ChatbotVisualEditor() {
           userSatisfaction: 0
         }
       };
-
       setChatbots(prev => [newChatbot, ...prev]);
       setSelectedChatbot(newChatbot);
       setShowCreateModal(false);
@@ -683,31 +663,24 @@ export default function ChatbotVisualEditor() {
       console.error('❌ [ChatbotEditor] Error creating chatbot:', error);
     }
   };
-
   const handleDragStart = (e: React.DragEvent, nodeTypeId: string) => {
     setDraggedNodeType(nodeTypeId);
     e.dataTransfer.effectAllowed = 'copy';
   };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (!draggedNodeType || !selectedChatbot) return;
-
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left - canvasOffset.x) / zoom;
     const y = (e.clientY - rect.top - canvasOffset.y) / zoom;
-
     const nodeType = nodeTypes.find(nt => nt.id === draggedNodeType);
     if (!nodeType) return;
-
     const newNode: FlowNode = {
       id: "
       type: nodeType.type,
@@ -717,7 +690,6 @@ export default function ChatbotVisualEditor() {
       config: {},
       connections: []
     };
-
     const updatedChatbot = {
       ...selectedChatbot,
       flow: {
@@ -725,15 +697,12 @@ export default function ChatbotVisualEditor() {
         nodes: [...selectedChatbot.flow.nodes, newNode]
       }
     };
-
     setSelectedChatbot(updatedChatbot);
     setChatbots(prev => prev.map(bot => 
       bot.id === selectedChatbot.id ? updatedChatbot : bot
     ));
-
     setDraggedNodeType(null);
   };
-
   const handleNodeClick = (node: FlowNode) => {
     if (connecting && connectionStart && connectionStart !== node.id) {
       // Create connection
@@ -743,7 +712,6 @@ export default function ChatbotVisualEditor() {
         to: node.id,
         label: 'Conectar'
       };
-
       if (selectedChatbot) {
         const updatedChatbot = {
           ...selectedChatbot,
@@ -757,13 +725,11 @@ export default function ChatbotVisualEditor() {
             )
           }
         };
-
         setSelectedChatbot(updatedChatbot);
         setChatbots(prev => prev.map(bot => 
           bot.id === selectedChatbot.id ? updatedChatbot : bot
         ));
       }
-
       setConnecting(false);
       setConnectionStart(null);
     } else if (connecting) {
@@ -773,7 +739,6 @@ export default function ChatbotVisualEditor() {
       setShowNodeConfig(true);
     }
   };
-
   const handleNodeMouseDown = (e: React.MouseEvent, node: FlowNode) => {
     e.preventDefault();
     e.stopPropagation();
@@ -782,7 +747,6 @@ export default function ChatbotVisualEditor() {
     
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-
     const offsetX = e.clientX - rect.left - node.position.x * zoom - canvasOffset.x;
     const offsetY = e.clientY - rect.top - node.position.y * zoom - canvasOffset.y;
     
@@ -790,15 +754,12 @@ export default function ChatbotVisualEditor() {
     setDragOffset({ x: offsetX, y: offsetY });
     setIsNodeDragging(true);
   };
-
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isNodeDragging || !draggedNode || !canvasRef.current) return;
-
     e.preventDefault();
     const rect = canvasRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / zoom;
     const y = (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / zoom;
-
     if (selectedChatbot) {
       const updatedChatbot = {
         ...selectedChatbot,
@@ -809,11 +770,9 @@ export default function ChatbotVisualEditor() {
           )
         }
       };
-
       setSelectedChatbot(updatedChatbot);
     }
   }, [isNodeDragging, draggedNode, canvasOffset, dragOffset, zoom, selectedChatbot]);
-
   const handleMouseUp = useCallback(() => {
     if (isNodeDragging && selectedChatbot && draggedNode) {
       setChatbots(prev => prev.map(bot => 
@@ -823,7 +782,6 @@ export default function ChatbotVisualEditor() {
     setIsNodeDragging(false);
     setDraggedNode(null);
   }, [isNodeDragging, selectedChatbot, draggedNode]);
-
   useEffect(() => {
     if (isNodeDragging) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -834,14 +792,12 @@ export default function ChatbotVisualEditor() {
       };
     }
   }, [isNodeDragging, handleMouseMove, handleMouseUp]);
-
   const filteredNodeTypes = nodeTypes.filter(nodeType => {
     const matchesSearch = nodeType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          nodeType.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || nodeType.type === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
   const nodeCategories = [
     { id: 'all', name: '[TRANSLATION_NEEDED]' },
     { id: 'trigger', name: 'Gatilhos' },
@@ -853,13 +809,12 @@ export default function ChatbotVisualEditor() {
     { id: 'validation', name: 'Validação' },
     { id: 'delay', name: 'Controle de Fluxo' }
   ];
-
   return (
     <div className="h-screen flex flex-col>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Editor Visual de Chatbots</h2>
+          <h2 className="text-lg">"Editor Visual de Chatbots</h2>
           <p className="text-muted-foreground>
             Construa fluxos conversacionais com interface visual intuitiva
           </p>
@@ -879,13 +834,12 @@ export default function ChatbotVisualEditor() {
           </Button>
         </div>
       </div>
-
       <div className="flex flex-1 overflow-hidden>
         {/* Sidebar - Node Palette */}
         <div className="w-80 border-r bg-gray-50 flex flex-col>
           {/* Chatbot Selector */}
           <div className="p-4 border-b bg-white>
-            <Label className="text-sm font-medium mb-2 block">Chatbot Ativo</Label>
+            <Label className="text-lg">"Chatbot Ativo</Label>
             <Select value={selectedChatbot?.id || ''} onValueChange={(value) => {
               const chatbot = chatbots.find(c => c.id === value);
               setSelectedChatbot(chatbot || null);
@@ -905,7 +859,6 @@ export default function ChatbotVisualEditor() {
               </SelectContent>
             </Select>
           </div>
-
           {/* Search and Filter */}
           <div className="p-4 space-y-3>
             <div className="relative>
@@ -930,7 +883,6 @@ export default function ChatbotVisualEditor() {
               </SelectContent>
             </Select>
           </div>
-
           {/* Node Palette */}
           <ScrollArea className="flex-1 p-4>
             <div className="space-y-2>
@@ -948,8 +900,8 @@ export default function ChatbotVisualEditor() {
                         <IconComponent className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0>
-                        <h4 className="font-medium text-sm text-gray-900">{nodeType.name}</h4>
-                        <p className="text-xs text-gray-500 truncate">{nodeType.description}</p>
+                        <h4 className="text-lg">"{nodeType.name}</h4>
+                        <p className="text-lg">"{nodeType.description}</p>
                       </div>
                     </div>
                   </Card>
@@ -958,7 +910,6 @@ export default function ChatbotVisualEditor() {
             </div>
           </ScrollArea>
         </div>
-
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col>
           {/* Toolbar */}
@@ -1002,7 +953,6 @@ export default function ChatbotVisualEditor() {
                 <Home className="h-4 w-4" />
               </Button>
             </div>
-
             <div className="flex items-center gap-2>
               <Button variant="outline" size="sm>
                 <RotateCcw className="h-4 w-4 mr-2" />
@@ -1014,7 +964,6 @@ export default function ChatbotVisualEditor() {
               </Button>
             </div>
           </div>
-
           {/* Canvas */}
           <div className="flex-1 relative overflow-hidden bg-gray-100>
             {selectedChatbot ? (
@@ -1036,7 +985,6 @@ export default function ChatbotVisualEditor() {
                     backgroundSize: '20px 20px'
                   }}
                 />
-
                 {/* Connection Lines */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none>
                   {selectedChatbot.flow.connections.map(connection => {
@@ -1044,12 +992,10 @@ export default function ChatbotVisualEditor() {
                     const toNode = selectedChatbot.flow.nodes.find(n => n.id === connection.to);
                     
                     if (!fromNode || !toNode) return null;
-
                     const x1 = fromNode.position.x + 100; // Center of node
                     const y1 = fromNode.position.y + 25;
                     const x2 = toNode.position.x + 100;
                     const y2 = toNode.position.y + 25;
-
                     return (
                       <g key={connection.id}>
                         <line
@@ -1092,7 +1038,6 @@ export default function ChatbotVisualEditor() {
                     </marker>
                   </defs>
                 </svg>
-
                 {/* Flow Nodes */}
                 {selectedChatbot.flow.nodes.map(node => {
                   const nodeType = nodeTypes.find(nt => nt.type === node.type);
@@ -1126,7 +1071,7 @@ export default function ChatbotVisualEditor() {
                               <IconComponent className="h-4 w-4" />
                             </div>
                             <div className="flex-1 min-w-0>
-                              <h4 className="font-medium text-sm truncate">{node.title}</h4>
+                              <h4 className="text-lg">"{node.title}</h4>
                               <p className="text-xs text-muted-foreground truncate>
                                 {nodeType?.name || node.type}
                               </p>
@@ -1152,7 +1097,7 @@ export default function ChatbotVisualEditor() {
               <div className="flex items-center justify-center h-full>
                 <div className="text-center>
                   <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Nenhum chatbot selecionado</h3>
+                  <h3 className="text-lg">"Nenhum chatbot selecionado</h3>
                   <p className="text-muted-foreground mb-4>
                     Selecione um chatbot ou crie um novo para começar a editar
                   </p>
@@ -1166,7 +1111,6 @@ export default function ChatbotVisualEditor() {
           </div>
         </div>
       </div>
-
       {/* Create Chatbot Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="max-w-2xl>
@@ -1242,7 +1186,6 @@ export default function ChatbotVisualEditor() {
               </div>
             </div>
           </div>
-
           <div className="flex justify-end gap-2>
             <Button variant="outline" onClick={() => setShowCreateModal(false)}>
               Cancelar
@@ -1257,7 +1200,6 @@ export default function ChatbotVisualEditor() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Node Configuration Modal */}
       <Dialog open={showNodeConfig} onOpenChange={setShowNodeConfig}>
         <DialogContent className="max-w-3xl>
@@ -1275,7 +1217,6 @@ export default function ChatbotVisualEditor() {
                 <TabsTrigger value="config">Configuração</TabsTrigger>
                 <TabsTrigger value="connections">Conexões</TabsTrigger>
               </TabsList>
-
               <TabsContent value="basic" className="space-y-4>
                 <div>
                   <Label>Título do Nó</Label>
@@ -1286,14 +1227,13 @@ export default function ChatbotVisualEditor() {
                   <Textarea value={selectedNode.description || ''} onChange={() => {}} rows={3} />
                 </div>
               </TabsContent>
-
               <TabsContent value="config" className="space-y-4>
                 {selectedNode && (
                   <div className="space-y-4>
                     {/* Trigger Node Configurations */}
                     {selectedNode.type === 'trigger' && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações de Gatilho</h4>
+                        <h4 className="text-lg">"Configurações de Gatilho</h4>
                         
                         {nodeTypes.find(nt => nt.id.includes('trigger-message'))?.id === selectedNode.id && (
                           <div className="space-y-4>
@@ -1303,24 +1243,24 @@ export default function ChatbotVisualEditor() {
                                 placeholder="olá&#10;oi&#10;bom dia&#10;boa tarde&#10;preciso de ajuda"
                                 rows={4}
                               />
-                              <p className="text-xs text-muted-foreground mt-1">Uma mensagem por linha. Use quebras de linha para separar</p>
+                              <p className="text-lg">"Uma mensagem por linha. Use quebras de linha para separar</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4>
                               <div className="flex items-center space-x-2>
                                 <Switch id="case-sensitive" />
-                                <Label htmlFor="case-sensitive" className="text-sm">Sensível a maiúsculas/minúsculas</Label>
+                                <Label htmlFor="case-sensitive" className="text-lg">"Sensível a maiúsculas/minúsculas</Label>
                               </div>
                               <div className="flex items-center space-x-2>
                                 <Switch id="exact-match" />
-                                <Label htmlFor="exact-match" className="text-sm">Correspondência exata</Label>
+                                <Label htmlFor="exact-match" className="text-lg">"Correspondência exata</Label>
                               </div>
                               <div className="flex items-center space-x-2>
                                 <Switch id="partial-match" />
-                                <Label htmlFor="partial-match" className="text-sm">Correspondência parcial</Label>
+                                <Label htmlFor="partial-match" className="text-lg">"Correspondência parcial</Label>
                               </div>
                               <div className="flex items-center space-x-2>
                                 <Switch id="regex-enabled" />
-                                <Label htmlFor="regex-enabled" className="text-sm">Usar expressões regulares</Label>
+                                <Label htmlFor="regex-enabled" className="text-lg">"Usar expressões regulares</Label>
                               </div>
                             </div>
                             <div>
@@ -1343,42 +1283,41 @@ export default function ChatbotVisualEditor() {
                               <div className="space-y-2>
                                 <div className="flex items-center space-x-2>
                                   <Switch id="first-message-only" />
-                                  <Label htmlFor="first-message-only" className="text-sm">Apenas primeira mensagem do usuário</Label>
+                                  <Label htmlFor="first-message-only" className="text-lg">"Apenas primeira mensagem do usuário</Label>
                                 </div>
                                 <div className="flex items-center space-x-2>
                                   <Switch id="business-hours-only" />
-                                  <Label htmlFor="business-hours-only" className="text-sm">Apenas em horário comercial</Label>
+                                  <Label htmlFor="business-hours-only" className="text-lg">"Apenas em horário comercial</Label>
                                 </div>
                                 <div className="flex items-center space-x-2>
                                   <Switch id="new-users-only" />
-                                  <Label htmlFor="new-users-only" className="text-sm">Apenas usuários novos</Label>
+                                  <Label htmlFor="new-users-only" className="text-lg">"Apenas usuários novos</Label>
                                 </div>
                               </div>
                             </div>
                             <div>
                               <Label>Timeout do Gatilho (segundos)</Label>
                               <Input type="number" min="0" defaultValue="0" placeholder="0 = sem timeout" />
-                              <p className="text-xs text-muted-foreground mt-1">Tempo limite para o gatilho ser ativado após a mensagem</p>
+                              <p className="text-lg">"Tempo limite para o gatilho ser ativado após a mensagem</p>
                             </div>
                           </div>
                         )}
-
                         {nodeTypes.find(nt => nt.id.includes('trigger-keyword'))?.id === selectedNode.id && (
                           <div className="space-y-4>
                             <div>
                               <Label>Palavras-chave Principais</Label>
                               <Textarea placeholder="suporte, ajuda, problema, dúvida" rows={3} />
-                              <p className="text-xs text-muted-foreground mt-1">Palavras-chave primárias separadas por vírgula</p>
+                              <p className="text-lg">"Palavras-chave primárias separadas por vírgula</p>
                             </div>
                             <div>
                               <Label>Palavras-chave Secundárias (Opcionais)</Label>
                               <Textarea placeholder="auxílio, apoio, questão, pergunta" rows={2} />
-                              <p className="text-xs text-muted-foreground mt-1">Palavras-chave que aumentam a pontuação</p>
+                              <p className="text-lg">"Palavras-chave que aumentam a pontuação</p>
                             </div>
                             <div>
                               <Label>Palavras Excludentes</Label>
                               <Textarea placeholder='[TRANSLATION_NEEDED]' rows={2} />
-                              <p className="text-xs text-muted-foreground mt-1">Palavras que impedem a ativação do gatilho</p>
+                              <p className="text-lg">"Palavras que impedem a ativação do gatilho</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4>
                               <div>
@@ -1398,26 +1337,25 @@ export default function ChatbotVisualEditor() {
                               <div>
                                 <Label>Pontuação Mínima</Label>
                                 <Input type="number" min="1" max="100" defaultValue="70" />
-                                <p className="text-xs text-muted-foreground mt-1">0-100%</p>
+                                <p className="text-lg">"0-100%</p>
                               </div>
                             </div>
                             <div className="space-y-2>
                               <div className="flex items-center space-x-2>
                                 <Switch id="stemming" />
-                                <Label htmlFor="stemming" className="text-sm">Usar stemming (raiz das palavras)</Label>
+                                <Label htmlFor="stemming" className="text-lg">"Usar stemming (raiz das palavras)</Label>
                               </div>
                               <div className="flex items-center space-x-2>
                                 <Switch id="synonyms" />
-                                <Label htmlFor="synonyms" className="text-sm">Incluir sinônimos automáticos</Label>
+                                <Label htmlFor="synonyms" className="text-lg">"Incluir sinônimos automáticos</Label>
                               </div>
                               <div className="flex items-center space-x-2>
                                 <Switch id="fuzzy-match" />
-                                <Label htmlFor="fuzzy-match" className="text-sm">Correspondência aproximada</Label>
+                                <Label htmlFor="fuzzy-match" className="text-lg">"Correspondência aproximada</Label>
                               </div>
                             </div>
                           </div>
                         )}
-
                         {nodeTypes.find(nt => nt.id.includes('trigger-intent'))?.id === selectedNode.id && (
                           <div className="space-y-3>
                             <div>
@@ -1445,11 +1383,10 @@ export default function ChatbotVisualEditor() {
                         )}
                       </div>
                     )}
-
                     {/* Action Node Configurations */}
                     {selectedNode.type === 'action' && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações de Ação</h4>
+                        <h4 className="text-lg">"Configurações de Ação</h4>
                         
                         {nodeTypes.find(nt => nt.id.includes('action-send-message'))?.id === selectedNode.id && (
                           <div className="space-y-3>
@@ -1459,7 +1396,7 @@ export default function ChatbotVisualEditor() {
                             </div>
                             <div className="flex items-center space-x-2>
                               <Switch id="use-variables" />
-                              <Label htmlFor="use-variables" className="text-sm">Usar variáveis dinâmicas</Label>
+                              <Label htmlFor="use-variables" className="text-lg">"Usar variáveis dinâmicas</Label>
                             </div>
                             <div>
                               <Label>Delay (segundos)</Label>
@@ -1467,7 +1404,6 @@ export default function ChatbotVisualEditor() {
                             </div>
                           </div>
                         )}
-
                         {nodeTypes.find(nt => nt.id.includes('action-api-call'))?.id === selectedNode.id && (
                           <div className="space-y-3>
                             <div>
@@ -1490,7 +1426,7 @@ export default function ChatbotVisualEditor() {
                             </div>
                             <div>
                               <Label>Headers</Label>
-                              <Textarea placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"ation/json"}' rows={3} />
+                              <Textarea placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"ation/json"ation/json"ation/json"ation/json"}' rows={3} />
                             </div>
                             <div>
                               <Label>Body da Requisição</Label>
@@ -1502,7 +1438,6 @@ export default function ChatbotVisualEditor() {
                             </div>
                           </div>
                         )}
-
                         {nodeTypes.find(nt => nt.id.includes('action-set-variable'))?.id === selectedNode.id && (
                           <div className="space-y-3>
                             <div>
@@ -1531,11 +1466,10 @@ export default function ChatbotVisualEditor() {
                         )}
                       </div>
                     )}
-
                     {/* Condition Node Configurations */}
                     {selectedNode.type === 'condition' && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações de Condição</h4>
+                        <h4 className="text-lg">"Configurações de Condição</h4>
                         
                         <div className="space-y-3>
                           <div>
@@ -1565,16 +1499,15 @@ export default function ChatbotVisualEditor() {
                           </div>
                           <div className="flex items-center space-x-2>
                             <Switch id="case-insensitive" />
-                            <Label htmlFor="case-insensitive" className="text-sm">Ignorar maiúsculas/minúsculas</Label>
+                            <Label htmlFor="case-insensitive" className="text-lg">"Ignorar maiúsculas/minúsculas</Label>
                           </div>
                         </div>
                       </div>
                     )}
-
                     {/* Response Node Configurations */}
                     {selectedNode.type === 'response' && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações de Resposta</h4>
+                        <h4 className="text-lg">"Configurações de Resposta</h4>
                         
                         {nodeTypes.find(nt => nt.id.includes('response-quick-reply'))?.id === selectedNode.id && (
                           <div className="space-y-3>
@@ -1600,7 +1533,6 @@ export default function ChatbotVisualEditor() {
                             </div>
                           </div>
                         )}
-
                         {nodeTypes.find(nt => nt.id.includes('response-menu'))?.id === selectedNode.id && (
                           <div className="space-y-3>
                             <div>
@@ -1628,11 +1560,10 @@ export default function ChatbotVisualEditor() {
                         )}
                       </div>
                     )}
-
                     {/* AI Node Configurations */}
                     {selectedNode.type === 'ai' && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações de IA</h4>
+                        <h4 className="text-lg">"Configurações de IA</h4>
                         
                         <div className="space-y-3>
                           <div>
@@ -1656,7 +1587,7 @@ export default function ChatbotVisualEditor() {
                           <div>
                             <Label>Temperatura</Label>
                             <Input type="number" min="0" max="1" step="0.1" defaultValue="0.7" />
-                            <p className="text-xs text-muted-foreground mt-1">0 = Mais preciso, 1 = Mais criativo</p>
+                            <p className="text-lg">"0 = Mais preciso, 1 = Mais criativo</p>
                           </div>
                           <div>
                             <Label>Máximo de Tokens</Label>
@@ -1664,16 +1595,15 @@ export default function ChatbotVisualEditor() {
                           </div>
                           <div className="flex items-center space-x-2>
                             <Switch id="context-memory" />
-                            <Label htmlFor="context-memory" className="text-sm">Manter contexto da conversa</Label>
+                            <Label htmlFor="context-memory" className="text-lg">"Manter contexto da conversa</Label>
                           </div>
                         </div>
                       </div>
                     )}
-
                     {/* Integration Node Configurations */}
                     {selectedNode.type === 'integration' && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações de Integração</h4>
+                        <h4 className="text-lg">"Configurações de Integração</h4>
                         
                         <div className="space-y-3>
                           <div>
@@ -1697,7 +1627,7 @@ export default function ChatbotVisualEditor() {
                           </div>
                           <div className="flex items-center space-x-2>
                             <Switch id="retry-enabled" />
-                            <Label htmlFor="retry-enabled" className="text-sm">Retentar em caso de falha</Label>
+                            <Label htmlFor="retry-enabled" className="text-lg">"Retentar em caso de falha</Label>
                           </div>
                           <div>
                             <Label>Tentativas Máximas</Label>
@@ -1706,11 +1636,10 @@ export default function ChatbotVisualEditor() {
                         </div>
                       </div>
                     )}
-
                     {/* Delay Node Configurations */}
                     {selectedNode.type === 'delay' && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações de Delay</h4>
+                        <h4 className="text-lg">"Configurações de Delay</h4>
                         
                         <div className="space-y-3>
                           <div>
@@ -1736,16 +1665,15 @@ export default function ChatbotVisualEditor() {
                           </div>
                           <div className="flex items-center space-x-2>
                             <Switch id="show-typing" />
-                            <Label htmlFor="show-typing" className="text-sm">Mostrar indicador de digitação</Label>
+                            <Label htmlFor="show-typing" className="text-lg">"Mostrar indicador de digitação</Label>
                           </div>
                         </div>
                       </div>
                     )}
-
                     {/* Validation Node Configurations */}
                     {selectedNode.type === 'validation' && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações de Validação</h4>
+                        <h4 className="text-lg">"Configurações de Validação</h4>
                         
                         <div className="space-y-3>
                           <div>
@@ -1778,11 +1706,10 @@ export default function ChatbotVisualEditor() {
                         </div>
                       </div>
                     )}
-
                     {/* Default Configuration for unhandled types */}
                     {!['trigger', 'action', 'condition', 'response', 'ai', 'integration', 'delay', 'validation'].includes(selectedNode.type) && (
                       <div className="space-y-4>
-                        <h4 className="font-medium text-sm">Configurações Gerais</h4>
+                        <h4 className="text-lg">"Configurações Gerais</h4>
                         <div className="space-y-3>
                           <div>
                             <Label>Configuração Personalizada</Label>
@@ -1790,7 +1717,7 @@ export default function ChatbotVisualEditor() {
                           </div>
                           <div className="flex items-center space-x-2>
                             <Switch id="enabled" />
-                            <Label htmlFor="enabled" className="text-sm">Nó ativo</Label>
+                            <Label htmlFor="enabled" className="text-lg">"Nó ativo</Label>
                           </div>
                         </div>
                       </div>
@@ -1798,10 +1725,9 @@ export default function ChatbotVisualEditor() {
                   </div>
                 )}
               </TabsContent>
-
               <TabsContent value="connections" className="space-y-4>
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">Conexões de Saída</Label>
+                  <Label className="text-lg">"Conexões de Saída</Label>
                   <div className="space-y-3>
                     {selectedNode.connections.map((connId, index) => {
                       const targetNode = selectedChatbot?.flow.nodes.find(n => n.id === connId);
@@ -1813,10 +1739,10 @@ export default function ChatbotVisualEditor() {
                               <ArrowRight className="h-4 w-4 text-blue-500" />
                             </div>
                             <div className="flex-1>
-                              <div className="font-medium text-sm">{targetNode?.title || connId}</div>
-                              <div className="text-xs text-muted-foreground">{targetNode?.type || 'Nó desconhecido'}</div>
+                              <div className="text-lg">"{targetNode?.title || connId}</div>
+                              <div className="text-lg">"{targetNode?.type || 'Nó desconhecido'}</div>
                               {connection?.label && (
-                                <div className="text-xs text-blue-600 mt-1">"{connection.label}"</div>
+                                <div className="text-lg">""{connection.label}"</div>
                               )}
                             </div>
                             <div className="flex gap-1>
@@ -1834,17 +1760,15 @@ export default function ChatbotVisualEditor() {
                     {selectedNode.connections.length === 0 && (
                       <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-lg>
                         <Link className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Nenhuma conexão de saída</p>
-                        <p className="text-xs text-muted-foreground">Use o modo de conexão para criar links</p>
+                        <p className="text-lg">"Nenhuma conexão de saída</p>
+                        <p className="text-lg">"Use o modo de conexão para criar links</p>
                       </div>
                     )}
                   </div>
                 </div>
-
                 <Separator />
-
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">Conexões de Entrada</Label>
+                  <Label className="text-lg">"Conexões de Entrada</Label>
                   <div className="space-y-3>
                     {selectedChatbot?.flow.connections
                       .filter(conn => conn.to === selectedNode.id)
@@ -1857,10 +1781,10 @@ export default function ChatbotVisualEditor() {
                                 <ArrowRight className="h-4 w-4 text-green-500 rotate-180" />
                               </div>
                               <div className="flex-1>
-                                <div className="font-medium text-sm">{sourceNode?.title || connection.from}</div>
-                                <div className="text-xs text-muted-foreground">{sourceNode?.type || 'Nó desconhecido'}</div>
+                                <div className="text-lg">"{sourceNode?.title || connection.from}</div>
+                                <div className="text-lg">"{sourceNode?.type || 'Nó desconhecido'}</div>
                                 {connection.label && (
-                                  <div className="text-xs text-green-600 mt-1">"{connection.label}"</div>
+                                  <div className="text-lg">""{connection.label}"</div>
                                 )}
                               </div>
                             </div>
@@ -1869,17 +1793,15 @@ export default function ChatbotVisualEditor() {
                       })}
                     {selectedChatbot?.flow.connections.filter(conn => conn.to === selectedNode.id).length === 0 && (
                       <div className="text-center py-4 border border-gray-200 rounded-lg bg-gray-50>
-                        <p className="text-sm text-muted-foreground">Nenhuma conexão de entrada</p>
-                        <p className="text-xs text-muted-foreground">Este nó não recebe dados de outros nós</p>
+                        <p className="text-lg">"Nenhuma conexão de entrada</p>
+                        <p className="text-lg">"Este nó não recebe dados de outros nós</p>
                       </div>
                     )}
                   </div>
                 </div>
-
                 <Separator />
-
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">Configurações de Conexão</Label>
+                  <Label className="text-lg">"Configurações de Conexão</Label>
                   <div className="space-y-3>
                     <div>
                       <Label>Comportamento de Falha</Label>
@@ -1901,19 +1823,17 @@ export default function ChatbotVisualEditor() {
                     </div>
                     <div className="flex items-center space-x-2>
                       <Switch id="log-connections" />
-                      <Label htmlFor="log-connections" className="text-sm">Registrar todas as conexões</Label>
+                      <Label htmlFor="log-connections" className="text-lg">"Registrar todas as conexões</Label>
                     </div>
                     <div className="flex items-center space-x-2>
                       <Switch id="parallel-connections" />
-                      <Label htmlFor="parallel-connections" className="text-sm">Permitir conexões paralelas</Label>
+                      <Label htmlFor="parallel-connections" className="text-lg">"Permitir conexões paralelas</Label>
                     </div>
                   </div>
                 </div>
-
                 <Separator />
-
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">Condições de Conexão</Label>
+                  <Label className="text-lg">"Condições de Conexão</Label>
                   <div className="space-y-3>
                     <div>
                       <Label>Condições para Ativação</Label>
@@ -1932,14 +1852,13 @@ export default function ChatbotVisualEditor() {
                     <div>
                       <Label>Expressão Condicional (Opcional)</Label>
                       <Input placeholder="Ex: {{user.age}} > 18" />
-                      <p className="text-xs text-muted-foreground mt-1">Use variáveis entre chaves duplas</p>
+                      <p className="text-lg">"Use variáveis entre chaves duplas</p>
                     </div>
                   </div>
                 </div>
               </TabsContent>
             </Tabs>
           )}
-
           <div className="flex justify-end gap-2>
             <Button variant="outline" onClick={() => setShowNodeConfig(false)}>
               Cancelar

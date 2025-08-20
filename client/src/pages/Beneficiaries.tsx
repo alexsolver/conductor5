@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 // import useLocalization from '@/hooks/useLocalization';
-
 // UI Components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 // Icons
 import { 
   Plus, 
@@ -34,17 +32,13 @@ import {
   Mail,
   Users
 } from "lucide-react";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-
 // Schema for beneficiary creation/editing
 const beneficiarySchema = z.object({
   // Localization temporarily disabled
-
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
@@ -59,9 +53,7 @@ const beneficiarySchema = z.object({
   contactPerson: z.string().optional(),
   contactPhone: z.string().optional(),
 });
-
 type BeneficiaryFormData = z.infer<typeof beneficiarySchema>;
-
 interface Beneficiary {
   id: string;
   // Frontend naming
@@ -96,7 +88,6 @@ interface Beneficiary {
   created_at?: string;
   updated_at?: string;
 }
-
 export default function Beneficiaries() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -105,10 +96,8 @@ export default function Beneficiaries() {
   const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null);
   const [beneficiaryCustomers, setBeneficiaryCustomers] = useState<any[]>([]);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   // Form setup
   const form = useForm<BeneficiaryFormData>({
     resolver: zodResolver(beneficiarySchema),
@@ -128,7 +117,6 @@ export default function Beneficiaries() {
       contactPhone: "",
     },
   });
-
   // Fetch beneficiaries with pagination and search
   const { data: beneficiariesData, isLoading, refetch } = useQuery({
     queryKey: ["/api/beneficiaries", { page: currentPage, limit: itemsPerPage, search: searchTerm }],
@@ -143,7 +131,6 @@ export default function Beneficiaries() {
         limit: itemsPerPage.toString(),
       });
       if (searchTerm) params.append('search', searchTerm);
-
       // Usar endpoint padronizado
       const response = await fetch("
         headers: {
@@ -152,16 +139,13 @@ export default function Beneficiaries() {
         },
         credentials: 'include',
       });
-
       if (!response.ok) {
         throw new Error("
       }
-
       const data = await response.json();
       return data;
     },
   });
-
   // Query for customers
   const { data: customersData, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ["/api/customers"],
@@ -169,20 +153,17 @@ export default function Beneficiaries() {
     staleTime: 5000,
     gcTime: 30000,
   });
-
   // Query for beneficiary customers (when editing)
   const { data: beneficiaryCustomersData } = useQuery({
     queryKey: ["/api/beneficiaries", editingBeneficiary?.id, "customers"],
     enabled: !!editingBeneficiary?.id,
   });
-
   // Update beneficiaryCustomers when data changes
   React.useEffect(() => {
     if (beneficiaryCustomersData && 'data' in beneficiaryCustomersData && beneficiaryCustomersData.data) {
       setBeneficiaryCustomers(beneficiaryCustomersData.data);
     }
   }, [beneficiaryCustomersData]);
-
   // Create beneficiary mutation
   const createBeneficiaryMutation = useMutation({
     mutationFn: async (data: BeneficiaryFormData) => {
@@ -206,7 +187,6 @@ export default function Beneficiaries() {
       });
     },
   });
-
   // Functions for managing many-to-many relationships
   const handleAddCustomer = async (customerId: string) => {
     if (!editingBeneficiary?.id) return;
@@ -233,7 +213,6 @@ export default function Beneficiaries() {
       });
     }
   };
-
   const handleRemoveCustomer = async (customerId: string) => {
     if (!editingBeneficiary?.id) return;
     
@@ -255,7 +234,6 @@ export default function Beneficiaries() {
       });
     }
   };
-
   // Update beneficiary mutation
   const updateBeneficiaryMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: BeneficiaryFormData }) => {
@@ -280,7 +258,6 @@ export default function Beneficiaries() {
       });
     },
   });
-
   // Delete beneficiary mutation
   const deleteBeneficiaryMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -302,7 +279,6 @@ export default function Beneficiaries() {
       });
     },
   });
-
   // Derived values - handle both nested and direct data structures
   let beneficiaries = [];
   let pagination = { total: 0, totalPages: 0 };
@@ -329,7 +305,6 @@ export default function Beneficiaries() {
     beneficiariesCount: beneficiaries.length,
     structure: beneficiariesData ? Object.keys(beneficiariesData) : 'no data'
   });
-
   // Filter beneficiaries based on search term
   const filteredBeneficiaries = useMemo(() => {
     if (!Array.isArray(beneficiaries)) return [];
@@ -342,13 +317,11 @@ export default function Beneficiaries() {
       (beneficiary.lastName || beneficiary.last_name)?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [beneficiaries, searchTerm]);
-
   // Calculate pagination
   const totalPages = Math.ceil((filteredBeneficiaries?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentBeneficiaries = Array.isArray(filteredBeneficiaries) ? filteredBeneficiaries.slice(startIndex, endIndex) : [];
-
   // Handle form submission
   const handleSubmit = (data: BeneficiaryFormData) => {
     // Convert "none" back to empty string or null for backend
@@ -363,7 +336,6 @@ export default function Beneficiaries() {
       createBeneficiaryMutation.mutate(processedData);
     }
   };
-
   // Handle edit
   const handleEdit = (beneficiary: Beneficiary) => {
     console.log('[TRANSLATION_NEEDED]', beneficiary);
@@ -390,24 +362,21 @@ export default function Beneficiaries() {
     form.reset(formData);
     setIsCreateDialogOpen(true);
   };
-
   // Handle delete
   const handleDelete = (id: string) => {
     if (confirm("Tem certeza que deseja excluir este favorecido?")) {
       deleteBeneficiaryMutation.mutate(id);
     }
   };
-
   // Early return for loading state
   if (isLoading) {
     return (
       <div className=""
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+        <div className="text-lg">"</div>
+        <div className="text-lg">"</div>
       </div>
     );
   }
-
   const BeneficiaryForm = () => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className=""
@@ -417,7 +386,6 @@ export default function Beneficiaries() {
             <TabsTrigger value="contact">Contato</TabsTrigger>
             <TabsTrigger value="additional">Informações Adicionais</TabsTrigger>
           </TabsList>
-
           <TabsContent value="basic" className=""
             <div className=""
               <FormField
@@ -447,7 +415,6 @@ export default function Beneficiaries() {
                 )}
               />
             </div>
-
             <FormField
               control={form.control}
               name="email"
@@ -461,12 +428,11 @@ export default function Beneficiaries() {
                 </FormItem>
               )}
             />
-
             {/* Clientes Associados - Many-to-Many */}
             {editingBeneficiary && (
               <div className=""
                 <div className=""
-                  <Label className="text-sm font-medium">Clientes Associados</Label>
+                  <Label className="text-lg">"Clientes Associados</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -481,7 +447,7 @@ export default function Beneficiaries() {
                 {/* Lista de clientes associados */}
                 <div className=""
                   {beneficiaryCustomers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Nenhum cliente associado</p>
+                    <p className="text-lg">"Nenhum cliente associado</p>
                   ) : (
                     beneficiaryCustomers.map((customer: any) => (
                       <div key={customer.id} className=""
@@ -500,12 +466,11 @@ export default function Beneficiaries() {
                     ))
                   )}
                 </div>
-
                 {/* Seletor de cliente modal */}
                 {showCustomerSelector && (
                   <div className=""
                     <div className=""
-                      <Label className="text-sm">Selecionar Cliente:</Label>
+                      <Label className="text-lg">"Selecionar Cliente:</Label>
                       <Button
                         type="button"
                         variant="ghost"
@@ -533,7 +498,6 @@ export default function Beneficiaries() {
                 )}
               </div>
             )}
-
             {/* Campo cliente único para criação */}
             {!editingBeneficiary && (
               <FormField
@@ -562,7 +526,6 @@ export default function Beneficiaries() {
                 )}
               />
             )}
-
             <div className=""
               <FormField
                 control={form.control}
@@ -591,14 +554,13 @@ export default function Beneficiaries() {
                 )}
               />
             </div>
-
             <FormField
               control={form.control}
               name="isActive"
               render={({ field }) => (
                 <FormItem className=""
                   <div className=""
-                    <FormLabel className="text-base">Ativo</FormLabel>
+                    <FormLabel className="text-lg">"Ativo</FormLabel>
                     <div className=""
                       O favorecido está ativo no sistema
                     </div>
@@ -613,7 +575,6 @@ export default function Beneficiaries() {
               )}
             />
           </TabsContent>
-
           <TabsContent value="contact" className=""
             <div className=""
               <FormField
@@ -643,7 +604,6 @@ export default function Beneficiaries() {
                 )}
               />
             </div>
-
             <div className=""
               <FormField
                 control={form.control}
@@ -673,7 +633,6 @@ export default function Beneficiaries() {
               />
             </div>
           </TabsContent>
-
           <TabsContent value="additional" className=""
             <div className=""
               <FormField
@@ -705,7 +664,6 @@ export default function Beneficiaries() {
             </div>
           </TabsContent>
         </Tabs>
-
         <div className=""
           <Button
             type="button"
@@ -728,13 +686,12 @@ export default function Beneficiaries() {
       </form>
     </Form>
   );
-
   return (
     <div className=""
       {/* Header */}
       <div className=""
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Favorecidos</h1>
+          <h1 className="text-lg">"Favorecidos</h1>
           <p className=""
             Gerencie os favorecidos do sistema
           </p>
@@ -766,21 +723,20 @@ export default function Beneficiaries() {
           </DialogContent>
         </Dialog>
       </div>
-
       {/* Stats Cards */}
       <div className=""
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
+            <CardTitle className="text-lg">"Total</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pagination.total}</div>
+            <div className="text-lg">"{pagination.total}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Ativos</CardTitle>
+            <CardTitle className="text-lg">"Ativos</CardTitle>
             <UserCheck className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -791,7 +747,7 @@ export default function Beneficiaries() {
         </Card>
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Inativos</CardTitle>
+            <CardTitle className="text-lg">"Inativos</CardTitle>
             <User className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
@@ -802,15 +758,14 @@ export default function Beneficiaries() {
         </Card>
         <Card>
           <CardHeader className=""
-            <CardTitle className="text-sm font-medium">Esta Página</CardTitle>
+            <CardTitle className="text-lg">"Esta Página</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentBeneficiaries.length}</div>
+            <div className="text-lg">"{currentBeneficiaries.length}</div>
           </CardContent>
         </Card>
       </div>
-
       {/* Search */}
       <div className=""
         <div className=""
@@ -823,7 +778,6 @@ export default function Beneficiaries() {
           />
         </div>
       </div>
-
       {/* Table */}
       <Card>
         <CardHeader>
@@ -839,7 +793,7 @@ export default function Beneficiaries() {
                 <TableHead>Status</TableHead>
                 <TableHead>Código</TableHead>
                 <TableHead>Criado em</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="text-lg">"Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -847,7 +801,7 @@ export default function Beneficiaries() {
                 <TableRow key={beneficiary.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{beneficiary.fullName || beneficiary.full_name}</div>
+                      <div className="text-lg">"{beneficiary.fullName || beneficiary.full_name}</div>
                       {(beneficiary.contactPerson || beneficiary.contact_person) && (
                         <div className=""
                           Contato: {beneficiary.contactPerson || beneficiary.contact_person}
@@ -875,7 +829,7 @@ export default function Beneficiaries() {
                         </div>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">-</span>
+                      <span className="text-lg">"-</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -885,7 +839,7 @@ export default function Beneficiaries() {
                   </TableCell>
                   <TableCell>
                     {(beneficiary.customerCode || beneficiary.customer_code) || (
-                      <span className="text-muted-foreground">-</span>
+                      <span className="text-lg">"-</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -917,7 +871,6 @@ export default function Beneficiaries() {
               ))}
             </TableBody>
           </Table>
-
           {filteredBeneficiaries.length === 0 && (
             <div className=""
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
@@ -929,7 +882,6 @@ export default function Beneficiaries() {
               </p>
             </div>
           )}
-
           {/* Pagination */}
           {totalPages > 1 && (
             <div className=""
