@@ -612,7 +612,7 @@ function TicketAdvancedConfiguration() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === 'field' && (editingItem.id ? "Editar Campo" : 'Novo Campo')}
+              {editingItem?.type === 'field' && (editingItem.id ? {t('TicketAdvancedConfiguration.editarCampo')} : 'Novo Campo')}
               {editingItem?.type === 'option' && 'Nova Opção'}
               {editingItem?.type === 'sla' && 'Configurar SLA'}
             </DialogTitle>

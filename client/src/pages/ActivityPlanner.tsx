@@ -269,7 +269,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: "Erro ao criar ativo", 
+          title: {t('ActivityPlanner.erroAoCriarAtivo')}, 
           description: error.message,
           variant: "destructive" 
         });

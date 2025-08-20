@@ -165,8 +165,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar lista de preços",
-        description: error?.message || "Erro desconhecido",
+        title: {t('LPU.erroAoCriarListaDePrecos')},
+        description: error?.message || {t('LPU.erroDesconhecido')},
         variant: "destructive"
       });
     }
@@ -186,8 +186,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar lista de preços",
-        description: error?.message || "Erro desconhecido",
+        title: {t('LPU.erroAoAtualizarListaDePrecos')},
+        description: error?.message || {t('LPU.erroDesconhecido')},
         variant: "destructive"
       });
     }
@@ -207,8 +207,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir lista de preços",
-        description: error?.message || "Erro desconhecido",
+        title: {t('LPU.erroAoExcluirListaDePrecos')},
+        description: error?.message || {t('LPU.erroDesconhecido')},
         variant: "destructive"
       });
     }
@@ -226,8 +226,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao duplicar lista de preços",
-        description: error?.message || "Erro desconhecido",
+        title: {t('LPU.erroAoDuplicarListaDePrecos')},
+        description: error?.message || {t('LPU.erroDesconhecido')},
         variant: "destructive"
       });
     }
@@ -247,8 +247,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar regra de precificação",
-        description: error?.message || "Erro desconhecido",
+        title: {t('LPU.erroAoCriarRegraDePrecificacao')},
+        description: error?.message || {t('LPU.erroDesconhecido')},
         variant: "destructive"
       });
     }
@@ -268,8 +268,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar regra de precificação",
-        description: error?.message || "Erro desconhecido",
+        title: {t('LPU.erroAoAtualizarRegraDePrecificacao')},
+        description: error?.message || {t('LPU.erroDesconhecido')},
         variant: "destructive"
       });
     }
@@ -288,8 +288,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir regra de precificação",
-        description: error?.message || "Erro desconhecido",
+        title: {t('LPU.erroAoExcluirRegraDePrecificacao')},
+        description: error?.message || {t('LPU.erroDesconhecido')},
         variant: "destructive"
       });
     }
@@ -304,14 +304,14 @@ export default function LPU() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({
-        title: "Regras aplicadas com sucesso",
+        title: {t('LPU.regrasAplicadasComSucesso')},
         description: `${data.affectedItems || 0} itens atualizados`
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao aplicar regras",
-        description: error?.message || "Erro desconhecido",
+        title: {t('LPU.erroAoAplicarRegras')},
+        description: error?.message || {t('LPU.erroDesconhecido')},
         variant: "destructive"
       });
     }
@@ -378,7 +378,7 @@ export default function LPU() {
       <CardContent className="p-4">
         <h3 className="text-red-800 font-medium">{title}</h3>
         <p className="text-red-600 text-sm mt-1">
-          {error?.message || "Erro desconhecido"}
+          {error?.message || {t('LPU.erroDesconhecido')}}
         </p>
       </CardContent>
     </Card>

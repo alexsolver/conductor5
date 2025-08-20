@@ -11,6 +11,7 @@ import { Plus, X, BookOpen, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModernRichTextEditor } from "./ModernRichTextEditor";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface CreateArticleDialogProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ const categories = [
   { value: 'procedures', label: 'Procedimentos' },
   { value: 'faq', label: 'Perguntas Frequentes' },
   { value: 'training', label: 'Treinamento' },
-  { value: 'integrations', label: 'Integrações' }
+  { value: 'integrations', label: {t('knowledge-base.integracoes')} }
 ];
 
 const accessLevels = [
@@ -34,7 +35,9 @@ const accessLevels = [
   { value: 'restricted', label: 'Restrito' }
 ];
 
-export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProps) {
+export function CreateArticleDialog({
+  const { t } = useLocalization();
+ isOpen, onClose }: CreateArticleDialogProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
@@ -58,7 +61,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
     onSuccess: (result) => {
       if (result.success) {
         toast({
-          title: "✅ Artigo criado com sucesso!",
+          title: {t('knowledge-base.artigoCriadoComSucesso')},
           description: "O artigo foi salvo na base de conhecimento.",
         });
 
@@ -74,7 +77,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         onClose();
       } else {
         toast({
-          title: "❌ Erro ao criar artigo",
+          title: {t('knowledge-base.erroAoCriarArtigo')},
           description: result.message || "Ocorreu um erro inesperado.",
           variant: "destructive",
         });
@@ -83,7 +86,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
     onError: (error) => {
       console.error('❌ [CREATE-ARTICLE] Error:', error);
       toast({
-        title: "❌ Erro ao criar artigo",
+        title: {t('knowledge-base.erroAoCriarArtigo')},
         description: error instanceof Error ? error.message : "Não foi possível criar o artigo. Tente novamente.",
         variant: "destructive",
       });
@@ -144,21 +147,21 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
       if (error instanceof Error) {
         if (error.message.includes('column') && error.message.includes('does not exist')) {
           toast({
-            title: "❌ Erro de configuração do banco de dados",
-            description: 'Erro de configuração do banco de dados. Contacte o suporte.',
+            title: {t('knowledge-base.erroDeConfiguracaoDoBancoDeDados')},
+            description: {t('knowledge-base.erroDeConfiguracaoDoBancoDeDadosContacteOSuporte')},
             variant: "destructive",
           });
         } else {
           toast({
-            title: "❌ Erro ao criar artigo",
-            description: error.message || 'Erro interno do servidor',
+            title: {t('knowledge-base.erroAoCriarArtigo')},
+            description: error.message || {t('knowledge-base.erroInternoDoServidor')},
             variant: "destructive",
           });
         }
       } else {
         toast({
-          title: "❌ Erro interno do servidor",
-          description: 'Erro interno do servidor',
+          title: {t('knowledge-base.erroInternoDoServidor')},
+          description: {t('knowledge-base.erroInternoDoServidor')},
           variant: "destructive",
         });
       }
@@ -203,7 +206,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
             </Label>
             <Select value={category} onValueChange={setCategory} required>
               <SelectTrigger data-testid="select-article-category">
-                <SelectValue placeholder="Selecione uma categoria" />
+                <SelectValue placeholder={t('knowledge-base.selecioneUmaCategoria')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (

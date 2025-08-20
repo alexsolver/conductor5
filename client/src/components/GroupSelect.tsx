@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface GroupSelectProps {
   value?: string;
@@ -11,7 +12,9 @@ interface GroupSelectProps {
   className?: string;
 }
 
-export function GroupSelect({ 
+export function GroupSelect({
+  const { t } = useLocalization();
+ 
   value, 
   onChange, 
   placeholder = "Selecionar grupo", 
@@ -32,7 +35,7 @@ export function GroupSelect({
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder="Carregando grupos..." />
+          <SelectValue placeholder={t('GroupSelect.tsx.carregandoGrupos')} />
         </SelectTrigger>
       </Select>
     );

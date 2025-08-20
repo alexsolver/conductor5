@@ -45,8 +45,11 @@ import NotificationPreferencesTab from "@/components/NotificationPreferencesTab"
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { UploadResult } from "@uppy/core";
+import { useLocalization } from '@/hooks/useLocalization';
 
 const profileSchema = z.object({
+  const { t } = useLocalization();
+
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
@@ -173,7 +176,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PROFILE-UPDATE] Error details:', error);
       toast({
-        title: "Erro ao atualizar",
+        title: {t('UserProfile.erroAoAtualizar')},
         description: "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
@@ -232,7 +235,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
       toast({
-        title: "Erro ao atualizar foto",
+        title: {t('UserProfile.erroAoAtualizarFoto')},
         description: "Não foi possível atualizar sua foto de perfil.",
         variant: "destructive",
       });
@@ -268,7 +271,7 @@ export default function UserProfile() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao alterar senha",
+        title: {t('UserProfile.erroAoAlterarSenha')},
         description: error.message || "Não foi possível alterar a senha.",
         variant: "destructive",
       });
@@ -290,7 +293,7 @@ export default function UserProfile() {
     },
     onError: () => {
       toast({
-        title: "Erro ao salvar",
+        title: {t('UserProfile.erroAoSalvar')},
         description: "Não foi possível salvar as preferências.",
         variant: "destructive",
       });
@@ -308,7 +311,7 @@ export default function UserProfile() {
       };
     } catch (error) {
       toast({
-        title: "Erro no upload",
+        title: {t('UserProfile.erroNoUpload')},
         description: "Não foi possível obter URL de upload.",
         variant: "destructive",
       });
@@ -494,7 +497,7 @@ export default function UserProfile() {
                           <FormDescription>
                             {user?.role !== 'saas_admin' 
                               ? "Apenas administradores podem alterar o email" 
-                              : (!isEditing ? "Clique em 'Editar Perfil' para alterar o email" : "Digite seu email")}
+                              : (!isEditing ? "Clique em {t('UserProfile.editarPerfil')} para alterar o email" : "Digite seu email")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -578,7 +581,7 @@ export default function UserProfile() {
                           <Select disabled={!isEditing} value={field.value} onValueChange={field.onChange}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o fuso horário" />
+                                <SelectValue placeholder={t('UserProfile.selecioneOFusoHorario')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -1198,7 +1201,7 @@ function PrivacyGdprTab() {
                   </div>
                   <Badge variant={request.status === 'completed' ? 'default' : 'secondary'}>
                     {request.status === 'pending' ? 'Pendente' : 
-                     request.status === 'processing' ? 'Processando' : 'Concluído'}
+                     request.status === 'processing' ? {t('UserProfile.processando')} : 'Concluído'}
                   </Badge>
                 </div>
               ))}

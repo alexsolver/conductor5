@@ -258,7 +258,7 @@ function LocationsNewContent() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('LocationsNew.sucesso')},
         description: `${RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES].label} criado com sucesso!`
       });
       queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });

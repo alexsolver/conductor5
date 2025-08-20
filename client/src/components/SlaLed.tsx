@@ -3,6 +3,7 @@
 
 import { Clock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useLocalization } from '@/hooks/useLocalization';
 
 // ======================================
 // TYPES AND INTERFACES
@@ -24,6 +25,8 @@ export interface SlaLedProps {
 // ======================================
 
 const ledStyles = {
+  const { t } = useLocalization();
+
   none: {
     color: 'bg-gray-400',
     text: 'text-gray-600',
@@ -41,7 +44,7 @@ const ledStyles = {
   warning: {
     color: 'bg-yellow-500',
     text: 'text-yellow-600',
-    label: 'Atenção',
+    label: {t('SlaLed.tsx.atencao')},
     icon: AlertTriangle,
     badge: 'warning'
   },

@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { RelatedTicketsExpansion } from "./RelatedTicketsExpansion";
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Types
 interface Ticket {
@@ -90,6 +91,8 @@ const TicketRowSkeleton = () => (
 
 // Main Component
 export const ResponsiveTicketsTable = ({
+  const { t } = useLocalization();
+
   tickets = [],
   isLoading = false,
   onEdit,
@@ -123,7 +126,7 @@ export const ResponsiveTicketsTable = ({
 
 
   return (
-    <div className="rounded-md border overflow-hidden" role="region" aria-label="Tabela de tickets">
+    <div className="rounded-md border overflow-hidden" role="region" aria-label={t('tickets.tabelaDeTickets')}>
       <Table>
         <TableHeader>
           <TableRow role="row">
@@ -236,7 +239,7 @@ export const ResponsiveTicketsTable = ({
                         <Button
                           variant="ghost"
                           className="h-8 w-8 p-0"
-                          aria-label={`Ações para ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
+                          aria-label={{t('tickets.acoesParaTicketTicketnumberTicketidslice08')}}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>

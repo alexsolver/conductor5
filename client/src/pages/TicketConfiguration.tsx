@@ -490,14 +490,14 @@ const TicketConfiguration: React.FC = () => {
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ 
-        title: "Opção atualizada com sucesso",
+        title: {t('TicketConfiguration.opcaoAtualizadaComSucesso')},
         description: "A opção foi atualizada no sistema."
       });
     },
     onError: (error) => {
       console.error('❌ Error updating field option:', error);
       toast({ 
-        title: "Erro ao atualizar opção",
+        title: {t('TicketConfiguration.erroAoAtualizarOpcao')},
         description: "Não foi possível atualizar a opção.",
         variant: "destructive"
       });
@@ -519,7 +519,7 @@ const TicketConfiguration: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
       
       toast({ 
-        title: "Status atualizado com sucesso",
+        title: {t('TicketConfiguration.statusAtualizadoComSucesso')},
         description: "A opção foi ativada/desativada."
       });
     },

@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Settings, Users, Clock, CheckCircle, XCircle, Plus, Trash2, Edit, UserPlus, X } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface ApprovalGroup {
   id: string;
@@ -48,6 +49,8 @@ interface User {
 }
 
 export default function TimecardApprovalSettings() {
+  const { t } = useLocalization();
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('settings');
@@ -109,7 +112,7 @@ export default function TimecardApprovalSettings() {
             counts[group.id] = 0;
           }
         } catch (error) {
-          console.error('Error fetching member count for group:', group.id, error);
+          console.error({t('TimecardApprovalSettings.errorFetchingMemberCountForGroup')}, group.id, error);
           counts[group.id] = 0;
         }
       }
@@ -138,18 +141,18 @@ export default function TimecardApprovalSettings() {
     },
     onSuccess: () => {
       toast({
-        title: "Configurações salvas",
+        title: {t('TimecardApprovalSettings.configuracoesSalvas')},
         description: "As configurações de aprovação foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/settings'] });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: {t('TimecardApprovalSettings.erro')},
         description: "Falha ao salvar as configurações.",
         variant: "destructive",
       });
-      console.error('Error updating settings:', error);
+      console.error({t('TimecardApprovalSettings.errorUpdatingSettings')}, error);
     },
   });
 
@@ -170,11 +173,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: {t('TimecardApprovalSettings.erro')},
         description: "Falha ao criar o grupo.",
         variant: "destructive",
       });
-      console.error('Error creating group:', error);
+      console.error({t('TimecardApprovalSettings.errorCreatingGroup')}, error);
     },
   });
 
@@ -196,11 +199,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: {t('TimecardApprovalSettings.erro')},
         description: "Falha ao atualizar o grupo.",
         variant: "destructive",
       });
-      console.error('Error updating group:', error);
+      console.error({t('TimecardApprovalSettings.errorUpdatingGroup')}, error);
     },
   });
 
@@ -224,11 +227,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: {t('TimecardApprovalSettings.erro')},
         description: "Falha ao atualizar membros do grupo.",
         variant: "destructive",
       });
-      console.error('Error updating members:', error);
+      console.error({t('TimecardApprovalSettings.errorUpdatingMembers')}, error);
     },
   });
 
@@ -246,11 +249,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: {t('TimecardApprovalSettings.erro')},
         description: "Falha ao remover o grupo.",
         variant: "destructive",
       });
-      console.error('Error deleting group:', error);
+      console.error({t('TimecardApprovalSettings.errorDeletingGroup')}, error);
     },
   });
 
@@ -280,7 +283,7 @@ export default function TimecardApprovalSettings() {
   const handleCreateGroup = () => {
     if (!newGroupName.trim()) {
       toast({
-        title: "Erro",
+        title: {t('TimecardApprovalSettings.erro')},
         description: "Nome do grupo é obrigatório.",
         variant: "destructive",
       });
@@ -296,7 +299,7 @@ export default function TimecardApprovalSettings() {
   const handleUpdateGroup = () => {
     if (!selectedGroup || !newGroupName.trim()) {
       toast({
-        title: "Erro",
+        title: {t('TimecardApprovalSettings.erro')},
         description: "Nome do grupo é obrigatório.",
         variant: "destructive",
       });
@@ -434,7 +437,7 @@ export default function TimecardApprovalSettings() {
                   <Label>Requer aprovação para:</Label>
                   <div className="space-y-2">
                     {[
-                      { value: 'all', label: 'Todos os registros' },
+                      { value: 'all', label: {t('TimecardApprovalSettings.todosOsRegistros')} },
                       { value: 'inconsistencies', label: 'Inconsistências' },
                       { value: 'overtime', label: 'Horas extras' },
                       { value: 'absences', label: 'Faltas/atrasos' }
@@ -476,7 +479,7 @@ export default function TimecardApprovalSettings() {
                   onValueChange={(value) => handleSettingsChange('approvalGroupId', value || null)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um grupo" />
+                    <SelectValue placeholder={t('TimecardApprovalSettings.selecioneUmGrupo')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum grupo selecionado</SelectItem>
@@ -553,11 +556,11 @@ export default function TimecardApprovalSettings() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedGroup ? 'Editar Grupo de Aprovação' : 'Criar Grupo de Aprovação'}
+                    {selectedGroup ? {t('TimecardApprovalSettings.editarGrupoDeAprovacao')} : {t('TimecardApprovalSettings.criarGrupoDeAprovacao')}}
                   </DialogTitle>
                   <DialogDescription>
                     {selectedGroup 
-                      ? 'Edite as informações do grupo de aprovação.'
+                      ? {t('TimecardApprovalSettings.editeAsInformacoesDoGrupoDeAprovacao')}
                       : 'Crie um novo grupo para organizar os aprovadores de timecard.'
                     }
                   </DialogDescription>
@@ -595,8 +598,8 @@ export default function TimecardApprovalSettings() {
                       disabled={createGroupMutation.isPending || updateGroupMutation.isPending}
                     >
                       {selectedGroup 
-                        ? (updateGroupMutation.isPending ? 'Salvando...' : 'Salvar Alterações')
-                        : (createGroupMutation.isPending ? 'Criando...' : 'Criar Grupo')
+                        ? (updateGroupMutation.isPending ? 'Salvando...' : {t('TimecardApprovalSettings.salvarAlteracoes')})
+                        : (createGroupMutation.isPending ? 'Criando...' : {t('TimecardApprovalSettings.criarGrupo')})
                       }
                     </Button>
                   </div>
@@ -658,7 +661,7 @@ export default function TimecardApprovalSettings() {
                         onClick={handleUpdateMembers}
                         disabled={updateMembersMutation.isPending}
                       >
-                        {updateMembersMutation.isPending ? 'Salvando...' : 'Salvar Membros'}
+                        {updateMembersMutation.isPending ? 'Salvando...' : {t('TimecardApprovalSettings.salvarMembros')}}
                       </Button>
                     </div>
                   </div>

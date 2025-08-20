@@ -13,6 +13,7 @@ import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import { Alert, AlertDescription } from '../../ui/alert'
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Calculator, 
   Code, 
   TrendingUp, 
@@ -42,6 +43,8 @@ interface CalculatedFieldProps {
 }
 
 export const CalculatedField: React.FC<CalculatedFieldProps> = ({
+  const { t } = useLocalization();
+
   field,
   value,
   onChange,
@@ -149,7 +152,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       return result
 
     } catch (error) {
-      setCalculationError(error instanceof Error ? error.message : 'Erro no cálculo')
+      setCalculationError(error instanceof Error ? error.message : {t('template-builder.erroNoCalculo')})
       setIsCalculating(false)
       return ''
     }
@@ -352,7 +355,7 @@ export const useCalculatedFields = (fields: any[], formData: Record<string, any>
           // Por simplicidade, apenas copiando o valor
           newValues[field.id] = calculatedValues[field.id] || ''
         } catch (error) {
-          console.error(`Error calculating field ${field.id}:`, error)
+          console.error({t('template-builder.errorCalculatingFieldFieldid')}, error)
         }
       })
 

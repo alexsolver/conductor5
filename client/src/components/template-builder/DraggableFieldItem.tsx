@@ -11,6 +11,7 @@ import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { FieldComponent } from './DragDropCanvas'
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   GripVertical, 
   Settings, 
   Trash2, 
@@ -43,6 +44,8 @@ interface DraggableFieldItemProps {
 }
 
 const getFieldIcon = (type: string) => {
+  const { t } = useLocalization();
+
   const icons = {
     text: Type,
     textarea: FileText,
@@ -298,7 +301,7 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
                 size="sm"
                 onClick={() => onSelect(field.id)}
                 className="h-8 w-8 p-0"
-                title="Editar propriedades"
+                title={t('template-builder.editarPropriedades')}
               >
                 <Settings className="w-3 h-3" />
               </Button>

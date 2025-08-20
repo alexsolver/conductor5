@@ -110,12 +110,12 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     queryKey: ['/api/team-management/members', member?.id],
     queryFn: async () => {
       if (!member?.id) return null;
-      console.log('EditMemberDialog - Fetching complete member details for:', member.id);
+      console.log({t('user-management.editmemberdialogFetchingCompleteMemberDetailsFor')}, member.id);
       
       // Try multiple endpoints to get complete user data
       try {
         const response = await apiRequest('GET', `/api/user-management/users/${member.id}`);
-        console.log('EditMemberDialog - Got complete member details:', response);
+        console.log({t('user-management.editmemberdialogGotCompleteMemberDetails')}, response);
         
         // If the response is empty object or doesn't have essential fields, use member data
         if (!response || Object.keys(response).length === 0 || !response.email) {
@@ -125,7 +125,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         
         return response;
       } catch (error) {
-        console.log('EditMemberDialog - API error, fallback to basic member data:', member);
+        console.log({t('user-management.editmemberdialogApiErrorFallbackToBasicMemberData')}, member);
         return member;
       }
     },
@@ -138,8 +138,8 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       // Use member data as source since API returns empty object
       const sourceData = member;
       
-      console.log('EditMemberDialog - Setting form data for member:', sourceData);
-      console.log('EditMemberDialog - Available data keys:', Object.keys(sourceData));
+      console.log({t('user-management.editmemberdialogSettingFormDataForMember')}, sourceData);
+      console.log({t('user-management.editmemberdialogAvailableDataKeys')}, Object.keys(sourceData));
 
       // Handle different data structures with more comprehensive mapping
       const firstName = sourceData.firstName || sourceData.first_name || (sourceData.name ? sourceData.name.split(' ')[0] : '');
@@ -186,7 +186,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         groupIds: sourceData.groupIds || sourceData.group_ids || []
       };
 
-      console.log('EditMemberDialog - Final form data:', formDataToSet);
+      console.log({t('user-management.editmemberdialogFinalFormData')}, formDataToSet);
       form.reset(formDataToSet);
     }
   }, [member, open, memberLoading, form]);
@@ -194,7 +194,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   // Update member mutation
   const updateMemberMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('EditMemberDialog - Updating member with data:', data);
+      console.log({t('user-management.editmemberdialogUpdatingMemberWithData')}, data);
       const response = await apiRequest('PUT', `/api/team-management/members/${member.id}`, data);
       return response;
     },
@@ -211,9 +211,9 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       onOpenChange(false);
     },
     onError: (error: any) => {
-      console.error('EditMemberDialog - Error updating member:', error);
+      console.error({t('user-management.editmemberdialogErrorUpdatingMember')}, error);
       toast({
-        title: "Erro ao atualizar",
+        title: {t('user-management.erroAoAtualizar')},
         description: error?.message || "Falha ao atualizar os dados do membro.",
         variant: "destructive",
       });
@@ -221,13 +221,13 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   });
 
   const handleSubmit = async (data: any) => {
-    console.log('EditMemberDialog - Form submitted with data:', data);
+    console.log({t('user-management.editmemberdialogFormSubmittedWithData')}, data);
     setIsSubmitting(true);
 
     try {
       await updateMemberMutation.mutateAsync(data);
     } catch (error) {
-      console.error('EditMemberDialog - Submit error:', error);
+      console.error({t('user-management.editmemberdialogSubmitError')}, error);
     } finally {
       setIsSubmitting(false);
     }
@@ -370,7 +370,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   onValueChange={(value) => form.setValue('vehicleType', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
+                    <SelectValue placeholder={t('user-management.selecione')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="nenhum">Nenhum</SelectItem>
@@ -403,7 +403,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                     onValueChange={(value) => form.setValue('employmentType', value)}
                   >
                     <SelectTrigger className="mt-2 border-purple-300 dark:border-purple-600">
-                      <SelectValue placeholder="Selecione o tipo de emprego" />
+                      <SelectValue placeholder={t('user-management.selecioneOTipoDeEmprego')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="clt">CLT (Consolidação das Leis do Trabalho)</SelectItem>
@@ -426,7 +426,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   onValueChange={(value) => form.setValue('role', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o papel" />
+                    <SelectValue placeholder={t('user-management.selecioneOPapel')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="agent">Agente</SelectItem>

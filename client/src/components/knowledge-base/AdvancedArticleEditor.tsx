@@ -19,6 +19,7 @@ import { TemplateSelector } from './TemplateSelector';
 import { CommentsSection } from './CommentsSection';
 import { PublicationScheduler } from './PublicationScheduler';
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Save, 
   Send, 
   FileText, 
@@ -53,7 +54,9 @@ interface AdvancedArticleEditorProps {
   onCancel?: () => void;
 }
 
-export function AdvancedArticleEditor({ articleId, onSave, onCancel }: AdvancedArticleEditorProps) {
+export function AdvancedArticleEditor({
+  const { t } = useLocalization();
+ articleId, onSave, onCancel }: AdvancedArticleEditorProps) {
   const [article, setArticle] = useState<Article>({
     title: '',
     content: '',
@@ -107,7 +110,7 @@ export function AdvancedArticleEditor({ articleId, onSave, onCancel }: AdvancedA
     },
     onSuccess: (data) => {
       toast({
-        title: "Sucesso",
+        title: {t('knowledge-base.sucesso')},
         description: articleId ? "Artigo atualizado" : "Artigo criado"
       });
       if (data && typeof data === 'object' && 'data' in data) {
@@ -121,8 +124,8 @@ export function AdvancedArticleEditor({ articleId, onSave, onCancel }: AdvancedA
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao salvar artigo",
+        title: {t('knowledge-base.erro')},
+        description: error.message || {t('knowledge-base.erroAoSalvarArtigo')},
         variant: "destructive"
       });
     }
@@ -161,7 +164,7 @@ export function AdvancedArticleEditor({ articleId, onSave, onCancel }: AdvancedA
   const handleSave = () => {
     if (!article.title.trim()) {
       toast({
-        title: "Erro",
+        title: {t('knowledge-base.erro')},
         description: "Título é obrigatório",
         variant: "destructive"
       });
@@ -193,7 +196,7 @@ export function AdvancedArticleEditor({ articleId, onSave, onCancel }: AdvancedA
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">
-            {articleId ? 'Editar Artigo' : 'Novo Artigo'}
+            {articleId ? {t('knowledge-base.editarArtigo')} : 'Novo Artigo'}
           </h2>
           <p className="text-muted-foreground">
             {articleId ? 'Atualize as informações do artigo' : 'Crie um novo artigo para a base de conhecimento'}
@@ -226,7 +229,7 @@ export function AdvancedArticleEditor({ articleId, onSave, onCancel }: AdvancedA
             data-testid="button-save"
           >
             <Save className="h-4 w-4 mr-2" />
-            {saveArticleMutation.isPending ? 'Salvando...' : 'Salvar'}
+            {saveArticleMutation.isPending ? 'Salvando...' : {t('knowledge-base.salvar')}}
           </Button>
         </div>
       </div>

@@ -9,6 +9,7 @@ import { Plus, X, Filter } from 'lucide-react';
 
 // SLA Schema imports - following 1qa.md
 import type {
+import { useLocalization } from '@/hooks/useLocalization';
   QueryRule,
   QueryBuilder,
   QueryOperator,
@@ -74,7 +75,9 @@ interface QueryBuilderProps {
 // MAIN COMPONENT
 // ======================================
 
-export function QueryBuilderComponent({ value, onChange, className = '' }: QueryBuilderProps) {
+export function QueryBuilderComponent({
+  const { t } = useLocalization();
+ value, onChange, className = '' }: QueryBuilderProps) {
   const addRule = () => {
     const newRule: QueryRule = {
       field: 'status' as TicketField,
@@ -158,7 +161,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     onValueChange={(val) => updateRule(index, { ...rule, field: val as TicketField })}
                   >
                     <SelectTrigger data-testid={`select-field-${index}`}>
-                      <SelectValue placeholder="Selecione o campo" />
+                      <SelectValue placeholder={t('QueryBuilder.tsx.selecioneOCampo')} />
                     </SelectTrigger>
                     <SelectContent>
                       {fieldOptions.map(option => (

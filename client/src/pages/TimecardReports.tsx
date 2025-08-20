@@ -7,8 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarDays, Clock, FileText, Download, TrendingUp, Users } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocalization } from '@/hooks/useLocalization';
 
 export default function TimecardReports() {
+  const { t } = useLocalization();
+
   const [selectedPeriod, setSelectedPeriod] = useState(format(new Date(), 'yyyy-MM'));
   const [reportType, setReportType] = useState('attendance');
   const [startDate, setStartDate] = useState('2025-08-01');
@@ -200,7 +203,7 @@ export default function TimecardReports() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/users');
       if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        throw new Error({t('TimecardReports.erroResponsestatusResponsestatustext')});
       }
       return response.json();
     }

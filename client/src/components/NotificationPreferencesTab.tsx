@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Bell, 
   Mail, 
   MessageSquare, 
@@ -89,7 +90,7 @@ const NOTIFICATION_CHANNELS: NotificationChannel[] = [
   { id: 'in_app', name: 'In-App', icon: Bell, description: 'Dentro da aplicação' },
   { id: 'webhook', name: 'Webhook', icon: Webhook, description: 'API webhook' },
   { id: 'slack', name: 'Slack', icon: MessageSquare, description: 'Canal Slack' },
-  { id: 'dashboard_alert', name: 'Dashboard', icon: Globe, description: 'Alerta no painel' }
+  { id: 'dashboard_alert', name: {t('NotificationPreferencesTab.tsx.dashboard')}, icon: Globe, description: 'Alerta no painel' }
 ];
 
 const NOTIFICATION_TYPES: NotificationType[] = [
@@ -142,6 +143,8 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function NotificationPreferencesTab() {
+  const { t } = useLocalization();
+
   const { user } = useAuth();
   const { toast } = useToast();
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
@@ -169,7 +172,7 @@ export default function NotificationPreferencesTab() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao Salvar",
+        title: {t('NotificationPreferencesTab.tsx.erroAoSalvar')},
         description: error.message || "Não foi possível salvar as preferências.",
         variant: "destructive",
       });
@@ -184,7 +187,7 @@ export default function NotificationPreferencesTab() {
     },
     onSuccess: () => {
       toast({
-        title: "Configurações Resetadas",
+        title: {t('NotificationPreferencesTab.tsx.configuracoesResetadas')},
         description: "Suas preferências foram restauradas para os valores padrão.",
       });
       setIsModified(false);
@@ -192,7 +195,7 @@ export default function NotificationPreferencesTab() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao Resetar",
+        title: {t('NotificationPreferencesTab.tsx.erroAoResetar')},
         description: error.message || "Não foi possível resetar as preferências.",
         variant: "destructive",
       });
@@ -411,7 +414,7 @@ export default function NotificationPreferencesTab() {
               data-testid="button-save-preferences"
             >
               <Save className="h-4 w-4 mr-2" />
-              {updatePreferencesMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+              {updatePreferencesMutation.isPending ? 'Salvando...' : {t('NotificationPreferencesTab.tsx.salvarAlteracoes')}}
             </Button>
           )}
         </div>
@@ -705,7 +708,7 @@ export default function NotificationPreferencesTab() {
             data-testid="button-save-preferences-bottom"
           >
             <Save className="h-4 w-4 mr-2" />
-            {updatePreferencesMutation.isPending ? 'Salvando Preferências...' : 'Salvar Todas as Alterações'}
+            {updatePreferencesMutation.isPending ? 'Salvando Preferências...' : {t('NotificationPreferencesTab.tsx.salvarTodasAsAlteracoes')}}
           </Button>
         )}
       </div>

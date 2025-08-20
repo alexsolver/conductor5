@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface User {
   id: string;
@@ -33,10 +34,12 @@ interface UserMultiSelectProps {
 }
 
 export function UserMultiSelect({
+  const { t } = useLocalization();
+
   value = [],
   onChange,
   users,
-  placeholder = "Selecionar usuários...",
+  placeholder = {t('ui.selecionarUsuarios')},
   className,
   disabled = false,
 }: UserMultiSelectProps) {
@@ -121,7 +124,7 @@ export function UserMultiSelect({
           </PopoverTrigger>
           <PopoverContent className="w-full p-0" align="start">
             <Command>
-              <CommandInput placeholder="Buscar usuários..." />
+              <CommandInput placeholder={t('ui.buscarUsuarios')} />
               <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
               <CommandGroup className="max-h-64 overflow-y-auto">
                 {availableUsers.map((user) => (

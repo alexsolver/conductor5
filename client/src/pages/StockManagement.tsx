@@ -54,7 +54,7 @@ interface StockItem {
   createdAt: string;
 }
 
-// Helper functions
+// Helper functions (without hooks)
 const getStatusColor = (status: string) => {
   const { t } = useLocalization();
 
@@ -1121,7 +1121,7 @@ export function StockManagement() {
             <EditItemForm 
               item={selectedItem}
               onSubmit={(data) => {
-                console.log("Editando item:", data);
+                console.log({t('StockManagement.editandoItem')}, data);
                 toast({ title: "Item atualizado com sucesso!" });
                 setIsEditItemOpen(false);
               }}

@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Plus, Play, Save } from 'lucide-react';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface QueryCondition {
   id: string;
@@ -21,6 +22,8 @@ interface QueryGroup {
 }
 
 export function QueryBuilder() {
+  const { t } = useLocalization();
+
   const [currentModule, setCurrentModule] = useState('tickets');
   const [queryGroups, setQueryGroups] = useState<QueryGroup[]>([
     {
@@ -193,7 +196,7 @@ export function QueryBuilder() {
           <div className="flex gap-4 mb-4">
             <Select value={currentModule} onValueChange={setCurrentModule} data-testid="module-selector">
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Selecione o módulo" />
+                <SelectValue placeholder={t('approvals.selecioneOModulo')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="tickets">Tickets</SelectItem>
@@ -282,7 +285,7 @@ export function QueryBuilder() {
                       data-testid={`condition-field-${condition.id}`}
                     >
                       <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Selecione o campo" />
+                        <SelectValue placeholder={t('approvals.selecioneOCampo')} />
                       </SelectTrigger>
                       <SelectContent>
                         {moduleFields[currentModule as keyof typeof moduleFields]?.map(field => (

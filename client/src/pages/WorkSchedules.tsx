@@ -85,7 +85,9 @@ const weekDays = [
 ];
 
 // Component for configuring weekly schedules
-function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, onWorkDaysChange }: {
+function WeeklyScheduleForm({
+  const { t } = useLocalization();
+ weeklySchedule, workDays, onWeeklyScheduleChange, onWorkDaysChange }: {
   weeklySchedule: WeeklySchedule;
   workDays: number[];
   onWeeklyScheduleChange: (schedule: WeeklySchedule) => void;
@@ -195,6 +197,7 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
 
 
 import { WorkScheduleErrorBoundary } from '@/components/WorkScheduleErrorBoundary';
+import { useLocalization } from '@/hooks/useLocalization';
 
 function WorkSchedulesContent() {
   const [selectedSchedule, setSelectedSchedule] = useState<WorkSchedule | null>(null);
@@ -305,7 +308,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-CREATE-ERROR]:', error);
       toast({
-        title: 'Erro ao criar escala',
+        title: {t('WorkSchedules.erroAoCriarEscala')},
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -332,7 +335,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-UPDATE-ERROR]:', error);
       toast({
-        title: 'Erro ao atualizar escala',
+        title: {t('WorkSchedules.erroAoAtualizarEscala')},
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -353,7 +356,7 @@ function WorkSchedulesContent() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao excluir escala',
+        title: {t('WorkSchedules.erroAoExcluirEscala')},
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -380,7 +383,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-CREATE-ERROR]:', error);
       toast({
-        title: 'Erro ao criar template',
+        title: {t('WorkSchedules.erroAoCriarTemplate')},
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -407,7 +410,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-UPDATE-ERROR]:', error);
       toast({
-        title: 'Erro ao atualizar template',
+        title: {t('WorkSchedules.erroAoAtualizarTemplate')},
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -432,7 +435,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-DELETE-ERROR]:', error);
       toast({
-        title: 'Erro ao excluir template',
+        title: {t('WorkSchedules.erroAoExcluirTemplate')},
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -458,7 +461,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro ao atribuir template',
+        title: {t('WorkSchedules.erroAoAtribuirTemplate')},
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -495,7 +498,7 @@ function WorkSchedulesContent() {
             endDate: schedule.endDate ? new Date(schedule.endDate).toISOString().split('T')[0] : null
           };
         } catch (err) {
-          console.error('Error processing schedule:', err, schedule);
+          console.error({t('WorkSchedules.errorProcessingSchedule')}, err, schedule);
           return {
             ...schedule,
             workDays: [1,2,3,4,5],
@@ -535,7 +538,7 @@ function WorkSchedulesContent() {
               endDate: schedule.endDate ? new Date(schedule.endDate).toISOString().split('T')[0] : null
             };
           } catch (err) {
-            console.error('Error processing schedule:', err, schedule);
+            console.error({t('WorkSchedules.errorProcessingSchedule')}, err, schedule);
             return {
               ...schedule,
               workDays: [1,2,3,4,5],
@@ -572,7 +575,7 @@ function WorkSchedulesContent() {
   // Debug information for troubleshooting
   if (process.env.NODE_ENV === 'development') {
     console.log('Work schedules loaded:', schedules.length);
-    console.log('Users available:', users.length);
+    console.log({t('WorkSchedules.usersAvailable')}, users.length);
     console.log('Schedule templates data:', scheduleTemplatesData);
     console.log('Custom templates (excluding defaults):', customTemplates);
   }
@@ -582,7 +585,7 @@ function WorkSchedulesContent() {
   }
 
   if (usersError) {
-    console.error('Users fetch error:', usersError);
+    console.error({t('WorkSchedules.usersFetchError')}, usersError);
   }
 
   // Add error state handling
@@ -828,8 +831,8 @@ function WorkSchedulesContent() {
   const handleBulkAssign = async () => {
     if (selectedUsers.length === 0) {
       toast({
-        title: 'Erro',
-        description: 'Selecione pelo menos um funcionário.',
+        title: {t('WorkSchedules.erro')},
+        description: {t('WorkSchedules.selecionePeloMenosUmFuncionario')},
         variant: 'destructive',
       });
       return;
@@ -837,7 +840,7 @@ function WorkSchedulesContent() {
 
     if (!formData.startDate) {
       toast({
-        title: 'Erro',
+        title: {t('WorkSchedules.erro')},
         description: 'Data de início é obrigatória.',
         variant: 'destructive',
       });
@@ -873,7 +876,7 @@ function WorkSchedulesContent() {
         resetForm();
 
         toast({
-          title: 'Sucesso!',
+          title: {t('WorkSchedules.sucesso')},
           description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
         });
       } else {
@@ -882,8 +885,8 @@ function WorkSchedulesContent() {
     } catch (error: any) {
       console.error('[BULK-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro na atribuição em lote',
-        description: error?.message || 'Erro interno do servidor',
+        title: {t('WorkSchedules.erroNaAtribuicaoEmLote')},
+        description: error?.message || {t('WorkSchedules.erroInternoDoServidor')},
         variant: 'destructive',
       });
     }
@@ -891,7 +894,7 @@ function WorkSchedulesContent() {
 
   const handleAssignTemplate = async () => {
     if (!selectedTemplate || selectedUsers.length === 0) {
-      toast({ title: 'Erro', description: 'Selecione um template e pelo menos um funcionário.', variant: 'destructive' });
+      toast({ title: {t('WorkSchedules.erro')}, description: 'Selecione um template e pelo menos um funcionário.', variant: 'destructive' });
       return;
     }
 
@@ -913,8 +916,8 @@ function WorkSchedulesContent() {
     } catch (error: any) {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro ao atribuir template',
-        description: error?.message || 'Erro interno do servidor',
+        title: {t('WorkSchedules.erroAoAtribuirTemplate')},
+        description: error?.message || {t('WorkSchedules.erroInternoDoServidor')},
         variant: 'destructive',
       });
     }
@@ -926,8 +929,8 @@ function WorkSchedulesContent() {
       if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
       return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).filter(Boolean).join(', ');
     } catch (error) {
-      console.error('Error processing workDays:', error, workDays);
-      return 'Erro na formatação';
+      console.error({t('WorkSchedules.errorProcessingWorkdays')}, error, workDays);
+      return {t('WorkSchedules.erroNaFormatacao')};
     }
   };
 
@@ -1091,7 +1094,7 @@ function WorkSchedulesContent() {
       <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedTemplate ? 'Editar Template' : 'Novo Template de Escala'}</DialogTitle>
+            <DialogTitle>{selectedTemplate ? {t('WorkSchedules.editarTemplate')} : 'Novo Template de Escala'}</DialogTitle>
             <DialogDescription>
               {selectedTemplate ? 'Modifique os detalhes do template.' : 'Crie um novo template de escala independente.'}
             </DialogDescription>
@@ -1232,7 +1235,7 @@ function WorkSchedulesContent() {
                 type="submit"
                 disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
               >
-                {(createTemplateMutation.isPending || updateTemplateMutation.isPending) ? 'Salvando...' : 'Salvar Template'}
+                {(createTemplateMutation.isPending || updateTemplateMutation.isPending) ? 'Salvando...' : {t('WorkSchedules.salvarTemplate')}}
               </Button>
             </div>
           </form>

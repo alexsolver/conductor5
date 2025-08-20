@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Plus, X, ArrowRight } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface WorkflowConfigurationDialogProps {
   isOpen: boolean;
@@ -34,7 +35,9 @@ interface WorkflowTemplate {
   steps: WorkflowStep[];
 }
 
-export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigurationDialogProps) {
+export function WorkflowConfigurationDialog({
+  const { t } = useLocalization();
+ isOpen, onClose }: WorkflowConfigurationDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState<WorkflowTemplate>({
@@ -82,7 +85,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
   const addStep = () => {
     if (!newStep.name || !newStep.type) {
       toast({
-        title: "Erro de validação",
+        title: {t('knowledge-base.erroDeValidacao')},
         description: "Por favor, preencha o nome e tipo do passo.",
         variant: "destructive",
       });
@@ -124,7 +127,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
 
     if (!currentTemplate.name.trim() || !currentTemplate.category) {
       toast({
-        title: "Erro de validação",
+        title: {t('knowledge-base.erroDeValidacao')},
         description: "Por favor, preencha o nome e categoria do workflow.",
         variant: "destructive",
       });
@@ -141,7 +144,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       toast({
-        title: "Workflow configurado com sucesso!",
+        title: {t('knowledge-base.workflowConfiguradoComSucesso')},
         description: "O workflow foi salvo e está pronto para uso.",
       });
 
@@ -158,7 +161,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
     } catch (error) {
       console.error('❌ [WORKFLOW] Error:', error);
       toast({
-        title: "Erro ao configurar workflow",
+        title: {t('knowledge-base.erroAoConfigurarWorkflow')},
         description: "Ocorreu um erro interno. Tente novamente.",
         variant: "destructive",
       });
@@ -200,7 +203,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
                 onValueChange={(value) => setCurrentTemplate(prev => ({ ...prev, category: value }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
+                  <SelectValue placeholder={t('knowledge-base.selecioneUmaCategoria')} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -346,7 +349,7 @@ export function WorkflowConfigurationDialog({ isOpen, onClose }: WorkflowConfigu
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Salvando..." : "Salvar Workflow"}
+              {isSubmitting ? "Salvando..." : {t('knowledge-base.salvarWorkflow')}}
             </Button>
           </div>
         </form>

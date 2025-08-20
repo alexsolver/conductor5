@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Settings, Calculator, Percent, Calendar, Target } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface PricingRuleConfigurationModalProps {
   open: boolean;
@@ -21,6 +22,8 @@ interface PricingRuleConfigurationModalProps {
 }
 
 export default function PricingRuleConfigurationModal({
+  const { t } = useLocalization();
+
   open,
   onOpenChange,
   rule,
@@ -77,7 +80,7 @@ export default function PricingRuleConfigurationModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {rule ? 'Editar Regra de Precificação' : 'Nova Regra de Precificação'}
+            {rule ? {t('lpu.editarRegraDePrecificacao')} : 'Nova Regra de Precificação'}
           </DialogTitle>
         </DialogHeader>
 
@@ -479,7 +482,7 @@ export default function PricingRuleConfigurationModal({
             Cancelar
           </Button>
           <Button onClick={handleSave}>
-            {rule ? 'Atualizar Regra' : 'Criar Regra'}
+            {rule ? 'Atualizar Regra' : {t('lpu.criarRegra')}}
           </Button>
         </div>
       </DialogContent>

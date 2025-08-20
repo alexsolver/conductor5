@@ -204,7 +204,7 @@ const ZendeskBreadcrumbs = ({ currentView }: { currentView: string }) => (
     <span>Analytics</span>
     <ChevronRight className="w-4 h-4" />
     <span className="font-medium text-gray-900 dark:text-gray-100">
-      {currentView === "templates" ? "Templates" : "Dashboards"}
+      {currentView === "templates" ? "Templates" : {t('Dashboards.dashboards')}}
     </span>
   </div>
 );
@@ -272,7 +272,7 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
     <div>
       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Browse by Category</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {["Support", "Performance", "Errors", "Compliance"].map((category) => (
+        {["Support", "Performance", {t('Dashboards.errors')}, "Compliance"].map((category) => (
           <Card key={category} className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-4 text-center">
               <Folder className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -304,7 +304,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     onSuccess: () => {
       toast({ 
         title: dashboard.isFavorite ? "Removed from favorites" : "Added to favorites",
-        description: `Dashboard ${dashboard.name} has been ${dashboard.isFavorite ? 'removed from' : 'added to'} favorites.`
+        description: {t('Dashboards.dashboardDashboardnameHasBeenDashboardisfavorite')}removed from' : 'added to'} favorites.`
       });
       onRefresh();
     },
@@ -354,7 +354,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     onSuccess: () => {
       toast({ 
         title: "texto",
-        description: `Dashboard ${dashboard.name} has been deleted.`
+        description: {t('Dashboards.dashboardDashboardnameHasBeenDeleted')}
       });
       onRefresh();
     },
@@ -719,7 +719,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
       console.log(`✅ [DASHBOARD-CREATE] Dashboard created successfully:`, response);
       toast({ 
         title: "texto",
-        description: `Dashboard ${form.getValues().name} has been created.`
+        description: {t('Dashboards.dashboardFormgetvaluesnameHasBeenCreated')}
       });
       
       // Reset everything and close modal

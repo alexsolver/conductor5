@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
 import { Badge } from '../../ui/badge'
 import { Slider } from '../../ui/slider'
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   Palette, 
   Type, 
   Layout, 
@@ -73,6 +74,8 @@ interface CSSStyleEditorProps {
 }
 
 export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
+  const { t } = useLocalization();
+
   field,
   onUpdate,
   onClose
@@ -600,7 +603,7 @@ hover:transform: scale(1.05);"
                   {field.type === 'select' && (
                     <Select>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma opção" />
+                        <SelectValue placeholder={t('template-builder.selecioneUmaOpcao')} />
                       </SelectTrigger>
                     </Select>
                   )}

@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface AuditEntry {
   id: string;
@@ -42,7 +43,9 @@ interface AuditTrailProps {
   showFilters?: boolean;
 }
 
-export function AuditTrail({ templateId, showFilters = true }: AuditTrailProps) {
+export function AuditTrail({
+  const { t } = useLocalization();
+ templateId, showFilters = true }: AuditTrailProps) {
   const [filters, setFilters] = useState({
     action: '',
     userId: '',
@@ -136,7 +139,7 @@ export function AuditTrail({ templateId, showFilters = true }: AuditTrailProps) 
                   onValueChange={(value) => setFilters(prev => ({ ...prev, action: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Todas as ações" />
+                    <SelectValue placeholder={t('template-builder.todasAsAcoes')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as ações</SelectItem>

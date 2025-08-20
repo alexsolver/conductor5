@@ -33,6 +33,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { FieldConfiguration } from '@/hooks/useFieldLayout';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface DynamicFormRendererProps {
   form: UseFormReturn<any>;
@@ -43,6 +44,8 @@ interface DynamicFormRendererProps {
 }
 
 const getIconComponent = (iconName: string) => {
+  const { t } = useLocalization();
+
   const icons = {
     Type, AlignLeft, ChevronDown, Hash, CalendarIcon, CheckSquare, Mail, Phone,
     AlertTriangle, Circle, Tag, User, Building, MapPin, Users, Package, Truck, DollarSign
@@ -191,7 +194,7 @@ const renderFieldByType = (
                   disabled={isReadOnly}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={`Selecione ${field.label.toLowerCase()}`} />
+                    <SelectValue placeholder={{t('layout.selecioneFieldlabeltolowercase')}} />
                   </SelectTrigger>
                   <SelectContent>
                     {options.map((option: any) => (
@@ -231,7 +234,7 @@ const renderFieldByType = (
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formField.value ? 
                         format(new Date(formField.value), "PPP", { locale: ptBR }) : 
-                        `Selecione ${field.label.toLowerCase()}`
+                        {t('layout.selecioneFieldlabeltolowercase')}
                       }
                     </Button>
                   </PopoverTrigger>

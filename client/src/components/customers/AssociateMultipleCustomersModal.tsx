@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ScrollArea } from '../ui/scroll-area';
 import { Search, Users, Building2, AlertCircle, CheckCircle2, Check, UserCheck } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Assume apiRequest is defined elsewhere and handles token, errors, and JSON parsing
 // Example signature: const apiRequest = async (method: string, url: string, body?: any) => Promise<any>;
@@ -45,6 +46,8 @@ interface AssociateMultipleCustomersModalProps {
 }
 
 const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalProps> = ({
+  const { t } = useLocalization();
+
   isOpen,
   onClose,
   company,
@@ -100,8 +103,8 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
       setCustomers(customersWithStatus);
     } catch (error: any) {
-      console.error('Error fetching customers:', error);
-      setError(error.message || 'Erro ao carregar clientes');
+      console.error({t('customers.errorFetchingCustomers')}, error);
+      setError(error.message || {t('customers.erroAoCarregarClientes')});
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +160,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
   const handleSubmit = async () => {
     if (selectedCustomerIds.length === 0) {
-      setError('Selecione pelo menos um cliente');
+      setError({t('customers.selecionePeloMenosUmCliente')});
       return;
     }
 
@@ -227,8 +230,8 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       }, 1500);
 
     } catch (error: any) {
-      console.error('Error associating customers:', error);
-      setError(error.message || 'Erro ao associar clientes');
+      console.error({t('customers.errorAssociatingCustomers')}, error);
+      setError(error.message || {t('customers.erroAoAssociarClientes')});
     } finally {
       setIsSubmitting(false);
     }
@@ -267,7 +270,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Buscar clientes por nome ou email..."
+                placeholder={t('customers.buscarClientesPorNomeOuEmail')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"

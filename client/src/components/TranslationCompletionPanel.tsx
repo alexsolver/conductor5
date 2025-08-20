@@ -13,6 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
+import { useLocalization } from '@/hooks/useLocalization';
   CheckCircle, 
   AlertTriangle, 
   Zap, 
@@ -45,6 +46,8 @@ interface CompletionReport {
 }
 
 export function TranslationCompletionPanel() {
+  const { t } = useLocalization();
+
   const { toast } = useToast();
   const [isCompleting, setIsCompleting] = useState(false);
   
@@ -78,7 +81,7 @@ export function TranslationCompletionPanel() {
     },
     onError: (error) => {
       toast({
-        title: "Erro na Tradução Automática",
+        title: {t('TranslationCompletionPanel.tsx.erroNaTraducaoAutomatica')},
         description: "Falha ao completar traduções automaticamente",
         variant: "destructive"
       });

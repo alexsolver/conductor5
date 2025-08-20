@@ -49,7 +49,7 @@ export default function Dashboard() {
 
   const metrics = [
     {
-      title: "Tickets Ativos",
+      title: {t('Dashboard.ticketsAtivos')},
       value: (stats?.activeTickets || 0).toLocaleString(),
       icon: Ticket,
       trend: "+12%",

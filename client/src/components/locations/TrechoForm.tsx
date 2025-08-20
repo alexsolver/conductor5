@@ -12,9 +12,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Route, MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Local selector component
-const LocalSelector = ({ value, onChange, label, placeholder }) => {
+const LocalSelector = ({
+  const { t } = useLocalization();
+ value, onChange, label, placeholder }) => {
   const { data: locais = [] } = useQuery({
     queryKey: ['/api/locations-new/local'],
     queryFn: async () => {
@@ -157,7 +160,7 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 value={watchedValues.localAId}
                 onChange={(value) => setValue('localAId', value)}
                 label="Local A *"
-                placeholder="Selecione o local de origem"
+                placeholder={t('locations.selecioneOLocalDeOrigem')}
               />
               {errors.localAId && (
                 <p className="text-sm text-red-500 mt-1">{errors.localAId.message}</p>
@@ -173,7 +176,7 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
                   }
                 }}
                 label="Local B *"
-                placeholder="Selecione o local de destino"
+                placeholder={t('locations.selecioneOLocalDeDestino')}
               />
               {errors.localBId && (
                 <p className="text-sm text-red-500 mt-1">{errors.localBId.message}</p>
@@ -213,7 +216,7 @@ export default function TrechoForm({ onSubmit, isSubmitting, onCancel }) {
           type="submit" 
           disabled={isSubmitting || !watchedValues.localAId || !watchedValues.localBId || watchedValues.localAId === watchedValues.localBId}
         >
-          {isSubmitting ? 'Salvando...' : 'Salvar Trecho'}
+          {isSubmitting ? 'Salvando...' : {t('locations.salvarTrecho')}}
         </Button>
       </div>
     </form>

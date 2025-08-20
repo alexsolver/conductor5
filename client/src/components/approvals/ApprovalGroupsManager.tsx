@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface ApprovalGroup {
   id: string;
@@ -38,8 +39,10 @@ interface ApprovalGroupMember {
 }
 
 const groupTypeLabels = {
+  const { t } = useLocalization();
+
   agents: 'Agentes',
-  clients: 'Clientes',
+  clients: {t('approvals.clientes')},
   beneficiaries: 'Beneficiários',
   mixed: 'Misto'
 };
@@ -109,13 +112,13 @@ export function ApprovalGroupsManager() {
       setIsCreateDialogOpen(false);
       setCreateForm({ name: '', description: '', groupType: 'agents' });
       toast({
-        title: "Sucesso",
+        title: {t('approvals.sucesso')},
         description: "Grupo de aprovação criado com sucesso"
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('approvals.erro')},
         description: error.message,
         variant: "destructive"
       });
@@ -146,13 +149,13 @@ export function ApprovalGroupsManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/groups'] });
       toast({
-        title: "Sucesso",
+        title: {t('approvals.sucesso')},
         description: "Grupo excluído com sucesso"
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('approvals.erro')},
         description: error.message,
         variant: "destructive"
       });
@@ -164,7 +167,7 @@ export function ApprovalGroupsManager() {
     if (!createForm.name.trim()) {
       console.log('❌ [HANDLE-CREATE-GROUP] Nome vazio');
       toast({
-        title: "Erro",
+        title: {t('approvals.erro')},
         description: "Nome do grupo é obrigatório",
         variant: "destructive"
       });
@@ -270,7 +273,7 @@ export function ApprovalGroupsManager() {
                   onClick={handleCreateGroup}
                   disabled={createGroupMutation.isPending}
                 >
-                  {createGroupMutation.isPending ? 'Criando...' : 'Criar Grupo'}
+                  {createGroupMutation.isPending ? 'Criando...' : {t('approvals.criarGrupo')}}
                 </Button>
               </div>
             </div>

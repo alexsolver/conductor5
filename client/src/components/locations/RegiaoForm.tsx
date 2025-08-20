@@ -17,8 +17,11 @@ import { X, Plus, MapPin, Users, Building, Search, ChevronDown } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import SimpleMapWithButtons from "@/components/SimpleMapWithButtons";
+import { useLocalization } from '@/hooks/useLocalization';
 
 const regiaoSchema = z.object({
+  const { t } = useLocalization();
+
   ativo: z.boolean().default(true),
   nome: z.string().min(1, "Nome é obrigatório").max(200),
   descricao: z.string().optional(),
@@ -456,10 +459,10 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         }
       }
     } catch (error) {
-      console.error('Erro ao buscar CEP:', error);
+      console.error({t('locations.erroAoBuscarCep')}, error);
       toast({
-        title: "Erro",
-        description: "Erro ao buscar CEP. Tente novamente.",
+        title: {t('locations.erro')},
+        description: {t('locations.erroAoBuscarCepTenteNovamente')},
         variant: "destructive",
       });
     }
@@ -510,7 +513,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       if (response.ok) {
         const result = await response.json();
         toast({
-          title: "Sucesso",
+          title: {t('locations.sucesso')},
           description: "Região criada com sucesso!",
         });
         onSubmit(data);
@@ -531,31 +534,31 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         if (retryResponse.ok) {
           const result = await retryResponse.json();
           toast({
-            title: "Sucesso",
+            title: {t('locations.sucesso')},
             description: "Região criada com sucesso!",
           });
           onSubmit(data);
         } else {
           const error = await retryResponse.json();
           toast({
-            title: "Erro",
-            description: error.message || "Erro ao criar região",
+            title: {t('locations.erro')},
+            description: error.message || {t('locations.erroAoCriarRegiao')},
             variant: "destructive",
           });
         }
       } else {
         const error = await response.json();
         toast({
-          title: "Erro",
-          description: error.message || "Erro ao criar região",
+          title: {t('locations.erro')},
+          description: error.message || {t('locations.erroAoCriarRegiao')},
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Erro ao salvar região:', error);
+      console.error({t('locations.erroAoSalvarRegiao')}, error);
       toast({
-        title: "Erro",
-        description: "Erro de conexão. Tente novamente.",
+        title: {t('locations.erro')},
+        description: {t('locations.erroDeConexaoTenteNovamente')},
         variant: "destructive",
       });
     }
@@ -822,7 +825,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
             <Label htmlFor="tipoLogradouro">Tipo de Logradouro</Label>
             <Select onValueChange={(value) => setValue('tipoLogradouro', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
+                <SelectValue placeholder={t('locations.selecioneOTipo')} />
               </SelectTrigger>
               <SelectContent>
                 {TIPO_LOGRADOURO_OPTIONS.map((tipo) => (
@@ -872,7 +875,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Salvando..." : "Salvar Região"}
+          {isSubmitting ? "Salvando..." : {t('locations.salvarRegiao')}}
         </Button>
       </div>
     </form>

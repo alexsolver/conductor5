@@ -30,9 +30,12 @@ import { UserGroupSelect } from "@/components/ui/UserGroupSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { CustomFieldsWrapper } from "@/components/layout/CustomFieldsWrapper";
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Form schema - Dynamic schema will be generated from metadata
 const baseTicketFormSchema = z.object({
+  const { t } = useLocalization();
+
   subject: z.string().min(1, "Subject is required"),
   description: z.string().optional(),
   priority: z.string().optional(),
@@ -167,7 +170,7 @@ export default function TicketEdit() {
           setFilteredCustomers(customers);
         }
       } catch (error) {
-        console.error('Error fetching customers for company:', error);
+        console.error({t('TicketEdit.errorFetchingCustomersForCompany')}, error);
         setFilteredCustomers(customers);
       }
     };
@@ -283,7 +286,7 @@ export default function TicketEdit() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
+        title: {t('TicketEdit.success')},
         description: "Ticket updated successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
@@ -291,7 +294,7 @@ export default function TicketEdit() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: {t('TicketEdit.error')},
         description: error.message || "Failed to update ticket",
         variant: "destructive",
       });
@@ -305,14 +308,14 @@ export default function TicketEdit() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
+        title: {t('TicketEdit.success')},
         description: "Ticket deleted successfully",
       });
       navigate("/tickets");
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: {t('TicketEdit.error')},
         description: error.message || "Failed to delete ticket",
         variant: "destructive",
       });
@@ -494,7 +497,7 @@ export default function TicketEdit() {
                                     fieldName="priority"
                                     value={field.value}
                                     onValueChange={field.onChange}
-                                    placeholder="Selecione a prioridade"
+                                    placeholder={t('TicketEdit.selecioneAPrioridade')}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -513,7 +516,7 @@ export default function TicketEdit() {
                                     fieldName="status"
                                     value={field.value}
                                     onValueChange={field.onChange}
-                                    placeholder="Selecione o status"
+                                    placeholder={t('TicketEdit.selecioneOStatus')}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -821,7 +824,7 @@ export default function TicketEdit() {
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o cliente" />
+                                  <SelectValue placeholder={t('TicketEdit.selecioneOCliente')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -846,7 +849,7 @@ export default function TicketEdit() {
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o beneficiário (opcional)" />
+                                  <SelectValue placeholder={t('TicketEdit.selecioneOBeneficiarioOpcional')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -873,7 +876,7 @@ export default function TicketEdit() {
                               <UserGroupSelect
                                 value={field.value}
                                 onValueChange={field.onChange}
-                                placeholder="Selecione um grupo"
+                                placeholder={t('TicketEdit.selecioneUmGrupo')}
                               />
                             </FormControl>
                             <FormMessage />
@@ -890,7 +893,7 @@ export default function TicketEdit() {
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione um agente" />
+                                  <SelectValue placeholder={t('TicketEdit.selecioneUmAgente')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>

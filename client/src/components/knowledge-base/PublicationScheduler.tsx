@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface PublicationSchedulerProps {
   articleId: string;
@@ -29,7 +30,9 @@ interface PublicationSchedulerProps {
   onScheduled?: () => void;
 }
 
-export function PublicationScheduler({ articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
+export function PublicationScheduler({
+  const { t } = useLocalization();
+ articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
   const [schedulerOpen, setSchedulerOpen] = useState(false);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
@@ -49,7 +52,7 @@ export function PublicationScheduler({ articleId, currentStatus, onScheduled }: 
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('knowledge-base.sucesso')},
         description: "Publicação agendada com sucesso"
       });
       setSchedulerOpen(false);
@@ -62,8 +65,8 @@ export function PublicationScheduler({ articleId, currentStatus, onScheduled }: 
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao agendar publicação",
+        title: {t('knowledge-base.erro')},
+        description: error.message || {t('knowledge-base.erroAoAgendarPublicacao')},
         variant: "destructive"
       });
     }
@@ -72,7 +75,7 @@ export function PublicationScheduler({ articleId, currentStatus, onScheduled }: 
   const handleSchedule = () => {
     if (!scheduledDate || !scheduledTime) {
       toast({
-        title: "Erro",
+        title: {t('knowledge-base.erro')},
         description: "Data e hora são obrigatórias",
         variant: "destructive"
       });
@@ -83,7 +86,7 @@ export function PublicationScheduler({ articleId, currentStatus, onScheduled }: 
     
     if (scheduledFor <= new Date()) {
       toast({
-        title: "Erro",
+        title: {t('knowledge-base.erro')},
         description: "A data deve ser no futuro",
         variant: "destructive"
       });
