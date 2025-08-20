@@ -311,7 +311,7 @@ export default function TechnicalSkills() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TechnicalSkills.selecioneUmaCategoria')} />
+                            <SelectValue placeholder={t('TechnicalSkills.selecioneUmaCategoria') />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -422,7 +422,7 @@ export default function TechnicalSkills() {
                     <FormItem>
                       <FormLabel>Observações (Opcional)</FormLabel>
                       <FormControl>
-                        <Textarea placeholder={t('TechnicalSkills.observacoesAdicionaisSobreAHabilidade')} {...field} />
+                        <Textarea placeholder={t('TechnicalSkills.observacoesAdicionaisSobreAHabilidade') {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -434,7 +434,7 @@ export default function TechnicalSkills() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createSkillMutation.isPending}>
-                    {createSkillMutation.isPending ? "Criando..." : {t('TechnicalSkills.criar')}}
+                    {createSkillMutation.isPending ? "Criando..." : t('TechnicalSkills.criar')}
                   </Button>
                 </div>
               </form>
@@ -495,7 +495,7 @@ export default function TechnicalSkills() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder={t('TechnicalSkills.buscarHabilidades')}
+            placeholder={t('TechnicalSkills.buscarHabilidades')
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -721,7 +721,7 @@ export default function TechnicalSkills() {
                   <FormItem>
                     <FormLabel>Observações (Opcional)</FormLabel>
                     <FormControl>
-                      <Textarea placeholder={t('TechnicalSkills.observacoesAdicionaisSobreAHabilidade')} {...field} />
+                      <Textarea placeholder={t('TechnicalSkills.observacoesAdicionaisSobreAHabilidade') {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -733,7 +733,7 @@ export default function TechnicalSkills() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={updateSkillMutation.isPending}>
-                  {updateSkillMutation.isPending ? "Salvando..." : {t('TechnicalSkills.salvar')}}
+                  {updateSkillMutation.isPending ? "Salvando..." : t('TechnicalSkills.salvar')}
                 </Button>
               </div>
             </form>

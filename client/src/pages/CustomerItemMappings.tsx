@@ -126,14 +126,14 @@ export function CustomerItemMappings() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || {t('CustomerItemMappings.erroAoSalvarMapeamento')});
+        throw new Error(errorData.message || t('CustomerItemMappings.erroAoSalvarMapeamento'));
       }
       
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: {t('CustomerItemMappings.sucesso')},
+        title: t('CustomerItemMappings.sucesso'),
         description: editingMapping ? "Mapeamento atualizado com sucesso!" : "Novo mapeamento criado com sucesso!"
       });
       setDialogOpen(false);
@@ -143,7 +143,7 @@ export function CustomerItemMappings() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('CustomerItemMappings.erro')},
+        title: t('CustomerItemMappings.erro'),
         description: error.message,
         variant: "destructive"
       });
@@ -156,20 +156,20 @@ export function CustomerItemMappings() {
       const response = await apiRequest('DELETE', `/api/materials-services/customer-item-mappings/${mappingId}?tenantId=${tenantId}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || {t('CustomerItemMappings.erroAoDeletarMapeamento')});
+        throw new Error(errorData.message || t('CustomerItemMappings.erroAoDeletarMapeamento'));
       }
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: {t('CustomerItemMappings.sucesso')},
+        title: t('CustomerItemMappings.sucesso'),
         description: "Mapeamento deletado com sucesso!"
       });
       refetch();
     },
     onError: (error: Error) => {
       toast({
-        title: {t('CustomerItemMappings.erro')},
+        title: t('CustomerItemMappings.erro'),
         description: error.message,
         variant: "destructive"
       });
@@ -231,7 +231,7 @@ export function CustomerItemMappings() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingMapping ? {t('CustomerItemMappings.editarMapeamento')} : {t('CustomerItemMappings.criarNovoMapeamento')}}
+                  {editingMapping ? t('CustomerItemMappings.editarMapeamento') : t('CustomerItemMappings.criarNovoMapeamento')}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -244,7 +244,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={t('CustomerItemMappings.selecioneUmaEmpresa')} />
+                        <SelectValue placeholder={t('CustomerItemMappings.selecioneUmaEmpresa') />
                       </SelectTrigger>
                       <SelectContent>
                         {customerCompaniesData?.map((company: any) => (
@@ -263,7 +263,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={t('CustomerItemMappings.selecioneUmItem')} />
+                        <SelectValue placeholder={t('CustomerItemMappings.selecioneUmItem') />
                       </SelectTrigger>
                       <SelectContent>
                         {itemsData?.data?.map((item: any) => (
@@ -333,7 +333,7 @@ export function CustomerItemMappings() {
                     id="notes"
                     value={formData.notes}
                     onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder={t('CustomerItemMappings.observacoesInternasSobreEsteMapeamento')}
+                    placeholder={t('CustomerItemMappings.observacoesInternasSobreEsteMapeamento')
                   />
                 </div>
 
@@ -342,7 +342,7 @@ export function CustomerItemMappings() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createMappingMutation.isPending}>
-                    {createMappingMutation.isPending ? "Salvando..." : {t('CustomerItemMappings.salvar')}}
+                    {createMappingMutation.isPending ? "Salvando..." : t('CustomerItemMappings.salvar')}
                   </Button>
                 </div>
               </form>
@@ -360,7 +360,7 @@ export function CustomerItemMappings() {
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder={t('CustomerItemMappings.buscarPorSkuNomeReferencia')}
+                    placeholder={t('CustomerItemMappings.buscarPorSkuNomeReferencia')
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -387,7 +387,7 @@ export function CustomerItemMappings() {
                 <Label htmlFor="type-filter">Tipo de Item</Label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('CustomerItemMappings.todosOsTipos')} />
+                    <SelectValue placeholder={t('CustomerItemMappings.todosOsTipos') />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-types">Todos os tipos</SelectItem>

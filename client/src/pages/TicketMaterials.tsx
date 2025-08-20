@@ -83,7 +83,7 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')`
         }
       });
       
@@ -109,7 +109,7 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')`
         }
       });
       
@@ -132,7 +132,7 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')`
         }
       });
       
@@ -155,7 +155,7 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')`
         }
       });
       
@@ -175,7 +175,7 @@ export default function TicketMaterials() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')`
         },
         body: JSON.stringify(data)
       });
@@ -224,7 +224,7 @@ export default function TicketMaterials() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')`
         }
       });
 
@@ -445,7 +445,7 @@ export default function TicketMaterials() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-center space-x-4">
                       <button
-                        onClick={() => setPlannedSubTab('all')}
+                        onClick={() => setPlannedSubTab('all')
                         className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
                           plannedSubTab === 'all'
                             ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-500/30'
@@ -462,7 +462,7 @@ export default function TicketMaterials() {
                       </button>
 
                       <button
-                        onClick={() => setPlannedSubTab('material')}
+                        onClick={() => setPlannedSubTab('material')
                         className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
                           plannedSubTab === 'material'
                             ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-green-500/30'
@@ -479,7 +479,7 @@ export default function TicketMaterials() {
                       </button>
 
                       <button
-                        onClick={() => setPlannedSubTab('service')}
+                        onClick={() => setPlannedSubTab('service')
                         className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
                           plannedSubTab === 'service'
                             ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-purple-500/30'
@@ -575,7 +575,7 @@ export default function TicketMaterials() {
                             <div className="flex flex-col items-end gap-3 ml-4">
                               <div className="text-right text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
                                 <p className="font-medium">Planejado em</p>
-                                <p className="font-semibold">{new Date(item.createdAt).toLocaleDateString('pt-BR')}</p>
+                                <p className="font-semibold">{new Date(item.createdAt).toLocaleDateString('pt-BR')</p>
                               </div>
                               <Button
                                 variant="destructive"
@@ -589,7 +589,7 @@ export default function TicketMaterials() {
                                 className="group-hover:scale-105 transition-transform duration-200 bg-red-500 hover:bg-red-600 shadow-lg hover:shadow-red-500/25"
                               >
                                 <Trash2 className="w-4 h-4 mr-1" />
-                                {deletePlannedItemMutation.isPending ? 'Excluindo...' : {t('TicketMaterials.excluir')}}
+                                {deletePlannedItemMutation.isPending ? 'Excluindo...' : t('TicketMaterials.excluir')
                               </Button>
                             </div>
                           </div>
@@ -614,9 +614,9 @@ export default function TicketMaterials() {
                             )}
                           </div>
                           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                            {plannedSubTab === 'all' ? {t('TicketMaterials.nenhumItemPlanejado')} :
-                             plannedSubTab === 'material' ? {t('TicketMaterials.nenhumMaterialPlanejado')} :
-                             {t('TicketMaterials.nenhumServicoPlanejado')}}
+                            {plannedSubTab === 'all' ? t('TicketMaterials.nenhumItemPlanejado') :
+                             plannedSubTab === 'material' ? t('TicketMaterials.nenhumMaterialPlanejado') :
+                             t('TicketMaterials.nenhumServicoPlanejado')}
                           </h3>
                           <p className="text-gray-500 mb-6">
                             {plannedSubTab === 'all' ? 'Adicione materiais e serviços para começar o planejamento.' :
@@ -624,7 +624,7 @@ export default function TicketMaterials() {
                              'Adicione serviços necessários para este ticket.'}
                           </p>
                           <Button 
-                            onClick={() => setActiveTab('add')}
+                            onClick={() => setActiveTab('add')
                             className={`${
                               plannedSubTab === 'material' ? 'bg-green-500 hover:bg-green-600' :
                               plannedSubTab === 'service' ? 'bg-purple-500 hover:bg-purple-600' :
@@ -673,12 +673,12 @@ export default function TicketMaterials() {
                                 <Badge className={`${item.itemType === 'material' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
                                   {item.itemType === 'material' ? 'Material' : 'Serviço'}
                                 </Badge>
-                                {getStatusBadge('consumed')}
+                                {getStatusBadge('consumed')
                               </div>
                               <div className="text-sm text-gray-600 space-y-1">
                                 <p><strong>Quantidade Consumida:</strong> {item.actualQuantity} {item.measurementUnit || 'UN'}</p>
-                                <p><strong>Preço Unitário:</strong> {formatCurrency(item.unitPriceAtConsumption || '0')}</p>
-                                <p><strong>Custo Total:</strong> {formatCurrency(item.totalCost || '0')}</p>
+                                <p><strong>Preço Unitário:</strong> {formatCurrency(item.unitPriceAtConsumption || '0')</p>
+                                <p><strong>Custo Total:</strong> {formatCurrency(item.totalCost || '0')</p>
                                 {item.notes && <p><strong>Observações:</strong> {item.notes}</p>}
                               </div>
                             </div>
@@ -715,7 +715,7 @@ export default function TicketMaterials() {
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TicketMaterials.selecioneUmItem')} />
+                            <SelectValue placeholder={t('TicketMaterials.selecioneUmItem') />
                           </SelectTrigger>
                           <SelectContent>
                             {(availableItems as any)?.data?.items?.map((item: any) => (
@@ -742,7 +742,7 @@ export default function TicketMaterials() {
                         <Textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
-                          placeholder={t('TicketMaterials.observacoesSobreOPlanejamento')}
+                          placeholder={t('TicketMaterials.observacoesSobreOPlanejamento')
                         />
                       </div>
 
@@ -769,7 +769,7 @@ export default function TicketMaterials() {
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TicketMaterials.selecioneUmItem')} />
+                            <SelectValue placeholder={t('TicketMaterials.selecioneUmItem') />
                           </SelectTrigger>
                           <SelectContent>
                             {(availableItems as any)?.data?.items?.map((item: any) => (
@@ -796,7 +796,7 @@ export default function TicketMaterials() {
                         <Textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
-                          placeholder={t('TicketMaterials.observacoesSobreOConsumo')}
+                          placeholder={t('TicketMaterials.observacoesSobreOConsumo')
                         />
                       </div>
 

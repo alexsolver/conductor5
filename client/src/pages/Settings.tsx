@@ -59,7 +59,7 @@ export default function Settings() {
 
   const handleSave = () => {
     toast({
-      title: {t('Settings.settingsSaved')},
+      title: t('Settings.settingsSaved'),
       description: "Your settings have been updated successfully.",
     });
   };
@@ -272,7 +272,7 @@ export default function Settings() {
                           <div className="flex items-center space-x-3">
                             <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
                               <span className="text-white text-xs font-medium">
-                                {member.name.split(' ').map(n => n[0]).join('')}
+                                {member.name.split(' ').map(n => n[0]).join('')
                               </span>
                             </div>
                             <div>
@@ -557,7 +557,7 @@ export default function Settings() {
                       { name: "Salesforce", description: "Sync customer data with Salesforce", connected: true },
                       { name: "Shopify", description: "Connect with your Shopify store", connected: false },
                       { name: "HubSpot", description: "Sync contacts and deals", connected: false },
-                      { name: "Jira", description: {t('Settings.createIssuesFromTickets')}, connected: true },
+                      { name: "Jira", description: t('Settings.createIssuesFromTickets'), connected: true },
                     ].map((integration) => (
                       <div key={integration.name} className="p-4 border rounded-lg">
                         <div className="flex items-center justify-between mb-2">

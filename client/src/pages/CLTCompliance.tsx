@@ -94,11 +94,11 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: {t('CLTCompliance.erroNaReconstituicao')},
+        title: t('CLTCompliance.erroNaReconstituicao'),
         description: "Falha ao reconstituir cadeia de integridade",
         variant: "destructive"
       });
-      console.error({t('CLTCompliance.erroNaReconstituicao')}, error);
+      console.error(t('CLTCompliance.erroNaReconstituicao'), error);
     }
   });
   const [selectedPeriod, setSelectedPeriod] = useState({
@@ -151,7 +151,7 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: {t('CLTCompliance.erro')},
+        title: t('CLTCompliance.erro'),
         description: `Falha ao gerar relatório: ${error.message}`,
         variant: "destructive"
       });
@@ -257,7 +257,7 @@ export default function CLTCompliance() {
                     <div>
                       <span className="font-medium">Verificado em:</span>
                       <span className="ml-2">
-                        {new Date(integrityCheck.timestamp).toLocaleString('pt-BR')}
+                        {new Date(integrityCheck.timestamp).toLocaleString('pt-BR')
                       </span>
                     </div>
                   </div>
@@ -343,7 +343,7 @@ export default function CLTCompliance() {
                           </Badge>
                         </div>
                         <span className="text-sm text-muted-foreground">
-                          {new Date(log.performedAt).toLocaleString('pt-BR')}
+                          {new Date(log.performedAt).toLocaleString('pt-BR')
                         </span>
                       </div>
                       
@@ -430,7 +430,7 @@ export default function CLTCompliance() {
                               <Clock className="h-4 w-4 text-orange-600" />
                             )}
                             <span className="font-medium">
-                              {new Date(backup.backupDate).toLocaleDateString('pt-BR')}
+                              {new Date(backup.backupDate).toLocaleDateString('pt-BR')
                             </span>
                           </div>
                           
@@ -540,13 +540,13 @@ export default function CLTCompliance() {
                           <div>
                             <span className="font-medium">Criada em:</span>
                             <span className="ml-2">
-                              {new Date(key.createdAt).toLocaleDateString('pt-BR')}
+                              {new Date(key.createdAt).toLocaleDateString('pt-BR')
                             </span>
                           </div>
                           <div>
                             <span className="font-medium">Expira em:</span>
                             <span className="ml-2">
-                              {new Date(key.expiresAt).toLocaleDateString('pt-BR')}
+                              {new Date(key.expiresAt).toLocaleDateString('pt-BR')
                             </span>
                           </div>
                         </div>
@@ -618,8 +618,8 @@ export default function CLTCompliance() {
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{report.reportType}</span>
                           <Badge variant="outline">
-                            {new Date(report.periodStart).toLocaleDateString('pt-BR')} - {' '}
-                            {new Date(report.periodEnd).toLocaleDateString('pt-BR')}
+                            {new Date(report.periodStart).toLocaleDateString('pt-BR') - {' '}
+                            {new Date(report.periodEnd).toLocaleDateString('pt-BR')
                           </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground">

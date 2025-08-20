@@ -203,7 +203,7 @@ export default function TimecardReports() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/users');
       if (!response.ok) {
-        throw new Error({t('TimecardReports.erroResponsestatusResponsestatustext')});
+        throw new Error(t('TimecardReports.erroResponsestatusResponsestatustext'));
       }
       return response.json();
     }
@@ -225,7 +225,7 @@ export default function TimecardReports() {
       isArray: Array.isArray(currentReport.data || currentReport.records),
       dataLength: (currentReport.data || currentReport.records)?.length,
       firstItem: (currentReport.data || currentReport.records)?.[0]
-    } : null,
+    }) : null,
     isLoading,
     currentError: currentError?.message
   });
@@ -637,7 +637,7 @@ export default function TimecardReports() {
                   </div>
                 </div>
                 <div className="text-center mt-4 text-xs text-gray-600">
-                  <div><strong>Data/Hora da Certificação:</strong> {new Date().toLocaleString('pt-BR')} (UTC-3)</div>
+                  <div><strong>Data/Hora da Certificação:</strong> {new Date().toLocaleString('pt-BR') (UTC-3)</div>
                   <div className="mt-1"><strong>Versão do Sistema:</strong> Conductor CLT v2025.08.06</div>
                 </div>
               </div>

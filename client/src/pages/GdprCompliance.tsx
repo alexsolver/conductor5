@@ -243,7 +243,7 @@ export default function GdprCompliance() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-report-type">
-                          <SelectValue placeholder={t('GdprCompliance.selecioneOTipo')} />
+                          <SelectValue placeholder={t('GdprCompliance.selecioneOTipo') />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -301,7 +301,7 @@ export default function GdprCompliance() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-risk-level">
-                            <SelectValue placeholder={t('GdprCompliance.selecioneORisco')} />
+                            <SelectValue placeholder={t('GdprCompliance.selecioneORisco') />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -348,7 +348,7 @@ export default function GdprCompliance() {
 
               <div className="flex justify-end space-x-2">
                 <Button type="submit" disabled={createReportMutation.isPending} data-testid="button-submit-report">
-                  {createReportMutation.isPending ? 'Criando...' : {t('GdprCompliance.criarRelatorio')}}
+                  {createReportMutation.isPending ? 'Criando...' : t('GdprCompliance.criarRelatorio')}
                 </Button>
               </div>
             </form>
@@ -488,7 +488,7 @@ export default function GdprCompliance() {
         <div className="flex space-x-4">
           <div className="flex-1">
             <Input
-              placeholder={t('GdprCompliance.buscarRelatorios')}
+              placeholder={t('GdprCompliance.buscarRelatorios')
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"

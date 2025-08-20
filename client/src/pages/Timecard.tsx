@@ -88,7 +88,7 @@ const transformTimecardData = (frontendData: any) => {
     try {
       payload.location = JSON.stringify(frontendData.location);
     } catch (e) {
-      console.warn({t('Timecard.errorSerializingLocationData')}, e);
+      console.warn(t('Timecard.errorSerializingLocationData'), e);
       payload.location = null;
     }
   }
@@ -186,7 +186,7 @@ export default function Timecard() {
         },
         (error) => {
           setLocationError('Não foi possível obter a localização');
-          console.warn({t('Timecard.erroAoObterLocalizacao')}, error);
+          console.warn(t('Timecard.erroAoObterLocalizacao'), error);
         }
       );
     }
@@ -223,7 +223,7 @@ export default function Timecard() {
     onSuccess: (result: any) => {
       console.log('Registro de ponto bem-sucedido:', result);
       toast({
-        title: {t('Timecard.pontoRegistradoComSucesso')},
+        title: t('Timecard.pontoRegistradoComSucesso'),
         description: 'Seu registro foi salvo e processado.',
       });
       // Invalidar cache e forçar nova busca para atualizar status
@@ -231,15 +231,15 @@ export default function Timecard() {
       queryClient.refetchQueries({ queryKey: ['/api/timecard/current-status'] });
     },
     onError: (error: any) => {
-      console.error({t('Timecard.erroAoRegistrarPonto')}, error);
+      console.error(t('Timecard.erroAoRegistrarPonto'), error);
       
-      let errorTitle = {t('Timecard.erroAoRegistrarPonto')};
+      let errorTitle = t('Timecard.erroAoRegistrarPonto');
       let errorMessage = 'Tente novamente em alguns instantes.';
       
       // Extract specific error messages
       if (error?.message) {
         if (error.message.includes('UNAUTHORIZED')) {
-          errorTitle = {t('Timecard.erroDeAutenticacao')};
+          errorTitle = t('Timecard.erroDeAutenticacao');
           errorMessage = 'Faça login novamente para continuar.';
         } else if (error.message.includes('VALIDATION_ERROR')) {
           errorTitle = 'Dados Inválidos';
@@ -265,7 +265,7 @@ export default function Timecard() {
       latitude: location.coords.latitude,
       longitude: location.coords.longitude,
       address: undefined, // Poderia usar reverse geocoding aqui
-    } : undefined;
+    }) : undefined;
 
     recordMutation.mutate({
       recordType,
@@ -311,7 +311,7 @@ export default function Timecard() {
     try {
       return format(new Date(dateString), 'HH:mm', { locale: ptBR });
     } catch (error) {
-      console.warn({t('Timecard.errorFormattingTime')}, dateString, error);
+      console.warn(t('Timecard.errorFormattingTime'), dateString, error);
       return '--:--';
     }
   };
@@ -321,7 +321,7 @@ export default function Timecard() {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
     } catch (error) {
-      console.warn({t('Timecard.errorFormattingDate')}, dateString, error);
+      console.warn(t('Timecard.errorFormattingDate'), dateString, error);
       return '--/--/----';
     }
   };
@@ -681,7 +681,7 @@ export default function Timecard() {
                       </div>
                     ) : (
                       <div className="font-mono">
-                        {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt || '')}
+                        {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt || '')
                       </div>
                     )}
                     {record.location && (

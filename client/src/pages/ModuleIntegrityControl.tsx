@@ -142,7 +142,7 @@ export default function ModuleIntegrityControl() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('ModuleIntegrityControl.erroNaVerificacao')},
+        title: t('ModuleIntegrityControl.erroNaVerificacao'),
         description: error.message,
         variant: "destructive",
       });
@@ -224,14 +224,14 @@ export default function ModuleIntegrityControl() {
             Criar Backup
           </Button>
           <Button
-            onClick={() => runIntegrityCheckMutation.mutate('quick')}
+            onClick={() => runIntegrityCheckMutation.mutate('quick')
             disabled={runIntegrityCheckMutation.isPending}
           >
             <TestTube className="h-4 w-4 mr-2" />
             Verificação Rápida
           </Button>
           <Button
-            onClick={() => runIntegrityCheckMutation.mutate('full')}
+            onClick={() => runIntegrityCheckMutation.mutate('full')
             disabled={runIntegrityCheckMutation.isPending}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >

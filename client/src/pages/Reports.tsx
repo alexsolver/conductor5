@@ -68,7 +68,7 @@ const ZENDESK_QUICK_TEMPLATES = [
 const ZENDESK_DATA_SOURCES = [
   {
     id: "tickets",
-    name: {t('Reports.tickets')},
+    name: t('Reports.tickets'),
     description: "Support tickets and related data",
     icon: Grid,
     tables: 45,
@@ -76,7 +76,7 @@ const ZENDESK_DATA_SOURCES = [
   },
   {
     id: "users",
-    name: {t('Reports.users')}, 
+    name: t('Reports.users'), 
     description: "Customer and agent information",
     icon: Users,
     tables: 12,
@@ -124,7 +124,7 @@ export default function Reports() {
 
   // Zendesk-style Categories
   const categories = [
-    { id: "all", name: {t('Reports.allCategories')}, count: reports.length },
+    { id: "all", name: t('Reports.allCategories'), count: reports.length },
     { id: "performance", name: "Performance", count: reports.filter(r => r.category === 'operational').length },
     { id: "team", name: "Team Analytics", count: reports.filter(r => r.category === 'hr').length },
     { id: "customer", name: "Customer Insights", count: reports.filter(r => r.category === 'analytical').length },
@@ -178,7 +178,7 @@ export default function Reports() {
                   <Eye className="h-4 w-4 mr-2" />
                   View Reports
                 </Button>
-                <Button onClick={() => setLocation('/reports/create')}>
+                <Button onClick={() => setLocation('/reports/create')>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Report
                 </Button>
@@ -317,7 +317,7 @@ export default function Reports() {
                     <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No reports yet</h3>
                     <p className="text-gray-600 mb-4">Create your first report to get started</p>
-                    <Button onClick={() => setLocation('/reports/create')}>
+                    <Button onClick={() => setLocation('/reports/create')>
                       <Plus className="h-4 w-4 mr-2" />
                       Create Report
                     </Button>
@@ -361,19 +361,19 @@ export default function Reports() {
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setViewMode('grid')}
+                  onClick={() => setViewMode('grid')
                 >
                   <Grid className="h-4 w-4" />
                 </Button>
                 <Button
                   variant={viewMode === 'list' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setViewMode('list')}
+                  onClick={() => setViewMode('list')
                 >
                   <List className="h-4 w-4" />
                 </Button>
               </div>
-              <Button onClick={() => setLocation('/reports/create')}>
+              <Button onClick={() => setLocation('/reports/create')>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Report
               </Button>
@@ -389,7 +389,7 @@ export default function Reports() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder={t('Reports.searchReportsAndDashboards')}
+                placeholder={t('Reports.searchReportsAndDashboards')
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -399,7 +399,7 @@ export default function Reports() {
           <div className="flex items-center space-x-4">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder={t('Reports.allCategories')} />
+                <SelectValue placeholder={t('Reports.allCategories') />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -451,7 +451,7 @@ export default function Reports() {
             <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No reports found</h3>
             <p className="text-gray-600 mb-6">Try adjusting your search or create a new report</p>
-            <Button onClick={() => setLocation('/reports/create')}>
+            <Button onClick={() => setLocation('/reports/create')>
               <Plus className="h-4 w-4 mr-2" />
               Create Report
             </Button>

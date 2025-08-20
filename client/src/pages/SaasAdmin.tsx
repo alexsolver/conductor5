@@ -90,7 +90,7 @@ export default function SaasAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('SaasAdmin.erroAoCriarTenant')},
+        title: t('SaasAdmin.erroAoCriarTenant'),
         description: error.message,
         variant: "destructive",
       });
@@ -158,7 +158,7 @@ export default function SaasAdmin() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createTenantMutation.isPending}>
-                    {createTenantMutation.isPending ? 'Criando...' : {t('SaasAdmin.criar')}}
+                    {createTenantMutation.isPending ? 'Criando...' : t('SaasAdmin.criar')}
                   </Button>
                 </div>
               </form>
@@ -248,7 +248,7 @@ export default function SaasAdmin() {
                       </div>
                       <div>
                         <span className="font-medium mr-2">Criado em:</span>
-                        {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
+                        {new Date(tenant.createdAt).toLocaleDateString('pt-BR')
                       </div>
                     </div>
                     <div className="mt-3">
@@ -285,7 +285,7 @@ export default function SaasAdmin() {
                         variant={user.role === 'saas_admin' ? 'default' : 'secondary'}
                         className={user.role === 'saas_admin' ? 'bg-red-100 text-red-700' : ''}
                       >
-                        {user.role.replace('_', ' ')}
+                        {user.role.replace('_', ' ')
                       </Badge>
                     </div>
                     <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
@@ -299,7 +299,7 @@ export default function SaasAdmin() {
                       {user.lastLoginAt && (
                         <div>
                           <span className="font-medium mr-2">Último login:</span>
-                          {new Date(user.lastLoginAt).toLocaleDateString('pt-BR')}
+                          {new Date(user.lastLoginAt).toLocaleDateString('pt-BR')
                         </div>
                       )}
                     </div>

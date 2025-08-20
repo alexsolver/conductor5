@@ -11,7 +11,7 @@ const features = [
   },
   {
     icon: BarChart3,
-    title: {t('Landing.advancedAnalytics')},
+    title: t('Landing.advancedAnalytics'),
     description: "Get insights with real-time dashboards, performance metrics, and detailed reporting.",
   },
   {

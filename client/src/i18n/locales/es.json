@@ -28,7 +28,13 @@
     "add": "Añadir",
     "remove": "Eliminar",
     "creating": "Creando",
-    "view": "Ver"
+    "view": "Ver",
+    "loginSuccessful": "Inicio de sesión exitoso",
+    "workspaceCriadoComSucesso": "Espacio de trabajo creado exitosamente.",
+    "registroRealizadoComSucesso": "Registro completado exitosamente",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "todosOsCamposCustomizadosForamRemovidos": "Todos los campos personalizados han sido eliminados."
   },
   "navigation": {
     "dashboard": "Panel",
@@ -53,7 +59,8 @@
       "total_agents": "Total de Agentes"
     },
     "recent_activity": "Actividad Reciente",
-    "urgent_tickets": "Tickets Urgentes"
+    "urgent_tickets": "Tickets Urgentes",
+    "createTicket": "Crear Ticket"
   },
   "tickets": {
     "title": "Tickets",
@@ -115,7 +122,30 @@
       "pending": "Pendiente",
       "resolved": "Resuelto",
       "closed": "Cerrado"
-    }
+    },
+    "errorFormattingDatetime": "Error al formatear la fecha y hora",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "selecioneUmMembro": "Seleccione un Miembro",
+    "selecioneOTipoDeAcao": "Seleccione el Tipo de Acción",
+    "salvarAlteracoes": "Guardar cambios",
+    "selecioneUmTemplateOpcional": "Seleccione una plantilla opcional.",
+    "editarAcaoInterna": "Editar Acción Interna",
+    "editeOsDadosDaAcaoInternaSelecionada": "Editar los datos de la acción interna seleccionada.",
+    "selecioneUmAgente": "Seleccione un Agente",
+    "salvarAcao": "Guardar Acción",
+    "carregandoFieldname": "Cargando Fieldname",
+    "tabelaDeTickets": "Tabla de Tickets",
+    "acoesParaTicketTicketnumberTicketidslice08": "Acciones para el ticket número Ticketidslice08",
+    "criarChamadoFilho": "Crear Ticket Hijo",
+    "buscarPorAcaoOuUsuario": "Buscar por Acción o Usuario",
+    "nenhumaAcaoEncontradaComOsFiltrosAplicados": "No se encontró ninguna acción con los filtros aplicados.",
+    "nenhumHistoricoDisponivel": "No hay historial disponible.",
+    "ticketsRelacionados": "Tickets Relacionados",
+    "selecionePeloMenosUmChamadoETipoDeRelacao": "Seleccione al menos una llamada y un tipo de relación.",
+    "todosOsClientesDestaEmpresa": "Todos los clientes de esta empresa",
+    "todosOsStatus": "Todos los Estados",
+    "selecioneOTipoDeRelacao": "Seleccione el tipo de relación."
   },
   "customers": {
     "title": "Clientes",
@@ -152,7 +182,13 @@
       "company": "Empresa",
       "submit": "Guardar Cliente",
       "cancel": "Cancelar"
-    }
+    },
+    "errorFetchingCustomers": "Error al obtener clientes",
+    "errorAssociatingCustomers": "Error al asociar clientes",
+    "erroAoCarregarClientes": "Error al cargar clientes",
+    "selecionePeloMenosUmCliente": "Seleccione al menos un cliente.",
+    "erroAoAssociarClientes": "Error al Asociar Clientes",
+    "buscarClientesPorNomeOuEmail": "Buscar clientes por nombre o correo electrónico"
   },
   "analytics": {
     "title": "Analíticas",
@@ -367,5 +403,1085 @@
     "terminateAllSessions": "Cerrar todas las sesiones",
     "noSessionsMatch": "No hay sesiones coincidentes.",
     "noActiveSessions": "No hay sesiones activas."
+  },
+  "CustomerCompanies": {
+    "errorDeletingCompany": "Error al eliminar la empresa",
+    "errorUpdatingDefaultCompany": "Error al actualizar la empresa predeterminada",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "erroAoCriarEmpresa": "Error al crear empresa",
+    "erroAoAtualizarEmpresa": "Error al actualizar empresa",
+    "erroAoExcluirEmpresa": "Error al eliminar empresa",
+    "selecioneOTamanho": "Seleccione el Tamaño",
+    "criarEmpresa": "Crear Empresa",
+    "buscarEmpresas": "Buscar Empresas",
+    "excluir": "Eliminar",
+    "salvarAlteracoes": "Guardar cambios"
+  },
+  "DashboardView": {
+    "saveFailed": "Error al guardar",
+    "totalDeTickets": "Total de Tickets",
+    "clientesAtivos": "Active Clients",
+    "usuariosNoSistema": "Usuarios en el sistema",
+    "dashboardSaved": "Panel Guardado"
+  },
+  "Dashboards": {
+    "errorUpdatingFavorite": "Error al actualizar Favorito",
+    "errorDuplicatingDashboard": "Error al Duplicar el Panel de Control",
+    "errorDeletingDashboard": "Error al eliminar el panel de control",
+    "errorOpeningDashboard": "Error al abrir el panel de control",
+    "errorCreatingDashboard": "Error al Crear el Panel de Control",
+    "dashboardNameIsRequired": "Nombre del Panel es Requerido",
+    "analytics": "Análisis",
+    "dashboardTemplates": "Plantillas de panel",
+    "dashboards": "Paneles de control",
+    "dashboard": "Tablero",
+    "dashboardDuplicatedSuccessfully": "Panel duplicado exitosamente",
+    "dashboardDeletedSuccessfully": "Panel de control eliminado exitosamente",
+    "dashboardShareLinkHasBeenCopiedToClipboard": "El enlace para compartir el panel ha sido copiado al portapapeles.",
+    "dashboardCreatedSuccessfully": "Panel de control creado exitosamente",
+    "pleaseSelectATemplate": "Por favor, selecciona una plantilla.",
+    "describeWhatThisDashboardWillShow": "Describa lo que mostrará este panel de control.",
+    "supportPerformanceAnalyticsCommaSeparated": "Soporte de Analítica de Rendimiento Separado por Comas",
+    "selectedTemplate": "Plantilla seleccionada",
+    "searchDashboards": "Buscar paneles"
+  },
+  "LPUManagement": {
+    "errorFetchingLpuStats": "Error al recuperar estadísticas de LPU",
+    "erroAoCarregarEstatisticas": "Error al cargar estadísticas",
+    "informacoesAdicionaisSobreEstaLista": "Información Adicional Sobre Esta Lista",
+    "criarLista": "Crear Lista",
+    "criarRegra": "Crear Regla",
+    "buscarListasDePrecos": "Buscar Listas de Precios",
+    "filtrarPorStatus": "Filtrar por estado"
+  },
+  "LocationsNew": {
+    "errorCreatingRecord": "Error al crear el registro",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "escolhaUmPadrao": "Seleccione un patrón.",
+    "selecione": "Seleccionar",
+    "selecioneUmTecnico": "[ES] Selecione Um Tecnico",
+    "multiselecaoDeClientes": "Selección múltiple de clientes",
+    "selecioneOrigem": "Seleccionar Origen",
+    "selecioneDestino": "Seleccionar destino",
+    "selecioneOTipo": "Seleccione el tipo",
+    "criar": "Crear",
+    "buscarRegistros": "Buscar Registros",
+    "filtrarPorStatus": "Filtrar por Estado"
+  },
+  "NotificationsPage": {
+    "error": "Error",
+    "success": "Éxito",
+    "processingComplete": "Procesamiento completado",
+    "processing": "Procesando",
+    "selectType": "Seleccionar Tipo",
+    "selectSeverity": "Seleccionar gravedad",
+    "dashboard": "Tablero",
+    "createNotification": "Crear notificación",
+    "allStatuses": "Todos los estados",
+    "allSeverities": "Todas las gravedades",
+    "allTypes": "Todos los tipos"
+  },
+  "OmniBridge": {
+    "errorTogglingChannel": "Error al alternar canal",
+    "erroAoCarregar": "Error al cargar",
+    "erro": "Error",
+    "erroAoAlterarStatusDoCanal": "Error al cambiar el estado del canal",
+    "buscarMensagens": "Buscar mensajes",
+    "nenhuma": "Ninguna",
+    "criarTicket": "Crear Ticket",
+    "exRespostaAutomaticaParaNovosClientes": "Respuesta automática para nuevos clientes",
+    "selecioneOGatilho": "Seleccione el Desencadenante",
+    "selecioneAAcao": "Seleccionar la acción"
+  },
+  "SecuritySettings": {
+    "error": "Error"
+  },
+  "TeamManagement": {
+    "errorTogglingMemberStatus": "Error al cambiar el estado del miembro",
+    "erroAoAtualizarStatus": "Error al actualizar estado",
+    "erro": "Error",
+    "nenhumDadoParaExportar": "No hay datos para exportar.",
+    "erroNaExportacao": "Error en la exportación",
+    "todos": "Todos",
+    "nenhumMembroFoiAdicionadoAEquipeAinda": "Ningún miembro ha sido añadido al equipo todavía."
+  },
+  "TicketDetails": {
+    "errorFetchingCustomers": "Error al recuperar clientes",
+    "informacoes": "Información",
+    "acoesInternas": "Acciones internas",
+    "erro": "Error",
+    "erroAoAdicionarNotaTenteNovamente": "Error al agregar la nota. Inténtalo de nuevo.",
+    "erroDoServidorRespostaHtmlRecebidaAoInvesDeJsonContateOAdministrador": "Error del servidor. Se recibió una respuesta HTML en lugar de JSON. Contacte al administrador.",
+    "erroDeFormatoDeRespostaDoServidorContateOAdministrador": "Error de formato de respuesta del servidor. Contacta al administrador.",
+    "erroDeConfiguracaoDoServidorContateOAdministrador": "Error de configuración del servidor. Contacte al administrador.",
+    "erroInternoDoServidorTenteNovamenteOuContateOAdministrador": "Error interno del servidor. Inténtelo de nuevo o contacte al administrador.",
+    "sucesso": "Éxito",
+    "erroAoAtualizarTicket": "Error al actualizar el ticket",
+    "erroAoExcluirTicket": "Error al eliminar el ticket",
+    "erroAoRemoverVinculo": "Error al eliminar el vínculo",
+    "selecioneAPrioridade": "Seleccione la prioridad",
+    "selecioneOStatus": "Seleccione el Estado",
+    "selecioneAUrgencia": "Seleccione la urgencia",
+    "selecioneOImpacto": "Seleccionar Impacto",
+    "selecioneACategoria": "Seleccionar categoría",
+    "selecioneASubcategoria": "Seleccionar subcategoría",
+    "selecioneAAcao": "Seleccione la acción",
+    "selecioneOTipo": "Seleccione el tipo",
+    "excluirNota": "Eliminar Nota",
+    "editarAcaoInterna": "Editar Acción Interna",
+    "excluirAcaoInterna": "Eliminar Acción Interna",
+    "acoes": "Acciones",
+    "carregandoLoadingitems0tolowercase": "Cargando elementos0 a minúsculas",
+    "carregandoLoadingitemslengthItensProgresspercentage": "Cargando elementos Progresspercentage %",
+    "selecioneAEmpresa": "Seleccionar la empresa",
+    "selecioneOLocal": "Seleccione la ubicación",
+    "selecioneOGrupo": "Seleccione el Grupo",
+    "erroDeValidacao": "Error de validación",
+    "salvarAlteracoesDoTicket": "Guardar cambios del ticket",
+    "carregando": "Cargando",
+    "salvar": "Guardar",
+    "acoesInternasInternalactionsdatalength0Itens": "Acciones internas Internalactionsdatalength0 elementos",
+    "acoesExternas0Itens": "Acciones Externas: 0 elementos",
+    "slaWarning85Decorrido": "Advertencia Sla85 Expirado"
+  },
+  "TicketEdit": {
+    "errorFetchingCustomersForCompany": "Error al recuperar clientes para la empresa",
+    "error": "Error",
+    "success": "Éxito",
+    "selecioneAPrioridade": "Seleccione la Prioridad",
+    "selecioneOStatus": "Seleccione el Estado",
+    "selecioneOCliente": "Seleccionar cliente",
+    "selecioneOBeneficiarioOpcional": "Seleccione el Beneficiario Opcional",
+    "selecioneUmGrupo": "Seleccionar Grupo",
+    "selecioneUmAgente": "Seleccionar un Agente"
+  },
+  "Tickets": {
+    "errorFetchingCustomersForCompany": "Error al recuperar clientes para la empresa.",
+    "erroAoCarregarTickets": "Error al cargar los tickets",
+    "customersData": "Datos de clientes",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "erroDesconhecido": "Error Desconocido",
+    "selecioneUmaEmpresa": "Seleccionar Empresa",
+    "selecioneOCliente": "Seleccionar Cliente",
+    "selecioneOFavorecidoOpcional": "Seleccione el Beneficiario (Opcional)",
+    "selecioneACategoria": "Seleccionar categoría",
+    "selecioneASubcategoria": "Seleccione la subcategoría",
+    "selecioneAAcao": "Seleccionar la acción",
+    "selecioneAPrioridade": "Seleccione la prioridad",
+    "selecioneAUrgencia": "Seleccione la urgencia.",
+    "selecioneOLocalDeAtendimentoOpcional": "Seleccione la Ubicación de Atención Opcional",
+    "criarTicket": "Crear Ticket"
+  },
+  "TicketsTable": {
+    "deleteTicket": "Eliminar boleto",
+    "selecioneUmResponsavel": "Seleccione un Responsable",
+    "erro": "Error",
+    "erroAoCriarVisualizacao": "Error al crear visualización",
+    "erroAoAtualizarVisualizacao": "Error al actualizar vista.",
+    "erroAoExcluirVisualizacao": "Error al eliminar la vista.",
+    "ticketstableData": "Datos de la tabla de tickets",
+    "erroAoCriarTicket": "Error al crear ticket",
+    "sucesso": "Éxito",
+    "erroDeValidacao": "Error de validación",
+    "editTicket": "Editar Ticket",
+    "selectCategory": "Seleccionar Categoría",
+    "selectPriority": "Seleccionar Prioridad",
+    "selectImpact": "Seleccionar Impacto",
+    "selectUrgency": "Seleccionar Urgencia",
+    "buscarCliente": "Buscar Cliente",
+    "buscarFavorecidoOpcional": "Buscar Beneficiario (Opcional)",
+    "selectAgent": "Seleccionar Agente",
+    "selecioneUmGrupo": "Seleccione un Grupo",
+    "selectContactType": "Seleccionar tipo de contacto",
+    "createTicket": "Crear ticket",
+    "searchTickets": "Buscar Tickets",
+    "filterByStatus": "Filtrar por estado",
+    "filterByPriority": "Filtrar por prioridad",
+    "editarVisualizacao": "Editar Visualización",
+    "criarNovaVisualizacao": "Crear nueva visualización",
+    "salvarAlteracoes": "Guardar Cambios",
+    "criarVisualizacao": "Crear Visualización",
+    "selecioneOStatus": "Seleccione el Estado",
+    "selecioneAPrioridade": "Seleccione la prioridad",
+    "selecioneUmaEmpresa": "Seleccionar Empresa",
+    "selecioneUmaCategoria": "Seleccione una categoría",
+    "ticketstable": "Tabla de tickets"
+  },
+  "Timecard": {
+    "errorSerializingLocationData": "Error al serializar datos de ubicación",
+    "errorFormattingTime": "Error al formatear la hora",
+    "errorFormattingDate": "Error al formatear la fecha",
+    "erroAoObterLocalizacao": "Error al obtener ubicación.",
+    "pontoRegistradoComSucesso": "Registro de Punto Exitoso",
+    "erroAoRegistrarPonto": "Error al Registrar Punto",
+    "erroDeAutenticacao": "Error de autenticación"
+  },
+  "TimecardApprovalSettings": {
+    "errorFetchingMemberCountForGroup": "Error al obtener el recuento de miembros para el grupo",
+    "errorUpdatingSettings": "Error al actualizar la configuración",
+    "errorCreatingGroup": "Error al crear grupo",
+    "errorUpdatingGroup": "Error al actualizar grupo",
+    "errorUpdatingMembers": "Error al actualizar miembros",
+    "errorDeletingGroup": "Error al eliminar grupo",
+    "configuracoesSalvas": "Configuraciones Guardadas",
+    "erro": "Error",
+    "todosOsRegistros": "Todos los registros",
+    "selecioneUmGrupo": "Seleccionar un Grupo",
+    "editarGrupoDeAprovacao": "Editar Grupo de Aprobación",
+    "criarGrupoDeAprovacao": "Crear Grupo de Aprobación",
+    "editeAsInformacoesDoGrupoDeAprovacao": "Editar información del grupo de aprobación.",
+    "salvarAlteracoes": "Guardar cambios",
+    "criarGrupo": "Crear Grupo",
+    "salvarMembros": "Guardar miembros"
+  },
+  "TimecardApprovals": {
+    "errorApprovingTimecard": "Error al aprobar la hoja de tiempo.",
+    "errorRejectingTimecard": "Error al rechazar la hoja de tiempo",
+    "errorBulkApprovingTimecards": "Error al aprobar en masa las tarjetas de tiempo",
+    "erro": "Error",
+    "nenhumRegistroSelecionado": "Ningún registro seleccionado",
+    "selecioneAoMenosUmRegistroParaAprovar": "Seleccione al menos un registro para aprobar."
+  },
+  "TranslationManager": {
+    "errorAutocompletingTranslations": "Error al autocompletar traducciones",
+    "erroAoSalvarTraducoes": "Error al guardar traducciones",
+    "erroAoRestaurarBackup": "Error al Restaurar la Copia de Seguridad",
+    "salvarAlteracoes": "Guardar cambios",
+    "buscarChavesDeTraducao": "Buscar Claves de Traducción",
+    "nenhumaChaveEncontradaParaABusca": "No se encontraron claves para la búsqueda.",
+    "nenhumaTraducaoEncontrada": "No se encontró ninguna traducción.",
+    "sucesso": "Éxito",
+    "erro": "Error"
+  },
+  "WorkSchedules": {
+    "errorProcessingSchedule": "Error al procesar el horario",
+    "errorProcessingWorkdays": "Error al procesar los días laborables",
+    "erroAoCriarEscala": "Error al crear escala",
+    "erroAoAtualizarEscala": "Error al actualizar la escala",
+    "erroAoExcluirEscala": "Error al eliminar la escala",
+    "erroAoCriarTemplate": "Error al crear plantilla",
+    "erroAoAtualizarTemplate": "Error al actualizar plantilla",
+    "erroAoExcluirTemplate": "Error al eliminar plantilla",
+    "erroAoAtribuirTemplate": "Error al asignar plantilla",
+    "usersAvailable": "Usuarios disponibles",
+    "usersFetchError": "Error al obtener usuarios",
+    "erro": "Error",
+    "selecionePeloMenosUmFuncionario": "Seleccione al menos un empleado.",
+    "sucesso": "Éxito",
+    "erroNaAtribuicaoEmLote": "Error en la asignación por lotes",
+    "erroInternoDoServidor": "Error interno del servidor",
+    "erroNaFormatacao": "Error de formato",
+    "editarTemplate": "Editar plantilla",
+    "salvarTemplate": "Guardar Plantilla"
+  },
+  "CustomerModal": {
+    "tsx": {
+      "errorAddingCompany": "Error al agregar empresa",
+      "deleteResponse": "Eliminar respuesta",
+      "errorRemovingCompanyAssociation": "Error al eliminar la asociación de la empresa",
+      "clienteSalvoComSucesso": "Cliente guardado exitosamente",
+      "erro": "Error",
+      "erroAoSalvarCliente": "Error al guardar cliente",
+      "selecioneUmaEmpresaValidaParaAssociar": "Seleccione una empresa válida para asociar.",
+      "sucesso": "Éxito",
+      "erroAoAssociarEmpresa": "Error al Asociar Empresa",
+      "erroAoRemoverEmpresa": "Error al eliminar empresa",
+      "editarCliente": "Modificar Cliente",
+      "selecioneOTipo": "Seleccione el tipo",
+      "selecioneOStatus": "Seleccione el Estado",
+      "observacoesSobreOCliente": "Observaciones sobre el cliente",
+      "filteredCompanies": "Empresas Filtradas",
+      "selecioneUmaEmpresaPrimeiro": "Seleccione una empresa primero.",
+      "criar": "Crear"
+    }
+  },
+  "DynamicSelect": {
+    "tsx": {
+      "errorFetchingFieldOptions": "Error al recuperar las opciones del campo",
+      "erroAoCarregarOpcoes": "Error al cargar opciones",
+      "nenhumaOpcaoDisponivel": "Sin opciones disponibles"
+    }
+  },
+  "ErrorBoundary": {
+    "tsx": {
+      "errorboundaryCaughtAnError": "ErrorBoundary detectó un error",
+      "errorInfo": "Información de error",
+      "errorReportGenerated": "Informe de Error Generado",
+      "errorCaughtByUseerrorhandler": "Error capturado por UseErrorHandler"
+    }
+  },
+  "MaterialsServicesMiniSystem": {
+    "tsx": {
+      "errorAddingPlannedMaterial": "Error al agregar material planificado",
+      "errorAddingConsumedMaterial": "Error al agregar material consumido",
+      "errorDeletingPlannedItem": "Error al eliminar elemento planificado",
+      "selecioneUmItem": "Seleccione un elemento",
+      "excluirItemPlanejado": "Eliminar Elemento Planeado",
+      "selecioneUmItemPlanejado": "Seleccione un Elemento Planeado",
+      "excluirItemConsumido": "Eliminar elemento consumido"
+    }
+  },
+  "forms": {
+    "errorCreatingContract": "Error al Crear Contrato",
+    "errorUpdatingContract": "Error al actualizar el contrato",
+    "cancelado": "Cancelado",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "selecioneOTipo": "Seleccione el Tipo",
+    "selecioneAPrioridade": "Seleccione la prioridad",
+    "selecioneAMoeda": "Seleccionar la moneda",
+    "criarContrato": "Crear Contrato",
+    "selecioneOStatus": "Seleccione el Estado",
+    "salvarAlteracoes": "Guardar cambios"
+  },
+  "locations": {
+    "errortitleResponsestatus": "Título de error Estado de respuesta",
+    "erroDeValidacao": "Error de validación",
+    "selecionePeloMenosUmaAreaParaOAgrupamento": "Seleccione al menos un área para la agrupación.",
+    "buscarAreasPorNomeCodigoOuTipo": "Buscar áreas por nombre, código o tipo.",
+    "nenhumaAreaCadastrada": "Ninguna área registrada",
+    "nenhumaAreaEncontrada": "Ninguna área encontrada",
+    "criarAgrupamento": "Crear Agrupación",
+    "arquivoCarregadoComSucesso": "Archivo cargado exitosamente",
+    "erroAoProcessarArquivo": "Error al procesar archivo",
+    "selecioneOTipoDeArea": "Seleccione el tipo de área.",
+    "criarArea": "Crear Área",
+    "erroDeAutenticacao": "Error de autenticación",
+    "erroAoBuscarCep": "Error al buscar CEP",
+    "erroAoBuscarCoordenadas": "Error al buscar coordenadas",
+    "erroAoBuscarFeriados": "Error al buscar feriados",
+    "erroDeComunicacao": "Error de comunicación",
+    "erroDoServidor": "Error del Servidor",
+    "erroInternoDoServidorPodeSerUmProblemaDeConfiguracaoDoBancoDeDadosOuSchema": "Error interno del servidor. Puede ser un problema de configuración de la base de datos o del esquema.",
+    "erroDeRequisicaoVerifiqueOsDadosEnviados": "Error de solicitud. Verifique los datos enviados.",
+    "erroDeParsing": "Error de análisis",
+    "sucesso": "Éxito",
+    "erroDesconhecidoDoServidor": "Error de servidor desconocido",
+    "erroAoCriarLocal": "Error al crear ubicación",
+    "erroDeConexao": "Error de conexión",
+    "erroInesperado": "Error inesperado",
+    "erroDesconhecido": "Error Desconocido",
+    "selecioneOTipo": "Seleccione el Tipo",
+    "selecioneOTecnicoPrincipal": "Seleccione el Técnico Principal",
+    "buscarCep": "Buscar CEP",
+    "buscarFeriados": "Buscar Feriados",
+    "salvarLocal": "Guardar ubicación",
+    "erro": "Error",
+    "erroAoBuscarCepTenteNovamente": "Error al buscar CEP. Inténtalo de nuevo.",
+    "erroAoCriarRegiao": "Error al crear región",
+    "erroAoSalvarRegiao": "Error al guardar región",
+    "erroDeConexaoTenteNovamente": "Error de conexión. Inténtalo de nuevo.",
+    "salvarRegiao": "Guardar Región",
+    "buscarClientes": "Buscar Clientes",
+    "buscarRegioes": "Buscar Regiones",
+    "erroAoCriarRotaDinamica": "Error al crear ruta dinámica",
+    "salvarRotaDinamica": "Guardar Ruta Dinámica",
+    "selecioneOLocalDeOrigem": "Seleccione el lugar de origen",
+    "selecioneOLocalDeDestino": "Seleccione el destino.",
+    "selecioneOLocalDeOrigemDaRota": "Seleccione el lugar de origen de la ruta.",
+    "selecioneOLocalDeDestinoDaRota": "Seleccione el destino de la ruta.",
+    "salvarRotaDeTrecho": "Guardar Ruta del Trayecto",
+    "salvarTrecho": "Guardar Fragmento"
+  },
+  "layout": {
+    "selecioneFieldlabeltolowercase": "Seleccione Etiquetadelcampoenminúsculas",
+    "editarLayout": "Modificar diseño",
+    "selecioneUmaOpcao": "Seleccione una opción",
+    "clientes": "Clientes",
+    "tickets": "Boletos",
+    "relatorios": "Informes",
+    "analytics": "Analíticas",
+    "reports": "Informes",
+    "dashboard": "Tablero",
+    "configuracoesDeSeguranca": "Configuraciones de Seguridad",
+    "configuracoesDeTickets": "Configuración de Tickets",
+    "relatoriosDashboards": "Paneles de informes",
+    "dashboardsInterativos": "Paneles Interactivos",
+    "settings": "Configuración",
+    "carregando": "Cargando"
+  },
+  "templates": {
+    "editandoFieldlabel": "Editando etiqueta de campo",
+    "todosOsClientes": "Todos los clientes",
+    "selecioneUmCliente": "Seleccionar Cliente",
+    "erroAoCarregarCamposCustomizados": "Error al cargar campos personalizados",
+    "editarCampo": "Editar Campo",
+    "buscarTemplatesPorNomeOuDescricao": "Buscar plantillas por nombre o descripción",
+    "nenhumTemplateEncontradoComOsFiltrosAplicados": "Ningún plantilla encontrada con los filtros aplicados.",
+    "nenhumTemplateDisponivel": "Ningún plantilla disponible."
+  },
+  "AbsenceManagement": {
+    "cancelada": "Cancelado",
+    "erroAoCriarSolicitacao": "Error al crear solicitud",
+    "erroInternoDoServidor": "Error interno del servidor",
+    "erroAoAprovar": "Error al aprobar",
+    "erroAoRejeitar": "Error al rechazar",
+    "selecioneOFuncionario": "Seleccionar empleado",
+    "selecioneOTipo": "Seleccione el Tipo",
+    "selecioneUmSubstituto": "Seleccione un sustituto.",
+    "criarSolicitacao": "Crear Solicitud"
+  },
+  "ActivityPlanner": {
+    "erroAoCriarAtivo": "Error al crear activo",
+    "selecioneUmaLocalizacao": "Seleccionar ubicación",
+    "selecioneUmaCategoria": "Selecciona una categoría",
+    "criarAtivo": "Crear Activo",
+    "erroAoCriarPlano": "Error al crear plan",
+    "selecioneUmAtivo": "Seleccione un activo",
+    "criarPlano": "Crear Plan",
+    "erroAoCriarOrdemDeServico": "Error al crear orden de servicio",
+    "selecioneUmTecnico": "Seleccionar técnico",
+    "selecioneUmPlano": "Selecciona un Plan",
+    "criarOs": "Crear",
+    "erroAoAtualizarStatus": "Error al actualizar estado",
+    "cancelada": "Cancelado",
+    "buscarAtivos": "Buscar Activos"
+  },
+  "AgendaManager": {
+    "todos": "Todos",
+    "buscarPorTitulo": "Buscar por Título"
+  },
+  "AssetManagement": {
+    "criarAtivo": "Crear activo",
+    "selecioneOAtivo": "Seleccione el activo",
+    "buscarAtivos": "Buscar Activos",
+    "filtrarPorStatus": "Filtrar por estado"
+  },
+  "AssetsManagement": {
+    "erro": "Error",
+    "erroAoCriarAtivo": "Error al crear activo",
+    "erroAoAtualizarAtivo": "Error al actualizar activo",
+    "buscarAtivos": "Buscar Activos",
+    "selecioneACategoria": "Seleccionar categoría",
+    "criarAtivo": "Crear Activo"
+  },
+  "AuthPage": {
+    "createAccount": "Crear cuenta"
+  },
+  "AutomationRules": {
+    "erroAoCarregarRegrasDeAutomacaoErrormessage": "Error al cargar reglas de automatización.",
+    "erro": "Error",
+    "erroAoCriarRegraDeAutomacao": "Error al crear regla de automatización"
+  },
+  "Beneficiaries": {
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "editingBeneficiary": "Editar Beneficiario",
+    "escolhaUmCliente": "Seleccionar Cliente",
+    "selecioneUmCliente": "Seleccionar Cliente",
+    "criar": "Crear",
+    "editar": "Editando",
+    "buscarFavorecidos": "Buscar Beneficiarios"
+  },
+  "CLTCompliance": {
+    "erroNaReconstituicao": "Error en la reconstrucción",
+    "erro": "Error"
+  },
+  "CertificateManager": {
+    "erroAoInstalarCertificado": "Error al instalar certificado",
+    "erroNaInstalacao": "Error en la instalación"
+  },
+  "Companies": {
+    "erroAoCriarEmpresa": "Error al Crear Empresa",
+    "erroAoAtualizarEmpresa": "Error al actualizar la empresa",
+    "erroAoRemoverEmpresa": "Error al eliminar empresa",
+    "selecioneOPorte": "Seleccione el Tamaño",
+    "criarEmpresa": "Crear Empresa",
+    "buscarEmpresas": "Buscar Empresas",
+    "nenhumaEmpresaEncontrada": "No se ha encontrado ninguna empresa.",
+    "nenhumaEmpresaCadastrada": "Ninguna empresa registrada",
+    "salvarAlteracoes": "Guardar cambios"
+  },
+  "Compliance": {
+    "dashboard": "Tablero"
+  },
+  "ComplianceManagement": {
+    "criarAuditoria": "Crear Auditoría",
+    "criarCertificacao": "Crear Certificación"
+  },
+  "ContractManagement": {
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "buscarContratos": "Buscar Contratos"
+  },
+  "CorporateExpenseManagement": {
+    "cancelado": "Cancelado",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "erroAoCriarRelatorioDeDespesas": "Error al crear informe de gastos",
+    "criarRelatorio": "Crear Informe",
+    "buscarRelatorios": "Buscar Informes"
+  },
+  "CustomFieldsAdministrator": {
+    "clientes": "Clientes",
+    "tickets": "Boletos",
+    "erro": "Error",
+    "erroAoCriarCampoCustomizado": "Error al crear campo personalizado",
+    "erroAoAtualizarCampoCustomizado": "Error al actualizar campo personalizado",
+    "erroAoRemoverCampoCustomizado": "Error al eliminar campo personalizado",
+    "editarCampo": "Editar Campo",
+    "excluirCampo": "Eliminar Campo",
+    "selecioneUmModulo": "Seleccione un módulo."
+  },
+  "CustomerItemMappings": {
+    "erroAoSalvarMapeamento": "Error al guardar el mapeo",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "erroAoDeletarMapeamento": "Error al eliminar el mapeo",
+    "editarMapeamento": "Editar Mapeo",
+    "criarNovoMapeamento": "Crear nuevo mapeo",
+    "selecioneUmaEmpresa": "Seleccione una empresa",
+    "selecioneUmItem": "Seleccionar un elemento",
+    "observacoesInternasSobreEsteMapeamento": "Notas internas sobre este mapeo.",
+    "salvar": "Guardar",
+    "buscarPorSkuNomeReferencia": "Buscar por SKU, Nombre, Referencia",
+    "todosOsTipos": "Todos los tipos"
+  },
+  "Customers": {
+    "customersApiResponse": "Respuesta de la API de clientes",
+    "customersData": "Datos de clientes"
+  },
+  "GdprCompliance": {
+    "selecioneOTipo": "Seleccione el Tipo",
+    "selecioneORisco": "Seleccione el riesgo",
+    "criarRelatorio": "Crear informe",
+    "buscarRelatorios": "Buscar Informes"
+  },
+  "GdprCompliancePage": {
+    "selecioneOTipo": "Seleccione el Tipo",
+    "criarSolicitacao": "Crear Solicitud",
+    "selecioneASeveridade": "Seleccione la gravedad",
+    "erroAoCriarPolitica": "Error al crear política",
+    "erroDesconhecido": "Error Desconocido",
+    "criarPolitica": "Crear Política"
+  },
+  "HolidayCalendar": {
+    "erroAoCriarFeriado": "Error al crear festivo",
+    "criarFeriado": "Crear festivo",
+    "todosOsTipos": "Todos los tipos"
+  },
+  "HourBank": {
+    "selecioneOFuncionario": "Seleccione al empleado"
+  },
+  "ItemCatalog": {
+    "erroNoCatalogo": "Error en el catálogo",
+    "erroAoCarregarItensDoCatalogoTenteNovamente": "Error al cargar elementos del catálogo. Inténtelo de nuevo.",
+    "erroAoCarregarVinculosDoItem": "Error al cargar los enlaces del elemento",
+    "erroAoCriarItem": "Error al crear elemento",
+    "itemCriadoComSucesso": "Elemento creado exitosamente",
+    "itemAtualizadoComSucesso": "Elemento Actualizado Exitosamente",
+    "erroAoAtualizarItem": "Error al actualizar elemento",
+    "itemExcluidoComSucesso": "Elemento eliminado correctamente",
+    "erroAoExcluirItem": "Error al eliminar elemento",
+    "buscarPorNomeCodigoOuDescricao": "Buscar por Nombre, Código o Descripción",
+    "nenhumItemEncontradoComOsFiltrosAplicados": "Ningún elemento encontrado con los filtros aplicados.",
+    "nenhumItemCadastradoNoCatalogo": "Ningún artículo registrado en el catálogo.",
+    "selecioneOTipo": "Seleccione el tipo",
+    "selecioneItensFilhos": "Seleccionar elementos secundarios",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "erroAoVincularEmpresa": "Error al vincular empresa",
+    "erroAoDesvincularEmpresa": "Error al Desvincular Empresa",
+    "erroAoVincularFornecedor": "Error al vincular proveedor",
+    "erroAoDesvincularFornecedor": "Error al Desvincular Proveedor"
+  },
+  "LPU": {
+    "erroAoCriarListaDePrecos": "Error al crear lista de precios",
+    "erroDesconhecido": "Error Desconocido",
+    "erroAoAtualizarListaDePrecos": "Error al actualizar lista de precios",
+    "erroAoExcluirListaDePrecos": "Error al eliminar lista de precios",
+    "erroAoDuplicarListaDePrecos": "Error al Duplicar Lista de Precios",
+    "erroAoCriarRegraDePrecificacao": "Error al crear regla de precios",
+    "erroAoAtualizarRegraDePrecificacao": "Error al actualizar la regla de fijación de precios",
+    "erroAoExcluirRegraDePrecificacao": "Error al eliminar la regla de fijación de precios",
+    "regrasAplicadasComSucesso": "Reglas Aplicadas Exitosamente",
+    "erroAoAplicarRegras": "Error al Aplicar Reglas",
+    "erroInternoDoServidor": "Error interno del servidor",
+    "buscarListasDePrecos": "Buscar Listas de Precios",
+    "nenhumaListaEncontrada": "Lista no encontrada",
+    "nenhumResultadoParaABusca": "Sin resultados para la búsqueda",
+    "buscarRegrasDePrecificacao": "Buscar Reglas de Precificación",
+    "nenhumaRegraConfigurada": "Ninguna regla configurada",
+    "criarNovaVersao": "Crear Nueva Versión",
+    "erroDeValidacao": "Error de validación",
+    "selecioneAMoeda": "Seleccione la moneda",
+    "carregandoEmpresas": "Cargando Empresas",
+    "selecioneUmaEmpresa": "Seleccione una empresa.",
+    "observacoesSobreAListaDePrecos": "Observaciones sobre la lista de precios",
+    "criarLista": "Crear Lista",
+    "criarRegra": "Crear regla",
+    "erroAoAdicionarItem": "Error al agregar elemento",
+    "erroAoAtualizarItem": "Error al actualizar elemento",
+    "erroAoRemoverItem": "Error al eliminar elemento",
+    "adicioneObservacoesSobreAAprovacao": "Añadir Observaciones sobre la Aprobación",
+    "selectedforapprovallengthItemsRejeitados": "Elementos seleccionados para aprobación Longitud de elementos rechazados",
+    "selecioneUmItemDoCatalogo": "Seleccione un elemento del catálogo."
+  },
+  "Landing": {
+    "advancedAnalytics": "Analítica Avanzada"
+  },
+  "Locations": {
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "erroAoCriarLocal": "Error al crear ubicación",
+    "erroAoExcluirLocal": "Error al eliminar ubicación",
+    "erroAoFavoritar": "Error al marcar como favorito",
+    "erroAoAnexarArquivo": "Error al Adjuntar Archivo",
+    "criarLocal": "Crear ubicación",
+    "buscarLocais": "Buscar Lugares",
+    "filtrarPorTag": "Filtrar por etiqueta",
+    "nenhumLocalCorrespondeAosFiltrosAplicados": "Ningún lugar coincide con los filtros aplicados.",
+    "editarLocal": "Edit Location"
+  },
+  "ModuleIntegrityControl": {
+    "erroNaVerificacao": "Error en la verificación"
+  },
+  "ProductivityReports": {
+    "editarTickets": "Editar Tickets",
+    "criarTickets": "Crear Tickets",
+    "criarNota": "Crear Nota",
+    "editarNota": "Editar Nota",
+    "criarAcaoInterna": "Crear Acción Interna",
+    "editarAcaoInterna": "Editar Acción Interna"
+  },
+  "ReportCreate": {
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "selecioneACategoria": "Seleccionar categoría",
+    "selecioneONivelDeAcesso": "Seleccione el Nivel de Acceso",
+    "selecioneAFonteDeDados": "Seleccionar la Fuente de Datos",
+    "configuracoesBasicas": "Configuraciones Básicas",
+    "selecioneOTipo": "Seleccione el Tipo"
+  },
+  "ReportEdit": {
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "carregando": "Cargando",
+    "excluir": "Eliminar",
+    "selecioneACategoria": "Seleccionar categoría",
+    "selecioneONivelDeAcesso": "Seleccione el Nivel de Acceso",
+    "selecioneAFonteDeDados": "Seleccione la Fuente de Datos",
+    "configuracoesBasicas": "Configuraciones Básicas",
+    "selecioneOTipo": "Seleccione el Tipo"
+  },
+  "Reports": {
+    "tickets": "Boletos",
+    "users": "Usuarios",
+    "allCategories": "Todas las categorías",
+    "searchReportsAndDashboards": "Buscar Informes y Paneles"
+  },
+  "SaasAdmin": {
+    "erroAoCriarTenant": "Error al crear inquilino",
+    "criar": "Crear"
+  },
+  "SaasAdminDisasterRecovery": {
+    "sucesso": "Éxito",
+    "todos": "Todos"
+  },
+  "SaasAdminIntegrations": {
+    "erroAoSalvarConfiguracao": "Error al guardar configuración",
+    "erroNaIntegracao": "Error en la integración",
+    "erroAoTestarIntegracao": "Error al probar la integración",
+    "erroNoTeste": "Error en la prueba",
+    "salvarConfiguracao": "Guardar Configuración"
+  },
+  "Settings": {
+    "settingsSaved": "Ajustes guardados",
+    "createIssuesFromTickets": "Crear problemas desde tickets"
+  },
+  "SlaManagement": {
+    "erro": "Error",
+    "erroAoCriarSla": "Error al crear SLA",
+    "erroAoAtualizarSla": "Error al actualizar SLA",
+    "erroAoExcluirSla": "Error al eliminar SLA",
+    "erroAoCriarWorkflow": "Error al crear flujo de trabajo",
+    "selecioneOTipo": "Seleccione el Tipo",
+    "selecioneAPrioridade": "Seleccione la prioridad",
+    "criarSla": "Crear SLA",
+    "selecioneOEvento": "Seleccione el Evento"
+  },
+  "StockManagement": {
+    "selecioneUmItem": "Seleccione un Elemento",
+    "selecioneUmArmazem": "Seleccionar un Almacén",
+    "todosOsStatus": "Todos los Estados",
+    "todosOsArmazens": "Todos los Almacenes",
+    "editandoItem": "Editando Elemento",
+    "editandoArmazem": "Editing Warehouse",
+    "erro": "Error",
+    "criarArmazem": "Crear Almacén"
+  },
+  "SupplierManagement": {
+    "erro": "Error",
+    "erroAoCriarFornecedor": "Error al crear proveedor",
+    "erroAoAtualizarFornecedor": "Error al actualizar proveedor",
+    "erroAoRemoverFornecedor": "Error al eliminar proveedor",
+    "buscarFornecedores": "Buscar Proveedores",
+    "criarFornecedor": "Crear Proveedor"
+  },
+  "TechnicalSkills": {
+    "selecioneUmaCategoria": "Seleccione una categoría",
+    "observacoesAdicionaisSobreAHabilidade": "Observaciones adicionales sobre la habilidad",
+    "criar": "Crear",
+    "buscarHabilidades": "Buscar habilidades",
+    "salvar": "Guardar"
+  },
+  "TemplateSelector": {
+    "erroAoAplicarTema": "Error al aplicar tema",
+    "erroAoResetarTema": "Error al restablecer tema",
+    "selecioneUmTema": "Seleccionar un tema"
+  },
+  "TenantAdmin": {
+    "erroAoCriarUsuario": "Error al crear usuario",
+    "configuracoesAtualizadas": "Configuraciones actualizadas",
+    "configuracoesDoWorkspaceAtualizadasComSucesso": "Configuraciones del espacio de trabajo actualizadas con éxito.",
+    "erroAoAtualizarConfiguracoes": "Error al actualizar configuraciones",
+    "salvar": "Guardar",
+    "criar": "Crear"
+  },
+  "TenantAdminBranding": {
+    "configuracoesSalvas": "Configuraciones Guardadas",
+    "erroAoSalvar": "Error al guardar",
+    "salvarAlteracoes": "Guardar cambios"
+  },
+  "TenantAdminGeral": {
+    "configuracoesSalvas": "Configuraciones Guardadas",
+    "erro": "Error",
+    "totalDeClientes": "Total de clientes",
+    "ticketsAtivos": "Tickets Activos",
+    "selecioneOFusoHorario": "Selecciona la Zona Horaria",
+    "selecioneOIdioma": "Seleccione el Idioma"
+  },
+  "TenantAdminIntegrations": {
+    "none": "Ninguno",
+    "erroAoSalvarConfiguracao": "Error al guardar configuración",
+    "erroDesconhecido": "Error Desconocido",
+    "erroAoConfigurarWebhook": "Error al configurar el Webhook",
+    "erroDeConexaoAoConfigurarWebhookErrormessage": "Error de conexión al configurar Webhook: Errormessage",
+    "erroAoConfigurarWebhookPadrao": "Error al configurar el Webhook predeterminado",
+    "erroDeConexaoAoConfigurarWebhookPadraoErrormessage": "Error al configurar el Webhook predeterminado. Mensaje de error.",
+    "erroAoObterStatusDoWebhook": "Error al obtener estado del Webhook",
+    "erroDeConexaoAoVerificarStatusDoWebhookErrormessage": "Error al verificar el estado del Webhook. Mensaje de error.",
+    "ticketsPorEmail": "Tickets por correo electrónico",
+    "relatoriosAutomaticos": "Informes Automáticos",
+    "relatoriosCustomizados": "Informes Personalizados",
+    "erroAoCarregarConfiguracao": "Error al cargar configuración",
+    "erroDoServidorErrormessageUsandoValoresPadrao": "Error del servidor: ErrorMessage utilizando valores predeterminados",
+    "erroOauth2": "Error Oauth2",
+    "erroAoIniciarFluxoOauth2": "Error al Iniciar Flujo OAuth2",
+    "erroDeValidacao": "Error de validación",
+    "nenhumaIntegracaoSelecionada": "Ninguna Integración Seleccionada",
+    "erroInterno": "Error interno",
+    "erroAoProcessarAConfiguracaoTenteNovamente": "Error al procesar la configuración. Inténtalo de nuevo.",
+    "salvarConfiguracao": "Guardar Configuración"
+  },
+  "TenantAdminSLAs": {
+    "erroAoCriarSla": "Error al crear SLA",
+    "erroAoAtualizarSla": "Error al actualizar SLA",
+    "erroAoExcluirSla": "Error al eliminar SLA",
+    "selecioneONivel": "Seleccione el Nivel",
+    "criarSla": "Crear SLA"
+  },
+  "TenantAdminWorkflows": {
+    "selecioneOGatilho": "Seleccione el desencadenante",
+    "descrevaAsAcoesASeremExecutadas": "Describa las acciones a ejecutar.",
+    "sucesso": "Éxito",
+    "erro": "Error"
+  },
+  "TenantProvisioning": {
+    "erroAoCriarTenant": "Error al crear inquilino",
+    "configuracoesDeAutoprovisioningAtualizadasComSucesso": "Configuraciones de aprovisionamiento automático actualizadas con éxito.",
+    "erroAoAtualizarConfiguracao": "Error al actualizar configuración",
+    "selecioneOMetodo": "Seleccione el Método",
+    "salvarConfiguracao": "Guardar Configuración",
+    "criarTenant": "Crear inquilino"
+  },
+  "TicketAdvancedConfiguration": {
+    "editarCampo": "Editar Campo",
+    "selecioneOTipo": "Seleccione el Tipo",
+    "criar": "Crear",
+    "selecioneAPrioridade": "Seleccione la prioridad"
+  },
+  "TicketConfiguration": {
+    "opcaoAtualizadaComSucesso": "Opción actualizada con éxito.",
+    "erroAoAtualizarOpcao": "Error al actualizar la opción",
+    "statusAtualizadoComSucesso": "Estado actualizado exitosamente",
+    "erroAoAtualizarStatus": "Error al actualizar estado",
+    "erroAoExcluirOpcao": "Error al eliminar opción",
+    "erroDesconhecido": "Error Desconocido",
+    "estruturaCopiadaComSucesso": "Estructura copiada exitosamente",
+    "erroAoCopiarEstrutura": "Error al copiar estructura",
+    "selecioneUmaEmpresa": "Seleccionar Empresa",
+    "buscarCategorias": "Buscar Categorías",
+    "salvarConfiguracao": "Guardar Configuración",
+    "editarCategoria": "Editar Categoría",
+    "selecioneACategoria": "Seleccione la categoría",
+    "selecioneASubcategoria": "Selecciona la subcategoría",
+    "selecioneOCampo": "Seleccione el campo",
+    "selecioneOTipoDeStatus": "Seleccione el tipo de estado."
+  },
+  "TicketDetail": {
+    "uploadSuccessful": "Carga exitosa",
+    "nenhumaDescricaoFornecida": "Sin descripción proporcionada."
+  },
+  "TicketMaterials": {
+    "excluir": "Eliminar",
+    "nenhumItemPlanejado": "Ningún elemento planificado",
+    "nenhumMaterialPlanejado": "Sin material planificado",
+    "nenhumServicoPlanejado": "Ningún Servicio Planificado",
+    "selecioneUmItem": "Seleccione un elemento",
+    "observacoesSobreOPlanejamento": "Observaciones sobre la planificación",
+    "observacoesSobreOConsumo": "Observaciones sobre el consumo"
+  },
+  "TicketTemplates": {
+    "erroAoCriarTemplate": "Error al crear plantilla",
+    "erroAoAtualizarTemplate": "Error al actualizar plantilla",
+    "erroAoExcluirTemplate": "Error al eliminar plantilla",
+    "buscarTemplates": "Buscar plantillas",
+    "nenhumTemplateEncontradoComOsFiltrosAplicados": "Ningún plantilla encontrada con los filtros aplicados.",
+    "nenhumTemplateEncontradoCrieOPrimeiro": "No se encontró ninguna plantilla. Crea la primera.",
+    "criarTemplate": "Crear plantilla",
+    "salvarAlteracoes": "Guardar cambios"
+  },
+  "TimecardAutonomous": {
+    "erroNoRegistro": "Error en el registro"
+  },
+  "TimecardReports": {
+    "erroResponsestatusResponsestatustext": "Error Responsestatus Responsestatustext"
+  },
+  "UserProfile": {
+    "erroAoAtualizar": "Error al actualizar",
+    "erroAoAtualizarFoto": "Error al actualizar foto",
+    "erroAoAlterarSenha": "Error al cambiar contraseña",
+    "erroAoSalvar": "Error al guardar",
+    "erroNoUpload": "Error en la carga",
+    "editarPerfil": "Edita Perfil",
+    "selecioneOFusoHorario": "Seleccione la zona horaria",
+    "processando": "Processing"
+  },
+  "AccessibilityIndicator": {
+    "tsx": {
+      "carregando": "Cargando",
+      "erroAoCarregar": "Error al cargar"
+    }
+  },
+  "CustomerLocationManager": {
+    "tsx": {
+      "erroAoAdicionarLocalizacao": "Error al agregar ubicación",
+      "erroAoRemoverLocalizacao": "Error al eliminar ubicación",
+      "erroAoDefinirLocalizacaoPrincipal": "Error al Establecer la Ubicación Principal",
+      "selecioneUmaLocalizacao": "Seleccionar una ubicación",
+      "escolhaUmaLocalizacaoParaAssociarAoCliente": "Seleccione una ubicación para asociar al cliente.",
+      "erro": "Error",
+      "selecioneUmaLocalizacaoExistente": "Seleccione una ubicación existente."
+    }
+  },
+  "DynamicCustomFields": {
+    "tsx": {
+      "selecione": "Seleccionar"
+    }
+  },
+  "FilteredBeneficiarySelect": {
+    "tsx": {
+      "carregandoFavorecidos": "Cargando Beneficiarios"
+    }
+  },
+  "FilteredCustomerSelect": {
+    "tsx": {
+      "carregandoClientes": "Cargando Clientes"
+    }
+  },
+  "FilteredUserSelect": {
+    "tsx": {
+      "carregandoUsuarios": "Cargando Usuarios"
+    }
+  },
+  "FormValidationFeedback": {
+    "tsx": {
+      "erroEmFieldnameValidationmessage": "Error en el campo Fieldname: Validationmessage"
+    }
+  },
+  "GroupSelect": {
+    "tsx": {
+      "carregandoGrupos": "Cargando Grupos"
+    }
+  },
+  "ItemGroupManager": {
+    "tsx": {
+      "grupoCriadoComSucesso": "Grupo creado exitosamente",
+      "erroAoCriarGrupo": "Error al Crear Grupo",
+      "itensAtribuidosComSucesso": "Elementos asignados correctamente.",
+      "erroAoAtribuirItens": "Error al asignar elementos",
+      "hierarquiaCriadaComSucesso": "Jerarquía creada exitosamente.",
+      "erroAoCriarHierarquia": "Error al crear jerarquía"
+    }
+  },
+  "KnowledgeBaseTicketTab": {
+    "tsx": {
+      "sucesso": "Éxito",
+      "erro": "Error",
+      "erroAoVincularArtigoAoTicket": "Error al Vincular Artículo al Ticket",
+      "erroAoAvaliarArtigo": "Error al Evaluar Artículo",
+      "buscarArtigosNaBaseDeConhecimento": "Buscar artículos en la base de conocimiento."
+    }
+  },
+  "LeafletMap": {
+    "tsx": {
+      "nenhumResultado": "Sin resultados",
+      "searchError": "Error de búsqueda",
+      "erroNaBusca": "Error en la búsqueda",
+      "erroAoConectarComOServicoDeBuscaTenteNovamenteOuCliqueNoMapa": "Error al conectar con el servicio de búsqueda. Inténtelo de nuevo o haga clic en el mapa.",
+      "erroNaGeolocalizacao": "Error en la Geolocalización",
+      "digiteUmEnderecoParaBuscar": "Introduzca una dirección para buscar."
+    }
+  },
+  "LeafletMapSelector": {
+    "tsx": {
+      "erroNaBusca": "Error en la búsqueda",
+      "erroNaGeolocalizacao": "Error en la Geolocalización"
+    }
+  },
+  "LocationModal": {
+    "tsx": {
+      "erro": "Error",
+      "editarLocalizacao": "Editar Ubicación",
+      "selecioneOTipo": "Seleccione el tipo",
+      "selecioneOStatus": "Seleccione el Estado",
+      "selecioneOFusoHorario": "Seleccione la zona horaria",
+      "criar": "Crear"
+    }
+  },
+  "NotificationPreferencesTab": {
+    "tsx": {
+      "dashboard": "Tablero",
+      "erroAoSalvar": "Error al guardar",
+      "configuracoesResetadas": "Configuraciones restablecidas",
+      "erroAoResetar": "Error al restablecer",
+      "salvarAlteracoes": "Guardar cambios",
+      "salvarTodasAsAlteracoes": "Guardar todos los cambios"
+    }
+  },
+  "PersonSelector": {
+    "tsx": {
+      "digiteParaBuscar": "Buscar",
+      "selecioneUmaEmpresaPrimeiroParaVerOsClientes": "Seleccione una empresa primero para ver los clientes.",
+      "nenhumaPessoaEncontradaParaEstaEmpresa": "Ninguna persona encontrada para esta empresa.",
+      "usuarios": "Usuarios",
+      "clientes": "Clientes"
+    }
+  },
+  "QueryBuilder": {
+    "tsx": {
+      "selecioneOCampo": "Seleccione el campo"
+    }
+  },
+  "SimpleMapWithButtons": {
+    "tsx": {
+      "nenhumResultado": "Sin resultados",
+      "erroNaBusca": "Error en la búsqueda",
+      "erroAoConectarComOServicoDeBuscaTenteNovamente": "Error al conectar con el servicio de búsqueda. Inténtalo de nuevo.",
+      "erroNaGeolocalizacao": "Error en la geolocalización",
+      "digiteUmEnderecoParaBuscar": "Introduzca una dirección para buscar."
+    }
+  },
+  "SlaLed": {
+    "tsx": {
+      "atencao": "Atención"
+    }
+  },
+  "TicketAttachmentUpload": {
+    "tsx": {
+      "uploadSuccessful": "Carga exitosa",
+      "descrevaOConteudoDoAnexoOuAdicioneObservacoesRelevantes": "Describa el contenido del archivo adjunto o añada observaciones relevantes."
+    }
+  },
+  "TicketViewSelector": {
+    "tsx": {
+      "exMeusTicketsUrgentes": "Mis Tickets Urgentes"
+    }
+  },
+  "TranslationCompletionPanel": {
+    "tsx": {
+      "erroNaTraducaoAutomatica": "Error en la traducción automática"
+    }
+  },
+  "approvals": {
+    "clientes": "Clientes",
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "criarGrupo": "Crear Grupo",
+    "todosOsStatus": "Todos los Estados",
+    "todosOsModulos": "Todos los módulos",
+    "processando": "Procesando",
+    "tickets": "Boletos",
+    "criarRegra": "Crear Regla",
+    "salvarAlteracoes": "Guardar cambios",
+    "carregando": "Cargando",
+    "grupoDeUsuarios": "Grupo de Usuarios",
+    "todosDevemAprovar": "Todos deben aprobar",
+    "selecioneOModulo": "Seleccione el módulo",
+    "selecioneOCampo": "Seleccione el campo",
+    "erroAoSalvarRegra": "Error al Guardar Regla",
+    "regraSalvaComSucesso": "Regla guardada exitosamente",
+    "editar": "Editando",
+    "salvarRegra": "Guardar regla",
+    "exAprovacaoAltoValorTickets": "Aprobación de Tickets de Alto Valor"
+  },
+  "lpu": {
+    "selecioneUmaCategoria": "Seleccione una categoría",
+    "selecioneUmaLista": "Seleccionar una lista",
+    "editarRegraDePrecificacao": "Editar Regla de Precificación",
+    "criarRegra": "Crear regla"
+  },
+  "omnibridge": {
+    "todos": "Todos",
+    "acoes": "Acciones",
+    "selecioneUmChatbot": "Selecciona un Chatbot",
+    "buscarNos": "Buscar.",
+    "selecioneAPrioridade": "Seleccione la prioridad",
+    "naoNuncaPareCancele": "Detener Nunca Cancelar",
+    "selecioneOModelo": "Seleccione el Modelo",
+    "selecioneOMetodo": "Seleccione el Método",
+    "selecioneOTipo": "Seleccione el Tipo",
+    "selecioneUmaOpcao": "Seleccione una opción",
+    "escolhaUmaDasOpcoesAbaixo": "Elige una de las opciones siguientes.",
+    "selecioneAIntegracao": "Seleccione la integración",
+    "aguardeUmMomento": "Espere un momento.",
+    "configuracoesEspecificasParaEsteTipoDeNo": "Configuraciones específicas para este tipo de nodo.",
+    "selecioneOComportamento": "Seleccione el Comportamiento",
+    "selecioneACondicao": "Seleccionar condición"
+  },
+  "reports": {
+    "tickets": "[ES] Tickets",
+    "created": "Creado",
+    "users": "Usuarios",
+    "filterValue": "Valor del Filtro",
+    "totalTickets": "Total de Tickets",
+    "edit": "Editar"
+  },
+  "schedule": {
+    "sucesso": "Éxito",
+    "erro": "Error",
+    "editarAgendamento": "Editar Programación",
+    "selecioneUmAgente": "Seleccionar un Agente",
+    "selecioneUmCliente": "Seleccionar Cliente",
+    "selecioneOTipoDeAtividade": "Seleccione el Tipo de Actividad",
+    "informacoesParaUsoInternoDaEquipe": "Información para uso interno del equipo",
+    "informacoesEspecificasDoCliente": "Información Específica del Cliente",
+    "criar": "Crear",
+    "buscarTecnico": "Buscar Técnico"
+  },
+  "timecard": {
+    "selecionePeloMenosUmFuncionario": "Seleccione al menos un empleado.",
+    "erroAoAplicarEscala": "Error al aplicar escala",
+    "selecioneUmTemplate": "Seleccionar una plantilla"
+  },
+  "ui": {
+    "selecioneUmGrupo": "Seleccione un Grupo",
+    "selecionarUsuarios": "Seleccionar Usuarios",
+    "buscarUsuarios": "Buscar Usuarios",
+    "buscarUsuario": "Buscar Usuario"
   }
 }

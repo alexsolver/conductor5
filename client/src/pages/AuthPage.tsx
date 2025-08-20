@@ -188,7 +188,7 @@ export default function AuthPage() {
               Creating account...
             </>
           ) : (
-            {t('AuthPage.createAccount')}
+            t('AuthPage.createAccount')
           )}
         </Button>
       </form>

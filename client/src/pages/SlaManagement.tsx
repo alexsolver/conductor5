@@ -257,8 +257,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('SlaManagement.erro')},
-        description: error.message || {t('SlaManagement.erroAoCriarSla')},
+        title: t('SlaManagement.erro'),
+        description: error.message || t('SlaManagement.erroAoCriarSla'),
         variant: "destructive",
       });
     },
@@ -282,8 +282,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('SlaManagement.erro')},
-        description: error.message || {t('SlaManagement.erroAoAtualizarSla')},
+        title: t('SlaManagement.erro'),
+        description: error.message || t('SlaManagement.erroAoAtualizarSla'),
         variant: "destructive",
       });
     },
@@ -301,8 +301,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('SlaManagement.erro')},
-        description: error.message || {t('SlaManagement.erroAoExcluirSla')},
+        title: t('SlaManagement.erro'),
+        description: error.message || t('SlaManagement.erroAoExcluirSla'),
         variant: "destructive",
       });
     },
@@ -338,8 +338,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('SlaManagement.erro')},
-        description: error.message || {t('SlaManagement.erroAoCriarWorkflow')},
+        title: t('SlaManagement.erro'),
+        description: error.message || t('SlaManagement.erroAoCriarWorkflow'),
         variant: "destructive",
       });
     },
@@ -791,7 +791,7 @@ export default function SlaManagement() {
                     <div className="text-sm text-gray-600">
                       <div>Meta: {violation.targetMinutes}min | Atual: {violation.actualMinutes}min</div>
                       <div>Violação: {violation.violationMinutes}min (+{violation.violationPercentage.toFixed(1)}%)</div>
-                      <div>Data: {new Date(violation.createdAt).toLocaleString('pt-BR')}</div>
+                      <div>Data: {new Date(violation.createdAt).toLocaleString('pt-BR')</div>
                     </div>
                   </div>
                 ))}
@@ -1020,7 +1020,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-type">
-                        <SelectValue placeholder={t('SlaManagement.selecioneOTipo')} />
+                        <SelectValue placeholder={t('SlaManagement.selecioneOTipo') />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1043,7 +1043,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-priority">
-                        <SelectValue placeholder={t('SlaManagement.selecioneAPrioridade')} />
+                        <SelectValue placeholder={t('SlaManagement.selecioneAPrioridade') />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1280,7 +1280,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {isEdit ? 'Atualizar SLA' : {t('SlaManagement.criarSla')}}
+                {isEdit ? 'Atualizar SLA' : t('SlaManagement.criarSla')}
               </>
             )}
           </Button>
@@ -1346,7 +1346,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-workflow-trigger">
-                        <SelectValue placeholder={t('SlaManagement.selecioneOEvento')} />
+                        <SelectValue placeholder={t('SlaManagement.selecioneOEvento') />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1488,7 +1488,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 {form.watch('actions').map((action: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <div>
-                      <span className="font-medium capitalize">{action.type.replace('_', ' ')}</span>
+                      <span className="font-medium capitalize">{action.type.replace('_', ' ')</span>
                       <div className="text-sm text-gray-600">
                         {JSON.stringify(action.config, null, 2).substring(0, 100)}...
                       </div>

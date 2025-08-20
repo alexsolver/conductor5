@@ -133,7 +133,7 @@ export default function TenantProvisioning() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TenantProvisioning.erroAoCriarTenant')},
+        title: t('TenantProvisioning.erroAoCriarTenant'),
         description: error.message,
         variant: "destructive",
       });
@@ -151,12 +151,12 @@ export default function TenantProvisioning() {
       setIsConfigDialogOpen(false);
       toast({
         title: "Configuração Atualizada",
-        description: {t('TenantProvisioning.configuracoesDeAutoprovisioningAtualizadasComSucesso')},
+        description: t('TenantProvisioning.configuracoesDeAutoprovisioningAtualizadasComSucesso'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TenantProvisioning.erroAoAtualizarConfiguracao')},
+        title: t('TenantProvisioning.erroAoAtualizarConfiguracao'),
         description: error.message,
         variant: "destructive",
       });
@@ -282,7 +282,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateConfigMutation.isPending}>
-                      {updateConfigMutation.isPending ? "Salvando..." : {t('TenantProvisioning.salvarConfiguracao')}}
+                      {updateConfigMutation.isPending ? "Salvando..." : t('TenantProvisioning.salvarConfiguracao')}
                     </Button>
                   </div>
                 </form>
@@ -350,7 +350,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={provisionMutation.isPending}>
-                      {provisionMutation.isPending ? "Criando..." : {t('TenantProvisioning.criarTenant')}}
+                      {provisionMutation.isPending ? "Criando..." : t('TenantProvisioning.criarTenant')}
                     </Button>
                   </div>
                 </form>
@@ -465,7 +465,7 @@ export default function TenantProvisioning() {
                       <span className="font-medium">Máximo de Tickets:</span> {config.defaultTenantSettings.maxTickets}
                     </div>
                     <div>
-                      <span className="font-medium">Funcionalidades:</span> {config.defaultTenantSettings.features.join(', ')}
+                      <span className="font-medium">Funcionalidades:</span> {config.defaultTenantSettings.features.join(', ')
                     </div>
                     <div>
                       <span className="font-medium">Tema:</span> {config.defaultTenantSettings.theme}

@@ -25,7 +25,7 @@ export default function Customers() {
 import { useLocalization } from '@/hooks/useLocalization';
       const response = await apiRequest('GET', '/api/customers');
       const data = await response.json();
-      console.log({t('Customers.customersApiResponse')}, data);
+      console.log({t('Customers.customersApiResponse'), data);
       return data;
     },
     retry: false,
@@ -102,7 +102,7 @@ import { useLocalization } from '@/hooks/useLocalization';
     }
   };
 
-  console.log({t('Customers.customersData')}, { customers, total, error, isLoading });
+  console.log({t('Customers.customersData'), { customers, total, error, isLoading });
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);
@@ -270,14 +270,14 @@ import { useLocalization } from '@/hooks/useLocalization';
               </Button>
               {isSchemaError && (
                 <Button
-                  onClick={() => setLocation('/settings')}
+                  onClick={() => setLocation('/settings')
                   variant="secondary"
                 >
                   ⚙️ Verificar configurações
                 </Button>
               )}
               <Button
-                onClick={() => setLocation('/dashboard')}
+                onClick={() => setLocation('/dashboard')
                 variant="ghost"
               >
                 🏠 Voltar ao Dashboard
@@ -438,7 +438,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-gray-500">
-                      {new Date(customer.created_at).toLocaleDateString('pt-BR')}
+                      {new Date(customer.created_at).toLocaleDateString('pt-BR')
                     </span>
                   </TableCell>
                   <TableCell>

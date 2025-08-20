@@ -309,8 +309,8 @@ export function AssetsManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('AssetsManagement.erro')},
-        description: error.message || {t('AssetsManagement.erroAoCriarAtivo')},
+        title: t('AssetsManagement.erro'),
+        description: error.message || t('AssetsManagement.erroAoCriarAtivo'),
         variant: "destructive"
       });
     }
@@ -329,8 +329,8 @@ export function AssetsManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('AssetsManagement.erro')},
-        description: error.message || {t('AssetsManagement.erroAoAtualizarAtivo')},
+        title: t('AssetsManagement.erro'),
+        description: error.message || t('AssetsManagement.erroAoAtualizarAtivo'),
         variant: "destructive"
       });
     }
@@ -520,7 +520,7 @@ export function AssetsManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder={t('AssetsManagement.buscarAtivos')}
+              placeholder={t('AssetsManagement.buscarAtivos')
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -691,7 +691,7 @@ export function AssetsManagement() {
                 <Label htmlFor="category">Categoria *</Label>
                 <Select name="category" required>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('AssetsManagement.selecioneACategoria')} />
+                    <SelectValue placeholder={t('AssetsManagement.selecioneACategoria') />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="computer">Computadores</SelectItem>
@@ -733,7 +733,7 @@ export function AssetsManagement() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={createAssetMutation.isPending}>
-                {createAssetMutation.isPending ? 'Criando...' : {t('AssetsManagement.criarAtivo')}}
+                {createAssetMutation.isPending ? 'Criando...' : t('AssetsManagement.criarAtivo')}
               </Button>
             </div>
           </form>

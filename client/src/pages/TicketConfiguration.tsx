@@ -36,8 +36,6 @@ import {
 
 // Schemas de validação
 const companySchema = z.object({
-  const { t } = useLocalization();
-
   id: z.string(),
   name: z.string(),
   active: z.boolean().default(true)
@@ -490,14 +488,14 @@ const TicketConfiguration: React.FC = () => {
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ 
-        title: {t('TicketConfiguration.opcaoAtualizadaComSucesso')},
+        title: t('TicketConfiguration.opcaoAtualizadaComSucesso'),
         description: "A opção foi atualizada no sistema."
       });
     },
     onError: (error) => {
       console.error('❌ Error updating field option:', error);
       toast({ 
-        title: {t('TicketConfiguration.erroAoAtualizarOpcao')},
+        title: t('TicketConfiguration.erroAoAtualizarOpcao'),
         description: "Não foi possível atualizar a opção.",
         variant: "destructive"
       });
@@ -519,14 +517,14 @@ const TicketConfiguration: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
       
       toast({ 
-        title: {t('TicketConfiguration.statusAtualizadoComSucesso')},
+        title: t('TicketConfiguration.statusAtualizadoComSucesso'),
         description: "A opção foi ativada/desativada."
       });
     },
     onError: (error) => {
       console.error('❌ Error updating field option status:', error);
       toast({ 
-        title: {t('TicketConfiguration.erroAoAtualizarStatus')},
+        title: t('TicketConfiguration.erroAoAtualizarStatus'),
         description: "Não foi possível alterar o status da opção.",
         variant: "destructive"
       });
@@ -559,8 +557,8 @@ const TicketConfiguration: React.FC = () => {
     },
     onError: (error: any) => {
       toast({ 
-        title: {t('TicketConfiguration.erroAoExcluirOpcao')}, 
-        description: error.message || {t('TicketConfiguration.erroDesconhecido')},
+        title: t('TicketConfiguration.erroAoExcluirOpcao'), 
+        description: error.message || t('TicketConfiguration.erroDesconhecido'),
         variant: "destructive" 
       });
     }
@@ -630,14 +628,14 @@ const TicketConfiguration: React.FC = () => {
       ]);
       
       toast({ 
-        title: {t('TicketConfiguration.estruturaCopiadaComSucesso')},
+        title: t('TicketConfiguration.estruturaCopiadaComSucesso'),
         description: `${result.summary || 'Toda a estrutura hierárquica foi copiada da empresa Default.'}`
       });
     },
     onError: (error: any) => {
       console.error('❌ Error copying hierarchy:', error);
       toast({ 
-        title: {t('TicketConfiguration.erroAoCopiarEstrutura')},
+        title: t('TicketConfiguration.erroAoCopiarEstrutura'),
         description: error.message || "Não foi possível copiar a estrutura hierárquica.",
         variant: "destructive"
       });
@@ -859,7 +857,7 @@ const TicketConfiguration: React.FC = () => {
               <Card>
                 <CardContent className="p-4">
                   <Button 
-                    onClick={() => openDialog('category')} 
+                    onClick={() => openDialog('category') 
                     className="w-full h-full flex flex-col items-center justify-center space-y-2"
                   >
                     <Plus className="w-6 h-6" />
@@ -900,7 +898,7 @@ const TicketConfiguration: React.FC = () => {
                     <div className="relative">
                       <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <Input
-                        placeholder={t('TicketConfiguration.buscarCategorias')}
+                        placeholder={t('TicketConfiguration.buscarCategorias')
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 w-64"
@@ -918,7 +916,7 @@ const TicketConfiguration: React.FC = () => {
                       {searchTerm ? 'Tente ajustar os termos da busca.' : 'Comece criando sua primeira categoria.'}
                     </p>
                     {!searchTerm && (
-                      <Button onClick={() => openDialog('category')}>
+                      <Button onClick={() => openDialog('category')>
                         <Plus className="w-4 h-4 mr-2" />
                         Criar Primeira Categoria
                       </Button>
@@ -1591,7 +1589,7 @@ import { useLocalization } from '@/hooks/useLocalization';
 
                     <Button type="submit" disabled={saveNumberingMutation.isPending}>
                       <Save className="w-4 h-4 mr-2" />
-                      {saveNumberingMutation.isPending ? 'Salvando...' : {t('TicketConfiguration.salvarConfiguracao')}}
+                      {saveNumberingMutation.isPending ? 'Salvando...' : t('TicketConfiguration.salvarConfiguracao')}
                     </Button>
                   </form>
                 </Form>
@@ -1607,7 +1605,7 @@ import { useLocalization } from '@/hooks/useLocalization';
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === 'category' && (editingItem.id ? {t('TicketConfiguration.editarCategoria')} : 'Nova Categoria')}
+              {editingItem?.type === 'category' && (editingItem.id ? t('TicketConfiguration.editarCategoria') : 'Nova Categoria')
               {editingItem?.type === 'subcategory' && 'Nova Subcategoria'}
               {editingItem?.type === 'action' && 'Nova Ação'}
               {editingItem?.type === 'field-option' && 'Nova Opção de Campo'}
@@ -1714,7 +1712,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TicketConfiguration.selecioneACategoria')} />
+                            <SelectValue placeholder={t('TicketConfiguration.selecioneACategoria') />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1808,7 +1806,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                       <Select onValueChange={field.onChange} defaultValue={editingItem.subcategoryId || field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TicketConfiguration.selecioneASubcategoria')} />
+                            <SelectValue placeholder={t('TicketConfiguration.selecioneASubcategoria') />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1912,7 +1910,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                         {editingItem.fieldName === 'urgency' && 'Urgência'}
                       </span>
                     </div>
-                    <input type="hidden" {...fieldOptionForm.register('fieldName')} value={editingItem.fieldName} />
+                    <input type="hidden" {...fieldOptionForm.register('fieldName') value={editingItem.fieldName} />
                   </div>
                 ) : (
                   <FormField
@@ -1924,7 +1922,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('TicketConfiguration.selecioneOCampo')} />
+                              <SelectValue placeholder={t('TicketConfiguration.selecioneOCampo') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -1979,7 +1977,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                         <Select onValueChange={field.onChange} value={field.value} required>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('TicketConfiguration.selecioneOTipoDeStatus')} />
+                              <SelectValue placeholder={t('TicketConfiguration.selecioneOTipoDeStatus') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>

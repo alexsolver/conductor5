@@ -115,14 +115,14 @@ export default function Locations() {
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
-        title: {t('Locations.sucesso')},
+        title: t('Locations.sucesso'),
         description: "Local criado com sucesso",
       });
     },
     onError: (error: any) => {
       toast({
-        title: {t('Locations.erro')},
-        description: error.message || {t('Locations.erroAoCriarLocal')},
+        title: t('Locations.erro'),
+        description: error.message || t('Locations.erroAoCriarLocal'),
         variant: "destructive",
       });
     }
@@ -135,14 +135,14 @@ export default function Locations() {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/locations/stats"] });
       toast({
-        title: {t('Locations.sucesso')}, 
+        title: t('Locations.sucesso'), 
         description: "Local excluído com sucesso",
       });
     },
     onError: (error: any) => {
       toast({
-        title: {t('Locations.erro')},
-        description: error.message || {t('Locations.erroAoExcluirLocal')},
+        title: t('Locations.erro'),
+        description: error.message || t('Locations.erroAoExcluirLocal'),
         variant: "destructive",
       });
     }
@@ -170,7 +170,7 @@ export default function Locations() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('Locations.erroAoFavoritar')},
+        title: t('Locations.erroAoFavoritar'),
         description: error?.message || "Não foi possível alterar favorito.",
         variant: "destructive",
       });
@@ -194,7 +194,7 @@ export default function Locations() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('Locations.erroAoAnexarArquivo')},
+        title: t('Locations.erroAoAnexarArquivo'),
         description: error?.message || "Não foi possível anexar o arquivo.",
         variant: "destructive",
       });
@@ -413,7 +413,7 @@ export default function Locations() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createLocationMutation.isPending}>
-                    {createLocationMutation.isPending ? "Criando..." : {t('Locations.criarLocal')}}
+                    {createLocationMutation.isPending ? "Criando..." : t('Locations.criarLocal')}
                   </Button>
                 </div>
               </form>
@@ -716,7 +716,7 @@ export default function Locations() {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={t('Locations.buscarLocais')}
+                    placeholder={t('Locations.buscarLocais')
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -766,7 +766,7 @@ export default function Locations() {
               <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder={t('Locations.filtrarPorTag')}
+                  placeholder={t('Locations.filtrarPorTag')
                   value={tagFilter}
                   onChange={(e) => setTagFilter(e.target.value)}
                   className="w-48 h-8"
@@ -811,7 +811,7 @@ export default function Locations() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum local encontrado</h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm || locationTypeFilter || statusFilter
-                  ? {t('Locations.nenhumLocalCorrespondeAosFiltrosAplicados')}
+                  ? t('Locations.nenhumLocalCorrespondeAosFiltrosAplicados')
                   : "Comece criando seu primeiro local no sistema."}
               </p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -888,7 +888,7 @@ export default function Locations() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(location.created_at).toLocaleDateString('pt-BR')}
+                      {new Date(location.created_at).toLocaleDateString('pt-BR')
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -910,7 +910,7 @@ export default function Locations() {
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" title={t('Locations.editarLocal')}>
+                        <Button variant="ghost" size="sm" title=t('Locations.editarLocal')>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 

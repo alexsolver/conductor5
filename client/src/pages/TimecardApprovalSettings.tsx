@@ -97,7 +97,7 @@ export default function TimecardApprovalSettings() {
           // Usar queries individuais para cada grupo para evitar problemas de cache
           const response = await fetch(`/api/timecard/approval/groups/${group.id}/members`, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')`,
               'Content-Type': 'application/json',
             },
             credentials: 'include',
@@ -112,7 +112,7 @@ export default function TimecardApprovalSettings() {
             counts[group.id] = 0;
           }
         } catch (error) {
-          console.error({t('TimecardApprovalSettings.errorFetchingMemberCountForGroup')}, group.id, error);
+          console.error(t('TimecardApprovalSettings.errorFetchingMemberCountForGroup'), group.id, error);
           counts[group.id] = 0;
         }
       }
@@ -141,18 +141,18 @@ export default function TimecardApprovalSettings() {
     },
     onSuccess: () => {
       toast({
-        title: {t('TimecardApprovalSettings.configuracoesSalvas')},
+        title: t('TimecardApprovalSettings.configuracoesSalvas'),
         description: "As configurações de aprovação foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/settings'] });
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardApprovalSettings.erro')},
+        title: t('TimecardApprovalSettings.erro'),
         description: "Falha ao salvar as configurações.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorUpdatingSettings')}, error);
+      console.error(t('TimecardApprovalSettings.errorUpdatingSettings'), error);
     },
   });
 
@@ -173,17 +173,17 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardApprovalSettings.erro')},
+        title: t('TimecardApprovalSettings.erro'),
         description: "Falha ao criar o grupo.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorCreatingGroup')}, error);
+      console.error(t('TimecardApprovalSettings.errorCreatingGroup'), error);
     },
   });
 
   // Update group mutation
   const updateGroupMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string } }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string }) }) => {
       return await apiRequest('PUT', `/api/timecard/approval/groups/${id}`, data);
     },
     onSuccess: () => {
@@ -199,11 +199,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardApprovalSettings.erro')},
+        title: t('TimecardApprovalSettings.erro'),
         description: "Falha ao atualizar o grupo.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorUpdatingGroup')}, error);
+      console.error(t('TimecardApprovalSettings.errorUpdatingGroup'), error);
     },
   });
 
@@ -227,11 +227,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardApprovalSettings.erro')},
+        title: t('TimecardApprovalSettings.erro'),
         description: "Falha ao atualizar membros do grupo.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorUpdatingMembers')}, error);
+      console.error(t('TimecardApprovalSettings.errorUpdatingMembers'), error);
     },
   });
 
@@ -249,11 +249,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardApprovalSettings.erro')},
+        title: t('TimecardApprovalSettings.erro'),
         description: "Falha ao remover o grupo.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovalSettings.errorDeletingGroup')}, error);
+      console.error(t('TimecardApprovalSettings.errorDeletingGroup'), error);
     },
   });
 
@@ -283,7 +283,7 @@ export default function TimecardApprovalSettings() {
   const handleCreateGroup = () => {
     if (!newGroupName.trim()) {
       toast({
-        title: {t('TimecardApprovalSettings.erro')},
+        title: t('TimecardApprovalSettings.erro'),
         description: "Nome do grupo é obrigatório.",
         variant: "destructive",
       });
@@ -299,7 +299,7 @@ export default function TimecardApprovalSettings() {
   const handleUpdateGroup = () => {
     if (!selectedGroup || !newGroupName.trim()) {
       toast({
-        title: {t('TimecardApprovalSettings.erro')},
+        title: t('TimecardApprovalSettings.erro'),
         description: "Nome do grupo é obrigatório.",
         variant: "destructive",
       });
@@ -437,7 +437,7 @@ export default function TimecardApprovalSettings() {
                   <Label>Requer aprovação para:</Label>
                   <div className="space-y-2">
                     {[
-                      { value: 'all', label: {t('TimecardApprovalSettings.todosOsRegistros')} },
+                      { value: 'all', label: t('TimecardApprovalSettings.todosOsRegistros') },
                       { value: 'inconsistencies', label: 'Inconsistências' },
                       { value: 'overtime', label: 'Horas extras' },
                       { value: 'absences', label: 'Faltas/atrasos' }
@@ -479,7 +479,7 @@ export default function TimecardApprovalSettings() {
                   onValueChange={(value) => handleSettingsChange('approvalGroupId', value || null)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={t('TimecardApprovalSettings.selecioneUmGrupo')} />
+                    <SelectValue placeholder={t('TimecardApprovalSettings.selecioneUmGrupo') />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum grupo selecionado</SelectItem>
@@ -556,11 +556,11 @@ export default function TimecardApprovalSettings() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedGroup ? {t('TimecardApprovalSettings.editarGrupoDeAprovacao')} : {t('TimecardApprovalSettings.criarGrupoDeAprovacao')}}
+                    {selectedGroup ? t('TimecardApprovalSettings.editarGrupoDeAprovacao') : t('TimecardApprovalSettings.criarGrupoDeAprovacao')}
                   </DialogTitle>
                   <DialogDescription>
                     {selectedGroup 
-                      ? {t('TimecardApprovalSettings.editeAsInformacoesDoGrupoDeAprovacao')}
+                      ? t('TimecardApprovalSettings.editeAsInformacoesDoGrupoDeAprovacao')
                       : 'Crie um novo grupo para organizar os aprovadores de timecard.'
                     }
                   </DialogDescription>
@@ -598,8 +598,8 @@ export default function TimecardApprovalSettings() {
                       disabled={createGroupMutation.isPending || updateGroupMutation.isPending}
                     >
                       {selectedGroup 
-                        ? (updateGroupMutation.isPending ? 'Salvando...' : {t('TimecardApprovalSettings.salvarAlteracoes')})
-                        : (createGroupMutation.isPending ? 'Criando...' : {t('TimecardApprovalSettings.criarGrupo')})
+                        ? (updateGroupMutation.isPending ? 'Salvando...' : t('TimecardApprovalSettings.salvarAlteracoes'))
+                        : (createGroupMutation.isPending ? 'Criando...' : t('TimecardApprovalSettings.criarGrupo'))
                       }
                     </Button>
                   </div>
@@ -661,7 +661,7 @@ export default function TimecardApprovalSettings() {
                         onClick={handleUpdateMembers}
                         disabled={updateMembersMutation.isPending}
                       >
-                        {updateMembersMutation.isPending ? 'Salvando...' : {t('TimecardApprovalSettings.salvarMembros')}}
+                        {updateMembersMutation.isPending ? 'Salvando...' : t('TimecardApprovalSettings.salvarMembros')}
                       </Button>
                     </div>
                   </div>

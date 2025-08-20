@@ -149,7 +149,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: {t('SaasAdminIntegrations.erroAoSalvarConfiguracao')},
+        title: t('SaasAdminIntegrations.erroAoSalvarConfiguracao'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -191,7 +191,7 @@ export default function SaasAdminIntegrations() {
         console.error('❌ [SAAS-ADMIN-TEST] Test failed with data:', data);
         toast({
           title: "Teste falhou", 
-          description: data.error || data.message || {t('SaasAdminIntegrations.erroNaIntegracao')},
+          description: data.error || data.message || t('SaasAdminIntegrations.erroNaIntegracao'),
           variant: "destructive",
         });
       }
@@ -199,7 +199,7 @@ export default function SaasAdminIntegrations() {
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-TEST] Erro no teste:', error);
 
-      let errorMessage = {t('SaasAdminIntegrations.erroAoTestarIntegracao')};
+      let errorMessage = t('SaasAdminIntegrations.erroAoTestarIntegracao');
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
@@ -207,7 +207,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: {t('SaasAdminIntegrations.erroNoTeste')},
+        title: t('SaasAdminIntegrations.erroNoTeste'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -568,7 +568,7 @@ export default function SaasAdminIntegrations() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={saveConfigMutation.isPending}>
-                  {saveConfigMutation.isPending ? "Salvando..." : {t('SaasAdminIntegrations.salvarConfiguracao')}}
+                  {saveConfigMutation.isPending ? "Salvando..." : t('SaasAdminIntegrations.salvarConfiguracao')}
                 </Button>
               </div>
             </form>

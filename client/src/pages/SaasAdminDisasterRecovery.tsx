@@ -168,28 +168,28 @@ export default function SaasAdminDisasterRecovery() {
                         type: 'Automático',
                         size: '2.4 TB',
                         duration: '1h 23min',
-                        status: {t('SaasAdminDisasterRecovery.sucesso')}
+                        status: t('SaasAdminDisasterRecovery.sucesso')
                       },
                       {
                         date: '16/01/2025 02:00',
                         type: 'Automático',
                         size: '2.4 TB',
                         duration: '1h 18min',
-                        status: {t('SaasAdminDisasterRecovery.sucesso')}
+                        status: t('SaasAdminDisasterRecovery.sucesso')
                       },
                       {
                         date: '15/01/2025 22:00',
                         type: 'Automático',
                         size: '2.4 TB',
                         duration: '1h 31min',
-                        status: {t('SaasAdminDisasterRecovery.sucesso')}
+                        status: t('SaasAdminDisasterRecovery.sucesso')
                       },
                       {
                         date: '15/01/2025 18:00',
                         type: 'Manual',
                         size: '2.4 TB',
                         duration: '1h 12min',
-                        status: {t('SaasAdminDisasterRecovery.sucesso')}
+                        status: t('SaasAdminDisasterRecovery.sucesso')
                       }
                     ].map((backup, index) => (
                       <TableRow key={index}>
@@ -226,21 +226,21 @@ export default function SaasAdminDisasterRecovery() {
                     {
                       date: '16/01/2025 06:00',
                       type: 'Completo',
-                      tenant: {t('SaasAdminDisasterRecovery.todos')},
+                      tenant: t('SaasAdminDisasterRecovery.todos'),
                       size: '2.4 TB',
                       verified: true
                     },
                     {
                       date: '16/01/2025 02:00',
                       type: 'Incremental',
-                      tenant: {t('SaasAdminDisasterRecovery.todos')},
+                      tenant: t('SaasAdminDisasterRecovery.todos'),
                       size: '345 GB',
                       verified: true
                     },
                     {
                       date: '15/01/2025 22:00',
                       type: 'Incremental',
-                      tenant: {t('SaasAdminDisasterRecovery.todos')},
+                      tenant: t('SaasAdminDisasterRecovery.todos'),
                       size: '289 GB',
                       verified: true
                     }

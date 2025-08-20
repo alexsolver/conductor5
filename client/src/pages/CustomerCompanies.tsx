@@ -117,14 +117,14 @@ export default function Companies() {
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
-        title: {t('CustomerCompanies.sucesso')},
+        title: t('CustomerCompanies.sucesso'),
         description: "Empresa criada com sucesso!",
       });
     },
     onError: (error: any) => {
       toast({
-        title: {t('CustomerCompanies.erro')},
-        description: error.message || {t('CustomerCompanies.erroAoCriarEmpresa')},
+        title: t('CustomerCompanies.erro'),
+        description: error.message || t('CustomerCompanies.erroAoCriarEmpresa'),
         variant: "destructive",
       });
     }
@@ -145,15 +145,15 @@ export default function Companies() {
       editForm.reset();
       if (!isOptimisticUpdate) {
         toast({
-          title: {t('CustomerCompanies.sucesso')},
+          title: t('CustomerCompanies.sucesso'),
           description: "Empresa atualizada com sucesso!",
         });
       }
     },
     onError: (error: any) => {
       toast({
-        title: {t('CustomerCompanies.erro')},
-        description: error.message || {t('CustomerCompanies.erroAoAtualizarEmpresa')},
+        title: t('CustomerCompanies.erro'),
+        description: error.message || t('CustomerCompanies.erroAoAtualizarEmpresa'),
         variant: "destructive",
       });
     }
@@ -188,22 +188,22 @@ export default function Companies() {
       ]);
 
       toast({
-        title: {t('CustomerCompanies.sucesso')},
+        title: t('CustomerCompanies.sucesso'),
         description: "Empresa excluída com sucesso!",
       });
     },
     onError: (error: any) => {
-      console.error({t('CustomerCompanies.errorDeletingCompany')}, error);
+      console.error(t('CustomerCompanies.errorDeletingCompany'), error);
 
       // Revert optimistic update if it was applied
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
 
       const errorMessage = error?.response?.data?.message || 
                           error?.message || 
-                          {t('CustomerCompanies.erroAoExcluirEmpresa')};
+                          t('CustomerCompanies.erroAoExcluirEmpresa');
 
       toast({
-        title: {t('CustomerCompanies.erro')},
+        title: t('CustomerCompanies.erro'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -451,7 +451,7 @@ export default function Companies() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('CustomerCompanies.selecioneOTamanho')} />
+                              <SelectValue placeholder={t('CustomerCompanies.selecioneOTamanho') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -571,7 +571,7 @@ export default function Companies() {
                     disabled={createCompanyMutation.isPending}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
-                    {createCompanyMutation.isPending ? "Criando..." : {t('CustomerCompanies.criarEmpresa')}}
+                    {createCompanyMutation.isPending ? "Criando..." : t('CustomerCompanies.criarEmpresa')}
                   </Button>
                 </div>
               </form>
@@ -585,7 +585,7 @@ export default function Companies() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder={t('CustomerCompanies.buscarEmpresas')}
+            placeholder={t('CustomerCompanies.buscarEmpresas')
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -786,11 +786,11 @@ export default function Companies() {
                               });
                               
                             } catch (error) {
-                              console.error({t('CustomerCompanies.errorUpdatingDefaultCompany')}, error);
+                              console.error(t('CustomerCompanies.errorUpdatingDefaultCompany'), error);
                               // Revert optimistic update on error
                               queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
                               toast({
-                                title: {t('CustomerCompanies.erro')},
+                                title: t('CustomerCompanies.erro'),
                                 description: "Falha ao atualizar empresa. Tente novamente.",
                                 variant: "destructive"
                               });
@@ -815,7 +815,7 @@ export default function Companies() {
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
-                        {deleteCompanyMutation.isPending ? "Excluindo..." : {t('CustomerCompanies.excluir')}}
+                        {deleteCompanyMutation.isPending ? "Excluindo..." : t('CustomerCompanies.excluir')}
                       </Button>
                     );
                   })()}
@@ -924,7 +924,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('CustomerCompanies.selecioneOTamanho')} />
+                            <SelectValue placeholder={t('CustomerCompanies.selecioneOTamanho') />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1047,7 +1047,7 @@ export default function Companies() {
                   disabled={updateCompanyMutation.isPending}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  {updateCompanyMutation.isPending ? "Salvando..." : {t('CustomerCompanies.salvarAlteracoes')}}
+                  {updateCompanyMutation.isPending ? "Salvando..." : t('CustomerCompanies.salvarAlteracoes')}
                 </Button>
               </div>
             </form>

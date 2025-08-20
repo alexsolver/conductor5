@@ -133,7 +133,7 @@ export default function HolidayCalendar() {
     onError: (error: any) => {
       toast({
         variant: 'destructive',
-        title: {t('HolidayCalendar.erroAoCriarFeriado')},
+        title: t('HolidayCalendar.erroAoCriarFeriado'),
         description: error.response?.data?.message || 'Ocorreu um erro ao criar o feriado.'
       });
     }
@@ -328,7 +328,7 @@ export default function HolidayCalendar() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createHolidayMutation.isPending}>
-                      {createHolidayMutation.isPending ? 'Criando...' : {t('HolidayCalendar.criarFeriado')}}
+                      {createHolidayMutation.isPending ? 'Criando...' : t('HolidayCalendar.criarFeriado')}
                     </Button>
                   </div>
                 </form>
@@ -383,7 +383,7 @@ export default function HolidayCalendar() {
               <label className="text-sm font-medium">Tipo</label>
               <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('HolidayCalendar.todosOsTipos')} />
+                  <SelectValue placeholder={t('HolidayCalendar.todosOsTipos') />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os tipos</SelectItem>
@@ -479,7 +479,7 @@ export default function HolidayCalendar() {
           ) : (
             <div className="space-y-6">
               {monthNames.map((monthName, index) => {
-                const monthKey = `${selectedYear}-${(index + 1).toString().padStart(2, '0')}`;
+                const monthKey = `${selectedYear}-${(index + 1).toString().padStart(2, '0')`;
                 const monthHolidays = holidaysByMonth[monthKey] || [];
                 
                 if (monthHolidays.length === 0) return null;

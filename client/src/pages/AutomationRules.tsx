@@ -81,7 +81,7 @@ export default function AutomationRules() {
       enabled: true,
       priority: 1,
       conditions: [{ field: 'message', operator: 'contains', value: '', logicalOperator: 'AND' }],
-      actions: [{ type: 'send_message', target: 'telegram', params: {} }]
+      actions: [{ type: 'send_message', target: 'telegram', params: {}) }]
     }
   });
 
@@ -119,7 +119,7 @@ export default function AutomationRules() {
     refetchOnWindowFocus: false,
     onError: (error: any) => {
       console.error('❌ [AutomationRules] Final error after retries:', error);
-      setLoadingError({t('AutomationRules.erroAoCarregarRegrasDeAutomacaoErrormessage')}Serviço temporariamente indisponível'}`);
+      setLoadingError(t('AutomationRules.erroAoCarregarRegrasDeAutomacaoErrormessage')Serviço temporariamente indisponível'}`);
     },
     onSuccess: (data) => {
       console.log('✅ [AutomationRules] Rules query successful:', data);
@@ -160,8 +160,8 @@ export default function AutomationRules() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('AutomationRules.erro')},
-        description: error.message || {t('AutomationRules.erroAoCriarRegraDeAutomacao')},
+        title: t('AutomationRules.erro'),
+        description: error.message || t('AutomationRules.erroAoCriarRegraDeAutomacao'),
         variant: 'destructive'
       });
     }
@@ -207,7 +207,7 @@ export default function AutomationRules() {
       testRuleMutation.mutate({ ruleId, testData: parsedTestData });
     } catch (error) {
       toast({
-        title: {t('AutomationRules.erro')},
+        title: t('AutomationRules.erro'),
         description: 'Dados de teste inválidos (JSON malformado)',
         variant: 'destructive'
       });
@@ -226,7 +226,7 @@ export default function AutomationRules() {
     const currentActions = form.getValues('actions');
     form.setValue('actions', [
       ...currentActions,
-      { type: 'send_message', target: 'telegram', params: {} }
+      { type: 'send_message', target: 'telegram', params: {}) }
     ]);
   };
 

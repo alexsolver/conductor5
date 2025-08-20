@@ -69,11 +69,11 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardApprovals.erro')},
+        title: t('TimecardApprovals.erro'),
         description: "Falha ao aprovar o registro.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovals.errorApprovingTimecard')}, error);
+      console.error(t('TimecardApprovals.errorApprovingTimecard'), error);
     },
   });
 
@@ -102,11 +102,11 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardApprovals.erro')},
+        title: t('TimecardApprovals.erro'),
         description: "Falha ao rejeitar o registro.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovals.errorRejectingTimecard')}, error);
+      console.error(t('TimecardApprovals.errorRejectingTimecard'), error);
     },
   });
 
@@ -125,11 +125,11 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: {t('TimecardApprovals.erro')},
+        title: t('TimecardApprovals.erro'),
         description: "Falha ao aprovar os registros selecionados.",
         variant: "destructive",
       });
-      console.error({t('TimecardApprovals.errorBulkApprovingTimecards')}, error);
+      console.error(t('TimecardApprovals.errorBulkApprovingTimecards'), error);
     },
   });
 
@@ -145,7 +145,7 @@ export default function TimecardApprovals() {
   const handleRejectConfirm = () => {
     if (!currentRejectId || !rejectionReason.trim()) {
       toast({
-        title: {t('TimecardApprovals.erro')},
+        title: t('TimecardApprovals.erro'),
         description: "Motivo da rejeição é obrigatório.",
         variant: "destructive",
       });
@@ -162,8 +162,8 @@ export default function TimecardApprovals() {
   const handleBulkApprove = () => {
     if (selectedApprovals.length === 0) {
       toast({
-        title: {t('TimecardApprovals.nenhumRegistroSelecionado')},
-        description: {t('TimecardApprovals.selecioneAoMenosUmRegistroParaAprovar')},
+        title: t('TimecardApprovals.nenhumRegistroSelecionado'),
+        description: t('TimecardApprovals.selecioneAoMenosUmRegistroParaAprovar'),
         variant: "destructive",
       });
       return;

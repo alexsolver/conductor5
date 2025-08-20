@@ -76,7 +76,7 @@ export default function ReportCreate() {
     },
     onSuccess: () => {
       toast({
-        title: {t('ReportCreate.sucesso')},
+        title: t('ReportCreate.sucesso'),
         description: "Relatório criado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
@@ -84,7 +84,7 @@ export default function ReportCreate() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('ReportCreate.erro')},
+        title: t('ReportCreate.erro'),
         description: error?.message || "Falha ao criar relatório.",
         variant: "destructive",
       });
@@ -192,7 +192,7 @@ export default function ReportCreate() {
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'standard' ? 'ring-2 ring-primary' : ''
               }`}
-              onClick={() => setReportType('standard')}
+              onClick={() => setReportType('standard')
             >
               <CardContent className="p-6 text-center">
                 <BarChart3 className="w-8 h-8 mx-auto mb-3 text-primary" />
@@ -207,7 +207,7 @@ export default function ReportCreate() {
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'advanced' ? 'ring-2 ring-primary' : ''
               }`}
-              onClick={() => setReportType('advanced')}
+              onClick={() => setReportType('advanced')
             >
               <CardContent className="p-6 text-center">
                 <Database className="w-8 h-8 mx-auto mb-3 text-primary" />
@@ -222,7 +222,7 @@ export default function ReportCreate() {
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'wysiwyg' ? 'ring-2 ring-primary' : ''
               }`}
-              onClick={() => setReportType('wysiwyg')}
+              onClick={() => setReportType('wysiwyg')
             >
               <CardContent className="p-6 text-center">
                 <Palette className="w-8 h-8 mx-auto mb-3 text-primary" />
@@ -327,7 +327,7 @@ export default function ReportCreate() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
-                                <SelectValue placeholder={t('ReportCreate.selecioneACategoria')} />
+                                <SelectValue placeholder={t('ReportCreate.selecioneACategoria') />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -360,7 +360,7 @@ export default function ReportCreate() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-access-level">
-                                <SelectValue placeholder={t('ReportCreate.selecioneONivelDeAcesso')} />
+                                <SelectValue placeholder={t('ReportCreate.selecioneONivelDeAcesso') />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -386,7 +386,7 @@ export default function ReportCreate() {
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-data-source">
-                                    <SelectValue placeholder={t('ReportCreate.selecioneAFonteDeDados')} />
+                                    <SelectValue placeholder={t('ReportCreate.selecioneAFonteDeDados') />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -492,7 +492,7 @@ export default function ReportCreate() {
                               Configuração Básica
                             </h5>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
-                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba {t('ReportCreate.configuracoesBasicas')}.
+                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba t('ReportCreate.configuracoesBasicas').
                             </p>
                           </div>
                         </div>
@@ -544,7 +544,7 @@ export default function ReportCreate() {
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-schedule-type">
-                                  <SelectValue placeholder={t('ReportCreate.selecioneOTipo')} />
+                                  <SelectValue placeholder={t('ReportCreate.selecioneOTipo') />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -604,11 +604,11 @@ export default function ReportCreate() {
                         </div>
                         <div>
                           <span className="font-medium">Categoria:</span>
-                          <div className="capitalize">{form.watch('category')}</div>
+                          <div className="capitalize">{form.watch('category')</div>
                         </div>
                         <div>
                           <span className="font-medium">Acesso:</span>
-                          <div className="capitalize">{form.watch('accessLevel')}</div>
+                          <div className="capitalize">{form.watch('accessLevel')</div>
                         </div>
                         <div>
                           <span className="font-medium">Agendamento:</span>

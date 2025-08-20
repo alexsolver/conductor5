@@ -327,7 +327,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-consent-type">
-                              <SelectValue placeholder={t('GdprCompliancePage.selecioneOTipo')} />
+                              <SelectValue placeholder={t('GdprCompliancePage.selecioneOTipo') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -414,7 +414,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-request-type">
-                              <SelectValue placeholder={t('GdprCompliancePage.selecioneOTipo')} />
+                              <SelectValue placeholder={t('GdprCompliancePage.selecioneOTipo') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -456,7 +456,7 @@ export default function GdprCompliancePage() {
                     disabled={createDataSubjectRequest.isPending}
                     data-testid="button-create-request"
                   >
-                    {createDataSubjectRequest.isPending ? 'Criando...' : {t('GdprCompliancePage.criarSolicitacao')}}
+                    {createDataSubjectRequest.isPending ? 'Criando...' : t('GdprCompliancePage.criarSolicitacao')}
                   </Button>
                 </form>
               </Form>
@@ -476,7 +476,7 @@ export default function GdprCompliancePage() {
                       <div>
                         <div className="font-medium">{request.requestType}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-300">
-                          Criado em: {new Date(request.createdAt).toLocaleDateString('pt-BR')}
+                          Criado em: {new Date(request.createdAt).toLocaleDateString('pt-BR')
                         </div>
                       </div>
                       <Badge variant={request.status === 'completed' ? 'default' : 'secondary'}>
@@ -528,7 +528,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-incident-severity">
-                              <SelectValue placeholder={t('GdprCompliancePage.selecioneASeveridade')} />
+                              <SelectValue placeholder={t('GdprCompliancePage.selecioneASeveridade') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -839,8 +839,8 @@ function PrivacyPolicyManagement() {
     onError: (error: any) => {
       console.error('❌ [CREATE-POLICY] Error:', error);
       toast({ 
-        title: {t('GdprCompliancePage.erroAoCriarPolitica')}, 
-        description: error.message || {t('GdprCompliancePage.erroDesconhecido')},
+        title: t('GdprCompliancePage.erroAoCriarPolitica'), 
+        description: error.message || t('GdprCompliancePage.erroDesconhecido'),
         variant: "destructive" 
       });
     }
@@ -916,11 +916,11 @@ function PrivacyPolicyManagement() {
                            policy.policyType === 'terms_of_use' ? 'Termos de Uso' : 'Política de Cookies'}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Data de criação: {new Date(policy.createdAt).toLocaleDateString('pt-BR')}
+                    Data de criação: {new Date(policy.createdAt).toLocaleDateString('pt-BR')
                   </p>
                   {policy.effectiveDate && (
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Vigência: {new Date(policy.effectiveDate).toLocaleDateString('pt-BR')}
+                      Vigência: {new Date(policy.effectiveDate).toLocaleDateString('pt-BR')
                     </p>
                   )}
                 </div>
@@ -1084,7 +1084,7 @@ function PrivacyPolicyManagement() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createPolicyMutation.isPending}>
-                  {createPolicyMutation.isPending ? "Criando..." : {t('GdprCompliancePage.criarPolitica')}}
+                  {createPolicyMutation.isPending ? "Criando..." : t('GdprCompliancePage.criarPolitica')}
                 </Button>
               </DialogFooter>
             </form>

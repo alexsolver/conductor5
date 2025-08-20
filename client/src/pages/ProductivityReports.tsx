@@ -87,15 +87,15 @@ export default function ProductivityReports() {
   const getActivityTypeLabel = (type: string) => {
     const labels = {
       'view_ticket': 'Visualizar Tickets',
-      'edit_ticket': {t('ProductivityReports.editarTickets')},
-      'create_ticket': {t('ProductivityReports.criarTickets')},
+      'edit_ticket': t('ProductivityReports.editarTickets'),
+      'create_ticket': t('ProductivityReports.criarTickets'),
       'send_message': 'Enviar Mensagens',
       'view_customer': 'Visualizar Clientes',
-      'create_note': {t('ProductivityReports.criarNota')},
-      'edit_note': {t('ProductivityReports.editarNota')},
+      'create_note': t('ProductivityReports.criarNota'),
+      'edit_note': t('ProductivityReports.editarNota'),
       'view_notes': 'Visualizar Notas',
-      'create_internal_action': {t('ProductivityReports.criarAcaoInterna')},
-      'edit_internal_action': {t('ProductivityReports.editarAcaoInterna')},
+      'create_internal_action': t('ProductivityReports.criarAcaoInterna'),
+      'edit_internal_action': t('ProductivityReports.editarAcaoInterna'),
       'view_actions': 'Visualizar Ações',
     };
     return labels[type] || type;

@@ -297,7 +297,7 @@ function TicketAdvancedConfiguration() {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setLocation('/ticket-configuration')}
+            onClick={() => setLocation('/ticket-configuration')
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -349,7 +349,7 @@ function TicketAdvancedConfiguration() {
                     Configure campos personalizados e suas propriedades
                   </CardDescription>
                 </div>
-                <Button onClick={() => openCreateDialog('field')}>
+                <Button onClick={() => openCreateDialog('field')>
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Campo
                 </Button>
@@ -399,7 +399,7 @@ function TicketAdvancedConfiguration() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => openEditDialog(field, 'field')}
+                            onClick={() => openEditDialog(field, 'field')
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -484,7 +484,7 @@ function TicketAdvancedConfiguration() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => openEditDialog({...option, fieldId: field.id}, 'option')}
+                                onClick={() => openEditDialog({...option, fieldId: field.id}, 'option')
                               >
                                 <Edit className="w-3 h-3" />
                               </Button>
@@ -512,7 +512,7 @@ function TicketAdvancedConfiguration() {
                     Configure tempos de resposta e resolução por prioridade
                   </CardDescription>
                 </div>
-                <Button onClick={() => openCreateDialog('sla')}>
+                <Button onClick={() => openCreateDialog('sla')>
                   <Plus className="w-4 h-4 mr-2" />
                   Nova Configuração SLA
                 </Button>
@@ -556,7 +556,7 @@ function TicketAdvancedConfiguration() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => openEditDialog(sla, 'sla')}
+                          onClick={() => openEditDialog(sla, 'sla')
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -611,7 +611,7 @@ function TicketAdvancedConfiguration() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === 'field' && (editingItem.id ? {t('TicketAdvancedConfiguration.editarCampo')} : 'Novo Campo')}
+              {editingItem?.type === 'field' && (editingItem.id ? t('TicketAdvancedConfiguration.editarCampo') : 'Novo Campo')
               {editingItem?.type === 'option' && 'Nova Opção'}
               {editingItem?.type === 'sla' && 'Configurar SLA'}
             </DialogTitle>
@@ -660,7 +660,7 @@ function TicketAdvancedConfiguration() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('TicketAdvancedConfiguration.selecioneOTipo')} />
+                              <SelectValue placeholder={t('TicketAdvancedConfiguration.selecioneOTipo') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -765,7 +765,7 @@ function TicketAdvancedConfiguration() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createFieldMutation.isPending || updateFieldMutation.isPending}>
-                    {editingItem.id ? 'Atualizar' : {t('TicketAdvancedConfiguration.criar')}} Campo
+                    {editingItem.id ? 'Atualizar' : t('TicketAdvancedConfiguration.criar')} Campo
                   </Button>
                 </div>
               </form>
@@ -910,7 +910,7 @@ function TicketAdvancedConfiguration() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TicketAdvancedConfiguration.selecioneAPrioridade')} />
+                            <SelectValue placeholder={t('TicketAdvancedConfiguration.selecioneAPrioridade') />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

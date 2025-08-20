@@ -210,7 +210,7 @@ export default function TicketDetail() {
     queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}/attachments`] });
     queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}`] });
     toast({
-      title: {t('TicketDetail.uploadSuccessful')},
+      title: t('TicketDetail.uploadSuccessful'),
       description: 'Files uploaded successfully.',
     });
   };
@@ -234,7 +234,7 @@ export default function TicketDetail() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Sessão expirada</h1>
             <p className="text-gray-600 mb-4">Faça login novamente para continuar</p>
-            <Button onClick={() => console.log('Auth redirect blocked per 1qa.md')}>
+            <Button onClick={() => console.log('Auth redirect blocked per 1qa.md')>
               Login será tratado automaticamente
             </Button>
           </div>
@@ -248,7 +248,7 @@ export default function TicketDetail() {
       <div className="container mx-auto p-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Ticket não encontrado</h1>
-          <Button onClick={() => navigate('/tickets')}>
+          <Button onClick={() => navigate('/tickets')>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar aos Tickets
           </Button>
@@ -262,7 +262,7 @@ export default function TicketDetail() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => navigate('/tickets')}>
+          <Button variant="ghost" onClick={() => navigate('/tickets')>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
@@ -318,7 +318,7 @@ export default function TicketDetail() {
             <CardContent>
               <div className="prose max-w-none">
                 <p className="text-gray-700 whitespace-pre-wrap">
-                  {ticket.description || {t('TicketDetail.nenhumaDescricaoFornecida')}}
+                  {ticket.description || t('TicketDetail.nenhumaDescricaoFornecida')}
                 </p>
               </div>
             </CardContent>

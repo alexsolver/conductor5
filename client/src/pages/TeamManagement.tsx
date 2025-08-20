@@ -204,7 +204,7 @@ export default function TeamManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('TeamManagement.erroAoAtualizarStatus')},
+        title: t('TeamManagement.erroAoAtualizarStatus'),
         description: error?.message || "Falha ao atualizar o status do membro.",
         variant: "destructive",
       });
@@ -216,7 +216,7 @@ export default function TeamManagement() {
     console.log('TeamManagement - Opening edit dialog with member:', member);
     if (!member || !member.id) {
       toast({
-        title: {t('TeamManagement.erro')},
+        title: t('TeamManagement.erro'),
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -230,7 +230,7 @@ export default function TeamManagement() {
   const handleToggleMemberStatus = async (member: any) => {
     if (!member || !member.id) {
       toast({
-        title: {t('TeamManagement.erro')},
+        title: t('TeamManagement.erro'),
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -241,9 +241,9 @@ export default function TeamManagement() {
     try {
       toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
     } catch (error) {
-      console.error({t('TeamManagement.errorTogglingMemberStatus')}, error);
+      console.error(t('TeamManagement.errorTogglingMemberStatus'), error);
       toast({
-        title: {t('TeamManagement.erro')},
+        title: t('TeamManagement.erro'),
         description: "Falha ao alterar status do membro",
         variant: "destructive",
       });
@@ -254,7 +254,7 @@ export default function TeamManagement() {
   const handleExportTeamData = () => {
     if (!teamMembers || teamMembers.length === 0) {
       toast({
-        title: {t('TeamManagement.nenhumDadoParaExportar')},
+        title: t('TeamManagement.nenhumDadoParaExportar'),
         description: "Não há membros da equipe para exportar.",
         variant: "destructive",
       });
@@ -300,7 +300,7 @@ export default function TeamManagement() {
       });
     } catch (error) {
       toast({
-        title: {t('TeamManagement.erroNaExportacao')},
+        title: t('TeamManagement.erroNaExportacao'),
         description: "Falha ao exportar os dados da equipe.",
         variant: "destructive",
       });
@@ -528,7 +528,7 @@ export default function TeamManagement() {
                         <p className="text-sm font-medium">{activity.description}</p>
                         <p className="text-xs text-gray-500">
                           {activity.user && `${activity.user} - `}
-                          {typeof activity.timestamp === 'string' ? activity.timestamp : new Date(activity.timestamp).toLocaleString('pt-BR')}
+                          {typeof activity.timestamp === 'string' ? activity.timestamp : new Date(activity.timestamp).toLocaleString('pt-BR')
                         </p>
                       </div>
                     </div>
@@ -657,7 +657,7 @@ export default function TeamManagement() {
                   <Label htmlFor="department">Departamento</Label>
                   <Select value={filterDepartment} onValueChange={setFilterDepartment}>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('TeamManagement.todos')} />
+                      <SelectValue placeholder={t('TeamManagement.todos') />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -693,7 +693,7 @@ export default function TeamManagement() {
                   <Label htmlFor="group">Grupo</Label>
                   <Select value={filterGroup} onValueChange={setFilterGroup}>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('TeamManagement.todos')} />
+                      <SelectValue placeholder={t('TeamManagement.todos') />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -720,7 +720,7 @@ export default function TeamManagement() {
                   <Label htmlFor="status">Status</Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('TeamManagement.todos')} />
+                      <SelectValue placeholder={t('TeamManagement.todos') />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -830,7 +830,7 @@ export default function TeamManagement() {
                           variant={(member.status === 'active' || member.isActive) ? 'destructive' : 'default'}
                           onClick={() => handleToggleMemberStatus(member)}
                           className="h-8"
-                          disabled={!user || (user.role !== 'tenant_admin' && user.role !== 'saas_admin' && user.role !== 'manager')}
+                          disabled={!user || (user.role !== 'tenant_admin' && user.role !== 'saas_admin' && user.role !== 'manager')
                         >
                           {(member.status === 'active' || member.isActive) ? (
                             <>
@@ -854,7 +854,7 @@ export default function TeamManagement() {
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {teamMembers && teamMembers.length === 0 
-                          ? {t('TeamManagement.nenhumMembroFoiAdicionadoAEquipeAinda')}
+                          ? t('TeamManagement.nenhumMembroFoiAdicionadoAEquipeAinda')
                           : "Ajuste os filtros para encontrar membros da equipe."
                         }
                       </p>

@@ -382,7 +382,7 @@ const AgendaManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
               <Select value={selectedClient} onValueChange={setSelectedClient}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder={t('AgendaManager.todos')} />
+                  <SelectValue placeholder={t('AgendaManager.todos') />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todas as empresas</SelectItem>
@@ -403,7 +403,7 @@ const AgendaManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
               <Select value={selectedGroup} onValueChange={setSelectedGroup}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder={t('AgendaManager.todos')} />
+                  <SelectValue placeholder={t('AgendaManager.todos') />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os grupos</SelectItem>
@@ -421,7 +421,7 @@ const AgendaManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Técnicos</label>
               <Select value={selectedAgents} onValueChange={setSelectedAgents}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder={t('AgendaManager.todos')} />
+                  <SelectValue placeholder={t('AgendaManager.todos') />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os técnicos</SelectItem>
@@ -442,7 +442,7 @@ const AgendaManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Título da Tarefa</label>
               <Input
                 type="text"
-                placeholder={t('AgendaManager.buscarPorTitulo')}
+                placeholder={t('AgendaManager.buscarPorTitulo')
                 value={taskTitleFilter}
                 onChange={(e) => setTaskTitleFilter(e.target.value)}
                 className="h-9"
@@ -485,14 +485,14 @@ const AgendaManager: React.FC = () => {
               <Button
                 variant={view === 'timeline' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setView('timeline')}
+                onClick={() => setView('timeline')
               >
                 Linha do Tempo
               </Button>
               <Button
                 variant={view === 'agenda' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setView('agenda')}
+                onClick={() => setView('agenda')
               >
                 Agenda 14 Dias
               </Button>

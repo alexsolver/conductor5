@@ -101,7 +101,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           if (widgetType === 'table') {
             return {
               value: total,
-              label: {t('DashboardView.totalDeTickets')},
+              label: t('DashboardView.totalDeTickets'),
               data: tickets.slice(0, 5).map((ticket: any) => ({
                 id: ticket.id,
                 title: ticket.title || `Ticket ${ticket.ticketNumber}`,
@@ -114,7 +114,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           
           return {
             value: total,
-            label: {t('DashboardView.totalDeTickets')},
+            label: t('DashboardView.totalDeTickets'),
             change: Math.floor(Math.random() * 20) - 10, // Placeholder até implementar histórico
             lastUpdated: 'Dados reais do banco',
           };
@@ -137,7 +137,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: {t('DashboardView.clientesAtivos')},
+            label: t('DashboardView.clientesAtivos'),
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -148,7 +148,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: {t('DashboardView.usuariosNoSistema')},
+            label: t('DashboardView.usuariosNoSistema'),
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -575,7 +575,7 @@ function DashboardView() {
           <p className="text-gray-500 dark:text-gray-400 mb-6">
             The dashboard you're looking for doesn't exist or you don't have permission to view it.
           </p>
-          <Button onClick={() => setLocation('/dashboards')}>
+          <Button onClick={() => setLocation('/dashboards')>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboards
           </Button>
@@ -616,7 +616,7 @@ function DashboardView() {
       console.log('Saving dashboard configuration:', updatedConfig);
       
       toast({ 
-        title: {t('DashboardView.dashboardSaved')}, 
+        title: t('DashboardView.dashboardSaved'), 
         description: "Your dashboard changes have been saved successfully." 
       });
       
@@ -624,7 +624,7 @@ function DashboardView() {
       setLocation(`/dashboard/${id}`);
     } catch (error) {
       toast({ 
-        title: {t('DashboardView.saveFailed')}, 
+        title: t('DashboardView.saveFailed'), 
         description: "There was an error saving your dashboard changes." 
       });
     }
@@ -657,7 +657,7 @@ function DashboardView() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLocation('/dashboards')}
+                onClick={() => setLocation('/dashboards')
                 data-testid="button-back-to-dashboards"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />

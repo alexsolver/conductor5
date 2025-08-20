@@ -112,13 +112,13 @@ export default function ContractManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
       toast({
-        title: {t('ContractManagement.sucesso')},
+        title: t('ContractManagement.sucesso'),
         description: "Contrato excluído com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: {t('ContractManagement.erro')},
+        title: t('ContractManagement.erro'),
         description: "Falha ao excluir contrato",
         variant: "destructive",
       });
@@ -282,7 +282,7 @@ export default function ContractManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder={t('ContractManagement.buscarContratos')}
+                  placeholder={t('ContractManagement.buscarContratos')
                   value={filters.search || ''}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="pl-10"
@@ -391,7 +391,7 @@ export default function ContractManagement() {
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                           <span data-testid={`contract-period-${contract.id}`}>
-                            {new Date(contract.startDate).toLocaleDateString('pt-BR')} - {new Date(contract.endDate).toLocaleDateString('pt-BR')}
+                            {new Date(contract.startDate).toLocaleDateString('pt-BR') - {new Date(contract.endDate).toLocaleDateString('pt-BR')
                           </span>
                           <span data-testid={`contract-total-value-${contract.id}`}>
                             Valor Total: {formatCurrency(contract.totalValue, contract.currency)}

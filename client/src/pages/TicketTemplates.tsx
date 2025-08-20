@@ -29,8 +29,6 @@ import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema para validação do formulário
 const templateSchema = z.object({
-  const { t } = useLocalization();
-
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
   category: z.string().min(1, "Categoria é obrigatória"),
@@ -171,7 +169,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('TicketTemplates.erroAoCriarTemplate')},
+        title: t('TicketTemplates.erroAoCriarTemplate'),
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -196,7 +194,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('TicketTemplates.erroAoAtualizarTemplate')},
+        title: t('TicketTemplates.erroAoAtualizarTemplate'),
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -216,7 +214,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('TicketTemplates.erroAoExcluirTemplate')},
+        title: t('TicketTemplates.erroAoExcluirTemplate'),
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -400,7 +398,7 @@ export default function TicketTemplates() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder={t('TicketTemplates.buscarTemplates')}
+                  placeholder={t('TicketTemplates.buscarTemplates')
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -434,8 +432,8 @@ export default function TicketTemplates() {
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {searchTerm || selectedCategory !== 'all' ? 
-              {t('TicketTemplates.nenhumTemplateEncontradoComOsFiltrosAplicados')} :
-              {t('TicketTemplates.nenhumTemplateEncontradoCrieOPrimeiro')}
+              t('TicketTemplates.nenhumTemplateEncontradoComOsFiltrosAplicados') :
+              t('TicketTemplates.nenhumTemplateEncontradoCrieOPrimeiro')
             }
           </p>
         </div>
@@ -489,7 +487,7 @@ export default function TicketTemplates() {
 
                   <div className="pt-2 border-t">
                     <p className="text-xs text-muted-foreground">
-                      Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')}
+                      Criado em {new Date(template.created_at).toLocaleDateString('pt-BR')
                     </p>
                   </div>
                 </div>
@@ -724,7 +722,7 @@ export default function TicketTemplates() {
                 type="submit" 
                 disabled={createTemplateMutation.isPending}
               >
-                {createTemplateMutation.isPending ? 'Criando...' : {t('TicketTemplates.criarTemplate')}}
+                {createTemplateMutation.isPending ? 'Criando...' : t('TicketTemplates.criarTemplate')}
               </Button>
             </div>
           </form>
@@ -805,7 +803,7 @@ export default function TicketTemplates() {
                   type="submit" 
                   disabled={updateTemplateMutation.isPending}
                 >
-                  {updateTemplateMutation.isPending ? 'Salvando...' : {t('TicketTemplates.salvarAlteracoes')}}
+                  {updateTemplateMutation.isPending ? 'Salvando...' : t('TicketTemplates.salvarAlteracoes')}
                 </Button>
               </div>
             </form>

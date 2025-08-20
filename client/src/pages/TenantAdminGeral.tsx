@@ -155,14 +155,14 @@ export default function TenantAdminGeral() {
     },
     onSuccess: () => {
       toast({
-        title: {t('TenantAdminGeral.configuracoesSalvas')},
+        title: t('TenantAdminGeral.configuracoesSalvas'),
         description: "As configurações de branding foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/branding"] });
     },
     onError: () => {
       toast({
-        title: {t('TenantAdminGeral.erro')},
+        title: t('TenantAdminGeral.erro'),
         description: "Ocorreu um erro ao salvar as configurações.",
         variant: "destructive",
       });
@@ -224,13 +224,13 @@ export default function TenantAdminGeral() {
           {/* Estatísticas principais */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title={t('TenantAdminGeral.totalDeClientes')}
+              title=t('TenantAdminGeral.totalDeClientes')
               value={(analytics as any)?.totalCustomers || 0}
               icon={Users}
               trend={12}
             />
             <StatCard
-              title={t('TenantAdminGeral.ticketsAtivos')}
+              title=t('TenantAdminGeral.ticketsAtivos')
               value={(analytics as any)?.totalTickets || 0}
               icon={Ticket}
               trend={8}
@@ -510,7 +510,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('TenantAdminGeral.selecioneOFusoHorario')} />
+                                <SelectValue placeholder={t('TenantAdminGeral.selecioneOFusoHorario') />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -534,7 +534,7 @@ export default function TenantAdminGeral() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('TenantAdminGeral.selecioneOIdioma')} />
+                                <SelectValue placeholder={t('TenantAdminGeral.selecioneOIdioma') />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>

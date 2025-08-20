@@ -162,13 +162,13 @@ export default function TenantAdminBranding() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/branding'] });
       toast({
-        title: {t('TenantAdminBranding.configuracoesSalvas')},
+        title: t('TenantAdminBranding.configuracoesSalvas'),
         description: "As configurações de branding foram atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TenantAdminBranding.erroAoSalvar')},
+        title: t('TenantAdminBranding.erroAoSalvar'),
         description: error.message,
         variant: "destructive",
       });
@@ -252,7 +252,7 @@ export default function TenantAdminBranding() {
             className="gradient-primary text-white hover:opacity-90"
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveSettingsMutation.isPending ? 'Salvando...' : {t('TenantAdminBranding.salvarAlteracoes')}}
+            {saveSettingsMutation.isPending ? 'Salvando...' : t('TenantAdminBranding.salvarAlteracoes')}
           </Button>
         </div>
       </div>
@@ -425,7 +425,7 @@ export default function TenantAdminBranding() {
                       className="w-16 h-16 rounded-lg border mx-auto mb-2"
                       style={{ backgroundColor: color }}
                     />
-                    <Label className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1')}</Label>
+                    <Label className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1')</Label>
                     <p className="text-xs text-gray-500 font-mono">{color}</p>
                   </div>
                 ))}
@@ -639,7 +639,7 @@ export default function TenantAdminBranding() {
                   <Input
                     value={settings.customization.footerText}
                     onChange={(e) => updateSetting('customization.footerText', e.target.value)}
-                    placeholder={t('TenantAdminBranding.2024MinhaEmpresaTodosOsDireitosReservados')}
+                    placeholder={t('TenantAdminBranding.2024MinhaEmpresaTodosOsDireitosReservados')
                   />
                 </div>
               </CardContent>

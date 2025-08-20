@@ -40,7 +40,7 @@ export default function CertificateManager() {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')`
         }
       });
 
@@ -57,11 +57,11 @@ export default function CertificateManager() {
         setPassword('');
         setCertificateName('');
       } else {
-        throw new Error({t('CertificateManager.erroAoInstalarCertificado')});
+        throw new Error(t('CertificateManager.erroAoInstalarCertificado'));
       }
     } catch (error) {
       toast({
-        title: {t('CertificateManager.erroNaInstalacao')},
+        title: t('CertificateManager.erroNaInstalacao'),
         description: "Falha ao instalar o certificado digital",
         variant: "destructive"
       });

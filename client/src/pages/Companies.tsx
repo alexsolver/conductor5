@@ -138,7 +138,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('Companies.erroAoCriarEmpresa')},
+        title: t('Companies.erroAoCriarEmpresa'),
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -161,7 +161,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('Companies.erroAoAtualizarEmpresa')},
+        title: t('Companies.erroAoAtualizarEmpresa'),
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -181,7 +181,7 @@ export default function Companies() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('Companies.erroAoRemoverEmpresa')},
+        title: t('Companies.erroAoRemoverEmpresa'),
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -318,7 +318,7 @@ export default function Companies() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('Companies.selecioneOPorte')} />
+                                <SelectValue placeholder={t('Companies.selecioneOPorte') />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -430,7 +430,7 @@ export default function Companies() {
                       type="submit"
                       disabled={createCompanyMutation.isPending}
                     >
-                      {createCompanyMutation.isPending ? "Criando..." : {t('Companies.criarEmpresa')}}
+                      {createCompanyMutation.isPending ? "Criando..." : t('Companies.criarEmpresa')}
                     </Button>
                   </div>
                 </form>
@@ -445,7 +445,7 @@ export default function Companies() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
-            placeholder={t('Companies.buscarEmpresas')}
+            placeholder={t('Companies.buscarEmpresas')
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -458,7 +458,7 @@ export default function Companies() {
         <div className="text-center py-12">
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {searchTerm ? {t('Companies.nenhumaEmpresaEncontrada')} : {t('Companies.nenhumaEmpresaCadastrada')}}
+            {searchTerm ? t('Companies.nenhumaEmpresaEncontrada') : t('Companies.nenhumaEmpresaCadastrada')}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             {searchTerm 
@@ -638,7 +638,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('Companies.selecioneOPorte')} />
+                            <SelectValue placeholder={t('Companies.selecioneOPorte') />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -773,7 +773,7 @@ export default function Companies() {
                   type="submit"
                   disabled={editCompanyMutation.isPending}
                 >
-                  {editCompanyMutation.isPending ? "Salvando..." : {t('Companies.salvarAlteracoes')}}
+                  {editCompanyMutation.isPending ? "Salvando..." : t('Companies.salvarAlteracoes')}
                 </Button>
               </div>
             </form>

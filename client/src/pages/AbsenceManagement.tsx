@@ -68,7 +68,7 @@ const statusLabels = {
   pending: 'Pendente',
   approved: 'Aprovada',
   rejected: 'Rejeitada',
-  cancelled: {t('AbsenceManagement.cancelada')}
+  cancelled: t('AbsenceManagement.cancelada')
 };
 
 const statusColors = {
@@ -130,8 +130,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('AbsenceManagement.erroAoCriarSolicitacao')},
-        description: error.message || {t('AbsenceManagement.erroInternoDoServidor')},
+        title: t('AbsenceManagement.erroAoCriarSolicitacao'),
+        description: error.message || t('AbsenceManagement.erroInternoDoServidor'),
         variant: 'destructive',
       });
     },
@@ -151,8 +151,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('AbsenceManagement.erroAoAprovar')},
-        description: error.message || {t('AbsenceManagement.erroInternoDoServidor')},
+        title: t('AbsenceManagement.erroAoAprovar'),
+        description: error.message || t('AbsenceManagement.erroInternoDoServidor'),
         variant: 'destructive',
       });
     },
@@ -172,8 +172,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('AbsenceManagement.erroAoRejeitar')},
-        description: error.message || {t('AbsenceManagement.erroInternoDoServidor')},
+        title: t('AbsenceManagement.erroAoRejeitar'),
+        description: error.message || t('AbsenceManagement.erroInternoDoServidor'),
         variant: 'destructive',
       });
     },
@@ -256,7 +256,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('AbsenceManagement.selecioneOFuncionario')} />
+                              <SelectValue placeholder={t('AbsenceManagement.selecioneOFuncionario') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -281,7 +281,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('AbsenceManagement.selecioneOTipo')} />
+                              <SelectValue placeholder={t('AbsenceManagement.selecioneOTipo') />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -372,7 +372,7 @@ export default function AbsenceManagement() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('AbsenceManagement.selecioneUmSubstituto')} />
+                            <SelectValue placeholder={t('AbsenceManagement.selecioneUmSubstituto') />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -394,7 +394,7 @@ export default function AbsenceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAbsenceRequestMutation.isPending}>
-                    {createAbsenceRequestMutation.isPending ? 'Criando...' : {t('AbsenceManagement.criarSolicitacao')}}
+                    {createAbsenceRequestMutation.isPending ? 'Criando...' : t('AbsenceManagement.criarSolicitacao')}
                   </Button>
                 </div>
               </form>

@@ -61,8 +61,8 @@ interface EditFieldFormData extends CreateFieldFormData {
 }
 
 const MODULE_TYPES = [
-  { value: 'customers', label: {t('CustomFieldsAdministrator.clientes')} },
-  { value: 'tickets', label: {t('CustomFieldsAdministrator.tickets')} },
+  { value: 'customers', label: t('CustomFieldsAdministrator.clientes') },
+  { value: 'tickets', label: t('CustomFieldsAdministrator.tickets') },
   { value: 'beneficiaries', label: 'Beneficiários' },
   { value: 'materials', label: 'Materiais' },
   { value: 'services', label: 'Serviços' },
@@ -99,7 +99,7 @@ export default function CustomFieldsAdministrator() {
     queryFn: async () => {
       const response = await fetch(`/api/custom-fields/fields/${selectedModule}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')`
         }
       });
       if (!response.ok) {
@@ -117,7 +117,7 @@ export default function CustomFieldsAdministrator() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')`
         },
         body: JSON.stringify(fieldData)
       });
@@ -136,8 +136,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: {t('CustomFieldsAdministrator.erro')},
-        description: {t('CustomFieldsAdministrator.erroAoCriarCampoCustomizado')},
+        title: t('CustomFieldsAdministrator.erro'),
+        description: t('CustomFieldsAdministrator.erroAoCriarCampoCustomizado'),
         variant: 'destructive'
       });
     }
@@ -150,7 +150,7 @@ export default function CustomFieldsAdministrator() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')`
         },
         body: JSON.stringify(fieldData)
       });
@@ -169,8 +169,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: {t('CustomFieldsAdministrator.erro')},
-        description: {t('CustomFieldsAdministrator.erroAoAtualizarCampoCustomizado')},
+        title: t('CustomFieldsAdministrator.erro'),
+        description: t('CustomFieldsAdministrator.erroAoAtualizarCampoCustomizado'),
         variant: 'destructive'
       });
     }
@@ -182,7 +182,7 @@ export default function CustomFieldsAdministrator() {
       const response = await fetch(`/api/custom-fields/fields/${fieldId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')`
         }
       });
       if (!response.ok) {
@@ -199,8 +199,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: {t('CustomFieldsAdministrator.erro')},
-        description: {t('CustomFieldsAdministrator.erroAoRemoverCampoCustomizado')},
+        title: t('CustomFieldsAdministrator.erro'),
+        description: t('CustomFieldsAdministrator.erroAoRemoverCampoCustomizado'),
         variant: 'destructive'
       });
     }
@@ -290,7 +290,7 @@ export default function CustomFieldsAdministrator() {
                       )}
                       
                       <div className="flex items-center gap-4 text-xs text-gray-400">
-                        <span>Criado: {new Date(field.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <span>Criado: {new Date(field.createdAt).toLocaleDateString('pt-BR')</span>
                         <span>•</span>
                         <span>Ordem: {field.displayOrder}</span>
                       </div>
@@ -303,7 +303,7 @@ export default function CustomFieldsAdministrator() {
                       size="sm"
                       onClick={() => setEditingField(field)}
                       className="hover:bg-blue-50 hover:text-blue-700"
-                      title={t('CustomFieldsAdministrator.editarCampo')}
+                      title=t('CustomFieldsAdministrator.editarCampo')
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -312,7 +312,7 @@ export default function CustomFieldsAdministrator() {
                       size="sm"
                       onClick={() => setFieldToDelete(field)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title={t('CustomFieldsAdministrator.excluirCampo')}
+                      title=t('CustomFieldsAdministrator.excluirCampo')
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -365,7 +365,7 @@ export default function CustomFieldsAdministrator() {
               </Label>
               <Select value={selectedModule} onValueChange={(value: ModuleType) => setSelectedModule(value)}>
                 <SelectTrigger className="w-56 bg-white border-gray-200">
-                  <SelectValue placeholder={t('CustomFieldsAdministrator.selecioneUmModulo')} />
+                  <SelectValue placeholder={t('CustomFieldsAdministrator.selecioneUmModulo') />
                 </SelectTrigger>
                 <SelectContent>
                   {MODULE_TYPES.map((module) => (

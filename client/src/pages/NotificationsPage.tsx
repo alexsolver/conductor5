@@ -142,7 +142,7 @@ export default function NotificationsPage() {
         pageSize: '50'
       }).toString()}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -156,7 +156,7 @@ export default function NotificationsPage() {
     queryFn: async () => {
       const response = await fetch('/api/notifications/stats', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -171,7 +171,7 @@ export default function NotificationsPage() {
       const response = await fetch('/api/notifications', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         },
@@ -181,7 +181,7 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       toast({
-        title: {t('NotificationsPage.success')},
+        title: t('NotificationsPage.success'),
         description: 'Notification created successfully'
       });
       setIsCreateOpen(false);
@@ -190,7 +190,7 @@ export default function NotificationsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('NotificationsPage.error')},
+        title: t('NotificationsPage.error'),
         description: error.message || 'Failed to create notification',
         variant: 'destructive'
       });
@@ -202,7 +202,7 @@ export default function NotificationsPage() {
       const response = await fetch('/api/notifications/process', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         }
@@ -211,14 +211,14 @@ export default function NotificationsPage() {
     },
     onSuccess: (data: any) => {
       toast({
-        title: {t('NotificationsPage.processingComplete')},
+        title: t('NotificationsPage.processingComplete'),
         description: `Processed ${data.data?.processed || 0} notifications. Sent: ${data.data?.sent || 0}, Failed: ${data.data?.failed || 0}`
       });
       refetchNotifications();
     },
     onError: (error: any) => {
       toast({
-        title: {t('NotificationsPage.error')},
+        title: t('NotificationsPage.error'),
         description: error.message || 'Failed to process notifications',
         variant: 'destructive'
       });
@@ -230,7 +230,7 @@ export default function NotificationsPage() {
       const response = await fetch('/api/notifications/bulk-read', {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')`,
           'X-Tenant-Id': localStorage.getItem('tenant_id') || '',
           'Content-Type': 'application/json'
         },
@@ -240,14 +240,14 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       toast({
-        title: {t('NotificationsPage.success')},
+        title: t('NotificationsPage.success'),
         description: 'Notifications marked as read'
       });
       refetchNotifications();
     },
     onError: (error: any) => {
       toast({
-        title: {t('NotificationsPage.error')},
+        title: t('NotificationsPage.error'),
         description: error.message || 'Failed to mark as read',
         variant: 'destructive'
       });
@@ -294,7 +294,7 @@ export default function NotificationsPage() {
             data-testid="button-process-notifications"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            {processMutation.isPending ? {t('NotificationsPage.processing')} : 'Process Now'}
+            {processMutation.isPending ? t('NotificationsPage.processing') : 'Process Now'}
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
@@ -323,7 +323,7 @@ export default function NotificationsPage() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-notification-type">
-                                <SelectValue placeholder={t('NotificationsPage.selectType')} />
+                                <SelectValue placeholder={t('NotificationsPage.selectType') />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -353,7 +353,7 @@ export default function NotificationsPage() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-notification-severity">
-                                <SelectValue placeholder={t('NotificationsPage.selectSeverity')} />
+                                <SelectValue placeholder={t('NotificationsPage.selectSeverity') />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -419,7 +419,7 @@ export default function NotificationsPage() {
                             { value: 'sms', label: 'SMS' },
                             { value: 'push', label: 'Push' },
                             { value: 'webhook', label: 'Webhook' },
-                            { value: 'dashboard_alert', label: {t('NotificationsPage.dashboard')} }
+                            { value: 'dashboard_alert', label: t('NotificationsPage.dashboard') }
                           ].map((channel) => (
                             <label 
                               key={channel.value} 
@@ -459,7 +459,7 @@ export default function NotificationsPage() {
                       disabled={createMutation.isPending}
                       data-testid="button-submit-create"
                     >
-                      {createMutation.isPending ? 'Creating...' : {t('NotificationsPage.createNotification')}}
+                      {createMutation.isPending ? 'Creating...' : t('NotificationsPage.createNotification')}
                     </Button>
                   </div>
                 </form>
@@ -498,7 +498,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, status: value }))
                   }>
                     <SelectTrigger data-testid="filter-status">
-                      <SelectValue placeholder={t('NotificationsPage.allStatuses')} />
+                      <SelectValue placeholder={t('NotificationsPage.allStatuses') />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
@@ -517,7 +517,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, severity: value }))
                   }>
                     <SelectTrigger data-testid="filter-severity">
-                      <SelectValue placeholder={t('NotificationsPage.allSeverities')} />
+                      <SelectValue placeholder={t('NotificationsPage.allSeverities') />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Severities</SelectItem>
@@ -535,7 +535,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, type: value }))
                   }>
                     <SelectTrigger data-testid="filter-type">
-                      <SelectValue placeholder={t('NotificationsPage.allTypes')} />
+                      <SelectValue placeholder={t('NotificationsPage.allTypes') />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
@@ -603,7 +603,7 @@ export default function NotificationsPage() {
                             Type: {notification.type}
                           </span>
                           <span data-testid={`notification-channels-${notification.id}`}>
-                            Channels: {notification.channels.join(', ')}
+                            Channels: {notification.channels.join(', ')
                           </span>
                           <span data-testid={`notification-created-${notification.id}`}>
                             Created: {formatDate(notification.createdAt)}
@@ -733,7 +733,7 @@ export default function NotificationsPage() {
                   <div className="space-y-2">
                     {Object.entries((stats.data as any).distribution?.byType || {}).map(([type, count]) => (
                       <div key={type} className="flex justify-between">
-                        <span className="capitalize">{type.replace('_', ' ')}:</span>
+                        <span className="capitalize">{type.replace('_', ' '):</span>
                         <span className="font-semibold">{count as number}</span>
                       </div>
                     ))}

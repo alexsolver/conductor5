@@ -221,12 +221,12 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
   };
 
   const presetPalettes = [
-    { name: 'Azul Corporativo', colors: { primary: '#1e40af', secondary: '#3b82f6', accent: '#0ea5e9', background: '#f8fafc' } },
-    { name: 'Verde Natureza', colors: { primary: '#166534', secondary: '#16a34a', accent: '#65a30d', background: '#f7fee7' } },
-    { name: 'Roxo Elegante', colors: { primary: '#581c87', secondary: '#7c3aed', accent: '#a855f7', background: '#fef7ff' } },
-    { name: 'Laranja Vibrante', colors: { primary: '#ea580c', secondary: '#fb923c', accent: '#fde047', background: '#fff7ed' } },
-    { name: 'Rosa Moderno', colors: { primary: '#be185d', secondary: '#ec4899', accent: '#f472b6', background: '#fdf2f8' } },
-    { name: 'Cinza Minimalista', colors: { primary: '#374151', secondary: '#6b7280', accent: '#10b981', background: '#ffffff' } }
+    { name: 'Azul Corporativo', colors: { primary: '#1e40af', secondary: '#3b82f6', accent: '#0ea5e9', background: '#f8fafc' }) },
+    { name: 'Verde Natureza', colors: { primary: '#166534', secondary: '#16a34a', accent: '#65a30d', background: '#f7fee7' }) },
+    { name: 'Roxo Elegante', colors: { primary: '#581c87', secondary: '#7c3aed', accent: '#a855f7', background: '#fef7ff' }) },
+    { name: 'Laranja Vibrante', colors: { primary: '#ea580c', secondary: '#fb923c', accent: '#fde047', background: '#fff7ed' }) },
+    { name: 'Rosa Moderno', colors: { primary: '#be185d', secondary: '#ec4899', accent: '#f472b6', background: '#fdf2f8' }) },
+    { name: 'Cinza Minimalista', colors: { primary: '#374151', secondary: '#6b7280', accent: '#10b981', background: '#ffffff' }) }
   ];
 
   return (
@@ -435,7 +435,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TemplateSelector.erroAoAplicarTema')},
+        title: t('TemplateSelector.erroAoAplicarTema'),
         description: error.message,
         variant: "destructive",
       });
@@ -463,7 +463,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TemplateSelector.erroAoResetarTema')},
+        title: t('TemplateSelector.erroAoResetarTema'),
         description: error.message,
         variant: "destructive",
       });
@@ -630,7 +630,7 @@ export function TemplateSelector() {
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             disabled={!selectedTemplate || applyTemplateMutation.isPending}
           >
-            {selectedTemplate ? 'Tema Selecionado' : {t('TemplateSelector.selecioneUmTema')}}
+            {selectedTemplate ? 'Tema Selecionado' : t('TemplateSelector.selecioneUmTema')}
           </Button>
           <Button 
             size="lg" 

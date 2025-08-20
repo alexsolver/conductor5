@@ -111,7 +111,7 @@ export default function TenantAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TenantAdmin.erroAoCriarUsuario')},
+        title: t('TenantAdmin.erroAoCriarUsuario'),
         description: error.message,
         variant: "destructive",
       });
@@ -128,13 +128,13 @@ export default function TenantAdmin() {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/settings'] });
       setIsSettingsDialogOpen(false);
       toast({
-        title: {t('TenantAdmin.configuracoesAtualizadas')},
-        description: {t('TenantAdmin.configuracoesDoWorkspaceAtualizadasComSucesso')},
+        title: t('TenantAdmin.configuracoesAtualizadas'),
+        description: t('TenantAdmin.configuracoesDoWorkspaceAtualizadasComSucesso'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: {t('TenantAdmin.erroAoAtualizarConfiguracoes')},
+        title: t('TenantAdmin.erroAoAtualizarConfiguracoes'),
         description: error.message,
         variant: "destructive",
       });
@@ -194,7 +194,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                      {updateSettingsMutation.isPending ? 'Salvando...' : {t('TenantAdmin.salvar')}}
+                      {updateSettingsMutation.isPending ? 'Salvando...' : t('TenantAdmin.salvar')}
                     </Button>
                   </div>
                 </form>
@@ -280,7 +280,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createUserMutation.isPending}>
-                      {createUserMutation.isPending ? 'Criando...' : {t('TenantAdmin.criar')}}
+                      {createUserMutation.isPending ? 'Criando...' : t('TenantAdmin.criar')}
                     </Button>
                   </div>
                 </form>
