@@ -156,7 +156,6 @@ const adminNavigation = [
       { name: "Gestão de Equipe", href: "/team-management", icon: Users },
       { name: "Gestão de Contratos", href: "/contract-management", icon: FileText },
       { name: "Gestão de Despesas Corporativas", href: "/expense-management", icon: CreditCard },
-      { name: "Materiais e Serviços", href: "/materials-services-control", icon: Package },
       { name: "Habilidades Técnicas", href: "/technical-skills", icon: Award },
       { name: "Workflows", href: "/tenant-admin/workflows", icon: Workflow },
       { name: "SLAs", href: "/slas", icon: Target },
