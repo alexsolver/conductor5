@@ -71,15 +71,11 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId,
         title: data.title,
         content: data.content,
-        categoryId: data.category,
+        categoryId: data.category, // Map category to categoryId for DB column
         tags: data.tags || [],
         status: data.status || 'draft',
         authorId: data.authorId,
-        // Remove fields that don't exist in current DB schema
-        // published: false, - column doesn't exist
-        // isDeleted: false, - column doesn't exist  
-        // version: 1, - column doesn't exist
-        contentType: data.contentType || 'rich_text'
+        contentType: data.contentType || 'article'
       })
       .returning();
 
