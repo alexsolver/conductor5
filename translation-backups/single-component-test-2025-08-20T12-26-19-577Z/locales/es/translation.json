@@ -31,10 +31,7 @@
       "cancel": "Cancelar",
       "delete": "Eliminar",
       "edit": "Editar",
-      "close": "Cerrar",
-      "submit": "Enviar",
-      "reset": "Resetear",
-      "confirm": "Confirmar"
+      "close": "Cerrar"
     },
     "breadcrumb": {
       "home": "Inicio",

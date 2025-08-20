@@ -15,9 +15,7 @@
   },
   "navigation": {
     "previous": "Previous",
-    "next": "Next",
-    "home": "Home",
-    "dashboard": "Dashboard"
+    "next": "Next"
   },
   "components": {
     "userSelect": {
@@ -31,22 +29,11 @@
       "cancel": "Cancel",
       "delete": "Delete",
       "edit": "Edit",
-      "close": "Close",
-      "submit": "Submit",
-      "reset": "Reset",
-      "confirm": "Confirm"
+      "close": "Close"
     },
     "breadcrumb": {
       "home": "Home",
       "dashboard": "Dashboard"
     }
-  },
-  "app": {
-    "name": "Conductor",
-    "loading": "Loading...",
-    "save": "Save",
-    "cancel": "Cancel",
-    "edit": "Edit",
-    "delete": "Delete"
   }
 }

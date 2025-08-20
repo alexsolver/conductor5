@@ -1,4 +1,3 @@
-
 /**
  * Translation Completion Service
  * Automated translation completion for all modules following 1qa.md patterns
@@ -406,7 +405,7 @@ export class TranslationCompletionService {
     try {
       const content = await fs.readFile(filePath, 'utf8');
       const lines = content.split('\n');
-      
+
       // Padrões para detectar textos hardcoded em português/inglês
       const hardcodedPatterns = [
         // Títulos e labels comuns
@@ -447,7 +446,7 @@ export class TranslationCompletionService {
             if (match[1] && this.isTranslatableText(match[1])) {
               const module = this.extractModuleFromPath(filePath);
               const suggestedKey = this.generateTranslationKey(match[1], module);
-              
+
               hardcodedTexts.push({
                 file: filePath,
                 line: lineIndex + 1,
@@ -470,22 +469,22 @@ export class TranslationCompletionService {
   private isTranslatableText(text: string): boolean {
     // Skip muito curtos ou que são claramente código
     if (text.length < 3) return false;
-    
+
     // Skip URLs, paths, códigos
     if (text.includes('/') || text.includes('\\') || text.includes('.') && text.length < 10) {
       return false;
     }
-    
+
     // Skip valores técnicos
     if (/^[A-Z_]+$/.test(text) || /^\d+$/.test(text)) {
       return false;
     }
-    
+
     // Skip CSS classes, IDs
     if (text.includes('-') && text.length < 15) {
       return false;
     }
-    
+
     // Inclui textos em português e inglês comuns
     const translatableWords = [
       'criar', 'create', 'editar', 'edit', 'excluir', 'delete', 'salvar', 'save',
@@ -496,7 +495,7 @@ export class TranslationCompletionService {
       'carregando', 'loading', 'processando', 'processing', 'aguarde', 'please wait',
       'nenhum', 'none', 'todos', 'all', 'selecione', 'select', 'escolha', 'choose'
     ];
-    
+
     const lowerText = text.toLowerCase();
     return translatableWords.some(word => lowerText.includes(word));
   }
@@ -512,14 +511,14 @@ export class TranslationCompletionService {
       .replace(/[^a-z0-9\s]/g, '') // Remove caracteres especiais
       .replace(/\s+/g, ' ')
       .trim();
-    
+
     const words = normalized.split(' ');
-    
+
     // Gera camelCase
     const camelCase = words[0] + words.slice(1).map(w => 
       w.charAt(0).toUpperCase() + w.slice(1)
     ).join('');
-    
+
     return `${module}.${camelCase}`;
   }
 
@@ -539,71 +538,158 @@ export class TranslationCompletionService {
       error?: string;
     }> = [];
 
-    const hardcodedTexts = await this.detectHardcodedTexts();
-    const fileGroups = hardcodedTexts.reduce((acc, item) => {
-      if (!acc[item.file]) acc[item.file] = [];
-      acc[item.file].push(item);
-      return acc;
-    }, {} as Record<string, typeof hardcodedTexts>);
+    try {
+      // Add timeout protection
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Hardcoded text replacement timeout after 10 seconds')), 10000);
+      });
 
-    for (const [filePath, items] of Object.entries(fileGroups)) {
-      try {
-        let content = await fs.readFile(filePath, 'utf8');
-        let replacements = 0;
-        
-        // Adiciona import do hook de tradução se não existir
-        if (!content.includes('useLocalization') && !content.includes('useTranslation')) {
-          const importLine = "import { useLocalization } from '@/hooks/useLocalization';\n";
-          const lastImport = content.lastIndexOf('import');
-          if (lastImport !== -1) {
-            const nextLine = content.indexOf('\n', lastImport);
-            content = content.slice(0, nextLine + 1) + importLine + content.slice(nextLine + 1);
-          }
+      // First, detect hardcoded texts with timeout
+      const hardcodedTexts = await Promise.race([
+        this.detectHardcodedTexts(),
+        timeoutPromise
+      ]);
+
+      // Group by file
+      const fileGroups = hardcodedTexts.reduce((acc, item) => {
+        if (!acc[item.file]) {
+          acc[item.file] = [];
         }
+        acc[item.file].push(item);
+        return acc;
+      }, {} as Record<string, typeof hardcodedTexts>);
 
-        // Adiciona hook no componente se não existir
-        if (!content.includes('const { t }')) {
-          const componentMatch = content.match(/(?:function|const)\s+\w+.*?{/);
-          if (componentMatch) {
-            const insertPos = content.indexOf('{', componentMatch.index!) + 1;
-            const hookLine = '\n  const { t } = useLocalization();\n';
-            content = content.slice(0, insertPos) + hookLine + content.slice(insertPos);
-          }
+      // Process each file with individual timeouts
+      for (const [filePath, texts] of Object.entries(fileGroups)) {
+        try {
+          const fileTimeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error(`File processing timeout: ${filePath}`)), 2000);
+          });
+
+          const result = await Promise.race([
+            this.replaceHardcodedInFile(filePath, texts, dryRun),
+            fileTimeoutPromise
+          ]);
+          results.push(result);
+        } catch (error) {
+          console.warn(`❌ Error processing file ${filePath}:`, error);
+          results.push({
+            file: filePath,
+            replacements: 0,
+            success: false,
+            error: error.message || 'Unknown error'
+          });
         }
-
-        // Substitui textos hardcoded
-        for (const item of items) {
-          const originalPattern = new RegExp(`['"\`]${item.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]`, 'g');
-          const replacement = `{t('${item.suggestedKey}')}`;
-          
-          if (originalPattern.test(content)) {
-            content = content.replace(originalPattern, replacement);
-            replacements++;
-          }
-        }
-
-        if (!dryRun && replacements > 0) {
-          await fs.writeFile(filePath, content, 'utf8');
-        }
-
-        results.push({
-          file: filePath,
-          replacements,
-          success: true
-        });
-
-      } catch (error) {
-        results.push({
-          file: filePath,
-          replacements: 0,
-          success: false,
-          error: String(error)
-        });
       }
+
+    } catch (globalError) {
+      console.error('❌ Global error in replaceHardcodedTexts:', globalError);
+      // Return empty results instead of throwing
+      return [{
+        file: 'global',
+        replacements: 0,
+        success: false,
+        error: globalError.message || 'Service unavailable'
+      }];
     }
 
     return results;
   }
+
+  /**
+   * Substitui textos hardcoded em um arquivo específico
+   */
+  private async replaceHardcodedInFile(
+    filePath: string,
+    texts: Array<{
+      file: string;
+      line: number;
+      text: string;
+      suggestedKey: string;
+      context: string;
+    }>,
+    dryRun: boolean
+  ): Promise<{
+    file: string;
+    replacements: number;
+    success: boolean;
+    error?: string;
+  }> {
+    try {
+      let content = await fs.readFile(filePath, 'utf8');
+      let replacements = 0;
+
+      // Adiciona import do hook de tradução se não existir
+      if (!content.includes('useLocalization') && !content.includes('useTranslation')) {
+        const importLine = "import { useLocalization } from '@/hooks/useLocalization';\n";
+        // Find the position after the last import statement
+        const importMatch = content.match(/^(import .*(\n|$))+/m);
+        if (importMatch) {
+          const insertPos = importMatch.index! + importMatch[0].length;
+          content = content.slice(0, insertPos) + importLine + content.slice(insertPos);
+        } else {
+          // If no import statements, prepend it (less ideal but a fallback)
+          content = importLine + content;
+        }
+      }
+
+      // Adiciona hook no componente se não existir
+      if (!content.includes('const { t }')) {
+        const componentMatch = content.match(/(?:function|const)\s+(\w+).*?({)/s);
+        if (componentMatch) {
+          const componentName = componentMatch[1];
+          const bracketPos = componentMatch.index! + componentMatch[0].indexOf('{');
+          const hookLine = `\n  const {{ t }} = useLocalization();\n`;
+          // Ensure the hook is inserted correctly within the component's scope
+          const insertPos = bracketPos + 1; // Insert after the opening bracket
+          content = content.slice(0, insertPos) + hookLine + content.slice(insertPos);
+          // Replace the placeholder '{ t }' with the actual destructured 't'
+          content = content.replace(new RegExp(`const {{ t }} = useLocalization\\(\\);`, 's'), `const { t } = useLocalization();`);
+        }
+      }
+
+      // Substitui textos hardcoded
+      for (const item of texts) {
+        // Escape special characters in the text to be used in RegExp
+        const escapedText = item.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Use a more robust regex to find the exact text, considering different quote types and potential surrounding whitespace
+        const originalPattern = new RegExp(`(?<!t\\(['"\`])([\'"\`]${escapedText}[\'"\`])(?!\\))`, 'g');
+        const replacement = `{t('${item.suggestedKey}')}`;
+
+        // Use a callback for replace to count replacements accurately and handle potential multiple occurrences on the same line
+        let currentReplacements = 0;
+        content = content.replace(originalPattern, (match) => {
+          // Basic check to ensure we are replacing the intended string
+          if (match.replace(/['"`]/g, '') === item.text) {
+            currentReplacements++;
+            return replacement;
+          }
+          return match; // Return original match if it's not the exact text
+        });
+        replacements += currentReplacements;
+      }
+
+      if (!dryRun && replacements > 0) {
+        await fs.writeFile(filePath, content, 'utf8');
+      }
+
+      return {
+        file: filePath,
+        replacements,
+        success: true
+      };
+
+    } catch (error) {
+      console.warn(`Error processing file ${filePath}:`, error);
+      return {
+        file: filePath,
+        replacements: 0,
+        success: false,
+        error: error.message || 'Unknown error during file processing'
+      };
+    }
+  }
+
 
   /**
    * Escaneia diretório recursivamente
@@ -667,20 +753,20 @@ export class TranslationCompletionService {
    */
   private extractModuleFromPath(filePath: string): string {
     const pathParts = filePath.split(path.sep);
-    
+
     // Detecta módulo baseado na estrutura de pastas
     if (pathParts.includes('pages')) {
       const pageIndex = pathParts.indexOf('pages');
       const pageName = pathParts[pageIndex + 1]?.replace(/\.(tsx?|jsx?)$/, '');
       return pageName || 'unknown';
     }
-    
+
     if (pathParts.includes('components')) {
       const componentIndex = pathParts.indexOf('components');
       const componentName = pathParts[componentIndex + 1];
       return componentName || 'components';
     }
-    
+
     return 'common';
   }
 
@@ -696,14 +782,14 @@ export class TranslationCompletionService {
         key.includes('delete')) {
       return 'high';
     }
-    
+
     // Medium priority: formulários, labels comuns
     if (key.startsWith('common.') || 
         key.includes('title') ||
         key.includes('label')) {
       return 'medium';
     }
-    
+
     return 'low';
   }
 
@@ -751,10 +837,10 @@ export class TranslationCompletionService {
         const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
         const fileContent = await fs.readFile(filePath, 'utf8');
         const translations = JSON.parse(fileContent);
-        
+
         const existingKeys = this.extractAllKeysFromObject(translations);
         const missingKeys = allKeys.filter(key => !existingKeys.includes(key));
-        
+
         const moduleGaps: Record<string, string[]> = {};
         for (const key of missingKeys) {
           const keyModule = detectedKeys.find(k => k.key === key)?.module || 'unknown';
@@ -809,58 +895,104 @@ export class TranslationCompletionService {
     addedKeys: string[];
     errors: string[];
   }[]> {
-    const results: Array<{
-      language: string;
-      addedKeys: string[];
-      errors: string[];
-    }> = [];
+    const results = [];
 
-    const gaps = await this.analyzeTranslationGaps();
+    // Add timeout protection
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Translation completion timeout after 25 seconds')), 25000);
+    });
 
-    for (const gap of gaps) {
-      const result = {
-        language: gap.language,
-        addedKeys: [] as string[],
-        errors: [] as string[]
-      };
-
-      try {
-        const filePath = path.join(this.TRANSLATIONS_DIR, `${gap.language}.json`);
-        let translations: any = {};
-
-        // Carrega traduções existentes
+    try {
+      for (const language of this.SUPPORTED_LANGUAGES) {
         try {
-          const content = await fs.readFile(filePath, 'utf8');
-          translations = JSON.parse(content);
+          const result = await Promise.race([
+            this.completeLanguageTranslations(language, force),
+            timeoutPromise
+          ]);
+          results.push(result);
         } catch (error) {
-          console.warn(`Creating new translation file for ${gap.language}`);
+          console.error(`❌ Error completing translations for ${language}:`, error);
+          results.push({
+            language,
+            addedKeys: [],
+            errors: [error.message || 'Unknown error occurred']
+          });
         }
-
-        // Adiciona traduções faltantes
-        for (const missingKey of gap.missingKeys) {
-          try {
-            const translation = await this.generateTranslation(missingKey, gap.language, force);
-            if (translation) {
-              this.setNestedKey(translations, missingKey, translation);
-              result.addedKeys.push(missingKey);
-            }
-          } catch (error) {
-            result.errors.push(`Failed to generate translation for ${missingKey}: ${error}`);
-          }
-        }
-
-        // Salva arquivo atualizado
-        const updatedContent = JSON.stringify(translations, null, 2);
-        await fs.writeFile(filePath, updatedContent, 'utf8');
-
-      } catch (error) {
-        result.errors.push(`Failed to process ${gap.language}: ${error}`);
       }
-
-      results.push(result);
+    } catch (globalError) {
+      console.error('❌ Global error in completeTranslations:', globalError);
+      // Return partial results instead of failing completely
+      if (results.length === 0) {
+        // If no results yet, add empty results for all languages
+        this.SUPPORTED_LANGUAGES.forEach(language => {
+          results.push({
+            language,
+            addedKeys: [],
+            errors: [globalError.message || 'Translation service unavailable']
+          });
+        });
+      }
     }
 
     return results;
+  }
+
+  /**
+   * Completa traduções para um idioma específico
+   */
+  private async completeLanguageTranslations(language: string, force: boolean): Promise<{
+    language: string;
+    addedKeys: string[];
+    errors: string[];
+  }> {
+    const result = {
+      language: language,
+      addedKeys: [] as string[],
+      errors: [] as string[]
+    };
+
+    try {
+      const gaps = await this.analyzeTranslationGaps();
+      const currentGap = gaps.find(g => g.language === language);
+
+      if (!currentGap) {
+        result.errors.push('Translation gaps not found for this language.');
+        return result;
+      }
+
+      const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
+      let translations: any = {};
+
+      // Carrega traduções existentes
+      try {
+        const content = await fs.readFile(filePath, 'utf8');
+        translations = JSON.parse(content);
+      } catch (error) {
+        console.warn(`Creating new translation file for ${language}`);
+      }
+
+      // Adiciona traduções faltantes
+      for (const missingKey of currentGap.missingKeys) {
+        try {
+          const translation = await this.generateTranslation(missingKey, language, force);
+          if (translation) {
+            this.setNestedKey(translations, missingKey, translation);
+            result.addedKeys.push(missingKey);
+          }
+        } catch (error) {
+          result.errors.push(`Failed to generate translation for ${missingKey}: ${error.message || error}`);
+        }
+      }
+
+      // Salva arquivo atualizado
+      const updatedContent = JSON.stringify(translations, null, 2);
+      await fs.writeFile(filePath, updatedContent, 'utf8');
+
+    } catch (error) {
+      result.errors.push(`Failed to process ${language}: ${error.message || error}`);
+    }
+
+    return result;
   }
 
   /**
@@ -978,7 +1110,7 @@ export class TranslationCompletionService {
     if (language !== 'en') {
       // Primeiro tenta obter o texto em inglês
       let sourceText = this.AUTO_TRANSLATIONS[key]?.['en'];
-      
+
       // Se não tiver tradução em inglês, gera baseado na chave
       if (!sourceText) {
         sourceText = this.generateKeyBasedTranslation(key, 'en').replace(/^\[EN\]\s*/, '');
@@ -1107,7 +1239,7 @@ export class TranslationCompletionService {
   private generateKeyBasedTranslation(key: string, language: string): string {
     const keyParts = key.split('.');
     const lastPart = keyParts[keyParts.length - 1];
-    
+
     // Capitaliza e retorna com indicação de tradução pendente
     const formatted = lastPart
       .replace(/([A-Z])/g, ' $1')
@@ -1123,7 +1255,7 @@ export class TranslationCompletionService {
   private setNestedKey(obj: any, key: string, value: string): void {
     const keys = key.split('.');
     const lastKey = keys.pop()!;
-    
+
     let current = obj;
     for (const k of keys) {
       if (!(k in current)) {
@@ -1131,7 +1263,7 @@ export class TranslationCompletionService {
       }
       current = current[k];
     }
-    
+
     current[lastKey] = value;
   }
 
@@ -1152,7 +1284,7 @@ export class TranslationCompletionService {
   }> {
     const detectedKeys = await this.scanTranslationKeys();
     const gaps = await this.analyzeTranslationGaps();
-    
+
     const languageStats: Record<string, {
       existingKeys: number;
       missingKeys: number;

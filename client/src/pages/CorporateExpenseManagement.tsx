@@ -26,12 +26,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Validation Schemas
 const createExpenseReportSchema = z.object({
-  const { t } = useLocalization();
-
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   departmentId: z.string().optional(),
@@ -60,7 +57,7 @@ const getStatusBadge = (status: string) => {
     approved: 'Aprovado',
     rejected: 'Rejeitado',
     paid: 'Pago',
-    cancelled: {t('CorporateExpenseManagement.cancelado')}
+    cancelled: 'Cancelado'
   };
 
   return (
@@ -96,7 +93,7 @@ function CreateExpenseReportDialog() {
       queryClient.invalidateQueries({ queryKey: ['/api/expense-approval/reports'] });
       queryClient.invalidateQueries({ queryKey: ['/api/expense-approval/dashboard-metrics'] });
       toast({
-        title: {t('CorporateExpenseManagement.sucesso')},
+        title: 'Sucesso',
         description: 'Relatório de despesas criado com sucesso'
       });
       setOpen(false);
@@ -104,8 +101,8 @@ function CreateExpenseReportDialog() {
     },
     onError: (error: any) => {
       toast({
-        title: {t('CorporateExpenseManagement.erro')},
-        description: error.message || {t('CorporateExpenseManagement.erroAoCriarRelatorioDeDespesas')},
+        title: 'Erro',
+        description: error.message || 'Erro ao criar relatório de despesas',
         variant: 'destructive'
       });
     }
@@ -260,7 +257,7 @@ function CreateExpenseReportDialog() {
                 data-testid="button-submit-expense"
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               >
-                {createMutation.isPending ? 'Criando...' : {t('CorporateExpenseManagement.criarRelatorio')}}
+                {createMutation.isPending ? 'Criando...' : 'Criar Relatório'}
               </Button>
             </div>
           </form>
@@ -445,7 +442,7 @@ function ExpenseReportsList() {
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder={t('CorporateExpenseManagement.buscarRelatorios')}
+                placeholder="Buscar relatórios..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 w-full sm:w-[200px]"

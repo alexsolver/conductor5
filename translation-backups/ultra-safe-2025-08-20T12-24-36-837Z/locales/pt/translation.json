@@ -15,9 +15,7 @@
   },
   "navigation": {
     "previous": "Anterior",
-    "next": "Próximo",
-    "home": "Início",
-    "dashboard": "Painel"
+    "next": "Próximo"
   },
   "components": {
     "userSelect": {
@@ -31,22 +29,11 @@
       "cancel": "Cancelar",
       "delete": "Excluir",
       "edit": "Editar",
-      "close": "Fechar",
-      "submit": "Enviar",
-      "reset": "Resetar",
-      "confirm": "Confirmar"
+      "close": "Fechar"
     },
     "breadcrumb": {
       "home": "Início",
       "dashboard": "Painel"
     }
-  },
-  "app": {
-    "name": "Conductor",
-    "loading": "Carregando...",
-    "save": "Salvar",
-    "cancel": "Cancelar",
-    "edit": "Editar",
-    "delete": "Excluir"
   }
 }
