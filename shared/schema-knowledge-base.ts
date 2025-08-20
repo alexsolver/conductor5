@@ -76,11 +76,11 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   content: text("content").notNull(),
 
   // Categorization - matching exact DB structure  
-  categoryId: varchar("category_id", { length: 100 }).notNull(), // character varying with length
+  category: varchar("category", { length: 100 }).notNull(), // Use 'category' to match existing DB
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
 
   // Status & Visibility - matching exact DB structure
-  accessLevel: text("access_level").default("public"), // Consistent naming
+  accessLevel: text("access_level").default("public"), // Consistent naming  
   visibility: text("visibility").default("public"), // text
   status: text("status").default("draft"), // text
 
@@ -116,7 +116,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // TENANT ISOLATION: Critical indexes for multi-tenant performance
   index("kb_articles_tenant_idx").on(table.tenantId),
   index("kb_articles_tenant_status_idx").on(table.tenantId, table.status),
-  index("kb_articles_tenant_category_idx").on(table.tenantId, table.categoryId),
+  index("kb_articles_tenant_category_idx").on(table.tenantId, table.category),
   index("kb_articles_tenant_author_idx").on(table.tenantId, table.authorId),
   index("kb_articles_tenant_published_idx").on(table.tenantId, table.publishedAt),
 
@@ -280,7 +280,7 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
 }).extend({
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
-  categoryId: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]),
+  category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]),
   accessLevel: z.enum(["public", "internal", "restricted", "private"]).optional(),
   tags: z.array(z.string()).optional(),
   keywords: z.array(z.string()).optional(),
