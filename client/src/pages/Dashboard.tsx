@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ticket, Clock, Users, TrendingUp } from "lucide-react";
 
 export default function Dashboard() {
-  const { formatDate, formatNumber } = useLocalization();
+  // Temporarily removing internationalization
   
   const { data: statsResponse, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -46,25 +46,25 @@ export default function Dashboard() {
 
   const metrics = [
     {
-      title: t('dashboard.stats.active_tickets'),
-      value: formatNumber(stats?.activeTickets || 0),
+      title: "Tickets Ativos",
+      value: (stats?.activeTickets || 0).toLocaleString(),
       icon: Ticket,
       trend: "+12%",
     },
     {
-      title: t('dashboard.stats.resolved_today'),
-      value: formatNumber(stats?.resolvedToday || 0),
+      title: "Resolvidos Hoje",
+      value: (stats?.resolvedToday || 0).toLocaleString(),
       icon: Clock,
       trend: "+8%",
     },
     {
-      title: t('dashboard.stats.avg_resolution_time'),
+      title: "Tempo Médio de Resolução",
       value: `${stats?.avgResolutionTime || 0}h`,
       icon: TrendingUp,
       trend: "-15%",
     },
     {
-      title: t('dashboard.stats.online_agents'),
+      title: "Agentes Online",
       value: `${stats?.onlineAgents || 0}/${stats?.totalAgents || 0}`,
       icon: Users,
       trend: "100%",
@@ -75,8 +75,8 @@ export default function Dashboard() {
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">"texto"</h1>
-          <p className="text-gray-600 dark:text-gray-400">"texto"</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard Principal</h1>
+          <p className="text-gray-600 dark:text-gray-400">Visão geral do seu sistema de suporte</p>
         </div>
       </div>
 

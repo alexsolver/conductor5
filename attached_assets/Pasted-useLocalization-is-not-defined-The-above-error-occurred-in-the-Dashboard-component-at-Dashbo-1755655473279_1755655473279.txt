@@ -1,0 +1,31 @@
+useLocalization is not defined
+The above error occurred in the <Dashboard> component:
+
+    at Dashboard (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/Dashboard.tsx:23:40)
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3739c51f:191:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3739c51f:247:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/App.tsx?v=Pa_5lXagt82tqEY1fNJI1:101:42)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=57b8bb16:38:15)
+    at TooltipProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=503cbd9f:66:5)
+    at SimpleTimerProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at AuthProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=09c9f06a:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+useLocalization is not defined
+at Dashboard (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/Dashboard.tsx:23:40)
+at renderWithHooks (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:11596:26)
+at mountIndeterminateComponent (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:14974:21)
+at beginWork (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:15962:22)
+at beginWork$1 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:19806:22)
+at performUnitOfWork (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:19251:20)
+at workLoopSync (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:19190:13)
+at renderRootSync (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:19169:15)
+at recoverFromConcurrentError (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:18786:28)
+at performSyncWorkOnRoot (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=57b8bb16:18932:28)
