@@ -102,75 +102,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // ✅ CRITICAL AUTH FIX: Add missing /api/auth/user endpoint that frontend expects
-  app.get('/api/auth/user', jwtAuth, async (req: any, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: 'Not authenticated' });
-      }
-
-      // Return user data that frontend auth system expects
-      res.json({
-        id: req.user.id,
-        email: req.user.email,
-        firstName: req.user.firstName,
-        lastName: req.user.lastName,
-        role: req.user.role,
-        tenantId: req.user.tenantId,
-        isActive: req.user.isActive || true
-      });
-    } catch (error) {
-      console.error('❌ [AUTH-USER] Error getting user:', error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
-
-  // ✅ CRITICAL FIX: Add missing /api/auth/refresh endpoint
-  app.post('/api/auth/refresh', async (req, res) => {
-    try {
-      const refreshToken = req.cookies?.refreshToken;
-      
-      if (!refreshToken) {
-        return res.status(400).json({
-          success: false,
-          message: 'Refresh token required'
-        });
-      }
-
-      // Import token manager
-      const { tokenManager } = await import('./middleware/jwtAuth');
-      
-      // Verify refresh token and generate new access token
-      const result = await tokenManager.refreshAccessToken(refreshToken);
-      
-      if (!result.success) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid refresh token'
-        });
-      }
-
-      // Set new access token cookie
-      res.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60 * 1000 // 15 minutes
-      });
-
-      res.json({
-        success: true,
-        message: 'Token refreshed successfully'
-      });
-    } catch (error) {
-      console.error('❌ [AUTH-REFRESH] Error refreshing token:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error'
-      });
-    }
-  });
-
   // CRITICAL FIX: Bypass tickets/id/relationships endpoint
   app.post('/bypass/tickets/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
@@ -1529,18 +1460,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const tenantProvisioningRoutes = await import('./routes/tenant-provisioning');
   app.use('/api/tenant-provisioning', tenantProvisioningRoutes.default);
 
-  // Import and mount translations routes (Legacy)
+  // Import and mount translations routes
   const translationsRoutes = await import('./routes/translations');
-  app.use('/api/translations-legacy', translationsRoutes.default);
-  
-  // Translation Management Module - Clean Architecture
-  try {
-    const translationModuleRoutes = await import('./modules/translations/routes');
-    app.use('/api/translations', translationModuleRoutes.default);
-    console.log('✅ [TRANSLATION-MANAGEMENT] Routes registered successfully at /api/translations');
-  } catch (error) {
-    console.error('❌ [TRANSLATION-MANAGEMENT] Failed to load routes:', error);
-  }
+  app.use('/api/translations', translationsRoutes.default);
 
   // Import and mount validation routes
   const validationRoutes = await import('./routes/validation');

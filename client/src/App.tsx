@@ -29,7 +29,6 @@ import WorkSchedules from "./pages/WorkSchedules";
 import TimecardReports from './pages/TimecardReports';
 import CertificateManager from './pages/CertificateManager';
 import TranslationManager from './pages/TranslationManager';
-import TranslationManagement from './pages/TranslationManagement';
 import HourBank from "./pages/HourBank";
 import SaasAdmin from "./pages/SaasAdmin";
 import TenantAdmin from "./pages/TenantAdmin";
@@ -180,7 +179,6 @@ function AppRouter() {
         <Route path="/ticket-templates" component={TicketTemplates} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
         <Route path="/translation-manager" component={TranslationManager} />
-        <Route path="/translation-management" component={TranslationManagement} />
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
         <Route path="/ticket-configuration" component={TicketConfiguration} />
         <Route path="/ticket-configuration/advanced" component={TicketAdvancedConfiguration} />

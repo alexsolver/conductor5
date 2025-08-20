@@ -73,7 +73,7 @@ router.post('/refresh', authController.refreshToken.bind(authController));
  * @access  Private (JWT required)
  * @body    LogoutDTO { sessionId?, allDevices? }
  */
-router.post('/logout', jwtAuth, authController.logout.bind(authController) as any);
+router.post('/logout', jwtAuth, authController.logout.bind(authController));
 
 /**
  * @route   POST /api/auth/validate
@@ -99,6 +99,6 @@ router.get('/me', authController.me.bind(authController));
  * @access  Private (JWT required)
  * @returns UserSessionsResponseDTO with session list
  */
-router.get('/sessions', jwtAuth, authController.getSessions.bind(authController) as any);
+router.get('/sessions', jwtAuth, authController.getSessions.bind(authController));
 
 export default router;
