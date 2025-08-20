@@ -1,25 +1,19 @@
 /**
  * Translation Manager Page
  * SaaS Admin interface for managing translations across all languages
+ * Following 1qa.md patterns strictly
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { TranslationCompletionPanel } from '@/components/TranslationCompletionPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,41 +22,10 @@ import {
   Save, 
   RotateCcw, 
   Search, 
-  Plus, 
   Edit3, 
   Globe,
-  AlertCircle,
-  CheckCircle,
   XCircle
 } from "lucide-react";
-
-// Schema for translation updates
-const updateTranslationSchema = z.object({
-  translations: z.record(z.any())
-});
-
-type UpdateTranslationFormData = z.infer<typeof updateTranslationSchema>;
-
-// Type definitions for query data
-interface LanguageData {
-  code: string;
-  name: string;
-  flag: string;
-}
-
-interface LanguagesResponse {
-  languages: LanguageData[];
-}
-
-interface TranslationResponse {
-  language: string;
-  translations: Record<string, any>;
-  lastModified: string;
-}
-
-interface AllKeysResponse {
-  keys: string[];
-}
 
 interface Language {
   code: string;
@@ -76,6 +39,12 @@ interface TranslationData {
   lastModified: string;
 }
 
+interface TranslationKey {
+  key: string;
+  value: string;
+  module?: string;
+}
+
 export default function TranslationManager() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -83,134 +52,132 @@ export default function TranslationManager() {
   const queryClient = useQueryClient();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [newKeyDialog, setNewKeyDialog] = useState(false);
+  const [editingTranslations, setEditingTranslations] = useState<Record<string, string>>({});
 
-  // Verificar se usuário é SaaS admin
+  // Access control - SaaS admin only
   if (user?.role !== 'saas_admin') {
     return (
       <div className="p-8 text-center">
         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {t('translationManager.accessDenied')}
+          Access Denied
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          {t('translationManager.accessDeniedDescription')}
+          SaaS admin access required to manage translations.
         </p>
       </div>
     );
   }
 
-  // Query para idiomas disponíveis
-  const { data: languagesData, isLoading: isLoadingLanguages } = useQuery<LanguagesResponse>({
+  // Get available languages from API
+  const { data: languagesData, isLoading: isLoadingLanguages } = useQuery({
     queryKey: ['/api/translations/languages'],
-    staleTime: 5 * 60 * 1000,
-    queryFn: () => ({
-      languages: [
-        { code: 'en', name: 'English', flag: '🇺🇸' },
-        { code: 'pt', name: 'Português', flag: '🇧🇷' },
-        { code: 'es', name: 'Español', flag: '🇪🇸' }
-      ]
-    })
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/translations/languages');
+      if (!response.ok) throw new Error('Failed to fetch languages');
+      return response.json();
+    }
   });
 
-  // Query para traduções do idioma selecionado
-  const { data: translationData, isLoading: isLoadingTranslations } = useQuery<TranslationResponse>({
+  // Get translations for selected language
+  const { data: translationData, isLoading: isLoadingTranslations } = useQuery({
     queryKey: ['/api/translations', selectedLanguage],
-    staleTime: 60 * 1000,
-    enabled: !!selectedLanguage,
-    queryFn: () => ({
-      language: selectedLanguage,
-      translations: {} as Record<string, any>,
-      lastModified: new Date().toISOString()
-    })
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/translations/${selectedLanguage}`);
+      if (!response.ok) throw new Error('Failed to fetch translations');
+      return response.json();
+    },
+    enabled: !!selectedLanguage
   });
 
-  // Query para todas as chaves de tradução
-  const { data: allKeysData, isLoading: isLoadingKeys } = useQuery<AllKeysResponse>({
+  // Get all translation keys
+  const { data: allKeysData, isLoading: isLoadingKeys } = useQuery({
     queryKey: ['/api/translations/keys/all'],
-    staleTime: 2 * 60 * 1000,
-    queryFn: () => ({
-      keys: [] as string[]
-    })
-  });
-
-  // Form para edição de traduções
-  const form = useForm<UpdateTranslationFormData>({
-    resolver: zodResolver(updateTranslationSchema),
-    defaultValues: {
-      translations: {}
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/translations/keys/all');
+      if (!response.ok) throw new Error('Failed to fetch translation keys');
+      return response.json();
     }
   });
 
-  // Atualizar form quando translations carregam
-  useEffect(() => {
-    if (translationData?.translations) {
-      form.reset({ translations: translationData.translations });
-    }
-  }, [translationData, form]);
-
-  // Mutation para salvar traduções
+  // Save translations mutation
   const saveTranslationMutation = useMutation({
-    mutationFn: async (data: UpdateTranslationFormData) => {
-      const res = await apiRequest('PUT', `/api/translations/${selectedLanguage}`, data);
-      return res.json();
+    mutationFn: async (data: { translations: Record<string, any> }) => {
+      const response = await apiRequest('PUT', `/api/translations/${selectedLanguage}`, data);
+      if (!response.ok) throw new Error('Failed to save translations');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/translations', selectedLanguage] });
       queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
       toast({
-        title: t('translationManager.translationsSaved'),
-        description: t('translationManager.translationsUpdated', { language: selectedLanguage }),
+        title: "Translations Saved",
+        description: `Translations updated successfully for ${selectedLanguage.toUpperCase()}`,
       });
+      setEditingTranslations({});
     },
     onError: (error: Error) => {
       toast({
-        title: t('translationManager.errorSavingTranslations'),
+        title: "Error Saving Translations",
         description: error.message,
         variant: "destructive",
       });
     }
   });
 
-  // Mutation para restaurar backup
+  // Restore backup mutation
   const restoreBackupMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', `/api/translations/${selectedLanguage}/restore`);
-      return res.json();
+      const response = await apiRequest('POST', `/api/translations/${selectedLanguage}/restore`);
+      if (!response.ok) throw new Error('Failed to restore backup');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/translations', selectedLanguage] });
       toast({
-        title: t('translationManager.backupRestored'),
-        description: t('translationManager.backupRestoredDescription', { language: selectedLanguage }),
+        title: "Backup Restored",
+        description: `Backup restored successfully for ${selectedLanguage.toUpperCase()}`,
       });
+      setEditingTranslations({});
     },
     onError: (error: Error) => {
       toast({
-        title: t('translationManager.errorRestoringBackup'),
+        title: "Error Restoring Backup",
         description: error.message,
         variant: "destructive",
       });
     }
   });
 
-  const onSubmit = (data: UpdateTranslationFormData) => {
-    saveTranslationMutation.mutate(data);
+  const handleSave = () => {
+    const updatedTranslations = { ...translationData?.translations };
+
+    // Apply edits
+    Object.entries(editingTranslations).forEach(([key, value]) => {
+      setNestedValue(updatedTranslations, key, value);
+    });
+
+    saveTranslationMutation.mutate({ translations: updatedTranslations });
   };
 
   const handleRestore = () => {
-    if (confirm(t('translationManager.confirmRestore', { language: selectedLanguage }))) {
+    if (confirm(`Are you sure you want to restore the backup for ${selectedLanguage.toUpperCase()}? This will overwrite current changes.`)) {
       restoreBackupMutation.mutate();
     }
   };
 
-  // Função para buscar valor nested
+  const handleTranslationChange = (key: string, value: string) => {
+    setEditingTranslations(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  // Utility functions
   const getNestedValue = (obj: any, path: string): any => {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   };
 
-  // Função para definir valor nested
   const setNestedValue = (obj: any, path: string, value: any) => {
     const keys = path.split('.');
     const lastKey = keys.pop()!;
@@ -221,20 +188,21 @@ export default function TranslationManager() {
     target[lastKey] = value;
   };
 
-  // Filtrar chaves baseado na busca
+  // Filter keys based on search
   const filteredKeys = allKeysData?.keys?.filter((key: string) => 
     key.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {t('translationManager.title')}
+            Translation Management
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {t('translationManager.description')}
+            Manage system translations across all supported languages
           </p>
         </div>
         <div className="flex gap-3">
@@ -244,14 +212,14 @@ export default function TranslationManager() {
             disabled={restoreBackupMutation.isPending}
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            {t('translationManager.restoreBackup')}
+            Restore Backup
           </Button>
           <Button 
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={saveTranslationMutation.isPending}
+            onClick={handleSave}
+            disabled={saveTranslationMutation.isPending || Object.keys(editingTranslations).length === 0}
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveTranslationMutation.isPending ? t('translationManager.saving') : t('translationManager.saveChanges')}
+            {saveTranslationMutation.isPending ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>
@@ -261,18 +229,18 @@ export default function TranslationManager() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Languages className="w-5 h-5" />
-            {t('translationManager.selectLanguage')}
+            Language Selection
           </CardTitle>
           <CardDescription>
-            {t('translationManager.selectLanguageDescription')}
+            Choose the language to edit translations
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {isLoadingLanguages ? (
-              <div>{t('translationManager.loadingLanguages')}</div>
+              <div>Loading languages...</div>
             ) : (
-              languagesData?.languages.map((lang: Language) => (
+              languagesData?.languages?.map((lang: Language) => (
                 <Button
                   key={lang.code}
                   variant={selectedLanguage === lang.code ? "default" : "outline"}
@@ -294,7 +262,7 @@ export default function TranslationManager() {
           <div className="relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <Input
-              placeholder={t('translationManager.searchPlaceholder')}
+              placeholder="Search translation keys..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -305,11 +273,11 @@ export default function TranslationManager() {
 
       {/* Translation Tabs */}
       <Tabs defaultValue="editor" className="flex-1">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="editor">{t('translationManager.translationEditor')}</TabsTrigger>
-            <TabsTrigger value="completion">{t('translationManager.autoCompletion')}</TabsTrigger>
-            <TabsTrigger value="keys">{t('translationManager.allKeys')}</TabsTrigger>
-          </TabsList>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="editor">Translation Editor</TabsTrigger>
+          <TabsTrigger value="completion">Auto Completion</TabsTrigger>
+          <TabsTrigger value="keys">All Keys</TabsTrigger>
+        </TabsList>
 
         {/* Translation Editor Tab */}
         <TabsContent value="editor" className="space-y-4">
@@ -317,192 +285,145 @@ export default function TranslationManager() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5" />
-                {t('translationManager.translationEditor')} - {selectedLanguage}
+                Translation Editor - {selectedLanguage?.toUpperCase()}
               </CardTitle>
               <CardDescription>
                 {translationData?.lastModified && (
-                  <span>{t('translationManager.lastModified')}: {new Date(translationData.lastModified).toLocaleString()}</span>
+                  <span>Last modified: {new Date(translationData.lastModified).toLocaleString()}</span>
                 )}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingTranslations ? (
-                <div className="text-center py-8">{t('translationManager.loadingTranslations')}</div>
+                <div className="text-center py-8">Loading translations...</div>
               ) : (
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-4 max-h-96 overflow-y-auto">
-                      {filteredKeys.map((key: string) => {
-                        const currentValue = getNestedValue(form.watch('translations'), key);
-                        return (
-                          <div key={key} className="border rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {key}
-                              </Label>
-                              <Badge variant="secondary" className="text-xs">
-                                {typeof currentValue === 'string' ? t('translationManager.text') : t('translationManager.object')}
-                              </Badge>
-                            </div>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {filteredKeys.map((key: string) => {
+                    const currentValue = getNestedValue(translationData?.translations, key);
+                    const editingValue = editingTranslations[key];
+                    const displayValue = editingValue !== undefined ? editingValue : currentValue || '';
 
-                            {typeof currentValue === 'string' ? (
-                              <Textarea
-                                value={currentValue || ''}
-                                onChange={(e) => {
-                                  const newTranslations = { ...form.getValues('translations') };
-                                  setNestedValue(newTranslations, key, e.target.value);
-                                  form.setValue('translations', newTranslations);
-                                }}
-                                placeholder={`${t('translationManager.translationFor')} ${key}`}
-                                className="min-h-20"
-                              />
-                            ) : (
-                              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
-                                <pre className="text-sm text-gray-600 dark:text-gray-400">
-                                  {JSON.stringify(currentValue, null, 2)}
-                                </pre>
-                              </div>
-                            )}
+                    return (
+                      <div key={key} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {key}
+                          </label>
+                          <Badge variant="secondary" className="text-xs">
+                            {typeof currentValue === 'string' ? 'Text' : 'Object'}
+                          </Badge>
+                        </div>
+
+                        {typeof currentValue === 'string' || currentValue === undefined ? (
+                          <Textarea
+                            value={displayValue}
+                            onChange={(e) => handleTranslationChange(key, e.target.value)}
+                            placeholder={`Translation for ${key}`}
+                            className="min-h-20"
+                          />
+                        ) : (
+                          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                            <pre className="text-sm text-gray-600 dark:text-gray-400">
+                              {JSON.stringify(currentValue, null, 2)}
+                            </pre>
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    {filteredKeys.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        {searchTerm ? t('translationManager.noKeysFound') : t('translationManager.noTranslationsFound')}
+                        )}
                       </div>
-                    )}
-                  </form>
-                </Form>
+                    );
+                  })}
+                </div>
+              )}
+
+              {filteredKeys.length === 0 && !isLoadingTranslations && (
+                <div className="text-center py-8 text-gray-500">
+                  {searchTerm ? 'No keys found matching your search' : 'No translation keys available'}
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-          <TabsContent value="completion" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">{t('translationManager.autoCompleteTitle')}</h3>
-              <Button 
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/translation-completion/auto-complete-all', {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                      }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                      toast({
-                        title: t('translationManager.success'),
-                        description: data.message,
-                      });
-                      // Recarrega a página para ver as mudanças
-                      window.location.reload();
-                    } else {
-                      throw new Error(data.message);
+        {/* Auto Completion Tab */}
+        <TabsContent value="completion" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Auto Translation Completion</h3>
+            <Button 
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/translation-completion/auto-complete-all', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                      'Content-Type': 'application/json'
                     }
-                  } catch (error) {
+                  });
+
+                  const data = await response.json();
+
+                  if (data.success) {
                     toast({
-                      title: t('translationManager.error'),
-                      description: t('translationManager.autoCompleteError'),
-                      variant: "destructive"
+                      title: "Success",
+                      description: data.message,
                     });
-                    console.error('Error auto-completing translations:', error);
+                    queryClient.invalidateQueries({ queryKey: ['/api/translations'] });
+                  } else {
+                    throw new Error(data.message);
                   }
-                }}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {t('translationManager.autoCompleteButton')}
-              </Button>
-            </div>
-            <TranslationCompletionPanel />
-          </TabsContent>
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to auto-complete translations",
+                    variant: "destructive"
+                  });
+                }
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Auto Complete All
+            </Button>
+          </div>
+          <TranslationCompletionPanel />
+        </TabsContent>
 
-          <TabsContent value="keys" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="w-5 h-5" />
-                  {t('translationManager.allTranslationKeys')}
-                </CardTitle>
-                <CardDescription>
-                  {t('translationManager.allKeysDescription')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoadingKeys ? (
-                  <div className="text-center py-8">{t('translationManager.loadingKeys')}</div>
-                ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {allKeysData?.keys?.map((key: string) => (
-                      <div key={key} className="border rounded-lg p-4 flex items-center justify-between">
-                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {key}
-                        </Label>
-                        <Badge variant="outline" className="text-xs">
-                          {key.split('.').length > 1 ? t('translationManager.nested') : t('translationManager.topLevel')}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+        {/* All Keys Tab */}
+        <TabsContent value="keys" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="w-5 h-5" />
+                All Translation Keys
+              </CardTitle>
+              <CardDescription>
+                Overview of all available translation keys in the system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingKeys ? (
+                <div className="text-center py-8">Loading keys...</div>
+              ) : (
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {allKeysData?.keys?.map((key: string) => (
+                    <div key={key} className="flex items-center justify-between p-2 border rounded">
+                      <span className="font-mono text-sm">{key}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {allKeysData.languages?.filter((lang: string) => 
+                          getNestedValue(allKeysData.translations?.[lang], key)
+                        ).length} / {allKeysData.languages?.length || 0}
+                      </Badge>
+                    </div>
+                  )) || []}
+                </div>
+              )}
+
+              {allKeysData?.keys?.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No translation keys found
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
-
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('translationManager.totalKeys')}</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {allKeysData?.keys?.length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t('translationManager.keysInSystem')}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('translationManager.supportedLanguages')}</CardTitle>
-            <Languages className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {languagesData?.languages?.length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t('translationManager.availableLanguages')}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('translationManager.currentLanguage')}</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {selectedLanguage.toUpperCase()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t('translationManager.languageBeingEdited')}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

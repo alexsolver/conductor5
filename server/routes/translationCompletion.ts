@@ -139,7 +139,7 @@ router.get('/gaps/:language', jwtAuth, async (req: AuthenticatedRequest, res) =>
     }
 
     const { language } = req.params;
-    const supportedLanguages = ['en', 'pt-BR', 'es', 'fr', 'de'];
+    const supportedLanguages = ['en', 'pt', 'es'];
 
     if (!supportedLanguages.includes(language)) {
       return res.status(400).json({

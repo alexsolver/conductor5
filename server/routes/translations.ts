@@ -12,12 +12,12 @@ import path from 'path';
 const router = Router();
 
 // Available languages
-const SUPPORTED_LANGUAGES = ['en', 'pt', 'es', 'fr', 'de'];
+const SUPPORTED_LANGUAGES = ['en', 'pt', 'es'];
 const TRANSLATIONS_DIR = path.join(process.cwd(), 'client/public/locales');
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
-  language: z.enum(['en', 'pt', 'es', 'fr', 'de']),
+  language: z.enum(['en', 'pt', 'es']),
   translations: z.record(z.any())
 });
 
@@ -287,7 +287,7 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
 function getLanguageName(code: string): string {
   const names: Record<string, string> = {
     'en': 'English',
-    'pt-BR': 'Português (Brasil)',
+    'pt': 'Português (Brasil)',
     'es': 'Español',
     'fr': 'Français',
     'de': 'Deutsch'
@@ -298,7 +298,7 @@ function getLanguageName(code: string): string {
 function getLanguageFlag(code: string): string {
   const flags: Record<string, string> = {
     'en': '🇺🇸',
-    'pt-BR': '🇧🇷',
+    'pt': '🇧🇷',
     'es': '🇪🇸',
     'fr': '🇫🇷',
     'de': '🇩🇪'
