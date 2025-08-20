@@ -392,7 +392,7 @@ export default function TranslationManagement() {
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Languages</SelectItem>
+                      <SelectItem value="all">All Languages</SelectItem>
                       {languages.map((lang: Language) => (
                         <SelectItem key={lang.code} value={lang.code}>
                           {lang.flag} {lang.name}
@@ -409,7 +409,7 @@ export default function TranslationManagement() {
                       <SelectValue placeholder="Select module" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Modules</SelectItem>
+                      <SelectItem value="all">All Modules</SelectItem>
                       {availableModules.map((module) => (
                         <SelectItem key={module} value={module}>
                           {module}
