@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { TranslationCompletionPanel } from '@/components/TranslationCompletionPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ interface TranslationData {
 export default function TranslationManager() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,10 +71,10 @@ export default function TranslationManager() {
       <div className="p-8 text-center">
         <XCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          Acesso Negado
+          {t('translationManager.accessDenied')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Esta página é restrita para administradores da plataforma SaaS.
+          {t('translationManager.accessDeniedDescription')}
         </p>
       </div>
     );
@@ -122,13 +124,13 @@ export default function TranslationManager() {
       queryClient.invalidateQueries({ queryKey: ['/api/translations', selectedLanguage] });
       queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
       toast({
-        title: "Traduções Salvas",
-        description: `Traduções do idioma ${selectedLanguage} atualizadas com sucesso!`,
+        title: t('translationManager.translationsSaved'),
+        description: t('translationManager.translationsUpdated', { language: selectedLanguage }),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao salvar traduções",
+        title: t('translationManager.errorSavingTranslations'),
         description: error.message,
         variant: "destructive",
       });
@@ -144,13 +146,13 @@ export default function TranslationManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/translations', selectedLanguage] });
       toast({
-        title: "Backup Restaurado",
-        description: `Traduções do idioma ${selectedLanguage} restauradas do backup!`,
+        title: t('translationManager.backupRestored'),
+        description: t('translationManager.backupRestoredDescription', { language: selectedLanguage }),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao restaurar backup",
+        title: t('translationManager.errorRestoringBackup'),
         description: error.message,
         variant: "destructive",
       });
@@ -162,7 +164,7 @@ export default function TranslationManager() {
   };
 
   const handleRestore = () => {
-    if (confirm(`Tem certeza que deseja restaurar as traduções do ${selectedLanguage} do backup?`)) {
+    if (confirm(t('translationManager.confirmRestore', { language: selectedLanguage }))) {
       restoreBackupMutation.mutate();
     }
   };
@@ -193,10 +195,10 @@ export default function TranslationManager() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Gerenciador de Traduções
+            {t('translationManager.title')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Gerencie traduções em todos os idiomas suportados
+            {t('translationManager.description')}
           </p>
         </div>
         <div className="flex gap-3">
@@ -206,14 +208,14 @@ export default function TranslationManager() {
             disabled={restoreBackupMutation.isPending}
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            Restaurar Backup
+            {t('translationManager.restoreBackup')}
           </Button>
           <Button 
             onClick={form.handleSubmit(onSubmit)}
             disabled={saveTranslationMutation.isPending}
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveTranslationMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+            {saveTranslationMutation.isPending ? t('translationManager.saving') : t('translationManager.saveChanges')}
           </Button>
         </div>
       </div>
@@ -223,16 +225,16 @@ export default function TranslationManager() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Languages className="w-5 h-5" />
-            Selecionar Idioma
+            {t('translationManager.selectLanguage')}
           </CardTitle>
           <CardDescription>
-            Escolha o idioma para editar suas traduções
+            {t('translationManager.selectLanguageDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {isLoadingLanguages ? (
-              <div>Carregando idiomas...</div>
+              <div>{t('translationManager.loadingLanguages')}</div>
             ) : (
               languagesData?.languages.map((lang: Language) => (
                 <Button
@@ -256,7 +258,7 @@ export default function TranslationManager() {
           <div className="relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Buscar chaves de tradução..."
+              placeholder={t('translationManager.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -268,9 +270,9 @@ export default function TranslationManager() {
       {/* Translation Tabs */}
       <Tabs defaultValue="editor" className="flex-1">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="editor">Editor de Traduções</TabsTrigger>
-            <TabsTrigger value="completion">Completude Automática</TabsTrigger>
-            <TabsTrigger value="keys">Todas as Chaves</TabsTrigger>
+            <TabsTrigger value="editor">{t('translationManager.translationEditor')}</TabsTrigger>
+            <TabsTrigger value="completion">{t('translationManager.autoCompletion')}</TabsTrigger>
+            <TabsTrigger value="keys">{t('translationManager.allKeys')}</TabsTrigger>
           </TabsList>
 
         {/* Translation Editor Tab */}
@@ -279,17 +281,17 @@ export default function TranslationManager() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5" />
-                Editor de Traduções - {selectedLanguage}
+                {t('translationManager.translationEditor')} - {selectedLanguage}
               </CardTitle>
               <CardDescription>
                 {translationData?.lastModified && (
-                  <span>Última modificação: {new Date(translationData.lastModified).toLocaleString()}</span>
+                  <span>{t('translationManager.lastModified')}: {new Date(translationData.lastModified).toLocaleString()}</span>
                 )}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingTranslations ? (
-                <div className="text-center py-8">Carregando traduções...</div>
+                <div className="text-center py-8">{t('translationManager.loadingTranslations')}</div>
               ) : (
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -303,7 +305,7 @@ export default function TranslationManager() {
                                 {key}
                               </Label>
                               <Badge variant="secondary" className="text-xs">
-                                {typeof currentValue === 'string' ? 'Texto' : 'Objeto'}
+                                {typeof currentValue === 'string' ? t('translationManager.text') : t('translationManager.object')}
                               </Badge>
                             </div>
 
@@ -315,7 +317,7 @@ export default function TranslationManager() {
                                   setNestedValue(newTranslations, key, e.target.value);
                                   form.setValue('translations', newTranslations);
                                 }}
-                                placeholder={`Tradução para ${key}`}
+                                placeholder={`${t('translationManager.translationFor')} ${key}`}
                                 className="min-h-20"
                               />
                             ) : (
@@ -332,7 +334,7 @@ export default function TranslationManager() {
 
                     {filteredKeys.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        {searchTerm ? 'Nenhuma chave encontrada para a busca' : 'Nenhuma tradução encontrada'}
+                        {searchTerm ? t('translationManager.noKeysFound') : t('translationManager.noTranslationsFound')}
                       </div>
                     )}
                   </form>
@@ -344,7 +346,7 @@ export default function TranslationManager() {
 
           <TabsContent value="completion" className="space-y-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Completar Traduções Automaticamente</h3>
+              <h3 className="text-lg font-semibold">{t('translationManager.autoCompleteTitle')}</h3>
               <Button 
                 onClick={async () => {
                   try {
@@ -360,7 +362,7 @@ export default function TranslationManager() {
                     
                     if (data.success) {
                       toast({
-                        title: "Sucesso!",
+                        title: t('translationManager.success'),
                         description: data.message,
                       });
                       // Recarrega a página para ver as mudanças
@@ -370,8 +372,8 @@ export default function TranslationManager() {
                     }
                   } catch (error) {
                     toast({
-                      title: "Erro",
-                      description: "Falha ao completar traduções automaticamente",
+                      title: t('translationManager.error'),
+                      description: t('translationManager.autoCompleteError'),
                       variant: "destructive"
                     });
                     console.error('Error auto-completing translations:', error);
@@ -379,7 +381,7 @@ export default function TranslationManager() {
                 }}
                 className="bg-green-600 hover:bg-green-700"
               >
-                🚀 Completar Todas as Traduções
+                {t('translationManager.autoCompleteButton')}
               </Button>
             </div>
             <TranslationCompletionPanel />
@@ -390,15 +392,15 @@ export default function TranslationManager() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="w-5 h-5" />
-                  Todas as Chaves de Tradução
+                  {t('translationManager.allTranslationKeys')}
                 </CardTitle>
                 <CardDescription>
-                  Visualize e gerencie todas as chaves de tradução do sistema
+                  {t('translationManager.allKeysDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {isLoadingKeys ? (
-                  <div className="text-center py-8">Carregando chaves...</div>
+                  <div className="text-center py-8">{t('translationManager.loadingKeys')}</div>
                 ) : (
                   <div className="space-y-4 max-h-96 overflow-y-auto">
                     {allKeysData?.keys?.map((key: string) => (
@@ -407,7 +409,7 @@ export default function TranslationManager() {
                           {key}
                         </Label>
                         <Badge variant="outline" className="text-xs">
-                          {key.split('.').length > 1 ? 'Nested' : 'Top Level'}
+                          {key.split('.').length > 1 ? t('translationManager.nested') : t('translationManager.topLevel')}
                         </Badge>
                       </div>
                     ))}
@@ -422,7 +424,7 @@ export default function TranslationManager() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Chaves</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('translationManager.totalKeys')}</CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -430,14 +432,14 @@ export default function TranslationManager() {
               {allKeysData?.keys?.length || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              Chaves de tradução no sistema
+              {t('translationManager.keysInSystem')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Idiomas Suportados</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('translationManager.supportedLanguages')}</CardTitle>
             <Languages className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -445,14 +447,14 @@ export default function TranslationManager() {
               {languagesData?.languages?.length || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              Idiomas disponíveis
+              {t('translationManager.availableLanguages')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Idioma Atual</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('translationManager.currentLanguage')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -460,7 +462,7 @@ export default function TranslationManager() {
               {selectedLanguage.toUpperCase()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Idioma sendo editado
+              {t('translationManager.languageBeingEdited')}
             </p>
           </CardContent>
         </Card>

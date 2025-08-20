@@ -12,12 +12,12 @@ import path from 'path';
 const router = Router();
 
 // Available languages
-const SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'es', 'fr', 'de'];
+const SUPPORTED_LANGUAGES = ['en', 'pt', 'es', 'fr', 'de'];
 const TRANSLATIONS_DIR = path.join(process.cwd(), 'client/public/locales');
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
-  language: z.enum(['en', 'pt-BR', 'es', 'fr', 'de']),
+  language: z.enum(['en', 'pt', 'es', 'fr', 'de']),
   translations: z.record(z.any())
 });
 
@@ -63,7 +63,7 @@ router.get('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ message: 'Unsupported language' });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}/translation.json`);
     
     try {
       const fileContent = await fs.readFile(filePath, 'utf8');
@@ -114,10 +114,10 @@ router.put('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}/translation.json`);
     
     // Create backup before updating
-    const backupPath = path.join(TRANSLATIONS_DIR, `${language}.backup.json`);
+    const backupPath = path.join(TRANSLATIONS_DIR, `${language}/translation.backup.json`);
     try {
       const currentContent = await fs.readFile(filePath, 'utf8');
       await fs.writeFile(backupPath, currentContent);
@@ -158,8 +158,8 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(400).json({ message: 'Unsupported language' });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}.json`);
-    const backupPath = path.join(TRANSLATIONS_DIR, `${language}.backup.json`);
+    const filePath = path.join(TRANSLATIONS_DIR, `${language}/translation.json`);
+    const backupPath = path.join(TRANSLATIONS_DIR, `${language}/translation.backup.json`);
 
     try {
       const backupContent = await fs.readFile(backupPath, 'utf8');
