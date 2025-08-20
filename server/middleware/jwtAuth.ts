@@ -18,12 +18,6 @@ export interface AuthenticatedRequest extends Request {
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // ✅ CRITICAL FIX - Skip authentication for public routes
-    if (req.path.startsWith('/api/public/')) {
-      console.log('🌐 [JWT-AUTH] Skipping authentication for public route:', req.path);
-      return next();
-    }
-
     // ✅ CRITICAL FIX - Force API response headers per 1qa.md compliance
     if (req.path.includes('/api/')) {
       res.setHeader('Content-Type', 'application/json');

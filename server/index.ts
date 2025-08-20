@@ -182,153 +182,343 @@ app.use(express.json({ limit: '10mb' })); // Increased limit for stability
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());
 
-// ❌ MOCK ENDPOINTS REMOVED - USING REAL POSTGRESQL IMPLEMENTATION ONLY
+// CRITICAL: Schema validation and tenant isolation middleware
+app.use(databaseSchemaInterceptor());
+app.use(databaseQueryMonitor());
+app.use(moduleSpecificValidator());
+app.use(databaseConnectionCleanup());
 
-// Import real database repository
-import { PostgreSQLTranslationRepository } from './modules/translations/infrastructure/repositories/PostgreSQLTranslationRepository';
-const translationRepo = new PostgreSQLTranslationRepository();
+// CRITICAL FIX: Optimized logging middleware to reduce I/O operations
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
 
-// PUBLIC SEARCH ENDPOINT - NO AUTH - REAL DATABASE
-app.get('/api/public/translations/search', async (req, res) => {
-  try {
-    const { language = 'en', limit = 100, search = '', module = '' } = req.query;
-    
-    const filters = {
-      language: language as string,
-      limit: parseInt(limit as string) || 100,
-      search: search as string,
-      module: module as string,
-      offset: 0,
-      isGlobal: true // Only return global translations for public endpoint
-    };
+  // CRITICAL: Skip logging for health checks, static assets, and Vite HMR to reduce I/O and prevent reconnections
+  const skipLogging = path.includes('/health') || 
+                     path.includes('/favicon') || 
+                     path.includes('.js') || 
+                     path.includes('.css') || 
+                     path.includes('.png') || 
+                     path.includes('.svg') ||
+                     path.includes('/assets/') ||
+                     path.includes('/@vite/') ||
+                     path.includes('/@react-refresh') ||
+                     path.includes('/__vite_ping') ||
+                     path.includes('/node_modules/') ||
+                     path.includes('/@fs/') ||
+                     path.includes('/src/') ||
+                     req.method === 'HEAD';
 
-    const result = await translationRepo.search(filters);
-    
-    res.json({
-      success: true,
-      data: {
-        translations: result.translations,
-        total: result.total,
-        hasMore: result.hasMore,
-        count: result.translations.length,
-        filters: {
-          language: filters.language,
-          module: filters.module || 'all',
-          search: filters.search || ''
+  if (skipLogging) {
+    return next();
+  }
+
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+
+    // CRITICAL: Only log API requests and reduce verbose logging
+    if (path.startsWith("/api") && !path.includes('/csp-report')) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+
+      // CRITICAL: Skip JSON response logging for performance-sensitive operations
+      if (capturedJsonResponse && duration < 1000) { // Only log responses for slow requests
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
+});
+
+(async () => {
+  // CRITICAL: Initialize Vite HMR optimizations
+  optimizeViteHMR();
+  preventViteReconnections();
+  disableVitePolling();
+
+  // CRITICAL FIX: Initialize cleanup and stability systems before starting server
+  await initializeCleanup();
+
+  const server = await registerRoutes(app);
+
+  // CRITICAL: Initialize connection stabilizer and server stability
+  connectionStabilizer.initialize(server);
+  configureServerForStability(server);
+  applyViteConnectionOptimizer(app, server);
+
+  // Initialize production systems - 1qa.md Compliance
+  // CRITICAL FIX: Database connection validation before server startup
+    await validateDatabaseConnection();
+  await productionInitializer.initialize();
+
+  // Initialize activity tracking cleanup service
+  ActivityTrackingService.initializeCleanup();
+
+  // Timecard routes moved to routes.ts to avoid conflicts
+  app.use('/api/productivity', productivityRoutes);
+
+  // Employment type detection and terminology routes
+  const { default: employmentRoutes } = await import('./routes/employmentRoutes');
+  app.use('/api/employment', employmentRoutes);
+
+  app.use('/api/user-groups', userGroupsRouter);
+  app.use('/api', userGroupsByAgentRoutes);
+  app.use('/api', userManagementRoutes);
+
+  // Tenant integrations routes are now registered in registerRoutes function
+
+  // ✅ Auth Clean Architecture routes eliminated
+  // ✅ Users Clean Architecture routes eliminated
+  // ✅ Companies Clean Architecture routes registered at /api/companies-integration & /api/companies-integration/v2
+
+  // 🤖 Automation Rules Routes
+  app.use('/api/automation-rules', automationRulesRoutes);
+
+  // Technical Skills Integration Routes (Phase 9 - Clean Architecture)
+  // Technical Skills routes moved to routes.ts - 1qa.md compliance
+
+  // Technical Skills routes moved to routes.ts - 1qa.md compliance
+
+  // 🚀 Translation Manager routes
+  app.use('/api/translations', translationsRoutes);
+  app.use('/api/translation-completion', translationCompletionRoutes);
+
+  // CRITICAL: Schema monitoring endpoint for administrators
+  app.get('/api/admin/schema-status', async (req, res) => {
+    try {
+      // Basic authentication check for admin routes
+      const user = (req as any).user;
+      if (!user || user.role !== 'saas_admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin access required'
+        });
+      }
+
+      console.log('🔍 [ADMIN] Schema status check initiated');
+
+      // Get health check for all tenant connections
+      const healthCheck = await tenantSchemaManager.healthCheck();
+
+      // Get basic system info
+      const systemInfo = {
+        timestamp: new Date().toISOString(),
+        totalConnections: healthCheck.length,
+        healthyConnections: healthCheck.filter(h => h.isHealthy).length,
+        unhealthyConnections: healthCheck.filter(h => !h.isHealthy).length
+      };
+
+      res.json({
+        success: true,
+        data: {
+          systemInfo,
+          connectionHealth: healthCheck
         }
-      }
-    });
-  } catch (error: any) {
-    console.error('❌ [PUBLIC-SEARCH] Database error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to search translations',
-      error: error.message
-    });
-  }
-});
+      });
+    } catch (error) {
+      console.error('❌ [ADMIN] Schema status check failed:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Schema status check failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
-// PUBLIC LANGUAGES ENDPOINT - NO AUTH - REAL DATABASE  
-app.get('/api/public/translations/languages', async (req, res) => {
-  try {
-    const languages = await translationRepo.getSupportedLanguages();
-    
-    res.json({
-      success: true,
-      data: languages
-    });
-  } catch (error: any) {
-    console.error('❌ [PUBLIC-LANGUAGES] Database error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get supported languages',
-      error: error.message
-    });
-  }
-});
+  app.get('/health', async (req, res) => {
+    const memoryUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
 
-// PUBLIC SEED ENDPOINT - NO AUTH - REAL DATABASE
-app.post('/api/public/translations/seed', async (req, res) => {
-  try {
-    const defaultUserId = '550e8400-e29b-41d4-a716-446655440001'; // System user for seeding
-    
-    await translationRepo.seedTranslations(defaultUserId);
-    
-    res.json({
-      success: true,
-      message: 'Database seeded successfully with real translations',
-      data: {
-        message: 'Translation keys and translations inserted into PostgreSQL database'
-      }
-    });
-  } catch (error: any) {
-    console.error('❌ [PUBLIC-SEED] Database error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to seed translations',
-      error: error.message
-    });
-  }
-});
+    try {
+      const dbStart = Date.now();
+      // ✅ SECURITY FIX: Use public schema connection for health check
+      // Health check should use system DB, not tenant DB
+      const result = await db.execute(sql`SELECT 1 as health_check`);
+      const dbLatency = Date.now() - dbStart;
 
-// PUBLIC STATS ENDPOINT - NO AUTH - REAL DATABASE  
-app.get('/api/public/translations/stats', async (req, res) => {
-  try {
-    const stats = await translationRepo.getStats();
-    
-    res.json({
-      success: true,
-      data: stats
-    });
-  } catch (error: any) {
-    console.error('❌ [PUBLIC-STATS] Database error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get translation statistics',
-      error: error.message
-    });
-  }
-});
+      // Log health check without tenant context (this is system-level)
+      console.debug(`🏥 [HEALTH-CHECK] DB latency: ${dbLatency}ms, status: ${dbLatency < 100 ? 'excellent' : 'good'}`);
 
-// ✅ ALL MOCK DATA SUCCESSFULLY REMOVED 
-// Real PostgreSQL database implementation now active for all translation endpoints
+      res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        performance: {
+          memory: {
+            rss: Math.round(memoryUsage.rss / 1024 / 1024) + ' MB',
+            heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024) + ' MB',
+            heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024) + ' MB'
+          },
+          database: {
+            latency: dbLatency + 'ms',
+            status: dbLatency < 100 ? 'excellent' : dbLatency < 500 ? 'good' : 'needs_attention'
+          },
+          cpu: {
+            user: Math.round(cpuUsage.user / 1000) + 'ms',
+            system: Math.round(cpuUsage.system / 1000) + 'ms'
+          }
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Database connection failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
-// Initialize the server asynchronously
-async function initializeServer() {
-  // Register main routes
-  registerRoutes(app);
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
 
-  // Setup Vite to serve the frontend
-  if (process.env.NODE_ENV === "development") {
-    await setupVite(app);
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // Start the server
-  const PORT = parseInt(process.env.PORT || '5000', 10);
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || '5000', 10);
 
-  const server = app.listen({
-    port: PORT,
+  // CRITICAL FIX: Enhanced server stability for WebSocket connections + AWS Production
+  server.keepAliveTimeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; // 5min prod / 2min dev
+  server.headersTimeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; 
+  server.timeout = process.env.NODE_ENV === 'production' ? 300000 : 120000; 
+  server.maxConnections = process.env.NODE_ENV === 'production' ? 2000 : 1000;
+
+  // CRITICAL: WebSocket connection stability optimizations
+  server.on('connection', (socket) => {
+    // Enable TCP keep-alive for all connections
+    socket.setKeepAlive(true, 60000); // 1 minute intervals
+    socket.setTimeout(120000); // 2 minute socket timeout
+
+    // Prevent connection drops during idle periods
+    socket.setNoDelay(true);
+
+    // Handle socket errors gracefully
+    socket.on('error', (err: any) => {
+      if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
+        console.warn('[Socket Warning]', err.message);
+      }
+    });
+  });
+
+  // CRITICAL: Enhanced error handling for server stability
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${port} is already in use`);
+      process.exit(1);
+    } else if (err.code !== 'ECONNRESET' && err.code !== 'EPIPE') {
+      console.error('[Server Error]', err);
+    }
+  });
+
+  // CRITICAL: Enhanced graceful shutdown handling
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    connectionStabilizer.cleanup();
+    viteWebSocketStabilizer.cleanup();
+    server.close(() => {
+      process.exit(0);
+    });
+  });
+
+  process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    connectionStabilizer.cleanup();
+    viteWebSocketStabilizer.cleanup();
+    server.close(() => {
+      process.exit(0);
+    });
+  });
+
+  // CRITICAL STABILITY FIX: Enhanced error handling for WebSocket and database connection issues
+  process.on('uncaughtException', (error) => {
+    const errorMsg = error.message || '';
+
+    // VITE STABILITY: Ignore WebSocket and HMR related errors
+    if (errorMsg.includes('WebSocket') || 
+        errorMsg.includes('ECONNRESET') || 
+        errorMsg.includes('HMR') ||
+        errorMsg.includes('terminating connection due to administrator command')) {
+      console.log('[Stability] Ignoring transient connection error:', errorMsg.substring(0, 100));
+      return;
+    }
+
+    console.error('[Uncaught Exception]', error);
+    connectionStabilizer.cleanup();
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    const reasonStr = String(reason);
+
+    // VITE STABILITY: Ignore WebSocket rejections and database connection drops
+    if (reasonStr.includes('WebSocket') || 
+        reasonStr.includes('terminating connection') ||
+        reasonStr.includes('HMR') ||
+        reasonStr.includes('ECONNRESET')) {
+      console.log('[Stability] Ignoring connection rejection:', reasonStr.substring(0, 100));
+      return;
+    }
+
+    console.warn('[Unhandled Rejection]', reason);
+  });
+
+  server.listen({
+    port,
     host: "0.0.0.0",
     reusePort: true,
     keepAlive: true,
     keepAliveInitialDelay: 0
   }, async () => {
-    console.log(`✅ [TRANSLATION-SERVER] Server serving on port ${PORT}`);
-    console.log('✅ [DATABASE] Real PostgreSQL implementation active');
-    console.log('✅ [PUBLIC-API] Translation endpoints available without authentication');
-    console.log('✅ [VITE] Frontend React app being served');
-    
+    log(`serving on port ${port}`);
+
+    // 🔴 INICIALIZA SERVIÇOS CLT OBRIGATÓRIOS
+    console.log('[CLT-COMPLIANCE] Inicializando serviços de compliance...');
     try {
-      console.log('✅ [SYSTEM] All translation services initialized successfully');
+      // Inicia backup automático diário
+      backupService.scheduleDaily();
+      console.log('✅ [CLT-COMPLIANCE] Backup automático iniciado com sucesso');
+
+      // CRITICAL: Initialize tenant schema monitoring
+      console.log('🔍 [SCHEMA-VALIDATION] Inicializando monitoramento de schemas...');
+
+      // Verificar saúde dos schemas na inicialização
+      const healthCheck = await tenantSchemaManager.healthCheck();
+      console.log(`🏥 [SCHEMA-VALIDATION] Health check: ${healthCheck.length} tenant connections monitored`);
+
+      // Initialize daily schema checker
+      console.log('⏰ [SCHEMA-VALIDATION] Configurando verificações diárias...');
+      await dailySchemaChecker.scheduleRecurring();
+
     } catch (error) {
-      console.error('❌ [ERROR] Error initializing services:', error);
+      console.error('❌ [CLT-COMPLIANCE] Erro ao inicializar serviços:', error);
     }
   });
-
-  return server;
-}
-
-// Start the server
-initializeServer().catch(console.error);
+})();

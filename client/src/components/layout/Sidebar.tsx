@@ -140,7 +140,7 @@ const adminNavigation = [
       { name: "Billing & Usage", href: "/saas-admin/billing", icon: CreditCard },
       { name: "Disaster Recovery", href: "/saas-admin/disaster-recovery", icon: HardDrive },
       { name: "Auto-Provisioning", href: "/tenant-provisioning", icon: Plug },
-      { name: "Gerenciar Traduções", href: "/translation-management", icon: Languages },
+      { name: "Gerenciar Traduções", href: "/translation-manager", icon: Languages },
       { name: "Gestão de Usuários", href: "/user-management", icon: UserCog },
       // Removed: Multi-Tenant management - functionality eliminated from system
       { name: "Integrações", href: "/saas-admin/integrations", icon: Plug },

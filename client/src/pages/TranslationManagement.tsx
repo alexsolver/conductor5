@@ -46,8 +46,7 @@ import {
   CheckCircle,
   Loader2,
   Save,
-  X,
-  Database
+  X
 } from 'lucide-react';
 
 interface Language {
@@ -109,37 +108,37 @@ export default function TranslationManagement() {
     isGlobal: true
   });
 
-  // Fetch supported languages (public endpoint)
+  // Fetch supported languages
   const { data: languagesData } = useQuery({
     queryKey: ['translation-languages'],
     queryFn: async () => {
-      const response = await fetch('/api/public/translations/languages');
+      const response = await apiRequest('GET', '/api/translations/languages');
       if (!response.ok) throw new Error('Failed to fetch languages');
       return response.json();
     }
   });
 
-  // Fetch translation statistics using public endpoint
+  // Fetch translation statistics
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['translation-stats'],
     queryFn: async () => {
-      const response = await fetch('/api/public/translations/stats');
+      const response = await apiRequest('GET', '/api/translations/stats?includeModuleBreakdown=true');
       if (!response.ok) throw new Error('Failed to fetch stats');
       return response.json();
     }
   });
 
-  // Search translations using public endpoint
+  // Search translations
   const { data: translationsData, isLoading: translationsLoading } = useQuery({
     queryKey: ['translations-search', selectedLanguage, selectedModule, searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedLanguage) params.set('language', selectedLanguage);
       if (selectedModule) params.set('module', selectedModule);
-      if (searchQuery) params.set('search', searchQuery);
+      if (searchQuery) params.set('query', searchQuery);
       params.set('limit', '100');
       
-      const response = await fetch(`/api/public/translations/search?${params}`);
+      const response = await apiRequest('GET', `/api/translations/search?${params}`);
       if (!response.ok) throw new Error('Failed to search translations');
       return response.json();
     }
@@ -170,38 +169,6 @@ export default function TranslationManagement() {
     onError: (error: any) => {
       toast({
         title: "❌ Creation Failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Seed translations mutation - using public endpoint
-  const seedTranslations = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/public/translations/seed', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to seed translations');
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['translations-search'] });
-      queryClient.invalidateQueries({ queryKey: ['translation-stats'] });
-      toast({
-        title: "✅ Translations Seeded",
-        description: data.message
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "❌ Seeding Failed",
         description: error.message,
         variant: "destructive"
       });
@@ -239,7 +206,7 @@ export default function TranslationManagement() {
     }
   });
 
-  const languages = languagesData?.data || [];
+  const languages = languagesData?.data?.languages || [];
   const stats: TranslationStats | null = statsData?.data || null;
   const translations = translationsData?.data?.translations || [];
 
@@ -397,7 +364,7 @@ export default function TranslationManagement() {
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Languages</SelectItem>
+                      <SelectItem value="">All Languages</SelectItem>
                       {languages.map((lang: Language) => (
                         <SelectItem key={lang.code} value={lang.code}>
                           {lang.flag} {lang.name}
@@ -414,7 +381,7 @@ export default function TranslationManagement() {
                       <SelectValue placeholder="Select module" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Modules</SelectItem>
+                      <SelectItem value="">All Modules</SelectItem>
                       {availableModules.map((module) => (
                         <SelectItem key={module} value={module}>
                           {module}
@@ -436,20 +403,6 @@ export default function TranslationManagement() {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button 
-                  onClick={() => seedTranslations.mutate()}
-                  disabled={seedTranslations.isPending}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  {seedTranslations.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Database className="h-4 w-4" />
-                  )}
-                  Seed Basic Translations
-                </Button>
-                
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button className="flex items-center gap-2">

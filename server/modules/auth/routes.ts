@@ -2,7 +2,7 @@
 import { Router, Request, Response } from "express";
 import { DependencyContainer } from "../../application/services/DependencyContainer";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-// Rate limiting temporarily disabled for development
+import { createRateLimitMiddleware, recordLoginAttempt } from "../../middleware/rateLimitMiddleware";
 import { authSecurityService } from "../../services/authSecurityService";
 import { tokenManager } from "../../utils/tokenManager";
 import { z } from "zod";
@@ -10,8 +10,12 @@ import { z } from "zod";
 const authRouter = Router();
 const container = DependencyContainer.getInstance();
 
-// Rate limiting disabled for development
-const authRateLimit = (req: any, res: any, next: any) => next();
+// Rate limiting middleware - more permissive for development
+const authRateLimit = createRateLimitMiddleware({
+  windowMs: 2 * 60 * 1000, // 2 minutes
+  maxAttempts: 50, // More permissive for development
+  blockDurationMs: 1 * 60 * 1000 // 1 minute
+});
 
 // Refresh Token Endpoint
 authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) => {
@@ -35,19 +39,18 @@ authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) =
 
     // Check if user exists and is active
     const user = await userRepository.findById(payload.userId);
-    if (!user) {
+    if (!user || !user.active) {
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
     // Generate new tokens with enhanced manager
-    const userData = await user.toJSON();
     const accessToken = tokenManager.generateAccessToken({
-      id: userData.id,
-      email: userData.email,
-      role: userData.role,
-      tenantId: userData.tenantId
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId
     });
-    const newRefreshToken = tokenManager.generateRefreshToken({ id: userData.id });
+    const newRefreshToken = tokenManager.generateRefreshToken({ id: user.id });
 
     // Set new refresh token as httpOnly cookie
     res.cookie('refreshToken', newRefreshToken, {
@@ -76,7 +79,7 @@ authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) =
 });
 
 // Login endpoint
-authRouter.post('/login', authRateLimit, async (req: Request, res: Response) => {
+authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const loginSchema = z.object({
       email: z.string().email(),
@@ -133,7 +136,7 @@ authRouter.post('/login', authRateLimit, async (req: Request, res: Response) => 
 });
 
 // Register endpoint
-authRouter.post('/register', authRateLimit, async (req: Request, res: Response) => {
+authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res) => {
   try {
     const registerSchema = z.object({
       email: z.string().email(),
@@ -142,7 +145,7 @@ authRouter.post('/register', authRateLimit, async (req: Request, res: Response) 
       lastName: z.string().optional(),
       companyName: z.string().optional(),
       workspaceName: z.string().optional(),
-      role: z.enum(['admin', 'agent', 'customer']).optional(),
+      role: z.enum(['admin', 'agent', 'customer', 'tenant_admin']).optional(),
       tenantId: z.string().optional()
     });
 
@@ -244,7 +247,7 @@ authRouter.post('/logout', async (req, res) => {
 });
 
 // Get current user endpoint (both /user and /me for compatibility)
-authRouter.get('/user', jwtAuth, async (req: any, res: Response) => {
+authRouter.get('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ message: 'User not authenticated' });
@@ -258,19 +261,18 @@ authRouter.get('/user', jwtAuth, async (req: any, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userData = await user.toJSON();
     res.json({
-      id: userData.id,
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role,
-      tenantId: userData.tenantId,
-      profileImageUrl: userData.profileImageUrl,
-      isActive: userData.isActive,
-      lastLoginAt: userData.lastLoginAt,
-      createdAt: userData.createdAt,
-      employmentType: userData.employmentType || 'clt'
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      tenantId: user.tenantId,
+      profileImageUrl: user.profileImageUrl,
+      isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      employmentType: user.employmentType || 'clt' // Add employment type field
     });
   } catch (error) {
     const { logError } = await import('../../utils/logger');
@@ -280,7 +282,7 @@ authRouter.get('/user', jwtAuth, async (req: any, res: Response) => {
 });
 
 // Alias for /me endpoint (compatibility)
-authRouter.get('/me', jwtAuth, async (req: any, res: Response) => {
+authRouter.get('/me', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ message: 'User not authenticated' });
@@ -343,7 +345,7 @@ authRouter.get('/me', jwtAuth, async (req: any, res: Response) => {
 });
 
 // Update user profile endpoint
-authRouter.put('/user', jwtAuth, async (req: any, res: Response) => {
+authRouter.put('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ message: 'User not authenticated' });
@@ -364,22 +366,21 @@ authRouter.put('/user', jwtAuth, async (req: any, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    await userRepository.update(req.user.id, updates);
-    const updatedUser = await userRepository.findById(req.user.id);
+    const updatedUser = user.update(updates);
+    await userRepository.update(updatedUser);
 
-    const userData = await updatedUser?.toJSON();
     res.json({
-      id: userData.id,
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role,
-      tenantId: userData.tenantId,
-      profileImageUrl: userData.profileImageUrl,
-      isActive: userData.isActive,
-      lastLoginAt: userData.lastLoginAt,
-      createdAt: userData.createdAt,
-      employmentType: userData.employmentType || 'clt'
+      id: updatedUser.id,
+      email: updatedUser.email,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      role: updatedUser.role,
+      tenantId: updatedUser.tenantId,
+      profileImageUrl: updatedUser.profileImageUrl,
+      isActive: updatedUser.isActive,
+      lastLoginAt: updatedUser.lastLoginAt,
+      createdAt: updatedUser.createdAt,
+      employmentType: updatedUser.employmentType || 'clt' // Add employment type field
     });
   } catch (error) {
     const { logError } = await import('../../utils/logger');
