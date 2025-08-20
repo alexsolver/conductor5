@@ -11,7 +11,6 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { apiRequest } from '@/lib/queryClient';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface HourBankEntry {
   id: string;
@@ -37,8 +36,6 @@ interface HourBankMovement {
 }
 
 const movementTypeLabels = {
-  const { t } = useLocalization();
-
   credit: 'Crédito',
   debit: 'Débito',
   expiration: 'Expiração',
@@ -132,7 +129,7 @@ export default function HourBank() {
               <Label htmlFor="userId">Funcionário</Label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('HourBank.selecioneOFuncionario')} />
+                  <SelectValue placeholder="Selecione o funcionário" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="default">Selecione o funcionário</SelectItem>
