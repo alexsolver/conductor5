@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TicketAttachmentUpload } from "@/components/TicketAttachmentUpload";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
+import { useLocalization } from "@/hooks/useLocalization";
 import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip } from "lucide-react";
 import { useLocation } from "wouter";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
