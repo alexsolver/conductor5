@@ -11,6 +11,7 @@ import {
   uuid,
   boolean,
   integer,
+  numeric,
   pgEnum,
   unique,
 
