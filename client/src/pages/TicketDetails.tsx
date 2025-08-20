@@ -584,8 +584,8 @@ const TicketDetails = React.memo(() => {
   // ✅ [1QA-COMPLIANCE] Dados de materiais planejados seguindo Clean Architecture
   const plannedMaterialsData = useMemo(() => {
     if (plannedMaterialsResponse?.success && plannedMaterialsResponse?.data?.plannedItems) {
-      return Array.isArray(plannedMaterialsResponse.data.plannedItems) 
-        ? plannedMaterialsResponse.data.plannedItems 
+      return Array.isArray(plannedMaterialsResponse.data.plannedItems)
+        ? plannedMaterialsResponse.data.plannedItems
         : [];
     }
     // Fallback: usar dados dos logs do servidor que mostram 11 materiais planejados
@@ -599,13 +599,13 @@ const TicketDetails = React.memo(() => {
   const materialsData = useMemo(() => {
     let plannedArray = plannedMaterialsData;
     let consumedArray = [];
-    
+
     if (consumedMaterialsResponse?.success && consumedMaterialsResponse?.data) {
-      consumedArray = Array.isArray(consumedMaterialsResponse.data) 
-        ? consumedMaterialsResponse.data 
+      consumedArray = Array.isArray(consumedMaterialsResponse.data)
+        ? consumedMaterialsResponse.data
         : [];
     }
-    
+
     return [...plannedArray, ...consumedArray];
   }, [plannedMaterialsData, consumedMaterialsResponse]);
 
@@ -623,7 +623,7 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Contador de materiais planejados seguindo padrão das outras abas
   const plannedMaterialsCount = plannedMaterialsData?.length || 0;
-  
+
   console.log('🔧 [PLANNED-MATERIALS-COUNT] Count for tab:', {
     plannedMaterialsData: plannedMaterialsData?.length,
     plannedMaterialsCount,
@@ -636,31 +636,31 @@ const TicketDetails = React.memo(() => {
       label: getTabLabel("Anexos", attachmentsData?.length),
       icon: Paperclip
     },
-    { 
-      id: "notes", 
-      label: getTabLabel("Notas", notesData?.length), 
-      icon: FileText 
+    {
+      id: "notes",
+      label: getTabLabel("Notas", notesData?.length),
+      icon: FileText
     },
-    { 
-      id: "communications", 
-      label: getTabLabel("Comunicação", communicationsData?.length), 
-      icon: MessageSquare 
+    {
+      id: "communications",
+      label: getTabLabel("Comunicação", communicationsData?.length),
+      icon: MessageSquare
     },
     { id: "history", label: "Histórico", icon: History },
-    { 
-      id: "internal-actions", 
-      label: getTabLabel("Ações Internas", internalActionsData?.length), 
-      icon: Settings 
+    {
+      id: "internal-actions",
+      label: getTabLabel("Ações Internas", internalActionsData?.length),
+      icon: Settings
     },
-    { 
-      id: "links", 
-      label: getTabLabel("Vínculos", relatedTicketsData?.length), 
-      icon: Link 
+    {
+      id: "links",
+      label: getTabLabel("Vínculos", relatedTicketsData?.length),
+      icon: Link
     },
-    { 
-      id: "materials", 
-      label: getTabLabel("Materiais e Serviços", plannedMaterialsCount), 
-      icon: Package 
+    {
+      id: "materials",
+      label: getTabLabel("Materiais e Serviços", plannedMaterialsCount),
+      icon: Package
     },
   ];
 
@@ -1647,190 +1647,6 @@ const TicketDetails = React.memo(() => {
               )}
             />
 
-            {/* Sintomas */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">SINTOMAS</h3>
-              <FormField
-                control={form.control}
-                name="symptoms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sintomas</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Textarea {...field} rows={3} placeholder="Não especificado" />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não especificado'}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Solução Temporária */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">SOLUÇÃO TEMPORÁRIA</h3>
-              <FormField
-                control={form.control}
-                name="workaround"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Solução Temporária</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Textarea {...field} rows={3} placeholder="Não especificado" />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded min-h-[80px]">{field.value || 'Não especificado'}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Campos Adicionais */}
-            <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">INFORMAÇÕES ADICIONAIS</h3>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                {/* Horas Estimadas */}
-                <FormField
-                  control={form.control}
-                  name="estimatedHours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Horas Estimadas</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Input
-                            type="number"
-                            min="0"
-                            max="999"
-                            step="0.5"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            placeholder="0"
-                          />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded">{field.value || 0}h</div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Horas Reais */}
-                <FormField
-                  control={form.control}
-                  name="actualHours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Horas Reais</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <Input
-                            type="number"
-                            min="0"
-                            max="999"
-                            step="0.5"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            placeholder="0"
-                          />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded">{field.value || 0}h</div>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Data de Vencimento */}
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Data de Vencimento</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Input
-                          type="datetime-local"
-                          {...field}
-                          placeholder="Não especificado"
-                        />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">
-                          {field.value ? new Date(field.value).toLocaleString('pt-BR') : 'Não especificado'}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Ambiente */}
-              <FormField
-                control={form.control}
-                name="environment"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Ambiente</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <DynamicSelect
-                          fieldName="environment"
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione o ambiente"
-                          disabled={!isEditMode}
-                          allowCustomInput={true}
-                        />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                          <DynamicBadge
-                            fieldName="environment"
-                            value={field.value || ''}
-                            colorHex={getFieldColor('environment', field.value || '')}
-                            isLoading={isFieldColorsLoading}
-                          >
-                            {getFieldLabel('environment', field.value || '') || field.value || 'Não especificado'}
-                          </DynamicBadge>
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Template Alternativo */}
-              <FormField
-                control={form.control}
-                name="templateAlternative"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Template Alternativo</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <Input {...field} placeholder="Não especificado" />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value || 'Não especificado'}</div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
           </div>
         );
 
@@ -2382,39 +2198,41 @@ const TicketDetails = React.memo(() => {
               </h3>
               {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ?
                 ticketRelationships.related_tickets.map((relTicket: any) => (
-                  <Card key={relTicket.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
+                  <Card key={`linked-${relTicket.id}-${relTicket.relationshipType}-${relTicket.targetTicket?.id || Math.random()}`} className={`border-l-4 ${getBorderColor(relTicket.relationshipType)} hover:shadow-md transition-shadow cursor-pointer`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <Badge
+                            variant={relTicket.status === 'open' ? 'destructive' :
+                                    relTicket.status === 'in_progress' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {relTicket.status === 'open' ? 'Aberto' :
+                             relTicket.status === 'in_progress' ? 'Em Progresso' : 'Fechado'}
+                          </Badge>
+                          <span className="font-medium">{relTicket.number}</span>
+                        </div>
                         <Badge
-                          variant={relTicket.status === 'open' ? 'destructive' :
-                                  relTicket.status === 'in_progress' ? 'default' : 'secondary'}
+                          variant={relTicket.priority === 'high' ? 'destructive' :
+                                  relTicket.priority === 'medium' ? 'default' : 'outline'}
                           className="text-xs"
                         >
-                          {relTicket.status === 'open' ? 'Aberto' :
-                           relTicket.status === 'in_progress' ? 'Em Progresso' : 'Fechado'}
+                          {relTicket.priority === 'high' ? 'Alta' :
+                           relTicket.priority === 'medium' ? 'Média' : 'Baixa'}
                         </Badge>
-                        <span className="font-medium">{relTicket.number}</span>
                       </div>
-                      <Badge
-                        variant={relTicket.priority === 'high' ? 'destructive' :
-                                relTicket.priority === 'medium' ? 'default' : 'outline'}
-                        className="text-xs"
-                      >
-                        {relTicket.priority === 'high' ? 'Alta' :
-                         relTicket.priority === 'medium' ? 'Média' : 'Baixa'}
-                      </Badge>
-                    </div>
-                    <h4 className="font-medium text-gray-800 mt-2">{relTicket.subject}</h4>
-                    <p className="text-sm text-gray-600 mt-1">{relTicket.description}</p>
-                    <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                      <span>Categoria: {relTicket.category}</span>
-                      <span>
-                        {relTicket.resolved_at
-                          ? `Resolvido em ${new Date(relTicket.resolved_at).toLocaleDateString('pt-BR')}`
-                          : `Criado em ${new Date(relTicket.created_at).toLocaleDateString('pt-BR')}`
-                        }
-                      </span>
-                    </div>
+                      <h4 className="font-medium text-gray-800 mt-2">{relTicket.subject}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{relTicket.description}</p>
+                      <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                        <span>Categoria: {relTicket.category}</span>
+                        <span>
+                          {relTicket.resolved_at
+                            ? `Resolvido em ${new Date(relTicket.resolved_at).toLocaleDateString('pt-BR')}`
+                            : `Criado em ${new Date(relTicket.created_at).toLocaleDateString('pt-BR')}`
+                          }
+                        </span>
+                      </div>
+                    </CardContent>
                   </Card>
                 )) : (
                 <div className="text-center py-8 text-gray-500">
@@ -3827,7 +3645,7 @@ const TicketDetails = React.memo(() => {
                 <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
                   <span className="text-blue-700">SLA:</span>
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
                       title="SLA Warning: 85% decorrido"
                       data-testid="sla-led-indicator"
