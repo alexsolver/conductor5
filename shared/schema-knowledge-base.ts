@@ -68,25 +68,25 @@ export const knowledgeBaseApprovalStatusEnum = pgEnum("knowledge_base_approval_s
 
 // Knowledge Base Articles - Exactly matching existing database structure
 export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`), // character varying
-  tenantId: varchar("tenant_id").notNull(), // character varying
+  id: uuid("id").primaryKey().defaultRandom(), // UUID type for consistency
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id), // UUID reference
 
   // Basic Article Info - exactly matching DB types and lengths
-  title: varchar("title").notNull(), // character varying
+  title: varchar("title", { length: 500 }).notNull(), // character varying with length
   content: text("content").notNull(),
 
   // Categorization - matching exact DB structure  
-  categoryId: varchar("category_id").notNull(), // character varying - using actual DB column name
+  categoryId: varchar("category_id", { length: 100 }).notNull(), // character varying with length
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
 
   // Status & Visibility - matching exact DB structure
-  access_level: text("access_level").default("public"), // USER-DEFINED type, keeping as text for compatibility
+  accessLevel: text("access_level").default("public"), // Consistent naming
   visibility: text("visibility").default("public"), // text
   status: text("status").default("draft"), // text
 
   // Authoring
-  authorId: varchar("author_id").notNull(), // character varying
-  reviewerId: varchar("reviewer_id"), // character varying
+  authorId: uuid("author_id").notNull(), // UUID for user references
+  reviewerId: uuid("reviewer_id"), // UUID for user references
 
   // Publishing & Metadata - matching exact DB column names and defaults
   published: boolean("published").default(false), // boolean default false
@@ -281,7 +281,7 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
   categoryId: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]),
-  access_level: z.enum(["public", "internal", "restricted", "private"]).optional(),
+  accessLevel: z.enum(["public", "internal", "restricted", "private"]).optional(),
   tags: z.array(z.string()).optional(),
   keywords: z.array(z.string()).optional(),
 });

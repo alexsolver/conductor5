@@ -71,10 +71,11 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         tenantId,
         title: data.title,
         content: data.content,
-        categoryId: data.category, // Map category to categoryId for DB column
+        categoryId: data.categoryId, // Use correct field name
         tags: data.tags || [],
         status: data.status || 'draft',
         authorId: data.authorId,
+        accessLevel: data.accessLevel || 'public',
         contentType: data.contentType || 'article'
       })
       .returning();
