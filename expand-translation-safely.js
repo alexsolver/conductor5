@@ -191,9 +191,12 @@ class SafeTranslationExpander {
 
   verifySystemHealth() {
     try {
-      const serverCheck = execSync('curl -s http://localhost:5000/api/health || echo "FAIL"', 
+      // Verificar se o servidor está respondendo
+      const serverCheck = execSync('curl -s http://localhost:5000/ || echo "FAIL"', 
         { encoding: 'utf-8', timeout: 5000 });
-      return !serverCheck.includes('FAIL');
+      
+      // Se não retornar FAIL e não estiver vazio, servidor está funcionando
+      return !serverCheck.includes('FAIL') && serverCheck.trim().length > 0;
     } catch (error) {
       return false;
     }

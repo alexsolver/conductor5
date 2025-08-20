@@ -47,7 +47,7 @@ interface CompletionReport {
 export function TranslationCompletionPanel() {
   const { toast } = useToast();
   const [isCompleting, setIsCompleting] = useState(false);
-
+  
   const { data: completionReport, isLoading, refetch } = useQuery({
     queryKey: ['translation-completion-report'],
     queryFn: async () => {
