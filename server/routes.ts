@@ -102,6 +102,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // ✅ CRITICAL AUTH FIX: Add missing /api/auth/user endpoint that frontend expects
+  app.get('/api/auth/user', jwtAuth, async (req: any, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // Return user data that frontend auth system expects
+      res.json({
+        id: req.user.id,
+        email: req.user.email,
+        firstName: req.user.firstName,
+        lastName: req.user.lastName,
+        role: req.user.role,
+        tenantId: req.user.tenantId,
+        isActive: req.user.isActive || true
+      });
+    } catch (error) {
+      console.error('❌ [AUTH-USER] Error getting user:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   // CRITICAL FIX: Bypass tickets/id/relationships endpoint
   app.post('/bypass/tickets/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
