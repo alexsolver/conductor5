@@ -1,6 +1,5 @@
 // LOCATIONS MODULE - CLEANED VERSION FOR 7 RECORD TYPES  
 import React, { useState, useCallback, useMemo } from "react";
-import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, MapPin, Navigation, Settings, Route, Building, Grid3X3, Users, Map, Clock, Edit, Trash2, CheckCircle, ArrowRight, Network, Layers, Palette, Folder, Calendar, Phone, Home } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,43 +32,43 @@ import { apiRequest } from "@/lib/queryClient";
 // Record type definitions
 const RECORD_TYPES = {
   local: {
-    label: t('titles.local'),
+    label: "Local",
     icon: MapPin,
     color: "bg-blue-500",
     sections: ["Identificação", "Contato", "Endereço", "Georreferenciamento", "Tempo"]
   },
   regiao: {
-    label: t('messages.regio_1'),
+    label: "Região",
     icon: Navigation,
     color: "bg-green-500",
     sections: ["Identificação", "Relacionamentos", "Geolocalização", "Endereço Base"]
   },
   "rota-dinamica": {
-    label: t('messages.rota_dinmica'),
+    label: "Rota Dinâmica",
     icon: Route,
     color: "bg-purple-500",
     sections: ["Identificação", "Relacionamentos", "Planejamento"]
   },
   trecho: {
-    label: t('titles.trecho'),
+    label: "Trecho",
     icon: Settings,
     color: "bg-orange-500",
     sections: ["Identificação do Trecho"]
   },
   "rota-trecho": {
-    label: t('messages.rota_de_trecho'),
+    label: "Rota de Trecho",
     icon: Map,
     color: "bg-red-500",
     sections: ["Identificação", "Definição do Trecho"]
   },
   area: {
-    label: t('messages.rea_1'),
+    label: "Área",
     icon: Grid3X3,
     color: "bg-teal-500",
     sections: ["Identificação", "Classificação"]
   },
   agrupamento: {
-    label: t('titles.agrupamento'),
+    label: "Agrupamento",
     icon: Users,
     color: "bg-indigo-500",
     sections: ["Identificação"]
@@ -257,8 +256,8 @@ function LocationsNewContent() {
     },
     onSuccess: () => {
       toast({
-        title: t('titles.sucesso_5'),
-        description: t('messages.recordtypesactiverecordtype_as_keyof_typeof_record')
+        title: "Sucesso",
+        description: `${RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES].label} criado com sucesso!`
       });
       queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
@@ -268,8 +267,8 @@ function LocationsNewContent() {
     onError: (error) => {
       console.error('Error creating record:', error);
       toast({
-        title: t('titles.erro_9'),
-        description: t('messages.falha_ao_criar_registro_tente_novamente'),
+        title: "Erro",
+        description: "Falha ao criar registro. Tente novamente.",
         variant: "destructive"
       });
     }
@@ -312,8 +311,8 @@ function LocationsNewContent() {
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t('messages.gerenciamento_de_localizaes')}/h1>
-            <p className="text-muted-foreground">{t('messages.sistema_completo_para_gesto_de_7_tipos_de_registro')}/p>
+            <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Localizações</h1>
+            <p className="text-muted-foreground">Sistema completo para gestão de 7 tipos de registros geográficos</p>
           </div>
           <div className="flex space-x-2">
             <Dialog>
@@ -336,14 +335,14 @@ function LocationsNewContent() {
                 
                 <Tabs defaultValue="padroes" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="padroes">{t('messages.padres_de_horrios')}/TabsTrigger>
-                    <TabsTrigger value="associacoes">{t('messages.associaes_1')}/TabsTrigger>
+                    <TabsTrigger value="padroes">Padrões de Horários</TabsTrigger>
+                    <TabsTrigger value="associacoes">Associações</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="padroes" className="space-y-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">{t('messages.padres_cadastrados')}/h3>
+                        <h3 className="text-lg font-semibold">Padrões Cadastrados</h3>
                         <Button size="sm">
                           <Plus className="h-4 w-4 mr-2" />
                           Novo Padrão
@@ -383,25 +382,25 @@ function LocationsNewContent() {
                   
                   <TabsContent value="associacoes" className="space-y-4">
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">{t('messages.associar_horrios_s_entidades')}/h3>
+                      <h3 className="text-lg font-semibold">Associar Horários às Entidades</h3>
                       
                       <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-3">
-                          <h4 className="font-medium">{t('messages.selecionar_padro_de_horrio')}/h4>
+                          <h4 className="font-medium">Selecionar Padrão de Horário</h4>
                           <Select>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('messages.escolha_um_padro')} />
+                              <SelectValue placeholder="Escolha um padrão" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="comercial">{t('messages.comercial_padro')}/SelectItem>
-                              <SelectItem value="shopping">{t('titles.shopping')}/SelectItem>
-                              <SelectItem value="tecnico">{t('messages.tcnico_de_campo')}/SelectItem>
+                              <SelectItem value="comercial">Comercial Padrão</SelectItem>
+                              <SelectItem value="shopping">Shopping</SelectItem>
+                              <SelectItem value="tecnico">Técnico de Campo</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         
                         <div className="space-y-3">
-                          <h4 className="font-medium">{t('messages.aplicar_a_entidades')}/h4>
+                          <h4 className="font-medium">Aplicar a Entidades</h4>
                           <div className="space-y-2 max-h-40 overflow-y-auto">
                             {[
                               { tipo: "Local", nome: "Matriz São Paulo", ativo: true },
@@ -454,7 +453,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <MapPin className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.identificao')}/h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                     
                     <div className="grid grid-cols-3 gap-4">
@@ -463,16 +462,16 @@ function LocationsNewContent() {
                         name="ativo"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                            <FormLabel>Ativo</FormLabel>
                             <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('titles.selecione')} />
+                                  <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="true">{t('titles.sim_2')}/SelectItem>
-                                <SelectItem value="false">{t('messages.no')}/SelectItem>
+                                <SelectItem value="true">Sim</SelectItem>
+                                <SelectItem value="false">Não</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -485,9 +484,9 @@ function LocationsNewContent() {
                         name="nome"
                         render={({ field }) => (
                           <FormItem className="col-span-2">
-                            <FormLabel>{t('modals.nome')}/FormLabel>
+                            <FormLabel>Nome *</FormLabel>
                             <FormControl>
-                              <Input placeholder={t('titles.digite_o_nome_do_local')} {...field} />
+                              <Input placeholder="Digite o nome do local" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -500,9 +499,9 @@ function LocationsNewContent() {
                       name="descricao"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('modals.descrio')}/FormLabel>
+                          <FormLabel>Descrição</FormLabel>
                           <FormControl>
-                            <Textarea placeholder={t('messages.descrio_detalhada_do_local')} rows={3} {...field} />
+                            <Textarea placeholder="Descrição detalhada do local" rows={3} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -515,9 +514,9 @@ function LocationsNewContent() {
                         name="codigoIntegracao"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('forms.cdigo_de_integrao')}/FormLabel>
+                            <FormLabel>Código de Integração</FormLabel>
                             <FormControl>
-                              <Input placeholder={t('messages.cdigo_nico_do_sistema')} {...field} />
+                              <Input placeholder="Código único do sistema" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -529,16 +528,16 @@ function LocationsNewContent() {
                         name="tipoClienteFavorecido"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('forms.cliente_ou_favorecido')}/FormLabel>
+                            <FormLabel>Cliente ou Favorecido</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('titles.selecione')} />
+                                  <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="cliente">{t('titles.cliente_3')}/SelectItem>
-                                <SelectItem value="favorecido">{t('titles.favorecido_2')}/SelectItem>
+                                <SelectItem value="cliente">Cliente</SelectItem>
+                                <SelectItem value="favorecido">Favorecido</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -552,16 +551,16 @@ function LocationsNewContent() {
                       name="tecnicoPrincipalId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('forms.tcnico_principal')}/FormLabel>
+                          <FormLabel>Técnico Principal</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('messages.selecione_um_tcnico_1')} />
+                                <SelectValue placeholder="Selecione um técnico" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="tecnico1">{t('messages.joo_silva')}/SelectItem>
-                              <SelectItem value="tecnico2">{t('messages.maria_santos')}/SelectItem>
+                              <SelectItem value="tecnico1">João Silva</SelectItem>
+                              <SelectItem value="tecnico2">Maria Santos</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -574,7 +573,7 @@ function LocationsNewContent() {
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2 pb-2 border-b">
                       <Phone className="h-5 w-5 text-green-500" />
-                      <h3 className="text-lg font-semibold">{t('titles.contato')}/h3>
+                      <h3 className="text-lg font-semibold">Contato</h3>
                     </div>
                     
                     <FormField
@@ -582,9 +581,9 @@ function LocationsNewContent() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('forms.email')}/FormLabel>
+                          <FormLabel>E-mail</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder={t('messages.contatoempresacom')} {...field} />
+                            <Input type="email" placeholder="contato@empresa.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -611,7 +610,7 @@ function LocationsNewContent() {
                         name="telefone"
                         render={({ field }) => (
                           <FormItem className="col-span-2">
-                            <FormLabel>{t('titles.telefone_6')}/FormLabel>
+                            <FormLabel>Telefone</FormLabel>
                             <FormControl>
                               <Input placeholder="99999-9999" {...field} />
                             </FormControl>
@@ -626,7 +625,7 @@ function LocationsNewContent() {
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2 pb-2 border-b">
                       <MapPin className="h-5 w-5 text-purple-500" />
-                      <h3 className="text-lg font-semibold">{t('messages.endereo')}/h3>
+                      <h3 className="text-lg font-semibold">Endereço</h3>
                     </div>
                     
                     <div className="grid grid-cols-4 gap-4">
@@ -640,7 +639,9 @@ function LocationsNewContent() {
                               <FormControl>
                                 <Input placeholder="00000-000" {...field} />
                               </FormControl>
-                              <Button type="button" variant="outline" size="sm">{t('titles.buscar')}</Button>
+                              <Button type="button" variant="outline" size="sm">
+                                Buscar
+                              </Button>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -652,7 +653,7 @@ function LocationsNewContent() {
                         name="pais"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('forms.pas')}/FormLabel>
+                            <FormLabel>País</FormLabel>
                             <FormControl>
                               <Input {...field} />
                             </FormControl>
@@ -666,7 +667,7 @@ function LocationsNewContent() {
                         name="estado"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('titles.estado_2')}/FormLabel>
+                            <FormLabel>Estado</FormLabel>
                             <FormControl>
                               <Input placeholder="SP" {...field} />
                             </FormControl>
@@ -680,9 +681,9 @@ function LocationsNewContent() {
                         name="municipio"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('forms.municpio')}/FormLabel>
+                            <FormLabel>Município</FormLabel>
                             <FormControl>
-                              <Input placeholder={t('forms.so_paulo')} {...field} />
+                              <Input placeholder="São Paulo" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -696,9 +697,9 @@ function LocationsNewContent() {
                         name="bairro"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('titles.bairro_1')}/FormLabel>
+                            <FormLabel>Bairro</FormLabel>
                             <FormControl>
-                              <Input placeholder={t('titles.centro_1')} {...field} />
+                              <Input placeholder="Centro" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -710,20 +711,20 @@ function LocationsNewContent() {
                         name="tipoLogradouro"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('forms.tipo_de_logradouro')}/FormLabel>
+                            <FormLabel>Tipo de Logradouro</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('titles.selecione')} />
+                                  <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="Rua">{t('titles.rua_1')}/SelectItem>
-                                <SelectItem value="Avenida">{t('titles.avenida_1')}/SelectItem>
-                                <SelectItem value="Travessa">{t('titles.travessa_1')}/SelectItem>
-                                <SelectItem value="Alameda">{t('titles.alameda_1')}/SelectItem>
-                                <SelectItem value="Rodovia">{t('titles.rodovia_1')}/SelectItem>
-                                <SelectItem value="Estrada">{t('titles.estrada_1')}/SelectItem>
+                                <SelectItem value="Rua">Rua</SelectItem>
+                                <SelectItem value="Avenida">Avenida</SelectItem>
+                                <SelectItem value="Travessa">Travessa</SelectItem>
+                                <SelectItem value="Alameda">Alameda</SelectItem>
+                                <SelectItem value="Rodovia">Rodovia</SelectItem>
+                                <SelectItem value="Estrada">Estrada</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -738,9 +739,9 @@ function LocationsNewContent() {
                         name="logradouro"
                         render={({ field }) => (
                           <FormItem className="col-span-2">
-                            <FormLabel>{t('titles.logradouro_2')}/FormLabel>
+                            <FormLabel>Logradouro</FormLabel>
                             <FormControl>
-                              <Input placeholder={t('messages.nome_da_ruaavenida')} {...field} />
+                              <Input placeholder="Nome da rua/avenida" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -752,7 +753,7 @@ function LocationsNewContent() {
                         name="numero"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('messages.nmero_2')}/FormLabel>
+                            <FormLabel>Número</FormLabel>
                             <FormControl>
                               <Input placeholder="123" {...field} />
                             </FormControl>
@@ -767,9 +768,9 @@ function LocationsNewContent() {
                       name="complemento"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('titles.complemento_1')}/FormLabel>
+                          <FormLabel>Complemento</FormLabel>
                           <FormControl>
-                            <Input placeholder={t('messages.apto_101_bloco_a_etc')} {...field} />
+                            <Input placeholder="Apto 101, Bloco A, etc." {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -781,7 +782,7 @@ function LocationsNewContent() {
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2 pb-2 border-b">
                       <Map className="h-5 w-5 text-red-500" />
-                      <h3 className="text-lg font-semibold">{t('titles.georreferenciamento')}/h3>
+                      <h3 className="text-lg font-semibold">Georreferenciamento</h3>
                     </div>
                     
                     <Alert>
@@ -798,7 +799,7 @@ function LocationsNewContent() {
                         name="latitude"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('titles.latitude_1')}/FormLabel>
+                            <FormLabel>Latitude</FormLabel>
                             <FormControl>
                               <Input placeholder="-23.55052000" {...field} />
                             </FormControl>
@@ -812,7 +813,7 @@ function LocationsNewContent() {
                         name="longitude"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('titles.longitude_1')}/FormLabel>
+                            <FormLabel>Longitude</FormLabel>
                             <FormControl>
                               <Input placeholder="-46.63330800" {...field} />
                             </FormControl>
@@ -834,7 +835,7 @@ function LocationsNewContent() {
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2 pb-2 border-b">
                       <Clock className="h-5 w-5 text-orange-500" />
-                      <h3 className="text-lg font-semibold">{t('messages.tempo_e_disponibilidade')}/h3>
+                      <h3 className="text-lg font-semibold">Tempo e Disponibilidade</h3>
                     </div>
                     
                     <FormField
@@ -842,7 +843,7 @@ function LocationsNewContent() {
                       name="fusoHorario"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('forms.fuso_horrio')}/FormLabel>
+                          <FormLabel>Fuso Horário</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -850,9 +851,9 @@ function LocationsNewContent() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="America/Sao_Paulo">{t('messages.braslia_gmt3')}/SelectItem>
-                              <SelectItem value="America/Manaus">{t('messages.manaus_gmt4')}/SelectItem>
-                              <SelectItem value="America/Rio_Branco">{t('messages.acre_gmt5')}/SelectItem>
+                              <SelectItem value="America/Sao_Paulo">Brasília (GMT-3)</SelectItem>
+                              <SelectItem value="America/Manaus">Manaus (GMT-4)</SelectItem>
+                              <SelectItem value="America/Rio_Branco">Acre (GMT-5)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -861,11 +862,17 @@ function LocationsNewContent() {
                     />
                     
                     <div className="space-y-3">
-                      <h4 className="font-medium">{t('titles.feriados')}/h4>
+                      <h4 className="font-medium">Feriados</h4>
                       <div className="flex space-x-2">
-                        <Button type="button" variant="outline" size="sm">{t('messages.buscar_feriados_municipais')}</Button>
-                        <Button type="button" variant="outline" size="sm">{t('messages.buscar_feriados_estaduais')}</Button>
-                        <Button type="button" variant="outline" size="sm">{t('messages.buscar_feriados_federais')}</Button>
+                        <Button type="button" variant="outline" size="sm">
+                          Buscar Feriados Municipais
+                        </Button>
+                        <Button type="button" variant="outline" size="sm">
+                          Buscar Feriados Estaduais
+                        </Button>
+                        <Button type="button" variant="outline" size="sm">
+                          Buscar Feriados Federais
+                        </Button>
                       </div>
                     </div>
                       </div>
@@ -879,7 +886,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <MapPin className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.identificao')}/h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4">
@@ -888,16 +895,16 @@ function LocationsNewContent() {
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                                <FormLabel>Ativo</FormLabel>
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione')} />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="true">{t('titles.sim_2')}/SelectItem>
-                                    <SelectItem value="false">{t('messages.no')}/SelectItem>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -910,9 +917,9 @@ function LocationsNewContent() {
                             name="nome"
                             render={({ field }) => (
                               <FormItem className="col-span-2">
-                                <FormLabel>{t('modals.nome')}/FormLabel>
+                                <FormLabel>Nome *</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('messages.digite_o_nome_da_regio')} {...field} />
+                                  <Input placeholder="Digite o nome da região" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -925,9 +932,9 @@ function LocationsNewContent() {
                           name="descricao"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('modals.descrio')}/FormLabel>
+                              <FormLabel>Descrição</FormLabel>
                               <FormControl>
-                                <Textarea placeholder={t('messages.descrio_da_regio')} rows={3} {...field} />
+                                <Textarea placeholder="Descrição da região" rows={3} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -939,9 +946,9 @@ function LocationsNewContent() {
                           name="codigoIntegracao"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('forms.cdigo_de_integrao')}/FormLabel>
+                              <FormLabel>Código de Integração</FormLabel>
                               <FormControl>
-                                <Input placeholder={t('messages.cdigo_nico_da_regio')} {...field} />
+                                <Input placeholder="Código único da região" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -953,7 +960,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Users className="h-5 w-5 text-green-500" />
-                          <h3 className="text-lg font-semibold">{t('titles.relacionamentos')}/h3>
+                          <h3 className="text-lg font-semibold">Relacionamentos</h3>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
@@ -962,9 +969,9 @@ function LocationsNewContent() {
                             name="nome"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('messages.clientes_vinculados')}/FormLabel>
+                                <FormLabel>Clientes Vinculados</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('messages.multiseleo_de_clientes')} {...field} />
+                                  <Input placeholder="Multi-seleção de clientes" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -976,16 +983,16 @@ function LocationsNewContent() {
                             name="tecnicoPrincipal"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('forms.tcnico_principal')}/FormLabel>
+                                <FormLabel>Técnico Principal</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione')} />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="tecnico1">{t('messages.joo_silva')}/SelectItem>
-                                    <SelectItem value="tecnico2">{t('messages.maria_santos')}/SelectItem>
+                                    <SelectItem value="tecnico1">João Silva</SelectItem>
+                                    <SelectItem value="tecnico2">Maria Santos</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -999,7 +1006,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <MapPin className="h-5 w-5 text-red-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.geolocalizao')}/h3>
+                          <h3 className="text-lg font-semibold">Geolocalização</h3>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
@@ -1008,7 +1015,7 @@ function LocationsNewContent() {
                             name="latitude"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.latitude_1')}/FormLabel>
+                                <FormLabel>Latitude</FormLabel>
                                 <FormControl>
                                   <Input placeholder="-23.55052000" {...field} />
                                 </FormControl>
@@ -1022,7 +1029,7 @@ function LocationsNewContent() {
                             name="longitude"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.longitude_1')}/FormLabel>
+                                <FormLabel>Longitude</FormLabel>
                                 <FormControl>
                                   <Input placeholder="-46.63331000" {...field} />
                                 </FormControl>
@@ -1051,7 +1058,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Home className="h-5 w-5 text-orange-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.endereo_base')}/h3>
+                          <h3 className="text-lg font-semibold">Endereço Base</h3>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
@@ -1074,9 +1081,9 @@ function LocationsNewContent() {
                             name="pais"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('forms.pas')}/FormLabel>
+                                <FormLabel>País</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('titles.brasil_2')} defaultValue="Brasil" {...field} />
+                                  <Input placeholder="Brasil" defaultValue="Brasil" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1090,9 +1097,9 @@ function LocationsNewContent() {
                             name="estado"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.estado_2')}/FormLabel>
+                                <FormLabel>Estado</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('titles.estado_2')} {...field} />
+                                  <Input placeholder="Estado" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1104,9 +1111,9 @@ function LocationsNewContent() {
                             name="municipio"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('forms.municpio')}/FormLabel>
+                                <FormLabel>Município</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('forms.municpio')} {...field} />
+                                  <Input placeholder="Município" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1120,9 +1127,9 @@ function LocationsNewContent() {
                             name="bairro"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.bairro_1')}/FormLabel>
+                                <FormLabel>Bairro</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('titles.bairro_1')} {...field} />
+                                  <Input placeholder="Bairro" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1134,20 +1141,20 @@ function LocationsNewContent() {
                             name="tipoLogradouro"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('forms.tipo_de_logradouro')}/FormLabel>
+                                <FormLabel>Tipo de Logradouro</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione')} />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="Rua">{t('titles.rua_1')}/SelectItem>
-                                    <SelectItem value="Avenida">{t('titles.avenida_1')}/SelectItem>
-                                    <SelectItem value="Travessa">{t('titles.travessa_1')}/SelectItem>
-                                    <SelectItem value="Alameda">{t('titles.alameda_1')}/SelectItem>
-                                    <SelectItem value="Rodovia">{t('titles.rodovia_1')}/SelectItem>
-                                    <SelectItem value="Estrada">{t('titles.estrada_1')}/SelectItem>
+                                    <SelectItem value="Rua">Rua</SelectItem>
+                                    <SelectItem value="Avenida">Avenida</SelectItem>
+                                    <SelectItem value="Travessa">Travessa</SelectItem>
+                                    <SelectItem value="Alameda">Alameda</SelectItem>
+                                    <SelectItem value="Rodovia">Rodovia</SelectItem>
+                                    <SelectItem value="Estrada">Estrada</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -1162,9 +1169,9 @@ function LocationsNewContent() {
                             name="logradouro"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.logradouro_2')}/FormLabel>
+                                <FormLabel>Logradouro</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('messages.nome_da_ruaavenida')} {...field} />
+                                  <Input placeholder="Nome da rua/avenida" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1176,7 +1183,7 @@ function LocationsNewContent() {
                             name="numero"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('messages.nmero_2')}/FormLabel>
+                                <FormLabel>Número</FormLabel>
                                 <FormControl>
                                   <Input placeholder="123" {...field} />
                                 </FormControl>
@@ -1190,9 +1197,9 @@ function LocationsNewContent() {
                             name="complemento"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.complemento_1')}/FormLabel>
+                                <FormLabel>Complemento</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('messages.sala_apto_etc')} {...field} />
+                                  <Input placeholder="Sala, apto, etc" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1210,7 +1217,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Route className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.identificao')}/h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4">
@@ -1219,16 +1226,16 @@ function LocationsNewContent() {
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                                <FormLabel>Ativo</FormLabel>
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione')} />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="true">{t('titles.sim_2')}/SelectItem>
-                                    <SelectItem value="false">{t('messages.no')}/SelectItem>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -1241,9 +1248,9 @@ function LocationsNewContent() {
                             name="nomeRota"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('messages.nome_da_rota')}/FormLabel>
+                                <FormLabel>Nome da Rota *</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('titles.nome_da_rota')} maxLength={100} {...field} />
+                                  <Input placeholder="Nome da rota" maxLength={100} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1270,7 +1277,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Calendar className="h-5 w-5 text-purple-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.planejamento_da_rota')}/h3>
+                          <h3 className="text-lg font-semibold">Planejamento da Rota</h3>
                         </div>
                         
                         <div className="grid grid-cols-7 gap-2">
@@ -1287,7 +1294,7 @@ function LocationsNewContent() {
                           name="previsaoDias"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('messages.previso_de_dias_130')}/FormLabel>
+                              <FormLabel>Previsão de Dias (1-30)</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="number" 
@@ -1311,7 +1318,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <ArrowRight className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.identificao_do_trecho')}/h3>
+                          <h3 className="text-lg font-semibold">Identificação do Trecho</h3>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4">
@@ -1320,16 +1327,16 @@ function LocationsNewContent() {
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                                <FormLabel>Ativo</FormLabel>
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione')} />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="true">{t('titles.sim_2')}/SelectItem>
-                                    <SelectItem value="false">{t('messages.no')}/SelectItem>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -1342,9 +1349,9 @@ function LocationsNewContent() {
                             name="codigoIntegracao"
                             render={({ field }) => (
                               <FormItem className="col-span-2">
-                                <FormLabel>{t('forms.cdigo_de_integrao')}/FormLabel>
+                                <FormLabel>Código de Integração</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('messages.cdigo_do_trecho')} {...field} />
+                                  <Input placeholder="Código do trecho" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1358,16 +1365,16 @@ function LocationsNewContent() {
                             name="localAId"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('messages.local_a_origem')}/FormLabel>
+                                <FormLabel>Local A (Origem)</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione_origem')} />
+                                      <SelectValue placeholder="Selecione origem" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="local1">{t('messages.local_1')}/SelectItem>
-                                    <SelectItem value="local2">{t('messages.local_2')}/SelectItem>
+                                    <SelectItem value="local1">Local 1</SelectItem>
+                                    <SelectItem value="local2">Local 2</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -1380,16 +1387,16 @@ function LocationsNewContent() {
                             name="localBId"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('messages.local_b_destino')}/FormLabel>
+                                <FormLabel>Local B (Destino)</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione_destino')} />
+                                      <SelectValue placeholder="Selecione destino" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="local3">{t('messages.local_3')}/SelectItem>
-                                    <SelectItem value="local4">{t('messages.local_4')}/SelectItem>
+                                    <SelectItem value="local3">Local 3</SelectItem>
+                                    <SelectItem value="local4">Local 4</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -1407,7 +1414,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Network className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.definio_da_rota')}/h3>
+                          <h3 className="text-lg font-semibold">Definição da Rota</h3>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
@@ -1416,16 +1423,16 @@ function LocationsNewContent() {
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                                <FormLabel>Ativo</FormLabel>
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione')} />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="true">{t('titles.sim_2')}/SelectItem>
-                                    <SelectItem value="false">{t('messages.no')}/SelectItem>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -1440,7 +1447,7 @@ function LocationsNewContent() {
                               <FormItem>
                                 <FormLabel>ID da Rota</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('titles.identificador_da_rota')} {...field} />
+                                  <Input placeholder="Identificador da rota" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1449,7 +1456,7 @@ function LocationsNewContent() {
                         </div>
                         
                         <div className="space-y-3">
-                          <h4 className="font-medium">{t('messages.definio_do_trecho_mltiplos_registros')}/h4>
+                          <h4 className="font-medium">Definição do Trecho - Múltiplos Registros</h4>
                           <div className="border rounded-lg">
                             <Table>
                               <TableHeader>
@@ -1457,14 +1464,14 @@ function LocationsNewContent() {
                                   <TableHead>DE</TableHead>
                                   <TableHead>TRECHO</TableHead>
                                   <TableHead>PARA</TableHead>
-                                  <TableHead>{t('titles.ao')}/TableHead>
+                                  <TableHead>AÇÃO</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
                                 <TableRow>
-                                  <TableCell>{t('messages.local_a')}/TableCell>
-                                  <TableCell>{t('messages.trecho_intermedirio_1')}/TableCell>
-                                  <TableCell>{t('messages.local_intermdio')}/TableCell>
+                                  <TableCell>Local A</TableCell>
+                                  <TableCell>Trecho Intermediário 1</TableCell>
+                                  <TableCell>Local Intermédio</TableCell>
                                   <TableCell>
                                     <div className="flex space-x-1">
                                       <Button variant="outline" size="sm">
@@ -1477,9 +1484,9 @@ function LocationsNewContent() {
                                   </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                  <TableCell>{t('messages.local_intermdio')}/TableCell>
-                                  <TableCell>{t('messages.trecho_final')}/TableCell>
-                                  <TableCell>{t('messages.local_b')}/TableCell>
+                                  <TableCell>Local Intermédio</TableCell>
+                                  <TableCell>Trecho Final</TableCell>
+                                  <TableCell>Local B</TableCell>
                                   <TableCell>
                                     <div className="flex space-x-1">
                                       <Button variant="outline" size="sm">
@@ -1509,7 +1516,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Layers className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.identificao')}/h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4">
@@ -1518,16 +1525,16 @@ function LocationsNewContent() {
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                                <FormLabel>Ativo</FormLabel>
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione')} />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="true">{t('titles.sim_2')}/SelectItem>
-                                    <SelectItem value="false">{t('messages.no')}/SelectItem>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -1540,9 +1547,9 @@ function LocationsNewContent() {
                             name="nome"
                             render={({ field }) => (
                               <FormItem className="col-span-2">
-                                <FormLabel>{t('modals.nome')}/FormLabel>
+                                <FormLabel>Nome *</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('messages.nome_da_rea')} {...field} />
+                                  <Input placeholder="Nome da área" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1556,9 +1563,9 @@ function LocationsNewContent() {
                             name="descricao"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('modals.descrio')}/FormLabel>
+                                <FormLabel>Descrição</FormLabel>
                                 <FormControl>
-                                  <Textarea placeholder={t('messages.descrio_detalhada_da_rea')} rows={3} {...field} />
+                                  <Textarea placeholder="Descrição detalhada da área" rows={3} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1570,9 +1577,9 @@ function LocationsNewContent() {
                             name="codigoIntegracao"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('forms.cdigo_de_integrao')}/FormLabel>
+                                <FormLabel>Código de Integração</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('messages.cdigo_nico_do_sistema')} {...field} />
+                                  <Input placeholder="Código único do sistema" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1585,7 +1592,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Grid3X3 className="h-5 w-5 text-teal-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.classificao_1')}/h3>
+                          <h3 className="text-lg font-semibold">Classificação</h3>
                         </div>
                         
                         <FormField
@@ -1593,20 +1600,20 @@ function LocationsNewContent() {
                           name="tipoArea"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('messages.tipo_de_rea')}/FormLabel>
+                              <FormLabel>Tipo de Área</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder={t('titles.selecione_o_tipo_8')} />
+                                    <SelectValue placeholder="Selecione o tipo" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="faixa-cep">{t('messages.faixa_cep')}/SelectItem>
-                                  <SelectItem value="shape">{t('titles.shape')}/SelectItem>
-                                  <SelectItem value="coordenadas">{t('titles.coordenadas_1')}/SelectItem>
-                                  <SelectItem value="raio">{t('titles.raio')}/SelectItem>
-                                  <SelectItem value="linha">{t('titles.linha')}/SelectItem>
-                                  <SelectItem value="importar">{t('messages.importar_rea')}/SelectItem>
+                                  <SelectItem value="faixa-cep">Faixa CEP</SelectItem>
+                                  <SelectItem value="shape">Shape</SelectItem>
+                                  <SelectItem value="coordenadas">Coordenadas</SelectItem>
+                                  <SelectItem value="raio">Raio</SelectItem>
+                                  <SelectItem value="linha">Linha</SelectItem>
+                                  <SelectItem value="importar">Importar Área</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -1619,7 +1626,7 @@ function LocationsNewContent() {
                           name="corMapa"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('messages.cor_no_mapa')}/FormLabel>
+                              <FormLabel>Cor no Mapa</FormLabel>
                               <div className="flex space-x-2">
                                 <FormControl>
                                   <Input type="color" defaultValue="#3b82f6" {...field} />
@@ -1648,7 +1655,7 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Folder className="h-5 w-5 text-blue-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.identificao')}/h3>
+                          <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4">
@@ -1657,16 +1664,16 @@ function LocationsNewContent() {
                             name="ativo"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                                <FormLabel>Ativo</FormLabel>
                                 <Select onValueChange={(value) => field.onChange(value === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={t('titles.selecione')} />
+                                      <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="true">{t('titles.sim_2')}/SelectItem>
-                                    <SelectItem value="false">{t('messages.no')}/SelectItem>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -1679,9 +1686,9 @@ function LocationsNewContent() {
                             name="nome"
                             render={({ field }) => (
                               <FormItem className="col-span-2">
-                                <FormLabel>{t('modals.nome')}/FormLabel>
+                                <FormLabel>Nome *</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('titles.nome_do_agrupamento')} {...field} />
+                                  <Input placeholder="Nome do agrupamento" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1695,9 +1702,9 @@ function LocationsNewContent() {
                             name="descricao"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('modals.descrio')}/FormLabel>
+                                <FormLabel>Descrição</FormLabel>
                                 <FormControl>
-                                  <Textarea placeholder={t('messages.descrio_detalhada_do_agrupamento')} rows={3} {...field} />
+                                  <Textarea placeholder="Descrição detalhada do agrupamento" rows={3} {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1709,9 +1716,9 @@ function LocationsNewContent() {
                             name="codigoIntegracao"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t('forms.cdigo_de_integrao')}/FormLabel>
+                                <FormLabel>Código de Integração</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('messages.cdigo_nico_do_sistema')} {...field} />
+                                  <Input placeholder="Código único do sistema" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1724,11 +1731,11 @@ function LocationsNewContent() {
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2 pb-2 border-b">
                           <Map className="h-5 w-5 text-indigo-500" />
-                          <h3 className="text-lg font-semibold">{t('messages.seleo_de_reas')}/h3>
+                          <h3 className="text-lg font-semibold">Seleção de Áreas</h3>
                         </div>
                         
                         <div className="space-y-3">
-                          <h4 className="font-medium">{t('messages.reas_disponveis')}/h4>
+                          <h4 className="font-medium">Áreas Disponíveis</h4>
                           <div className="grid grid-cols-2 gap-2">
                             {['Área Centro', 'Área Norte', 'Área Sul', 'Área Leste'].map((area, index) => (
                               <div key={index} className="flex items-center space-x-2">
@@ -1736,7 +1743,7 @@ function LocationsNewContent() {
                                 <label htmlFor={`area-${index}`} className="text-sm flex items-center space-x-2">
                                   <div className="w-3 h-3 bg-blue-500 rounded"></div>
                                   <span>{area}</span>
-                                  <Badge variant="outline" className="text-xs">{t('messages.faixa_cep')}/Badge>
+                                  <Badge variant="outline" className="text-xs">Faixa CEP</Badge>
                                 </label>
                               </div>
                             ))}
@@ -1744,7 +1751,7 @@ function LocationsNewContent() {
                         </div>
 
                         <div className="space-y-3">
-                          <h4 className="font-medium">{t('messages.adicionar_faixas_de_cep')}/h4>
+                          <h4 className="font-medium">Adicionar Faixas de CEP</h4>
                           <div className="grid grid-cols-2 gap-4">
                             <FormField
                               control={form.control}
@@ -1787,8 +1794,13 @@ function LocationsNewContent() {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      onClick={() =>{t('messages.setiscreatedialogopenfalse_cancelar')}</Button>
-                    <Button type="submit" disabled={createMutation.isPending}>{t('messages.createmutationispending_criando_criar')}</Button>
+                      onClick={() => setIsCreateDialogOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={createMutation.isPending}>
+                      {createMutation.isPending ? "Criando..." : "Criar"}
+                    </Button>
                   </div>
                 </form>
               </Form>
@@ -1801,29 +1813,29 @@ function LocationsNewContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t('titles.total')}/CardTitle>
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
               <currentRecordType.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{currentStats.total || 0}</div>
-              <p className="text-xs text-muted-foreground">{t('messages.registros_cadastrados')}/p>
+              <p className="text-xs text-muted-foreground">registros cadastrados</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t('titles.ativos')}/CardTitle>
+              <CardTitle className="text-sm font-medium">Ativos</CardTitle>
               <div className="h-4 w-4 rounded-full bg-green-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{currentStats.active || 0}</div>
-              <p className="text-xs text-muted-foreground">{t('messages.em_funcionamento')}/p>
+              <p className="text-xs text-muted-foreground">em funcionamento</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t('titles.inativos')}/CardTitle>
+              <CardTitle className="text-sm font-medium">Inativos</CardTitle>
               <div className="h-4 w-4 rounded-full bg-gray-400" />
             </CardHeader>
             <CardContent>
@@ -1853,7 +1865,7 @@ function LocationsNewContent() {
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={t('messages.buscar_registros')}
+                    placeholder="Buscar registros..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -1862,12 +1874,12 @@ function LocationsNewContent() {
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder={t('titles.filtrar_por_status')} />
+                  <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('titles.todos_4')}/SelectItem>
-                  <SelectItem value="active">{t('titles.ativos')}/SelectItem>
-                  <SelectItem value="inactive">{t('titles.inativos')}/SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Ativos</SelectItem>
+                  <SelectItem value="inactive">Inativos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1882,10 +1894,10 @@ function LocationsNewContent() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t('titles.nome_5')}/TableHead>
-                        <TableHead>{t('messages.cdigo_2')}/TableHead>
-                        <TableHead>{t('titles.status_8')}/TableHead>
-                        <TableHead>{t('messages.aes_8')}/TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Código</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1899,7 +1911,9 @@ function LocationsNewContent() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="outline" size="sm">{t('titles.editar_1')}</Button>
+                            <Button variant="outline" size="sm">
+                              Editar
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1926,7 +1940,5 @@ function LocationsNewContent() {
 }
 
 export default function LocationsNew() {
-  const { t } = useTranslation();
-
   return <LocationsNewContent />;
 }

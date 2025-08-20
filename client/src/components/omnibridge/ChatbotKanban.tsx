@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -141,41 +140,41 @@ const nodeTypes = [
   { 
     id: 'trigger-message', 
     type: 'trigger', 
-    name: t('titles.mensagem'), 
+    name: 'Mensagem', 
     icon: MessageSquare, 
-    description: t('messages.detecta_mensagens_especficas'),
+    description: 'Detecta mensagens específicas',
     color: 'bg-blue-500'
   },
   { 
     id: 'trigger-keyword', 
     type: 'trigger', 
-    name: t('messages.palavrachave'), 
+    name: 'Palavra-chave', 
     icon: Hash, 
-    description: t('messages.ativado_por_palavraschave'),
+    description: 'Ativado por palavras-chave',
     color: 'bg-blue-500'
   },
   { 
     id: 'trigger-intent', 
     type: 'trigger', 
-    name: t('messages.inteno_ia'), 
+    name: 'Intenção IA', 
     icon: Brain, 
-    description: t('messages.detecta_inteno_com_ia'),
+    description: 'Detecta intenção com IA',
     color: 'bg-blue-500'
   },
   { 
     id: 'trigger-webhook', 
     type: 'trigger', 
-    name: t('titles.webhook'), 
+    name: 'Webhook', 
     icon: Webhook, 
-    description: t('titles.ativado_por_webhook_externo'),
+    description: 'Ativado por webhook externo',
     color: 'bg-blue-500'
   },
   { 
     id: 'trigger-time', 
     type: 'trigger', 
-    name: t('titles.agendamento'), 
+    name: 'Agendamento', 
     icon: Calendar, 
-    description: t('messages.ativado_por_horriodata'),
+    description: 'Ativado por horário/data',
     color: 'bg-blue-500'
   },
 
@@ -183,33 +182,33 @@ const nodeTypes = [
   { 
     id: 'condition-text', 
     type: 'condition', 
-    name: t('messages.condio_texto'), 
+    name: 'Condição Texto', 
     icon: GitBranch, 
-    description: t('messages.verifica_contedo_de_texto'),
+    description: 'Verifica conteúdo de texto',
     color: 'bg-yellow-500'
   },
   { 
     id: 'condition-variable', 
     type: 'condition', 
-    name: t('messages.condio_varivel'), 
+    name: 'Condição Variável', 
     icon: Database, 
-    description: t('messages.compara_valores_de_variveis'),
+    description: 'Compara valores de variáveis',
     color: 'bg-yellow-500'
   },
   { 
     id: 'condition-user', 
     type: 'condition', 
-    name: t('messages.condio_usurio'), 
+    name: 'Condição Usuário', 
     icon: UserCheck, 
-    description: t('messages.verifica_dados_do_usurio'),
+    description: 'Verifica dados do usuário',
     color: 'bg-yellow-500'
   },
   { 
     id: 'condition-time', 
     type: 'condition', 
-    name: t('messages.condio_horrio'), 
+    name: 'Condição Horário', 
     icon: Clock, 
-    description: t('messages.verifica_horriodata'),
+    description: 'Verifica horário/data',
     color: 'bg-yellow-500'
   },
 
@@ -217,65 +216,65 @@ const nodeTypes = [
   { 
     id: 'action-send-message', 
     type: 'action', 
-    name: t('messages.enviar_mensagem'), 
+    name: 'Enviar Mensagem', 
     icon: MessageCircle, 
-    description: t('titles.envia_mensagem_de_texto'),
+    description: 'Envia mensagem de texto',
     color: 'bg-green-500'
   },
   { 
     id: 'action-send-image', 
     type: 'action', 
-    name: t('messages.enviar_imagem'), 
+    name: 'Enviar Imagem', 
     icon: Image, 
-    description: t('messages.envia_imagem_ou_gif'),
+    description: 'Envia imagem ou GIF',
     color: 'bg-green-500'
   },
   { 
     id: 'action-send-audio', 
     type: 'action', 
-    name: t('messages.enviar_udio'), 
+    name: 'Enviar Áudio', 
     icon: Mic, 
-    description: t('messages.envia_mensagem_de_udio'),
+    description: 'Envia mensagem de áudio',
     color: 'bg-green-500'
   },
   { 
     id: 'action-send-video', 
     type: 'action', 
-    name: t('messages.enviar_vdeo'), 
+    name: 'Enviar Vídeo', 
     icon: Video, 
-    description: t('messages.envia_arquivo_de_vdeo'),
+    description: 'Envia arquivo de vídeo',
     color: 'bg-green-500'
   },
   { 
     id: 'action-send-document', 
     type: 'action', 
-    name: t('messages.enviar_documento'), 
+    name: 'Enviar Documento', 
     icon: FileText, 
-    description: t('messages.envia_arquivodocumento'),
+    description: 'Envia arquivo/documento',
     color: 'bg-green-500'
   },
   { 
     id: 'action-set-variable', 
     type: 'action', 
-    name: t('messages.definir_varivel'), 
+    name: 'Definir Variável', 
     icon: Database, 
-    description: t('messages.define_valor_de_varivel'),
+    description: 'Define valor de variável',
     color: 'bg-green-500'
   },
   { 
     id: 'action-api-call', 
     type: 'action', 
-    name: t('messages.chamada_api'), 
+    name: 'Chamada API', 
     icon: Globe, 
-    description: t('messages.faz_requisio_http'),
+    description: 'Faz requisição HTTP',
     color: 'bg-green-500'
   },
   { 
     id: 'action-tag-user', 
     type: 'action', 
-    name: t('messages.marcar_usurio'), 
+    name: 'Marcar Usuário', 
     icon: Tag, 
-    description: t('messages.adiciona_tag_ao_usurio'),
+    description: 'Adiciona tag ao usuário',
     color: 'bg-green-500'
   },
 
@@ -283,41 +282,41 @@ const nodeTypes = [
   { 
     id: 'response-text', 
     type: 'response', 
-    name: t('messages.resposta_texto'), 
+    name: 'Resposta Texto', 
     icon: MessageSquare, 
-    description: t('titles.resposta_em_texto_simples'),
+    description: 'Resposta em texto simples',
     color: 'bg-purple-500'
   },
   { 
     id: 'response-quick-reply', 
     type: 'response', 
-    name: t('messages.resposta_rpida'), 
+    name: 'Resposta Rápida', 
     icon: Zap, 
-    description: t('messages.botes_de_resposta_rpida'),
+    description: 'Botões de resposta rápida',
     color: 'bg-purple-500'
   },
   { 
     id: 'response-menu', 
     type: 'response', 
-    name: t('messages.menu_interativo'), 
+    name: 'Menu Interativo', 
     icon: Layers, 
-    description: t('messages.menu_com_opes'),
+    description: 'Menu com opções',
     color: 'bg-purple-500'
   },
   { 
     id: 'response-carousel', 
     type: 'response', 
-    name: t('titles.carrossel'), 
+    name: 'Carrossel', 
     icon: Shuffle, 
-    description: t('titles.carrossel_de_cards'),
+    description: 'Carrossel de cards',
     color: 'bg-purple-500'
   },
   { 
     id: 'response-form', 
     type: 'response', 
-    name: t('messages.formulrio'), 
+    name: 'Formulário', 
     icon: FileText, 
-    description: t('messages.coleta_dados_do_usurio'),
+    description: 'Coleta dados do usuário',
     color: 'bg-purple-500'
   },
 
@@ -327,23 +326,23 @@ const nodeTypes = [
     type: 'integration', 
     name: 'WhatsApp', 
     icon: MessageCircle, 
-    description: t('messages.integrao_whatsapp'),
+    description: 'Integração WhatsApp',
     color: 'bg-indigo-500'
   },
   { 
     id: 'integration-telegram', 
     type: 'integration', 
-    name: t('titles.telegram_1'), 
+    name: 'Telegram', 
     icon: MessageCircle, 
-    description: t('messages.integrao_telegram'),
+    description: 'Integração Telegram',
     color: 'bg-indigo-500'
   },
   { 
     id: 'integration-email', 
     type: 'integration', 
-    name: t('titles.email_4'), 
+    name: 'Email', 
     icon: Mail, 
-    description: t('titles.envio_de_emails'),
+    description: 'Envio de emails',
     color: 'bg-indigo-500'
   },
   { 
@@ -351,31 +350,31 @@ const nodeTypes = [
     type: 'integration', 
     name: 'SMS', 
     icon: Phone, 
-    description: t('messages.envio_de_sms'),
+    description: 'Envio de SMS',
     color: 'bg-indigo-500'
   },
   { 
     id: 'integration-calendar', 
     type: 'integration', 
-    name: t('messages.calendrio_1'), 
+    name: 'Calendário', 
     icon: Calendar, 
-    description: t('titles.agendamento_de_eventos'),
+    description: 'Agendamento de eventos',
     color: 'bg-indigo-500'
   },
   { 
     id: 'integration-payment', 
     type: 'integration', 
-    name: t('titles.pagamento'), 
+    name: 'Pagamento', 
     icon: CreditCard, 
-    description: t('titles.processamento_de_pagamentos'),
+    description: 'Processamento de pagamentos',
     color: 'bg-indigo-500'
   },
   { 
     id: 'integration-location', 
     type: 'integration', 
-    name: t('messages.localizao_4'), 
+    name: 'Localização', 
     icon: Map, 
-    description: t('messages.servios_de_localizao'),
+    description: 'Serviços de localização',
     color: 'bg-indigo-500'
   },
   { 
@@ -383,7 +382,7 @@ const nodeTypes = [
     type: 'integration', 
     name: 'CRM', 
     icon: Users, 
-    description: t('messages.integrao_com_crm'),
+    description: 'Integração com CRM',
     color: 'bg-indigo-500'
   },
 
@@ -391,33 +390,33 @@ const nodeTypes = [
   { 
     id: 'ai-nlp', 
     type: 'ai', 
-    name: t('messages.processamento_ia'), 
+    name: 'Processamento IA', 
     icon: Brain, 
-    description: t('messages.anlise_de_linguagem_natural'),
+    description: 'Análise de linguagem natural',
     color: 'bg-pink-500'
   },
   { 
     id: 'ai-sentiment', 
     type: 'ai', 
-    name: t('messages.anlise_sentimento'), 
+    name: 'Análise Sentimento', 
     icon: Brain, 
-    description: t('messages.detecta_emoes_do_usurio'),
+    description: 'Detecta emoções do usuário',
     color: 'bg-pink-500'
   },
   { 
     id: 'ai-translation', 
     type: 'ai', 
-    name: t('messages.traduo'), 
+    name: 'Tradução', 
     icon: Globe, 
-    description: t('messages.traduo_automtica'),
+    description: 'Tradução automática',
     color: 'bg-pink-500'
   },
   { 
     id: 'ai-recommendation', 
     type: 'ai', 
-    name: t('messages.recomendao_ia'), 
+    name: 'Recomendação IA', 
     icon: Target, 
-    description: t('messages.sistema_de_recomendaes'),
+    description: 'Sistema de recomendações',
     color: 'bg-pink-500'
   },
 
@@ -425,57 +424,57 @@ const nodeTypes = [
   { 
     id: 'flow-delay', 
     type: 'delay', 
-    name: t('titles.aguardar'), 
+    name: 'Aguardar', 
     icon: Timer, 
-    description: t('titles.pausa_no_fluxo'),
+    description: 'Pausa no fluxo',
     color: 'bg-gray-500'
   },
   { 
     id: 'flow-loop', 
     type: 'loop', 
-    name: t('titles.loop'), 
+    name: 'Loop', 
     icon: Repeat, 
-    description: t('messages.repetio_de_aes'),
+    description: 'Repetição de ações',
     color: 'bg-gray-500'
   },
   { 
     id: 'flow-branch', 
     type: 'branch', 
-    name: t('messages.ramificao'), 
+    name: 'Ramificação', 
     icon: GitBranch, 
-    description: t('messages.diviso_de_fluxo'),
+    description: 'Divisão de fluxo',
     color: 'bg-gray-500'
   },
   { 
     id: 'flow-merge', 
     type: 'branch', 
-    name: t('messages.fuso'), 
+    name: 'Fusão', 
     icon: GitBranch, 
-    description: t('messages.unio_de_fluxos'),
+    description: 'União de fluxos',
     color: 'bg-gray-500'
   },
   { 
     id: 'flow-jump', 
     type: 'branch', 
-    name: t('messages.pular_para'), 
+    name: 'Pular Para', 
     icon: SkipForward, 
-    description: t('messages.salta_para_outro_n'),
+    description: 'Salta para outro nó',
     color: 'bg-gray-500'
   },
   { 
     id: 'flow-end', 
     type: 'branch', 
-    name: t('titles.finalizar'), 
+    name: 'Finalizar', 
     icon: Flag, 
-    description: t('titles.termina_a_conversa'),
+    description: 'Termina a conversa',
     color: 'bg-red-500'
   },
   { 
     id: 'flow-transfer-human', 
     type: 'transfer', 
-    name: t('messages.transferir_humano'), 
+    name: 'Transferir Humano', 
     icon: Users, 
-    description: t('titles.transfere_para_atendente'),
+    description: 'Transfere para atendente',
     color: 'bg-orange-500'
   },
 
@@ -483,40 +482,38 @@ const nodeTypes = [
   { 
     id: 'validation-email', 
     type: 'validation', 
-    name: t('messages.validar_email'), 
+    name: 'Validar Email', 
     icon: Mail, 
-    description: t('titles.valida_formato_de_email'),
+    description: 'Valida formato de email',
     color: 'bg-cyan-500'
   },
   { 
     id: 'validation-phone', 
     type: 'validation', 
-    name: t('messages.validar_telefone'), 
+    name: 'Validar Telefone', 
     icon: Phone, 
-    description: t('messages.valida_nmero_de_telefone'),
+    description: 'Valida número de telefone',
     color: 'bg-cyan-500'
   },
   { 
     id: 'validation-cpf', 
     type: 'validation', 
-    name: t('messages.validar_cpf'), 
+    name: 'Validar CPF', 
     icon: FileText, 
-    description: t('messages.valida_cpf_brasileiro'),
+    description: 'Valida CPF brasileiro',
     color: 'bg-cyan-500'
   },
   { 
     id: 'validation-number', 
     type: 'validation', 
-    name: t('messages.validar_nmero'), 
+    name: 'Validar Número', 
     icon: Hash, 
-    description: t('messages.valida_entrada_numrica'),
+    description: 'Valida entrada numérica',
     color: 'bg-cyan-500'
   }
 ];
 
 export default function ChatbotVisualEditor() {
-  const { t } = useTranslation();
-
   const { user } = useAuth();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [chatbots, setChatbots] = useState<Chatbot[]>([]);
@@ -572,33 +569,33 @@ export default function ChatbotVisualEditor() {
           {
             id: '1',
             tenantId: user?.tenantId || '',
-            name: t('messages.atendimento_geral'),
-            description: t('titles.bot_para_atendimento_inicial_e_direcionamento'),
+            name: 'Atendimento Geral',
+            description: 'Bot para atendimento inicial e direcionamento',
             flow: {
               id: 'flow1',
-              name: t('messages.fluxo_principal'),
-              description: t('titles.fluxo_de_atendimento_principal'),
+              name: 'Fluxo Principal',
+              description: 'Fluxo de atendimento principal',
               nodes: [
                 {
                   id: 'start',
                   type: 'trigger',
-                  title: t('messages.incio_1'),
+                  title: 'Início',
                   position: { x: 100, y: 100 },
-                  config: { message: t('messages.ol_como_posso_ajudar') },
+                  config: { message: 'Olá! Como posso ajudar?' },
                   connections: ['welcome'],
                   isStartNode: true
                 },
                 {
                   id: 'welcome',
                   type: 'response',
-                  title: t('messages.mensagem_de_boasvindas'),
+                  title: 'Mensagem de Boas-vindas',
                   position: { x: 300, y: 100 },
-                  config: { text: t('messages.bemvindo_ao_nosso_atendimento') },
+                  config: { text: 'Bem-vindo ao nosso atendimento!' },
                   connections: []
                 }
               ],
               connections: [
-                { id: 'conn1', from: 'start', to: 'welcome', label: t('messages.incio_1') }
+                { id: 'conn1', from: 'start', to: 'welcome', label: 'Início' }
               ],
               variables: {},
               settings: {
@@ -635,13 +632,13 @@ export default function ChatbotVisualEditor() {
         description: newChatbotData.description,
         flow: {
           id: `flow_${Date.now()}`,
-          name: t('messages.novo_fluxo'),
-          description: t('titles.fluxo_inicial_do_chatbot'),
+          name: 'Novo Fluxo',
+          description: 'Fluxo inicial do chatbot',
           nodes: [
             {
               id: 'start_node',
               type: 'trigger',
-              title: t('messages.incio_1'),
+              title: 'Início',
               position: { x: 200, y: 150 },
               config: { trigger: 'any_message' },
               connections: [],
@@ -741,7 +738,7 @@ export default function ChatbotVisualEditor() {
         id: `conn_${Date.now()}`,
         from: connectionStart,
         to: node.id,
-        label: t('titles.conectar')
+        label: 'Conectar'
       };
 
       if (selectedChatbot) {
@@ -843,15 +840,15 @@ export default function ChatbotVisualEditor() {
   });
 
   const nodeCategories = [
-    { id: 'all', name: t('titles.todos_4') },
-    { id: 'trigger', name: t('titles.gatilhos') },
-    { id: 'condition', name: t('messages.condies') },
-    { id: 'action', name: t('messages.aes_8') },
-    { id: 'response', name: t('titles.respostas') },
-    { id: 'integration', name: t('messages.integraes') },
-    { id: 'ai', name: t('messages.inteligncia_artificial') },
-    { id: 'validation', name: t('messages.validao') },
-    { id: 'delay', name: t('messages.controle_de_fluxo') }
+    { id: 'all', name: 'Todos' },
+    { id: 'trigger', name: 'Gatilhos' },
+    { id: 'condition', name: 'Condições' },
+    { id: 'action', name: 'Ações' },
+    { id: 'response', name: 'Respostas' },
+    { id: 'integration', name: 'Integrações' },
+    { id: 'ai', name: 'Inteligência Artificial' },
+    { id: 'validation', name: 'Validação' },
+    { id: 'delay', name: 'Controle de Fluxo' }
   ];
 
   return (
@@ -859,7 +856,7 @@ export default function ChatbotVisualEditor() {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">{t('messages.editor_visual_de_chatbots')}/h2>
+          <h2 className="text-2xl font-bold tracking-tight">Editor Visual de Chatbots</h2>
           <p className="text-muted-foreground">
             Construa fluxos conversacionais com interface visual intuitiva
           </p>
@@ -885,13 +882,13 @@ export default function ChatbotVisualEditor() {
         <div className="w-80 border-r bg-gray-50 flex flex-col">
           {/* Chatbot Selector */}
           <div className="p-4 border-b bg-white">
-            <Label className="text-sm font-medium mb-2 block">{t('messages.chatbot_ativo')}/Label>
+            <Label className="text-sm font-medium mb-2 block">Chatbot Ativo</Label>
             <Select value={selectedChatbot?.id || ''} onValueChange={(value) => {
               const chatbot = chatbots.find(c => c.id === value);
               setSelectedChatbot(chatbot || null);
             }}>
               <SelectTrigger>
-                <SelectValue placeholder={t('titles.selecione_um_chatbot')} />
+                <SelectValue placeholder="Selecione um chatbot" />
               </SelectTrigger>
               <SelectContent>
                 {chatbots.map(chatbot => (
@@ -911,7 +908,7 @@ export default function ChatbotVisualEditor() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('messages.buscar_ns')}
+                placeholder="Buscar nós..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -1152,7 +1149,7 @@ export default function ChatbotVisualEditor() {
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">{t('titles.nenhum_chatbot_selecionado')}/h3>
+                  <h3 className="text-lg font-medium mb-2">Nenhum chatbot selecionado</h3>
                   <p className="text-muted-foreground mb-4">
                     Selecione um chatbot ou crie um novo para começar a editar
                   </p>
@@ -1171,7 +1168,7 @@ export default function ChatbotVisualEditor() {
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t('messages.criar_novo_chatbot')}/DialogTitle>
+            <DialogTitle>Criar Novo Chatbot</DialogTitle>
             <DialogDescription>
               Configure um novo chatbot conversacional
             </DialogDescription>
@@ -1179,19 +1176,19 @@ export default function ChatbotVisualEditor() {
           
           <div className="space-y-4">
             <div>
-              <Label htmlFor="bot-name">{t('messages.nome_do_chatbot')}/Label>
+              <Label htmlFor="bot-name">Nome do Chatbot</Label>
               <Input
                 id="bot-name"
-                placeholder={t('messages.ex_atendimento_geral')}
+                placeholder="Ex: Atendimento Geral"
                 value={newChatbotData.name}
                 onChange={(e) => setNewChatbotData(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
             <div>
-              <Label htmlFor="bot-description">{t('modals.descrio')}/Label>
+              <Label htmlFor="bot-description">Descrição</Label>
               <Textarea
                 id="bot-description"
-                placeholder={t('messages.descreva_o_propsito_e_funo_do_chatbot')}
+                placeholder="Descreva o propósito e função do chatbot..."
                 value={newChatbotData.description}
                 onChange={(e) => setNewChatbotData(prev => ({ ...prev, description: e.target.value }))}
                 rows={3}
@@ -1199,7 +1196,7 @@ export default function ChatbotVisualEditor() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="language">{t('titles.idioma_1')}/Label>
+                <Label htmlFor="language">Idioma</Label>
                 <Select value={newChatbotData.language} onValueChange={(value) => 
                   setNewChatbotData(prev => ({ ...prev, language: value }))
                 }>
@@ -1207,14 +1204,14 @@ export default function ChatbotVisualEditor() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pt-BR">{t('messages.portugus_brasil')}/SelectItem>
-                    <SelectItem value="en">{t('titles.english_1')}/SelectItem>
-                    <SelectItem value="es">{t('messages.espaol_1')}/SelectItem>
+                    <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Español</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="timeout">{t('messages.timeout_segundos')}/Label>
+                <Label htmlFor="timeout">Timeout (segundos)</Label>
                 <Input
                   id="timeout"
                   type="number"
@@ -1230,7 +1227,7 @@ export default function ChatbotVisualEditor() {
                   checked={newChatbotData.fallbackToHuman}
                   onCheckedChange={(checked) => setNewChatbotData(prev => ({ ...prev, fallbackToHuman: checked }))}
                 />
-                <Label htmlFor="fallback-human">{t('messages.transferir_para_humano_quando_necessrio')}/Label>
+                <Label htmlFor="fallback-human">Transferir para humano quando necessário</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
@@ -1238,13 +1235,15 @@ export default function ChatbotVisualEditor() {
                   checked={newChatbotData.aiEnabled}
                   onCheckedChange={(checked) => setNewChatbotData(prev => ({ ...prev, aiEnabled: checked }))}
                 />
-                <Label htmlFor="ai-enabled">{t('messages.ativar_processamento_com_ia')}/Label>
+                <Label htmlFor="ai-enabled">Ativar processamento com IA</Label>
               </div>
             </div>
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() =>{t('messages.setshowcreatemodalfalse_cancelar')}</Button>
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              Cancelar
+            </Button>
             <Button 
               onClick={handleCreateChatbot}
               disabled={!newChatbotData.name.trim()}
@@ -1269,18 +1268,18 @@ export default function ChatbotVisualEditor() {
           {selectedNode && (
             <Tabs defaultValue="basic" className="space-y-4">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic">{t('messages.bsico')}/TabsTrigger>
-                <TabsTrigger value="config">{t('messages.configurao_1')}/TabsTrigger>
-                <TabsTrigger value="connections">{t('messages.conexes')}/TabsTrigger>
+                <TabsTrigger value="basic">Básico</TabsTrigger>
+                <TabsTrigger value="config">Configuração</TabsTrigger>
+                <TabsTrigger value="connections">Conexões</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4">
                 <div>
-                  <Label>{t('messages.ttulo_do_n')}/Label>
+                  <Label>Título do Nó</Label>
                   <Input value={selectedNode.title} onChange={() => {}} />
                 </div>
                 <div>
-                  <Label>{t('modals.descrio')}/Label>
+                  <Label>Descrição</Label>
                   <Textarea value={selectedNode.description || ''} onChange={() => {}} rows={3} />
                 </div>
               </TabsContent>
@@ -1291,72 +1290,72 @@ export default function ChatbotVisualEditor() {
                     {/* Trigger Node Configurations */}
                     {selectedNode.type === 'trigger' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_de_gatilho')}/h4>
+                        <h4 className="font-medium text-sm">Configurações de Gatilho</h4>
                         
                         {nodeTypes.find(nt => nt.id.includes('trigger-message'))?.id === selectedNode.id && (
                           <div className="space-y-4">
                             <div>
-                              <Label>{t('messages.mensagens_de_ativao')}/Label>
+                              <Label>Mensagens de Ativação</Label>
                               <Textarea 
-                                placeholder={t('messages.ol10oi10bom_dia10boa_tarde10preciso_de_ajuda')}
+                                placeholder="olá&#10;oi&#10;bom dia&#10;boa tarde&#10;preciso de ajuda"
                                 rows={4}
                               />
-                              <p className="text-xs text-muted-foreground mt-1">{t('messages.uma_mensagem_por_linha_use_quebras_de_linha_para_s')}/p>
+                              <p className="text-xs text-muted-foreground mt-1">Uma mensagem por linha. Use quebras de linha para separar</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="flex items-center space-x-2">
                                 <Switch id="case-sensitive" />
-                                <Label htmlFor="case-sensitive" className="text-sm">{t('messages.sensvel_a_maisculasminsculas')}/Label>
+                                <Label htmlFor="case-sensitive" className="text-sm">Sensível a maiúsculas/minúsculas</Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Switch id="exact-match" />
-                                <Label htmlFor="exact-match" className="text-sm">{t('messages.correspondncia_exata')}/Label>
+                                <Label htmlFor="exact-match" className="text-sm">Correspondência exata</Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Switch id="partial-match" />
-                                <Label htmlFor="partial-match" className="text-sm">{t('messages.correspondncia_parcial')}/Label>
+                                <Label htmlFor="partial-match" className="text-sm">Correspondência parcial</Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Switch id="regex-enabled" />
-                                <Label htmlFor="regex-enabled" className="text-sm">{t('messages.usar_expresses_regulares')}/Label>
+                                <Label htmlFor="regex-enabled" className="text-sm">Usar expressões regulares</Label>
                               </div>
                             </div>
                             <div>
-                              <Label>{t('messages.prioridade_do_gatilho')}/Label>
+                              <Label>Prioridade do Gatilho</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('titles.selecione_a_prioridade_4')} />
+                                  <SelectValue placeholder="Selecione a prioridade" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="1">{t('messages.1_mais_alta')}/SelectItem>
-                                  <SelectItem value="5">{t('messages.5_alta')}/SelectItem>
-                                  <SelectItem value="10">{t('messages.10_normal')}/SelectItem>
-                                  <SelectItem value="15">{t('messages.15_baixa')}/SelectItem>
-                                  <SelectItem value="20">{t('messages.20_mais_baixa')}/SelectItem>
+                                  <SelectItem value="1">1 - Mais Alta</SelectItem>
+                                  <SelectItem value="5">5 - Alta</SelectItem>
+                                  <SelectItem value="10">10 - Normal</SelectItem>
+                                  <SelectItem value="15">15 - Baixa</SelectItem>
+                                  <SelectItem value="20">20 - Mais Baixa</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div>
-                              <Label>{t('messages.condies_adicionais')}/Label>
+                              <Label>Condições Adicionais</Label>
                               <div className="space-y-2">
                                 <div className="flex items-center space-x-2">
                                   <Switch id="first-message-only" />
-                                  <Label htmlFor="first-message-only" className="text-sm">{t('messages.apenas_primeira_mensagem_do_usurio')}/Label>
+                                  <Label htmlFor="first-message-only" className="text-sm">Apenas primeira mensagem do usuário</Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <Switch id="business-hours-only" />
-                                  <Label htmlFor="business-hours-only" className="text-sm">{t('messages.apenas_em_horrio_comercial')}/Label>
+                                  <Label htmlFor="business-hours-only" className="text-sm">Apenas em horário comercial</Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <Switch id="new-users-only" />
-                                  <Label htmlFor="new-users-only" className="text-sm">{t('messages.apenas_usurios_novos')}/Label>
+                                  <Label htmlFor="new-users-only" className="text-sm">Apenas usuários novos</Label>
                                 </div>
                               </div>
                             </div>
                             <div>
-                              <Label>{t('messages.timeout_do_gatilho_segundos')}/Label>
-                              <Input type="number" min="0" defaultValue="0" placeholder={t('messages.0_sem_timeout')} />
-                              <p className="text-xs text-muted-foreground mt-1">{t('messages.tempo_limite_para_o_gatilho_ser_ativado_aps_a_mens')}/p>
+                              <Label>Timeout do Gatilho (segundos)</Label>
+                              <Input type="number" min="0" defaultValue="0" placeholder="0 = sem timeout" />
+                              <p className="text-xs text-muted-foreground mt-1">Tempo limite para o gatilho ser ativado após a mensagem</p>
                             </div>
                           </div>
                         )}
@@ -1364,37 +1363,37 @@ export default function ChatbotVisualEditor() {
                         {nodeTypes.find(nt => nt.id.includes('trigger-keyword'))?.id === selectedNode.id && (
                           <div className="space-y-4">
                             <div>
-                              <Label>{t('messages.palavraschave_principais')}/Label>
-                              <Textarea placeholder={t('messages.suporte_ajuda_problema_dvida')} rows={3} />
-                              <p className="text-xs text-muted-foreground mt-1">{t('messages.palavraschave_primrias_separadas_por_vrgula')}/p>
+                              <Label>Palavras-chave Principais</Label>
+                              <Textarea placeholder="suporte, ajuda, problema, dúvida" rows={3} />
+                              <p className="text-xs text-muted-foreground mt-1">Palavras-chave primárias separadas por vírgula</p>
                             </div>
                             <div>
-                              <Label>{t('messages.palavraschave_secundrias_opcionais')}/Label>
-                              <Textarea placeholder={t('messages.auxlio_apoio_questo_pergunta')} rows={2} />
-                              <p className="text-xs text-muted-foreground mt-1">{t('messages.palavraschave_que_aumentam_a_pontuao')}/p>
+                              <Label>Palavras-chave Secundárias (Opcionais)</Label>
+                              <Textarea placeholder="auxílio, apoio, questão, pergunta" rows={2} />
+                              <p className="text-xs text-muted-foreground mt-1">Palavras-chave que aumentam a pontuação</p>
                             </div>
                             <div>
-                              <Label>{t('messages.palavras_excludentes')}/Label>
-                              <Textarea placeholder={t('messages.no_nunca_pare_cancele')} rows={2} />
-                              <p className="text-xs text-muted-foreground mt-1">{t('messages.palavras_que_impedem_a_ativao_do_gatilho')}/p>
+                              <Label>Palavras Excludentes</Label>
+                              <Textarea placeholder="não, nunca, pare, cancele" rows={2} />
+                              <p className="text-xs text-muted-foreground mt-1">Palavras que impedem a ativação do gatilho</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label>{t('titles.prioridade_4')}/Label>
+                                <Label>Prioridade</Label>
                                 <Select>
                                   <SelectTrigger>
-                                    <SelectValue placeholder={t('titles.selecione_a_prioridade_4')} />
+                                    <SelectValue placeholder="Selecione a prioridade" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="1">{t('messages.1_crtica')}/SelectItem>
-                                    <SelectItem value="5">{t('messages.5_alta')}/SelectItem>
-                                    <SelectItem value="10">{t('messages.10_normal')}/SelectItem>
-                                    <SelectItem value="15">{t('messages.15_baixa')}/SelectItem>
+                                    <SelectItem value="1">1 - Crítica</SelectItem>
+                                    <SelectItem value="5">5 - Alta</SelectItem>
+                                    <SelectItem value="10">10 - Normal</SelectItem>
+                                    <SelectItem value="15">15 - Baixa</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
                               <div>
-                                <Label>{t('messages.pontuao_mnima')}/Label>
+                                <Label>Pontuação Mínima</Label>
                                 <Input type="number" min="1" max="100" defaultValue="70" />
                                 <p className="text-xs text-muted-foreground mt-1">0-100%</p>
                               </div>
@@ -1402,15 +1401,15 @@ export default function ChatbotVisualEditor() {
                             <div className="space-y-2">
                               <div className="flex items-center space-x-2">
                                 <Switch id="stemming" />
-                                <Label htmlFor="stemming" className="text-sm">{t('messages.usar_stemming_raiz_das_palavras')}/Label>
+                                <Label htmlFor="stemming" className="text-sm">Usar stemming (raiz das palavras)</Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Switch id="synonyms" />
-                                <Label htmlFor="synonyms" className="text-sm">{t('messages.incluir_sinnimos_automticos')}/Label>
+                                <Label htmlFor="synonyms" className="text-sm">Incluir sinônimos automáticos</Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Switch id="fuzzy-match" />
-                                <Label htmlFor="fuzzy-match" className="text-sm">{t('messages.correspondncia_aproximada')}/Label>
+                                <Label htmlFor="fuzzy-match" className="text-sm">Correspondência aproximada</Label>
                               </div>
                             </div>
                           </div>
@@ -1419,25 +1418,25 @@ export default function ChatbotVisualEditor() {
                         {nodeTypes.find(nt => nt.id.includes('trigger-intent'))?.id === selectedNode.id && (
                           <div className="space-y-3">
                             <div>
-                              <Label>{t('messages.modelo_de_ia')}/Label>
+                              <Label>Modelo de IA</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('titles.selecione_o_modelo')} />
+                                  <SelectValue placeholder="Selecione o modelo" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
                                   <SelectItem value="gpt-4">GPT-4</SelectItem>
-                                  <SelectItem value="claude">{t('titles.claude')}/SelectItem>
+                                  <SelectItem value="claude">Claude</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div>
-                              <Label>{t('messages.confiana_mnima')}/Label>
+                              <Label>Confiança Mínima (%)</Label>
                               <Input type="number" min="0" max="100" defaultValue="70" />
                             </div>
                             <div>
-                              <Label>{t('messages.prompt_de_inteno')}/Label>
-                              <Textarea placeholder={t('messages.descreva_a_inteno_que_deve_ser_detectada')} rows={3} />
+                              <Label>Prompt de Intenção</Label>
+                              <Textarea placeholder="Descreva a intenção que deve ser detectada..." rows={3} />
                             </div>
                           </div>
                         )}
@@ -1447,20 +1446,20 @@ export default function ChatbotVisualEditor() {
                     {/* Action Node Configurations */}
                     {selectedNode.type === 'action' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_de_ao')}/h4>
+                        <h4 className="font-medium text-sm">Configurações de Ação</h4>
                         
                         {nodeTypes.find(nt => nt.id.includes('action-send-message'))?.id === selectedNode.id && (
                           <div className="space-y-3">
                             <div>
-                              <Label>{t('messages.contedo_da_mensagem')}/Label>
-                              <Textarea placeholder={t('messages.digite_a_mensagem_a_ser_enviada')} rows={4} />
+                              <Label>Conteúdo da Mensagem</Label>
+                              <Textarea placeholder="Digite a mensagem a ser enviada..." rows={4} />
                             </div>
                             <div className="flex items-center space-x-2">
                               <Switch id="use-variables" />
-                              <Label htmlFor="use-variables" className="text-sm">{t('messages.usar_variveis_dinmicas')}/Label>
+                              <Label htmlFor="use-variables" className="text-sm">Usar variáveis dinâmicas</Label>
                             </div>
                             <div>
-                              <Label>{t('messages.delay_segundos')}/Label>
+                              <Label>Delay (segundos)</Label>
                               <Input type="number" min="0" defaultValue="0" />
                             </div>
                           </div>
@@ -1473,10 +1472,10 @@ export default function ChatbotVisualEditor() {
                               <Input placeholder="https://api.exemplo.com/endpoint" />
                             </div>
                             <div>
-                              <Label>{t('messages.mtodo_http')}/Label>
+                              <Label>Método HTTP</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('messages.selecione_o_mtodo')} />
+                                  <SelectValue placeholder="Selecione o método" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="GET">GET</SelectItem>
@@ -1487,15 +1486,15 @@ export default function ChatbotVisualEditor() {
                               </Select>
                             </div>
                             <div>
-                              <Label>{t('titles.headers')}/Label>
+                              <Label>Headers</Label>
                               <Textarea placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}' rows={3} />
                             </div>
                             <div>
-                              <Label>{t('messages.body_da_requisio')}/Label>
+                              <Label>Body da Requisição</Label>
                               <Textarea placeholder="JSON payload..." rows={3} />
                             </div>
                             <div>
-                              <Label>{t('messages.timeout_segundos')}/Label>
+                              <Label>Timeout (segundos)</Label>
                               <Input type="number" min="1" defaultValue="30" />
                             </div>
                           </div>
@@ -1504,24 +1503,24 @@ export default function ChatbotVisualEditor() {
                         {nodeTypes.find(nt => nt.id.includes('action-set-variable'))?.id === selectedNode.id && (
                           <div className="space-y-3">
                             <div>
-                              <Label>{t('messages.nome_da_varivel')}/Label>
+                              <Label>Nome da Variável</Label>
                               <Input placeholder="nome_usuario" />
                             </div>
                             <div>
-                              <Label>{t('titles.valor_2')}/Label>
-                              <Input placeholder={t('messages.valor_ou_expresso')} />
+                              <Label>Valor</Label>
+                              <Input placeholder="Valor ou expressão" />
                             </div>
                             <div>
-                              <Label>{t('messages.tipo_de_valor')}/Label>
+                              <Label>Tipo de Valor</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('titles.selecione_o_tipo_8')} />
+                                  <SelectValue placeholder="Selecione o tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="string">{t('titles.texto_1')}/SelectItem>
-                                  <SelectItem value="number">{t('messages.nmero_2')}/SelectItem>
-                                  <SelectItem value="boolean">{t('messages.verdadeirofalso_1')}/SelectItem>
-                                  <SelectItem value="expression">{t('messages.expresso')}/SelectItem>
+                                  <SelectItem value="string">Texto</SelectItem>
+                                  <SelectItem value="number">Número</SelectItem>
+                                  <SelectItem value="boolean">Verdadeiro/Falso</SelectItem>
+                                  <SelectItem value="expression">Expressão</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -1533,37 +1532,37 @@ export default function ChatbotVisualEditor() {
                     {/* Condition Node Configurations */}
                     {selectedNode.type === 'condition' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_de_condio')}/h4>
+                        <h4 className="font-medium text-sm">Configurações de Condição</h4>
                         
                         <div className="space-y-3">
                           <div>
-                            <Label>{t('messages.tipo_de_condio')}/Label>
+                            <Label>Tipo de Condição</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('titles.selecione_o_tipo_8')} />
+                                <SelectValue placeholder="Selecione o tipo" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="equals">{t('titles.igual_a')}/SelectItem>
-                                <SelectItem value="not_equals">{t('titles.diferente_de')}/SelectItem>
-                                <SelectItem value="contains">{t('messages.contm')}/SelectItem>
-                                <SelectItem value="starts_with">{t('messages.comea_com')}/SelectItem>
-                                <SelectItem value="ends_with">{t('titles.termina_com')}/SelectItem>
-                                <SelectItem value="greater_than">{t('titles.maior_que')}/SelectItem>
-                                <SelectItem value="less_than">{t('titles.menor_que')}/SelectItem>
+                                <SelectItem value="equals">Igual a</SelectItem>
+                                <SelectItem value="not_equals">Diferente de</SelectItem>
+                                <SelectItem value="contains">Contém</SelectItem>
+                                <SelectItem value="starts_with">Começa com</SelectItem>
+                                <SelectItem value="ends_with">Termina com</SelectItem>
+                                <SelectItem value="greater_than">Maior que</SelectItem>
+                                <SelectItem value="less_than">Menor que</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label>{t('messages.valor_a_comparar')}/Label>
-                            <Input placeholder={t('messages.valor_de_comparao')} />
+                            <Label>Valor a Comparar</Label>
+                            <Input placeholder="Valor de comparação" />
                           </div>
                           <div>
-                            <Label>{t('messages.varivel_ou_campo')}/Label>
-                            <Input placeholder={t('messages.usuarionome_ou_campo_especfico')} />
+                            <Label>Variável ou Campo</Label>
+                            <Input placeholder="{{usuario.nome}} ou campo específico" />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="case-insensitive" />
-                            <Label htmlFor="case-insensitive" className="text-sm">{t('messages.ignorar_maisculasminsculas')}/Label>
+                            <Label htmlFor="case-insensitive" className="text-sm">Ignorar maiúsculas/minúsculas</Label>
                           </div>
                         </div>
                       </div>
@@ -1572,20 +1571,20 @@ export default function ChatbotVisualEditor() {
                     {/* Response Node Configurations */}
                     {selectedNode.type === 'response' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_de_resposta')}/h4>
+                        <h4 className="font-medium text-sm">Configurações de Resposta</h4>
                         
                         {nodeTypes.find(nt => nt.id.includes('response-quick-reply'))?.id === selectedNode.id && (
                           <div className="space-y-3">
                             <div>
-                              <Label>{t('messages.texto_da_pergunta')}/Label>
-                              <Textarea placeholder={t('messages.como_posso_ajudar_voc_hoje')} rows={2} />
+                              <Label>Texto da Pergunta</Label>
+                              <Textarea placeholder="Como posso ajudar você hoje?" rows={2} />
                             </div>
                             <div>
-                              <Label>{t('messages.opes_de_resposta_rpida')}/Label>
+                              <Label>Opções de Resposta Rápida</Label>
                               <div className="space-y-2">
-                                <Input placeholder={t('messages.opo_1')} />
-                                <Input placeholder={t('messages.opo_2')} />
-                                <Input placeholder={t('messages.opo_3')} />
+                                <Input placeholder="Opção 1" />
+                                <Input placeholder="Opção 2" />
+                                <Input placeholder="Opção 3" />
                                 <Button variant="outline" size="sm">
                                   <Plus className="h-4 w-4 mr-2" />
                                   Adicionar Opção
@@ -1593,7 +1592,7 @@ export default function ChatbotVisualEditor() {
                               </div>
                             </div>
                             <div>
-                              <Label>{t('messages.tempo_limite_segundos')}/Label>
+                              <Label>Tempo Limite (segundos)</Label>
                               <Input type="number" min="10" defaultValue="60" />
                             </div>
                           </div>
@@ -1602,19 +1601,19 @@ export default function ChatbotVisualEditor() {
                         {nodeTypes.find(nt => nt.id.includes('response-menu'))?.id === selectedNode.id && (
                           <div className="space-y-3">
                             <div>
-                              <Label>{t('messages.ttulo_do_menu')}/Label>
-                              <Input placeholder={t('messages.selecione_uma_opo')} />
+                              <Label>Título do Menu</Label>
+                              <Input placeholder="Selecione uma opção" />
                             </div>
                             <div>
-                              <Label>{t('modals.descrio')}/Label>
-                              <Textarea placeholder={t('messages.escolha_uma_das_opes_abaixo')} rows={2} />
+                              <Label>Descrição</Label>
+                              <Textarea placeholder="Escolha uma das opções abaixo..." rows={2} />
                             </div>
                             <div>
-                              <Label>{t('messages.itens_do_menu')}/Label>
+                              <Label>Itens do Menu</Label>
                               <div className="space-y-2">
                                 <div className="flex gap-2">
-                                  <Input placeholder={t('messages.ttulo_do_item')} />
-                                  <Input placeholder={t('modals.descrio')} />
+                                  <Input placeholder="Título do item" />
+                                  <Input placeholder="Descrição" />
                                 </div>
                                 <Button variant="outline" size="sm">
                                   <Plus className="h-4 w-4 mr-2" />
@@ -1630,39 +1629,39 @@ export default function ChatbotVisualEditor() {
                     {/* AI Node Configurations */}
                     {selectedNode.type === 'ai' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_de_ia')}/h4>
+                        <h4 className="font-medium text-sm">Configurações de IA</h4>
                         
                         <div className="space-y-3">
                           <div>
-                            <Label>{t('messages.modelo_de_ia')}/Label>
+                            <Label>Modelo de IA</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('titles.selecione_o_modelo')} />
+                                <SelectValue placeholder="Selecione o modelo" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
                                 <SelectItem value="gpt-4">GPT-4</SelectItem>
-                                <SelectItem value="claude">{t('titles.claude')}/SelectItem>
-                                <SelectItem value="gemini">{t('titles.gemini')}/SelectItem>
+                                <SelectItem value="claude">Claude</SelectItem>
+                                <SelectItem value="gemini">Gemini</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label>{t('messages.prompt_do_sistema')}/Label>
-                            <Textarea placeholder={t('messages.voc_um_assistente_til_e_prestativo')} rows={4} />
+                            <Label>Prompt do Sistema</Label>
+                            <Textarea placeholder="Você é um assistente útil e prestativo..." rows={4} />
                           </div>
                           <div>
-                            <Label>{t('titles.temperatura')}/Label>
+                            <Label>Temperatura</Label>
                             <Input type="number" min="0" max="1" step="0.1" defaultValue="0.7" />
-                            <p className="text-xs text-muted-foreground mt-1">{t('messages.0_mais_preciso_1_mais_criativo')}/p>
+                            <p className="text-xs text-muted-foreground mt-1">0 = Mais preciso, 1 = Mais criativo</p>
                           </div>
                           <div>
-                            <Label>{t('messages.mximo_de_tokens')}/Label>
+                            <Label>Máximo de Tokens</Label>
                             <Input type="number" min="1" max="4000" defaultValue="150" />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="context-memory" />
-                            <Label htmlFor="context-memory" className="text-sm">{t('titles.manter_contexto_da_conversa')}/Label>
+                            <Label htmlFor="context-memory" className="text-sm">Manter contexto da conversa</Label>
                           </div>
                         </div>
                       </div>
@@ -1671,34 +1670,34 @@ export default function ChatbotVisualEditor() {
                     {/* Integration Node Configurations */}
                     {selectedNode.type === 'integration' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_de_integrao')}/h4>
+                        <h4 className="font-medium text-sm">Configurações de Integração</h4>
                         
                         <div className="space-y-3">
                           <div>
-                            <Label>{t('messages.tipo_de_integrao')}/Label>
+                            <Label>Tipo de Integração</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('messages.selecione_a_integrao')} />
+                                <SelectValue placeholder="Selecione a integração" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="whatsapp">WhatsApp Business</SelectItem>
-                                <SelectItem value="telegram">{t('titles.telegram_1')}/SelectItem>
-                                <SelectItem value="email">{t('titles.email_4')}/SelectItem>
+                                <SelectItem value="telegram">Telegram</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
                                 <SelectItem value="sms">SMS</SelectItem>
-                                <SelectItem value="webhook">{t('titles.webhook')}/SelectItem>
+                                <SelectItem value="webhook">Webhook</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label>{t('messages.configuraes_da_api')}/Label>
-                            <Textarea placeholder={t('messages.chaves_de_api_tokens_etc')} rows={3} />
+                            <Label>Configurações da API</Label>
+                            <Textarea placeholder="Chaves de API, tokens, etc..." rows={3} />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="retry-enabled" />
-                            <Label htmlFor="retry-enabled" className="text-sm">{t('titles.retentar_em_caso_de_falha')}/Label>
+                            <Label htmlFor="retry-enabled" className="text-sm">Retentar em caso de falha</Label>
                           </div>
                           <div>
-                            <Label>{t('messages.tentativas_mximas')}/Label>
+                            <Label>Tentativas Máximas</Label>
                             <Input type="number" min="1" max="5" defaultValue="3" />
                           </div>
                         </div>
@@ -1708,33 +1707,33 @@ export default function ChatbotVisualEditor() {
                     {/* Delay Node Configurations */}
                     {selectedNode.type === 'delay' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_de_delay')}/h4>
+                        <h4 className="font-medium text-sm">Configurações de Delay</h4>
                         
                         <div className="space-y-3">
                           <div>
-                            <Label>{t('messages.tipo_de_delay')}/Label>
+                            <Label>Tipo de Delay</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('titles.selecione_o_tipo_8')} />
+                                <SelectValue placeholder="Selecione o tipo" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="fixed">{t('messages.tempo_fixo')}/SelectItem>
-                                <SelectItem value="random">{t('messages.tempo_aleatrio')}/SelectItem>
-                                <SelectItem value="user_input">{t('messages.aguardar_resposta_do_usurio')}/SelectItem>
+                                <SelectItem value="fixed">Tempo Fixo</SelectItem>
+                                <SelectItem value="random">Tempo Aleatório</SelectItem>
+                                <SelectItem value="user_input">Aguardar Resposta do Usuário</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label>{t('messages.durao_segundos')}/Label>
+                            <Label>Duração (segundos)</Label>
                             <Input type="number" min="1" defaultValue="5" />
                           </div>
                           <div>
-                            <Label>{t('messages.mensagem_de_aguardo')}/Label>
-                            <Input placeholder={t('messages.aguarde_um_momento')} />
+                            <Label>Mensagem de Aguardo</Label>
+                            <Input placeholder="Aguarde um momento..." />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="show-typing" />
-                            <Label htmlFor="show-typing" className="text-sm">{t('messages.mostrar_indicador_de_digitao')}/Label>
+                            <Label htmlFor="show-typing" className="text-sm">Mostrar indicador de digitação</Label>
                           </div>
                         </div>
                       </div>
@@ -1743,34 +1742,34 @@ export default function ChatbotVisualEditor() {
                     {/* Validation Node Configurations */}
                     {selectedNode.type === 'validation' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_de_validao')}/h4>
+                        <h4 className="font-medium text-sm">Configurações de Validação</h4>
                         
                         <div className="space-y-3">
                           <div>
-                            <Label>{t('messages.tipo_de_validao')}/Label>
+                            <Label>Tipo de Validação</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('titles.selecione_o_tipo_8')} />
+                                <SelectValue placeholder="Selecione o tipo" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="email">{t('titles.email_4')}/SelectItem>
-                                <SelectItem value="phone">{t('titles.telefone_6')}/SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="phone">Telefone</SelectItem>
                                 <SelectItem value="cpf">CPF</SelectItem>
-                                <SelectItem value="number">{t('messages.nmero_2')}/SelectItem>
-                                <SelectItem value="regex">{t('messages.expresso_regular')}/SelectItem>
+                                <SelectItem value="number">Número</SelectItem>
+                                <SelectItem value="regex">Expressão Regular</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label>{t('messages.padro_de_validao')}/Label>
-                            <Input placeholder={t('messages.regex_ou_padro_especfico')} />
+                            <Label>Padrão de Validação</Label>
+                            <Input placeholder="Regex ou padrão específico" />
                           </div>
                           <div>
-                            <Label>{t('messages.mensagem_de_erro')}/Label>
-                            <Input placeholder={t('messages.formato_invlido_tente_novamente')} />
+                            <Label>Mensagem de Erro</Label>
+                            <Input placeholder="Formato inválido, tente novamente" />
                           </div>
                           <div>
-                            <Label>{t('messages.tentativas_mximas')}/Label>
+                            <Label>Tentativas Máximas</Label>
                             <Input type="number" min="1" max="5" defaultValue="3" />
                           </div>
                         </div>
@@ -1780,15 +1779,15 @@ export default function ChatbotVisualEditor() {
                     {/* Default Configuration for unhandled types */}
                     {!['trigger', 'action', 'condition', 'response', 'ai', 'integration', 'delay', 'validation'].includes(selectedNode.type) && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">{t('messages.configuraes_gerais_1')}/h4>
+                        <h4 className="font-medium text-sm">Configurações Gerais</h4>
                         <div className="space-y-3">
                           <div>
-                            <Label>{t('messages.configurao_personalizada')}/Label>
-                            <Textarea placeholder={t('messages.configuraes_especficas_para_este_tipo_de_n')} rows={4} />
+                            <Label>Configuração Personalizada</Label>
+                            <Textarea placeholder="Configurações específicas para este tipo de nó..." rows={4} />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="enabled" />
-                            <Label htmlFor="enabled" className="text-sm">{t('messages.n_ativo')}/Label>
+                            <Label htmlFor="enabled" className="text-sm">Nó ativo</Label>
                           </div>
                         </div>
                       </div>
@@ -1799,7 +1798,7 @@ export default function ChatbotVisualEditor() {
 
               <TabsContent value="connections" className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">{t('messages.conexes_de_sada')}/Label>
+                  <Label className="text-sm font-medium mb-3 block">Conexões de Saída</Label>
                   <div className="space-y-3">
                     {selectedNode.connections.map((connId, index) => {
                       const targetNode = selectedChatbot?.flow.nodes.find(n => n.id === connId);
@@ -1832,8 +1831,8 @@ export default function ChatbotVisualEditor() {
                     {selectedNode.connections.length === 0 && (
                       <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-lg">
                         <Link className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">{t('messages.nenhuma_conexo_de_sada')}/p>
-                        <p className="text-xs text-muted-foreground">{t('messages.use_o_modo_de_conexo_para_criar_links')}/p>
+                        <p className="text-sm text-muted-foreground">Nenhuma conexão de saída</p>
+                        <p className="text-xs text-muted-foreground">Use o modo de conexão para criar links</p>
                       </div>
                     )}
                   </div>
@@ -1842,7 +1841,7 @@ export default function ChatbotVisualEditor() {
                 <Separator />
 
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">{t('messages.conexes_de_entrada')}/Label>
+                  <Label className="text-sm font-medium mb-3 block">Conexões de Entrada</Label>
                   <div className="space-y-3">
                     {selectedChatbot?.flow.connections
                       .filter(conn => conn.to === selectedNode.id)
@@ -1867,8 +1866,8 @@ export default function ChatbotVisualEditor() {
                       })}
                     {selectedChatbot?.flow.connections.filter(conn => conn.to === selectedNode.id).length === 0 && (
                       <div className="text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
-                        <p className="text-sm text-muted-foreground">{t('messages.nenhuma_conexo_de_entrada')}/p>
-                        <p className="text-xs text-muted-foreground">{t('messages.este_n_no_recebe_dados_de_outros_ns')}/p>
+                        <p className="text-sm text-muted-foreground">Nenhuma conexão de entrada</p>
+                        <p className="text-xs text-muted-foreground">Este nó não recebe dados de outros nós</p>
                       </div>
                     )}
                   </div>
@@ -1877,33 +1876,33 @@ export default function ChatbotVisualEditor() {
                 <Separator />
 
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">{t('messages.configuraes_de_conexo')}/Label>
+                  <Label className="text-sm font-medium mb-3 block">Configurações de Conexão</Label>
                   <div className="space-y-3">
                     <div>
-                      <Label>{t('messages.comportamento_de_falha')}/Label>
+                      <Label>Comportamento de Falha</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('titles.selecione_o_comportamento')} />
+                          <SelectValue placeholder="Selecione o comportamento" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="stop">{t('titles.parar_fluxo')}/SelectItem>
-                          <SelectItem value="fallback">{t('messages.usar_n_de_fallback')}/SelectItem>
-                          <SelectItem value="retry">{t('titles.tentar_novamente')}/SelectItem>
-                          <SelectItem value="continue">{t('messages.continuar_para_prximo')}/SelectItem>
+                          <SelectItem value="stop">Parar fluxo</SelectItem>
+                          <SelectItem value="fallback">Usar nó de fallback</SelectItem>
+                          <SelectItem value="retry">Tentar novamente</SelectItem>
+                          <SelectItem value="continue">Continuar para próximo</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <Label>{t('messages.timeout_de_conexo_segundos')}/Label>
+                      <Label>Timeout de Conexão (segundos)</Label>
                       <Input type="number" min="1" max="300" defaultValue="30" />
                     </div>
                     <div className="flex items-center space-x-2">
                       <Switch id="log-connections" />
-                      <Label htmlFor="log-connections" className="text-sm">{t('messages.registrar_todas_as_conexes')}/Label>
+                      <Label htmlFor="log-connections" className="text-sm">Registrar todas as conexões</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Switch id="parallel-connections" />
-                      <Label htmlFor="parallel-connections" className="text-sm">{t('messages.permitir_conexes_paralelas')}/Label>
+                      <Label htmlFor="parallel-connections" className="text-sm">Permitir conexões paralelas</Label>
                     </div>
                   </div>
                 </div>
@@ -1911,26 +1910,26 @@ export default function ChatbotVisualEditor() {
                 <Separator />
 
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">{t('messages.condies_de_conexo')}/Label>
+                  <Label className="text-sm font-medium mb-3 block">Condições de Conexão</Label>
                   <div className="space-y-3">
                     <div>
-                      <Label>{t('messages.condies_para_ativao')}/Label>
+                      <Label>Condições para Ativação</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('messages.selecione_a_condio')} />
+                          <SelectValue placeholder="Selecione a condição" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="always">{t('titles.sempre')}/SelectItem>
-                          <SelectItem value="success">{t('titles.apenas_em_caso_de_sucesso')}/SelectItem>
-                          <SelectItem value="error">{t('titles.apenas_em_caso_de_erro')}/SelectItem>
-                          <SelectItem value="custom">{t('messages.condio_customizada')}/SelectItem>
+                          <SelectItem value="always">Sempre</SelectItem>
+                          <SelectItem value="success">Apenas em caso de sucesso</SelectItem>
+                          <SelectItem value="error">Apenas em caso de erro</SelectItem>
+                          <SelectItem value="custom">Condição customizada</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <Label>{t('messages.expresso_condicional_opcional')}/Label>
-                      <Input placeholder={t('messages.ex_userage_18')} />
-                      <p className="text-xs text-muted-foreground mt-1">{t('messages.use_variveis_entre_chaves_duplas')}/p>
+                      <Label>Expressão Condicional (Opcional)</Label>
+                      <Input placeholder="Ex: {{user.age}} > 18" />
+                      <p className="text-xs text-muted-foreground mt-1">Use variáveis entre chaves duplas</p>
                     </div>
                   </div>
                 </div>
@@ -1939,7 +1938,9 @@ export default function ChatbotVisualEditor() {
           )}
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() =>{t('messages.setshownodeconfigfalse_cancelar')}</Button>
+            <Button variant="outline" onClick={() => setShowNodeConfig(false)}>
+              Cancelar
+            </Button>
             <Button>
               <Save className="h-4 w-4 mr-2" />
               Salvar Configurações
