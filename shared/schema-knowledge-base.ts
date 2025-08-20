@@ -75,12 +75,12 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   content: text("content").notNull(),
 
   // Categorization - matching exact DB structure  
-  categoryId: varchar("category_id").notNull(), // character varying
+  category: varchar("category").notNull(), // character varying
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
 
   // Status & Visibility - using text types with defaults to match DB
   status: text("status").default("draft"), // text with default 'draft'
-  // Note: accessLevel removed - not part of current DB schema
+  visibility: text("visibility").default("public"), // text with default 'public'
 
   // Authoring
   authorId: varchar("author_id").notNull(), // character varying
@@ -111,7 +111,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // TENANT ISOLATION: Critical indexes for multi-tenant performance
   index("kb_articles_tenant_idx").on(table.tenantId),
   index("kb_articles_tenant_status_idx").on(table.tenantId, table.status),
-  index("kb_articles_tenant_category_idx").on(table.tenantId, table.categoryId),
+  index("kb_articles_tenant_category_idx").on(table.tenantId, table.category),
   index("kb_articles_tenant_author_idx").on(table.tenantId, table.authorId),
   index("kb_articles_tenant_published_idx").on(table.tenantId, table.publishedAt),
 
@@ -272,7 +272,6 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   viewCount: true,
   upvoteCount: true,
   helpfulCount: true,
-  categoryId: true, // Omit categoryId since we'll handle category mapping
 }).extend({
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
@@ -280,7 +279,6 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   visibility: z.enum(["public", "internal", "restricted", "private"]).optional(),
   tags: z.array(z.string()).optional(),
   keywords: z.array(z.string()).optional(),
-  expiresAt: z.string().optional().nullable(),
 });
 
 export const updateKnowledgeBaseArticleSchema = insertKnowledgeBaseArticleSchema.partial().extend({

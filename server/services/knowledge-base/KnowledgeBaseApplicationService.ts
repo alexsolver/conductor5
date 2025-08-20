@@ -2,15 +2,12 @@
 // Application Layer - Orquestra use cases e coordena operações de domínio
 
 import { db } from '../../db';
-import { schema } from '../../shared/schema';
 import { 
   knowledgeBaseArticles,
   insertKnowledgeBaseArticleSchema,
   updateKnowledgeBaseArticleSchema,
-  knowledgeBaseSearchSchema,
   type KnowledgeBaseArticle,
-  type InsertKnowledgeBaseArticle,
-  type KnowledgeBaseSearchParams
+  type InsertKnowledgeBaseArticle
 } from '../../../shared/schema-knowledge-base';
 import { eq, and, like, ilike, desc, asc, sql } from 'drizzle-orm';
 export class KnowledgeBaseApplicationService {
@@ -25,7 +22,7 @@ export class KnowledgeBaseApplicationService {
   /**
    * Search articles with comprehensive filtering and pagination
    */
-  async searchArticles(params: KnowledgeBaseSearchParams, userId?: string): Promise<{
+  async searchArticles(params: any, userId?: string): Promise<{
     success: boolean;
     message: string;
     data: {
@@ -53,7 +50,7 @@ export class KnowledgeBaseApplicationService {
       }
 
       if (params.category) {
-        conditions.push(eq(knowledgeBaseArticles.categoryId, params.category));
+        conditions.push(eq(knowledgeBaseArticles.category, params.category));
       }
 
       if (params.visibility) {
@@ -128,16 +125,17 @@ export class KnowledgeBaseApplicationService {
         'other': 'other'
       };
 
-      // Prepare article for insertion with proper field mapping
+      // Prepare article for insertion with correct field mapping
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        categoryId: categoryMapping[articleData.category] || 'other',
+        category: categoryMapping[articleData.category] || 'other', // Use 'category' not 'categoryId'
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
         published: articleData.published || false,
         tags: articleData.tags || [],
+        visibility: articleData.visibility || 'public',
         publishedAt: articleData.published ? new Date() : null,
       };
 
