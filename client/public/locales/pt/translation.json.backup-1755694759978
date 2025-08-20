@@ -170,6 +170,9 @@
     "companies": "Empresas do Cliente",
     "mappings": "Mapeamentos de Itens"
   },
+  "ticketSystem": {
+    "title": "Tickets"
+  },
   "tickets": {
     "title": "Tickets",
     "list": "Lista de Tickets",

@@ -407,7 +407,7 @@ export default function TranslationManager() {
                           {key}
                         </Label>
                         <Badge variant="outline" className="text-xs">
-                          {key.split('.').length > 1 ? 'Aninhada' : 'Nível Superior'}
+                          {key.split('.').length > 1 ? 'Nested' : 'Top Level'}
                         </Badge>
                       </div>
                     ))}

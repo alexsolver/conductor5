@@ -13,7 +13,7 @@ const router = Router();
 
 // Available languages
 const SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'es', 'fr', 'de'];
-const TRANSLATIONS_DIR = path.join(process.cwd(), 'client/src/i18n/locales');
+const TRANSLATIONS_DIR = path.join(process.cwd(), 'client/public/locales');
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
@@ -181,8 +181,54 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
 });
 
 /**
+ * Check if a translation key is valid
+ */
+function isValidTranslationKey(key: string): boolean {
+  // Invalid patterns to exclude technical elements
+  const invalidPatterns = [
+    /^#[0-9a-fA-F]{3,8}$/, // Hex colors
+    /^\/api\//, // API endpoints
+    /^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)$/, // HTTP methods
+    /^\d+:?$/, // Status codes
+    /^[,\-\/\?\@\:\\\n\#\&\+\=\*\(\)\[\]\_\%\$\^\!\~\`\|]$/, // Single characters
+    /^(BRL|USD|EUR|America\/Sao_Paulo|Brasil|Ativo|T|AND|OR)$/, // Technical constants
+    /^[a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*$/, // camelCase property names
+    /^(validFrom|validTo|version|warrantyExpiry|website|acquisitionCost|action|active|address)$/, // Technical fields
+    /^https?:\/\//, // URLs
+    /\$\{.*\}/, // Template variables
+    /^\s*$/, // Empty or whitespace
+    /^\d+$/, // Numbers only
+    /^(true|false)$/i, // Booleans
+    /^[A-Z]{2,}$/, // Technical abbreviations
+  ];
+  
+  // Specific invalid keys
+  const specificInvalidKeys = [
+    'validFrom', 'validTo', 'version', 'warrantyExpiry', 'website',
+    'acquisitionCost', 'action', 'active', 'address', 'a', 'T',
+    '\\n', 'América/Sao_Paulo', 'Brasil', 'Ativo', 'BRL',
+    'DELETE', 'GET', 'POST', 'PUT', 'PATCH', 'AND',
+    '4', '400:', ':', '?', '@', ',', '-', '/', '', ' '
+  ];
+  
+  // Check specific invalid keys
+  if (specificInvalidKeys.includes(key)) {
+    return false;
+  }
+  
+  // Check against patterns
+  for (const pattern of invalidPatterns) {
+    if (pattern.test(key)) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+/**
  * GET /api/translations/keys/all
- * Get all translation keys across all languages
+ * Get all translation keys across all languages (filtered)
  */
 router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -202,14 +248,17 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
         
         translations[lang] = langTranslations;
         
-        // Extract all keys recursively
+        // Extract all keys recursively with filtering
         const extractKeys = (obj: any, prefix = '') => {
           Object.keys(obj).forEach(key => {
             const fullKey = prefix ? `${prefix}.${key}` : key;
             if (typeof obj[key] === 'object' && obj[key] !== null) {
               extractKeys(obj[key], fullKey);
             } else {
-              allKeys.add(fullKey);
+              // Only add valid translation keys
+              if (isValidTranslationKey(fullKey) && isValidTranslationKey(key)) {
+                allKeys.add(fullKey);
+              }
             }
           });
         };
@@ -220,8 +269,10 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
       }
     }
 
+    const validKeys = Array.from(allKeys).filter(key => isValidTranslationKey(key)).sort();
+
     res.json({
-      keys: Array.from(allKeys).sort(),
+      keys: validKeys,
       translations,
       languages: SUPPORTED_LANGUAGES
     });

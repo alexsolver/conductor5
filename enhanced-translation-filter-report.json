@@ -1,0 +1,86 @@
+{
+  "timestamp": "2025-08-20T13:02:40.750Z",
+  "summary": {
+    "totalOriginal": 1556,
+    "totalFinal": 1551,
+    "totalRemoved": 5,
+    "optimizationPercentage": "0.3"
+  },
+  "files": [
+    {
+      "file": "client/public/locales/en/translation.json",
+      "original": 517,
+      "final": 517,
+      "removed": 0
+    },
+    {
+      "file": "client/public/locales/pt/translation.json",
+      "original": 520,
+      "final": 517,
+      "removed": 3
+    },
+    {
+      "file": "client/public/locales/es/translation.json",
+      "original": 519,
+      "final": 517,
+      "removed": 2
+    }
+  ],
+  "invalidPatterns": [
+    "/^#[0-9a-fA-F]{3,8}$/",
+    "/^\\/api\\//",
+    "/^\\/[a-z-]+\\/\\$\\{.*\\}$/",
+    "/^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)$/",
+    "/^\\d{3}:?$/",
+    "/^[,\\-\\/\\?\\@\\:\\\\\\n\\#\\&\\+\\=\\*\\(\\)\\[\\]\\_\\%\\$\\^\\!\\~\\`\\|]$/",
+    "/^(BRL|USD|EUR|America\\/Sao_Paulo|Brasil|Ativo|T|AND|OR)$/",
+    "/^[a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*$/",
+    "/^(validFrom|validTo|version|warrantyExpiry|website|acquisitionCost|action|active|address|admin\\.[a-z_]+)$/",
+    "/^https?:\\/\\//",
+    "/^[a-z_]+\\.[a-z_]+$/",
+    "/^[a-z]+\\.[a-z_]+$/",
+    "/^(Nível Superior|Aninhada)$/",
+    "/\\$\\{.*\\}/",
+    "/^\\s*$/",
+    "/^\\d+$/",
+    "/^(true|false)$/i",
+    "/^[A-Z]{2,}$/",
+    "/\\.[a-z]{2,4}$/i",
+    "/^\\?[a-zA-Z0-9_=&]+$/"
+  ],
+  "specificInvalidKeys": [
+    "Nível Superior",
+    "Aninhada",
+    "validFrom",
+    "validTo",
+    "version",
+    "warrantyExpiry",
+    "website",
+    "acquisitionCost",
+    "action",
+    "active",
+    "address",
+    "a",
+    "T",
+    "\\n",
+    "\\n\\n--- Mensagem Original ---\\nDe: ${email.from}\\nData: ${new Date(email.createdAt).toLocaleString()}\\n\\n${email.content}",
+    "América/Sao_Paulo",
+    "Brasil",
+    "Ativo",
+    "BRL",
+    "DELETE",
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "AND",
+    "4",
+    "400:",
+    ":",
+    "?",
+    "@",
+    ",",
+    "-",
+    "/"
+  ]
+}

@@ -209,6 +209,7 @@
     "billing": "Facturación"
   },
   "hr": {
+    "title": "RRHH",
     "absence": "Gestión de Ausencias",
     "teams": "Gestión de Equipos",
     "skills": "Habilidades Técnicas",
