@@ -488,7 +488,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
             {Object.entries(categoryLabels).map(([value, label]) => (
               <Button
                 key={value}
-                variant={selectedCategory === value ? "default" : "outline"}
+                variant={selectedCategory === value ? "default" : "outline"
                 size="sm"
                 onClick={() => setSelectedCategory(value)}
               >
@@ -509,7 +509,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
                 currentLayout?.id === layout.id 
                   ? 'ring-2 ring-blue-500 bg-blue-50' 
                   : 'hover:shadow-lg'
-              "}
+              "
               onClick={() => onLayoutSelect(layout)}
             >
               <CardHeader className="pb-3">

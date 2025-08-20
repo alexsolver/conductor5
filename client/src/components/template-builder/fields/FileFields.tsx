@@ -47,15 +47,15 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
   const validateFile = (file: File): string | null => {
     // Verificar tamanho
     if (file.size > maxSize) {
-      return `Arquivo muito grande. Máximo permitido: ${properties.maxSize}MB`
+      return "MB`
     }
 
     // Verificar tipo (simplificado)
-    const extension = `.${file.name.split('.').pop()?.toLowerCase()"
+    const extension = "
     const allowedExtensions = acceptedTypes.split(',').map(ext => ext.trim().toLowerCase())
     
     if (!allowedExtensions.includes(extension)) {
-      return `Tipo de arquivo não permitido. Permitidos: ${acceptedTypes"
+      return "
     }
 
     return null
@@ -111,7 +111,7 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
 
       // Marcar como concluído
       const finalFiles = (multiple ? files : [files]).map((f: FileInfo) =>
-        f.name === file.name ? { ...f, progress: 100, url: `#uploaded-${f.name" } : f
+        f.name === file.name ? { ...f, progress: 100, url: "
       )
 
       if (multiple) {
@@ -175,7 +175,7 @@ export const FileUploadField: React.FC<FileFieldProps> = ({
           border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer
           ${dragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
+        "
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -279,7 +279,7 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
 
   const validateImage = (file: File): string | null => {
     if (file.size > maxSize) {
-      return `Imagem muito grande. Máximo permitido: ${properties.maxSize}MB`
+      return "MB`
     }
 
     if (!file.type.startsWith('image/')) {
@@ -358,7 +358,7 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
           border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer
           ${dragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
+        "
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -386,7 +386,7 @@ export const ImageUploadField: React.FC<FileFieldProps> = ({
 
       {/* Preview das Imagens */}
       {images.length > 0 && (
-        <div className="grid gap-4 "`}>
+        <div className="grid gap-4 "">
           {(multiple ? images : [images]).map((image: FileInfo, index: number) => (
             <div key={index} className="relative group">
               <div className="aspect-square rounded-lg overflow-hidden border bg-gray-100">

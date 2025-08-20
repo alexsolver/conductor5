@@ -490,14 +490,14 @@ const TicketConfiguration: React.FC = () => {
       fieldOptionForm.reset();
       toast({ 
         title: 'Opção Atualizada com Sucesso',
-        description: "A opção foi atualizada no sistema."
+        description: "Configuração salva com sucesso"A opção foi atualizada no sistema."
       });
     },
     onError: (error) => {
       console.error('❌ Error updating field option:', error);
       toast({ 
         title: 'Erro ao Atualizar Opção',
-        description: "Não foi possível atualizar a opção.",
+        description: "Configuração salva com sucesso"Não foi possível atualizar a opção.",
         variant: "destructive"
       });
     }
@@ -505,7 +505,7 @@ const TicketConfiguration: React.FC = () => {
 
   const updateFieldOptionStatusMutation = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}/status`, {
+      const response = await apiRequest('PUT', "/api/ticket-metadata/status", {
         active,
         companyId: selectedCompany
       });
@@ -519,14 +519,14 @@ const TicketConfiguration: React.FC = () => {
       
       toast({ 
         title: 'Status Atualizado com Sucesso',
-        description: "A opção foi ativada/desativada."
+        description: "Configuração salva com sucesso"A opção foi ativada/desativada."
       });
     },
     onError: (error) => {
       console.error('❌ Error updating field option status:', error);
       toast({ 
         title: 'Erro ao Atualizar Status',
-        description: "Não foi possível alterar o status da opção.",
+        description: "Configuração salva com sucesso"Não foi possível alterar o status da opção.",
         variant: "destructive"
       });
     }
@@ -630,7 +630,7 @@ const TicketConfiguration: React.FC = () => {
       
       toast({ 
         title: 'Estrutura Copiada com Sucesso',
-        description: `${result.summary || "Toda a estrutura hierárquica foi copiada da empresa Default."
+        description: "Configuração salva com sucesso"
       });
     },
     onError: (error: any) => {
@@ -946,7 +946,7 @@ const TicketConfiguration: React.FC = () => {
                               <div className="flex items-center space-x-3">
                                 <h4 className="font-semibold text-gray-900">{category.name}</h4>
                                 <Badge variant={category.active ? "default" : "secondary"} className="text-xs">
-                                  {category.active ? "Ativo" : "Inativo"}
+                                  {category.active ? "Ativo" : "Inativo"
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
                                   {subcategories.filter(sub => sub.categoryId === category.id).length} subcategorias
@@ -1043,7 +1043,7 @@ const TicketConfiguration: React.FC = () => {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
-                                          if (confirm("Tem certeza que deseja excluir a subcategoria "${subcategory.name}"? Esta ação não pode ser desfeita.`)) {
+                                          if (confirm("Tem certeza que deseja excluir a subcategoria " + subcategory.name + "? Esta ação não pode ser desfeita.")) {
                                             deleteSubcategoryMutation.mutate(subcategory.id);
                                           }
                                         }}
@@ -1087,7 +1087,7 @@ const TicketConfiguration: React.FC = () => {
                                               variant="ghost"
                                               size="sm"
                                               onClick={() => {
-                                                if (confirm("Tem certeza que deseja excluir a ação "${action.name}"? Esta ação não pode ser desfeita.`)) {
+                                                if (confirm("Tem certeza que deseja excluir a ação " + action.name + "? Esta ação não pode ser desfeita.")) {
                                                   deleteActionMutation.mutate(action.id);
                                                 }
                                               }}
@@ -1265,7 +1265,7 @@ const TicketConfiguration: React.FC = () => {
                 }))
                 .sort((a, b) => a.sortOrder - b.sortOrder);
 
-              console.log(`🔍 Field options for ${key}:`, {
+              console.log("🔍 Field options for " + key + ":", {
                 total: validFieldOptions.length,
                 filtered: fieldOptionsForType.length,
                 options: fieldOptionsForType.map(o => ({ label: o.displayLabel, value: o.value }))
@@ -1273,11 +1273,11 @@ const TicketConfiguration: React.FC = () => {
 
               return (
                 <Card key={key} className="overflow-hidden">
-                  <CardHeader className="bg-"-50 border-b`}>
+                  <CardHeader className="bg-"-50 border-b">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-"-100 rounded-lg`}>
-                          <Icon className="w-5 h-5 text-"-600`} />
+                        <div className="p-2 bg-"-100 rounded-lg">
+                          <Icon className="w-5 h-5 text-"-600" />
                         </div>
                         <div>
                           <CardTitle className="text-lg">{title}</CardTitle>
@@ -1292,7 +1292,7 @@ const TicketConfiguration: React.FC = () => {
                         </Badge>
                         <Button 
                           onClick={() => openDialog('field-option', { fieldName: key })}
-                          className="bg-${color}-600 hover:bg-"-700`}
+                          className="bg-${color}-600 hover:bg-"-700"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Nova Opção
@@ -1303,8 +1303,8 @@ const TicketConfiguration: React.FC = () => {
                   <CardContent className="p-0">
                     {fieldOptionsForType.length === 0 ? (
                       <div className="text-center py-12">
-                        <div className="w-16 h-16 mx-auto mb-4 bg-"-100 rounded-full flex items-center justify-center`}>
-                          <Icon className="w-8 h-8 text-"-400`} />
+                        <div className="w-16 h-16 mx-auto mb-4 bg-"-100 rounded-full flex items-center justify-center">
+                          <Icon className="w-8 h-8 text-"-400" />
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
                           Nenhuma opção configurada
@@ -1314,7 +1314,7 @@ const TicketConfiguration: React.FC = () => {
                         </p>
                         <Button 
                           onClick={() => openDialog('field-option', { fieldName: key })}
-                          className="bg-${color}-600 hover:bg-"-700`}
+                          className="bg-${color}-600 hover:bg-"-700"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Criar Primeira Opção
@@ -1390,7 +1390,7 @@ const TicketConfiguration: React.FC = () => {
                                     className="data-[state=checked]:bg-green-600"
                                   />
                                   <Badge variant={option.active ? "default" : "secondary"} className="text-xs">
-                                    {option.active ? "Ativo" : "Inativo"}
+                                    {option.active ? "Ativo" : "Inativo"
                                   </Badge>
                                 </div>
                               </TableCell>

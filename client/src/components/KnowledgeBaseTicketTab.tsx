@@ -87,7 +87,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
 
   // Fetch articles related to this ticket
   const { data: relatedArticlesData, isLoading: relatedLoading } = useQuery({
-    queryKey: [`/api/knowledge-base/tickets/${ticketId}/related`],
+    queryKey: ["/related`],
     enabled: !!ticketId,
     staleTime: 5 * 60 * 1000,
   });
@@ -106,7 +106,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
   // Link article to ticket mutation
   const linkArticleMutation = useMutation({
     mutationFn: async ({ articleId, relationType }: { articleId: string, relationType?: string }) => {
-      const response = await apiRequest('POST', `/api/knowledge-base/articles/${articleId}/link-ticket`, {
+      const response = await apiRequest('POST', "/link-ticket`, {
         ticketId,
         relationType: relationType || 'related'
       });
@@ -117,7 +117,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
         title: '[TRANSLATION_NEEDED]',
         description: 'Artigo vinculado ao ticket com sucesso'
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/knowledge-base/tickets/${ticketId}/related`] });
+      queryClient.invalidateQueries({ queryKey: ["/related`] });
     },
     onError: (error: any) => {
       console.error('❌ [KB-TAB] Error linking article:', error);
@@ -132,7 +132,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
   // Rate article mutation
   const rateArticleMutation = useMutation({
     mutationFn: async ({ articleId, rating }: { articleId: string, rating: number }) => {
-      const response = await apiRequest('POST', `/api/knowledge-base/articles/${articleId}/rate`, {
+      const response = await apiRequest('POST', "/rate`, {
         rating,
         feedback: ''
       });
@@ -144,7 +144,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
         description: 'Avaliação registrada com sucesso'
       });
       // Refresh both queries
-      queryClient.invalidateQueries({ queryKey: [`/api/knowledge-base/tickets/${ticketId}/related`] });
+      queryClient.invalidateQueries({ queryKey: ["/related`] });
       queryClient.invalidateQueries({ queryKey: [`/api/knowledge-base/articles`] });
     },
     onError: (error: any) => {
@@ -179,7 +179,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
   // Render article card
   const renderArticleCard = (article: KnowledgeBaseArticle, showLinkButton = false) => {
     return (
-      <Card key={article.id} className="transition-all duration-200 hover:shadow-md "`}>
+      <Card key={article.id} className="transition-all duration-200 hover:shadow-md "">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -218,7 +218,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
                   onClick={() => linkArticleMutation.mutate({ articleId: article.id })}
                   disabled={linkArticleMutation.isPending}
                   className="text-xs h-7"
-                  data-testid={`button-link-article-${article.id"}
+                  data-testid={"
                 >
                   {linkArticleMutation.isPending ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -234,9 +234,9 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.open(`/knowledge-base/articles/${article.id", '_blank')}
+                onClick={() => window.open("
                 className="text-xs h-7"
-                data-testid={`button-view-article-${article.id"}
+                data-testid={"
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 Ver

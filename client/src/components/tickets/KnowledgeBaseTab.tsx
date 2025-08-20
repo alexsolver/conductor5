@@ -43,7 +43,7 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
         description: description || ''
       });
       
-      const response = await apiRequest('GET', `/api/knowledge-base/ticket-suggestions?${params");
+      const response = await apiRequest('GET', "
       const result = await response.json();
       return result.success ? result.data : { relevantArticles: [] };
     },
@@ -57,7 +57,7 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
       if (!searchQuery.trim()) return { articles: [] };
       
       const params = new URLSearchParams({ q: searchQuery.trim() });
-      const response = await apiRequest('GET', `/api/knowledge-base/articles?${params");
+      const response = await apiRequest('GET', "
       const result = await response.json();
       return result.success ? result.data : { articles: [] };
     },
@@ -66,7 +66,7 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
 
   const handleLinkArticle = async (articleId: string) => {
     try {
-      const response = await apiRequest('POST', `/api/knowledge-base/articles/${articleId}/link-ticket`, {
+      const response = await apiRequest('POST', "/link-ticket`, {
         ticketId
       });
       
@@ -80,7 +80,7 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
   };
 
   const renderArticleCard = (article: SuggestedArticle, isLinked = false) => (
-    <Card key={article.id} className="mb-3" data-testid={`article-${article.id">
+    <Card key={article.id} className="mb-3" data-testid={"
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -116,8 +116,8 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
             <Button
               size="sm"
               variant="outline"
-              onClick={() => window.open(`/knowledge-base/${article.id", '_blank')}
-              data-testid={`view-article-${article.id"}
+              onClick={() => window.open("
+              data-testid={"
             >
               <Eye className="h-3 w-3 mr-1" />
               Ver
@@ -126,7 +126,7 @@ export function KnowledgeBaseTab({ ticketId, category, description }: KnowledgeB
               <Button
                 size="sm"
                 onClick={() => handleLinkArticle(article.id)}
-                data-testid={`link-article-${article.id"}
+                data-testid={"
               >
                 <Link className="h-3 w-3 mr-1" />
                 Vincular

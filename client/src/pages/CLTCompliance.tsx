@@ -86,7 +86,7 @@ export default function CLTCompliance() {
     onSuccess: (data) => {
       toast({
         title: "Cadeia Reconstituída",
-        description: `${data.fixed || 0} registros corrigidos com sucesso`,
+        description: " registros corrigidos com sucesso`,
         variant: "default"
       });
       // Atualiza a verificação de integridade
@@ -152,7 +152,7 @@ export default function CLTCompliance() {
     onError: (error) => {
       toast({
         title: '[TRANSLATION_NEEDED]',
-        description: `Falha ao gerar relatório: ${error.message",
+        description: "
         variant: "destructive"
       });
     }

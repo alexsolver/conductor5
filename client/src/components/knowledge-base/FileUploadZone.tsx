@@ -71,7 +71,7 @@ export function FileUploadZone({
                   ...f, 
                   status: 'completed' as const, 
                   progress: 100,
-                  url: `/uploads/${fileData.name" // Mock URL
+                  url: "
                 }
               : f
           )
@@ -79,7 +79,7 @@ export function FileUploadZone({
 
         toast({
           title: "✅ Arquivo enviado",
-          description: `${fileData.name} foi enviado com sucesso.`
+          description: " foi enviado com sucesso.`
         });
 
       } catch (error) {
@@ -93,7 +93,7 @@ export function FileUploadZone({
 
         toast({
           title: '[TRANSLATION_NEEDED]',
-          description: `Falha ao enviar ${fileData.name}.`,
+          description: ".`,
           variant: "destructive"
         });
       }
@@ -126,7 +126,7 @@ export function FileUploadZone({
   };
 
   return (
-    <div className="space-y-4 "`}>
+    <div className="space-y-4 "">
       {/* Drop Zone */}
       <div
         {...getRootProps()}
@@ -136,7 +136,7 @@ export function FileUploadZone({
             ? 'border-blue-400 bg-blue-50' 
             : 'border-gray-300 hover:border-gray-400'
           }
-        `}
+        "
       >
         <input {...getInputProps()} />
         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />

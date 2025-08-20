@@ -67,9 +67,9 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
     const endHour = parseInt(workSchedule.endTime.split(':')[0]);
     
     for (let hour = startHour; hour <= endHour; hour++) {
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      slots.push(":00`);
       if (hour < endHour) {
-        slots.push(`${hour.toString().padStart(2, '0')}:30`);
+        slots.push(":30`);
       }
     }
     return slots;
@@ -80,7 +80,7 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
   // Verificar se um horário está ocupado
   const isTimeSlotOccupied = (time: string) => {
     const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-    const slotDateTime = `${selectedDateStr}T${time}:00`;
+    const slotDateTime = ":00`;
     
     return schedules.some(schedule => {
       const scheduleStart = new Date(schedule.startDateTime);
@@ -135,7 +135,7 @@ const TechnicianTimeline: React.FC<TechnicianTimelineProps> = ({
             <div
               key={time}
               className={slotClass}
-              title={`${time} - ${isOccupied ? 'Ocupado' : isBreak ? 'Intervalo' : 'Disponível'"}
+              title={"
             >
               {isBreak ? '☕' : slotContent}
             </div>

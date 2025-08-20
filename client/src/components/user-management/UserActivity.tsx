@@ -226,13 +226,13 @@ export function UserActivity({ tenantAdmin = false }: UserActivityProps) {
                         <div>
                           <div className="font-medium">
                             {activity.user 
-                              ? `${activity.user.firstName || ''} ${activity.user.lastName || ''".trim() || activity.user.email
+                              ? "
                               : t("userManagement.unknownUser", "Usuário desconhecido")
                             }
                           </div>
                           {activity.performedByUser && activity.performedByUser.email !== activity.user?.email && (
                             <div className="text-xs text-muted-foreground">
-                              por {`${activity.performedByUser.firstName || ''} ${activity.performedByUser.lastName || ''".trim() || activity.performedByUser.email}
+                              por {"
                             </div>
                           )}
                         </div>

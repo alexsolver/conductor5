@@ -95,7 +95,7 @@ export default function TimecardApprovalSettings() {
       for (const group of groups) {
         try {
           // Usar queries individuais para cada grupo para evitar problemas de cache
-          const response = await fetch(`/api/timecard/approval/groups/${group.id}/members`, {
+          const response = await fetch("/api/timecard/approval/groups/" + id + "/members", {
             headers: {
               'Authorization': `Bearer " + (localStorage.getItem("accessToken") || ""),
               'Content-Type': 'application/json',
@@ -238,7 +238,7 @@ export default function TimecardApprovalSettings() {
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      return await apiRequest('DELETE', `/api/timecard/approval/groups/${groupId");
+      return await apiRequest('DELETE', /api/timecard/approval/groups/" + groupId);
     },
     onSuccess: () => {
       toast({
@@ -701,7 +701,7 @@ export default function TimecardApprovalSettings() {
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline">{groupMemberCounts[group.id] || 0} membros</Badge>
                           <Badge variant={group.isActive ? "default" : "secondary">
-                            {group.isActive ? "Ativo" : "Inativo"}
+                            {group.isActive ? "Ativo" : "Inativo"
                           </Badge>
                         </div>
                       </div>

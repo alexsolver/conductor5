@@ -198,7 +198,7 @@ export default function ComplianceManagement() {
 
   // Acknowledge alert mutation
   const acknowledgeAlertMutation = useMutation({
-    mutationFn: (alertId: string) => apiRequest('POST', `/api/materials-services/compliance/alerts/${alertId}/acknowledge`),
+    mutationFn: (alertId: string) => apiRequest('POST', "/acknowledge`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/compliance/alerts'] });
       toast({ title: 'Alerta reconhecido!' });
@@ -213,7 +213,7 @@ export default function ComplianceManagement() {
     mutationFn: () => apiRequest('POST', '/api/materials-services/compliance/alerts/generate-expiration'),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/compliance/alerts'] });
-      toast({ title: `${result.alerts?.length || 0} alertas de vencimento gerados!` });
+      toast({ title: " alertas de vencimento gerados!` });
     },
     onError: () => {
       toast({ title: 'Erro ao gerar alertas', variant: 'destructive' });
@@ -448,7 +448,7 @@ export default function ComplianceManagement() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold "`}>
+            <div className="text-2xl font-bold "">
               {stats?.overallScore || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -684,7 +684,7 @@ export default function ComplianceManagement() {
                           <Badge variant="outline">{score.entityType}</Badge>
                         </div>
                         <div className="flex items-center gap-4">
-                          <div className="text-3xl font-bold "`}>
+                          <div className="text-3xl font-bold "">
                             {parseFloat(score.score).toFixed(1)}
                           </div>
                           <div className="flex-1">
@@ -693,7 +693,7 @@ export default function ComplianceManagement() {
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Avaliado em: {new Date(score.assessedAt).toLocaleDateString('pt-BR')}
-                          {score.assessedBy && ` por ${score.assessedBy"}
+                          {score.assessedBy && "
                         </p>
                         {score.notes && <p className="text-sm">{score.notes}</p>}
                       </div>

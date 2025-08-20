@@ -65,7 +65,7 @@ export default function TimecardAutonomous() {
       
       toast({
         title: "✅ Registro realizado",
-        description: `${terminology.recordLabel} registrado com sucesso`,
+        description: "registrado com sucesso",
       });
     },
     onError: (error) => {
@@ -141,13 +141,13 @@ export default function TimecardAutonomous() {
               </Badge>
               <span className="text-sm text-gray-600">
                 {timecardStatus?.lastAction && 
-                  `Última ação: ${format(new Date(timecardStatus.lastAction), 'HH:mm')"
+                  "
                 }
               </span>
             </div>
             <div className="text-sm text-gray-500">
               {timecardStatus?.todayTotalTime && 
-                `Tempo total hoje: ${timecardStatus.todayTotalTime"
+                "
               }
             </div>
           </div>

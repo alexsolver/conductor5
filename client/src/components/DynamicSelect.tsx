@@ -63,14 +63,14 @@ export function DynamicSelect(props: DynamicSelectProps) {
       if (customerId) params.companyId = customerId; // API expects companyId, not customerId
       if (dependsOn) params.dependsOn = dependsOn;
 
-      console.log(`🔍 DynamicSelect API call for ${fieldName}:`, {
+      console.log(":`, {
         fieldName,
         companyId: customerId,
         dependsOn,
         params
       });
 
-      const response = await apiRequest("GET", `/api/ticket-config/field-options?${new URLSearchParams(params).toString()");
+      const response = await apiRequest("GET", "
       return response.json();
     },
     enabled: !!fieldName, // Só executa se fieldName existe
@@ -91,7 +91,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         );
       }
       
-      console.log(`🔍 DynamicSelect ${fieldName}:`, {
+      console.log(":`, {
         fieldName,
         dependsOn,
         totalReceived: fieldOptionsData.data.length,
@@ -161,7 +161,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
       {...cleanProps}
     >
       <SelectTrigger className={className}>
-        <SelectValue placeholder={placeholder || `Selecionar ${fieldName}...`} />
+        <SelectValue placeholder={placeholder || "..." />
       </SelectTrigger>
       <SelectContent>
         {showAllOption && (
@@ -169,9 +169,9 @@ export function DynamicSelect(props: DynamicSelectProps) {
         )}
         {fieldOptions.map((option, index) => {
           // Usar sempre o ID como chave única, com prefixo do campo para evitar conflitos
-          const uniqueKey = `${fieldName}-${option.id || `${index}-${option.value || 'unknown'"";
+          const uniqueKey = "-${option.id || "
           // Ensure option.value is not empty string
-          const optionValue = option.value || `option_${index";
+          const optionValue = option.value || "
           
           return (
             <SelectItem key={uniqueKey} value={optionValue}>

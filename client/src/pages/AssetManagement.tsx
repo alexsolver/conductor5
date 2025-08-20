@@ -134,7 +134,7 @@ export default function AssetManagement() {
 
   // Generate QR Code mutation
   const generateQRMutation = useMutation({
-    mutationFn: (assetId: string) => apiRequest('POST', `/api/materials-services/assets/${assetId}/qr-code`),
+    mutationFn: (assetId: string) => apiRequest('POST', "/qr-code`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/assets'] });
       toast({ title: 'QR Code gerado com sucesso!' });

@@ -57,7 +57,7 @@ export default function ProductivityReports() {
     queryKey: ['/api/productivity/my-productivity', filters],
     queryFn: async () => {
       const params = new URLSearchParams(filters);
-      const response = await apiRequest('GET', `/api/productivity/my-productivity?${params");
+      const response = await apiRequest('GET', "
       const jsonData = await response.json();
       return jsonData;
     },
@@ -67,7 +67,7 @@ export default function ProductivityReports() {
     queryKey: ['/api/productivity/team-productivity', filters],
     queryFn: async () => {
       const params = new URLSearchParams(filters);
-      const response = await apiRequest('GET', `/api/productivity/team-productivity?${params");
+      const response = await apiRequest('GET', "
       return await response.json();
     },
   });
@@ -76,12 +76,12 @@ export default function ProductivityReports() {
     if (seconds === 0) return 'Em análise';
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
+    return "m`;
   };
 
   const formatPercentage = (value: number, total: number) => {
     if (total === 0) return '0%';
-    return `${Math.round((value / total) * 100)}%`;
+    return "%`;
   };
 
   const getActivityTypeLabel = (type: string) => {
@@ -262,7 +262,7 @@ export default function ProductivityReports() {
                     Object.entries(summary.activitiesByType).map(([type, data]) => (
                       <div key={type} className="flex items-center justify-between p-4 border rounded">
                         <div className="flex items-center gap-3">
-                          <div className="w-4 h-4 rounded "`}></div>
+                          <div className="w-4 h-4 rounded ""></div>
                           <div>
                             <div className="font-medium">{getActivityTypeLabel(type)}</div>
                             <div className="text-sm text-gray-600">

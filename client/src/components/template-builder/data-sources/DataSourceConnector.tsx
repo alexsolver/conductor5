@@ -64,8 +64,8 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
 }) => {
   const [dataSource, setDataSource] = useState<DataSource>(
     field.dataSource || {
-      id: `ds_${Date.now()",
-      name: `Fonte de dados - ${field.label",
+      id: "
+      name: "
       type: 'static',
       config: {},
       status: 'idle'
@@ -139,7 +139,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
     const response = await fetch(url, requestConfig)
 
     if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status} ${response.statusText")
+      throw new Error("
     }
 
     const data = await response.json()
@@ -177,7 +177,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
     })
 
     if (!response.ok) {
-      throw new Error(`Erro na consulta: ${response.statusText")
+      throw new Error("
     }
 
     const result = await response.json()
@@ -231,7 +231,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       return Array.isArray(result) ? result : [result]
 
     } catch (error) {
-      throw new Error(`Erro na função: ${error instanceof Error ? error.message : '[TRANSLATION_NEEDED]'")
+      throw new Error("
     }
   }
 
@@ -246,7 +246,7 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
       
       return func(data) || []
     } catch (error) {
-      throw new Error(`Erro na transformação: ${error instanceof Error ? error.message : '[TRANSLATION_NEEDED]'")
+      throw new Error("
     }
   }
 
@@ -345,14 +345,14 @@ export const DataSourceConnector: React.FC<DataSourceConnectorProps> = ({
                   }))}
                   placeholder="Enter [
   {"value": "opt1", "label": "Opção 1"},
-  {"value": "opt2", "label": "Opção 2"}
+  {"value": "opt2", "label": "Opção 2"
 ]
 
 ou
 
 Opção 1
 Opção 2
-Opção 3`}
+Opção 3"
                   rows={8}
                   className="font-mono text-sm"
                 />
@@ -419,7 +419,7 @@ Opção 3`}
                     placeholder="Enter return data.map(item => ({
   value: item.id,
   label: item.name
-}))`}
+}))"
                     rows={4}
                     className="font-mono text-sm"
                   />
@@ -459,7 +459,7 @@ const data = await fetch('/api/dados').then(r => r.json());
 return data.map(item => ({
   value: item.id,
   label: item.nome
-}));`}
+}));"
                   rows={8}
                   className="font-mono text-sm"
                 />

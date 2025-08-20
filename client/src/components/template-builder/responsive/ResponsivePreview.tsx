@@ -385,7 +385,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
                       linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
                       linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
                     `,
-                    backgroundSize: `${24 * scale}px ${24 * scale}px`
+                    backgroundSize: "px`
                   }}
                 />
               )}
@@ -394,7 +394,7 @@ export const ResponsivePreview: React.FC<ResponsivePreviewProps> = ({
               <div 
                 className="w-full h-full"
                 style={{
-                  transform: `scale(${scale})`,
+                  transform: ")`,
                   transformOrigin: 'top left',
                   width: dimensions.width,
                   height: dimensions.height

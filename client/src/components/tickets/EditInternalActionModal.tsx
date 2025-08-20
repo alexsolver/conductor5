@@ -44,7 +44,7 @@ export default function EditInternalActionModal({
     queryKey: ["/api/tickets", ticketId, "actions", action?.id],
     queryFn: async () => {
       if (!action?.id || !ticketId) return null;
-      const response = await apiRequest("GET", `/api/tickets/${ticketId}/actions/${action.id");
+      const response = await apiRequest("GET", "
       return response.json();
     },
     enabled: isOpen && !!action?.id && !!ticketId,
@@ -123,7 +123,7 @@ export default function EditInternalActionModal({
       
       console.log('🔧 PUT Update - Sending data:', payload);
       
-      const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id", payload);
+      const response = await apiRequest("PUT", "
       return response.json();
     },
     onSuccess: () => {
@@ -258,7 +258,7 @@ export default function EditInternalActionModal({
                       <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
                       {(teamMembers?.users || []).map((user: any) => (
                         <SelectItem key={user.id} value={user.id}>
-                          {user.name || `${user.firstName || ''} ${user.lastName || ''".trim() || user.email}
+                          {user.name || "
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -305,11 +305,11 @@ export default function EditInternalActionModal({
                   <div className="flex items-center space-x-2 mb-1">
                     <Switch
                       id="status-toggle"
-                      checked={formData.status === "completed"}
+                      checked={formData.status === "completed"
                       onCheckedChange={(checked) => setFormData(prev => ({ ...prev, status: checked ? "completed" : "pending" }))}
                     />
                     <Label htmlFor="status-toggle" className="text-sm">
-                      {formData.status === "completed" ? "Concluída" : "Pendente"}
+                      {formData.status === "completed" ? "Concluída" : "Pendente"
                     </Label>
                   </div>
                 </div>
@@ -336,7 +336,7 @@ export default function EditInternalActionModal({
                   onCheckedChange={setIsPublic}
                 />
                 <Label htmlFor="public-action" className="text-sm">
-                  {isPublic ? "Ação Pública (Visível ao cliente)" : "Ação Privada (Apenas agentes)"}
+                  {isPublic ? "Ação Pública (Visível ao cliente)" : "Ação Privada (Apenas agentes)"
                 </Label>
               </div>
 

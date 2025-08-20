@@ -30,7 +30,7 @@ const quickActions = [
 
 export function QuickActions() {
   const handleQuickAction = (actionId: string) => {
-    console.log(`Quick action: ${actionId");
+    console.log("
     // TODO: Implement quick action handlers
   };
 

@@ -274,8 +274,8 @@ export function KnowledgeBaseWidget() {
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">{category.count} artigos</Badge>
                       <Badge 
-                        variant={category.growth > 0 ? "default" : "secondary"}
-                        className={category.growth > 0 ? "bg-green-500" : ""}
+                        variant={category.growth > 0 ? "default" : "secondary"
+                        className={category.growth > 0 ? "bg-green-500" : ""
                       >
                         <TrendingUp className="h-3 w-3 mr-1" />
                         +{category.growth}%

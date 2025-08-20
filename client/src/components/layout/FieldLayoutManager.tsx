@@ -77,7 +77,7 @@ export default function FieldLayoutManager({
       
       toast({
         title: "Campo adicionado",
-        description: `Campo "${fieldData.label}" foi adicionado à área de formulário`
+        description: "" foi adicionado à área de formulário`
       });
     }
 

@@ -47,7 +47,7 @@ export default function TemplateSelector({
   const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ['/api/ticket-templates/company', companyId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${companyId");
+      const response = await apiRequest('GET', "
       return response.json();
     },
   });
@@ -69,7 +69,7 @@ export default function TemplateSelector({
   const { data: popularResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', companyId, 'popular'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${companyId}/popular?limit=5`);
+      const response = await apiRequest('GET', "/popular?limit=5`);
       return response.json();
     },
   });
@@ -182,7 +182,7 @@ export default function TemplateSelector({
               </SelectContent>
             </Select>
             <Button
-              variant={showPopularOnly ? "default" : "outline"}
+              variant={showPopularOnly ? "default" : "outline"
               onClick={() => setShowPopularOnly(!showPopularOnly)}
               className="w-full sm:w-auto"
             >

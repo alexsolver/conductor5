@@ -97,7 +97,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
   const { data: history = [], isLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "history"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${ticketId}/history`);
+      const response = await apiRequest("GET", "/history`);
       return response.json();
     },
     enabled: isOpen,
@@ -238,7 +238,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                   {filteredHistory.map((entry: HistoryEntry, index: number) => (
                     <div key={entry.id} className="relative flex items-start">
                       {/* Timeline dot */}
-                      <div className="absolute left-4 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center "`}>
+                      <div className="absolute left-4 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center "">
                         {getActionIcon(entry.type).icon({ className: "w-4 h-4" })}
                       </div>
 

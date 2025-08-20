@@ -101,7 +101,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
       formula.dependencies?.forEach(fieldId => {
         const fieldValue = formData[fieldId] || 0
         expression = expression.replace(
-          new RegExp(`\\{${fieldId}\\", 'g'), 
+          new RegExp("\\", 'g'), 
           String(fieldValue)
         )
       })
@@ -168,7 +168,7 @@ export const CalculatedField: React.FC<CalculatedFieldProps> = ({
     const safeExpression = expression.replace(/[^0-9+\-*/().\s]/g, '')
     
     try {
-      return Function(`"use strict"; return (${safeExpression})`)()
+      return Function(")`)()
     } catch {
       throw new Error('Expressão aritmética inválida')
     }

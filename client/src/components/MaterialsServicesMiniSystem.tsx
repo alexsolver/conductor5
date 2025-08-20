@@ -67,7 +67,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       }
 
       // Fetch items with company-specific personalization
-      const response = await apiRequest('GET', `/api/materials-services/companies/${companyId}/items`);
+      const response = await apiRequest('GET', "/items`);
       const result = await response.json();
       console.log('📦 [MaterialsSystem] Company items fetched:', result.data?.length || 0, 'items,', result.stats?.itemsWithCustomMappings || 0, 'with custom mappings');
       return result;
@@ -80,7 +80,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const { data: availableItemsData, isLoading: availableItemsLoading, error: availableItemsError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'available-for-consumption'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/available-for-consumption`);
+      const response = await apiRequest('GET', "/available-for-consumption`);
       return response.json();
     },
   });
@@ -89,7 +89,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const { data: plannedData, isLoading: plannedLoading, error: plannedError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/planned-items`);
+      const response = await apiRequest('GET', "/planned-items`);
       return response.json();
     },
   });
@@ -98,7 +98,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const { data: consumedData, isLoading: consumedLoading, error: consumedError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/consumed-items`);
+      const response = await apiRequest('GET', "/consumed-items`);
       return response.json();
     },
   });
@@ -107,7 +107,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const { data: costsData, isLoading: costsLoading, error: costsError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'costs-summary'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/costs-summary`);
+      const response = await apiRequest('GET', "/costs-summary`);
       return response.json();
     },
   });
@@ -142,7 +142,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
             console.log('💰 [PRICE-LOOKUP] Using price list:', activePriceList.name, 'ID:', activePriceList.id);
 
             // Get items from this price list
-            const priceListItemsResponse = await apiRequest('GET', `/api/materials-services/price-lists/${activePriceList.id}/items`);
+            const priceListItemsResponse = await apiRequest('GET', "/items`);
             const priceListItems = await priceListItemsResponse.json();
 
             console.log('💰 [PRICE-LOOKUP] Price list items:', priceListItems.length);
@@ -177,7 +177,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
       console.log('🔍 [ADD-PLANNED-MUTATION] Sending request data with price:', requestData);
 
-      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/planned-items`, requestData);
+      const response = await apiRequest('POST', "/planned-items`, requestData);
       return response.json();
     },
     onSuccess: () => {
@@ -214,7 +214,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
       console.log('🔍 [CONSUMED] Sending request data:', requestData);
 
-      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/consumed-items`, requestData);
+      const response = await apiRequest('POST', "/consumed-items`, requestData);
       return response.json();
     },
     onSuccess: () => {
@@ -232,7 +232,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   // Delete planned material mutation
   const deletePlannedMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      const response = await apiRequest('DELETE', `/api/materials-services/tickets/${ticketId}/planned-items/${itemId");
+      const response = await apiRequest('DELETE', "
       return response.json();
     },
     onSuccess: () => {
@@ -247,7 +247,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
   // Handle delete planned item
   const handleDeletePlannedItem = (itemId: string, itemName: string) => {
-    if (confirm(`Tem certeza que deseja excluir o item "${itemName}"?`)) {
+    if (confirm(""?`)) {
       deletePlannedMutation.mutate(itemId);
     }
   };
@@ -255,7 +255,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   // Delete consumed material mutation
   const deleteConsumedMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      const response = await apiRequest('DELETE', `/api/materials-services/tickets/${ticketId}/consumed-items/${itemId");
+      const response = await apiRequest('DELETE', "
       return response.json();
     },
     onSuccess: () => {
@@ -325,8 +325,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       }
 
       const processedItem = {
-        id: itemId || `consumed-${index",
-        consumedItemId: itemId || `consumed-${index",
+        id: itemId || "
+        consumedItemId: itemId || "
         itemName: itemName,
         itemType: itemType,
         quantityUsed: consumedItem.actualQuantity || consumedItem.quantityUsed || item.actualQuantity || '0',
@@ -680,7 +680,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           else if (item.display_name) itemName = item.display_name;
                           else if (item.title) itemName = item.title;
                           // Fallback: Use a descriptive fallback instead of UUID
-                          else itemName = `Material ${item.itemId ? item.itemId.substring(0, 8) : 'Não identificado'";
+                          else itemName = "
 
                           // Debug log to see item structure
                           console.log('🔍 [CONSUMPTION-SELECT] Available item structure:', {
@@ -703,7 +703,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           const unitPrice = parseFloat(item.unitPriceAtPlanning || item.unitPrice || item.price || item.unit_cost || 0);
 
                           return (
-                            <SelectItem key={`available-${item.itemId}-${index"} value={item.itemId}>
+                            <SelectItem key={"
                               <div className="flex flex-col text-left w-full">
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium">{itemName}</span>
@@ -748,7 +748,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 className="w-full"
               >
                 <Calculator className="h-4 w-4 mr-2" />
-                {addConsumedMutation.isPending ? "Registrando..." : "Registrar Consumo"}
+                {addConsumedMutation.isPending ? "Registrando..." : "Registrar Consumo"
               </Button>
 
               {/* Lista de Itens Consumidos */}
@@ -805,7 +805,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         return true;
                       })
                       .map((material: any, index: number) => (
-                      <div key={`consumed-${material.consumedItemId || material.id}-${index"} className="flex items-center justify-between p-4 border border-green-200 rounded-lg bg-green-50 hover:shadow-md transition-shadow">
+                      <div key={"
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             {material.itemType === 'material' ? (

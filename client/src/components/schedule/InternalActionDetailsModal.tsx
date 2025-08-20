@@ -86,7 +86,7 @@ export default function InternalActionDetailsModal({
   // Update internal action mutation
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/tickets/${internalAction.ticketId}/actions/${internalAction.id", data);
+      const response = await apiRequest("PUT", "
       return response.json();
     },
     onSuccess: () => {
@@ -171,7 +171,7 @@ export default function InternalActionDetailsModal({
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => window.open(`/tickets/${internalAction.ticketId}#internal-actions`, '_blank')}
+              onClick={() => window.open("#internal-actions`, '_blank')}
               className="mt-2 text-xs h-6 px-2"
             >
               <ExternalLink className="w-3 h-3 mr-1" />

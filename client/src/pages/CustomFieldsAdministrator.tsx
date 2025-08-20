@@ -97,9 +97,9 @@ export default function CustomFieldsAdministrator() {
   const { data: moduleFields = [], isLoading } = useQuery({
     queryKey: ['custom-fields', selectedModule],
     queryFn: async () => {
-      const response = await fetch(`/api/custom-fields/fields/${selectedModule", {
+      const response = await fetch("
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')"
+          'Authorization': "
         }
       });
       if (!response.ok) {
@@ -117,7 +117,7 @@ export default function CustomFieldsAdministrator() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')"
+          'Authorization': "
         },
         body: JSON.stringify(fieldData)
       });
@@ -146,11 +146,11 @@ export default function CustomFieldsAdministrator() {
   // Update field mutation
   const updateFieldMutation = useMutation({
     mutationFn: async ({ fieldId, ...fieldData }: Partial<CustomFieldMetadata> & { fieldId: string }) => {
-      const response = await fetch(`/api/custom-fields/fields/${fieldId", {
+      const response = await fetch("
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')"
+          'Authorization': "
         },
         body: JSON.stringify(fieldData)
       });
@@ -179,10 +179,10 @@ export default function CustomFieldsAdministrator() {
   // Delete field mutation
   const deleteFieldMutation = useMutation({
     mutationFn: async (fieldId: string) => {
-      const response = await fetch(`/api/custom-fields/fields/${fieldId", {
+      const response = await fetch("
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')"
+          'Authorization': "
         }
       });
       if (!response.ok) {
@@ -477,7 +477,7 @@ export default function CustomFieldsAdministrator() {
                           <div className="w-24 bg-gray-200 rounded-full h-2">
                             <div 
                               className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${percentage}%` }}
+                              style={{ width: "%` }}
                             ></div>
                           </div>
                           <span className="text-sm text-gray-600 w-8 text-right">{count}</span>

@@ -110,9 +110,9 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
       const rect = canvasRef.current?.getBoundingClientRect()
       if (rect) {
         const newField: FieldComponent = {
-          id: `field_${Date.now()",
+          id: "
           type: active.data.current.type,
-          label: active.data.current.label || `Campo ${fields.length + 1",
+          label: active.data.current.label || "
           properties: active.data.current.defaultProperties || {},
           validation: {},
           position: { 
@@ -166,7 +166,7 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
   }, [fields, onSave])
 
   const canvasStyle = {
-    transform: `scale(${zoom}) translate(${pan.x}px, ${pan.y}px)`,
+    transform: "px)`,
     transformOrigin: '0 0'
   }
 

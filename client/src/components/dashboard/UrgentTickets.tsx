@@ -24,13 +24,13 @@ function formatTimeAgo(date: string) {
   const ticketDate = new Date(date);
   const diffInMinutes = Math.floor((now.getTime() - ticketDate.getTime()) / (1000 * 60));
   
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  if (diffInMinutes < 60) return "m ago`;
   
   const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
+  if (diffInHours < 24) return "h ago`;
   
   const diffInDays = Math.floor(diffInHours / 24);
-  return `${diffInDays}d ago`;
+  return "d ago`;
 }
 
 export function UrgentTickets() {
@@ -96,7 +96,7 @@ export function UrgentTickets() {
                 ticket.priority === "critical" 
                   ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20" 
                   : "border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20"
-              "}
+              "
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -116,10 +116,10 @@ export function UrgentTickets() {
               </p>
               <div className="mt-2 flex items-center justify-between">
                 <span className="text-xs text-gray-600 dark:text-gray-400">
-                  Assigned to: {" "}
+                  Assigned to: {" "
                   <span className="font-medium">
                     {ticket.assignedTo 
-                      ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName"
+                      ? "
                       : "Unassigned"
                     }
                   </span>

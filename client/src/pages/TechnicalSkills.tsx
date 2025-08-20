@@ -242,7 +242,7 @@ export default function TechnicalSkills() {
         {Array.from({ length: maxLevel }, (_, i) => (
           <Star
             key={i}
-            className={`h-4 w-4 fill-yellow-400 text-yellow-400`}
+            className={`h-4 w-4 fill-yellow-400 text-yellow-400"
           />
         ))}
         <span className="ml-1 text-xs text-gray-500">

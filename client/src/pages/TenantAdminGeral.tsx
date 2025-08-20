@@ -243,7 +243,7 @@ export default function TenantAdminGeral() {
             />
             <StatCard
               title="Taxa de Resolução"
-              value={`${(analytics as any)?.resolutionRate || 0}%`}
+              value={"%"
               icon={TrendingUp}
               trend={3}
             />

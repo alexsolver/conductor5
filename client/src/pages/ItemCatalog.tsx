@@ -215,7 +215,7 @@ export default function ItemCatalog() {
         params.append('status', statusFilter);
       }
 
-      const url = `/api/materials-services/items${params.toString() ? `?${params" : ''";
+      const url = "
       console.log('🔍 [ItemCatalog] Fetching from URL:', url);
 
       // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
@@ -235,7 +235,7 @@ export default function ItemCatalog() {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token",
+          'Authorization': "
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
@@ -286,7 +286,7 @@ export default function ItemCatalog() {
               // Retry the original request with new token
               const retryResponse = await fetch(url, {
                 headers: {
-                  'Authorization': `Bearer ${accessToken",
+                  'Authorization': "
                   'Content-Type': 'application/json'
                 }
               });
@@ -322,7 +322,7 @@ export default function ItemCatalog() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('🔍 [ItemCatalog] Response error:', errorText);
-        throw new Error(`Failed to fetch items: ${response.status} ${response.statusText");
+        throw new Error("
       }
 
       // ✅ CRITICAL FIX - Enhanced error handling per 1qa.md compliance
@@ -373,7 +373,7 @@ export default function ItemCatalog() {
           message: parseError.message,
           position: parseError.position
         });
-        throw new Error(`Failed to parse server response: ${parseError.message");
+        throw new Error("
       }
 
       console.log('🔍 [ItemCatalog] Response data:', {
@@ -431,7 +431,7 @@ export default function ItemCatalog() {
     queryFn: async () => {
       if (!selectedItem?.id) return { customers: [], suppliers: [] };
       try {
-        const response = await apiRequest('GET', `/api/materials-services/items/${selectedItem.id}/links`);
+        const response = await apiRequest('GET', "/links`);
         const result = await response.json();
         console.log('🔗 Links carregados:', result);
         return result?.data || { customers: [], suppliers: [] };
@@ -474,7 +474,7 @@ export default function ItemCatalog() {
 
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof itemSchema> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/items/${id", data);
+      const response = await apiRequest('PUT', "
       return response.json();
     },
     onSuccess: () => {
@@ -497,7 +497,7 @@ export default function ItemCatalog() {
 
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/materials-services/items/${id");
+      const response = await apiRequest('DELETE', "
       return response.json();
     },
     onSuccess: () => {
@@ -574,7 +574,7 @@ export default function ItemCatalog() {
     if (selectedItem && currentView === 'item-edit') {
       // Logic to update item and its hierarchical links
       try {
-        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id", {
+        const updateResponse = await apiRequest('PUT', "
           ...data,
           childrenIds: data.childrenIds, // Ensure childrenIds are sent
         });
@@ -679,7 +679,7 @@ export default function ItemCatalog() {
 
               <div className="flex items-center">
                 <Button
-                  variant={isBulkMode ? "default" : "outline"}
+                  variant={isBulkMode ? "default" : "outline"
                   onClick={() => setIsBulkMode(!isBulkMode)}
                   className="flex items-center gap-2"
                 >
@@ -746,7 +746,7 @@ export default function ItemCatalog() {
                       key={item.id}
                       className={`hover:bg-gray-50 transition-colors ${
                         selectedItems.has(item.id) ? 'bg-blue-50' : ''
-                      "}
+                      "
                     >
                       {isBulkMode && (
                         <TableCell>
@@ -835,7 +835,7 @@ export default function ItemCatalog() {
 
                       <TableCell>
                         <Badge variant={item.active ? "default" : "secondary">
-                          {item.active ? "Ativo" : "Inativo"}
+                          {item.active ? "Ativo" : "Inativo"
                         </Badge>
                       </TableCell>
 
@@ -958,7 +958,7 @@ export default function ItemCatalog() {
                 <h1 className="text-2xl font-bold">{selectedItem.name}</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant={selectedItem.active ? "default" : "secondary">
-                    {selectedItem.active ? "Ativo" : "Inativo"}
+                    {selectedItem.active ? "Ativo" : "Inativo"
                   </Badge>
                   <Badge variant="outline">
                     {selectedItem.type === 'material' ? 'Material' : 'Serviço'}
@@ -1369,7 +1369,7 @@ export default function ItemCatalog() {
                           if (!selectedItem?.id || !companyId || companyId === "none") return;
 
                           try {
-                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-customer`, {
+                            const response = await fetch("/link-customer`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ customerId: companyId })
@@ -1421,7 +1421,7 @@ export default function ItemCatalog() {
                               if (!selectedItem?.id) return;
 
                               try {
-                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id", {
+                                const response = await fetch("
                                   method: 'DELETE'
                                 });
 
@@ -1464,7 +1464,7 @@ export default function ItemCatalog() {
                           if (!selectedItem?.id || !supplierId || supplierId === "none") return;
 
                           try {
-                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-supplier`, {
+                            const response = await fetch("/link-supplier`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ supplierId })
@@ -1516,7 +1516,7 @@ export default function ItemCatalog() {
                               if (!selectedItem?.id) return;
 
                               try {
-                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id", {
+                                const response = await fetch("
                                   method: 'DELETE'
                                 });
 

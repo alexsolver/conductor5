@@ -53,7 +53,7 @@ export function MediaUploadDialog({
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const uploadedFile = {
-        id: `file_${Date.now()",
+        id: "
         name: file.name,
         size: file.size,
         type: file.type,
@@ -63,7 +63,7 @@ export function MediaUploadDialog({
 
       toast({
         title: '[TRANSLATION_NEEDED]',
-        description: `Arquivo "${file.name}" enviado com sucesso!`,
+        description: "" enviado com sucesso!`,
       });
 
       setIsOpen(false);
@@ -104,7 +104,7 @@ export function MediaUploadDialog({
               dragActive 
                 ? 'border-blue-500 bg-blue-50' 
                 : 'border-gray-300 hover:border-gray-400'
-            "}
+            "
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -131,7 +131,7 @@ export function MediaUploadDialog({
               onClick={() => document.getElementById('file-upload')?.click()}
               disabled={isUploading}
             >
-              {isUploading ? "Enviando..." : "Selecionar Arquivo"}
+              {isUploading ? "Enviando..." : "Selecionar Arquivo"
             </Button>
           </div>
 

@@ -67,7 +67,7 @@ export default function Landing() {
               <Button 
                 size="lg" 
                 className="gradient-primary text-white hover:opacity-90 px-8 py-3"
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => window.location.href = "/api/login"
               >
                 Get Started
               </Button>
@@ -131,7 +131,7 @@ export default function Landing() {
               size="lg" 
               variant="secondary"
               className="bg-white text-purple-600 hover:bg-gray-50 px-8 py-3"
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => window.location.href = "/api/login"
             >
               Start Your Free Trial
             </Button>

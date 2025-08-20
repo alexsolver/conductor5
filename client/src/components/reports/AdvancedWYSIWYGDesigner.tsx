@@ -218,7 +218,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
     if (!componentTemplate) return;
 
     const newComponent = {
-      id: `${componentType}_${Date.now()",
+      id: "
       type: componentType,
       position: position || { x: 50, y: 50 },
       size: { width: 200, height: 100 },
@@ -260,7 +260,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
 
     const newComponent = {
       ...component,
-      id: `${component.type}_${Date.now()",
+      id: "
       position: {
         x: component.position.x + 20,
         y: component.position.y + 20
@@ -459,10 +459,10 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
               ref={canvasRef}
               className="mx-auto bg-white shadow-lg relative"
               style={{
-                width: `${design?.layout?.width || 800}px`,
-                height: `${design?.layout?.height || 600}px`,
+                width: "px`,
+                height: "px`,
                 backgroundColor: design?.layout?.backgroundColor || '#ffffff',
-                padding: `${design?.layout?.padding || 20}px`
+                padding: "px`
               }}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -586,7 +586,7 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
         return (
           <div
             style={{
-              fontSize: `${component.props.fontSize}px`,
+              fontSize: "px`,
               fontWeight: component.props.fontWeight,
               color: component.props.color,
               textAlign: component.props.align,
@@ -644,7 +644,7 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
             src={component.props.src}
             alt={component.props.alt}
             className="w-full h-full object-cover"
-            style={{ borderRadius: `${component.props.borderRadius}px` }}
+            style={{ borderRadius: "px` }}
           />
         );
 
@@ -653,9 +653,9 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
           <div
             style={{
               width: '100%',
-              height: `${component.props.thickness}px`,
+              height: "px`,
               backgroundColor: component.props.color,
-              margin: `${component.props.margin}px 0`
+              margin: "px 0`
             }}
           />
         );
@@ -666,9 +666,9 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
             className="w-full h-full"
             style={{
               backgroundColor: component.props.backgroundColor,
-              border: `${component.props.borderWidth}px solid ${component.props.borderColor",
-              borderRadius: `${component.props.borderRadius}px`,
-              padding: `${component.props.padding}px`,
+              border: "
+              borderRadius: "px`,
+              padding: "px`,
               boxShadow: component.props.shadow ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
             }}
           >
@@ -683,7 +683,7 @@ function DesignComponent({ component, isSelected, isPreview, onClick, onUpdate, 
 
   return (
     <div
-      className="absolute cursor-pointer ${isSelected && !isPreview ? 'ring-2 ring-blue-500' : ''} "`}
+      className="absolute cursor-pointer ${isSelected && !isPreview ? 'ring-2 ring-blue-500' : ''} ""
       style={{
         left: component.position.x,
         top: component.position.y,

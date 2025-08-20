@@ -98,8 +98,8 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
 
   const handleAddDependency = () => {
     const newDependency: FieldDependency = {
-      id: `dep-${Date.now()",
-      name: `Nova Dependência ${dependencies.length + 1",
+      id: "
+      name: "
       sourceFieldId: '',
       targetFieldId: '',
       condition: {
@@ -119,7 +119,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
   const handleSaveDependency = (dependency: FieldDependency) => {
     if (dependency.id.includes('new-')) {
       // Nova dependência
-      const newDep = { ...dependency, id: `dep-${Date.now()" };
+      const newDep = { ...dependency, id: "
       onDependenciesChange([...dependencies, newDep]);
     } else {
       // Editar existente
@@ -206,7 +206,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
               
               {/* Incoming dependencies */}
               {edges.filter(e => e.target === node.id).map(edge => (
-                <div key={`${edge.source}-${edge.target"} className="mt-2 text-xs text-gray-600">
+                <div key={"
                   <ArrowRight className="h-3 w-3 inline mr-1" />
                   Depende de: {getFieldName(edge.source)}
                 </div>
@@ -274,7 +274,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                 const errors = validateDependency(dependency);
                 
                 return (
-                  <Card key={dependency.id} className=""`}>
+                  <Card key={dependency.id} className=""">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">

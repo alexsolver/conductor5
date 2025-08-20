@@ -91,7 +91,7 @@ export default function TicketDetail() {
 
   // Fetch ticket details
   const { data: ticket, isLoading: isTicketLoading, error: ticketError } = useQuery<Ticket>({
-    queryKey: [`/api/tickets/${id"],
+    queryKey: ["
     enabled: !!id,
     retry: (failureCount, error: any) => {
       // Se for erro 401 (não autorizado), não tenta novamente
@@ -115,35 +115,35 @@ export default function TicketDetail() {
 
   // Fetch attachments
   const { data: attachments, isLoading: isAttachmentsLoading } = useQuery<Attachment[]>({
-    queryKey: [`/api/tickets/${id}/attachments`],
+    queryKey: ["/attachments`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
 
   // Fetch communications
   const { data: communications, isLoading: isCommunicationsLoading } = useQuery<Communication[]>({
-    queryKey: [`/api/tickets/${id}/communications`],
+    queryKey: ["/communications`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
 
   // Fetch notes
   const { data: notes, isLoading: isNotesLoading } = useQuery<Note[]>({
-    queryKey: [`/api/tickets/${id}/notes`],
+    queryKey: ["/notes`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
 
   // Fetch history
   const { data: history, isLoading: isHistoryLoading } = useQuery<HistoryEntry[]>({
-    queryKey: [`/api/tickets/${id}/history`],
+    queryKey: ["/history`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
   });
 
   // 🎯 [1QA-COMPLIANCE] Fetch company details for proper display
   const { data: company, error: companyError } = useQuery({
-    queryKey: [`/api/companies/${ticket?.companyId"],
+    queryKey: ["
     enabled: !!ticket?.companyId,
     select: (data: any) => {
       console.log('🏢 [COMPANY-QUERY] Raw response:', data);
@@ -174,14 +174,14 @@ export default function TicketDetail() {
 
   // 🎯 [1QA-COMPLIANCE] Fetch user details for assigned user display  
   const { data: assignedUser } = useQuery({
-    queryKey: [`/api/users/${ticket?.assignedToId"],
+    queryKey: ["
     enabled: !!ticket?.assignedToId,
     select: (data: any) => data?.data || data,
   });
 
   // 🎯 [1QA-COMPLIANCE] Fetch location details for proper display
   const { data: location } = useQuery({
-    queryKey: [`/api/locations/${ticket?.locationId"],
+    queryKey: ["
     enabled: !!ticket?.locationId,
     select: (data: any) => data?.data || data,
   });
@@ -195,7 +195,7 @@ export default function TicketDetail() {
   };
 
   const handleDownloadAttachment = (attachmentId: string, originalName: string) => {
-    const downloadUrl = `/api/tickets/${id}/attachments/${attachmentId}/download`;
+    const downloadUrl = "/download`;
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = originalName;
@@ -207,8 +207,8 @@ export default function TicketDetail() {
 
   const handleUploadComplete = () => {
     // Refresh attachments after upload
-    queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}/attachments`] });
-    queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id"] });
+    queryClient.invalidateQueries({ queryKey: ["/attachments`] });
+    queryClient.invalidateQueries({ queryKey: ["
     toast({
       title: '[TRANSLATION_NEEDED]',
       description: 'Files uploaded successfully.',
@@ -541,7 +541,7 @@ export default function TicketDetail() {
                   <span className="text-gray-500">Responsável:</span>
                   <span className="ml-2 font-medium">
                     {assignedUser?.firstName && assignedUser?.lastName 
-                      ? `${assignedUser.firstName} ${assignedUser.lastName"
+                      ? "
                       : assignedUser?.email || ticket.assignedToId
                     }
                   </span>

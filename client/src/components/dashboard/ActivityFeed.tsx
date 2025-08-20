@@ -21,21 +21,21 @@ function getActivityIcon(action: string) {
 }
 
 function getActivityMessage(activity: ActivityLogWithUser) {
-  const userName = activity.user ? `${activity.user.firstName} ${activity.user.lastName" : "System";
+  const userName = activity.user ? "
   
   switch (activity.action) {
     case "created":
-      return `${userName} created ${activity.entityType";
+      return "
     case "resolved":
-      return `${userName} resolved ticket`;
+      return " resolved ticket`;
     case "assigned":
-      return `${userName} assigned ticket`;
+      return " assigned ticket`;
     case "updated":
-      return `${userName} updated ${activity.entityType";
+      return "
     case "message_added":
-      return `${userName} added a message`;
+      return " added a message`;
     default:
-      return `${userName} performed ${activity.action";
+      return "
   }
 }
 
@@ -45,20 +45,20 @@ function formatTimeAgo(date: string) {
   const diffInMinutes = Math.floor((now.getTime() - activityDate.getTime()) / (1000 * 60));
   
   if (diffInMinutes < 1) return "Just now";
-  if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+  if (diffInMinutes < 60) return " minutes ago`;
   
   const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  if (diffInHours < 24) return " hours ago`;
   
   const diffInDays = Math.floor(diffInHours / 24);
-  return `${diffInDays} days ago`;
+  return " days ago`;
 }
 
 function getUserInitials(user?: { firstName?: string | null; lastName?: string | null }) {
   if (!user?.firstName && !user?.lastName) return "SY";
   const first = user.firstName?.charAt(0) || "";
   const last = user.lastName?.charAt(0) || "";
-  return `${first}${last".toUpperCase();
+  return "
 }
 
 export function ActivityFeed() {

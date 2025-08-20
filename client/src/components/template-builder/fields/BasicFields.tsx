@@ -86,7 +86,7 @@ export const TextAreaField: React.FC<BasicFieldProps> = ({
         rows={properties.rows || 4}
         maxLength={properties.maxLength}
         required={properties.required}
-        className="resize-none "`}
+        className="resize-none ""
       />
       
       {properties.description && (
@@ -139,9 +139,9 @@ export const NumberField: React.FC<BasicFieldProps> = ({
       
       {(properties.min !== undefined || properties.max !== undefined) && (
         <div className="text-xs text-gray-400">
-          {properties.min !== undefined && `Min: ${properties.min"}
+          {properties.min !== undefined && "
           {properties.min !== undefined && properties.max !== undefined && ' • '}
-          {properties.max !== undefined && `Max: ${properties.max"}
+          {properties.max !== undefined && "
         </div>
       )}
     </div>

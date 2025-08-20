@@ -247,7 +247,7 @@ export default function SaasAdminDisasterRecovery() {
                   ].map((point, index) => (
                     <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center gap-4">
-                        <div className="w-3 h-3 rounded-full "`} />
+                        <div className="w-3 h-3 rounded-full "" />
                         <div>
                           <div className="font-medium">{point.date}</div>
                           <div className="text-sm text-gray-500">{point.type} • {point.tenant} • {point.size}</div>

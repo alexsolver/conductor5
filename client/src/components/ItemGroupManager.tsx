@@ -106,7 +106,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
 
   const assignToGroupMutation = useMutation({
     mutationFn: async ({ groupId, itemIds }: { groupId: string, itemIds: string[] }) => {
-      const response = await apiRequest('POST', `/api/materials-services/item-groups/${groupId}/assign-items`, {
+      const response = await apiRequest('POST', "/assign-items`, {
         itemIds
       });
       return response.json();
@@ -337,7 +337,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
                         selectedParentItem?.id === item.id
                           ? 'bg-blue-100 border border-blue-300'
                           : 'hover:bg-gray-50'
-                      "}
+                      "
                       onClick={() => setSelectedParentItem(item)}
                     >
                       <input

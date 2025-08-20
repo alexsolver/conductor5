@@ -86,7 +86,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
   const mutation = useMutation({
     mutationFn: async (data: LocationFormData) => {
       if (location?.id) {
-        return apiRequest(`/api/locations/${location.id", {
+        return apiRequest("
           method: 'PUT',
           body: data
         });
@@ -125,7 +125,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
     setShowMap(false);
     toast({
       title: "Coordenadas definidas",
-      description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)"
+      description: "
     });
   };
 
@@ -152,7 +152,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              {location?.id ? '[TRANSLATION_NEEDED]' : "Nova Localização"}
+              {location?.id ? '[TRANSLATION_NEEDED]' : "Nova Localização"
             </DialogTitle>
           </DialogHeader>
 
@@ -408,7 +408,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <div>Longitude: {form.watch('longitude')}</div>
                         <div className="mt-2">
                           <a
-                            href={`https://www.google.com/maps?q=${form.watch('latitude')},${form.watch('longitude')"}
+                            href={"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 underline"

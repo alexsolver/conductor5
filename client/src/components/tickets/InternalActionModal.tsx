@@ -176,7 +176,7 @@ export default function InternalActionModal({
         allFields: Object.keys(cleanedData)
       });
 
-      const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, cleanedData);
+      const response = await apiRequest("POST", "/actions`, cleanedData);
       return response.json();
     },
     onSuccess: (data) => {
@@ -225,7 +225,7 @@ export default function InternalActionModal({
 
       console.log('🔧 [UPDATE] Updating action:', editAction.id, cleanedData);
 
-      const response = await fetch(`/api/tickets/${ticketId}/actions/${editAction.id", {
+      const response = await fetch("
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -235,7 +235,7 @@ export default function InternalActionModal({
 
       if (!response.ok) {
         const errorData = await response.text();
-        throw new Error(`Failed to update action: ${response.status} ${errorData");
+        throw new Error("
       }
 
       return response.json();
@@ -425,7 +425,7 @@ export default function InternalActionModal({
                         <SelectItem value="__none__">-- Selecione um agente --</SelectItem>
                         {teamMembers?.users?.map((user: any) => (
                           <SelectItem key={user.id} value={user.id}>
-                            {user.name || `${user.firstName || ''} ${user.lastName || ''".trim() || user.email}
+                            {user.name || "
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -469,7 +469,7 @@ export default function InternalActionModal({
                 <div>
                   <div className="flex justify-between">
                     <Label htmlFor="title">Título</Label>
-                    <span className="text-xs "`}>
+                    <span className="text-xs "">
                       {formData.title.length}/255
                     </span>
                   </div>
@@ -478,7 +478,7 @@ export default function InternalActionModal({
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="Título resumido da ação..."
-                    className="mt-1 "`}
+                    className="mt-1 ""
                     maxLength={255}
                   />
                   {formData.title.length > 255 && (
@@ -490,7 +490,7 @@ export default function InternalActionModal({
                 <div>
                   <div className="flex justify-between">
                     <Label htmlFor="description">Descrição</Label>
-                    <span className="text-xs "`}>
+                    <span className="text-xs "">
                       {formData.description.length}/1000
                     </span>
                   </div>
@@ -500,7 +500,7 @@ export default function InternalActionModal({
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Descrição detalhada da ação realizada..."
                     rows={4}
-                    className="mt-1 "`}
+                    className="mt-1 ""
                     maxLength={1000}
                   />
                   {formData.description.length > 1000 && (
@@ -543,7 +543,7 @@ export default function InternalActionModal({
                             const endHour = String(endTime.getHours()).padStart(2, '0');
                             const endMinute = String(endTime.getMinutes()).padStart(2, '0');
 
-                            newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute";
+                            newData.planned_end_time = "
                           }
                         }
 
@@ -597,7 +597,7 @@ export default function InternalActionModal({
                                   const endHour = String(endTime.getHours()).padStart(2, '0');
                                   const endMinute = String(endTime.getMinutes()).padStart(2, '0');
 
-                                  newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute";
+                                  newData.planned_end_time = "
                                 }
                               }
                             }

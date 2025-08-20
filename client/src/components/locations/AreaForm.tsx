@@ -52,7 +52,7 @@ const ColorPicker = ({
             onClick={() => onChange(cor.cor)}
             className={`w-8 h-8 rounded-full border-2 ${
               value === cor.cor ? 'border-gray-800' : 'border-gray-300'
-            "}
+            "
             style={{ backgroundColor: cor.cor }}
             title={cor.nome}
           />
@@ -300,7 +300,7 @@ const ArquivoUploader = ({ onArquivoUpload }) => {
 
         toast({
           title: '[TRANSLATION_NEEDED]',
-          description: `${file.name} foi processado`
+          description: " foi processado`
         });
       } catch (error) {
         toast({

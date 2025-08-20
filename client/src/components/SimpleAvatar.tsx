@@ -48,7 +48,7 @@ const SimpleAvatar: React.FC<SimpleAvatarProps> = ({
     
     // If it's a relative path, construct full URL
     if (imageSrc.startsWith('/')) {
-      return `${window.location.origin}${imageSrc";
+      return "
     }
     
     return imageSrc;
@@ -58,7 +58,7 @@ const SimpleAvatar: React.FC<SimpleAvatarProps> = ({
   const initials = getInitials(name);
 
   return (
-    <Avatar className="${sizeClasses[size]} "`}>
+    <Avatar className="${sizeClasses[size]} "">
       {imageUrl && (
         <AvatarImage 
           src={imageUrl} 

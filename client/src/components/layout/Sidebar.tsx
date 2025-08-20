@@ -214,7 +214,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     queryKey: ["/api/tenants/current"],
     enabled: !!user?.tenantId,
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/tenants/${user?.tenantId");
+      const response = await apiRequest('GET', "
       return response.json();
     },
     staleTime: 300000, // Cache for 5 minutes
@@ -331,7 +331,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         )}
 
         {/* Tenant Selector */}
-        <div className="mt-6 transition-all duration-300 "`}>
+        <div className="mt-6 transition-all duration-300 "">
           <div className={`rounded-lg border transition-all duration-300 ${
             collapsed ? 'p-2' : 'p-3'
           "} style={{
@@ -607,7 +607,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 color: 'white'
               } : {}}>
                 <Palette className={collapsed ? "h-6 w-6 flex-shrink-0" : "mr-3 h-4 w-4 flex-shrink-0"} />
-                {!collapsed && "Aparência"}
+                {!collapsed && "Aparência"
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">

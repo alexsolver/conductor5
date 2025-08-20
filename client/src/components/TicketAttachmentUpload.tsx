@@ -38,11 +38,11 @@ export function TicketAttachmentUpload({
         formData.append('description', description.trim());
       }
 
-      const response = await fetch(`/api/tickets/${ticketId}/attachments`, {
+      const response = await fetch("/attachments`, {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')",
+          'Authorization': "
         },
         credentials: 'include',
       });
@@ -57,7 +57,7 @@ export function TicketAttachmentUpload({
     onSuccess: (data) => {
       toast({
         title: '[TRANSLATION_NEEDED]',
-        description: `${selectedFiles.length} file(s) uploaded successfully.`,
+        description: " file(s) uploaded successfully.`,
       });
       
       setSelectedFiles([]);
@@ -88,7 +88,7 @@ export function TicketAttachmentUpload({
       if (file.size > maxSize) {
         toast({
           title: 'File too large',
-          description: `${file.name} is larger than 10MB limit.`,
+          description: " is larger than 10MB limit.`,
           variant: 'destructive',
         });
         return false;
@@ -154,7 +154,7 @@ export function TicketAttachmentUpload({
           isDragOver 
             ? 'border-blue-500 bg-blue-50' 
             : 'border-gray-300 hover:border-gray-400'
-        "}
+        "
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -213,7 +213,7 @@ export function TicketAttachmentUpload({
           <h4 className="text-sm font-medium text-gray-900">Selected Files:</h4>
           {selectedFiles.map((file, index) => (
             <div 
-              key={`${file.name}-${index"}
+              key={"
               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
             >
               <div className="flex items-center space-x-3">

@@ -121,7 +121,7 @@ export default function LPUManagement() {
   // Fetch versions for selected list
   const { data: versions = [] } = useQuery<PriceListVersion[]>({
     queryKey: ['/api/materials-services/price-lists', selectedList?.id, 'versions'],
-    queryFn: () => apiRequest('GET', `/api/materials-services/price-lists/${selectedList?.id}/versions`),
+    queryFn: () => apiRequest('GET', "/versions`),
     enabled: !!selectedList
   });
 
@@ -154,7 +154,7 @@ export default function LPUManagement() {
 
   // Submit for approval mutation
   const submitApprovalMutation = useMutation({
-    mutationFn: (versionId: string) => apiRequest('POST', `/api/materials-services/price-lists/versions/${versionId}/submit`),
+    mutationFn: (versionId: string) => apiRequest('POST', "/submit`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({ title: 'Lista enviada para aprovação!' });
@@ -166,7 +166,7 @@ export default function LPUManagement() {
 
   // Approve price list mutation
   const approveMutation = useMutation({
-    mutationFn: (versionId: string) => apiRequest('POST', `/api/materials-services/price-lists/versions/${versionId}/approve`),
+    mutationFn: (versionId: string) => apiRequest('POST', "/approve`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({ title: 'Lista aprovada com sucesso!' });
@@ -594,7 +594,7 @@ export default function LPUManagement() {
                             }
                           </TableCell>
                           <TableCell>
-                            {version.baseMargin ? `${version.baseMargin}%` : '-'}
+                            {version.baseMargin ? "%` : '-'}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -667,7 +667,7 @@ export default function LPUManagement() {
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="w-4 h-4" />
                             Válido: {new Date(rule.validFrom).toLocaleDateString('pt-BR')}
-                            {rule.validTo && ` até ${new Date(rule.validTo).toLocaleDateString('pt-BR')"}
+                            {rule.validTo && "
                           </div>
                         )}
                       </div>

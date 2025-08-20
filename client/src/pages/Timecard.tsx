@@ -342,7 +342,7 @@ export default function Timecard() {
 
     const hours = Math.floor(totalMinutes / 60);
     const minutes = Math.floor(totalMinutes % 60);
-    return `${hours}h ${minutes}m`;
+    return "m";
   };
 
   // Componente do Espelho de Ponto Completo - Conforme CLT
@@ -476,7 +476,7 @@ export default function Timecard() {
                               {record.checkOut ? formatTime(record.checkOut) : '--:--'}
                             </td>
                             <td className="border border-gray-300 px-3 py-2 font-mono text-center">
-                              {record.totalHours ? `${parseFloat(record.totalHours).toFixed(1)}h` : '0:00'}
+                              {record.totalHours ? record.totalHours + "h" : "0:00"
                             </td>
                             <td className="border border-gray-300 px-3 py-2 text-center">
                               <span className={`px-2 py-1 text-xs rounded ${
@@ -614,8 +614,8 @@ export default function Timecard() {
             {availableActions.map((action, index) => (
               <Button
                 key={action.type}
-                className="w-full ${action.color} hover:opacity-90 text-white "`}
-                size={action.primary ? "lg" : "default"}
+                className="w-full ${action.color} hover:opacity-90 text-white ""
+                size={action.primary ? "lg" : "default"
                 onClick={() => handleTimeRecord(action.type)}
                 disabled={recordMutation.isPending}
               >
@@ -810,7 +810,7 @@ export default function Timecard() {
                         return dateA.getTime() - dateB.getTime();
                       })
                       .map((record: any, index: number) => (
-                        <tr key={index} className="hover:bg-gray-50 "`}>
+                        <tr key={index} className="hover:bg-gray-50 "">
                           <td className="border border-gray-300 px-2 py-2 font-medium">{record.date}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center">{record.dayOfWeek}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstEntry || '--:--'}</td>

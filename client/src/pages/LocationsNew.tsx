@@ -246,7 +246,7 @@ function LocationsNewContent() {
 
   // Get current stats safely
   const getCurrentStats = useCallback(() => {
-    const statsKey = `${activeRecordType.replace('-', '')}Stats` as keyof typeof statsQueries;
+    const statsKey = "Stats` as keyof typeof statsQueries;
     const currentStatsQuery = statsQueries[statsKey];
     return (currentStatsQuery?.data as any)?.data || { total: 0, active: 0, inactive: 0 };
   }, [statsQueries, activeRecordType]);
@@ -254,16 +254,16 @@ function LocationsNewContent() {
   // Create mutation using apiRequest
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', `/api/locations-new/${activeRecordType", data);
+      const response = await apiRequest('POST', "
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: '[TRANSLATION_NEEDED]',
-        description: `${RECORD_TYPES[activeRecordType as keyof typeof RECORD_TYPES].label} criado com sucesso!`
+        description: " criado com sucesso!`
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/locations-new/${activeRecordType}/stats`] });
+      queryClient.invalidateQueries({ queryKey: ["
+      queryClient.invalidateQueries({ queryKey: ["/stats`] });
       setIsCreateDialogOpen(false);
       form.reset();
     },
@@ -1286,8 +1286,8 @@ function LocationsNewContent() {
                         <div className="grid grid-cols-7 gap-2">
                           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia, index) => (
                             <div key={index} className="flex items-center space-x-2">
-                              <Checkbox id={`dia-${index"} />
-                              <label htmlFor={`dia-${index"} className="text-sm">{dia}</label>
+                              <Checkbox id={"
+                              <label htmlFor={"
                             </div>
                           ))}
                         </div>
@@ -1742,8 +1742,8 @@ function LocationsNewContent() {
                           <div className="grid grid-cols-2 gap-2">
                             {['Área Centro', 'Área Norte', 'Área Sul', 'Área Leste'].map((area, index) => (
                               <div key={index} className="flex items-center space-x-2">
-                                <Checkbox id={`area-${index"} />
-                                <label htmlFor={`area-${index"} className="text-sm flex items-center space-x-2">
+                                <Checkbox id={"
+                                <label htmlFor={"
                                   <div className="w-3 h-3 bg-blue-500 rounded"></div>
                                   <span>{area}</span>
                                   <Badge variant="outline" className="text-xs">Faixa CEP</Badge>
@@ -1910,7 +1910,7 @@ function LocationsNewContent() {
                           <TableCell>{item.codigoIntegracao || item.codigo_integracao || "-"}</TableCell>
                           <TableCell>
                             <Badge variant={item.ativo ? "default" : "secondary">
-                              {item.ativo ? "Ativo" : "Inativo"}
+                              {item.ativo ? "Ativo" : "Inativo"
                             </Badge>
                           </TableCell>
                           <TableCell>

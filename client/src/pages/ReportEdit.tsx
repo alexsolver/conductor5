@@ -55,7 +55,7 @@ export default function ReportEdit() {
   // Fetch existing report data
   const { data: reportData, isLoading, error } = useQuery({
     queryKey: ["/api/reports-dashboards/reports", reportId],
-    queryFn: () => apiRequest("GET", `/api/reports-dashboards/reports/${reportId"),
+    queryFn: () => apiRequest("GET", "
     enabled: !!reportId,
   });
 
@@ -106,7 +106,7 @@ export default function ReportEdit() {
         wysiwygDesign: reportType === 'wysiwyg' ? wysiwygDesign : undefined,
         reportType,
       };
-      return apiRequest("PUT", `/api/reports-dashboards/reports/${reportId", reportData);
+      return apiRequest("PUT", "
     },
     onSuccess: () => {
       toast({
@@ -127,7 +127,7 @@ export default function ReportEdit() {
   });
 
   const deleteReportMutation = useMutation({
-    mutationFn: () => apiRequest("DELETE", `/api/reports-dashboards/reports/${reportId"),
+    mutationFn: () => apiRequest("DELETE", "
     onSuccess: () => {
       toast({
         title: '[TRANSLATION_NEEDED]',
@@ -493,7 +493,7 @@ export default function ReportEdit() {
                                     key={type.value}
                                     className={`cursor-pointer transition-all hover:shadow-sm ${
                                       field.value === type.value ? 'ring-2 ring-primary' : ''
-                                    "}
+                                    "
                                     onClick={() => field.onChange(type.value)}
                                   >
                                     <CardContent className="p-3 text-center">

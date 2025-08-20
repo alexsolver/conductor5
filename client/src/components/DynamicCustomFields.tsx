@@ -50,9 +50,9 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
   const { data: fields = [], isLoading, error } = useQuery({
     queryKey: ['custom-fields', moduleType],
     queryFn: async () => {
-      const response = await fetch(`/api/custom-fields/fields/${moduleType", {
+      const response = await fetch("
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')"
+          'Authorization': "
         }
       });
       if (!response.ok) {
@@ -68,9 +68,9 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
     queryKey: ['custom-field-values', moduleType, entityId],
     queryFn: async () => {
       if (!entityId) return {};
-      const response = await fetch(`/api/custom-fields/values/${moduleType}/${entityId", {
+      const response = await fetch("
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')"
+          'Authorization': "
         }
       });
       if (!response.ok) {
@@ -257,7 +257,7 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
   }
 
   return (
-    <div className="space-y-4 "`}>
+    <div className="space-y-4 "">
       {fields.map((field: CustomFieldMetadata) => (
         <div key={field.id} className="space-y-1">
           <div className="flex items-center gap-2">

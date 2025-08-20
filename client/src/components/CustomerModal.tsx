@@ -141,7 +141,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const mutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
       if (customer?.id) {
-        return apiRequest('PATCH', `/api/customers/${customer.id", data);
+        return apiRequest('PATCH', "
       } else {
         return apiRequest('POST', '/api/customers', data);
       }
@@ -199,10 +199,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
     // Fetch customer companies
     const { data: companiesData, refetch: refetchCompanies } = useQuery({
-      queryKey: [`/api/customers/${customer?.id}/companies`],
+      queryKey: ["/companies`],
       queryFn: async () => {
         if (!customer?.id) return [];
-        const response = await apiRequest('GET', `/api/customers/${customer.id}/companies`);
+        const response = await apiRequest('GET', "/companies`);
         return response.json();
       },
       enabled: isOpen && !!customer?.id, // Only fetch when the modal is open and customer exists
@@ -230,7 +230,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   useEffect(() => {
     if (customer?.id && isOpen) {
       // Clear cache and force fresh data
-      queryClient.removeQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
+      queryClient.removeQueries({ queryKey: ["/companies`] });
       queryClient.removeQueries({ queryKey: ['/api/companies'] });
 
       // Force immediate refresh
@@ -375,7 +375,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         currentAssociations: companies?.length || 0
       });
 
-      const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
+      const response = await apiRequest('POST', "/companies`, {
         companyId: selectedCompanyId,
         role: 'member',
         isPrimary: Array.isArray(companies) ? companies.length === 0 : true
@@ -427,7 +427,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       });
 
       // Fazer a requisição de exclusão
-      const result = await apiRequest('DELETE', `/api/customers/${customer.id}/companies/${companyId");
+      const result = await apiRequest('DELETE', "
       console.log('[TRANSLATION_NEEDED]', result);
 
       if (result && (result as any).success === false) {
@@ -448,7 +448,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       });
 
       // Invalidar cache e fazer refetch simples
-      queryClient.invalidateQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
+      queryClient.invalidateQueries({ queryKey: ["/companies`] });
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
 
       // Aguardar um pouco para o backend processar
@@ -489,7 +489,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
           </div>
           <DialogHeader>
             <DialogTitle>
-              {customer?.id ? '[TRANSLATION_NEEDED]' : "Novo Cliente"}
+              {customer?.id ? '[TRANSLATION_NEEDED]' : "Novo Cliente"
             </DialogTitle>
           </DialogHeader>
 
@@ -976,13 +976,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                 const companyId = membership.company_id || membership.id;
                                 const membershipId = membership.membership_id || membership.id || index;
                                 // Chave única garantida usando múltiplos identificadores
-                                const uniqueKey = `membership-${membershipId}-${companyId}-${index";
+                                const uniqueKey = "
 
                                 return (
                                   <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                                     <div className="flex items-center gap-2">
                                       <span className="font-medium">
-                                        {membership.display_name || membership.company_name || membership.name || `Empresa ${companyId || index + 1"}
+                                        {membership.display_name || membership.company_name || membership.name || "
                                       </span>
                                       <Badge variant={membership.is_primary ? "default" : "secondary">
                                         {membership.role || 'member'}
@@ -997,7 +997,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                       variant="ghost"
                                       onClick={() => handleRemoveCompany(companyId)}
                                       disabled={!companyId}
-                                      title={!companyId ? "ID da empresa não encontrado" : "Remover empresa"}
+                                      title={!companyId ? "ID da empresa não encontrado" : "Remover empresa"
                                     >
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
@@ -1068,9 +1068,9 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                           }
 
                                           return unassociatedCompanies.map((company: any) => (
-                                            <SelectItem key={`available-company-${company.id"} value={String(company.id)}>
-                                              {company.displayName || company.display_name || company.name || `Empresa ${company.id"}
-                                              {company.cnpj && ` (${company.cnpj})`}
+                                            <SelectItem key={"
+                                              {company.displayName || company.display_name || company.name || "
+                                              {company.cnpj && ")"
                                             </SelectItem>
                                           ));
                                         })()}
@@ -1083,7 +1083,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               size="sm"
                               onClick={handleAddCompany}
                               disabled={!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated'}
-                              title={!selectedCompanyId ? '[TRANSLATION_NEEDED]' : "Associar empresa"}
+                              title={!selectedCompanyId ? '[TRANSLATION_NEEDED]' : "Associar empresa"
                             >
                               <Plus className="h-4 w-4" />
                               Associar

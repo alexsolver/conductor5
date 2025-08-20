@@ -88,7 +88,7 @@ function SimpleMapWithButtons({
         
         toast({
           title: "Local encontrado",
-          description: `${localResult.name} - Coordenadas da cidade`
+          description: " - Coordenadas da cidade`
         });
         return;
       }
@@ -97,7 +97,7 @@ function SimpleMapWithButtons({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=br&addressdetails=1`;
+      const searchUrl = "&limit=5&countrycodes=br&addressdetails=1`;
       
       const response = await fetch(searchUrl, {
         signal: controller.signal,
@@ -111,7 +111,7 @@ function SimpleMapWithButtons({
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText");
+        throw new Error("
       }
 
       const results: SearchResult[] = await response.json();
@@ -171,7 +171,7 @@ function SimpleMapWithButtons({
         
         toast({
           title: "Localização atual",
-          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)"
+          description: "
         });
       },
       (error) => {
@@ -300,7 +300,7 @@ function SimpleMapWithButtons({
           <div 
             className="w-full h-full relative bg-[#E5E3DF] transition-transform duration-500 ease-in-out"
             style={{
-              transform: `scale(${zoomLevel}) translate(${(mapCenter.lng + 47) * -2}px, ${(mapCenter.lat + 15) * 2}px)`
+              transform: "px)`
             }}
           >
             {/* Major Brazil cities overlay */}
@@ -327,8 +327,8 @@ function SimpleMapWithButtons({
               <div 
                 className="absolute w-8 h-8 flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2"
                 style={{
-                  left: `${50 + (selectedLng + 47) * 8}%`,
-                  top: `${50 - (selectedLat + 15) * 4}%`,
+                  left: "%`,
+                  top: "%`,
                 }}
               >
                 <MapPin className="h-8 w-8 text-red-600 drop-shadow-lg" />
@@ -340,11 +340,11 @@ function SimpleMapWithButtons({
               {/* Horizontal streets */}
               {[...Array(12)].map((_, i) => (
                 <line
-                  key={`h${i"}
+                  key={"
                   x1="0"
-                  y1={`${(i + 1) * 8}%`}
+                  y1={"%"
                   x2="100%"
-                  y2={`${(i + 1) * 8}%`}
+                  y2={"%"
                   stroke="#888"
                   strokeWidth="1"
                 />
@@ -352,10 +352,10 @@ function SimpleMapWithButtons({
               {/* Vertical streets */}
               {[...Array(16)].map((_, i) => (
                 <line
-                  key={`v${i"}
-                  x1={`${(i + 1) * 6}%`}
+                  key={"
+                  x1={"%"
                   y1="0"
-                  x2={`${(i + 1) * 6}%`}
+                  x2={"%"
                   y2="100%"
                   stroke="#888"
                   strokeWidth="1"

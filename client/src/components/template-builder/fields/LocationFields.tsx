@@ -66,7 +66,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+        "&limit=5&addressdetails=1`
       )
       
       if (!response.ok) throw new Error('Erro na busca de endereço')
@@ -131,7 +131,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
         try {
           // Reverse geocoding para obter endereço
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+            "&addressdetails=1`
           )
           
           if (response.ok) {
@@ -166,7 +166,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
         setIsGettingLocation(false)
       },
       (error) => {
-        setError(`Erro ao obter localização: ${error.message")
+        setError("
         setIsGettingLocation(false)
       },
       {
@@ -263,7 +263,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
                       {suggestion.address}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {suggestion.city && `${suggestion.city}, `}
+                      {suggestion.city && ", "
                       {suggestion.state} - {suggestion.country}
                     </p>
                   </div>

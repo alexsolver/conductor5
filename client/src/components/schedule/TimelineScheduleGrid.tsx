@@ -167,7 +167,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
     const minutes = differenceInMinutes(end, start);
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')";
+    return "
   };
 
   // Function to organize schedules into layers to avoid overlaps
@@ -364,7 +364,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         }
     }
 
-    return `${baseColor} ${borderColor";
+    return "
 };
 
   return (
@@ -400,7 +400,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                   timeFilter === filter.key
                     ? 'bg-gray-700 text-white'
                     : 'text-gray-600 hover:bg-gray-200'
-                "}
+                "
               >
                 {filter.label}
               </button>
@@ -443,7 +443,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
               const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
               const dayOfWeek = selectedDate.getDay();
               const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
-              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''".trim() || agent.email || 'Técnico';
+              const agentName = agent.name || "
 
               return (
                 <div key={agent.id} className="border-b">
@@ -510,16 +510,16 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
             style={{ maxWidth: 'calc(100vw - 320px)' }}
             data-timeline-container
           >
-            <div className="flex relative" style={{ minWidth: `${timeSlots.length * 64}px`, width: 'max-content' }}>
+            <div className="flex relative" style={{ minWidth: "px`, width: 'max-content' }}>
               {/* Current time indicator line */}
               {currentTimePosition !== null && (
                 <div
                   className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20 pointer-events-none"
                   style={{
-                    left: `${currentTimePosition}px`,
+                    left: "px`,
                     boxShadow: '0 0 4px rgba(239, 68, 68, 0.5)'
                   }}
-                  title={`Horário atual: ${format(new Date(), 'HH:mm')"}
+                  title={"
                 />
               )}
 
@@ -552,7 +552,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     const isBreakTime = worksToday && workSchedule?.breakStart && workSchedule?.breakEnd ? (() => {
                       const currentHour = timeSlot.getHours();
                       const currentMinute = timeSlot.getMinutes();
-                      const currentTime = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')";
+                      const currentTime = "
 
                       return currentTime >= workSchedule.breakStart && currentTime <= workSchedule.breakEnd;
                     })() : false;
@@ -575,8 +575,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                     : isWorkingHour 
                                       ? 'bg-white' 
                                       : 'bg-gray-100'
-                              "}
-                              style={{ height: `${rowHeight}px` }}
+                              "
+                              style={{ height: "px` }}
                               title={
                                 !worksToday 
                                   ? 'Não trabalha neste dia'
@@ -673,13 +673,13 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
                                   return (
                                     <div
-                                      key={`${schedule.id}-planned-${index"}
-                                      className="absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-80 border "`}
+                                      key={"
+                                      className="absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-80 border ""
                                       style={{ 
-                                        left: `${2 + minuteOffset}px`,
-                                        top: `${Math.max(2, (rowHeight - 32) / 2 - 4)}px`,
+                                        left: "px`,
+                                        top: "px`,
                                         height: '32px',
-                                        width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
+                                        width: "px`, // Max width constraint
                                         zIndex: 10,
                                         minWidth: '60px'
                                       }}
@@ -697,11 +697,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                         const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
                                         const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
 
-                                        let tooltip = `${actionType}: ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority";
+                                        let tooltip = "
 
-                                        if (schedule.description) tooltip += `\nDescrição: ${schedule.description";
-                                        if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress";
-                                        if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber";
+                                        if (schedule.description) tooltip += "
+                                        if (schedule.locationAddress) tooltip += "
+                                        if (schedule.ticketNumber) tooltip += "
 
                                         return tooltip;
                                       })()}
@@ -720,7 +720,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
                                       {/* Ticket Number and Title (truncated) */}
                                       <span className="truncate text-xs font-medium">
-                                        {schedule.ticketNumber ? `#${schedule.ticketNumber} - ` : ''}{schedule.title}
+                                        {schedule.ticketNumber ? " - ` : ''}{schedule.title}
                                       </span>
                                     </div>
                                   );
@@ -746,8 +746,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                     : isWorkingHour 
                                       ? 'bg-white' 
                                       : 'bg-gray-100'
-                              "}
-                              style={{ height: `${actualRowHeight}px` }}
+                              "
+                              style={{ height: "px` }}
                               title={
                                 !worksToday 
                                   ? 'Não trabalha neste dia'
@@ -844,14 +844,14 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
                                   return (
                                     <div
-                                      key={`${schedule.id}-actual-${index"}
-                                      className="absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-60 border "`}
+                                      key={"
+                                      className="absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-60 border ""
                                       style={{ 
-                                        left: `${2 + minuteOffset}px`,
-                                        top: `${Math.max(2, (actualRowHeight - 32) / 2 - 4)}px`,
+                                        left: "px`,
+                                        top: "px`,
                                         height: '32px',
                                         opacity: 0.8, // Slightly more transparent for actual
-                                        width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
+                                        width: "px`, // Max width constraint
                                         zIndex: 8, // Lower than planned
                                         minWidth: '60px'
                                       }}
@@ -869,11 +869,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                         const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
                                         const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
 
-                                        let tooltip = `${actionType} (Realizada): ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority";
+                                        let tooltip = "
 
-                                        if (schedule.description) tooltip += `\nDescrição: ${schedule.description";
-                                        if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress";
-                                        if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber";
+                                        if (schedule.description) tooltip += "
+                                        if (schedule.locationAddress) tooltip += "
+                                        if (schedule.ticketNumber) tooltip += "
 
                                         return tooltip;
                                       })()}
@@ -892,7 +892,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
                                       {/* Ticket Number and Title (truncated) */}
                                       <span className="truncate text-xs font-medium">
-                                        {schedule.ticketNumber ? `#${schedule.ticketNumber} - ` : ''}{schedule.title}
+                                        {schedule.ticketNumber ? " - ` : ''}{schedule.title}
                                       </span>
                                     </div>
                                   );

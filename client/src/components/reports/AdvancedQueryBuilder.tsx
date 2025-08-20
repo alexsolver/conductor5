@@ -153,11 +153,11 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
 
   const addMetric = (field: any, aggregation: string = 'COUNT') => {
     const newMetric = {
-      id: `${field.id}_${aggregation}_${Date.now()",
+      id: "
       field: field.id,
       fieldName: field.name,
       aggregation,
-      label: `${aggregation}(${field.name})`
+      label: ")`
     };
 
     setQuery(prev => ({
@@ -170,7 +170,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
     if (query?.attributes?.find(attr => attr.field === field.id)) return;
 
     const newAttribute = {
-      id: `${field.id}_${Date.now()",
+      id: "
       field: field.id,
       fieldName: field.name,
       type: field.type
@@ -184,7 +184,7 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
 
   const addFilter = (field: any) => {
     const newFilter = {
-      id: `${field.id}_filter_${Date.now()",
+      id: "
       field: field.id,
       fieldName: field.name,
       fieldType: field.type,
@@ -299,14 +299,14 @@ export default function AdvancedQueryBuilder({ onQueryChange, initialQuery, mode
                               selectedDataSource === key 
                                 ? 'border-blue-500 bg-blue-50' 
                                 : 'border-gray-200 hover:border-gray-300'
-                            "}
+                            "
                             onClick={() => {
                               setSelectedDataSource(key);
                               setQuery(prev => ({ ...prev, dataSource: key }));
                             }}
                           >
                             <div className="flex items-center space-x-3">
-                              <SourceIcon className="h-5 w-5 "`} />
+                              <SourceIcon className="h-5 w-5 "" />
                               <div>
                                 <div className="font-medium text-gray-900">{source.name}</div>
                                 <div className="text-sm text-gray-500">{source.description}</div>
@@ -562,7 +562,7 @@ function MetricCard({ metric, onRemove, onUpdate }) {
           value={metric.aggregation} 
           onValueChange={(value) => onUpdate({ 
             aggregation: value, 
-            label: `${value}(${metric.fieldName})` 
+            label: ")` 
           })}
         >
           <SelectTrigger className="w-32">

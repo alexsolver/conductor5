@@ -117,7 +117,7 @@ export function UserMultiSelect({
               disabled={disabled}
             >
               {selectedUsers.length > 0
-                ? `${selectedUsers.length} usuário${selectedUsers.length > 1 ? 's' : ''} selecionado${selectedUsers.length > 1 ? 's' : ''"
+                ? "
                 : placeholder}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -130,7 +130,7 @@ export function UserMultiSelect({
                 {availableUsers.map((user) => (
                   <CommandItem
                     key={user.id}
-                    value={`${user.name} ${user.email"}
+                    value={"
                     onSelect={() => {
                       handleSelect(user.id);
                     }}

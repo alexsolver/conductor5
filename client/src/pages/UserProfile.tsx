@@ -391,7 +391,7 @@ export default function UserProfile() {
               </div>
             </div>
             <Button
-              variant={isEditing ? "outline" : "default"}
+              variant={isEditing ? "outline" : "default"
               onClick={() => setIsEditing(!isEditing)}
               className="ml-auto"
             >
@@ -738,7 +738,7 @@ export default function UserProfile() {
                               Cancelar
                             </Button>
                             <Button type="submit" disabled={changePasswordMutation.isPending}>
-                              {changePasswordMutation.isPending ? "Alterando..." : "Alterar Senha"}
+                              {changePasswordMutation.isPending ? "Alterando..." : "Alterar Senha"
                             </Button>
                           </DialogFooter>
                         </form>
@@ -816,7 +816,7 @@ export default function UserProfile() {
                     <p className="text-sm text-gray-600">Selecione seu idioma preferido</p>
                   </div>
                   <Select 
-                    value={(preferences as any)?.data?.language || "pt-BR"}
+                    value={(preferences as any)?.data?.language || "pt-BR"
                     onValueChange={(value) => handlePreferenceChange('language', value)}
                   >
                     <SelectTrigger className="w-40">
@@ -1215,7 +1215,7 @@ function PrivacyGdprTab() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                {activePolicyFromAdmin.title || "Política de Privacidade"} - Versão {activePolicyFromAdmin.version || policyData.version || "1.0"}
+                {activePolicyFromAdmin.title || "Política de Privacidade"} - Versão {activePolicyFromAdmin.version || policyData.version || "1.0"
               </DialogTitle>
               <DialogDescription>
                 Efetiva desde: {activePolicyFromAdmin.effectiveDate ? 

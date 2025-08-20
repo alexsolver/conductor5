@@ -78,7 +78,7 @@ export default function Locations() {
       if (favoritesFilter) params.append('favorites', 'true');
       if (tagFilter) params.append('tag', tagFilter);
       
-      const url = `/api/locations${params.toString() ? `?${params.toString()" : ''";
+      const url = "
       const response = await apiRequest("GET", url);
       return response.json();
     }
@@ -130,7 +130,7 @@ export default function Locations() {
 
   // Delete location mutation
   const deleteLocationMutation = useMutation({
-    mutationFn: (locationId: string) => apiRequest("DELETE", `/api/locations/${locationId"),
+    mutationFn: (locationId: string) => apiRequest("DELETE", "
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/locations/stats"] });
@@ -160,7 +160,7 @@ export default function Locations() {
 
   // Sprint 2 - Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('POST', `/api/locations/${id}/favorite`),
+    mutationFn: (id: string) => apiRequest('POST', "/favorite`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       toast({
@@ -184,7 +184,7 @@ export default function Locations() {
   // Sprint 2 - File attachments
   const addAttachmentMutation = useMutation({
     mutationFn: ({ id, filename, filepath, filesize }: { id: string; filename: string; filepath: string; filesize: number }) => 
-      apiRequest('POST', `/api/locations/${id}/attachments`, { filename, filepath, filesize }),
+      apiRequest('POST', "/attachments`, { filename, filepath, filesize }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       toast({
@@ -204,7 +204,7 @@ export default function Locations() {
   const handleFileUpload = (locationId: string, file: File) => {
     // Simulate file upload - in real implementation would upload to storage service
     const filename = file.name;
-    const filepath = `/uploads/locations/${locationId}/${filename";
+    const filepath = "
     const filesize = file.size;
     
     addAttachmentMutation.mutate({ id: locationId, filename, filepath, filesize });
@@ -756,11 +756,11 @@ export default function Locations() {
                 Filtros Avançados:
               </div>
               <Button
-                variant={favoritesFilter ? "default" : "outline"}
+                variant={favoritesFilter ? "default" : "outline"
                 size="sm"
                 onClick={() => setFavoritesFilter(!favoritesFilter)}
               >
-                <Star className="h-4 w-4 mr-2 "`} />
+                <Star className="h-4 w-4 mr-2 "" />
                 {favoritesFilter ? 'Apenas Favoritos' : 'Mostrar Favoritos'}
               </Button>
               <div className="flex items-center gap-2">
@@ -812,7 +812,7 @@ export default function Locations() {
               <p className="text-muted-foreground mb-4">
                 {searchTerm || locationTypeFilter || statusFilter
                   ? '[TRANSLATION_NEEDED]'
-                  : "Comece criando seu primeiro local no sistema."}
+                  : "Comece criando seu primeiro local no sistema."
               </p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -896,11 +896,11 @@ export default function Locations() {
                           variant="ghost" 
                           size="sm"
                           onClick={() => handleToggleFavorite(location.id)}
-                          className={location.is_favorite ? "text-yellow-500 hover:text-yellow-600" : "text-gray-500 hover:text-yellow-500"}
+                          className={location.is_favorite ? "text-yellow-500 hover:text-yellow-600" : "text-gray-500 hover:text-yellow-500"
                           disabled={toggleFavoriteMutation.isPending}
-                          title={location.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                          title={location.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
                         >
-                          <Star className="h-4 w-4 "`} />
+                          <Star className="h-4 w-4 "" />
                         </Button>
                         <Button 
                           variant="ghost" 

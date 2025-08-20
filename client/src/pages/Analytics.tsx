@@ -276,7 +276,7 @@ export default function Analytics() {
                       {channelData.map((channel) => (
                         <div key={channel.name} className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="w-3 h-3 rounded-full "`} />
+                            <div className="w-3 h-3 rounded-full "" />
                             <span className="text-sm font-medium text-gray-900 dark:text-white">
                               {channel.name}
                             </span>
@@ -380,7 +380,7 @@ export default function Analytics() {
                       <div key={channel.name} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium text-gray-900 dark:text-white">{channel.name}</h4>
-                          <div className="w-3 h-3 rounded-full "`} />
+                          <div className="w-3 h-3 rounded-full "" />
                         </div>
                         <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                           {channel.value}%

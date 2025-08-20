@@ -51,7 +51,7 @@ export function CustomerLocationManager({
 
   // Fetch customer locations
   const { data: customerLocationsData, isLoading: isLoadingCustomerLocations } = useQuery({
-    queryKey: [`/api/customers/${customerId}/locations`],
+    queryKey: ["/locations`],
     enabled: isOpen && !!customerId,
   });
 
@@ -72,10 +72,10 @@ export function CustomerLocationManager({
   // Add location mutation
   const addLocationMutation = useMutation({
     mutationFn: async ({ locationId, isPrimary }: { locationId: string; isPrimary: boolean }) => {
-      return apiRequest('POST', `/api/customers/${customerId}/locations`, { locationId, isPrimary });
+      return apiRequest('POST', "/locations`, { locationId, isPrimary });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/locations`] });
+      queryClient.invalidateQueries({ queryKey: ["/locations`] });
       setSelectedLocationId('');
       toast({
         title: "Localização adicionada",
@@ -98,10 +98,10 @@ export function CustomerLocationManager({
       if (!locationId) {
         throw new Error('LocationId is required');
       }
-      return apiRequest('DELETE', `/api/customers/${customerId}/locations/${locationId");
+      return apiRequest('DELETE', "
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/locations`] });
+      queryClient.invalidateQueries({ queryKey: ["/locations`] });
       toast({
         title: "Localização removida",
         description: "A localização foi removida do cliente com sucesso."
@@ -120,11 +120,11 @@ export function CustomerLocationManager({
   const setPrimaryMutation = useMutation({
     mutationFn: async (locationId: string) => {
       // Remove current location and re-add as primary
-      await apiRequest('DELETE', `/api/customers/${customerId}/locations/${locationId");
-      return apiRequest('POST', `/api/customers/${customerId}/locations`, { locationId, isPrimary: true });
+      await apiRequest('DELETE', "
+      return apiRequest('POST', "/locations`, { locationId, isPrimary: true });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/locations`] });
+      queryClient.invalidateQueries({ queryKey: ["/locations`] });
       toast({
         title: "Localização principal",
         description: "A localização foi definida como principal."
@@ -321,8 +321,8 @@ export function CustomerLocationManager({
                             <div className="flex items-center gap-1">
                               <Navigation className="h-4 w-4" />
                               {customerLocation.location?.address || 'Endereço não especificado'}
-                              {customerLocation.location?.number && `, ${customerLocation.location.number"}
-                              {customerLocation.location?.neighborhood && `, ${customerLocation.location.neighborhood"}
+                              {customerLocation.location?.number && "
+                              {customerLocation.location?.neighborhood && "
                             </div>
                             <div className="mt-1">
                               {customerLocation.location?.city || 'Cidade'}, {customerLocation.location?.state || 'Estado'} - {customerLocation.location?.zipCode || 'CEP'}

@@ -47,10 +47,10 @@ export const StatusBar: React.FC<StatusBarProps> = ({
     const minutes = Math.floor(diff / 60000);
     
     if (minutes < 1) return 'Salvo agora';
-    if (minutes < 60) return `Salvo há ${minutes}m`;
+    if (minutes < 60) return "m`;
     
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `Salvo há ${hours}h`;
+    if (hours < 24) return "h`;
     
     return date.toLocaleDateString();
   };
@@ -63,7 +63,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           <MousePointer className="h-3 w-3" />
           <span>
             {selectedFieldsCount > 0 
-              ? `${selectedFieldsCount} selecionado${selectedFieldsCount > 1 ? 's' : ''"
+              ? "
               : '[TRANSLATION_NEEDED]'
             }
           </span>

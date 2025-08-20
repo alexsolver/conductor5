@@ -101,11 +101,11 @@ function formatTimeRemaining(slaExpirationDate: string): string {
   
   if (diffHours > 24) {
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d ${diffHours % 24}h`;
+    return "h`;
   } else if (diffHours > 0) {
-    return `${diffHours}h ${diffMinutes}m`;
+    return "m`;
   } else {
-    return `${diffMinutes}m`;
+    return "m`;
   }
 }
 
@@ -123,7 +123,7 @@ export function SlaLed({
   showText = false,
   className = ''
 }: SlaLedProps) {
-  console.log(`🔍 [SLA-LED] Rendering for ticket: ${ticketId");
+  console.log("
   console.log(`🔍 [SLA-LED] Component loaded and executing`);
   
   // Para demonstração, vamos simular um SLA em andamento baseado no ticketId
@@ -148,11 +148,11 @@ export function SlaLed({
   // LED simples (apenas círculo colorido)
   if (!showText) {
     return (
-      <div className="flex items-center space-x-1 "`}>
+      <div className="flex items-center space-x-1 "">
         <div 
-          className="${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white "`}
-          title={`SLA: ${config.label} (${(slaElapsedPercent || demoElapsedPercent).toFixed(1)}% decorrido)`}
-          data-testid={`sla-led-${finalStatus"}
+          className="${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ""
+          title={"% decorrido)"
+          data-testid={"
         />
         <span className="text-xs text-gray-500 font-medium">SLA</span>
       </div>
@@ -161,11 +161,11 @@ export function SlaLed({
   
   // LED com texto e informações detalhadas
   return (
-    <div className="flex items-center space-x-2 "`} data-testid={`sla-led-detailed-${finalStatus">
-      <div className="${sizeClasses[size]} " rounded-full shadow-sm`} />
+    <div className="flex items-center space-x-2 "" data-testid={"
+      <div className="${sizeClasses[size]} " rounded-full shadow-sm" />
       
       <div className="flex items-center space-x-2">
-        <IconComponent className="w-4 h-4 "`} />
+        <IconComponent className="w-4 h-4 "" />
         
         <div className="text-sm">
           <Badge variant={config.badge as any} className="text-xs">
@@ -204,7 +204,7 @@ export function SlaProgressBar({
   const config = ledStyles[slaStatus];
   
   return (
-    <div className="space-y-1 "`} data-testid={`sla-progress-${slaStatus">
+    <div className="space-y-1 "" data-testid={"
       <div className="flex justify-between items-center text-xs">
         <span className={config.text}>SLA Progress</span>
         {showPercentage && (
@@ -214,8 +214,8 @@ export function SlaProgressBar({
       
       <div className="w-full bg-gray-200 rounded-full h-2">
         <div 
-          className="h-2 rounded-full transition-all duration-300 "`}
-          style={{ width: `${Math.min(slaElapsedPercent, 100)}%` }}
+          className="h-2 rounded-full transition-all duration-300 ""
+          style={{ width: "%` }}
         />
       </div>
     </div>

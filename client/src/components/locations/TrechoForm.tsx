@@ -23,7 +23,7 @@ const LocalSelector = ({
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/locations-new/local', {
-        headers: { 'Authorization': `Bearer ${token" }
+        headers: { 'Authorization': "
       });
       const result = await response.json();
       return result.data?.records || result.data || [];

@@ -510,7 +510,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
               {/* Status Badges */}
               <div className="flex items-center space-x-2">
                 <Badge 
-                  variant={dashboard.status === "active" ? "default" : "secondary"}
+                  variant={dashboard.status === "active" ? "default" : "secondary"
                   className="text-xs"
                 >
                   {dashboard.status}
@@ -851,7 +851,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                   <Card 
                     className={`cursor-pointer transition-all ${
                       selectedTemplate?.id === "blank" ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'
-                    }Enter dashboard title"}
+                    }Enter dashboard title"
                     onClick={() => setSelectedTemplate({ id: "blank", name: "Blank Dashboard" })}
                   >
                     <CardContent className="p-6 text-center">
@@ -869,7 +869,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       key={template.id}
                       className={`cursor-pointer transition-all ${
                         selectedTemplate?.id === template.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'
-                      }Enter dashboard title"}
+                      }Enter dashboard title"
                       onClick={() => setSelectedTemplate(template)}
                     >
                       <CardContent className="p-4">
@@ -1448,7 +1448,7 @@ export default function Dashboards() {
                         Error loading dashboards
                       </h3>
                       <p className="text-gray-500 dark:text-gray-400 mb-6">
-                        {error instanceof Error ? error.message : "Failed to load dashboards"}
+                        {error instanceof Error ? error.message : "Failed to load dashboards"
                       </p>
                       <Button onClick={handleRefresh}>
                         <RefreshCw className="w-4 h-4 mr-2" />

@@ -110,7 +110,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
   };
 
   return (
-    <div className="space-y-4 "`}>
+    <div className="space-y-4 "">
       <div className="flex items-center justify-between">
         <h4 className="font-medium">Regras de Aplicação</h4>
         <Button
@@ -143,7 +143,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                       value={rule.logicalOperator || 'AND'}
                       onValueChange={(val) => updateRule(index, { ...rule, logicalOperator: val as LogicalOperator })}
                     >
-                      <SelectTrigger className="w-full" data-testid={`select-logical-operator-${index">
+                      <SelectTrigger className="w-full" data-testid={"
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -160,7 +160,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     value={rule.field}
                     onValueChange={(val) => updateRule(index, { ...rule, field: val as TicketField })}
                   >
-                    <SelectTrigger data-testid={`select-field-${index">
+                    <SelectTrigger data-testid={"
                       <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
@@ -179,7 +179,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     value={rule.operator}
                     onValueChange={(val) => updateRule(index, { ...rule, operator: val as QueryOperator })}
                   >
-                    <SelectTrigger data-testid={`select-operator-${index">
+                    <SelectTrigger data-testid={"
                       <SelectValue placeholder="Operador" />
                     </SelectTrigger>
                     <SelectContent>
@@ -198,7 +198,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     value={typeof rule.value === 'string' ? rule.value : ''}
                     onChange={(e) => updateRule(index, { ...rule, value: e.target.value })}
                     placeholder="Valor"
-                    data-testid={`input-value-${index"}
+                    data-testid={"
                   />
                 </div>
 
@@ -209,7 +209,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     variant="outline"
                     size="sm"
                     onClick={() => removeRule(index)}
-                    data-testid={`button-remove-rule-${index"}
+                    data-testid={"
                   >
                     <X className="w-3 h-3" />
                   </Button>

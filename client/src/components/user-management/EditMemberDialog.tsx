@@ -114,7 +114,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       
       // Try multiple endpoints to get complete user data
       try {
-        const response = await apiRequest('GET', `/api/user-management/users/${member.id");
+        const response = await apiRequest('GET', "
         console.log('[TRANSLATION_NEEDED]', response);
         
         // If the response is empty object or doesn't have essential fields, use member data
@@ -195,7 +195,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   const updateMemberMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('[TRANSLATION_NEEDED]', data);
-      const response = await apiRequest('PUT', `/api/team-management/members/${member.id", data);
+      const response = await apiRequest('PUT', "
       return response;
     },
     onSuccess: () => {
@@ -612,7 +612,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                           isSelected 
                             ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700' 
                             : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                        "}
+                        "
                         onClick={() => {
                           const currentGroups = form.watch('groupIds') || [];
                           const newGroups = isSelected 

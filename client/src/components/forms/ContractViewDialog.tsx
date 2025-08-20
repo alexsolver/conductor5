@@ -58,7 +58,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
   const { data: contractData, isLoading } = useQuery({
     queryKey: ['/api/contracts', contractId],
     queryFn: async () => {
-      const response = await fetch(`/api/contracts/${contractId");
+      const response = await fetch("
       const data = await response.json();
       return data?.contract || data?.data || data;
     },
@@ -105,7 +105,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild data-testid={`button-view-contract-${contractId">
+      <DialogTrigger asChild data-testid={"
         {children || (
           <Button variant="outline" size="sm">
             <Eye className="h-4 w-4" />
@@ -222,7 +222,7 @@ export function ContractViewDialog({ contractId, children }: ContractViewDialogP
                       <Clock className="h-4 w-4" />
                       <span className="text-sm font-medium">Renovação Automática:</span>
                       <Badge variant={contractData.autoRenewal ? "default" : "secondary">
-                        {contractData.autoRenewal ? "Sim" : "Não"}
+                        {contractData.autoRenewal ? "Sim" : "Não"
                       </Badge>
                     </div>
                     {contractData.autoRenewal && contractData.renewalPeriodMonths && (

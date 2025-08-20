@@ -150,7 +150,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
 
   const updateRoleMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest('PUT', `/api/user-management/roles/${id", data),
+      apiRequest('PUT', "
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       setEditingRole(null);
@@ -171,7 +171,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   });
 
   const deleteRoleMutation = useMutation({
-    mutationFn: (roleId: string) => apiRequest('DELETE', `/api/user-management/roles/${roleId"),
+    mutationFn: (roleId: string) => apiRequest('DELETE', "
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
@@ -190,7 +190,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
 
   const assignUserToRoleMutation = useMutation({
     mutationFn: ({ roleId, userId }: { roleId: string; userId: string }) =>
-      apiRequest('POST', `/api/user-management/roles/${roleId}/users`, { userId }),
+      apiRequest('POST', "/users`, { userId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
@@ -209,7 +209,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
 
   const removeUserFromRoleMutation = useMutation({
     mutationFn: ({ roleId, userId }: { roleId: string; userId: string }) =>
-      apiRequest('DELETE', `/api/user-management/roles/${roleId}/users/${userId"),
+      apiRequest('DELETE', "
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
       toast({
@@ -258,7 +258,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   };
 
   const handleDeleteClick = (role: Role) => {
-    if (window.confirm(`Tem certeza que deseja excluir o papel "${role.name}"?`)) {
+    if (window.confirm(""?`)) {
       deleteRoleMutation.mutate(role.id);
     }
   };
@@ -368,12 +368,12 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                             {(permissions as Permission[]).map((permission) => (
                               <div key={permission.id} className="flex items-center space-x-2">
                                 <Checkbox
-                                  id={`perm-${permission.id"}
+                                  id={"
                                   checked={selectedPermissions.includes(permission.id)}
                                   onCheckedChange={() => handlePermissionToggle(permission.id)}
                                 />
                                 <Label
-                                  htmlFor={`perm-${permission.id"}
+                                  htmlFor={"
                                   className="text-sm font-normal cursor-pointer"
                                 >
                                   {permission.name}
@@ -463,7 +463,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateRoleMutation.isPending || !formData.name.trim()}>
-                      {updateRoleMutation.isPending ? "Atualizando..." : "Atualizar"}
+                      {updateRoleMutation.isPending ? "Atualizando..." : "Atualizar"
                     </Button>
                   </div>
                 </form>
@@ -489,12 +489,12 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                           {(permissions as Permission[]).map((permission) => (
                             <div key={permission.id} className="flex items-center space-x-2">
                               <Checkbox
-                                id={`edit-perm-${permission.id"}
+                                id={"
                                 checked={selectedPermissions.includes(permission.id)}
                                 onCheckedChange={() => handlePermissionToggle(permission.id)}
                               />
                               <Label
-                                htmlFor={`edit-perm-${permission.id"}
+                                htmlFor={"
                                 className="text-sm font-normal cursor-pointer flex-1"
                               >
                                 {permission.name}
@@ -624,7 +624,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
                     <span>{role.name}</span>
                   </CardTitle>
                   <Badge variant={role.isActive ? "default" : "secondary">
-                    {role.isActive ? "Ativo" : "Inativo"}
+                    {role.isActive ? "Ativo" : "Inativo"
                   </Badge>
                 </div>
                 {role.description && (

@@ -74,7 +74,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
 
   const terminateSessionMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      return apiRequest(`/api/user-management/sessions/${sessionId}/terminate`, {
+      return apiRequest("/terminate`, {
         method: "POST"
       });
     },
@@ -96,7 +96,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
 
   const terminateAllUserSessionsMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return apiRequest(`/api/user-management/users/${userId}/sessions/terminate-all`, {
+      return apiRequest("/sessions/terminate-all`, {
         method: "POST"
       });
     },
@@ -149,12 +149,12 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
     else if (ua.includes('android')) os = 'Android';
     else if (ua.includes('ios') || ua.includes('iphone') || ua.includes('ipad')) os = 'iOS';
     
-    return `${browser} em ${os";
+    return "
   };
 
   const filteredSessions = sessionsData?.sessions?.filter(session => 
     session.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${session.user?.firstName || ''} ${session.user?.lastName || ''".toLowerCase().includes(searchTerm.toLowerCase()) ||
+    "
     session.ipAddress?.includes(searchTerm) ||
     session.location?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -263,7 +263,7 @@ export function UserSessions({ tenantAdmin = false }: UserSessionsProps) {
                         <div>
                           <div className="font-medium">
                             {session.user 
-                              ? `${session.user.firstName || ''} ${session.user.lastName || ''".trim() || session.user.email
+                              ? "
                               : t("userManagement.unknownUser", "Usuário desconhecido")
                             }
                           </div>

@@ -140,7 +140,7 @@ export default function AbsenceManagement() {
   // Aprovar solicitação
   const approveRequestMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      return await apiRequest('PUT', `/api/timecard/absence-requests/${requestId}/approve`);
+      return await apiRequest('PUT', "/approve`);
     },
     onSuccess: () => {
       toast({
@@ -161,7 +161,7 @@ export default function AbsenceManagement() {
   // Rejeitar solicitação
   const rejectRequestMutation = useMutation({
     mutationFn: async ({ requestId, reason }: { requestId: string; reason: string }) => {
-      return await apiRequest('PUT', `/api/timecard/absence-requests/${requestId}/reject`, { reason });
+      return await apiRequest('PUT', "/reject`, { reason });
     },
     onSuccess: () => {
       toast({

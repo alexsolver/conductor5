@@ -282,7 +282,7 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({ component }) =>
   })
 
   const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    transform: "px, 0)`,
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 999 : 1
   } : undefined

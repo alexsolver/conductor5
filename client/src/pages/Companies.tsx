@@ -148,7 +148,7 @@ export default function Companies() {
   // Mutation para editar empresa
   const editCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: z.infer<typeof companySchema> }) =>
-      apiRequest('PUT', `/api/customers/companies/${id", data),
+      apiRequest('PUT', "
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       setIsEditDialogOpen(false);
@@ -171,7 +171,7 @@ export default function Companies() {
   // Mutation para deletar empresa
   const deleteCompanyMutation = useMutation({
     mutationFn: (id: string) =>
-      apiRequest('DELETE', `/api/customers/companies/${id"),
+      apiRequest('DELETE', "
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
       toast({

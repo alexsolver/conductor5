@@ -124,7 +124,7 @@ export default function TranslationManager() {
       queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
       toast({
         title: "Traduções Salvas",
-        description: `Traduções do idioma ${selectedLanguage} atualizadas com sucesso!`,
+        description: "atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
@@ -139,14 +139,14 @@ export default function TranslationManager() {
   // Mutation para restaurar backup
   const restoreBackupMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', `/api/translations/${selectedLanguage}/restore`);
+      const res = await apiRequest('POST', "/api/translations/restore");
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/translations', selectedLanguage] });
       toast({
         title: "Backup Restaurado",
-        description: `Traduções do idioma ${selectedLanguage} restauradas do backup!`,
+        description: "Traduções restauradas do backup!",
       });
     },
     onError: (error: Error) => {
@@ -163,7 +163,7 @@ export default function TranslationManager() {
   };
 
   const handleRestore = () => {
-    if (confirm(`Tem certeza que deseja restaurar as traduções do ${selectedLanguage} do backup?`)) {
+    if (confirm("Confirma a exclusão do backup?"))) {
       restoreBackupMutation.mutate();
     }
   };
@@ -238,7 +238,7 @@ export default function TranslationManager() {
               ((languagesData as any)?.languages || []).map((lang: Language) => (
                 <Button
                   key={lang.code}
-                  variant={selectedLanguage === lang.code ? "default" : "outline"}
+                  variant={selectedLanguage === lang.code ? "default" : "outline"
                   onClick={() => setSelectedLanguage(lang.code)}
                   className="flex items-center gap-2"
                 >

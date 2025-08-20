@@ -57,7 +57,7 @@ export const DateField: React.FC<DateTimeFieldProps> = ({
             variant="outline"
             className={`w-full justify-start text-left font-normal ${
               !selectedDate && "text-muted-foreground"
-            } ${properties.cssClass || ''"}
+            } ${properties.cssClass || ''"
             disabled={disabled}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -125,7 +125,7 @@ export const DateTimeField: React.FC<DateTimeFieldProps> = ({
 
   const formatDisplay = properties.format || 'dd/MM/yyyy HH:mm'
   const timeValue = selectedDateTime 
-    ? `${selectedDateTime.getHours().toString().padStart(2, '0')}:${selectedDateTime.getMinutes().toString().padStart(2, '0')"
+    ? "
     : ''
 
   return (
@@ -146,7 +146,7 @@ export const DateTimeField: React.FC<DateTimeFieldProps> = ({
               variant="outline"
               className={`justify-start text-left font-normal ${
                 !selectedDateTime && "text-muted-foreground"
-              "}
+              "
               disabled={disabled}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
@@ -220,7 +220,7 @@ export const TimeField: React.FC<DateTimeFieldProps> = ({
           onChange={(e) => onChange?.(e.target.value)}
           disabled={disabled}
           required={properties.required}
-          className="pl-8 "`}
+          className="pl-8 ""
         />
         <Clock className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
       </div>

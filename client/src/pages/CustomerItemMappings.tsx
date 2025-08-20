@@ -81,7 +81,7 @@ export function CustomerItemMappings() {
         ...(selectedCustomer && selectedCustomer !== "all-customers" && { customerId: selectedCustomer })
       });
       
-      const response = await apiRequest('GET', `/api/materials-services/customer-item-mappings?${params");
+      const response = await apiRequest('GET', "
       const result = await response.json();
       console.log('🔍 [CustomerMappings] Fetched mappings:', result.data?.length || 0);
       return result;
@@ -94,7 +94,7 @@ export function CustomerItemMappings() {
     queryKey: ['/api/companies'],
     queryFn: async () => {
       if (!tenantId) return [];
-      const response = await apiRequest('GET', `/api/companies?tenantId=${tenantId");
+      const response = await apiRequest('GET', "
       return response.json();
     },
     enabled: !!tenantId,
@@ -105,7 +105,7 @@ export function CustomerItemMappings() {
     queryKey: ['/api/materials-services/items'],
     queryFn: async () => {
       if (!tenantId) return { data: [] };
-      const response = await apiRequest('GET', `/api/materials-services/items?tenantId=${tenantId");
+      const response = await apiRequest('GET', "
       return response.json();
     },
     enabled: !!tenantId,
@@ -116,7 +116,7 @@ export function CustomerItemMappings() {
     mutationFn: async (data: any) => {
       const method = editingMapping ? 'PUT' : 'POST';
       const url = editingMapping 
-        ? `/api/materials-services/customer-item-mappings/${editingMapping.id"
+        ? "
         : '/api/materials-services/customer-item-mappings';
       
       const response = await apiRequest(method, url, {
@@ -153,7 +153,7 @@ export function CustomerItemMappings() {
   // Delete mapping mutation
   const deleteMappingMutation = useMutation({
     mutationFn: async (mappingId: string) => {
-      const response = await apiRequest('DELETE', `/api/materials-services/customer-item-mappings/${mappingId}?tenantId=${tenantId");
+      const response = await apiRequest('DELETE', "
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Erro ao deletar mapeamento');
@@ -249,7 +249,7 @@ export function CustomerItemMappings() {
                       <SelectContent>
                         {customerCompaniesData?.map((company: any) => (
                           <SelectItem key={company.id} value={company.id}>
-                            {company.name} {company.tradeName && `(${company.tradeName})`}
+                            {company.name} {company.tradeName && ")"
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -377,7 +377,7 @@ export function CustomerItemMappings() {
                     <SelectItem value="all-customers">Todas as empresas</SelectItem>
                     {customerCompaniesData?.map((company: any) => (
                       <SelectItem key={company.id} value={company.id}>
-                        {company.name} {company.tradeName && `(${company.tradeName})`}
+                        {company.name} {company.tradeName && ")"
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -492,7 +492,7 @@ export function CustomerItemMappings() {
 
                     <TableCell>
                       <Badge variant={mapping.is_active ? "default" : "secondary">
-                        {mapping.is_active ? "Ativo" : "Inativo"}
+                        {mapping.is_active ? "Ativo" : "Inativo"
                       </Badge>
                     </TableCell>
                     <TableCell>

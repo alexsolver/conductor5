@@ -74,7 +74,7 @@ export function ApprovalGroupsManager() {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/approvals/groups', {
         headers: {
-          'Authorization': `Bearer ${token",
+          'Authorization': "
           'Content-Type': 'application/json'
         }
       });
@@ -93,7 +93,7 @@ export function ApprovalGroupsManager() {
       const response = await fetch('/api/approvals/groups', {
         method: 'POST',
         headers: { 
-          'Authorization': `Bearer ${token",
+          'Authorization': "
           'Content-Type': 'application/json' 
         },
         body: JSON.stringify(groupData)
@@ -130,10 +130,10 @@ export function ApprovalGroupsManager() {
     mutationFn: async (groupId: string) => {
       console.log('🗑️ [DELETE-GROUP] Tentando excluir grupo:', groupId);
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/approvals/groups/${groupId", {
+      const response = await fetch("
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token",
+          'Authorization': "
           'Content-Type': 'application/json'
         }
       });

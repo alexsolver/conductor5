@@ -40,7 +40,7 @@ export default function CertificateManager() {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')"
+          'Authorization': "
         }
       });
 

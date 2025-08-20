@@ -191,7 +191,7 @@ export default function ReportCreate() {
             <Card 
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'standard' ? 'ring-2 ring-primary' : ''
-              "}
+              "
               onClick={() => setReportType('standard')}
             >
               <CardContent className="p-6 text-center">
@@ -206,7 +206,7 @@ export default function ReportCreate() {
             <Card 
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'advanced' ? 'ring-2 ring-primary' : ''
-              "}
+              "
               onClick={() => setReportType('advanced')}
             >
               <CardContent className="p-6 text-center">
@@ -221,7 +221,7 @@ export default function ReportCreate() {
             <Card 
               className={`cursor-pointer transition-all hover:shadow-md ${
                 reportType === 'wysiwyg' ? 'ring-2 ring-primary' : ''
-              "}
+              "
               onClick={() => setReportType('wysiwyg')}
             >
               <CardContent className="p-6 text-center">
@@ -421,7 +421,7 @@ export default function ReportCreate() {
                                     key={type.value}
                                     className={`cursor-pointer transition-all hover:shadow-sm ${
                                       field.value === type.value ? 'ring-2 ring-primary' : ''
-                                    "}
+                                    "
                                     onClick={() => field.onChange(type.value)}
                                   >
                                     <CardContent className="p-3 text-center">

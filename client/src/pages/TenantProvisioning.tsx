@@ -128,7 +128,7 @@ export default function TenantProvisioning() {
       provisionForm.reset();
       toast({
         title: "Tenant Criado",
-        description: `Tenant "${data.tenant.name}" criado com sucesso!`,
+        description: "criado com sucesso!",
       });
     },
     onError: (error: Error) => {

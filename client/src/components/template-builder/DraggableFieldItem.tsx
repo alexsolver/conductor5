@@ -97,19 +97,19 @@ const getValidationSummary = (field: FieldComponent) => {
   }
   
   if (field.properties?.minLength) {
-    validations.push(`Min: ${field.properties.minLength")
+    validations.push("
   }
   
   if (field.properties?.maxLength) {
-    validations.push(`Max: ${field.properties.maxLength")
+    validations.push("
   }
   
   if (field.properties?.min !== undefined) {
-    validations.push(`Min: ${field.properties.min")
+    validations.push("
   }
   
   if (field.properties?.max !== undefined) {
-    validations.push(`Max: ${field.properties.max")
+    validations.push("
   }
 
   return validations
@@ -178,7 +178,7 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
         relative group transition-all duration-200
         ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
         ${isDragging ? 'z-50' : ''}
-      `}
+      "
       onClick={() => onSelect(field.id)}
     >
       <Card className={`
@@ -186,7 +186,7 @@ export const DraggableFieldItem: React.FC<DraggableFieldItemProps> = ({
         ${isSelected ? 'border-blue-500 shadow-lg' : 'border-gray-200'}
         ${hasErrors ? 'border-red-300 bg-red-50' : 'bg-white'}
         ${field.properties?.hidden ? 'opacity-60' : ''}
-      `}>
+      ">
         <CardContent className="p-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-3">

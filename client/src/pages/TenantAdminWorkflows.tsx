@@ -293,8 +293,8 @@ export default function TenantAdminWorkflows() {
                         <div className="flex justify-between text-xs text-gray-500">
                           <span>Meta: {sla.target}%</span>
                           <span>{sla.currentCompliance >= sla.target ? 
-                            `+${(sla.currentCompliance - sla.target).toFixed(1)}%` : 
-                            `${(sla.currentCompliance - sla.target).toFixed(1)}%`
+                            "%": 
+                            "%"
                           }</span>
                         </div>
                       </div>

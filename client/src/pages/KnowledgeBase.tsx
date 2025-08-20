@@ -83,7 +83,7 @@ export default function KnowledgeBase() {
       if (selectedCategory && selectedCategory !== 'all') params.append('category', selectedCategory);
       if (selectedAccess && selectedAccess !== 'all') params.append('access_level', selectedAccess);
       
-      const url = `/api/knowledge-base/articles${params.toString() ? '?' + params.toString() : ''";
+      const url = "
       console.log('🔍 [KB-PAGE] Fetching articles:', url);
       
       const response = await apiRequest('GET', url);
@@ -177,12 +177,12 @@ export default function KnowledgeBase() {
               </div>
               
               <Button 
-                variant={semanticSearch ? "default" : "outline"}
+                variant={semanticSearch ? "default" : "outline"
                 onClick={() => setSemanticSearch(!semanticSearch)}
                 className="gap-2"
               >
                 <Layers className="h-4 w-4" />
-                {semanticSearch ? "Busca Semântica ON" : "Busca Tradicional"}
+                {semanticSearch ? "Busca Semântica ON" : "Busca Tradicional"
               </Button>
             </div>
 
@@ -279,7 +279,7 @@ export default function KnowledgeBase() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {articles.map((article: Article) => (
-                  <Card key={article.id} className="hover:shadow-lg transition-shadow" data-testid={`article-card-${article.id">
+                  <Card key={article.id} className="hover:shadow-lg transition-shadow" data-testid={"
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start gap-2">
                         <CardTitle className="text-lg line-clamp-2 flex-1">{article.title}</CardTitle>

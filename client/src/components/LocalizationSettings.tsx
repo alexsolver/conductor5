@@ -47,7 +47,7 @@ export function LocalizationSettings({
 
   if (variant === 'compact') {
     return (
-      <div className="space-y-4 "`}>
+      <div className="space-y-4 "">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Language Selection */}
           <div className="space-y-2">

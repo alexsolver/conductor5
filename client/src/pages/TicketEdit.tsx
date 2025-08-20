@@ -102,7 +102,7 @@ export default function TicketEdit() {
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${id");
+      const response = await apiRequest("GET", "
       return response.json();
     },
     enabled: !!id,
@@ -158,7 +158,7 @@ export default function TicketEdit() {
     const fetchCustomersForCompany = async () => {
       try {
         console.log('TicketEdit: Fetching customers for company:', selectedCompanyId);
-        const response = await apiRequest("GET", `/api/companies/${selectedCompanyId}/customers`);
+        const response = await apiRequest("GET", "/customers`);
         const data = await response.json();
 
         console.log('TicketEdit: Company customers response:', data);
@@ -281,7 +281,7 @@ export default function TicketEdit() {
   // Update ticket mutation
   const updateTicketMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/tickets/${id", data);
+      const response = await apiRequest("PUT", "
       return response.json();
     },
     onSuccess: () => {
@@ -304,7 +304,7 @@ export default function TicketEdit() {
   // Delete ticket mutation
   const deleteTicketMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("DELETE", `/api/tickets/${id");
+      await apiRequest("DELETE", "
     },
     onSuccess: () => {
       toast({
@@ -467,7 +467,7 @@ export default function TicketEdit() {
                     form={form}
                     hasDesignPermission={true}
                     onFieldChange={(fieldKey, value) => {
-                      console.log(`Campo ${fieldKey} alterado:`, value);
+                      console.log(" alterado:`, value);
                     }}
                   >
                   <Tabs defaultValue="basic" className="w-full">
@@ -829,7 +829,7 @@ export default function TicketEdit() {
                               </FormControl>
                               <SelectContent>
                                 {filteredCustomers.map((customer: any) => (
-                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id">
+                                  <SelectItem key={customer.id} value={customer.id || "
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
                                 ))}
@@ -855,7 +855,7 @@ export default function TicketEdit() {
                               <SelectContent>
                                 <SelectItem value="none">Nenhum</SelectItem>
                                 {filteredCustomers.map((customer: any) => (
-                                  <SelectItem key={customer.id} value={customer.id || `customer-${customer.id">
+                                  <SelectItem key={customer.id} value={customer.id || "
                                     {customer.first_name} {customer.last_name}
                                   </SelectItem>
                                 ))}

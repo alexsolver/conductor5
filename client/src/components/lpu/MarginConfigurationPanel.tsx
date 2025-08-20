@@ -233,7 +233,7 @@ export default function MarginConfigurationPanel({
                     />
                     <div className="text-center">
                       <Badge 
-                        variant={factor.factor > 1 ? "default" : factor.factor < 1 ? "destructive" : "secondary"}
+                        variant={factor.factor > 1 ? "default" : factor.factor < 1 ? "destructive" : "secondary"
                         className="text-xs"
                       >
                         {factor.factor > 1 ? '+' : ''}{((factor.factor - 1) * 100).toFixed(0)}%
@@ -277,7 +277,7 @@ export default function MarginConfigurationPanel({
                         className="w-20 text-center"
                       />
                       <Badge 
-                        variant={demand.factor > 1 ? "default" : demand.factor < 1 ? "destructive" : "secondary"}
+                        variant={demand.factor > 1 ? "default" : demand.factor < 1 ? "destructive" : "secondary"
                       >
                         {demand.factor > 1 ? '+' : ''}{((demand.factor - 1) * 100).toFixed(0)}%
                       </Badge>

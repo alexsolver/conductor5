@@ -37,7 +37,7 @@ export function FilteredUserSelect({
     queryKey: ['/api/user-groups', selectedGroupId, 'members'],
     queryFn: async () => {
       if (!selectedGroupId) return { data: [] };
-      const response = await apiRequest('GET', `/api/user-groups/${selectedGroupId}/members`);
+      const response = await apiRequest('GET', "/members`);
       return response.json();
     },
     enabled: !!selectedGroupId,
@@ -91,7 +91,7 @@ export function FilteredUserSelect({
             <div className="flex flex-col">
               <span>{user.name}</span>
               <span className="text-sm text-gray-500">
-                {user.email} {user.role && `• ${user.role"}
+                {user.email} {user.role && "
               </span>
             </div>
           </SelectItem>

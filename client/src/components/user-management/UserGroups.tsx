@@ -108,7 +108,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       if (data && Array.isArray(data.users)) {
         return data.users.map((member: any) => ({
           id: member.id,
-          name: member.name || `${member.firstName || ''} ${member.lastName || ''".trim() || 'Sem nome',
+          name: member.name || "
           firstName: member.firstName,
           lastName: member.lastName,
           email: member.email,
@@ -160,7 +160,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para atualizar grupo
   const updateGroupMutation = useMutation({
     mutationFn: async (data: { id: string; name: string; description?: string }) => {
-      return apiRequest('PUT', `/api/user-management/groups/${data.id", {
+      return apiRequest('PUT', "
         name: data.name,
         description: data.description
       });
@@ -186,7 +186,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para deletar grupo
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      return apiRequest('DELETE', `/api/user-management/groups/${groupId");
+      return apiRequest('DELETE', "
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
@@ -207,7 +207,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para adicionar usuário ao grupo
   const addUserToGroupMutation = useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      const response = await apiRequest('POST', `/api/user-management/groups/${groupId}/members`, { userId });
+      const response = await apiRequest('POST', "/members`, { userId });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -242,7 +242,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para remover usuário do grupo
   const removeUserFromGroupMutation = useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      const response = await apiRequest('DELETE', `/api/user-management/groups/${groupId}/members/${userId");
+      const response = await apiRequest('DELETE', "
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -398,7 +398,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
     try {
       // Buscar membros atuais do grupo
-      const membersResponse = await apiRequest('GET', `/api/user-management/groups/${editingGroup.id}/members`);
+      const membersResponse = await apiRequest('GET', "/members`);
       const currentMembersData = await membersResponse.json();
       const currentMemberIds = currentMembersData.members?.map((m: any) => m.userId) || [];
 
@@ -436,7 +436,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
   // Função para confirmar exclusão
   const handleDeleteGroup = (group: UserGroup) => {
-    if (window.confirm(`Tem certeza que deseja excluir o grupo "${group.name}"?`)) {
+    if (window.confirm(""?`)) {
       deleteGroupMutation.mutate(group.id);
     }
   };
@@ -561,7 +561,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                     )}
                   </div>
                   <Badge variant={group.isActive ? "default" : "secondary">
-                    {group.isActive ? "Ativo" : "Inativo"}
+                    {group.isActive ? "Ativo" : "Inativo"
                   </Badge>
                 </div>
               </CardHeader>
@@ -691,7 +691,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <Checkbox
-                                  id={`member-checkbox-${member.id"}
+                                  id={"
                                   checked={isInGroup}
                                   onCheckedChange={(checked) => {
                                     if (!isUpdatingMemberships) {
@@ -715,7 +715,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                   <span className="font-medium truncate">{member.name}</span>
                                 </div>
                                 <p className="text-xs text-gray-500 truncate">
-                                  {member.email} {member.position && `• ${member.position"}
+                                  {member.email} {member.position && "
                                 </p>
                               </div>
                               {isInGroup && (

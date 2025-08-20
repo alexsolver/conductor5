@@ -256,7 +256,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                         </div>
                         
                         <Button
-                          variant={option.isDefault ? "default" : "outline"}
+                          variant={option.isDefault ? "default" : "outline"
                           size="sm"
                           onClick={() => setDefaultOption(index)}
                           title="Definir como padrão"

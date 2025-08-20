@@ -48,7 +48,7 @@ export function PublicationScheduler({
       autoPublish: boolean;
       notifyUsers: boolean;
     }) => {
-      return await apiRequest(`/api/knowledge-base/articles/${articleId}/schedule`, 'POST', scheduleData);
+      return await apiRequest("/schedule`, 'POST', scheduleData);
     },
     onSuccess: () => {
       toast({
@@ -82,7 +82,7 @@ export function PublicationScheduler({
       return;
     }
 
-    const scheduledFor = new Date(`${scheduledDate}T${scheduledTime");
+    const scheduledFor = new Date("
     
     if (scheduledFor <= new Date()) {
       toast({
@@ -179,7 +179,7 @@ export function PublicationScheduler({
                 <div className="p-2 bg-muted rounded text-sm">
                   <strong>Publicação agendada para:</strong><br />
                   {format(
-                    new Date(`${scheduledDate}T${scheduledTime"),
+                    new Date("
                     "dd 'de' MMMM 'de' yyyy 'às' HH:mm",
                     { locale: ptBR }
                   )}

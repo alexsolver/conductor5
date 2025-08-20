@@ -92,7 +92,7 @@ const AgentList: React.FC<AgentListProps> = ({
                 className={`
                   p-4 border-b cursor-pointer transition-all hover:bg-gray-50
                   ${isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : ''}
-                `}
+                "
                 onClick={() => onAgentSelect(agent.id)}
               >
                 {/* Agent Info */}

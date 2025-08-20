@@ -103,7 +103,7 @@ export const WeeklyScheduleForm: React.FC<WeeklyScheduleFormProps> = ({
         const schedule = weeklySchedule[day as keyof WeeklySchedule];
         
         return (
-          <Card key={day} className=""`}>
+          <Card key={day} className=""">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm">{dayNames[day as keyof typeof dayNames]}</CardTitle>

@@ -163,7 +163,7 @@ export function LeafletMap({
         riseOnHover: true
       })
         .addTo(mapInstanceRef.current)
-        .bindPopup(`<b>Localização Selecionada</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)")
+        .bindPopup("
         .openPopup();
 
       markerRef.current = marker;
@@ -199,7 +199,7 @@ export function LeafletMap({
         
         toast({
           title: "Local encontrado",
-          description: `${localResult.name} - Coordenadas da cidade`
+          description: " - Coordenadas da cidade`
         });
         return;
       }
@@ -208,7 +208,7 @@ export function LeafletMap({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=br&addressdetails=1`;
+      const searchUrl = "&limit=5&countrycodes=br&addressdetails=1`;
       
       const response = await fetch(searchUrl, {
         signal: controller.signal,
@@ -222,7 +222,7 @@ export function LeafletMap({
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText");
+        throw new Error("
       }
 
       const results: SearchResult[] = await response.json();
@@ -291,7 +291,7 @@ export function LeafletMap({
         
         toast({
           title: "Localização atual",
-          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)"
+          description: "
         });
       },
       (error) => {

@@ -36,7 +36,7 @@ export default function AttachmentsModal({
   const { data: attachments = [], isLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "attachments"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${ticketId}/attachments`);
+      const response = await apiRequest("GET", "/attachments`);
       return response.json();
     },
     enabled: isOpen,
@@ -49,7 +49,7 @@ export default function AttachmentsModal({
       formData.append("file", file);
       formData.append("source", "user");
       
-      const response = await fetch(`/api/tickets/${ticketId}/attachments`, {
+      const response = await fetch("/attachments`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -82,7 +82,7 @@ export default function AttachmentsModal({
   // Delete attachment mutation
   const deleteMutation = useMutation({
     mutationFn: async (attachmentId: string) => {
-      const response = await apiRequest("DELETE", `/api/tickets/${ticketId}/attachments/${attachmentId");
+      const response = await apiRequest("DELETE", "
       return response.json();
     },
     onSuccess: () => {
@@ -131,7 +131,7 @@ export default function AttachmentsModal({
   };
 
   const handleDownload = (attachment: Attachment) => {
-    window.open(`/api/tickets/${ticketId}/attachments/${attachment.id}/download`, '_blank');
+    window.open("/download`, '_blank');
   };
 
   return (
@@ -184,7 +184,7 @@ export default function AttachmentsModal({
                       onClick={handleUpload}
                       disabled={uploadMutation.isPending}
                     >
-                      {uploadMutation.isPending ? "Enviando..." : "Anexar"}
+                      {uploadMutation.isPending ? "Enviando..." : "Anexar"
                     </Button>
                     <Button
                       size="sm"

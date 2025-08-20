@@ -48,7 +48,7 @@ export function CompanySelector({
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/companies', {
         headers: {
-          'Authorization': `Bearer ${token",
+          'Authorization': "
           'Content-Type': 'application/json'
         }
       });
@@ -92,7 +92,7 @@ export function CompanySelector({
   }
 
   return (
-    <div className="space-y-2 "`}>
+    <div className="space-y-2 "">
       <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
         <Building2 className="w-4 h-4" />
         Empresa (Associação Hierárquica)

@@ -73,7 +73,7 @@ export function ApprovalRulesManager() {
 
   const updateRuleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: any }) => {
-      const response = await apiRequest('PUT', `/api/approvals/rules/${id", data);
+      const response = await apiRequest('PUT', "
       return response.json();
     },
     onSuccess: () => {
@@ -84,7 +84,7 @@ export function ApprovalRulesManager() {
 
   const deleteRuleMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/approvals/rules/${id");
+      const response = await apiRequest('DELETE', "
       return response.json();
     },
     onSuccess: () => {
@@ -198,7 +198,7 @@ export function ApprovalRulesManager() {
                         </SelectTrigger>
                         <SelectContent>
                             {moduleTypes.map(type => (
-                            <SelectItem key={`module-${type.value"} value={type.value}>
+                            <SelectItem key={"
                               {type.label}
                             </SelectItem>
                           ))}
@@ -281,33 +281,33 @@ export function ApprovalRulesManager() {
                 </TableRow>
               ) : (
                 rules?.data?.map((rule) => (
-                  <TableRow key={rule.id} data-testid={`rule-row-${rule.id">
-                    <TableCell className="font-medium" data-testid={`rule-name-${rule.id">
+                  <TableRow key={rule.id} data-testid={"
+                    <TableCell className="font-medium" data-testid={"
                       {rule.name}
                     </TableCell>
-                    <TableCell data-testid={`rule-module-${rule.id">
+                    <TableCell data-testid={"
                       <Badge variant="secondary">
                         {moduleTypes.find(t => t.value === rule.moduleType)?.label || rule.moduleType}
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={`rule-status-${rule.id">
+                    <TableCell data-testid={"
                       <Badge variant={rule.isActive ? "default" : "secondary">
                         {rule.isActive ? 'Ativa' : 'Inativa'}
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={`rule-priority-${rule.id">
+                    <TableCell data-testid={"
                       {rule.priority}
                     </TableCell>
-                    <TableCell data-testid={`rule-created-${rule.id">
+                    <TableCell data-testid={"
                       {new Date(rule.createdAt).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2" data-testid={`rule-actions-${rule.id">
+                      <div className="flex items-center gap-2" data-testid={"
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleRuleStatus(rule)}
-                          data-testid={`button-toggle-${rule.id"}
+                          data-testid={"
                         >
                           {rule.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
@@ -315,7 +315,7 @@ export function ApprovalRulesManager() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEditRule(rule)}
-                          data-testid={`button-edit-${rule.id"}
+                          data-testid={"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -323,7 +323,7 @@ export function ApprovalRulesManager() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteRule(rule.id)}
-                          data-testid={`button-delete-${rule.id"}
+                          data-testid={"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

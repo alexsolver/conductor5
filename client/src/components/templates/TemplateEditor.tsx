@@ -109,7 +109,7 @@ const DraggableField: React.FC<{
         p-3 border rounded-lg cursor-pointer transition-all
         ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
         ${isDragging ? 'shadow-lg' : 'shadow-sm'}
-      `}
+      "
       onClick={() => onSelect(field.id)}
       onDoubleClick={() => onEdit(field.id)}
     >
@@ -173,10 +173,10 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   // Adicionar novo campo
   const addField = useCallback((type: string) => {
     const newField: FieldDefinition = {
-      id: `field_${Date.now()",
+      id: "
       type,
-      label: `Novo ${fieldTypes.find(f => f.type === type)?.label || 'Campo'",
-      key: `field_${fields.length + 1",
+      label: "
+      key: "
       isRequired: false,
       isVisible: true,
       sortOrder: fields.length,
@@ -264,7 +264,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             <Button 
               onClick={() => setGridVisible(!gridVisible)} 
               size="sm" 
-              variant={gridVisible ? "default" : "outline"}
+              variant={gridVisible ? "default" : "outline"
             >
               <Grid3X3 className="w-4 h-4" />
             </Button>
@@ -336,8 +336,8 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         {/* Canvas */}
         <div className="flex-1 relative overflow-auto">
           <div 
-            className="p-8 min-h-full "`}
-            style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' }}
+            className="p-8 min-h-full ""
+            style={{ transform: ")`, transformOrigin: 'top left' }}
           >
             <Card className="max-w-4xl mx-auto min-h-[600px]">
               <CardHeader>

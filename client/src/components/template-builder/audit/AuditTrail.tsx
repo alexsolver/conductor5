@@ -65,7 +65,7 @@ export function AuditTrail({
       if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
       if (filters.dateTo) params.append('dateTo', filters.dateTo);
       
-      return apiRequest('GET', `/api/template-audit?${params.toString()");
+      return apiRequest('GET', "
     }
   });
 

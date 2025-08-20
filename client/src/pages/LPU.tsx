@@ -139,7 +139,7 @@ export default function LPU() {
     queryKey: ['/api/materials-services/price-lists', selectedPriceList?.id, 'items'],
     queryFn: async () => {
       if (!selectedPriceList) return [];
-      const response = await apiRequest('GET', `/api/materials-services/price-lists/${selectedPriceList.id}/items`);
+      const response = await apiRequest('GET', "/items`);
       return response.json();
     },
     enabled: !!selectedPriceList,
@@ -175,7 +175,7 @@ export default function LPU() {
   // Update price list mutation
   const updatePriceListMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PriceList> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/price-lists/${id", data);
+      const response = await apiRequest('PUT', "
       return response.json();
     },
     onSuccess: () => {
@@ -196,7 +196,7 @@ export default function LPU() {
   // Delete price list mutation
   const deletePriceListMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/materials-services/price-lists/${id");
+      await apiRequest('DELETE', "
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
@@ -217,7 +217,7 @@ export default function LPU() {
   // Duplicate price list mutation
   const duplicatePriceListMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('POST', `/api/materials-services/price-lists/${id}/duplicate`, {});
+      const response = await apiRequest('POST', "/duplicate`, {});
       return response.json();
     },
     onSuccess: () => {
@@ -257,7 +257,7 @@ export default function LPU() {
   // Update pricing rule mutation
   const updatePricingRuleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PricingRule> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/pricing-rules/${id", data);
+      const response = await apiRequest('PUT', "
       return response.json();
     },
     onSuccess: () => {
@@ -278,7 +278,7 @@ export default function LPU() {
   // Delete pricing rule mutation
   const deletePricingRuleMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/materials-services/pricing-rules/${id");
+      await apiRequest('DELETE', "
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
@@ -298,14 +298,14 @@ export default function LPU() {
   // Apply rules mutation
   const applyRulesMutation = useMutation({
     mutationFn: async (priceListId: string) => {
-      const response = await apiRequest('POST', `/api/materials-services/price-lists/${priceListId}/apply-rules`, {});
+      const response = await apiRequest('POST', "/apply-rules`, {});
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({
         title: '[TRANSLATION_NEEDED]',
-        description: `${data.affectedItems || 0} itens atualizados`
+        description: " itens atualizados`
       });
     },
     onError: (error: any) => {
@@ -491,7 +491,7 @@ export default function LPU() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {`${stats?.approvalRate || 0}%`}
+                  {"%"
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {stats?.approvedVersions || 0} aprovadas
@@ -619,15 +619,15 @@ export default function LPU() {
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Válida de {new Date(list.validFrom).toLocaleDateString()}
-                        {list.validTo && ` até ${new Date(list.validTo).toLocaleDateString()"}
+                        {list.validTo && "
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge
-                        variant={list.isActive ? "default" : "secondary"}
-                        className={list.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
+                        variant={list.isActive ? "default" : "secondary"
+                        className={list.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"
                       >
-                        {list.isActive ? "Ativa" : "Inativa"}
+                        {list.isActive ? "Ativa" : "Inativa"
                       </Badge>
 
                       <Button variant="outline" size="sm" onClick={() => handleViewItems(list)}>
@@ -733,10 +733,10 @@ export default function LPU() {
                         <Badge variant="outline" className="capitalize">{rule.ruleType}</Badge>
                         <Badge variant="secondary">Prioridade: {rule.priority}</Badge>
                         <Badge
-                          variant={rule.isActive ? "default" : "secondary"}
-                          className={rule.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
+                          variant={rule.isActive ? "default" : "secondary"
+                          className={rule.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"
                         >
-                          {rule.isActive ? "Ativa" : "Inativa"}
+                          {rule.isActive ? "Ativa" : "Inativa"
                         </Badge>
                       </div>
                     </div>
@@ -781,7 +781,7 @@ export default function LPU() {
                         selectedPriceListForRules === list.id
                           ? 'bg-blue-50 border-blue-300'
                           : 'hover:bg-gray-50'
-                      "}
+                      "
                       onClick={() => setSelectedPriceListForRules(list.id)}
                     >
                       <div className="flex justify-between items-center">
@@ -790,7 +790,7 @@ export default function LPU() {
                           <p className="text-sm text-gray-500">{list.code}</p>
                         </div>
                         <Badge variant={list.isActive ? "default" : "secondary">
-                          {list.isActive ? "Ativa" : "Inativa"}
+                          {list.isActive ? "Ativa" : "Inativa"
                         </Badge>
                       </div>
                     </div>
@@ -815,7 +815,7 @@ export default function LPU() {
                           <p className="text-sm text-gray-500">{rule.ruleType} • Prioridade: {rule.priority}</p>
                         </div>
                         <Badge variant={rule.isActive ? "default" : "secondary">
-                          {rule.isActive ? "Ativa" : "Inativa"}
+                          {rule.isActive ? "Ativa" : "Inativa"
                         </Badge>
                       </div>
                     </div>
@@ -844,7 +844,7 @@ export default function LPU() {
                     disabled={applyRulesMutation.isPending}
                     className="w-full"
                   >
-                    {applyRulesMutation.isPending ? "Aplicando..." : "Aplicar Todas as Regras Ativas"}
+                    {applyRulesMutation.isPending ? "Aplicando..." : "Aplicar Todas as Regras Ativas"
                   </Button>
                 </div>
               </CardContent>
@@ -941,7 +941,7 @@ export default function LPU() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Status:</span>
                       <Badge variant={list.isActive ? "default" : "secondary">
-                        {list.isActive ? "Ativa" : "Inativa"}
+                        {list.isActive ? "Ativa" : "Inativa"
                       </Badge>
                     </div>
 
@@ -966,7 +966,7 @@ export default function LPU() {
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => {
                         const newVersion = (parseFloat(list.version) + 0.1).toFixed(1);
                         duplicatePriceListMutation.mutate(list.id);
-                        toast({ title: `Nova versão ${newVersion} criada!` });
+                        toast({ title: " criada!` });
                       }}>
                         <Copy className="mr-1 h-3 w-3" />
                         Criar Nova Versão
@@ -1095,7 +1095,7 @@ export default function LPU() {
                   {priceLists.slice(0, 5).map((list: PriceList, index) => (
                     <div key={list.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 rounded-full "`} />
+                        <div className="w-3 h-3 rounded-full "" />
                         <div>
                           <p className="font-medium text-sm">{list.name}</p>
                           <p className="text-xs text-muted-foreground">v{list.version}</p>
@@ -1319,7 +1319,7 @@ export default function LPU() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name" : '[TRANSLATION_NEEDED]'}
+              {selectedPriceList ? "
             </DialogTitle>
             <DialogDescription>
               Visualize o histórico de alterações e gerencie versões
@@ -1722,7 +1722,7 @@ function PriceListItemsView({
   // Add item to price list mutation
   const addItemMutation = useMutation({
     mutationFn: async (data: Partial<PriceListItem>) => {
-      const response = await apiRequest('POST', `/api/materials-services/price-lists/${priceList?.id}/items`, data);
+      const response = await apiRequest('POST', "/items`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -1742,7 +1742,7 @@ function PriceListItemsView({
   // Update item mutation
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<PriceListItem> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/price-lists/items/${id", data);
+      const response = await apiRequest('PUT', "
       return response.json();
     },
     onSuccess: () => {
@@ -1762,7 +1762,7 @@ function PriceListItemsView({
   // Delete item mutation
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/materials-services/price-lists/items/${id");
+      await apiRequest('DELETE', "
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists', priceList?.id, 'items'] });
@@ -1832,7 +1832,7 @@ function PriceListItemsView({
                 <TableRow key={item.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{item.itemName || `Item ${item.itemId"}</p>
+                      <p className="font-medium">{item.itemName || "
                       {item.itemId && (
                         <p className="text-sm text-muted-foreground">ID: {item.itemId}</p>
                       )}
@@ -1841,17 +1841,17 @@ function PriceListItemsView({
                   <TableCell>{item.measurementUnit || '-'}</TableCell>
                   <TableCell>{priceList.currency} {Number(item.unitPrice).toFixed(2)}</TableCell>
                   <TableCell>
-                    {item.specialPrice ? `${priceList.currency} ${Number(item.specialPrice).toFixed(2)" : '-'}
+                    {item.specialPrice ? "
                   </TableCell>
                   <TableCell>
-                    {item.hourlyRate ? `${priceList.currency} ${Number(item.hourlyRate).toFixed(2)}/h` : '-'}
+                    {item.hourlyRate ? "/h` : '-'}
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={item.isActive ? "default" : "secondary"}
-                      className={item.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
+                      variant={item.isActive ? "default" : "secondary"
+                      className={item.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"
                     >
-                      {item.isActive ? "Ativo" : "Inativo"}
+                      {item.isActive ? "Ativo" : "Inativo"
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -2008,7 +2008,7 @@ function ApprovalWorkflowComponent({
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={() => {
                 // Simulate approval action here
-                toast({ title: `${selectedForApproval.length} item(s) aprovado(s) com sucesso!` });
+                toast({ title: " item(s) aprovado(s) com sucesso!` });
                 setSelectedForApproval([]);
                 setApprovalNotes('');
               }}

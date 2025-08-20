@@ -38,7 +38,7 @@ export default function TicketHierarchyView({
   const { data: hierarchy = [] } = useQuery<Ticket[]>({
     queryKey: ["/api/tickets", ticketId, "hierarchy"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${ticketId}/hierarchy`);
+      const response = await apiRequest("GET", "/hierarchy`);
       return response.json();
     },
   });
@@ -70,7 +70,7 @@ export default function TicketHierarchyView({
 
     return (
       <div key={ticket.id} className="space-y-2">
-        <Card className=""`}>
+        <Card className=""">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">

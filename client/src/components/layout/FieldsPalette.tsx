@@ -34,7 +34,7 @@ function DraggableField({ field }: DraggableFieldProps) {
   });
 
   const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    transform: "px, 0)`,
   } : undefined;
 
   return (
@@ -47,7 +47,7 @@ function DraggableField({ field }: DraggableFieldProps) {
         p-3 border rounded-lg cursor-grab active:cursor-grabbing
         hover:border-blue-300 hover:bg-blue-50 transition-all
         ${isDragging ? 'opacity-50 shadow-lg' : ''}
-      `}
+      "
     >
       <div className="flex items-center gap-2">
         <div className="text-blue-600">{field.icon}</div>

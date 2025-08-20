@@ -56,7 +56,7 @@ export function PipelineDesigner() {
     const newStep: ApprovalStep = {
       id: Date.now().toString(),
       stepNumber: steps.length + 1,
-      name: `Etapa ${steps.length + 1",
+      name: "
       approverType: 'user',
       approvers: [],
       mode: 'ANY',
@@ -72,7 +72,7 @@ export function PipelineDesigner() {
       return newSteps.map((step, index) => ({
         ...step,
         stepNumber: index + 1,
-        name: step.name.includes('Etapa') ? `Etapa ${index + 1" : step.name
+        name: step.name.includes('Etapa') ? "
       }));
     });
   };
@@ -114,9 +114,9 @@ export function PipelineDesigner() {
       let totalTime = 0;
       
       steps.forEach((step, index) => {
-        simulation += `${index + 1}. ${step.name}\n`;
-        simulation += `   Aprovadores: ${step.approverType} (${step.mode})\n`;
-        simulation += `   SLA: ${step.slaHours}h\n`;
+        simulation += "\n`;
+        simulation += ")\n`;
+        simulation += "h\n`;
         
         if (step.autoApprove) {
           simulation += `   ✅ Auto-aprovado\n`;
@@ -128,7 +128,7 @@ export function PipelineDesigner() {
         simulation += '\n';
       });
       
-      simulation += `⏱️ Tempo estimado total: ${totalTime.toFixed(1)}h`;
+      simulation += "h`;
       
       setSimulationResult(simulation);
       setIsSimulating(false);
@@ -207,20 +207,20 @@ export function PipelineDesigner() {
         {steps.map((step, index) => (
           <Card 
             key={step.id} 
-            className="" transition-all duration-200`}
-            data-testid={`step-${step.id"}
+            className="" transition-all duration-200"
+            data-testid={"
           >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Badge className="bg-white text-gray-800" data-testid={`step-number-${step.id">
+                  <Badge className="bg-white text-gray-800" data-testid={"
                     Etapa {step.stepNumber}
                   </Badge>
                   <Input
                     value={step.name}
                     onChange={(e) => updateStep(step.id, 'name', e.target.value)}
                     className="font-medium bg-transparent border-none p-0 h-auto focus:ring-0"
-                    data-testid={`step-name-${step.id"}
+                    data-testid={"
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export function PipelineDesigner() {
                       variant="ghost"
                       size="sm"
                       onClick={() => moveStep(step.id, 'up')}
-                      data-testid={`button-move-up-${step.id"}
+                      data-testid={"
                     >
                       ↑
                     </Button>
@@ -239,7 +239,7 @@ export function PipelineDesigner() {
                       variant="ghost"
                       size="sm"
                       onClick={() => moveStep(step.id, 'down')}
-                      data-testid={`button-move-down-${step.id"}
+                      data-testid={"
                     >
                       ↓
                     </Button>
@@ -249,7 +249,7 @@ export function PipelineDesigner() {
                       variant="ghost"
                       size="sm"
                       onClick={() => removeStep(step.id)}
-                      data-testid={`button-remove-step-${step.id"}
+                      data-testid={"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -258,7 +258,7 @@ export function PipelineDesigner() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-testid={`step-config-${step.id">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-testid={"
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Tipo de Aprovador
@@ -266,7 +266,7 @@ export function PipelineDesigner() {
                   <Select
                     value={step.approverType}
                     onValueChange={(value) => updateStep(step.id, 'approverType', value)}
-                    data-testid={`approver-type-${step.id"}
+                    data-testid={"
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -288,7 +288,7 @@ export function PipelineDesigner() {
                   <Select
                     value={step.mode}
                     onValueChange={(value) => updateStep(step.id, 'mode', value)}
-                    data-testid={`decision-mode-${step.id"}
+                    data-testid={"
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -312,7 +312,7 @@ export function PipelineDesigner() {
                     value={step.slaHours}
                     onChange={(e) => updateStep(step.id, 'slaHours', parseInt(e.target.value) || 0)}
                     min="1"
-                    data-testid={`sla-hours-${step.id"}
+                    data-testid={"
                   />
                 </div>
 
@@ -326,7 +326,7 @@ export function PipelineDesigner() {
                       value={step.quorumCount || 1}
                       onChange={(e) => updateStep(step.id, 'quorumCount', parseInt(e.target.value) || 1)}
                       min="1"
-                      data-testid={`quorum-count-${step.id"}
+                      data-testid={"
                     />
                   </div>
                 )}
@@ -339,14 +339,14 @@ export function PipelineDesigner() {
                     checked={step.autoApprove}
                     onChange={(e) => updateStep(step.id, 'autoApprove', e.target.checked)}
                     className="rounded"
-                    data-testid={`auto-approve-${step.id"}
+                    data-testid={"
                   />
                   <span className="text-sm font-medium">Auto-aprovação</span>
                 </label>
                 
                 <Badge 
-                  variant={step.autoApprove ? "default" : "secondary"}
-                  data-testid={`step-status-${step.id"}
+                  variant={step.autoApprove ? "default" : "secondary"
+                  data-testid={"
                 >
                   {step.autoApprove ? 'Automático' : 'Manual'}
                 </Badge>
@@ -381,8 +381,8 @@ export function PipelineDesigner() {
         <CardContent>
           <div className="flex flex-col items-center space-y-4" data-testid="visual-flow">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex flex-col items-center" data-testid={`visual-step-${step.id">
-                <div className="p-4 rounded-lg border-2 " min-w-48 text-center`}>
+              <div key={step.id} className="flex flex-col items-center" data-testid={"
+                <div className="p-4 rounded-lg border-2 " min-w-48 text-center">
                   <div className="font-medium">{step.name}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {step.approverType} • {step.mode} • {step.slaHours}h

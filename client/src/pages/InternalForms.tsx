@@ -169,10 +169,10 @@ export default function InternalForms() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{form.name}</CardTitle>
                 <Badge
-                  variant={form.isActive ? "default" : "secondary"}
+                  variant={form.isActive ? "default" : "secondary"
                   style={{ backgroundColor: form.isActive ? getCategoryColor(form.category) : undefined }}
                 >
-                  {form.isActive ? "Ativo" : "Inativo"}
+                  {form.isActive ? "Ativo" : "Inativo"
                 </Badge>
               </div>
             </CardHeader>

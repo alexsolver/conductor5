@@ -158,7 +158,7 @@ const TicketDetails = React.memo(() => {
   const { data: ticketAttachments, isLoading: attachmentsLoading, error: attachmentsError } = useQuery({
     queryKey: ["/api/tickets", id, "attachments"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `"/api/tickets/${id}/attachments`);
+      const response = await apiRequest("GET", "/api/tickets/" + id + "/attachments");
       const data = await response.json();
       return data;
     },
@@ -245,7 +245,7 @@ const TicketDetails = React.memo(() => {
       }
 
       try {
-        const response = await apiRequest("GET", `/api/companies/${companyId}/customers`);
+        const response = await apiRequest("GET", "/api/customers");
         const data = await response.json();
 
         if (data.success && data.customers) {
@@ -286,7 +286,7 @@ const TicketDetails = React.memo(() => {
     // Fetch new customers only if valid company selected
     if (newCompanyId && newCompanyId !== 'unspecified') {
       try {
-        const response = await apiRequest("GET", `/api/companies/${newCompanyId}/customers`);
+        const response = await apiRequest("GET", "/api/customers");
         const data = await response.json();
 
         if (data.success && data.customers) {
@@ -365,7 +365,7 @@ const TicketDetails = React.memo(() => {
   const { data: ticketRelationships } = useQuery({
     queryKey: ["/api/ticket-relationships", id, "relationships"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/ticket-relationships/${id}/relationships`);
+      const response = await apiRequest("GET", "/api/tickets/" + id + "/relationships");
       return response.json();
     },
     enabled: !!id,
@@ -379,7 +379,7 @@ const TicketDetails = React.memo(() => {
   const { data: ticketHistoryData, isLoading: historyLoading, error: historyError } = useQuery({
     queryKey: ["/api/tickets", id, "history"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `"/api/tickets/${id}/history`);
+      const response = await apiRequest("GET", "/api/tickets/" + id + "/history");
       const data = await response.json();
       return data;
     },
@@ -394,7 +394,7 @@ const TicketDetails = React.memo(() => {
   const { data: ticketCommunications, isLoading: communicationsLoading, error: communicationsError } = useQuery({
     queryKey: ["/api/tickets", id, "communications"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `"/api/tickets/${id}/communications`);
+      const response = await apiRequest("GET", "/api/tickets/" + id + "/communications");
       const data = await response.json();
       return data;
     },
@@ -408,7 +408,7 @@ const TicketDetails = React.memo(() => {
   const { data: ticketNotes, isLoading: notesLoading, error: notesError } = useQuery({
     queryKey: ["/api/tickets", id, "notes"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `"/api/tickets/${id}/notes`);
+      const response = await apiRequest("GET", "/api/tickets/" + id + "/notes");
       const data = await response.json();
       return data;
     },
@@ -422,7 +422,7 @@ const TicketDetails = React.memo(() => {
   const { data: ticketActions, isLoading: actionsLoading, error: actionsError } = useQuery({
     queryKey: ["/api/tickets", id, "actions"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `"/api/tickets/${id}/actions`);
+      const response = await apiRequest("GET", "/api/tickets/" + id + "/actions");
       const data = await response.json();
       return data;
     },
@@ -444,8 +444,8 @@ const TicketDetails = React.memo(() => {
   // Transform users data for UserSelect and UserMultiSelect components
   const teamUsers = Array.isArray((usersData as any)?.users) ? (usersData as any).users.map((user: any) => ({
     id: user.id,
-    name: user.name || `${user.firstName || ''} ${user.lastName || ''.trim() || user.email?.split('@')[0] || 'Usuário',
-    email: user.email
+    name: user.name || "".trim() || user.email?.split('@')[0] || 'Usuário',
+    email: user.email,
     role: user.role || 'Usuário'
   })) : [];
 
@@ -486,7 +486,7 @@ const TicketDetails = React.memo(() => {
     if (ticketNotes?.success && Array.isArray(ticketNotes.data)) {
       return ticketNotes.data.map((note: any) => ({
         ...note,
-        id: note.id || `note-${Date.now()}-${Math.random()",
+        id: note.id || "note-" + Date.now() + "-" + Math.random(),
         createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
         createdByName: note.author_name || note.created_by_name || note.createdByName || 'Sistema',
         createdAt: note.created_at || note.createdAt || new Date().toISOString(),
@@ -495,7 +495,7 @@ const TicketDetails = React.memo(() => {
     } else if (ticketNotes?.data && Array.isArray(ticketNotes.data)) {
       return ticketNotes.data.map((note: any) => ({
         ...note,
-        id: note.id || `note-${Date.now()}-${Math.random()",
+        id: note.id || "note-" + Date.now() + "-" + Math.random(),
         createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
         createdByName: note.author_name || note.created_by_name || note.createdByName || 'Sistema',
         createdAt: note.created_at || note.createdAt || new Date().toISOString(),
@@ -511,7 +511,7 @@ const TicketDetails = React.memo(() => {
     if (ticketActions?.success && Array.isArray(ticketActions.data)) {
       return ticketActions.data.map((action: any) => ({
         ...action,
-        id: action.id || `action-${Date.now()}-${Math.random()",
+        id: action.id || "default-id"
         createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
         actionType: action.action_type || action.actionType || action.type || 'Ação',
         content: action.content || action.description || action.summary || 'Sem descrição',
@@ -522,7 +522,7 @@ const TicketDetails = React.memo(() => {
     } else if (ticketActions?.data && Array.isArray(ticketActions.data)) {
       return ticketActions.data.map((action: any) => ({
         ...action,
-        id: action.id || `action-${Date.now()}-${Math.random()",
+        id: action.id || "default-id"
         createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
         actionType: action.action_type || action.actionType || action.type || 'Ação',
         content: action.content || action.description || action.summary || 'Sem descrição',
@@ -570,7 +570,7 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Fetch planned materials seguindo Clean Architecture
   const { data: plannedMaterialsResponse, isLoading: plannedMaterialsLoading } = useQuery({
-    queryKey: [`/api/materials-services/tickets/${id}/planned-items`],
+    queryKey: ["/planned-items`],
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -578,7 +578,7 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Fetch consumed materials seguindo Clean Architecture
   const { data: consumedMaterialsResponse, isLoading: consumedMaterialsLoading } = useQuery({
-    queryKey: [`/api/materials-services/tickets/${id}/consumed-items`],
+    queryKey: ["/consumed-items`],
     enabled: !!id,
     staleTime: 3 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -617,9 +617,9 @@ const TicketDetails = React.memo(() => {
 
   // ✅ [1QA-COMPLIANCE] Special functionality tabs seguindo Clean Architecture
   const getTabLabel = (baseLabel: string, count?: number) => {
-    console.log(`🔧 [TAB-LABEL-DEBUG] ${baseLabel}: count=${count}, tipo=${typeof count");
+    console.log("
     if (count && count > 0) {
-      return `${baseLabel} (${count})`;
+      return ")`;
     }
     return baseLabel;
   };
@@ -684,7 +684,7 @@ const TicketDetails = React.memo(() => {
         setActionToEdit(actionToOpen);
         setEditActionModalOpen(true);
         // Clean URL parameter
-        navigate(`/tickets/${id", { replace: true });
+        navigate("
       }
     }
   }, [openActionId, internalActionsData, id, navigate]);
@@ -735,7 +735,7 @@ const TicketDetails = React.memo(() => {
 
         return {
           ...item,
-          id: item.id || `history-${Date.now()}-${Math.random()",
+          id: item.id || "
           action_type: item.action_type || item.actionType || item.type || 'activity',
           performed_by_name: item.performed_by_name || item.performedByName || item.actor_name || item.createdBy || 'Sistema',
           created_at: item.created_at || item.createdAt || new Date().toISOString(),
@@ -872,13 +872,13 @@ const TicketDetails = React.memo(() => {
     setIsAddingNote(true);
 
     try {
-      const response = await apiRequest("POST", `"/api/tickets/${id}/notes`, {
+      const response = await apiRequest("POST", "/api/tickets/" + id + "/notes", {
         content: newNote,
         ticketId: id
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status");
+        throw new Error("
       }
 
       const result = await response.json();
@@ -924,15 +924,15 @@ const TicketDetails = React.memo(() => {
         isPublic: !(data.isPrivate || false)
       };
 
-      const response = await apiRequest("POST", `"/api/tickets/${id}/notes`, payload);
+      const response = await apiRequest("POST", "/api/tickets/" + id + "/notes", payload);
 
       if (!response.ok) {
         const errorText = await response.text();
         // Verificar se é erro HTML (indica erro de servidor)
         if (errorText.includes('<!DOCTYPE')) {
-          throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}. This indicates a backend routing or middleware issue.`);
+          throw new Error(". This indicates a backend routing or middleware issue.`);
         }
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText.substring(0, 200)");
+        throw new Error("
       }
 
       // Verificar content-type antes de tentar fazer parse JSON
@@ -941,9 +941,9 @@ const TicketDetails = React.memo(() => {
         const responseText = await response.text();
         // Check if it's an HTML error page (server error)
         if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html>')) {
-          throw new Error(`Server Error: API endpoint returned HTML instead of JSON. This indicates a backend routing or middleware issue. Status: ${response.status");
+          throw new Error("
         }
-        throw new Error(`Expected JSON response, got ${contentType}. Response preview: ${responseText.substring(0, 200)");
+        throw new Error("
       }
 
       const result = await response.json();
@@ -1148,7 +1148,7 @@ const TicketDetails = React.memo(() => {
   // Delete internal action mutation
   const deleteInternalActionMutation = useMutation({
     mutationFn: async (actionId: string) => {
-      const response = await apiRequest("DELETE", `"/api/tickets/${id}/actions/${actionId");
+      const response = await apiRequest("DELETE", "
       return response.json();
     },
     onSuccess: () => {
@@ -1173,7 +1173,7 @@ const TicketDetails = React.memo(() => {
   // Delete note mutation
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
-      const response = await apiRequest("DELETE", `"/api/tickets/${id}/notes/${noteId");
+      const response = await apiRequest("DELETE", "
       return response.json();
     },
     onSuccess: () => {
@@ -1198,7 +1198,7 @@ const TicketDetails = React.memo(() => {
   // 🔧 [1QA-COMPLIANCE] Mutation para deletar relacionamento seguindo Clean Architecture
   const deleteRelationshipMutation = useMutation({
     mutationFn: async (relationshipId: string) => {
-      const response = await apiRequest('DELETE', `/api/ticket-relationships/${relationshipId");
+      const response = await apiRequest('DELETE', "
       if (!response.ok) {
         throw new Error('Failed to delete relationship');
       }
@@ -2080,11 +2080,11 @@ const TicketDetails = React.memo(() => {
 
                   return (
                     <div key={historyItem.id} className="relative">
-                      <div className="absolute -left-6 w-3 h-3 bg-"-500 rounded-full`}></div>
+                      <div className="absolute -left-6 w-3 h-3 bg-"-500 rounded-full"></div>
                       <Card className="p-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Icon className="h-4 w-4 text-"-600`} />
+                            <Icon className="h-4 w-4 text-"-600" />
                             <span className="font-medium text-sm">
                               {historyItem.action_type === 'created' && 'Ticket Criado'}
                               {historyItem.action_type === 'ticket_created' && 'Ticket Criado'}
@@ -2129,9 +2129,9 @@ const TicketDetails = React.memo(() => {
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          {historyItem.description || `Ação realizada por ${historyItem.performed_by_name"}
+                          {historyItem.description || "
                           {historyItem.field_name && historyItem.old_value && historyItem.new_value && (
-                            ` - ${historyItem.field_name}: "${historyItem.old_value}" → "${historyItem.new_value}"`
+                            ""`
                           )}
                         </p>
 
@@ -2145,20 +2145,20 @@ const TicketDetails = React.memo(() => {
                               </div>
                               <div>
                                 <span className="text-blue-700 font-semibold">IP:</span>
-                                <span className="ml-1 font-mono text-xs "`}>
+                                <span className="ml-1 font-mono text-xs "">
                                   {historyItem.ip_address || 'N/A'}
                                 </span>
                               </div>
                             </div>
                             <div className="mb-2">
                               <span className="text-blue-700 font-semibold">User-Agent:</span>
-                              <p className="text-xs break-all mt-1 p-1 rounded "`}>
+                              <p className="text-xs break-all mt-1 p-1 rounded "">
                                 {historyItem.user_agent || 'N/A'}
                               </p>
                             </div>
                             <div className="mb-2">
                               <span className="text-blue-700 font-semibold">Session ID:</span>
-                              <span className="ml-1 font-mono text-xs "`}>
+                              <span className="ml-1 font-mono text-xs "">
                                 {historyItem.session_id || 'N/A'}
                               </span>
                             </div>
@@ -2201,7 +2201,7 @@ const TicketDetails = React.memo(() => {
               </h3>
               {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ?
                 ticketRelationships.related_tickets.map((relTicket: any) => (
-                  <Card key={`linked-${relTicket.id}-${relTicket.relationshipType}-${relTicket.targetTicket?.id || Math.random()"} className="border-l-4 " hover:shadow-md transition-shadow cursor-pointer`}>
+                  <Card key={"">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
@@ -2230,8 +2230,8 @@ const TicketDetails = React.memo(() => {
                         <span>Categoria: {relTicket.category}</span>
                         <span>
                           {relTicket.resolved_at
-                            ? `Resolvido em ${new Date(relTicket.resolved_at).toLocaleDateString('pt-BR')"
-                            : `Criado em ${new Date(relTicket.created_at).toLocaleDateString('pt-BR')"
+                            ? "
+                            : "
                           }
                         </span>
                       </div>
@@ -2276,12 +2276,12 @@ const TicketDetails = React.memo(() => {
                 internalActionsData.map((action, index) => {
                   return (
                   <Card
-                    key={`internal-action-${action.id}-${index"}
+                    key={"
                     className={`border-l-4 ${
                       action.status === 'in_progress' ? 'border-l-green-500 bg-green-50' :
                       action.status === 'completed' ? 'border-l-gray-400 bg-gray-50' :
                       'border-l-blue-500'
-                    "}
+                    "
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
@@ -2311,7 +2311,7 @@ const TicketDetails = React.memo(() => {
                                 action.status === 'in_progress' ? 'bg-green-100 text-green-800 border-green-300' :
                                 action.status === 'completed' ? 'bg-gray-100 text-gray-800 border-gray-300' :
                                 ''
-                              "}
+                              "
                             >
                               {action.status === 'completed' ? 'Concluída' :
                                action.status === 'in_progress' ? 'Em Andamento' : 'Pendente'}
@@ -2471,7 +2471,7 @@ const TicketDetails = React.memo(() => {
                   };
 
                   return (
-                    <Card key={`linked-${linkedTicket.id}-${linkedTicket.relationshipType}-${linkedTicket.targetTicket?.id || Math.random()"} className="border-l-4 " hover:shadow-md transition-shadow`}>
+                    <Card key={"">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -2545,10 +2545,10 @@ const TicketDetails = React.memo(() => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(`/tickets/${linkedTicket.targetTicket?.id || linkedTicket.id", '_blank')}
+                              onClick={() => window.open("
                               className="text-blue-600 hover:text-blue-700 p-2"
                               title="Abrir ticket em nova aba"
-                              data-testid={`button-open-ticket-${linkedTicket.id"}
+                              data-testid={"
                             >
                               <ExternalLink className="h-4 w-4" />
                             </Button>
@@ -2563,7 +2563,7 @@ const TicketDetails = React.memo(() => {
                               className="text-red-600 hover:text-red-700 p-2"
                               title="Remover vínculo"
                               disabled={deleteRelationshipMutation.isPending}
-                              data-testid={`button-delete-relationship-${linkedTicket.id"}
+                              data-testid={"
                             >
                               {deleteRelationshipMutation.isPending ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -2645,7 +2645,7 @@ const TicketDetails = React.memo(() => {
                 {/* PROBLEMA 4 RESOLVIDO: Conectar dados reais de tickets relacionados */}
                 {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ?
                   ticketRelationships.related_tickets.map((relatedTicket: any, index: number) => (
-                    <Card key={`related-${relatedTicket.id}-${index"} className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
+                    <Card key={"
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
                           <Badge variant="secondary" className={`${relatedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' :
@@ -2659,12 +2659,12 @@ const TicketDetails = React.memo(() => {
                             <p className="text-sm text-gray-700 mt-1">{relatedTicket.subject || 'Ticket relacionado'}</p>
                             <p className="text-xs text-gray-500 mt-2">
                               Criado em {relatedTicket.created_at ? new Date(relatedTicket.created_at).toLocaleDateString('pt-BR') : 'N/A'}
-                              {relatedTicket.resolved_at && ` • Resolvido em ${new Date(relatedTicket.resolved_at).toLocaleDateString('pt-BR')"}
+                              {relatedTicket.resolved_at && "
                             </p>
                             <div className="flex items-center gap-2 mt-2">
                               <Badge variant="outline" className="text-xs">{relatedTicket.category || 'Geral'}</Badge>
                               <span className="text-xs text-gray-500">
-                                {relatedTicket.assigned_to_name && `Responsável: ${relatedTicket.assigned_to_name"}
+                                {relatedTicket.assigned_to_name && "
                               </span>
                             </div>
                           </div>
@@ -2728,8 +2728,8 @@ const TicketDetails = React.memo(() => {
                 </h4>
                 <div className="space-y-2 text-sm">
                   {ticketRelationships.customer_insights.map((insight: any, idx: number) => (
-                    <div key={`insight-${idx}-${insight.type || insight.id || Math.random()"} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full "`}></div>
+                    <div key={"
+                      <div className="w-2 h-2 rounded-full ""></div>
                       <span>{insight.description}</span>
                     </div>
                   ))}
@@ -2808,7 +2808,7 @@ const TicketDetails = React.memo(() => {
             <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
               <div
                 className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out relative"
-                style={{ width: `${progress.percentage}%` }}
+                style={{ width: "%` }}
               >
                 <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
               </div>
@@ -2818,8 +2818,8 @@ const TicketDetails = React.memo(() => {
             <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progress.percentage}%` }}
-                aria-label={`Progresso: ${progress.percentage}%`}
+                style={{ width: "%` }}
+                aria-label={"%"
               ></div>
             </div>
 
@@ -2834,16 +2834,16 @@ const TicketDetails = React.memo(() => {
             {/* Loading progress indicators */}
             <div className="border-t pt-4">
               <div className="space-y-2 text-xs text-gray-500">
-                <div className="flex items-center gap-2 "`}>
+                <div className="flex items-center gap-2 "">
                   {!isLoading ? '✅' : '⏳'} Dados básicos
                 </div>
-                <div className="flex items-center gap-2 "`}>
+                <div className="flex items-center gap-2 "">
                   {!historyLoading ? '✅' : '⏳'} Histórico
                 </div>
-                <div className="flex items-center gap-2 "`}>
+                <div className="flex items-center gap-2 "">
                   {!notesLoading ? '✅' : '⏳'} Notas
                 </div>
-                <div className="flex items-center gap-2 "`}>
+                <div className="flex items-center gap-2 "">
                   {!communicationsLoading ? '✅' : '⏳'} Comunicações
                 </div>
               </div>
@@ -3020,7 +3020,7 @@ const TicketDetails = React.memo(() => {
                       const fallbackCustomer = allCustomers.find((c: any) => c.id === callerId);
                       if (fallbackCustomer) {
                         return fallbackCustomer.fullName || fallbackCustomer.name ||
-                               `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''.trim() ||
+                               " ${fallbackCustomer.lastName || ''.trim() ||
                                fallbackCustomer.email || 'Cliente encontrado';
                       }
                       return 'Cliente não encontrado';
@@ -3031,7 +3031,7 @@ const TicketDetails = React.memo(() => {
                     }
 
                     return customer.fullName || customer.name ||
-                           `${customer.firstName || ''} ${customer.lastName || ''.trim() ||
+                           " ${customer.lastName || ''.trim() ||
                            customer.email || 'Cliente sem nome';
                   })()}
                 </Badge>
@@ -3085,7 +3085,7 @@ const TicketDetails = React.memo(() => {
                     }
 
                     const displayName = beneficiary.fullName || beneficiary.name ||
-                           `${beneficiary.firstName || ''} ${beneficiary.lastName || ''.trim() ||
+                           " ${beneficiary.lastName || ''.trim() ||
                            beneficiary.email || 'Favorecido sem nome';
                     return displayName;
                   })()}
@@ -3367,12 +3367,12 @@ const TicketDetails = React.memo(() => {
                           onSubmit(formData);
                         } else {
                           const errorMessages = Object.entries(form.formState.errors)
-                            .map(([field, error]) => `${field}: ${error?.message || '[TRANSLATION_NEEDED]'")
+                            .map(([field, error]) => "
                             .join('\n');
 
                           toast({
                             title: '[TRANSLATION_NEEDED]',
-                            description: errorMessages ? `Por favor, corrija os seguintes erros:\n${errorMessages" : "Dados do formulário são inválidos. Verifique todos os campos.",
+                            description: errorMessages ? "
                             variant: "destructive",
                           });
                         }
@@ -3429,9 +3429,9 @@ const TicketDetails = React.memo(() => {
               activeTab === "informacoes"
                 ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "informacoes"}
+            aria-selected={activeTab === "informacoes"
             aria-controls="tab-content"
           >
             <FileText className="h-4 w-4" />
@@ -3445,7 +3445,7 @@ const TicketDetails = React.memo(() => {
               activeTab === "communications"
                 ? 'bg-green-50 text-green-700 border border-green-200'
                 : 'hover:bg-gray-50'
-            "}
+            "
           >
             <div className="flex items-center gap-3">
               <MessageSquare className="h-4 w-4" />
@@ -3462,9 +3462,9 @@ const TicketDetails = React.memo(() => {
               activeTab === "attachments"
                 ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "attachments"}
+            aria-selected={activeTab === "attachments"
             aria-controls="tab-content"
           >
             <div className="flex items-center gap-3">
@@ -3482,11 +3482,11 @@ const TicketDetails = React.memo(() => {
               activeTab === "notes"
                 ? 'bg-indigo-100 text-indigo-900 border-2 border-indigo-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "notes"}
+            aria-selected={activeTab === "notes"
             aria-controls="tab-content"
-            aria-label={`Notas - ${notesData?.length || 0} itens`}
+            aria-label={" itens"
           >
             <div className="flex items-center gap-3">
               <FileText className="h-4 w-4" />
@@ -3503,9 +3503,9 @@ const TicketDetails = React.memo(() => {
               activeTab === "materials"
                 ? 'bg-amber-100 text-amber-900 border-2 border-amber-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "materials"}
+            aria-selected={activeTab === "materials"
             aria-controls="tab-content"
           >
             <Package className="h-4 w-4" />
@@ -3519,9 +3519,9 @@ const TicketDetails = React.memo(() => {
               activeTab === "knowledge-base"
                 ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "knowledge-base"}
+            aria-selected={activeTab === "knowledge-base"
             aria-controls="tab-content"
             data-testid="tab-knowledge-base"
           >
@@ -3535,9 +3535,9 @@ const TicketDetails = React.memo(() => {
               activeTab === "internal-actions"
                 ? 'bg-violet-100 text-violet-900 border-2 border-violet-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "internal-actions"}
+            aria-selected={activeTab === "internal-actions"
             aria-controls="tab-content"
             aria-label={'[TRANSLATION_NEEDED]'}
           >
@@ -3556,9 +3556,9 @@ const TicketDetails = React.memo(() => {
               activeTab === "external-actions"
                 ? 'bg-teal-100 text-teal-900 border-2 border-teal-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "external-actions"}
+            aria-selected={activeTab === "external-actions"
             aria-controls="tab-content"
             aria-label={'[TRANSLATION_NEEDED]'}
           >
@@ -3577,9 +3577,9 @@ const TicketDetails = React.memo(() => {
               activeTab === "history"
                 ? 'bg-gray-100 text-gray-900 border-2 border-gray-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "history"}
+            aria-selected={activeTab === "history"
             aria-controls="tab-content"
           >
             <History className="h-4 w-4" />
@@ -3592,11 +3592,11 @@ const TicketDetails = React.memo(() => {
               activeTab === "links"
                 ? 'bg-cyan-100 text-cyan-900 border-2 border-cyan-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            "}
+            "
             role="tab"
-            aria-selected={activeTab === "links"}
+            aria-selected={activeTab === "links"
             aria-controls="tab-content"
-            aria-label={`Vínculos - ${relatedTicketsData?.length || 0} itens`}
+            aria-label={" itens"
           >
             <div className="flex items-center gap-3">
               <Link className="h-4 w-4" />
@@ -3613,7 +3613,7 @@ const TicketDetails = React.memo(() => {
               activeTab === "latest-interactions"
                 ? 'bg-green-50 text-green-700 border border-green-200'
                 : 'hover:bg-gray-50'
-            "}
+            "
           >
             <Clock className="h-4 w-4" />
             <span className="text-sm font-medium">Últimas Interações</span>
@@ -3705,7 +3705,7 @@ const TicketDetails = React.memo(() => {
                                     (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
 
                   const name = beneficiary ? (beneficiary.fullName || beneficiary.name ||
-                             `${beneficiary.firstName || ''} ${beneficiary.lastName || ''.trim() || 'Nome não informado') : 'Não especificado';
+                             " ${beneficiary.lastName || ''.trim() || 'Nome não informado') : 'Não especificado';
                   const email = beneficiary?.email || 'Não informado';
                   const phone = beneficiary?.phone || beneficiary?.mobilePhone || 'Não informado';
 
@@ -3773,11 +3773,11 @@ const TicketDetails = React.memo(() => {
                   const customer = availableCustomers.find((c: any) => c.id === callerId);
 
                   const name = customer ? (customer.fullName || customer.name ||
-                             `${customer.firstName || ''} ${customer.lastName || ''.trim() || 'Nome não informado') : 'Não especificado';
+                             " ${customer.lastName || ''.trim() || 'Nome não informado') : 'Não especificado';
                   const email = customer?.email || 'Não informado';
                   const address = typeof customer?.address === 'string' ? customer.address :
                                  customer?.address ?
-                                 `${customer.address.street || ''} ${customer.address.number || ''".trim() || 'Não informado' : 'Não informado';
+                                 "
                   const addressNumber = customer?.addressNumber || '';
 
                   return (
@@ -3792,7 +3792,7 @@ const TicketDetails = React.memo(() => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Endereço:</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{address}{addressNumber && `, ${addressNumber"}</span>
+                        <span className="text-gray-900 font-medium truncate ml-2">{address}{addressNumber && "
                       </div>
                     </>
                   );
@@ -3839,7 +3839,7 @@ const TicketDetails = React.memo(() => {
                 // Aqui você faria a verificação da senha
                 // Por enquanto, apenas fechamos o modal
                 if (agentPassword) {
-                  alert(`Dados sensíveis revelados para o campo: ${showPasswordDialog.field");
+                  alert("
                   setShowPasswordDialog({open: false, field: '', type: 'rg'});
                   setAgentPassword('');
                 } else {
@@ -4061,7 +4061,7 @@ const TicketDetails = React.memo(() => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => window.open(`mailto:${ticket?.company?.email", '_blank')}
+                onClick={() => window.open("
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Enviar Email
@@ -4113,7 +4113,7 @@ const TicketDetails = React.memo(() => {
               }
 
               const customerName = customer.fullName || customer.name ||
-                                 `${customer.firstName || ''} ${customer.lastName || ''.trim() ||
+                                 " ${customer.lastName || ''.trim() ||
                                  customer.email || 'Cliente sem nome';
 
               return (
@@ -4200,7 +4200,7 @@ const TicketDetails = React.memo(() => {
               }
 
               const beneficiaryName = beneficiary.fullName || beneficiary.name ||
-                                     `${beneficiary.firstName || ''} ${beneficiary.lastName || ''.trim() ||
+                                     " ${beneficiary.lastName || ''.trim() ||
                                      beneficiary.email || 'Favorecido sem nome';
 
               return (

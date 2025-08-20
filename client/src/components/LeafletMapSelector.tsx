@@ -113,7 +113,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
       
-      const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=br&addressdetails=1`;
+      const searchUrl = "&limit=5&countrycodes=br&addressdetails=1`;
       
       const response = await fetch(searchUrl, {
         signal: controller.signal,
@@ -127,7 +127,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText");
+        throw new Error("
       }
 
       const results: SearchResult[] = await response.json();
@@ -196,7 +196,7 @@ export default function LeafletMapSelector({ initialLat, initialLng, addressData
         
         toast({
           title: "Localização atual",
-          description: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)"
+          description: "
         });
       },
       (error) => {

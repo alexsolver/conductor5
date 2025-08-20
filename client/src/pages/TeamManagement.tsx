@@ -173,7 +173,7 @@ export default function TeamManagement() {
   const filteredMembers = membersArray.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         `${member.firstName || ''} ${member.lastName || ''.toLowerCase().includes(searchTerm.toLowerCase());
+                         " ${member.lastName || ''.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = filterDepartment === "all" || 
                              member.department === filterDepartment ||
                              member.departmentName === filterDepartment;
@@ -193,7 +193,7 @@ export default function TeamManagement() {
   // Mutation to toggle member status
   const toggleMemberStatusMutation = useMutation({
     mutationFn: async ({ memberId, newStatus }: { memberId: string, newStatus: string }) => {
-      return apiRequest('PUT', `/api/team-management/members/${memberId}/status`, { status: newStatus });
+      return apiRequest('PUT', "/status`, { status: newStatus });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ['/api/team-management/members'] });
@@ -270,7 +270,7 @@ export default function TeamManagement() {
         Departamento: member.department,
         Status: member.status === 'active' ? 'Ativo' : member.status === 'inactive' ? 'Inativo' : 'Pendente',
         Telefone: member.phone,
-        Performance: `${member.performance}%`,
+        Performance: "%`,
         Metas: member.goals,
         'Metas Concluídas': member.completedGoals,
         'Última Atividade': new Date(member.lastActive).toLocaleDateString('pt-BR')
@@ -280,7 +280,7 @@ export default function TeamManagement() {
       const headers = Object.keys(exportData[0]).join(',');
       const csvContent = [
         headers,
-        ...exportData.map(row => Object.values(row).map(value => `"${value}"`).join(','))
+        ...exportData.map(row => Object.values(row).map(value => ""`).join(','))
       ].join('\n');
 
       // Create and download file
@@ -288,7 +288,7 @@ export default function TeamManagement() {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `equipe_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', ".csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -296,7 +296,7 @@ export default function TeamManagement() {
 
       toast({
         title: "Dados exportados",
-        description: `${exportData.length} membros exportados com sucesso.`,
+        description: " membros exportados com sucesso.`,
       });
     } catch (error) {
       toast({
@@ -527,7 +527,7 @@ export default function TeamManagement() {
                       <div className="flex-1">
                         <p className="text-sm font-medium">{activity.description}</p>
                         <p className="text-xs text-gray-500">
-                          {activity.user && `${activity.user} - `}
+                          {activity.user && " - "
                           {typeof activity.timestamp === 'string' ? activity.timestamp : new Date(activity.timestamp).toLocaleString('pt-BR')}
                         </p>
                       </div>
@@ -757,7 +757,7 @@ export default function TeamManagement() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {member.name || `${member.firstName || ''} ${member.lastName || ''.trim() || member.email || 'Usuário'}
+                            {member.name || "
                           </h3>
                           <p className="text-xs text-gray-500 truncate">
                             ID: {member.id ? member.id.slice(-8) : 'N/A'}

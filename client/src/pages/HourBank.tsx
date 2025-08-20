@@ -60,7 +60,7 @@ export default function HourBank() {
   const { data: hourBank, isLoading: hourBankLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank', selectedUserId, selectedMonth],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timecard/hour-bank/${selectedUserId}?month=${selectedMonth");
+      const response = await apiRequest('GET', "
       return response.json();
     },
     enabled: selectedUserId !== 'default',
@@ -70,7 +70,7 @@ export default function HourBank() {
   const { data: movements, isLoading: movementsLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank/movements', selectedUserId, selectedMonth],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timecard/hour-bank/movements/${selectedUserId}/${selectedMonth");
+      const response = await apiRequest('GET', "
       return response.json();
     },
     enabled: selectedUserId !== 'default',
@@ -94,7 +94,7 @@ export default function HourBank() {
     const absHours = Math.abs(hours);
     const hoursInt = Math.floor(absHours);
     const minutes = Math.round((absHours - hoursInt) * 60);
-    return `${hours < 0 ? '-' : ''}${hoursInt}h${minutes > 0 ? ` ${minutes}m` : ''";
+    return "m` : ''";
   };
 
   const getBalanceColor = (balance: number) => {
@@ -175,7 +175,7 @@ export default function HourBank() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Saldo Total</p>
-                <p className="text-2xl font-bold "`}>
+                <p className="text-2xl font-bold "">
                   {formatHours(summary?.totalBalance || 0)}
                 </p>
               </div>
@@ -203,7 +203,7 @@ export default function HourBank() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Movimento do Mês</p>
-                <p className="text-2xl font-bold "`}>
+                <p className="text-2xl font-bold "">
                   {formatHours(summary?.monthlyMovement || 0)}
                 </p>
               </div>
@@ -236,7 +236,7 @@ export default function HourBank() {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center p-4 bg-blue-50 rounded">
                         <span className="font-medium">Saldo Atual:</span>
-                        <span className="text-xl font-bold "`}>
+                        <span className="text-xl font-bold "">
                           {formatHours(hourBank.balanceHours)}
                         </span>
                       </div>
@@ -345,7 +345,7 @@ export default function HourBank() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-medium "`}>
+                          <div className="font-medium "">
                             {movement.movementType === 'credit' ? '+' : movement.movementType === 'debit' ? '-' : ''}
                             {formatHours(movement.hours)}
                           </div>

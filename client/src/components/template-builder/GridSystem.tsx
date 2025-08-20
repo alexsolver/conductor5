@@ -39,7 +39,7 @@ export const GridSystem: React.FC<GridSystemProps> = ({
           >
             {/* Linhas verticais */}
             <path
-              d={`M ${adjustedGridSize} 0 L 0 0 0 ${adjustedGridSize"}
+              d={"
               fill="none"
               stroke="currentColor"
               strokeWidth="1"
@@ -64,7 +64,7 @@ export const GridSystem: React.FC<GridSystemProps> = ({
             patternUnits="userSpaceOnUse"
           >
             <path
-              d={`M ${adjustedGridSize * 5} 0 L 0 0 0 ${adjustedGridSize * 5"}
+              d={"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"

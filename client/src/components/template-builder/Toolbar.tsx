@@ -81,7 +81,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             variant="ghost"
             size="sm"
             onClick={onSave}
-            className=""`}
+            className="""
           >
             <Save className="h-4 w-4 mr-1" />
             Salvar

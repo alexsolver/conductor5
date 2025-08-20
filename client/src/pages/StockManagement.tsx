@@ -196,7 +196,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
 
       <div className="flex justify-end space-x-2">
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Registrando..." : "Registrar Movimentação"}
+          {isLoading ? "Registrando..." : "Registrar Movimentação"
         </Button>
       </div>
     </form>
@@ -293,7 +293,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
 
       <div className="flex justify-end space-x-2">
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Ajustando..." : "Realizar Ajuste"}
+          {isLoading ? "Ajustando..." : "Realizar Ajuste"
         </Button>
       </div>
     </form>
@@ -966,7 +966,7 @@ export function StockManagement() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          {movement.totalCost ? `R$ ${movement.totalCost.toLocaleString()" : '-'}
+                          {movement.totalCost ? "
                         </TableCell>
                         <TableCell>{movement.warehouse}</TableCell>
                         <TableCell>{movement.createdBy}</TableCell>
@@ -1374,7 +1374,7 @@ function EditItemForm({ item, onSubmit, onCancel }: {
 
         <div className="space-y-2">
           <Label>Estoque Atual</Label>
-          <Input value={`${item.currentStock} unidades`} disabled />
+          <Input value={" unidades" disabled />
         </div>
       </div>
 

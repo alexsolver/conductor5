@@ -62,7 +62,7 @@ export default function Dashboard() {
     },
     {
       title: t('dashboard.stats.avg_resolution_time'),
-      value: `${stats?.avgResolutionTime || 0}h`,
+      value: "h`,
       icon: TrendingUp,
       trend: "-15%",
     },

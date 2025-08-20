@@ -44,7 +44,7 @@ export default function CompanyTemplateSelector({
   const { data: statsResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', selectedCompany, 'stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${selectedCompany}/stats`);
+      const response = await apiRequest('GET', "/stats`);
       return response.json();
     },
     enabled: showStats

@@ -104,7 +104,7 @@ export function DraggableFieldItem({ field, isDragging, isDropped = false, onRem
   const colorClass = getFieldTypeColor(field.type);
 
   const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    transform: "px, 0)`,
   } : undefined;
 
   const baseCardClass = `

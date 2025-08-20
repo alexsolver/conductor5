@@ -200,7 +200,7 @@ function ColorPicker({ color, onChange, label }: { color: string; onChange: (col
 // Template Customization Dialog
 function TemplateCustomizer({ template, onSave }: { template: Template; onSave: (customTemplate: Template) => void }) {
   const [customColors, setCustomColors] = useState(template.colors);
-  const [customName, setCustomName] = useState(`${template.name} (Personalizado)`);
+  const [customName, setCustomName] = useState(" (Personalizado)"));
 
   const updateColor = (colorKey: keyof typeof customColors, value: string) => {
     setCustomColors(prev => ({
@@ -215,7 +215,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
       id: template.id + "-custom-" + Date.now(),
       name: customName,
       colors: customColors,
-      preview: `linear-gradient(135deg, ${customColors.primary} 0%, ${customColors.secondary} 50%, ${customColors.accent} 100%)`
+      preview: " 100%)`
     };
     onSave(customTemplate);
   };
@@ -291,7 +291,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
                 <div 
                   className="h-32 rounded-lg relative overflow-hidden"
                   style={{ 
-                    background: `linear-gradient(135deg, ${customColors.primary} 0%, ${customColors.secondary} 50%, ${customColors.accent} 100%)` 
+                    background: " 100%)` 
                   }}
                 >
                   <div className="absolute inset-0 bg-black/20"></div>
@@ -378,7 +378,7 @@ function TemplateCustomizer({ template, onSave }: { template: Template; onSave: 
                     <div 
                       className="h-12 rounded"
                       style={{ 
-                        background: `linear-gradient(135deg, ${palette.colors.primary} 0%, ${palette.colors.secondary} 50%, ${palette.colors.accent} 100%)` 
+                        background: " 100%)` 
                       }}
                     />
                   </CardContent>
@@ -425,7 +425,7 @@ export function TemplateSelector() {
       setSelectedTemplate(template.id);
       toast({
         title: "Tema aplicado!",
-        description: `O tema "${template.name}" foi aplicado com sucesso.`,
+        description: "" foi aplicado com sucesso.`,
       });
       
       // Forçar reload da página para aplicar mudanças CSS
@@ -516,7 +516,7 @@ export function TemplateSelector() {
                 selectedTemplate === template.id 
                   ? 'ring-4 ring-blue-500 shadow-2xl' 
                   : 'hover:shadow-xl'
-              "
+              }"
               onMouseEnter={() => setHoveredTemplate(template.id)}
               onMouseLeave={() => setHoveredTemplate(null)}
               onClick={() => applyTemplate(template)}

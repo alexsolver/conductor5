@@ -145,16 +145,16 @@ export default function Beneficiaries() {
       if (searchTerm) params.append('search', searchTerm);
 
       // Usar endpoint padronizado
-      const response = await fetch(`/api/beneficiaries?${params", {
+      const response = await fetch("
         headers: {
-          'Authorization': `Bearer ${token",
+          'Authorization': "
           'Content-Type': 'application/json',
         },
         credentials: 'include',
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch beneficiaries: ${response.status");
+        throw new Error("
       }
 
       const data = await response.json();
@@ -212,7 +212,7 @@ export default function Beneficiaries() {
     if (!editingBeneficiary?.id) return;
     
     try {
-      await apiRequest("POST", `/api/beneficiaries/${editingBeneficiary.id}/customers`, { customerId });
+      await apiRequest("POST", "/customers`, { customerId });
       
       // Update local state
       const customer = (customersData as any)?.customers?.find((c: any) => c.id === customerId);
@@ -238,7 +238,7 @@ export default function Beneficiaries() {
     if (!editingBeneficiary?.id) return;
     
     try {
-      await apiRequest("DELETE", `/api/beneficiaries/${editingBeneficiary.id}/customers/${customerId");
+      await apiRequest("DELETE", "
       
       // Update local state
       setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
@@ -259,7 +259,7 @@ export default function Beneficiaries() {
   // Update beneficiary mutation
   const updateBeneficiaryMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: BeneficiaryFormData }) => {
-      const response = await apiRequest("PUT", `/api/beneficiaries/${id", data);
+      const response = await apiRequest("PUT", "
       return response.json();
     },
     onSuccess: () => {
@@ -284,7 +284,7 @@ export default function Beneficiaries() {
   // Delete beneficiary mutation
   const deleteBeneficiaryMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("DELETE", `/api/beneficiaries/${id");
+      const response = await apiRequest("DELETE", "
       return response.json();
     },
     onSuccess: () => {
@@ -759,7 +759,7 @@ export default function Beneficiaries() {
               <DialogDescription>
                 {editingBeneficiary
                   ? "Atualize as informações do favorecido."
-                  : "Preencha as informações para criar um novo favorecido."}
+                  : "Preencha as informações para criar um novo favorecido."
               </DialogDescription>
             </DialogHeader>
             <BeneficiaryForm />
@@ -880,7 +880,7 @@ export default function Beneficiaries() {
                   </TableCell>
                   <TableCell>
                     <Badge variant={(beneficiary.isActive ?? beneficiary.is_active) ? "default" : "secondary">
-                      {(beneficiary.isActive ?? beneficiary.is_active) ? "Ativo" : "Inativo"}
+                      {(beneficiary.isActive ?? beneficiary.is_active) ? "Ativo" : "Inativo"
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -950,7 +950,7 @@ export default function Beneficiaries() {
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <Button
                       key={page}
-                      variant={currentPage === page ? "default" : "outline"}
+                      variant={currentPage === page ? "default" : "outline"
                       size="sm"
                       onClick={() => setCurrentPage(page)}
                       className="w-10"

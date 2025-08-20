@@ -38,7 +38,7 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
   const { data: statsResponse, isLoading } = useQuery({
     queryKey: ['/api/ticket-templates/company', companyId, 'stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${companyId}/stats`);
+      const response = await apiRequest('GET', "/stats`);
       return response.json();
     },
   });
@@ -49,7 +49,7 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
   const { data: popularResponse } = useQuery({
     queryKey: ['/api/ticket-templates/company', companyId, 'popular'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${companyId}/popular?limit=10`);
+      const response = await apiRequest('GET', "/popular?limit=10`);
       return response.json();
     },
   });
@@ -208,7 +208,7 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
                         <div 
                           className="bg-blue-500 h-2 rounded-full"
                           style={{ 
-                            width: `${(item.count / stats.total_templates) * 100}%` 
+                            width: "%` 
                           }}
                         />
                       </div>
@@ -283,7 +283,7 @@ export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyti
                       <div 
                         className="bg-green-500 h-2 rounded-full"
                         style={{ 
-                          width: `${(trend.usage_count / Math.max(...stats.usage_trends.map(t => t.usage_count))) * 100}%` 
+                          width: "%` 
                         }}
                       />
                     </div>

@@ -61,7 +61,7 @@ export function CustomFieldsWrapper({
           {/* Custom Fields Toggle */}
           {hasCustomFields && !isDesignMode && (
             <Button
-              variant={showCustomFields ? "default" : "outline"}
+              variant={showCustomFields ? "default" : "outline"
               size="sm"
               onClick={() => setShowCustomFields(!showCustomFields)}
               className="shadow-lg"
@@ -73,7 +73,7 @@ export function CustomFieldsWrapper({
 
           {/* Design Mode Toggle */}
           <Button
-            variant={isDesignMode ? "destructive" : "secondary"}
+            variant={isDesignMode ? "destructive" : "secondary"
             size="sm"
             onClick={() => setIsDesignMode(!isDesignMode)}
             className="shadow-lg"

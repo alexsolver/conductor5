@@ -133,7 +133,7 @@ export default function Companies() {
   // Mutation para atualizar company
   const updateCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      apiRequest('PUT', `/api/customers/companies/${id", data),
+      apiRequest('PUT', "
     onSuccess: (result, variables) => {
       // Only invalidate cache for non-optimistic updates (when not called from Default button)
       const isOptimisticUpdate = variables.data.isOptimisticUpdate;
@@ -161,7 +161,7 @@ export default function Companies() {
 
   // Mutation para deletar company
   const deleteCompanyMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', `/api/customers/companies/${id"),
+    mutationFn: (id: string) => apiRequest('DELETE', "
     onSuccess: async (data, deletedId) => {
       console.log('Company deleted successfully:', { deletedId, response: data });
 
@@ -276,7 +276,7 @@ export default function Companies() {
   };
 
   const handleDeleteCompany = (company: Company) => {
-    if (window.confirm(`Tem certeza que deseja excluir a empresa "${company.displayName || company.name}"?`)) {
+    if (window.confirm(""?`)) {
       deleteCompanyMutation.mutate(company.id);
     }
   };
@@ -756,7 +756,7 @@ export default function Companies() {
                                 isOptimisticUpdate: true
                               };
                               
-                              console.log(`[UPDATE-COMPANY] Updating Default company from ${company.status} to ${newStatus");
+                              console.log("
                               
                               // Optimistically update the company status in cache
                               queryClient.setQueryData(['/api/companies'], (oldData: any) => {
@@ -782,7 +782,7 @@ export default function Companies() {
                               
                               toast({
                                 title: "Empresa atualizada",
-                                description: `Empresa Default ${isActiveCompany ? 'desativada' : 'ativada'} com sucesso.`,
+                                description: " com sucesso.`,
                               });
                               
                             } catch (error) {

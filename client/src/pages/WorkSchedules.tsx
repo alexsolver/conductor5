@@ -132,7 +132,7 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
           <Button
             key={day.value}
             type="button"
-            variant={workDays.includes(day.value) ? "default" : "outline"}
+            variant={workDays.includes(day.value) ? "default" : "outline"
             size="sm"
             onClick={() => handleDayToggle(day.value)}
             className="text-xs px-2 py-1 min-w-0"
@@ -443,7 +443,7 @@ function WorkSchedulesContent() {
   // Assign template to user mutation
   const assignTemplateMutation = useMutation({
     mutationFn: async ({ userId, templateId }: { userId: string; templateId: string }) => {
-      const response = await apiRequest('POST', `/api/timecard/work-schedules/assign-template/${templateId", { userId });
+      const response = await apiRequest('POST', `/api/timecard/work-schedules/assign-template/" + templateId, { userId });
       console.log('[TEMPLATE-ASSIGN] Response:', response);
       return response;
     },
@@ -683,7 +683,7 @@ function WorkSchedulesContent() {
     if (formData.saveAsTemplate && !selectedSchedule) {
       const templateData = {
         name: formData.templateName.trim(),
-        description: formData.templateDescription.trim() || `Template baseado em escala ${formData.scheduleType",
+        description: formData.templateDescription.trim() || "
         scheduleType: formData.scheduleType,
         category: 'custom',
         workDays: Array.from(new Set(formData.workDays)),
@@ -875,7 +875,7 @@ function WorkSchedulesContent() {
 
         toast({
           title: 'Sucesso',
-          description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
+          description: " funcionários.`,
         });
       } else {
         throw new Error('Falha na atribuição em massa');
@@ -909,7 +909,7 @@ function WorkSchedulesContent() {
 
       toast({
         title: 'Templates atribuídos!',
-        description: `Template "${selectedTemplate.name}" atribuído para ${selectedUsers.length} funcionários.`,
+        description: " funcionários.`,
       });
     } catch (error: any) {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
@@ -978,9 +978,9 @@ function WorkSchedulesContent() {
         .map(dayValue => weekDays.find(wd => wd.value === dayValue)?.label)
         .filter(Boolean)
         .join(', ');
-      return `Horários variados por dia: ${days";
+      return "
     } else {
-      return `${schedule.startTime} - ${schedule.endTime} (${schedule.breakDurationMinutes} min pausa)`;
+      return " min pausa)`;
     }
   };
 
@@ -1077,7 +1077,7 @@ function WorkSchedulesContent() {
                   <CardContent className="pt-0">
                     <div className="space-y-2 text-sm">
                       <div><strong>Tipo:</strong> {template.scheduleType}</div>
-                      <div><strong>Horário:</strong> {template.startTime ? `${template.startTime} - ${template.endTime" : 'N/A'}</div>
+                      <div><strong>Horário:</strong> {template.startTime ? "
                       <div><strong>Dias:</strong> {template.workDays?.length || 0} dias por semana</div>
                     </div>
                   </CardContent>
@@ -1208,7 +1208,7 @@ function WorkSchedulesContent() {
                       <Button
                         key={day.value}
                         type="button"
-                        variant={templateFormData.workDays.includes(day.value) ? "default" : "outline"}
+                        variant={templateFormData.workDays.includes(day.value) ? "default" : "outline"
                         size="sm"
                         onClick={() => {
                           const newWorkDays = templateFormData.workDays.includes(day.value)
@@ -1310,7 +1310,7 @@ function WorkSchedulesContent() {
                 {users.map((user: User) => (
                   <div key={user.id} className="flex items-center space-x-2 py-1">
                     <Checkbox
-                      id={`bulk-${user.id"}
+                      id={"
                       checked={selectedUsers.includes(user.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
@@ -1320,7 +1320,7 @@ function WorkSchedulesContent() {
                         }
                       }}
                     />
-                    <Label htmlFor={`bulk-${user.id"} className="cursor-pointer">
+                    <Label htmlFor={"
                       {user.firstName} {user.lastName} ({user.role || 'Funcionário'})
                     </Label>
                   </div>

@@ -190,11 +190,11 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                     {groupsData.groups.map((group) => (
                       <div key={group.id} className="flex items-center space-x-2">
                         <Checkbox
-                          id={`group-${group.id"}
+                          id={"
                           checked={formData.groupIds.includes(group.id)}
                           onCheckedChange={(checked) => handleGroupToggle(group.id, !!checked)}
                         />
-                        <Label htmlFor={`group-${group.id"} className="flex-1 cursor-pointer text-sm">
+                        <Label htmlFor={"
                           <div className="font-medium">{group.name}</div>
                           {group.description && (
                             <div className="text-xs text-muted-foreground">{group.description}</div>

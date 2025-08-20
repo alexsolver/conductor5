@@ -375,7 +375,7 @@ export default function Settings() {
                       <div className="relative">
                         <Input
                           id="currentPassword"
-                          type={showPassword ? "text" : "password"}
+                          type={showPassword ? "text" : "password"
                           placeholder="Enter current password"
                         />
                         <Button

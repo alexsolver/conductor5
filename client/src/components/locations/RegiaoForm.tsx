@@ -75,7 +75,7 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/customers', {
-        headers: { 'Authorization': `Bearer ${validToken" }
+        headers: { 'Authorization': "
       });
       if (response.ok) {
         const result = await response.json();
@@ -104,7 +104,7 @@ function ClientesMultiSelect({ value, onChange }: { value: string[], onChange: (
           className="w-full justify-between"
         >
           {selectedClientes.length > 0 
-            ? `${selectedClientes.length} cliente(s) selecionado(s)`
+            ? " cliente(s) selecionado(s)`
             : "Selecionar clientes"
           }
           <ChevronDown className="h-4 w-4" />
@@ -163,7 +163,7 @@ function TecnicoSelect({ value, onChange }: { value: string, onChange: (value: s
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/tecnicos', {
-        headers: { 'Authorization': `Bearer ${validToken" }
+        headers: { 'Authorization': "
       });
       if (response.ok) {
         const result = await response.json();
@@ -211,7 +211,7 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/grupos', {
-        headers: { 'Authorization': `Bearer ${validToken" }
+        headers: { 'Authorization': "
       });
       if (response.ok) {
         const result = await response.json();
@@ -240,7 +240,7 @@ function GruposMultiSelect({ value, onChange }: { value: string[], onChange: (va
           className="w-full justify-between"
         >
           {selectedGrupos.length > 0 
-            ? `${selectedGrupos.length} grupo(s) selecionado(s)`
+            ? " grupo(s) selecionado(s)`
             : "Selecionar grupos"
           }
           <ChevronDown className="h-4 w-4" />
@@ -302,7 +302,7 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
     queryFn: async () => {
       const validToken = await getValidToken();
       const response = await fetch('/api/locations-new/integration/locais', {
-        headers: { 'Authorization': `Bearer ${validToken" }
+        headers: { 'Authorization': "
       });
       if (response.ok) {
         const result = await response.json();
@@ -331,7 +331,7 @@ function LocaisMultiSelect({ value, onChange }: { value: string[], onChange: (va
           className="w-full justify-between"
         >
           {selectedLocais.length > 0 
-            ? `${selectedLocais.length} local(is) selecionado(s)`
+            ? " local(is) selecionado(s)`
             : "Selecionar locais de atendimento"
           }
           <ChevronDown className="h-4 w-4" />
@@ -414,9 +414,9 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
 
     try {
       const validToken = await getValidToken();
-      const response = await fetch(`/api/locations-new/services/cep/${cep.replace('-', '')", {
+      const response = await fetch("
         headers: {
-          'Authorization': `Bearer ${validToken",
+          'Authorization': "
           'Content-Type': 'application/json',
         },
       });
@@ -437,9 +437,9 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         await refreshToken();
         // Retry with fresh token
         const freshToken = localStorage.getItem('accessToken');
-        const retryResponse = await fetch(`/api/locations-new/services/cep/${cep.replace('-', '')", {
+        const retryResponse = await fetch("
           headers: {
-            'Authorization': `Bearer ${freshToken",
+            'Authorization': "
             'Content-Type': 'application/json',
           },
         });
@@ -474,7 +474,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
     setShowMap(false);
     toast({
       title: "Coordenadas selecionadas",
-      description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)",
+      description: "
     });
   };
 
@@ -504,7 +504,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
       const response = await fetch('/api/locations-new/regiao', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${validToken",
+          'Authorization': "
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(processedData),
@@ -525,7 +525,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
         const retryResponse = await fetch('/api/locations-new/regiao', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${freshToken",
+            'Authorization': "
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(processedData),
@@ -589,7 +589,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
               id="nome"
               {...register('nome')}
               placeholder="Nome da região"
-              className={errors.nome ? "border-red-500" : ""}
+              className={errors.nome ? "border-red-500" : ""
             />
             {errors.nome && (
               <p className="text-sm text-red-500 mt-1">{errors.nome.message}</p>
@@ -637,7 +637,7 @@ export default function RegiaoForm({ onSubmit, isSubmitting = false, onCancel }:
           <div>
             <Label>Técnico Principal</Label>
             <TecnicoSelect
-              value={watchedValues.tecnicoPrincipalId || "none"}
+              value={watchedValues.tecnicoPrincipalId || "none"
               onChange={(tecnicoId) => setValue('tecnicoPrincipalId', tecnicoId)}
             />
           </div>

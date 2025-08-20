@@ -115,7 +115,7 @@ export default function SaasAdminIntegrations() {
         enabled: Boolean(config.enabled)
       };
 
-      const url = `/api/saas-admin/integrations/${integrationId}/config`;
+      const url = "/config`;
       return apiRequest('PUT', url, sanitizedConfig);
     },
     onSuccess: (data) => {
@@ -159,12 +159,12 @@ export default function SaasAdminIntegrations() {
   // Mutation para testar integração
   const testIntegrationMutation = useMutation({
     mutationFn: async (integrationId: string) => {
-      console.log(`🧪 [SAAS-ADMIN-TEST] Testando integração: ${integrationId");
-      const url = `/api/saas-admin/integrations/${integrationId}/test`;
+      console.log("
+      const url = "/test`;
       const response = await apiRequest('POST', url, {});
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText");
+        throw new Error("
       }
       
       const data = await response.json();
@@ -185,7 +185,7 @@ export default function SaasAdminIntegrations() {
       if (isSuccess) {
         toast({
           title: "Teste bem-sucedido",
-          description: data.message || `Integração funcionando corretamente. Tempo de resposta: ${data.result?.responseTime || 'N/A'}ms`,
+          description: data.message || "ms`,
         });
       } else {
         console.error('❌ [SAAS-ADMIN-TEST] Test failed with data:', data);
@@ -411,7 +411,7 @@ export default function SaasAdminIntegrations() {
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-medium">API Key:</span>
                   <Badge variant={integration.apiKeyConfigured ? "default" : "secondary">
-                    {integration.apiKeyConfigured ? "Configurada" : "Não configurada"}
+                    {integration.apiKeyConfigured ? "Configurada" : "Não configurada"
                   </Badge>
                 </div>
 

@@ -34,7 +34,7 @@ export function ApprovalDashboard() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="dashboard-loading">
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="animate-pulse" data-testid={`skeleton-card-${i">
+          <Card key={i} className="animate-pulse" data-testid={"
             <CardHeader className="pb-2">
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
             </CardHeader>
@@ -86,14 +86,14 @@ export function ApprovalDashboard() {
     },
     {
       title: 'Tempo Médio',
-      value: `${Math.round((metrics?.averageResponseTime || 0) / 3600)}h`,
+      value: "h`,
       icon: Timer,
       color: 'purple',
       testId: 'metric-avg-time'
     },
     {
       title: 'SLA Compliance',
-      value: `${Math.round(metrics?.slaCompliance || 0)}%`,
+      value: "%`,
       icon: TrendingUp,
       color: 'cyan',
       testId: 'metric-sla'
@@ -131,12 +131,12 @@ export function ApprovalDashboard() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {stat.title}
               </CardTitle>
-              <div className="p-2 rounded-lg "`}>
+              <div className="p-2 rounded-lg "">
                 <stat.icon className="h-4 w-4" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid={`value-${stat.testId">
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid={"
                 {stat.value}
                 {stat.total && (
                   <span className="text-sm text-gray-500 ml-1">/ {stat.total}</span>

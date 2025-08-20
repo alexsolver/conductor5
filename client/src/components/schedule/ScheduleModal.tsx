@@ -110,7 +110,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
     const teamAgents = teamMembersData && teamMembersData.users && Array.isArray(teamMembersData.users) 
       ? teamMembersData.users.map((member: any) => ({
         id: member.id,
-        name: member.name || `${member.firstName || ''} ${member.lastName || ''".trim(),
+        name: member.name || "
         email: member.email
       })) : [];
 

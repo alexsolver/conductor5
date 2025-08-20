@@ -116,7 +116,7 @@ export default function BulkScheduleAssignment() {
     onSuccess: (data) => {
       toast({
         title: 'Visualização Completa',
-        description: `${data.applied_count} funcionários seriam afetados`,
+        description: " funcionários seriam afetados`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/schedules'] });
       form.reset();
@@ -304,13 +304,13 @@ export default function BulkScheduleAssignment() {
                   ) : (
                     availableUsers.map((user: any) => {
                       const hasConflict = usersWithConflicts.includes(user.id);
-                      const displayName = `${user.first_name || ''} ${user.last_name || ''".trim() || user.email;
+                      const displayName = "
                       return (
                         <div
                           key={user.id}
                           className={`flex items-center space-x-2 p-2 rounded border ${
                             hasConflict ? 'border-orange-300 bg-orange-50' : 'border-gray-200'
-                          "}
+                          "
                         >
                           <Checkbox
                             id={user.id}

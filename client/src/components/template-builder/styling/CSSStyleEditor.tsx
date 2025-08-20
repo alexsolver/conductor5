@@ -149,15 +149,15 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
     Object.entries(styles).forEach(([property, value]) => {
       if (value && property !== 'customCSS') {
         const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase()
-        cssRules.push(`  ${cssProperty}: ${value};`)
+        cssRules.push(";`)
       }
     })
 
     if (customCSS) {
-      cssRules.push(`  ${customCSS")
+      cssRules.push("
     }
 
-    return `.field-${field.id} {\n${cssRules.join('\n')}\n"
+    return "\n"
   }
 
   // Copy CSS to clipboard
@@ -381,7 +381,7 @@ export const CSSStyleEditor: React.FC<CSSStyleEditorProps> = ({
                   <div className="flex items-center gap-3">
                     <Slider
                       value={[parseInt(styles.borderRadius?.replace('px', '') || '0')]}
-                      onValueChange={([value]) => updateStyle('borderRadius', `${value}px`)}
+                      onValueChange={([value]) => updateStyle('borderRadius', "px`)}
                       max={20}
                       step={1}
                       className="flex-1"
@@ -586,7 +586,7 @@ hover:transform: scale(1.05);"
                   previewMode === 'mobile' ? 'max-w-sm mx-auto' :
                   previewMode === 'tablet' ? 'max-w-md mx-auto' :
                   'max-w-full'
-                "}
+                "
               >
                 <Label className="text-sm font-medium mb-2 block">
                   {field.label}

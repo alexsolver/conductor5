@@ -77,7 +77,7 @@ export function AdvancedArticleEditor({
     queryKey: ['/api/knowledge-base/articles', articleId],
     queryFn: async () => {
       if (!articleId) return null;
-      const response = await fetch(`/api/knowledge-base/articles/${articleId", {
+      const response = await fetch("
         headers: {
           'x-tenant-id': localStorage.getItem('tenantId') || '',
           'x-user-id': localStorage.getItem('userId') || '',
@@ -102,7 +102,7 @@ export function AdvancedArticleEditor({
   const saveArticleMutation = useMutation({
     mutationFn: async (articleData: Article) => {
       const endpoint = articleId 
-        ? `/api/knowledge-base/articles/${articleId"
+        ? "
         : '/api/knowledge-base/articles';
       const method = articleId ? 'PUT' : 'POST';
       
@@ -140,7 +140,7 @@ export function AdvancedArticleEditor({
     setSelectedTemplate(template.id);
     toast({
       title: "Template aplicado",
-      description: `Template "${template.name}" foi aplicado ao artigo`
+      description: "" foi aplicado ao artigo`
     });
   };
 
@@ -403,7 +403,7 @@ export function AdvancedArticleEditor({
                       variant="secondary" 
                       className="cursor-pointer"
                       onClick={() => handleRemoveTag(tag)}
-                      data-testid={`tag-${tag"}
+                      data-testid={"
                     >
                       {tag} ×
                     </Badge>

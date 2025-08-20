@@ -58,7 +58,7 @@ export default function EmailHistoryModal({
   const { data: emails = [], isLoading: emailsLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "emails"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${ticketId}/emails`);
+      const response = await apiRequest("GET", "/emails`);
       return response.json();
     },
     enabled: isOpen,
@@ -77,7 +77,7 @@ export default function EmailHistoryModal({
   // Send email mutation
   const sendEmailMutation = useMutation({
     mutationFn: async (data: { to: string; subject: string; content: string }) => {
-      const response = await apiRequest("POST", `/api/tickets/${ticketId}/emails`, data);
+      const response = await apiRequest("POST", "/emails`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -128,8 +128,8 @@ export default function EmailHistoryModal({
 
   const handleReplyToEmail = (email: EmailMessage) => {
     setReplyTo(email.from);
-    setSubject(email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject");
-    setContent(`\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}\n\n${email.content");
+    setSubject(email.subject.startsWith('Re: ') ? email.subject : "
+    setContent("
     setActiveTab("compose");
   };
 
@@ -314,7 +314,7 @@ export default function EmailHistoryModal({
                       className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                     >
                       <Send className="w-4 h-4 mr-2" />
-                      {sendEmailMutation.isPending ? "Enviando..." : "Enviar E-mail"}
+                      {sendEmailMutation.isPending ? "Enviando..." : "Enviar E-mail"
                     </Button>
                   </div>
                 </div>

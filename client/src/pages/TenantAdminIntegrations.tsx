@@ -186,7 +186,7 @@ export default function TenantAdminIntegrations() {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status");
+      throw new Error("HTTP error! status: " + response.status);
     }
     return response.json();
   };
@@ -200,7 +200,7 @@ export default function TenantAdminIntegrations() {
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
     mutationFn: ({ integrationId, config }: { integrationId: string; config: any }) =>
-      apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/config`, config),
+      apiRequest('POST', "/api/tenant-admin/config", config),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       setIsConfigDialogOpen(false);
@@ -226,7 +226,7 @@ export default function TenantAdminIntegrations() {
     setTestResult(null);
 
     try {
-      const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
+      const response = await fetch("/api/tenant-admin/test", {
         method: 'POST',
         headers: {
           'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""), // Use accessToken consistently
@@ -246,7 +246,7 @@ export default function TenantAdminIntegrations() {
       if (!contentType || !contentType.includes('application/json')) {
         const textResponse = await response.text();
         console.error('❌ [TESTE-INTEGRAÇÃO] Non-JSON response received:', { status: response.status, contentType, body: textResponse.substring(0, 200) });
-        throw new Error(`Resposta inválida do servidor (Content-Type: ${contentType || 'N/A'})`);
+        throw new Error("Erro na integração");
       }
 
       const result = await response.json();
@@ -278,7 +278,7 @@ export default function TenantAdminIntegrations() {
       }
       setTestResult({
         success: false,
-        message: `Falha ao testar integração: ${errorMessage",
+        message: "Falha ao testar integração: " + errorMessage,
         error: error
       });
     } finally {
@@ -307,7 +307,7 @@ export default function TenantAdminIntegrations() {
 
       // ✅ SECURITY: Ensure the URL is valid and points to your service
       if (!webhookUrl.startsWith(window.location.origin)) {
-          console.warn(`⚠️ [WEBHOOK-SETUP] A URL do webhook (${webhookUrl}) não parece ser interna. Certifique-se de que é segura e pública.`);
+          console.warn(") não parece ser interna. Certifique-se de que é segura e pública.");
       }
 
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
@@ -387,7 +387,7 @@ export default function TenantAdminIntegrations() {
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
 
         // Refresh config to show the new webhook URL
-        queryClient.invalidateQueries({ queryKey: [`/api/tenant-admin/integrations/${selectedIntegration.id}/config`] });
+        queryClient.invalidateQueries({ queryKey: ["/api/tenant-admin/config"] });
       } else {
         console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro:', result);
         setTestResult({
@@ -713,15 +713,15 @@ export default function TenantAdminIntegrations() {
   };
 
   const onConfigureIntegration = async (integration: TenantIntegration) => {
-    console.log(`🔧 [CONFIG-LOAD] Configurando integração: ${integration.id");
+    console.log(`🔧 [CONFIG-LOAD] Configurando integração: " + integration.id`);
     setSelectedIntegration(integration);
     setTestResult(null); // Clear previous test results when opening dialog
 
     try {
       // ✅ CRITICAL FIX: Usar fetch direto com headers corretos
-      console.log(`🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id");
+      console.log("🔍 [CONFIG-LOAD] Buscando configuração para: ${integration.id`);
 
-      const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/config`, {
+      const response = await fetch("/api/tenant-admin/config", {
         method: 'GET',
         headers: {
           'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
@@ -731,18 +731,18 @@ export default function TenantAdminIntegrations() {
         credentials: 'include'
       });
 
-      console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')");
+      console.log("
 
       if (!response.ok) {
         // Handle case where config might not exist yet (e.g., return 404)
         if (response.status === 404) {
-          console.log(`ℹ️ [CONFIG-LOAD] Configuração não encontrada para ${integration.id}, usando valores padrão.`);
+          console.log(", usando valores padrão.`);
           // Set default values here
           configForm.reset(getDefaultValues(integration.id));
           setIsConfigDialogOpen(true);
           return;
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText");
+        throw new Error("
       }
 
       const contentType = response.headers.get('content-type');
@@ -769,7 +769,7 @@ export default function TenantAdminIntegrations() {
 
       if (hasValidConfig) {
         const config = existingConfigData.config;
-        console.log(`✅ [CONFIG-LOAD] Configuração válida encontrada para ${integration.id");
+        console.log("
 
         // ✅ SECURITY: Função para mascarar dados sensíveis de forma consistente
         const maskSensitiveData = (value: string | undefined | null): string => {
@@ -847,21 +847,21 @@ export default function TenantAdminIntegrations() {
 
         toast({
           title: "✅ Configuração carregada",
-          description: `Dados de ${integration.name} carregados com sucesso`,
+          description: " carregados com sucesso`,
         });
 
       } else {
-        console.log(`⚠️ [CONFIG-LOAD] Configuração não encontrada ou inválida para ${integration.id}, usando valores padrão.`);
+        console.log(", usando valores padrão.`);
         configForm.reset(getDefaultValues(integration.id));
 
         toast({
           title: "ℹ️ Nova configuração",
-          description: `Configure ${integration.name} pela primeira vez`,
+          description: " pela primeira vez`,
         });
       }
 
     } catch (error: any) {
-      console.error(`❌ [CONFIG-LOAD] Erro ao carregar configuração para ${integration.id}:`, error);
+      console.error(":`, error);
 
       // ✅ IMPROVED: Tratamento de erro mais robusto
       const errorMessage = error?.message || '[TRANSLATION_NEEDED]';
@@ -928,9 +928,9 @@ export default function TenantAdminIntegrations() {
       case 'email-smtp':
         return { ...baseDefaults, serverPort: '587', useSSL: true }; // SMTP often uses STARTTLS on 587
       case 'telegram':
-        return { ...baseDefaults, telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram` }; // Suggest a default webhook URL
+        return { ...baseDefaults, telegramWebhookUrl: "/api/webhooks/telegram` }; // Suggest a default webhook URL
       case 'whatsapp-business':
-        return { ...baseDefaults, whatsappWebhookUrl: `${window.location.origin}/api/webhooks/whatsapp` }; // Suggest a default webhook URL
+        return { ...baseDefaults, whatsappWebhookUrl: "/api/webhooks/whatsapp` }; // Suggest a default webhook URL
       default:
         return baseDefaults;
     }
@@ -940,10 +940,10 @@ export default function TenantAdminIntegrations() {
   const startOAuthFlow = async (integration: TenantIntegration) => {
     try {
       // ✅ ENHANCEMENT: Use the actual integration ID to construct the redirect URI
-      const redirectUri = `${window.location.origin}/auth/${integration.id}/callback`;
+      const redirectUri = "/callback`;
 
       // ✅ IMPROVEMENT: Pass redirectUri to backend for state management and validation
-      const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
+      const response = await fetch("/oauth/start`, {
         method: 'POST',
         headers: {
           'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
@@ -1112,7 +1112,7 @@ export default function TenantAdminIntegrations() {
       // Fetch current config to handle sensitive data correctly
       let currentConfig = null;
       try {
-        const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
+        const configResponse = await fetch("/api/tenant-admin/config", {
           method: 'GET',
           headers: {
             'Authorization': "Bearer " + (localStorage.getItem("accessToken") || ""),
@@ -1194,7 +1194,7 @@ export default function TenantAdminIntegrations() {
           break;
       }
 
-      console.log(`💾 [SUBMIT-CONFIG] Enviando configuração para ${selectedIntegration.id}:`, {
+      console.log(":`, {
         integrationId: selectedIntegration.id,
         enabled: configData.enabled,
         fieldsCount: Object.keys(configData).length
@@ -1291,7 +1291,7 @@ export default function TenantAdminIntegrations() {
 
       {/* Integrações por Categoria */}
       <Tabs defaultValue="certificados" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-"`}>
+        <TabsList className="grid w-full grid-cols-"">
           <TabsTrigger value="certificados">
             Certificados
           </TabsTrigger>
@@ -1337,7 +1337,7 @@ export default function TenantAdminIntegrations() {
                             <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
                               {integration.name}
                             </CardTitle>
-                            <Badge className="" text-xs mt-1`}>
+                            <Badge className="" text-xs mt-1">
                               {integration.category}
                             </Badge>
                           </div>
@@ -1350,7 +1350,7 @@ export default function TenantAdminIntegrations() {
                               <span className="sm:hidden">Config.</span>
                             </Badge>
                           )}
-                          <Badge className="" text-xs`}>
+                          <Badge className="" text-xs">
                             {getStatusIcon(integration.status)}
                             <span className="ml-1 capitalize hidden sm:inline">{integration.status}</span>
                             <span className="ml-1 capitalize sm:hidden">
@@ -1373,11 +1373,11 @@ export default function TenantAdminIntegrations() {
                           <div className="flex flex-wrap gap-1">
                             {integration.features.slice(0, 2).map((feature, index) => (
                               <Badge key={index} variant="outline" className="text-xs" title={feature}>
-                                {feature.length > 20 ? `${feature.substring(0, 20)}...` : feature}
+                                {feature.length > 20 ? "...` : feature}
                               </Badge>
                             ))}
                             {integration.features.length > 2 && (
-                              <Badge variant="outline" className="text-xs" title={`${integration.features.length - 2} recursos adicionais`}>
+                              <Badge variant="outline" className="text-xs" title={" recursos adicionais">
                                 +{integration.features.length - 2}
                               </Badge>
                             )}
@@ -1426,10 +1426,10 @@ export default function TenantAdminIntegrations() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              handleTestIntegration(integration.id);
+                              handleTestIntegration(integration.id`);
                             }}
                             disabled={isTestingIntegration}
-                            className=""`}
+                            className="""
                           >
                             {isTestingIntegration ? ( // Use the general isTestingIntegration state
                               <>
@@ -1448,7 +1448,7 @@ export default function TenantAdminIntegrations() {
                       </div>
 
                       {integration.lastSync && (
-                        <p className="text-xs text-gray-500 mt-3 truncate" title={`Última sincronização: ${new Date(integration.lastSync).toLocaleString('pt-BR')">
+                        <p className="text-xs text-gray-500 mt-3 truncate" title={"
                           Sync: {new Date(integration.lastSync).toLocaleDateString('pt-BR')}
                         </p>
                       )}
@@ -1544,7 +1544,7 @@ export default function TenantAdminIntegrations() {
                           <FormLabel>Redirect URI</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Enter ${window.location.origin}/auth/${selectedIntegration.id}/callback`} 
+                              placeholder="Enter ${window.location.origin}/auth/${selectedIntegration.id}/callback" 
                               {...field} 
                             />
                           </FormControl>
@@ -2101,7 +2101,7 @@ Acompanhe pelo sistema Conductor."
 
                 {/* Display test results below the form if available and not for webhook section */}
                 {testResult && !['telegram'].includes(selectedIntegration.id) && (
-                  <pre className="p-2 text-xs rounded-md "`}>
+                  <pre className="p-2 text-xs rounded-md "">
                     {testResult.message}
                     {testResult.details && <code className="block mt-1">{JSON.stringify(testResult.details, null, 2)}</code>}
                   </pre>

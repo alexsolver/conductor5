@@ -170,7 +170,7 @@ export default function AutomationRules() {
   // Mutation para deletar regra
   const deleteRuleMutation = useMutation({
     mutationFn: (ruleId: string) =>
-      apiRequest(`/api/automation-rules/${ruleId", { method: 'DELETE' }),
+      apiRequest("
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
       queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
@@ -184,14 +184,14 @@ export default function AutomationRules() {
   // Mutation para testar regra
   const testRuleMutation = useMutation({
     mutationFn: ({ ruleId, testData }: { ruleId: string; testData: any }) =>
-      apiRequest(`/api/automation-rules/${ruleId}/test`, {
+      apiRequest("/test`, {
         method: 'POST',
         body: JSON.stringify({ testData })
       }),
     onSuccess: (data) => {
       toast({
         title: data.test.matches ? '✅ Regra Compatível' : '❌ Regra Não Compatível',
-        description: `Teste da regra "${data.test.ruleName}": ${data.test.matches ? 'MATCH' : 'NO MATCH'",
+        description: "
         variant: data.test.matches ? 'default' : 'destructive'
       });
     }
@@ -296,7 +296,7 @@ export default function AutomationRules() {
       })
       .map(rule => {
         const safeRule = {
-          id: String(rule.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)"),
+          id: String(rule.id || "
           name: String(rule.name || 'Nome não disponível'),
           description: String(rule.description || 'Descrição não disponível'),
           enabled: Boolean(rule.enabled),
@@ -476,8 +476,8 @@ export default function AutomationRules() {
                       <div className="col-span-3">
                         <Label className="text-xs">Campo</Label>
                         <Select
-                          value={form.watch(`conditions.${index}.field`)}
-                          onValueChange={(value) => form.setValue(`conditions.${index}.field`, value)}
+                          value={form.watch(".field`)}
+                          onValueChange={(value) => form.setValue(".field`, value)}
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
@@ -496,8 +496,8 @@ export default function AutomationRules() {
                       <div className="col-span-3">
                         <Label className="text-xs">Operador</Label>
                         <Select
-                          value={form.watch(`conditions.${index}.operator`)}
-                          onValueChange={(value) => form.setValue(`conditions.${index}.operator`, value)}
+                          value={form.watch(".operator`)}
+                          onValueChange={(value) => form.setValue(".operator`, value)}
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
@@ -519,16 +519,16 @@ export default function AutomationRules() {
                         <Input
                           className="h-8"
                           placeholder="Valor para comparação"
-                          value={form.watch(`conditions.${index}.value`)}
-                          onChange={(e) => form.setValue(`conditions.${index}.value`, e.target.value)}
+                          value={form.watch(".value`)}
+                          onChange={(e) => form.setValue(".value`, e.target.value)}
                         />
                       </div>
 
                       <div className="col-span-2">
                         <Label className="text-xs">Lógica</Label>
                         <Select
-                          value={form.watch(`conditions.${index}.logicalOperator`) || 'AND'}
-                          onValueChange={(value) => form.setValue(`conditions.${index}.logicalOperator`, value)}
+                          value={form.watch(".logicalOperator`) || 'AND'}
+                          onValueChange={(value) => form.setValue(".logicalOperator`, value)}
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
@@ -558,8 +558,8 @@ export default function AutomationRules() {
                       <div className="col-span-4">
                         <Label className="text-xs">Tipo de Ação</Label>
                         <Select
-                          value={form.watch(`actions.${index}.type`)}
-                          onValueChange={(value) => form.setValue(`actions.${index}.type`, value)}
+                          value={form.watch(".type`)}
+                          onValueChange={(value) => form.setValue(".type`, value)}
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue />
@@ -580,8 +580,8 @@ export default function AutomationRules() {
                         <Input
                           className="h-8"
                           placeholder="Ex: telegram, manager, high_priority"
-                          value={form.watch(`actions.${index}.target`)}
-                          onChange={(e) => form.setValue(`actions.${index}.target`, e.target.value)}
+                          value={form.watch(".target`)}
+                          onChange={(e) => form.setValue(".target`, e.target.value)}
                         />
                       </div>
 
@@ -590,11 +590,11 @@ export default function AutomationRules() {
                         <Input
                           className="h-8"
                           placeholder='{"message": "Auto-resposta"}'
-                          value={JSON.stringify(form.watch(`actions.${index}.params`))}
+                          value={JSON.stringify(form.watch(".params`))}
                           onChange={(e) => {
                             try {
                               const params = JSON.parse(e.target.value);
-                              form.setValue(`actions.${index}.params`, params);
+                              form.setValue(".params`, params);
                             } catch {
                               // Ignore invalid JSON while typing
                             }
@@ -705,12 +705,12 @@ export default function AutomationRules() {
                 safeRules.map((rule: any, index: number) => {
                   // Validação tripla para cada regra
                   if (!rule || typeof rule !== 'object') {
-                    console.warn(`🚨 [AutomationRules] Invalid rule at index ${index}:`, rule);
+                    console.warn(":`, rule);
                     return null;
                   }
 
                   if (!rule.id) {
-                    console.warn(`🚨 [AutomationRules] Rule without ID at index ${index}:`, rule);
+                    console.warn(":`, rule);
                     return null;
                   }
 

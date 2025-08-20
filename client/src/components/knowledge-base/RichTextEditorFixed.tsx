@@ -32,14 +32,14 @@ export function RichTextEditor({
   if (readOnly) {
     return (
       <div
-        className="prose prose-sm max-w-none min-h-[300px] p-4 border rounded-md bg-gray-50 "`}
+        className="prose prose-sm max-w-none min-h-[300px] p-4 border rounded-md bg-gray-50 ""
         dangerouslySetInnerHTML={{ __html: content }}
       />
     );
   }
 
   return (
-    <div className="rich-text-editor "`}>
+    <div className="rich-text-editor "">
       <Textarea
         ref={textareaRef}
         value={content}

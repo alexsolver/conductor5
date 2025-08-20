@@ -116,7 +116,7 @@ export default function TicketTemplates() {
   const { data: statsResponse } = useQuery({
     queryKey: ['"/api/ticket-templates/company', selectedCompany, 'stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `"/api/ticket-templates/company/${selectedCompany}/stats`);
+      const response = await apiRequest('GET', "/api/ticket-templates/stats");
       return response.json();
     },
   });
@@ -127,7 +127,7 @@ export default function TicketTemplates() {
   const { data: categoriesResponse } = useQuery({
     queryKey: ['"/api/ticket-templates/company', selectedCompany, 'categories'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `"/api/ticket-templates/company/${selectedCompany}/categories`);
+      const response = await apiRequest('GET', "/api/ticket-templates/categories");
       return response.json();
     },
   });
@@ -532,7 +532,7 @@ export default function TicketTemplates() {
                     console.log('Preview do template:', template);
                     toast({
                       title: "Preview do Template",
-                      description: `Template "${template.name}" carregado para preview.`,
+                      description: "Template carregado para preview.",
                     });
                   }}
                 />

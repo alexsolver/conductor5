@@ -266,7 +266,7 @@ export default function SlaManagement() {
 
   const updateSlaMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      fetch(`/api/sla/definitions/${id", {
+      fetch("
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -291,7 +291,7 @@ export default function SlaManagement() {
 
   const deleteSlaMutation = useMutation({
     mutationFn: (id: string) => 
-      fetch(`/api/sla/definitions/${id", { method: 'DELETE' }).then(res => res.json()),
+      fetch("
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/sla/definitions'] });
       toast({
@@ -316,7 +316,7 @@ export default function SlaManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/sla/instances'] });
       toast({
         title: "Verificação completa",
-        description: `${data?.total || 0} violações detectadas`,
+        description: " violações detectadas`,
       });
     },
   });
@@ -607,7 +607,7 @@ export default function SlaManagement() {
                   <div 
                     key={sla.id} 
                     className="flex items-center justify-between p-4 border rounded-lg"
-                    data-testid={`sla-definition-${sla.id"}
+                    data-testid={"
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
@@ -638,7 +638,7 @@ export default function SlaManagement() {
                         variant="outline" 
                         size="sm" 
                         onClick={() => handleEdit(sla)}
-                        data-testid={`button-edit-${sla.id"}
+                        data-testid={"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -646,7 +646,7 @@ export default function SlaManagement() {
                         variant="destructive" 
                         size="sm" 
                         onClick={() => handleDelete(sla.id)}
-                        data-testid={`button-delete-${sla.id"}
+                        data-testid={"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -694,7 +694,7 @@ export default function SlaManagement() {
                     <div 
                       key={instance.id} 
                       className="p-3 border rounded-lg"
-                      data-testid={`active-instance-${instance.id"}
+                      data-testid={"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium">Ticket #{instance.ticketId.slice(-8)}</span>
@@ -735,7 +735,7 @@ export default function SlaManagement() {
                     <div 
                       key={instance.id} 
                       className="p-3 border border-red-200 rounded-lg bg-red-50"
-                      data-testid={`breached-instance-${instance.id"}
+                      data-testid={"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium">Ticket #{instance.ticketId.slice(-8)}</span>
@@ -769,7 +769,7 @@ export default function SlaManagement() {
                   <div 
                     key={violation.id} 
                     className="p-4 border rounded-lg"
-                    data-testid={`violation-${violation.id"}
+                    data-testid={"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
@@ -1502,7 +1502,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                         actions.splice(index, 1);
                         form.setValue('actions', actions);
                       }}
-                      data-testid={`button-remove-action-${index"}
+                      data-testid={"
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>

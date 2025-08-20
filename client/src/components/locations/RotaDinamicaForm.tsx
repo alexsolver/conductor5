@@ -27,7 +27,7 @@ const ClientesMultiSelect = ({
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/locations-new/integration/customers', {
-        headers: { 'Authorization': `Bearer ${token" }
+        headers: { 'Authorization': "
       });
       const result = await response.json();
       return result.data || [];
@@ -127,7 +127,7 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/locations-new/regiao', {
-        headers: { 'Authorization': `Bearer ${token" }
+        headers: { 'Authorization': "
       });
       const result = await response.json();
       return result.data || [];
@@ -301,7 +301,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token",
+          'Authorization': "
           'Accept': 'application/json'
         },
         body: JSON.stringify(data)
@@ -346,7 +346,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
         console.error('❌ [ROTA-DINAMICA-FORM] JSON parsing error:', parseError);
         toast({
           title: '[TRANSLATION_NEEDED]',
-          description: `Não foi possível interpretar a resposta do servidor: ${parseError.message",
+          description: "
           variant: "destructive"
         });
         return;
@@ -400,7 +400,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       } else {
         toast({
           title: '[TRANSLATION_NEEDED]',
-          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : '[TRANSLATION_NEEDED]'",
+          description: "
           variant: "destructive"
         });
       }
@@ -522,7 +522,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
                 <div key={dia.value} className="text-center">
                   <Button
                     type="button"
-                    variant={watchedValues.diasSemana?.includes(dia.value) ? "default" : "outline"}
+                    variant={watchedValues.diasSemana?.includes(dia.value) ? "default" : "outline"
                     size="sm"
                     className="w-full"
                     onClick={() => handleDiaSemanaToggle(dia.value)}

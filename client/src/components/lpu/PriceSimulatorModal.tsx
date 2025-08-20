@@ -245,7 +245,7 @@ export default function PriceSimulatorModal({
                   {/* Ajuste Total */}
                   <div className="text-center p-3 border rounded-lg">
                     <div className="text-sm text-muted-foreground">Ajuste Total</div>
-                    <div className="text-lg font-bold "`}>
+                    <div className="text-lg font-bold "">
                       {simulationResult.totalAdjustment >= 0 ? '+' : ''}R$ {simulationResult.totalAdjustment.toFixed(2)}
                       <span className="text-sm ml-2">
                         ({simulationResult.adjustmentPercentage >= 0 ? '+' : ''}{simulationResult.adjustmentPercentage.toFixed(2)}%)
@@ -279,10 +279,10 @@ export default function PriceSimulatorModal({
                             </div>
                             <div className="flex items-center space-x-2">
                               <Badge variant="outline">{rule.ruleType}</Badge>
-                              <span className="text-sm font-medium "`}>
+                              <span className="text-sm font-medium "">
                                 {rule.adjustmentType === 'percentage' ? 
-                                  `${rule.adjustment >= 0 ? '+' : ''}${rule.adjustment.toFixed(2)}%` :
-                                  `${rule.adjustment >= 0 ? '+' : ''}R$ ${rule.adjustment.toFixed(2)"
+                                  "%` :
+                                  "
                                 }
                               </span>
                             </div>

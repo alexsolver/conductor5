@@ -78,17 +78,17 @@ export default function TicketMaterials() {
     queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items', Date.now()],
     queryFn: async () => {
       console.log('🔍 [PLANNED-ITEMS] Fetching planned items for ticket:', ticketId);
-      const response = await fetch(`/api/materials-services/tickets/${ticketId}/planned-items`, {
+      const response = await fetch("/api/materials-services/tickets/" + ticketId + "/planned-items", {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
+          'Authorization': "Bearer " + (localStorage.getItem("authToken") || "")`
         }
       });
       
       if (!response.ok) {
-        throw new Error("Failed to fetch planned items: " + response.status.status");
+        throw new Error("Failed to fetch planned items: " + response.status);
       }
       
       const data = await response.json();
@@ -109,12 +109,12 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
+          'Authorization': "Bearer " + (localStorage.getItem("authToken") || "")`
         }
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch consumed items: ${response.status");
+        throw new Error(`Failed to fetch consumed items: " + response.status);
       }
       
       return response.json();
@@ -127,17 +127,17 @@ export default function TicketMaterials() {
   const { data: costsSummary, isLoading: loadingSummary } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'costs-summary', Date.now()],
     queryFn: async () => {
-      const response = await fetch(`/api/materials-services/tickets/${ticketId}/costs-summary`, {
+      const response = await fetch("/costs-summary`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
+          'Authorization': "Bearer " + (localStorage.getItem("authToken") || "")`
         }
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch costs summary: ${response.status");
+        throw new Error("
       }
       
       return response.json();
@@ -155,12 +155,12 @@ export default function TicketMaterials() {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
+          'Authorization': "Bearer " + (localStorage.getItem("authToken") || "")`
         }
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch items: ${response.status");
+        throw new Error("
       }
       
       return response.json();
@@ -171,17 +171,17 @@ export default function TicketMaterials() {
   // Add planned item mutation
   const addPlannedItemMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch(`/api/materials-services/tickets/${ticketId}/planned-items`, {
+      const response = await fetch("/api/materials-services/tickets/" + ticketId + "/planned-items", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
+          'Authorization': "Bearer " + (localStorage.getItem("authToken") || "")`
         },
         body: JSON.stringify(data)
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to add planned item: ${response.status");
+        throw new Error("
       }
 
       return response.json();
@@ -220,16 +220,16 @@ export default function TicketMaterials() {
   // Delete planned item mutation
   const deletePlannedItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      const response = await fetch(`/api/materials-services/tickets/${ticketId}/planned-items/${itemId", {
+      const response = await fetch("
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer " + (localStorage.getItem("authToken") || "")
+          'Authorization': "Bearer " + (localStorage.getItem("authToken") || "")`
         }
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to delete planned item: ${response.status");
+        throw new Error("
       }
 
       return response.json();
@@ -450,7 +450,7 @@ export default function TicketMaterials() {
                           plannedSubTab === 'all'
                             ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-500/30'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
-                        "}
+                        "
                       >
                         <Package className="w-6 h-6" />
                         <div className="text-left">
@@ -467,7 +467,7 @@ export default function TicketMaterials() {
                           plannedSubTab === 'material'
                             ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-green-500/30'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
-                        "}
+                        "
                       >
                         <Box className="w-6 h-6" />
                         <div className="text-left">
@@ -484,7 +484,7 @@ export default function TicketMaterials() {
                           plannedSubTab === 'service'
                             ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-purple-500/30'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
-                        "}
+                        "
                       >
                         <Wrench className="w-6 h-6" />
                         <div className="text-left">
@@ -629,7 +629,7 @@ export default function TicketMaterials() {
                               plannedSubTab === 'material' ? 'bg-green-500 hover:bg-green-600' :
                               plannedSubTab === 'service' ? 'bg-purple-500 hover:bg-purple-600' :
                               'bg-blue-500 hover:bg-blue-600'
-                            "}
+                            "
                           >
                             <Plus className="w-4 h-4 mr-2" />
                             Adicionar {plannedSubTab === 'material' ? 'Material' : plannedSubTab === 'service' ? 'Serviço' : 'Item'}
@@ -658,7 +658,7 @@ export default function TicketMaterials() {
                 ) : (consumedItems as any)?.data?.consumedItems?.length > 0 ? (
                   <div className="space-y-3">
                     {(consumedItems as any).data.consumedItems.map((item: TicketMaterial) => (
-                      <Card key={item.id} className="border-l-4 "`}>
+                      <Card key={item.id} className="border-l-4 "">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="space-y-2">
@@ -670,7 +670,7 @@ export default function TicketMaterials() {
                                 )}
                                 <h4 className="font-semibold">{item.itemName || 'Item não encontrado'}</h4>
                                 <Badge variant="outline">{item.itemCode || 'N/A'}</Badge>
-                                <Badge className=""`}>
+                                <Badge className=""">
                                   {item.itemType === 'material' ? 'Material' : 'Serviço'}
                                 </Badge>
                                 {getStatusBadge('consumed')}

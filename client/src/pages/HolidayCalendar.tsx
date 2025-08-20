@@ -110,7 +110,7 @@ export default function HolidayCalendar() {
       if (selectedRegion) params.append('regionCode', selectedRegion);
       params.append('limit', '100');
       
-      const response = await fetch(`/api/holidays?${params");
+      const response = await fetch("
       if (!response.ok) throw new Error('Failed to fetch holidays');
       return response.json();
     }
@@ -479,7 +479,7 @@ export default function HolidayCalendar() {
           ) : (
             <div className="space-y-6">
               {monthNames.map((monthName, index) => {
-                const monthKey = `${selectedYear}-${(index + 1).toString().padStart(2, '0')";
+                const monthKey = "
                 const monthHolidays = holidaysByMonth[monthKey] || [];
                 
                 if (monthHolidays.length === 0) return null;
@@ -515,7 +515,7 @@ export default function HolidayCalendar() {
                               </Badge>
                             )}
                             
-                            <Badge className="text-xs "`}>
+                            <Badge className="text-xs "">
                               <span className="flex items-center gap-1">
                                 {typeIcons[holiday.type]}
                                 {typeLabels[holiday.type]}

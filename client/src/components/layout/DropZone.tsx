@@ -34,7 +34,7 @@ export default function DropZone({
           : 'border-gray-300 hover:border-gray-400'
         }
         ${className}
-      `}
+      "
     >
       {children ? (
         <div className="p-4">
@@ -46,7 +46,7 @@ export default function DropZone({
             <div className={`
               p-4 rounded-full mb-3 transition-colors
               ${isOver ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}
-            `}>
+            ">
               {isOver ? (
                 <Target className="w-8 h-8" />
               ) : (
@@ -56,7 +56,7 @@ export default function DropZone({
             <p className={`
               font-medium transition-colors
               ${isOver ? 'text-blue-600' : 'text-gray-500'}
-            `}>
+            ">
               {isOver ? 'Solte o campo aqui' : label}
             </p>
             <p className="text-xs text-gray-400 mt-1">

@@ -187,7 +187,7 @@ export default function OmniBridge() {
       try {
         const token = localStorage.getItem('token');
         const headers = {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         };
@@ -214,10 +214,10 @@ export default function OmniBridge() {
   const handleToggleAutomationRule = async (ruleId: string, enabled: boolean) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/omnibridge/automation-rules/${ruleId}/toggle`, {
+      const response = await fetch("/toggle`, {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         },
@@ -228,7 +228,7 @@ export default function OmniBridge() {
         setAutomationRules(prev => prev.map(rule =>
           rule.id === ruleId ? { ...rule, isEnabled: enabled } : rule
         ));
-        console.log(`✅ [OmniBridge] Automation rule ${enabled ? 'enabled' : 'disabled'}: ${ruleId");
+        console.log("
       }
     } catch (error) {
       console.error('❌ [OmniBridge] Error toggling automation rule:', error);
@@ -241,7 +241,7 @@ export default function OmniBridge() {
       const response = await fetch('/api/omnibridge/automation-rules', {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         },
@@ -272,7 +272,7 @@ export default function OmniBridge() {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ [OmniBridge] Failed to create automation rule:', errorData);
-        alert(`Erro ao criar regra: ${errorData.error || response.statusText");
+        alert("
       }
     } catch (error) {
       console.error('❌ [OmniBridge] Error creating automation rule:', error);
@@ -290,7 +290,7 @@ export default function OmniBridge() {
 
         // ✅ TELEGRAM FIX: Garantir autenticação adequada com tenantId
         const headers = {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         };
@@ -351,7 +351,7 @@ export default function OmniBridge() {
           // Fallback to fetching from integrations if /api/omnibridge/channels fails
           const integrationsResponse = await fetch('/api/tenant-admin-integration/integrations', {
             headers: {
-              'Authorization': token ? `Bearer ${token" : '',
+              'Authorization': token ? "
               'Content-Type': 'application/json',
               'x-tenant-id': user?.tenantId || ''
             }
@@ -490,7 +490,7 @@ export default function OmniBridge() {
       const response = await fetch('/api/omnibridge/sync-integrations', {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         }
@@ -507,7 +507,7 @@ export default function OmniBridge() {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ [OmniBridge] Sync failed:', response.statusText, errorData);
-        alert(`Erro na sincronização: ${errorData.error || response.statusText");
+        alert("
       }
     } catch (error) {
       console.error('❌ [OmniBridge] Sync error:', error);
@@ -522,10 +522,10 @@ export default function OmniBridge() {
     try {
       const token = localStorage.getItem('token');
       // Assuming a new endpoint for toggling channels or using the integrations endpoint
-      const response = await fetch(`/api/omnibridge/channels/${channelId}/toggle`, {
+      const response = await fetch("/toggle`, {
         method: 'PUT',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ enabled })
@@ -544,7 +544,7 @@ export default function OmniBridge() {
             : channel
         ));
 
-        console.log(`✅ Canal ${channelId} ${enabled ? 'ativado' : 'desativado'} com sucesso`);
+        console.log(" com sucesso`);
       } else {
         console.error('[TRANSLATION_NEEDED]', response.status);
       }
@@ -559,7 +559,7 @@ export default function OmniBridge() {
       const response = await fetch('/api/omnibridge/messages/send', {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         },
@@ -587,7 +587,7 @@ export default function OmniBridge() {
       const token = localStorage.getItem('token');
       const messagesResponse = await fetch('/api/omnibridge/messages', {
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         }
@@ -628,7 +628,7 @@ export default function OmniBridge() {
       const response = await fetch('/api/omnibridge/messages/reply', {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         },
@@ -664,7 +664,7 @@ export default function OmniBridge() {
       const response = await fetch('/api/omnibridge/messages/forward', {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         },
@@ -691,10 +691,10 @@ export default function OmniBridge() {
   const handleArchiveMessage = async (messageId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/omnibridge/messages/${messageId}/archive`, {
+      const response = await fetch("/archive`, {
         method: 'PUT',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         }
@@ -716,10 +716,10 @@ export default function OmniBridge() {
   const handleMarkAsRead = async (messageId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/omnibridge/messages/${messageId}/read`, {
+      const response = await fetch("/read`, {
         method: 'PUT',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         }
@@ -741,10 +741,10 @@ export default function OmniBridge() {
   const handleStarMessage = async (messageId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/omnibridge/messages/${messageId}/star`, {
+      const response = await fetch("/star`, {
         method: 'PUT',
         headers: {
-          'Authorization': token ? `Bearer ${token" : '',
+          'Authorization': token ? "
           'Content-Type': 'application/json',
           'x-tenant-id': user?.tenantId || ''
         }
@@ -947,7 +947,7 @@ export default function OmniBridge() {
                             key={message.id}
                             className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
                               selectedMessage?.id === message.id ? 'border-primary bg-primary/5' : ''
-                            } ${message.status === 'unread' ? 'border-l-4 border-l-primary' : ''"}
+                            } ${message.status === 'unread' ? 'border-l-4 border-l-primary' : ''"
                             onClick={() => setSelectedMessage(message)}
                           >
                             <div className="flex items-start justify-between mb-2">
@@ -980,7 +980,7 @@ export default function OmniBridge() {
                                   }}
                                   className="h-6 w-6 p-0"
                                 >
-                                  <Star className="h-3 w-3 "`} />
+                                  <Star className="h-3 w-3 "" />
                                 </Button>
                               </div>
                             </div>
@@ -1118,7 +1118,7 @@ export default function OmniBridge() {
                             className="flex-1"
                             onClick={() => selectedMessage && handleStarMessage(selectedMessage.id)}
                           >
-                            <Star className="h-4 w-4 mr-2 "`} />
+                            <Star className="h-4 w-4 mr-2 "" />
                             {selectedMessage?.starred ? 'Remover Estrela' : 'Marcar'}
                           </Button>
                         </div>
@@ -1294,8 +1294,8 @@ export default function OmniBridge() {
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg "`}>
-                                <Workflow className="h-5 w-5 "`} />
+                              <div className="p-2 rounded-lg "">
+                                <Workflow className="h-5 w-5 "" />
                               </div>
                               <div>
                                 <h3 className="font-medium">{rule.name}</h3>
@@ -1427,7 +1427,7 @@ export default function OmniBridge() {
             <DialogTitle>Responder Mensagem</DialogTitle>
             <DialogDescription>
               Respondendo para: {selectedMessage?.from}
-              {selectedMessage?.subject && ` - ${selectedMessage.subject"}
+              {selectedMessage?.subject && "
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

@@ -303,7 +303,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                         )}
                         {Array.isArray(companies) && companies.map((company: any) => (
                           <SelectItem key={company.id} value={company.id}>
-                            {company.name} {company.cnpj ? `(${company.cnpj})` : ''}
+                            {company.name} {company.cnpj ? ")` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -399,7 +399,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={"outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
@@ -441,7 +441,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={"outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"

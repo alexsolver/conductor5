@@ -145,7 +145,7 @@ const AgendaManager: React.FC = () => {
   const { data: schedulesData, isLoading: schedulesLoading } = useQuery({
     queryKey: ['/api/schedule/schedules', startDate, endDate],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/schedule/schedules/${startDate}/${endDate");
+      const response = await apiRequest('GET', "
       return await response.json();
     },
     enabled: !!startDate && !!endDate,
@@ -176,7 +176,7 @@ const AgendaManager: React.FC = () => {
       // ✅ Ensure profileImageUrl is properly mapped from avatar field if needed
       profileImageUrl: agent.profileImageUrl || agent.avatar || null,
       // ✅ Ensure name is properly constructed
-      name: agent.name || `${agent.firstName || ''} ${agent.lastName || ''".trim() || agent.email || 'Técnico'
+      name: agent.name || "
     }));
   }, [agentsData]);
 
@@ -206,7 +206,7 @@ const AgendaManager: React.FC = () => {
   const { data: groupMembersData } = useQuery({
     queryKey: ['/api/user-management/groups', selectedGroup, 'members'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/user-management/groups/${selectedGroup}/members`);
+      const response = await apiRequest('GET', "/members`);
       return await response.json();
     },
     enabled: selectedGroup !== 'todos' && !!selectedGroup,
@@ -241,7 +241,7 @@ const AgendaManager: React.FC = () => {
   const { data: internalActionsData, isLoading: internalActionsLoading } = useQuery({
     queryKey: ['/api/tickets/internal-actions/schedule', startDate, endDate],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/tickets/internal-actions/schedule/${startDate}/${endDate");
+      const response = await apiRequest('GET', "
       return await response.json();
     },
     enabled: !!startDate && !!endDate,
@@ -264,7 +264,7 @@ const AgendaManager: React.FC = () => {
     const combined = [...schedules, ...internalActions.map((action: any) => ({
       ...action,
       activityTypeId: 'internal-action',
-      locationAddress: `Ticket ${action.ticketNumber}: ${action.ticketSubject",
+      locationAddress: "
       customerId: null
     }))];
     
@@ -348,7 +348,7 @@ const AgendaManager: React.FC = () => {
       const transformedActions = internalActions.map((action: any) => ({
         ...action,
         activityTypeId: 'internal-action', // Special type for internal actions
-        locationAddress: `Ticket ${action.ticketNumber}: ${action.ticketSubject",
+        locationAddress: "
         customerId: null
       }));
       items.push(...transformedActions);
@@ -426,7 +426,7 @@ const AgendaManager: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="todos">Todos os técnicos</SelectItem>
                   {Array.isArray(filteredAgents) && filteredAgents.map((agent) => {
-                    const agentName = agent.name || `${agent.firstName || agent.first_name || ''} ${agent.lastName || agent.last_name || ''".trim() || agent.email || 'Técnico';
+                    const agentName = agent.name || "
                     return (
                       <SelectItem key={agent.id} value={agent.id}>
                         {agentName}
@@ -466,7 +466,7 @@ const AgendaManager: React.FC = () => {
               
               <span className="mx-4 text-sm font-medium">
                 {view === 'agenda' 
-                  ? `${format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })} - ${format(addDays(selectedDate, 13), 'dd/MM/yyyy', { locale: ptBR })"
+                  ? ")"
                   : format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
                 }
               </span>

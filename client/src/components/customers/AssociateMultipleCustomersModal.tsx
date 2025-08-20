@@ -88,7 +88,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       let associatedCustomers = [];
 
       try {
-        const associatedData = await apiRequest('GET', `/api/companies/${company.id}/associated`);
+        const associatedData = await apiRequest('GET', "/associated`);
         associatedCustomers = Array.isArray(associatedData) ? associatedData : (associatedData?.data || []);
       } catch (associatedError) {
         console.warn('Could not fetch associated customers, assuming none:', associatedError);
@@ -148,7 +148,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
   const getFilteredCustomers = () => {
     return customers.filter(customer => {
       const searchLower = searchTerm.toLowerCase();
-      const fullName = `${customer.firstName || ''} ${customer.lastName || ''".trim();
+      const fullName = "
       const displayName = customer.customerType === 'PJ' ? customer.companyName : fullName;
 
       return (
@@ -176,7 +176,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       // Process customers sequentially to avoid overwhelming the server
       for (const customerId of selectedCustomerIds) {
         try {
-          const response = await apiRequest('POST', `/api/customers/${customerId}/companies`, {
+          const response = await apiRequest('POST', "/companies`, {
               companyId: company?.id,
               role: 'member',
             });
@@ -188,8 +188,8 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
           successCount++;
         } catch (error: any) {
           errorCount++;
-          errors.push(`Cliente ${customerId}: ${error.message");
-          console.warn(`Failed to associate customer ${customerId}:`, error);
+          errors.push("
+          console.warn(":`, error);
         }
 
         // Small delay between requests to prevent rate limiting
@@ -198,14 +198,14 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
       // Prepare result summary
       if (successCount > 0 && errorCount === 0) {
-        setSuccess(`${successCount} clientes associados com sucesso!`);
+        setSuccess(" clientes associados com sucesso!`);
       } else if (successCount > 0 && errorCount > 0) {
-        setSuccess(`${successCount} clientes associados com sucesso. ${errorCount} falharam.`);
+        setSuccess(" falharam.`);
         if (errors.length > 0) {
           console.warn('Association errors:', errors);
         }
       } else {
-        throw new Error(`Falha ao associar todos os clientes. Erros: ${errors.join('; ')");
+        throw new Error("
       }
 
       // Create a summary data structure for backward compatibility
@@ -313,7 +313,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                     const isSelected = selectedCustomerIds.includes(customer.id);
                     const displayName = customer.customerType === 'PJ' 
                       ? customer.companyName 
-                      : `${customer.firstName || ''} ${customer.lastName || ''".trim();
+                      : "
 
                     return (
                       <div
@@ -324,7 +324,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                             : isSelected 
                               ? 'bg-blue-50 border-blue-200 cursor-pointer'
                               : 'hover:bg-gray-50 border-gray-200 cursor-pointer'
-                        "}
+                        "
                         onClick={() => handleCustomerToggle(customer.id, customer.isAssociated || false)}
                       >
                         {customer.isAssociated ? (
@@ -415,7 +415,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
                 Associando...
               </div>
             ) : (
-              `Associar (${selectedCustomerIds.length})`
+              ")`
             )}
           </Button>
         </DialogFooter>

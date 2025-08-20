@@ -28,7 +28,7 @@ export const AccessibilityIndicator: React.FC<AccessibilityIndicatorProps> = ({
   if (isLoading) {
     return (
       <div 
-        className="flex items-center gap-2 text-blue-600 "`}
+        className="flex items-center gap-2 text-blue-600 ""
         role="status"
         aria-label={ariaLabel || loadingText}
         aria-live="polite"
@@ -42,7 +42,7 @@ export const AccessibilityIndicator: React.FC<AccessibilityIndicatorProps> = ({
   if (isError) {
     return (
       <div 
-        className="flex items-center gap-2 text-red-600 "`}
+        className="flex items-center gap-2 text-red-600 ""
         role="alert"
         aria-label={ariaLabel || errorText}
         aria-live="assertive"
@@ -56,7 +56,7 @@ export const AccessibilityIndicator: React.FC<AccessibilityIndicatorProps> = ({
   if (isSuccess) {
     return (
       <div 
-        className="flex items-center gap-2 text-green-600 "`}
+        className="flex items-center gap-2 text-green-600 ""
         role="status"
         aria-label={ariaLabel || successText}
         aria-live="polite"

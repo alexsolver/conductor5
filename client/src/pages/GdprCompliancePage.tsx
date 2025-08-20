@@ -816,7 +816,7 @@ function PrivacyPolicyManagement() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token"
+          'Authorization': "
         },
         body: JSON.stringify(data)
       });
@@ -825,7 +825,7 @@ function PrivacyPolicyManagement() {
       console.log('🔍 [CREATE-POLICY] Response:', result);
 
       if (!response.ok) {
-        throw new Error(result.message || `HTTP ${response.status}: Failed to create policy`);
+        throw new Error(result.message || ": Failed to create policy`);
       }
 
       return result;
@@ -856,11 +856,11 @@ function PrivacyPolicyManagement() {
         throw new Error('No access token found. Please login again.');
       }
       
-      const response = await fetch(`/api/gdpr-compliance/admin/privacy-policies/${policyId}/activate`, {
+      const response = await fetch("/activate`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token"
+          'Authorization': "
         }
       });
 
@@ -907,7 +907,7 @@ function PrivacyPolicyManagement() {
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-medium">{policy.title}</h4>
                     <Badge variant={policy.isActive ? "default" : "secondary">
-                      {policy.isActive ? "Ativa" : "Inativa"}
+                      {policy.isActive ? "Ativa" : "Inativa"
                     </Badge>
                     <Badge variant="outline">v{policy.version}</Badge>
                   </div>

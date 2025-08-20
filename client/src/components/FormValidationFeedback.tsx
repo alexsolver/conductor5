@@ -27,7 +27,7 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       <div 
         className={cn("flex items-center gap-2 text-blue-600 text-sm mt-1", className)}
         role="status"
-        aria-label={`Validando ${fieldName}...`}
+        aria-label={"..."
         aria-live="polite"
       >
         <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
@@ -41,7 +41,7 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       <div 
         className={cn("flex items-center gap-2 text-green-600 text-sm mt-1", className)}
         role="status"
-        aria-label={`${fieldName} válido`}
+        aria-label={" válido"
         aria-live="polite"
       >
         <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
@@ -77,8 +77,8 @@ export const AccessibleFormField: React.FC<{
   className?: string;
 }> = ({ children, label, required = false, error, description, className = "" }) => {
   const fieldId = React.useId();
-  const errorId = `${fieldId}-error`;
-  const descriptionId = `${fieldId}-description`;
+  const errorId = "-error`;
+  const descriptionId = "-description`;
 
   return (
     <div className={cn("space-y-2", className)}>

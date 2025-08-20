@@ -118,7 +118,7 @@ export default function TimecardApprovals() {
     onSuccess: () => {
       toast({
         title: "Registros aprovados",
-        description: `${selectedApprovals.length} registros foram aprovados com sucesso.`,
+        description: "registros foram aprovados com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/pending'] });
       setSelectedApprovals([]);

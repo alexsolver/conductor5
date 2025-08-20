@@ -86,7 +86,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   const filteredAgents = agents.filter(agent => {
     if (!agent || !agent.email) return false;
 
-    const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''".trim() || agent.email;
+    const agentName = agent.name || "
 
     return agentName.toLowerCase().includes(searchAgent.toLowerCase()) ||
            agent.email.toLowerCase().includes(searchAgent.toLowerCase());
@@ -193,7 +193,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                     {/* Day header */}
                     <div 
                       className="bg-gray-200 border-b text-center py-1 text-xs font-semibold text-gray-700"
-                      style={{ width: `${slotsPerDay * cellWidth}px` }}
+                      style={{ width: "px` }}
                     >
                       {format(day, 'eee. dd/MM', { locale: ptBR })}
                     </div>
@@ -202,8 +202,8 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                       {dayTimeSlots.map((timeSlot, slotIndex) => (
                         <div 
                           key={slotIndex} 
-                          className={`flex-shrink-0 px-1 py-2 text-center border-r last:border-r-0`}
-                          style={{ width: `${cellWidth}px` }}
+                          className={`flex-shrink-0 px-1 py-2 text-center border-r last:border-r-0"
+                          style={{ width: "px` }}
                         >
                           <div className="text-xs font-medium text-gray-900">
                             {formatTimeSlot(timeSlot)}
@@ -223,7 +223,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
           {/* Left sidebar with agent list */}
           <div className="w-64 flex-shrink-0 border-r bg-gray-50">
             {filteredAgents.map((agent) => {
-              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''".trim() || agent.email;
+              const agentName = agent.name || "
 
               return (
                 <div key={agent.id} className="border-b">
@@ -284,7 +284,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                       <div 
                         key={timeIndex} 
                         className="border-r last:border-r-0"
-                        style={{ width: `${cellWidth}px` }}
+                        style={{ width: "px` }}
                       >
                         {filteredAgents.map((agent) => {
                           const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
@@ -308,15 +308,15 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                                         isInternalAction 
                                           ? 'bg-purple-600 border border-purple-400' 
                                           : getPriorityColor(schedule.priority)
-                                      "}
+                                      "
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onScheduleClick(schedule);
                                       }}
                                       title={
                                         isInternalAction 
-                                          ? `Ação Interna: ${schedule.title} - ${activityType?.name || 'Ticket'"
-                                          : `${schedule.title} - ${activityType?.name || 'N/A'"
+                                          ? "
+                                          : "
                                       }
                                     />
                                   );
@@ -339,15 +339,15 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                                         isInternalAction 
                                           ? 'bg-purple-600 border border-purple-400' 
                                           : getPriorityColor(schedule.priority)
-                                      "}
+                                      "
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onScheduleClick(schedule);
                                       }}
                                       title={
                                         isInternalAction 
-                                          ? `Ação Interna: ${schedule.title} - ${activityType?.name || 'Ticket'"
-                                          : `${schedule.title} - ${activityType?.name || 'N/A'"
+                                          ? "
+                                          : "
                                       }
                                     />
                                   );
