@@ -234,7 +234,7 @@ export default function TranslationManagement() {
     }
   });
 
-  const languages = languagesData?.data?.languages || [];
+  const languages = languagesData?.data || [];
   const stats: TranslationStats | null = statsData?.data || null;
   const translations = translationsData?.data?.translations || [];
 
