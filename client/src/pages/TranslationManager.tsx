@@ -17,14 +17,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  Languages, 
-  Save, 
-  RotateCcw, 
-  Search, 
-  Edit3, 
+import {
+  Languages,
+  Save,
+  RotateCcw,
+  Search,
+  Edit3,
   Globe,
-  XCircle
+  XCircle,
+  Loader2,
+  FileText,
+  AlertTriangle,
+  CheckCircle
 } from "lucide-react";
 
 interface Language {
@@ -47,12 +51,16 @@ interface TranslationKey {
 
 export default function TranslationManager() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useTranslation();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingTranslations, setEditingTranslations] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [scanningKeys, setScanningKeys] = useState(false);
+
 
   // Access control - SaaS admin only
   if (user?.role !== 'saas_admin') {
@@ -194,7 +202,7 @@ export default function TranslationManager() {
     if (searchTerm && !key.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
-    
+
     // Only exclude obvious technical keys
     const technicalPatterns = [
       /^\/api\//,
@@ -202,9 +210,108 @@ export default function TranslationManager() {
       /^\d{3}:?$/,
       /^[#][0-9a-fA-F]{3,8}$/,
     ];
-    
+
     return !technicalPatterns.some(pattern => pattern.test(key));
   }) || [];
+
+  // Placeholder for analysis and scanning functions
+  const handleAnalyze = async () => {
+    setAnalyzing(true);
+    console.log('🔍 [FRONTEND-SAFE] Analyzing translation completeness...');
+    try {
+      const response = await fetch('/api/translation-completion/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const data = await response.json();
+      console.log('✅ [FRONTEND-SAFE] Analysis successful:', data);
+      toast({
+        title: t('TranslationManager.analysisSuccess') || "Analysis completed!",
+        description: data.message,
+      });
+    } catch (error) {
+      console.error('❌ [FRONTEND-SAFE] Analysis error:', error);
+      toast({
+        title: t('TranslationManager.analysisError') || "Analysis failed",
+        description: error.message || 'Failed to analyze translations',
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleScanKeys = async () => {
+    setScanningKeys(true);
+    console.log('Scanning for translation keys...');
+    try {
+      const response = await fetch('/api/translation-completion/scan-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const data = await response.json();
+      console.log('✅ Key scanning successful:', data);
+      toast({
+        title: t('TranslationManager.scanSuccess') || "Key scanning completed!",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/translations/keys/all'] });
+    } catch (error) {
+      console.error('❌ Key scanning error:', error);
+      toast({
+        title: t('TranslationManager.scanError') || "Key scanning failed",
+        description: error.message || 'Failed to scan keys',
+        variant: "destructive",
+      });
+    } finally {
+      setScanningKeys(false);
+    }
+  };
+
+  const handleAutoCompleteAll = async () => {
+    console.log('🔒 [FRONTEND-SAFE] Starting ultra-safe translation completion...');
+    setLoading(true);
+    try {
+      const response = await fetch('/api/translation-completion/auto-complete-all', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('🔒 [FRONTEND-SAFE] Response received:', data);
+
+      if (data.success) {
+        const { summary, safetyInfo } = data.data;
+        console.log('✅ [FRONTEND-SAFE] Safe completion successful:', summary);
+
+        toast({
+          title: t('TranslationManager.autoCompletionSuccess') || "Auto-completion completed safely!",
+          description: `${t('TranslationManager.translationsAdded') || 'Added'}: ${summary.translationsAdded}, ${t('TranslationManager.codeFilesProtected') || 'Code files protected'}: ${safetyInfo.codeFilesProtected}`,
+        });
+
+        // Refresh the analysis
+        await handleAnalyze();
+      } else {
+        throw new Error(data.message || t('TranslationManager.autoCompletionFailed') || 'Failed to auto-complete translations');
+      }
+    } catch (error) {
+      console.error('❌ [FRONTEND-SAFE] Auto-completion error:', error);
+      toast({
+        title: t('TranslationManager.autoCompletionError') || "Auto-completion failed",
+        description: error.message || t('TranslationManager.autoCompletionErrorDesc') || 'Failed to auto-complete translations',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      console.log('🔒 [FRONTEND-SAFE] Operation completed');
+    }
+  };
+
 
   return (
     <div className="p-6 space-y-6">
@@ -212,27 +319,27 @@ export default function TranslationManager() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Translation Management
+            {t('TranslationManager.title') || 'Translation Management'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Manage system translations across all supported languages
+            {t('TranslationManager.description') || 'Manage system translations across all supported languages'}
           </p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleRestore}
             disabled={restoreBackupMutation.isPending}
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            Restore Backup
+            {t('TranslationManager.restoreBackup') || 'Restore Backup'}
           </Button>
-          <Button 
+          <Button
             onClick={handleSave}
             disabled={saveTranslationMutation.isPending || Object.keys(editingTranslations).length === 0}
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveTranslationMutation.isPending ? 'Saving...' : 'Save Changes'}
+            {saveTranslationMutation.isPending ? t('TranslationManager.saving') || 'Saving...' : t('TranslationManager.saveChanges') || 'Save Changes'}
           </Button>
         </div>
       </div>
@@ -242,10 +349,10 @@ export default function TranslationManager() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Languages className="w-5 h-5" />
-            Language Selection
+            {t('TranslationManager.languageSelection') || 'Language Selection'}
           </CardTitle>
           <CardDescription>
-            Choose the language to edit translations
+            {t('TranslationManager.chooseLanguage') || 'Choose the language to edit translations'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -275,7 +382,7 @@ export default function TranslationManager() {
           <div className="relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Search translation keys..."
+              placeholder={t('TranslationManager.searchPlaceholder') || "Search translation keys..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -287,9 +394,9 @@ export default function TranslationManager() {
       {/* Translation Tabs */}
       <Tabs defaultValue="editor" className="flex-1">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="editor">Translation Editor</TabsTrigger>
-          <TabsTrigger value="completion">Auto Completion</TabsTrigger>
-          <TabsTrigger value="keys">All Keys</TabsTrigger>
+          <TabsTrigger value="editor">{t('TranslationManager.translationEditor') || 'Translation Editor'}</TabsTrigger>
+          <TabsTrigger value="completion">{t('TranslationManager.autoCompletion') || 'Auto Completion'}</TabsTrigger>
+          <TabsTrigger value="keys">{t('TranslationManager.allKeys') || 'All Keys'}</TabsTrigger>
         </TabsList>
 
         {/* Translation Editor Tab */}
@@ -298,11 +405,11 @@ export default function TranslationManager() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5" />
-                Translation Editor - {selectedLanguage?.toUpperCase()}
+                {t('TranslationManager.editorTitle', { lang: selectedLanguage?.toUpperCase() }) || `Translation Editor - ${selectedLanguage?.toUpperCase()}`}
               </CardTitle>
               <CardDescription>
                 {translationData?.lastModified && (
-                  <span>Last modified: {new Date(translationData.lastModified).toLocaleString()}</span>
+                  <span>{t('TranslationManager.lastModified')} {new Date(translationData.lastModified).toLocaleString()}</span>
                 )}
               </CardDescription>
             </CardHeader>
@@ -349,7 +456,7 @@ export default function TranslationManager() {
 
               {filteredKeys.length === 0 && !isLoadingTranslations && (
                 <div className="text-center py-8 text-gray-500">
-                  {searchTerm ? 'No keys found matching your search' : 'No translation keys available'}
+                  {searchTerm ? t('TranslationManager.noKeysFound') || 'No keys found matching your search' : t('TranslationManager.noKeysAvailable') || 'No translation keys available'}
                 </div>
               )}
             </CardContent>
@@ -359,40 +466,17 @@ export default function TranslationManager() {
         {/* Auto Completion Tab */}
         <TabsContent value="completion" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Auto Translation Completion</h3>
-            <Button 
-              onClick={async () => {
-                try {
-                  const response = await fetch('/api/translation-completion/auto-complete-all', {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                      'Content-Type': 'application/json'
-                    }
-                  });
-
-                  const data = await response.json();
-
-                  if (data.success) {
-                    toast({
-                      title: "Success",
-                      description: data.message,
-                    });
-                    queryClient.invalidateQueries({ queryKey: ['/api/translations'] });
-                  } else {
-                    throw new Error(data.message);
-                  }
-                } catch (error) {
-                  toast({
-                    title: "Error",
-                    description: "Failed to auto-complete translations",
-                    variant: "destructive"
-                  });
-                }
-              }}
+            <h3 className="text-lg font-semibold">
+              {t('TranslationManager.autoCompletionTitle') || 'Auto Translation Completion'}
+            </h3>
+            <Button
+              onClick={handleAutoCompleteAll}
+              disabled={loading}
               className="bg-green-600 hover:bg-green-700"
+              title={t('TranslationManager.ultraSafeMode') || 'Ultra-safe mode: Only JSON files modified, code protected'}
             >
-              Auto Complete All
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              🔒 {t('TranslationManager.autoCompleteAll') || 'Auto Complete All'}
             </Button>
           </div>
           <TranslationCompletionPanel />
@@ -404,10 +488,10 @@ export default function TranslationManager() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="w-5 h-5" />
-                All Translation Keys
+                {t('TranslationManager.allKeysTitle') || 'All Translation Keys'}
               </CardTitle>
               <CardDescription>
-                Overview of all available translation keys in the system
+                {t('TranslationManager.allKeysDescription') || 'Overview of all available translation keys in the system'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -419,7 +503,7 @@ export default function TranslationManager() {
                     <div key={key} className="flex items-center justify-between p-2 border rounded">
                       <span className="font-mono text-sm">{key}</span>
                       <Badge variant="outline" className="text-xs">
-                        {allKeysData.languages?.filter((lang: string) => 
+                        {allKeysData.languages?.filter((lang: string) =>
                           getNestedValue(allKeysData.translations?.[lang], key)
                         ).length} / {allKeysData.languages?.length || 0}
                       </Badge>
@@ -430,13 +514,34 @@ export default function TranslationManager() {
 
               {allKeysData?.keys?.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  No translation keys found
+                  {t('TranslationManager.noKeysFound') || 'No translation keys found'}
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Buttons for Analysis and Scanning */}
+      <div className="flex justify-between items-center mt-4">
+        <Button
+          onClick={handleAnalyze}
+          disabled={analyzing}
+          className="flex-1"
+        >
+          {analyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {t('TranslationManager.analyzeCompleteness') || 'Analyze Completeness'}
+        </Button>
+
+        <Button
+          onClick={handleScanKeys}
+          disabled={scanningKeys}
+          variant="outline"
+          className="flex-1 ml-4"
+        >
+          {scanningKeys ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {t('TranslationManager.scanKeys') || 'Scan Keys'}
+        </Button>
+      </div>
     </div>
   );
 }

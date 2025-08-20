@@ -15,6 +15,20 @@
     "loading_notes": "Loading notes...",
     "loading_history": "Loading history..."
   },
+  "TranslationManager": {
+    "title": "Translation Management",
+    "analyzeCompleteness": "Analyze Completeness",
+    "scanKeys": "Scan Keys",
+    "autoCompleteAll": "Auto Complete All",
+    "ultraSafeMode": "Ultra-safe mode: Only JSON files modified, code protected",
+    "autoCompletionSuccess": "Auto-completion completed safely!",
+    "autoCompletionFailed": "Failed to auto-complete translations",
+    "autoCompletionError": "Auto-completion failed",
+    "autoCompletionErrorDesc": "Failed to auto-complete translations",
+    "translationsAdded": "Translations added",
+    "codeFilesProtected": "Code files protected",
+    "reanalyze": "Reanalyze"
+  },
   "navigation": {
     "previous": "Previous",
     "next": "Next",
