@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ticket, Clock, Users, TrendingUp } from "lucide-react";
+import { useLocalization } from '@/hooks/useLocalization';
 
 export default function Dashboard() {
+  const { t } = useLocalization();
+
   // Temporarily removing internationalization
   
   const { data: statsResponse, isLoading } = useQuery({

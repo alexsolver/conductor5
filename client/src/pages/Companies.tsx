@@ -32,8 +32,11 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
+import { useLocalization } from '@/hooks/useLocalization';
 
 const companySchema = z.object({
+  // const { t } = useTranslation();
+
 
   name: z.string().min(1, "Nome da empresa é obrigatório"),
   displayName: z.string().optional(),
@@ -456,7 +459,7 @@ export default function Companies() {
         <div className="text-center py-12">
           <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {searchTerm ? "Buscar" : "Todas"}
+            {searchTerm ? "Resultados da busca" : "Todas as empresas"}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             {searchTerm 

@@ -119,6 +119,8 @@ interface Item {
 }
 
 const itemSchema = z.object({
+  // const { t } = useTranslation();
+
   name: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
   type: z.enum(["material", "service"]),
   integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal("")),
@@ -343,6 +345,7 @@ export default function ItemCatalog() {
             responseText.trim().startsWith('<html') || 
             responseText.includes('<script') ||
             responseText.includes('import { createHotContext }') ||
+import { useLocalization } from '@/hooks/useLocalization';
             responseText.includes('vite') ||
             responseText.includes('@vite/client')) {
           console.error('❌ [ItemCatalog] Received HTML/JavaScript instead of JSON - Vite interception detected');
@@ -401,8 +404,8 @@ export default function ItemCatalog() {
         console.log('Authentication error detected - components will handle auth state');
       } else {
         toast({
-          title: "Erro no catálogo",
-          description: "Erro ao carregar itens do catálogo. Tente novamente.",
+          title: {t('ItemCatalog.erroNoCatalogo')},
+          description: {t('ItemCatalog.erroAoCarregarItensDoCatalogoTenteNovamente')},
           variant: "destructive"
         });
       }
@@ -433,7 +436,7 @@ export default function ItemCatalog() {
         console.log('🔗 Links carregados:', result);
         return result?.data || { customers: [], suppliers: [] };
       } catch (error) {
-        console.error('Erro ao carregar vínculos do item:', error);
+        console.error({t('ItemCatalog.erroAoCarregarVinculosDoItem')}, error);
         return { customers: [], suppliers: [] };
       }
     },
@@ -446,7 +449,7 @@ export default function ItemCatalog() {
       const response = await apiRequest('POST', '/api/materials-services/items', data);
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Erro ao criar item');
+        throw new Error(error.message || {t('ItemCatalog.erroAoCriarItem')});
       }
       return response.json();
     },
@@ -454,7 +457,7 @@ export default function ItemCatalog() {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: "Item criado com sucesso",
+        title: {t('ItemCatalog.itemCriadoComSucesso')},
         description: "O item foi adicionado ao catálogo.",
       });
       setIsCreateModalOpen(false);
@@ -462,7 +465,7 @@ export default function ItemCatalog() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao criar item",
+        title: {t('ItemCatalog.erroAoCriarItem')},
         description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -478,14 +481,14 @@ export default function ItemCatalog() {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: "Item atualizado com sucesso",
+        title: {t('ItemCatalog.itemAtualizadoComSucesso')},
         description: "As alterações foram salvas.",
       });
       setCurrentView('item-details');
     },
     onError: () => {
       toast({
-        title: "Erro ao atualizar item",
+        title: {t('ItemCatalog.erroAoAtualizarItem')},
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -500,13 +503,13 @@ export default function ItemCatalog() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       toast({
-        title: "Item excluído com sucesso",
+        title: {t('ItemCatalog.itemExcluidoComSucesso')},
         description: "O item foi removido do catálogo.",
       });
     },
     onError: () => {
       toast({
-        title: "Erro ao excluir item",
+        title: {t('ItemCatalog.erroAoExcluirItem')},
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -632,7 +635,7 @@ export default function ItemCatalog() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Buscar por nome, código ou descrição..."
+                placeholder={t('ItemCatalog.buscarPorNomeCodigoOuDescricao')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -704,8 +707,8 @@ export default function ItemCatalog() {
             <div className="text-center py-8">
               <div className="text-gray-500 mb-4">
                 {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
-                  ? 'Nenhum item encontrado com os filtros aplicados'
-                  : 'Nenhum item cadastrado no catálogo'}
+                  ? {t('ItemCatalog.nenhumItemEncontradoComOsFiltrosAplicados')}
+                  : {t('ItemCatalog.nenhumItemCadastradoNoCatalogo')}}
               </div>
               {(!searchTerm && typeFilter === 'all' && statusFilter === 'all') && (
                 <Button onClick={() => window.location.reload()} variant="outline">
@@ -1162,7 +1165,7 @@ export default function ItemCatalog() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
+                              <SelectValue placeholder={t('ItemCatalog.selecioneOTipo')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -1289,7 +1292,7 @@ export default function ItemCatalog() {
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione itens filhos" />
+                          <SelectValue placeholder={t('ItemCatalog.selecioneItensFilhos')} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecionar item...</SelectItem>
@@ -1374,7 +1377,7 @@ export default function ItemCatalog() {
 
                             if (response.ok) {
                               toast({
-                                title: "Sucesso",
+                                title: {t('ItemCatalog.sucesso')},
                                 description: "Empresa vinculada com sucesso"
                               });
                               refetchItemLinks();
@@ -1383,8 +1386,8 @@ export default function ItemCatalog() {
                             }
                           } catch (error) {
                             toast({
-                              title: "Erro",
-                              description: "Erro ao vincular empresa",
+                              title: {t('ItemCatalog.erro')},
+                              description: {t('ItemCatalog.erroAoVincularEmpresa')},
                               variant: "destructive"
                             });
                           }
@@ -1424,7 +1427,7 @@ export default function ItemCatalog() {
 
                                 if (response.ok) {
                                   toast({
-                                    title: "Sucesso",
+                                    title: {t('ItemCatalog.sucesso')},
                                     description: "Empresa desvinculada com sucesso"
                                   });
                                   refetchItemLinks();
@@ -1433,8 +1436,8 @@ export default function ItemCatalog() {
                                 }
                               } catch (error) {
                                 toast({
-                                  title: "Erro",
-                                  description: "Erro ao desvincular empresa",
+                                  title: {t('ItemCatalog.erro')},
+                                  description: {t('ItemCatalog.erroAoDesvincularEmpresa')},
                                   variant: "destructive"
                                 });
                               }
@@ -1469,7 +1472,7 @@ export default function ItemCatalog() {
 
                             if (response.ok) {
                               toast({
-                                title: "Sucesso",
+                                title: {t('ItemCatalog.sucesso')},
                                 description: "Fornecedor vinculado com sucesso"
                               });
                               refetchItemLinks();
@@ -1478,8 +1481,8 @@ export default function ItemCatalog() {
                             }
                           } catch (error) {
                             toast({
-                              title: "Erro",
-                              description: "Erro ao vincular fornecedor",
+                              title: {t('ItemCatalog.erro')},
+                              description: {t('ItemCatalog.erroAoVincularFornecedor')},
                               variant: "destructive"
                             });
                           }
@@ -1519,7 +1522,7 @@ export default function ItemCatalog() {
 
                                 if (response.ok) {
                                   toast({
-                                    title: "Sucesso",
+                                    title: {t('ItemCatalog.sucesso')},
                                     description: "Fornecedor desvinculado com sucesso"
                                   });
                                   refetchItemLinks();
@@ -1528,8 +1531,8 @@ export default function ItemCatalog() {
                                 }
                               } catch (error) {
                                 toast({
-                                  title: "Erro",
-                                  description: "Erro ao desvincular fornecedor",
+                                  title: {t('ItemCatalog.erro')},
+                                  description: {t('ItemCatalog.erroAoDesvincularFornecedor')},
                                   variant: "destructive"
                                 });
                               }
@@ -1614,7 +1617,7 @@ export default function ItemCatalog() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
+                            <SelectValue placeholder={t('ItemCatalog.selecioneOTipo')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

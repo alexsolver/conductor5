@@ -7,9 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useLocalization } from '@/hooks/useLocalization';
 
 
 export default function AuthPage() {
+  const { t } = useLocalization();
+
   const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
 
@@ -186,7 +189,7 @@ export default function AuthPage() {
               Creating account...
             </>
           ) : (
-            "Criar Conta"
+Criar Conta
           )}
         </Button>
       </form>

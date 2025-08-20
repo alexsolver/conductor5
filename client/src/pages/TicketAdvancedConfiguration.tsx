@@ -44,9 +44,12 @@ import {
   Layers3
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema para configurações avançadas
 const advancedFieldSchema = z.object({
+  // const { t } = useTranslation();
+
   fieldName: z.string().min(1, "Nome do campo é obrigatório"),
   displayLabel: z.string().min(1, "Rótulo é obrigatório"),
   fieldType: z.enum(['text', 'textarea', 'select', 'multiselect', 'date', 'datetime', 'number', 'boolean', 'email', 'phone']),
@@ -609,7 +612,7 @@ function TicketAdvancedConfiguration() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === 'field' && (editingItem.id ? 'Editar Campo' : 'Novo Campo')}
+              {editingItem?.type === 'field' && (editingItem.id ? {t('TicketAdvancedConfiguration.editarCampo')} : 'Novo Campo')}
               {editingItem?.type === 'option' && 'Nova Opção'}
               {editingItem?.type === 'sla' && 'Configurar SLA'}
             </DialogTitle>
@@ -658,7 +661,7 @@ function TicketAdvancedConfiguration() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
+                              <SelectValue placeholder={t('TicketAdvancedConfiguration.selecioneOTipo')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -763,7 +766,7 @@ function TicketAdvancedConfiguration() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createFieldMutation.isPending || updateFieldMutation.isPending}>
-                    {editingItem.id ? 'Atualizar' : 'Criar'} Campo
+                    {editingItem.id ? 'Atualizar' : {t('TicketAdvancedConfiguration.criar')}} Campo
                   </Button>
                 </div>
               </form>
@@ -908,7 +911,7 @@ function TicketAdvancedConfiguration() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione a prioridade" />
+                            <SelectValue placeholder={t('TicketAdvancedConfiguration.selecioneAPrioridade')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

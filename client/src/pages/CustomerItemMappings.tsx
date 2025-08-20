@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Search, Package, DollarSign, User, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface CustomerItemMapping {
   id: string;
@@ -35,6 +36,8 @@ interface CustomerItemMapping {
 }
 
 export function CustomerItemMappings() {
+  const { t } = useLocalization();
+
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
