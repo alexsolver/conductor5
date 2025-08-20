@@ -160,6 +160,12 @@ export function Header() {
                     <span>Meu Perfil</span>
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/timecard" className="flex items-center">
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span>Registro de Ponto</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <div className="px-2 py-1.5">
                   <div className="text-xs font-medium text-muted-foreground mb-2">Idioma</div>
