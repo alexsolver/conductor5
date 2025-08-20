@@ -4,7 +4,7 @@
  */
 
 import { eq, and, like, or, sql, desc } from 'drizzle-orm';
-import { db } from '../../../../shared/schema';
+import { db } from '../../../../db';
 import { 
   translations, 
   translationKeys, 
