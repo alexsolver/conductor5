@@ -53,8 +53,8 @@ export class KnowledgeBaseApplicationService {
         conditions.push(eq(knowledgeBaseArticles.category, params.category));
       }
 
-      if (params.visibility) {
-        conditions.push(eq(knowledgeBaseArticles.visibility, params.visibility));
+      if (params.access_level) {
+        conditions.push(eq(knowledgeBaseArticles.access_level, params.access_level));
       }
 
       if (params.status) {
@@ -129,12 +129,13 @@ export class KnowledgeBaseApplicationService {
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        category: categoryMapping[articleData.category] || 'other', // Use 'category' not 'categoryId'
+        category: categoryMapping[articleData.category] || 'other',
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
         published: articleData.published || false,
         tags: articleData.tags || [],
+        access_level: articleData.access_level || 'public',
         visibility: articleData.visibility || 'public',
         publishedAt: articleData.published ? new Date() : null,
       };

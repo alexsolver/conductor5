@@ -47,7 +47,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async (data: { title: string; content: string; category: string; visibility: string; published: boolean; tags: string[]; status: string }) => {
+    mutationFn: async (data: { title: string; content: string; category: string; access_level: string; published: boolean; tags: string[]; status: string }) => {
       const response = await apiRequest('POST', '/api/knowledge-base/articles', data);
       if (!response.ok) {
         const errorData = await response.json();
@@ -127,10 +127,10 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         title: title.trim(),
         content: content.trim(),
         category,
-        visibility: access_level || 'public', // Mapeando access_level para visibility
+        access_level: access_level || 'public',
         published: published,
         tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        status: published ? 'published' : 'draft' // Status baseado em published
+        status: published ? 'published' : 'draft'
       };
 
       console.log('📝 [CREATE-ARTICLE] Submitting:', articleData);
