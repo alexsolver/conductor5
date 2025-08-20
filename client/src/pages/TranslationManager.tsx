@@ -188,10 +188,23 @@ export default function TranslationManager() {
     target[lastKey] = value;
   };
 
-  // Filter keys based on search
-  const filteredKeys = allKeysData?.keys?.filter((key: string) => 
-    key.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  // Filter keys based on search with minimal restrictions
+  const filteredKeys = allKeysData?.keys?.filter((key: string) => {
+    // Include key if it matches search term
+    if (searchTerm && !key.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+    
+    // Only exclude obvious technical keys
+    const technicalPatterns = [
+      /^\/api\//,
+      /^https?:\/\//,
+      /^\d{3}:?$/,
+      /^[#][0-9a-fA-F]{3,8}$/,
+    ];
+    
+    return !technicalPatterns.some(pattern => pattern.test(key));
+  }) || [];
 
   return (
     <div className="p-6 space-y-6">

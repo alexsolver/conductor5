@@ -37,7 +37,7 @@ export class TranslationCompletionService {
     'client/src/hooks'
   ];
 
-  // Mapeamento automático de traduções baseado em contexto
+  // Mapeamento automático expandido de traduções baseado em contexto
   private readonly AUTO_TRANSLATIONS: Record<string, Record<string, string>> = {
     'common.loading': {
       'en': 'Loading...',
@@ -304,6 +304,62 @@ export class TranslationCompletionService {
       'es': 'Ingrese texto',
       'fr': 'Saisissez le texte',
       'de': 'Text eingeben'
+    },
+    'buttons.submit': {
+      'en': 'Submit',
+      'pt-BR': 'Enviar',
+      'es': 'Enviar',
+      'fr': 'Soumettre',
+      'de': 'Senden'
+    },
+    'buttons.close': {
+      'en': 'Close',
+      'pt-BR': 'Fechar',
+      'es': 'Cerrar',
+      'fr': 'Fermer',
+      'de': 'Schließen'
+    },
+    'buttons.add': {
+      'en': 'Add',
+      'pt-BR': 'Adicionar',
+      'es': 'Agregar',
+      'fr': 'Ajouter',
+      'de': 'Hinzufügen'
+    },
+    'buttons.remove': {
+      'en': 'Remove',
+      'pt-BR': 'Remover',
+      'es': 'Eliminar',
+      'fr': 'Supprimer',
+      'de': 'Entfernen'
+    },
+    'messages.success': {
+      'en': 'Success',
+      'pt-BR': 'Sucesso',
+      'es': 'Éxito',
+      'fr': 'Succès',
+      'de': 'Erfolg'
+    },
+    'messages.error': {
+      'en': 'Error',
+      'pt-BR': 'Erro',
+      'es': 'Error',
+      'fr': 'Erreur',
+      'de': 'Fehler'
+    },
+    'messages.warning': {
+      'en': 'Warning',
+      'pt-BR': 'Aviso',
+      'es': 'Advertencia',
+      'fr': 'Avertissement',
+      'de': 'Warnung'
+    },
+    'messages.info': {
+      'en': 'Information',
+      'pt-BR': 'Informação',
+      'es': 'Información',
+      'fr': 'Information',
+      'de': 'Information'
     }
   };
 
@@ -312,13 +368,22 @@ export class TranslationCompletionService {
    */
   async scanTranslationKeys(): Promise<TranslationKey[]> {
     const keys: TranslationKey[] = [];
-    // ✅ 1QA.MD: Refined regex to avoid capturing API URLs as translation keys
-    // Only capture strings that look like translation keys (dot-separated words, no forward slashes)
-    const keyPattern = /(?:t\(|useTranslation\(\)\.t\(|i18n\.t\()\s*['"`]([a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+)['"`]/g;
+    
+    // Multiple patterns to capture different translation usage patterns
+    const keyPatterns = [
+      // Standard t() function calls
+      /(?:t\(|useTranslation\(\)\.t\(|i18n\.t\()\s*['"`]([^'"`\n]+)['"`]/g,
+      // React components with translation props
+      /\b(?:title|label|placeholder|text|description)\s*=\s*\{\s*t\(\s*['"`]([^'"`\n]+)['"`]/g,
+      // Translation hooks
+      /useTranslation\(\)\s*\.\s*t\s*\(\s*['"`]([^'"`\n]+)['"`]/g,
+    ];
 
     for (const sourceDir of this.SOURCE_DIRS) {
       try {
-        await this.scanDirectory(path.join(process.cwd(), sourceDir), keys, keyPattern);
+        for (const pattern of keyPatterns) {
+          await this.scanDirectory(path.join(process.cwd(), sourceDir), keys, pattern);
+        }
       } catch (error) {
         console.warn(`Could not scan directory ${sourceDir}:`, error);
       }
@@ -333,42 +398,40 @@ export class TranslationCompletionService {
    * Verifica se uma chave é uma chave de tradução válida
    */
   private isValidTranslationKey(key: string): boolean {
-    // Skip API URLs
-    if (key.includes('/api/') || key.includes('http') || key.includes('${')) {
+    // Skip empty or undefined
+    if (!key || typeof key !== 'string') {
       return false;
     }
 
-    // Skip single characters or numbers
-    if (key.length < 3 || /^\d+$/.test(key)) {
+    const trimmedKey = key.trim();
+    
+    // Skip very short keys
+    if (trimmedKey.length < 2) {
       return false;
     }
 
-    // Skip SQL keywords
-    const sqlKeywords = ['AND', 'OR', 'SELECT', 'FROM', 'WHERE', 'INSERT', 'UPDATE', 'DELETE'];
-    if (sqlKeywords.includes(key.toUpperCase())) {
+    // Only skip obvious technical patterns
+    const technicalPatterns = [
+      /^\/api\//,           // API routes
+      /^https?:\/\//,       // URLs
+      /^\d{3}:?$/,          // HTTP status codes
+      /^[A-Z]{2,}_[A-Z_]+$/, // Constants like API_KEY
+      /^\$\{.*\}$/,         // Template variables
+      /^[#][0-9a-fA-F]{3,8}$/, // Hex colors
+    ];
+
+    for (const pattern of technicalPatterns) {
+      if (pattern.test(trimmedKey)) {
+        return false;
+      }
+    }
+
+    // Skip pure numbers
+    if (/^\d+$/.test(trimmedKey)) {
       return false;
     }
 
-    // Skip HTTP status codes
-    if (/^\d{3}:?$/.test(key)) {
-      return false;
-    }
-
-    // Skip single special characters
-    if (/^[^a-zA-Z0-9]+$/.test(key) && key.length < 3) {
-      return false;
-    }
-
-    // Must have at least one dot for module.key structure
-    if (!key.includes('.')) {
-      return false;
-    }
-
-    // Must start with letter
-    if (!/^[a-zA-Z]/.test(key)) {
-      return false;
-    }
-
+    // Accept keys with dots (module.key) or standalone words
     return true;
   }
 
