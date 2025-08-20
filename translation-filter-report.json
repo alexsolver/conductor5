@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-08-20T12:48:28.461Z",
+  "phase": "translation-keys-filter",
+  "description": "Limpeza de chaves técnicas inválidas do sistema de traduções",
+  "invalidPatterns": [
+    "Códigos de cores hex (#3b82f6, #8b5cf6)",
+    "Endpoints de API (/api/approvals/...)",
+    "Métodos HTTP (GET, POST, PUT, etc.)",
+    "Códigos de moeda (BRL, USD)",
+    "Caracteres especiais isolados",
+    "Propriedades camelCase técnicas",
+    "Números isolados",
+    "Fragmentos de código"
+  ],
+  "cleanupRules": {
+    "hexColors": "Removidos códigos de cores hex",
+    "apiEndpoints": "Removidos endpoints de API",
+    "httpMethods": "Removidos métodos HTTP",
+    "currencyCodes": "Removidos códigos de moeda",
+    "technicalProperties": "Removidas propriedades técnicas",
+    "specialCharacters": "Removidos caracteres especiais isolados",
+    "codeFragments": "Removidos fragmentos de código"
+  },
+  "result": "Sistema de traduções limpo e organizado",
+  "nextStep": "Implementar traduções nos componentes React"
+}

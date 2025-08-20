@@ -1,0 +1,140 @@
+Nível Superior
+Nível Superior
+#3b82f6
+Nível Superior
+#8b5cf6
+Nível Superior
+,
+Nível Superior
+-
+Nível Superior
+/
+Nível Superior
+/api/approvals/instances/${instanceId}/decision
+Nível Superior
+/api/approvals/instances?${params}
+Nível Superior
+/api/automation-rules
+Nível Superior
+/api/automation-rules/${ruleId}
+Nível Superior
+/api/automation-rules/${ruleId}/test
+Nível Superior
+/api/automation-rules/metrics/overview
+Nível Superior
+/api/contracts
+Nível Superior
+/api/contracts/${contractId}
+Nível Superior
+/api/gdpr-compliance/cookie-consents
+Nível Superior
+/api/gdpr-compliance/data-subject-requests
+Nível Superior
+/api/gdpr-compliance/export-user-data
+Nível Superior
+/api/gdpr-compliance/metrics
+Nível Superior
+/api/gdpr-compliance/reports
+Nível Superior
+/api/gdpr-compliance/reports/${id}
+Nível Superior
+/api/gdpr-compliance/security-incidents
+Nível Superior
+/api/internal-forms/submissions${formId ?
+Nível Superior
+/api/locations
+Nível Superior
+/api/locations/${location.id}
+Aninhada
+/api/materials-services/tickets/${ticketId}/consumed-items
+Nível Superior
+/api/sla/analytics/compliance
+Nível Superior
+/api/sla/definitions
+Nível Superior
+/api/sla/instances/active
+Nível Superior
+/api/sla/instances/breached
+Nível Superior
+/api/sla/violations
+Nível Superior
+/api/sla/workflows
+Nível Superior
+/api/user-management/invitations
+Nível Superior
+/api/user-management/invitations/${invitationId}/resend
+Nível Superior
+/api/user-management/invitations/${invitationId}/revoke
+Nível Superior
+/api/user-management/sessions/${sessionId}/terminate
+Nível Superior
+/api/user-management/users/${userId}/sessions/terminate-all
+Nível Superior
+4
+Nível Superior
+400:
+Nível Superior
+:
+Nível Superior
+?
+Nível Superior
+@
+Nível Superior
+AND
+Nível Superior
+America/Sao_Paulo
+Nível Superior
+Ativo
+Nível Superior
+BRL
+Nível Superior
+Brasil
+Nível Superior
+DELETE
+Nível Superior
+Dados sensíveis revelados para o campo: ${showPasswordDialog.field}
+Aninhada
+Digite sua senha
+Nível Superior
+Erro ao criar regra. Verifique o console para mais detalhes.
+Aninhada
+Erro ao criar regra: ${errorData.error || response.statusText}
+Aninhada
+Erro na sincronização. Verifique o console para mais detalhes.
+Aninhada
+Erro na sincronização: ${errorData.error || response.statusText}
+Aninhada
+GET
+Nível Superior
+Localização atual (GPS)
+Nível Superior
+Motivo da rejeição:
+Nível Superior
+PATCH
+Nível Superior
+POST
+Nível Superior
+PUT
+Nível Superior
+Pipeline salvo com sucesso!
+Nível Superior
+Query salva como regra de aprovação!
+Nível Superior
+Query testada! Verifique o console para detalhes.
+Aninhada
+T
+Nível Superior
+\n
+Nível Superior
+\n\n--- Mensagem Original ---\nDe: ${email.from}\nData: ${new Date(email.createdAt).toLocaleString()}\n\n${email.content}
+Aninhada
+a
+Nível Superior
+acquisitionCost
+Nível Superior
+action
+Nível Superior
+active
+Nível Superior
+address
+Nível Superior

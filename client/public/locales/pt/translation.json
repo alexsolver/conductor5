@@ -1,7 +1,5 @@
 {
   "common": {
-    "selectOption": "Selecionar opção",
-    "noOptions": "Nenhuma opção",
     "search": "Buscar...",
     "loading": "Carregando...",
     "save": "Salvar",
@@ -9,9 +7,7 @@
     "delete": "Excluir",
     "edit": "Editar",
     "close": "Fechar",
-    "open": "Abrir",
-    "showMore": "Mostrar mais",
-    "showLess": "Mostrar menos"
+    "open": "Abrir"
   },
   "navigation": {
     "previous": "Anterior",
@@ -20,11 +16,6 @@
     "dashboard": "Painel"
   },
   "components": {
-    "userSelect": {
-      "placeholder": "Selecionar usuário...",
-      "noResults": "Nenhum usuário encontrado",
-      "searchPlaceholder": "Buscar usuários..."
-    },
     "button": {
       "loading": "Carregando...",
       "save": "Salvar",
@@ -49,7 +40,6 @@
     },
     "select": {
       "placeholder": "Selecionar opção...",
-      "noOptions": "Nenhuma opção disponível",
       "search": "Buscar opções...",
       "clear": "Limpar seleção"
     },
@@ -61,13 +51,9 @@
       "delete": "Excluir"
     },
     "table": {
-      "noData": "Nenhum dado disponível",
       "loading": "Carregando...",
-      "sortAsc": "Ordenar crescente",
-      "sortDesc": "Ordenar decrescente",
       "filter": "Filtrar",
       "search": "Pesquisar na tabela...",
-      "rowsPerPage": "Linhas por página",
       "showing": "Mostrando",
       "of": "de",
       "entries": "entradas"
@@ -85,8 +71,6 @@
     "validation": {
       "required": "Este campo é obrigatório",
       "email": "Por favor, insira um endereço de email válido",
-      "minLength": "Mínimo de {{count}} caracteres necessários",
-      "maxLength": "Máximo de {{count}} caracteres permitidos",
       "numeric": "Por favor, insira um número válido",
       "phone": "Por favor, insira um telefone válido",
       "date": "Por favor, insira uma data válida"
@@ -119,9 +103,7 @@
       "title": "Painel",
       "welcome": "Bem-vindo ao Conductor",
       "overview": "Visão Geral",
-      "statistics": "Estatísticas",
-      "recentActivity": "Atividade Recente",
-      "quickActions": "Ações Rápidas"
+      "statistics": "Estatísticas"
     },
     "customers": {
       "title": "Clientes",
@@ -129,7 +111,6 @@
       "add": "Adicionar Cliente",
       "edit": "Editar Cliente",
       "search": "Buscar clientes...",
-      "noResults": "Nenhum cliente encontrado",
       "total": "Total de clientes"
     },
     "tickets": {
@@ -139,8 +120,7 @@
       "edit": "Editar Ticket",
       "details": "Detalhes do Ticket",
       "status": "Status",
-      "priority": "Prioridade",
-      "assignedTo": "Atribuído a"
+      "priority": "Prioridade"
     },
     "users": {
       "title": "Usuários",
@@ -165,17 +145,13 @@
     "title": "Painel",
     "overview": "Visão Geral",
     "stats": "Estatísticas",
-    "quickActions": "Ações Rápidas",
-    "recentActivity": "Atividade Recente",
     "statistics": "Estatísticas",
     "welcome": "Bem-vindo ao Conductor"
   },
   "auth": {
     "login": "Entrar",
     "register": "Registrar",
-    "logout": "Sair",
-    "forgotPassword": "Esqueci a Senha",
-    "resetPassword": "Redefinir Senha"
+    "logout": "Sair"
   },
   "users": {
     "title": "Usuários",
@@ -211,8 +187,7 @@
     "approvals": "Aprovações de Ponto",
     "settings": "Configurações de Aprovação",
     "reports": "Relatórios de Ponto",
-    "compliance": "Compliance CLT",
-    "hourBank": "Banco de Horas"
+    "compliance": "Compliance CLT"
   },
   "assets": {
     "title": "Ativos",
@@ -234,7 +209,6 @@
     "billing": "Faturamento"
   },
   "hr": {
-    "title": "RH",
     "absence": "Gestão de Ausências",
     "teams": "Gestão de Equipes",
     "skills": "Habilidades Técnicas",
@@ -305,31 +279,6 @@
     "landing": "Página Inicial",
     "demo": "Demo"
   },
-  "absenceManagement": {
-    "title": "Gestão de Ausências",
-    "request": "Solicitar Ausência",
-    "approve": "Aprovar Solicitação",
-    "reject": "Rejeitar Solicitação",
-    "pending": "Solicitações Pendentes",
-    "history": "Histórico de Ausências",
-    "balance": "Saldo de Férias"
-  },
-  "activityPlanner": {
-    "title": "Planejador de Atividades",
-    "schedule": "Agendar Atividade",
-    "calendar": "Calendário de Atividades",
-    "resources": "Planejamento de Recursos",
-    "timeline": "Cronograma do Projeto"
-  },
-  "agendaManager": {
-    "title": "Gestor de Agenda",
-    "timeline": "Visualização Cronológica",
-    "agenda": "Visualização de Agenda",
-    "schedule": "Agendar Reunião",
-    "filter": "Filtrar Agenda",
-    "agents": "Agentes",
-    "clients": "Clientes"
-  },
   "analytics": {
     "title": "Análises",
     "insights": "Insights detalhados sobre seu desempenho de suporte",
@@ -337,34 +286,6 @@
     "trends": "Análise de Tendências",
     "reports": "Relatórios de Análise",
     "satisfaction": "Satisfação do Cliente"
-  },
-  "approvalManagement": {
-    "title": "Gestão de Aprovações",
-    "workflow": "Fluxo de Aprovação",
-    "pending": "Aprovações Pendentes",
-    "history": "Histórico de Aprovações",
-    "rules": "Regras de Aprovação",
-    "chain": "Cadeia de Aprovação"
-  },
-  "assetManagement": {
-    "title": "Gestão de Ativos",
-    "inventory": "Inventário de Ativos",
-    "maintenance": "Cronograma de Manutenção",
-    "lifecycle": "Ciclo de Vida do Ativo",
-    "depreciation": "Depreciação",
-    "location": "Localização do Ativo",
-    "assignment": "Atribuição de Ativo",
-    "qrcode": "Código QR",
-    "warranty": "Garantia"
-  },
-  "automationRules": {
-    "title": "Regras de Automação",
-    "create": "Criar Regra",
-    "trigger": "Gatilhos de Regra",
-    "action": "Ações da Regra",
-    "condition": "Condições",
-    "active": "Regras Ativas",
-    "inactive": "Regras Inativas"
   },
   "beneficiaries": {
     "title": "Beneficiários",
@@ -375,21 +296,6 @@
     "document": "Documentos",
     "contact": "Informações de Contato"
   },
-  "certificateManager": {
-    "title": "Gestor de Certificados",
-    "ssl": "Certificados SSL",
-    "expiry": "Alertas de Expiração",
-    "renewal": "Renovação de Certificado",
-    "validation": "Validação de Certificado"
-  },
-  "cltCompliance": {
-    "title": "Conformidade CLT",
-    "labor": "Lei Trabalhista",
-    "audit": "Auditoria de Conformidade",
-    "report": "Relatório de Conformidade",
-    "violation": "Violações",
-    "remediation": "Plano de Correção"
-  },
   "companies": {
     "title": "Empresas",
     "profile": "Perfil da Empresa",
@@ -397,54 +303,6 @@
     "branches": "Filiais",
     "departments": "Departamentos",
     "subsidiaries": "Subsidiárias"
-  },
-  "complianceManagement": {
-    "title": "Gestão de Conformidade",
-    "audit": "Auditoria de Conformidade",
-    "certification": "Certificações",
-    "alert": "Alertas de Conformidade",
-    "score": "Pontuação de Conformidade",
-    "evidence": "Gestão de Evidências",
-    "framework": "Framework de Conformidade"
-  },
-  "contractManagement": {
-    "title": "Gestão de Contratos",
-    "create": "Criar Contrato",
-    "template": "Modelos de Contrato",
-    "negotiation": "Negociação de Contrato",
-    "approval": "Aprovação de Contrato",
-    "renewal": "Renovação de Contrato",
-    "termination": "Rescisão de Contrato"
-  },
-  "corporateExpense": {
-    "title": "Gestão de Despesas Corporativas",
-    "submit": "Enviar Despesa",
-    "receipt": "Gestão de Recibos",
-    "policy": "Política de Despesas",
-    "reimbursement": "Reembolso",
-    "category": "Categorias de Despesas"
-  },
-  "customFields": {
-    "title": "Administrador de Campos Personalizados",
-    "create": "Criar Campo",
-    "type": "Tipo de Campo",
-    "validation": "Validação de Campo",
-    "group": "Grupos de Campos",
-    "template": "Modelos de Campos"
-  },
-  "customerCompanies": {
-    "title": "Empresas de Clientes",
-    "mapping": "Mapeamento de Empresas",
-    "relationship": "Relacionamentos de Empresas",
-    "hierarchy": "Hierarquia de Empresas",
-    "contacts": "Contatos da Empresa"
-  },
-  "customerItemMappings": {
-    "title": "Mapeamentos de Itens de Clientes",
-    "create": "Criar Mapeamento",
-    "bulk": "Importação em Lote",
-    "sync": "Sincronizar Mapeamentos",
-    "validation": "Validação de Mapeamento"
   },
   "dashboards": {
     "title": "Painéis",
@@ -454,83 +312,10 @@
     "sharing": "Compartilhamento de Painel",
     "template": "Modelos de Painel"
   },
-  "dragDropDemo": {
-    "title": "Demo de Arrastar e Soltar",
-    "demonstration": "Demonstração Interativa",
-    "features": "Demonstração de Recursos"
-  },
-  "gdprCompliance": {
-    "title": "Conformidade GDPR",
-    "dataMapping": "Mapeamento de Dados",
-    "consent": "Gestão de Consentimento",
-    "rightsRequest": "Direitos do Titular",
-    "breach": "Violação de Dados",
-    "assessment": "Avaliação de Impacto na Privacidade"
-  },
-  "holidayCalendar": {
-    "title": "Calendário de Feriados",
-    "national": "Feriados Nacionais",
-    "regional": "Feriados Regionais",
-    "custom": "Feriados Personalizados",
-    "policy": "Política de Feriados"
-  },
-  "hourBank": {
-    "title": "Banco de Horas",
-    "balance": "Saldo de Horas",
-    "compensation": "Compensação de Horas",
-    "policy": "Política do Banco de Horas",
-    "report": "Relatório do Banco de Horas"
-  },
-  "internalForms": {
-    "title": "Formulários Internos",
-    "builder": "Construtor de Formulários",
-    "submission": "Envios de Formulário",
-    "workflow": "Fluxo do Formulário",
-    "approval": "Aprovação de Formulário"
-  },
-  "itemCatalog": {
-    "title": "Catálogo de Itens",
-    "product": "Gestão de Produtos",
-    "category": "Categorias de Produtos",
-    "pricing": "Regras de Preço",
-    "inventory": "Níveis de Estoque",
-    "supplier": "Informações do Fornecedor"
-  },
-  "knowledgeBase": {
-    "title": "Base de Conhecimento",
-    "article": "Artigos de Conhecimento",
-    "search": "Busca de Conhecimento",
-    "category": "Categorias de Artigos",
-    "approval": "Aprovação de Artigos",
-    "analytics": "Análises de Conhecimento"
-  },
   "landing": {
     "title": "Página Inicial",
     "welcome": "Bem-vindo",
-    "features": "Recursos da Plataforma",
-    "getStarted": "Começar"
-  },
-  "locationsManagement": {
-    "title": "Gestão de Localizações",
-    "add": "Adicionar Localização",
-    "map": "Mapa de Localizações",
-    "hierarchy": "Hierarquia de Localizações",
-    "coordinates": "Coordenadas GPS",
-    "address": "Gestão de Endereços"
-  },
-  "lpuManagement": {
-    "title": "Gestão LPU",
-    "units": "Unidades LPU",
-    "configuration": "Configuração LPU",
-    "monitoring": "Monitoramento LPU",
-    "performance": "Performance LPU"
-  },
-  "moduleIntegrity": {
-    "title": "Controle de Integridade de Módulos",
-    "validation": "Validação de Módulos",
-    "health": "Saúde do Sistema",
-    "monitoring": "Monitoramento de Integridade",
-    "alerts": "Alertas de Integridade"
+    "features": "Recursos da Plataforma"
   },
   "notifications": {
     "title": "Notificações",
@@ -539,158 +324,5 @@
     "templates": "Modelos de Notificação",
     "history": "Histórico de Notificações",
     "preferences": "Preferências do Usuário"
-  },
-  "omniBridge": {
-    "title": "OmniBridge",
-    "integration": "Integração de Sistemas",
-    "mapping": "Mapeamento de Dados",
-    "sync": "Sincronização de Dados",
-    "monitoring": "Monitoramento de Integração"
-  },
-  "productivityReports": {
-    "title": "Relatórios de Produtividade",
-    "metrics": "Métricas de Produtividade",
-    "analysis": "Análise de Performance",
-    "trends": "Tendências de Produtividade",
-    "benchmarks": "Benchmarks"
-  },
-  "reportManagement": {
-    "title": "Gestão de Relatórios",
-    "create": "Criar Relatório",
-    "edit": "Editar Relatório",
-    "designer": "Designer de Relatório",
-    "preview": "Visualização do Relatório",
-    "schedule": "Agendar Relatório"
-  },
-  "saasAdmin": {
-    "title": "Administração SaaS",
-    "tenants": "Gestão de Tenants",
-    "billing": "Gestão de Faturamento",
-    "performance": "Monitoramento de Performance",
-    "integrations": "Integrações do Sistema",
-    "disaster": "Recuperação de Desastres",
-    "analytics": "Análises da Plataforma"
-  },
-  "securitySettings": {
-    "title": "Configurações de Segurança",
-    "authentication": "Configurações de Autenticação",
-    "authorization": "Políticas de Autorização",
-    "encryption": "Criptografia de Dados",
-    "audit": "Auditoria de Segurança",
-    "monitoring": "Monitoramento de Segurança"
-  },
-  "settingsManagement": {
-    "title": "Configurações",
-    "general": "Configurações Gerais",
-    "simple": "Configurações Simples",
-    "advanced": "Configurações Avançadas",
-    "system": "Configurações do Sistema",
-    "user": "Configurações do Usuário"
-  },
-  "slaManagement": {
-    "title": "Gestão de SLA",
-    "agreements": "Acordos de Nível de Serviço",
-    "monitoring": "Monitoramento de SLA",
-    "violations": "Violações de SLA",
-    "reporting": "Relatórios de SLA",
-    "metrics": "Métricas de SLA"
-  },
-  "stockManagement": {
-    "title": "Gestão de Estoque",
-    "inventory": "Controle de Estoque",
-    "movements": "Movimentações de Estoque",
-    "levels": "Níveis de Estoque",
-    "alerts": "Alertas de Estoque",
-    "valuation": "Avaliação de Estoque"
-  },
-  "supplierManagement": {
-    "title": "Gestão de Fornecedores",
-    "vendors": "Diretório de Fornecedores",
-    "evaluation": "Avaliação de Fornecedores",
-    "contracts": "Contratos de Fornecedores",
-    "performance": "Performance de Fornecedores",
-    "qualifications": "Qualificações de Fornecedores"
-  },
-  "teamManagement": {
-    "title": "Gestão de Equipes",
-    "structure": "Estrutura da Equipe",
-    "roles": "Funções da Equipe",
-    "assignments": "Atribuições da Equipe",
-    "performance": "Performance da Equipe",
-    "collaboration": "Colaboração da Equipe"
-  },
-  "technicalSkills": {
-    "title": "Habilidades Técnicas",
-    "assessment": "Avaliação de Habilidades",
-    "development": "Desenvolvimento de Habilidades",
-    "certification": "Certificação de Habilidades",
-    "matrix": "Matriz de Habilidades",
-    "gaps": "Análise de Lacunas"
-  },
-  "templateSelector": {
-    "title": "Seletor de Modelos",
-    "themes": "Temas de Modelos",
-    "customization": "Personalização de Modelos",
-    "preview": "Visualização do Modelo",
-    "library": "Biblioteca de Modelos"
-  },
-  "tenantAdmin": {
-    "title": "Administração do Tenant",
-    "general": "Administração Geral",
-    "branding": "Marca do Tenant",
-    "integrations": "Integrações do Tenant",
-    "slas": "SLAs do Tenant",
-    "workflows": "Fluxos do Tenant",
-    "provisioning": "Provisionamento do Tenant"
-  },
-  "ticketSystem": {
-    "title": "Sistema de Tickets",
-    "list": "Lista de Tickets",
-    "create": "Criar Ticket",
-    "edit": "Editar Ticket",
-    "details": "Detalhes do Ticket",
-    "configuration": "Configuração de Tickets",
-    "advanced": "Configuração Avançada",
-    "templates": "Modelos de Tickets",
-    "materials": "Materiais do Ticket",
-    "workflow": "Fluxo do Ticket",
-    "assignment": "Atribuição de Tickets",
-    "escalation": "Escalação de Tickets"
-  },
-  "timecardSystem": {
-    "title": "Sistema de Cartão de Ponto",
-    "clockin": "Entrada/Saída",
-    "autonomous": "Cartão Autônomo",
-    "approvals": "Aprovações de Ponto",
-    "settings": "Configurações de Aprovação",
-    "reports": "Relatórios de Ponto",
-    "compliance": "Conformidade CLT",
-    "overtime": "Gestão de Horas Extras",
-    "adjustments": "Ajustes de Tempo"
-  },
-  "translationManager": {
-    "title": "Gestor de Traduções",
-    "languages": "Gestão de Idiomas",
-    "keys": "Chaves de Tradução",
-    "export": "Exportar Traduções",
-    "import": "Importar Traduções",
-    "validation": "Validação de Traduções"
-  },
-  "userManagement": {
-    "title": "Gestão de Usuários",
-    "profile": "Perfil do Usuário",
-    "roles": "Funções do Usuário",
-    "permissions": "Permissões do Usuário",
-    "groups": "Grupos de Usuários",
-    "activation": "Ativação de Usuário",
-    "deactivation": "Desativação de Usuário"
-  },
-  "workSchedules": {
-    "title": "Cronogramas de Trabalho",
-    "shifts": "Turnos de Trabalho",
-    "calendar": "Calendário de Horários",
-    "rotation": "Rotação de Horários",
-    "exceptions": "Exceções de Horário",
-    "templates": "Modelos de Horário"
   }
 }
