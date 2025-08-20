@@ -58,17 +58,17 @@ router.get('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const { language } = req.params;
-    
+
     if (!SUPPORTED_LANGUAGES.includes(language)) {
       return res.status(400).json({ message: 'Unsupported language' });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}/translation.json`);
-    
+    const filePath = path.join(TRANSLATIONS_DIR, language, 'translation.json');
+
     try {
       const fileContent = await fs.readFile(filePath, 'utf8');
       const translations = JSON.parse(fileContent);
-      
+
       res.json({ 
         language,
         translations,
@@ -97,7 +97,7 @@ router.put('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     const { language } = req.params;
-    
+
     if (!SUPPORTED_LANGUAGES.includes(language)) {
       return res.status(400).json({ message: 'Unsupported language' });
     }
@@ -114,10 +114,10 @@ router.put('/:language', jwtAuth, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}/translation.json`);
-    
+    const filePath = path.join(TRANSLATIONS_DIR, language, 'translation.json');
+
     // Create backup before updating
-    const backupPath = path.join(TRANSLATIONS_DIR, `${language}/translation.backup.json`);
+    const backupPath = path.join(TRANSLATIONS_DIR, language, 'translation.backup.json');
     try {
       const currentContent = await fs.readFile(filePath, 'utf8');
       await fs.writeFile(backupPath, currentContent);
@@ -153,18 +153,18 @@ router.post('/:language/restore', jwtAuth, async (req: AuthenticatedRequest, res
     }
 
     const { language } = req.params;
-    
+
     if (!SUPPORTED_LANGUAGES.includes(language)) {
       return res.status(400).json({ message: 'Unsupported language' });
     }
 
-    const filePath = path.join(TRANSLATIONS_DIR, `${language}/translation.json`);
-    const backupPath = path.join(TRANSLATIONS_DIR, `${language}/translation.backup.json`);
+    const filePath = path.join(TRANSLATIONS_DIR, language, 'translation.json');
+    const backupPath = path.join(TRANSLATIONS_DIR, language, 'translation.backup.json');
 
     try {
       const backupContent = await fs.readFile(backupPath, 'utf8');
       await fs.writeFile(filePath, backupContent);
-      
+
       res.json({
         message: 'Translations restored from backup',
         language,
@@ -189,7 +189,7 @@ function isValidTranslationKey(key: string): boolean {
   }
 
   const trimmedKey = key.trim();
-  
+
   // Skip very short keys
   if (trimmedKey.length < 2) {
     return false;
@@ -221,7 +221,7 @@ function isValidTranslationKey(key: string): boolean {
     'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD',
     'BRL', 'USD', 'EUR', 'true', 'false', 'null', 'undefined'
   ];
-  
+
   if (technicalConstants.includes(trimmedKey.toUpperCase())) {
     return false;
   }
@@ -246,12 +246,12 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     for (const lang of SUPPORTED_LANGUAGES) {
       try {
-        const filePath = path.join(TRANSLATIONS_DIR, `${lang}.json`);
+        const filePath = path.join(TRANSLATIONS_DIR, `${lang}/translation.json`);
         const fileContent = await fs.readFile(filePath, 'utf8');
         const langTranslations = JSON.parse(fileContent);
-        
+
         translations[lang] = langTranslations;
-        
+
         // Extract all keys recursively with minimal filtering
         const extractKeys = (obj: any, prefix = '') => {
           Object.keys(obj).forEach(key => {
@@ -266,7 +266,7 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
             }
           });
         };
-        
+
         extractKeys(langTranslations);
       } catch (error) {
         console.warn(`Could not read ${lang} translations:`, error);
@@ -275,7 +275,7 @@ router.get('/keys/all', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const allKeysArray = Array.from(allKeys);
     const validKeys = allKeysArray.filter(key => isValidTranslationKey(key)).sort();
-    
+
     console.log(`🔍 [TRANSLATION-KEYS] Total keys found: ${allKeysArray.length}`);
     console.log(`✅ [TRANSLATION-KEYS] Valid keys after filtering: ${validKeys.length}`);
     console.log(`❌ [TRANSLATION-KEYS] Filtered out: ${allKeysArray.length - validKeys.length}`);

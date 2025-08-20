@@ -30,7 +30,7 @@ interface AutoTranslationConfig {
 
 export class TranslationCompletionService {
   private readonly SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'es', 'fr', 'de'];
-  private readonly TRANSLATIONS_DIR = path.join(process.cwd(), 'client/src/i18n/locales');
+  private readonly TRANSLATIONS_DIR = path.join(process.cwd(), 'client/public/locales');
   private readonly SOURCE_DIRS = [
     'client/src/pages',
     'client/src/components',
@@ -491,7 +491,7 @@ export class TranslationCompletionService {
 
     for (const language of this.SUPPORTED_LANGUAGES) {
       try {
-        const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
+        const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
 
         if (!await fs.access(filePath).then(() => true).catch(() => false)) {
           continue;
@@ -505,7 +505,7 @@ export class TranslationCompletionService {
 
         if (invalidKeys.length > 0) {
           // Create backup
-          const backupPath = path.join(this.TRANSLATIONS_DIR, `${language}.backup.json`);
+          const backupPath = path.join(this.TRANSLATIONS_DIR, language, `translation.backup.json`);
           await fs.writeFile(backupPath, fileContent);
 
           // Write cleaned translations
@@ -589,25 +589,27 @@ export class TranslationCompletionService {
 
     for (const language of this.SUPPORTED_LANGUAGES) {
       console.log(`🔍 [ULTRA-SAFE] Processing ${language} translation file...`);
-      
+
       try {
-        const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
-        
+        const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
+
         // Verifica se o arquivo existe
         const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
         if (!fileExists) {
-          console.log(`⚠️ [ULTRA-SAFE] ${language}.json não encontrado, criando...`);
+          console.log(`⚠️ [ULTRA-SAFE] ${language}/translation.json não encontrado, criando...`);
+          // Ensure the directory exists
+          await fs.mkdir(path.dirname(filePath), { recursive: true });
           await fs.writeFile(filePath, JSON.stringify({}, null, 2));
         }
 
         // Lê o arquivo atual
         const currentContent = await fs.readFile(filePath, 'utf8');
         let translations: any = {};
-        
+
         try {
           translations = JSON.parse(currentContent);
         } catch (parseError) {
-          console.warn(`⚠️ [ULTRA-SAFE] ${language}.json tem formato inválido, resetando...`);
+          console.warn(`⚠️ [ULTRA-SAFE] ${language}/translation.json tem formato inválido, resetando...`);
           translations = {};
         }
 
@@ -625,13 +627,13 @@ export class TranslationCompletionService {
 
         // Salva apenas se houve modificações
         if (translationsModified) {
-          const backupPath = path.join(this.TRANSLATIONS_DIR, `${language}.json.backup-${Date.now()}`);
+          const backupPath = path.join(this.TRANSLATIONS_DIR, language, `translation.json.backup-${Date.now()}`);
           await fs.writeFile(backupPath, currentContent); // Backup primeiro
-          
+
           await fs.writeFile(filePath, JSON.stringify(translations, null, 2));
-          console.log(`✅ [ULTRA-SAFE] ${language}.json updated with ${addedKeys.length} new translations`);
+          console.log(`✅ [ULTRA-SAFE] ${language}/translation.json updated with ${addedKeys.length} new translations`);
         } else {
-          console.log(`ℹ️ [ULTRA-SAFE] ${language}.json already complete, no changes needed`);
+          console.log(`ℹ️ [ULTRA-SAFE] ${language}/translation.json already complete, no changes needed`);
         }
 
         results.push({
@@ -662,14 +664,14 @@ export class TranslationCompletionService {
   private hasTranslation(obj: any, key: string): boolean {
     const keys = key.split('.');
     let current = obj;
-    
+
     for (const k of keys) {
       if (!current || typeof current !== 'object' || !(k in current)) {
         return false;
       }
       current = current[k];
     }
-    
+
     return current !== undefined && current !== null && current !== '';
   }
 
@@ -679,7 +681,7 @@ export class TranslationCompletionService {
   private setTranslation(obj: any, key: string, value: string): void {
     const keys = key.split('.');
     let current = obj;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       const k = keys[i];
       if (!current[k] || typeof current[k] !== 'object') {
@@ -687,7 +689,7 @@ export class TranslationCompletionService {
       }
       current = current[k];
     }
-    
+
     current[keys[keys.length - 1]] = value;
   }
 
@@ -1054,7 +1056,7 @@ export class TranslationCompletionService {
 
     for (const language of this.SUPPORTED_LANGUAGES) {
       try {
-        const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
+        const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
         const fileContent = await fs.readFile(filePath, 'utf8');
         const translations = JSON.parse(fileContent);
 
@@ -1180,7 +1182,7 @@ export class TranslationCompletionService {
         return result;
       }
 
-      const filePath = path.join(this.TRANSLATIONS_DIR, `${language}.json`);
+      const filePath = path.join(this.TRANSLATIONS_DIR, language, 'translation.json');
       let translations: any = {};
 
       // Carrega traduções existentes
@@ -1189,6 +1191,9 @@ export class TranslationCompletionService {
         translations = JSON.parse(content);
       } catch (error) {
         console.warn(`Creating new translation file for ${language}`);
+        // Ensure the directory exists
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, JSON.stringify({}, null, 2));
       }
 
       // Adiciona traduções faltantes
