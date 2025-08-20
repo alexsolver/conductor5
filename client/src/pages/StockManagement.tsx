@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useLocalization } from "@/hooks/useLocalization";
 import { apiRequest } from "@/lib/queryClient";
 import { 
 // import { useTranslation } from 'react-i18next';
