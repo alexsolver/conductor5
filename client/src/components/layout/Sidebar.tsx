@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useTranslation } from 'react-i18next';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,8 +76,8 @@ const baseNavigation: Array<{
     icon: any;
   }>;
 }> = [
-  { name: "Clientes", href: "/customers", icon: Users },
-  { name: "Tickets", href: "/tickets", icon: Ticket },
+  { name: "{t('customers.title')}", href: "/customers", icon: Users },
+  { name: "{t('ticketSystem.title')}", href: "/tickets", icon: Ticket },
   { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
   {
     name: "Controle de Jornadas",
@@ -132,7 +133,7 @@ const adminNavigation = [
     icon: Shield, 
     roles: ['saas_admin'],
     children: [
-      { name: "Dashboard", href: "/saas-admin", icon: BarChart3 },
+      { name: "{t('dashboard.title')}", href: "/saas-admin", icon: BarChart3 },
       { name: "Gestão de Tenants", href: "/saas-admin/tenants", icon: Database },
       { name: "Performance & Saúde", href: "/saas-admin/performance", icon: TrendingUp },
       { name: "Configurações de Segurança", href: "/saas-admin/security", icon: Shield },
@@ -165,7 +166,7 @@ const adminNavigation = [
       { name: "Configurações de Tickets", href: "/ticket-configuration", icon: Settings },
       { name: "Templates de Tickets", href: "/ticket-templates", icon: FileText },
       { name: "Campos Customizados", href: "/custom-fields-admin", icon: Wrench },
-      { name: "Clientes", href: "/customers", icon: Users },
+      { name: "{t('customers.title')}", href: "/customers", icon: Users },
       { name: "Favorecidos", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
       { name: "OmniBridge", href: "/omnibridge", icon: MessageSquare }, // Added OmniBridge link
@@ -184,6 +185,8 @@ const secondaryNavigation = [
 ];
 
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
+  const { t } = useTranslation();
+
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
   const { terminology, employmentType } = useEmploymentDetection();
@@ -211,7 +214,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   // Create navigation with dynamic badges and employment-specific terminology
   const navigation = baseNavigation.map(item => {
-    if (item.name === "Tickets" && activeTicketsCount > 0) {
+    if (item.name === "{t('ticketSystem.title')}" && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
 
