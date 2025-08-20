@@ -33,14 +33,14 @@ export class KnowledgeBaseApplicationService {
   }> {
     try {
       this.logger.log(`[KB-SERVICE] Searching articles for tenant: ${this.tenantId}`);
+      this.logger.log(`[KB-SERVICE] Search params:`, JSON.stringify(params, null, 2));
 
-      // Use tenant-specific schema
-      const tenantSchema = `tenant_${this.tenantId.replace(/-/g, '_')}`;
-      
       // Build dynamic query conditions
       const conditions = [
         eq(knowledgeBaseArticles.tenantId, this.tenantId)
       ];
+      
+      this.logger.log(`[KB-SERVICE] Base condition: tenantId = ${this.tenantId}`);
 
       // Add search conditions
       if (params.query) {
@@ -65,6 +65,9 @@ export class KnowledgeBaseApplicationService {
       const limit = params.limit || 50;
       const offset = params.offset || 0;
 
+      this.logger.log(`[KB-SERVICE] Query params: limit=${limit}, offset=${offset}`);
+      this.logger.log(`[KB-SERVICE] Conditions count: ${conditions.length}`);
+
       const articles = await db
         .select()
         .from(knowledgeBaseArticles)
@@ -72,6 +75,8 @@ export class KnowledgeBaseApplicationService {
         .limit(limit + 1) // +1 to check if there are more
         .offset(offset)
         .orderBy(desc(knowledgeBaseArticles.createdAt));
+
+      this.logger.log(`[KB-SERVICE] Raw articles found: ${articles.length}`);
 
       // Count total for pagination
       const [{ count }] = await db
