@@ -27,7 +27,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface TicketMaterial {
   id: string;
@@ -62,8 +61,6 @@ interface CostsSummary {
 }
 
 export default function TicketMaterials() {
-  const { t } = useLocalization();
-
   const { id: ticketId } = useParams();
   const [activeTab, setActiveTab] = useState('planned');
   const [plannedSubTab, setPlannedSubTab] = useState('all'); // all, material, service
@@ -589,7 +586,7 @@ export default function TicketMaterials() {
                                 className="group-hover:scale-105 transition-transform duration-200 bg-red-500 hover:bg-red-600 shadow-lg hover:shadow-red-500/25"
                               >
                                 <Trash2 className="w-4 h-4 mr-1" />
-                                {deletePlannedItemMutation.isPending ? 'Excluindo...' : t('TicketMaterials.excluir')}
+                                {deletePlannedItemMutation.isPending ? 'Excluindo...' : 'Excluir'}
                               </Button>
                             </div>
                           </div>
@@ -614,9 +611,9 @@ export default function TicketMaterials() {
                             )}
                           </div>
                           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                            {plannedSubTab === 'all' ? t('TicketMaterials.nenhumItemPlanejado') :
-                             plannedSubTab === 'material' ? t('TicketMaterials.nenhumMaterialPlanejado') :
-                             t('TicketMaterials.nenhumServicoPlanejado')}
+                            {plannedSubTab === 'all' ? 'Nenhum item planejado' :
+                             plannedSubTab === 'material' ? 'Nenhum material planejado' :
+                             'Nenhum serviço planejado'}
                           </h3>
                           <p className="text-gray-500 mb-6">
                             {plannedSubTab === 'all' ? 'Adicione materiais e serviços para começar o planejamento.' :
@@ -715,7 +712,7 @@ export default function TicketMaterials() {
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TicketMaterials.selecioneUmItem')} />
+                            <SelectValue placeholder="Selecione um item..." />
                           </SelectTrigger>
                           <SelectContent>
                             {(availableItems as any)?.data?.items?.map((item: any) => (
@@ -742,7 +739,7 @@ export default function TicketMaterials() {
                         <Textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
-                          placeholder={t('TicketMaterials.observacoesSobreOPlanejamento')}
+                          placeholder="Observações sobre o planejamento..."
                         />
                       </div>
 
@@ -769,7 +766,7 @@ export default function TicketMaterials() {
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('TicketMaterials.selecioneUmItem')} />
+                            <SelectValue placeholder="Selecione um item..." />
                           </SelectTrigger>
                           <SelectContent>
                             {(availableItems as any)?.data?.items?.map((item: any) => (
@@ -796,7 +793,7 @@ export default function TicketMaterials() {
                         <Textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
-                          placeholder={t('TicketMaterials.observacoesSobreOConsumo')}
+                          placeholder="Observações sobre o consumo..."
                         />
                       </div>
 

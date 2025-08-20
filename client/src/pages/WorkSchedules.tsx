@@ -85,14 +85,12 @@ const weekDays = [
 ];
 
 // Component for configuring weekly schedules
-function WeeklyScheduleForm({
- weeklySchedule, workDays, onWeeklyScheduleChange, onWorkDaysChange }: {
+function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, onWorkDaysChange }: {
   weeklySchedule: WeeklySchedule;
   workDays: number[];
   onWeeklyScheduleChange: (schedule: WeeklySchedule) => void;
   onWorkDaysChange: (days: number[]) => void;
 }) {
-  const { t } = useLocalization();
   const handleDayChange = (dayValue: number, field: keyof DaySchedule, value: string) => {
     const newWeeklySchedule = {
       ...weeklySchedule,
@@ -197,10 +195,8 @@ function WeeklyScheduleForm({
 
 
 import { WorkScheduleErrorBoundary } from '@/components/WorkScheduleErrorBoundary';
-import { useLocalization } from '@/hooks/useLocalization';
 
 function WorkSchedulesContent() {
-  const { t } = useLocalization();
   const [selectedSchedule, setSelectedSchedule] = useState<WorkSchedule | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
@@ -309,7 +305,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-CREATE-ERROR]:', error);
       toast({
-        title: t('WorkSchedules.erroAoCriarEscala'),
+        title: 'Erro ao criar escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -336,7 +332,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-UPDATE-ERROR]:', error);
       toast({
-        title: t('WorkSchedules.erroAoAtualizarEscala'),
+        title: 'Erro ao atualizar escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -357,7 +353,7 @@ function WorkSchedulesContent() {
     },
     onError: (error: any) => {
       toast({
-        title: t('WorkSchedules.erroAoExcluirEscala'),
+        title: 'Erro ao excluir escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -384,7 +380,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-CREATE-ERROR]:', error);
       toast({
-        title: {t('WorkSchedules.erroAoCriarTemplate')},
+        title: 'Erro ao criar template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -411,7 +407,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-UPDATE-ERROR]:', error);
       toast({
-        title: {t('WorkSchedules.erroAoAtualizarTemplate')},
+        title: 'Erro ao atualizar template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -436,7 +432,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-DELETE-ERROR]:', error);
       toast({
-        title: {t('WorkSchedules.erroAoExcluirTemplate')},
+        title: 'Erro ao excluir template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -462,7 +458,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
-        title: {t('WorkSchedules.erroAoAtribuirTemplate')},
+        title: 'Erro ao atribuir template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -499,7 +495,7 @@ function WorkSchedulesContent() {
             endDate: schedule.endDate ? new Date(schedule.endDate).toISOString().split('T')[0] : null
           };
         } catch (err) {
-          console.error({t('WorkSchedules.errorProcessingSchedule')}, err, schedule);
+          console.error('Error processing schedule:', err, schedule);
           return {
             ...schedule,
             workDays: [1,2,3,4,5],
@@ -539,7 +535,7 @@ function WorkSchedulesContent() {
               endDate: schedule.endDate ? new Date(schedule.endDate).toISOString().split('T')[0] : null
             };
           } catch (err) {
-            console.error({t('WorkSchedules.errorProcessingSchedule')}, err, schedule);
+            console.error('Error processing schedule:', err, schedule);
             return {
               ...schedule,
               workDays: [1,2,3,4,5],
@@ -576,7 +572,7 @@ function WorkSchedulesContent() {
   // Debug information for troubleshooting
   if (process.env.NODE_ENV === 'development') {
     console.log('Work schedules loaded:', schedules.length);
-    console.log({t('WorkSchedules.usersAvailable')}, users.length);
+    console.log('Users available:', users.length);
     console.log('Schedule templates data:', scheduleTemplatesData);
     console.log('Custom templates (excluding defaults):', customTemplates);
   }
@@ -586,7 +582,7 @@ function WorkSchedulesContent() {
   }
 
   if (usersError) {
-    console.error({t('WorkSchedules.usersFetchError')}, usersError);
+    console.error('Users fetch error:', usersError);
   }
 
   // Add error state handling
@@ -832,8 +828,8 @@ function WorkSchedulesContent() {
   const handleBulkAssign = async () => {
     if (selectedUsers.length === 0) {
       toast({
-        title: {t('WorkSchedules.erro')},
-        description: {t('WorkSchedules.selecionePeloMenosUmFuncionario')},
+        title: 'Erro',
+        description: 'Selecione pelo menos um funcionário.',
         variant: 'destructive',
       });
       return;
@@ -841,7 +837,7 @@ function WorkSchedulesContent() {
 
     if (!formData.startDate) {
       toast({
-        title: {t('WorkSchedules.erro')},
+        title: 'Erro',
         description: 'Data de início é obrigatória.',
         variant: 'destructive',
       });
@@ -877,7 +873,7 @@ function WorkSchedulesContent() {
         resetForm();
 
         toast({
-          title: {t('WorkSchedules.sucesso')},
+          title: 'Sucesso!',
           description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
         });
       } else {
@@ -886,8 +882,8 @@ function WorkSchedulesContent() {
     } catch (error: any) {
       console.error('[BULK-ASSIGN-ERROR]:', error);
       toast({
-        title: {t('WorkSchedules.erroNaAtribuicaoEmLote')},
-        description: error?.message || {t('WorkSchedules.erroInternoDoServidor')},
+        title: 'Erro na atribuição em lote',
+        description: error?.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     }
@@ -895,7 +891,7 @@ function WorkSchedulesContent() {
 
   const handleAssignTemplate = async () => {
     if (!selectedTemplate || selectedUsers.length === 0) {
-      toast({ title: {t('WorkSchedules.erro')}, description: 'Selecione um template e pelo menos um funcionário.', variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Selecione um template e pelo menos um funcionário.', variant: 'destructive' });
       return;
     }
 
@@ -917,8 +913,8 @@ function WorkSchedulesContent() {
     } catch (error: any) {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
-        title: {t('WorkSchedules.erroAoAtribuirTemplate')},
-        description: error?.message || {t('WorkSchedules.erroInternoDoServidor')},
+        title: 'Erro ao atribuir template',
+        description: error?.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     }
@@ -930,8 +926,8 @@ function WorkSchedulesContent() {
       if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
       return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).filter(Boolean).join(', ');
     } catch (error) {
-      console.error({t('WorkSchedules.errorProcessingWorkdays')}, error, workDays);
-      return {t('WorkSchedules.erroNaFormatacao')};
+      console.error('Error processing workDays:', error, workDays);
+      return 'Erro na formatação';
     }
   };
 
@@ -1095,7 +1091,7 @@ function WorkSchedulesContent() {
       <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedTemplate ? {t('WorkSchedules.editarTemplate')} : 'Novo Template de Escala'}</DialogTitle>
+            <DialogTitle>{selectedTemplate ? 'Editar Template' : 'Novo Template de Escala'}</DialogTitle>
             <DialogDescription>
               {selectedTemplate ? 'Modifique os detalhes do template.' : 'Crie um novo template de escala independente.'}
             </DialogDescription>
@@ -1236,7 +1232,7 @@ function WorkSchedulesContent() {
                 type="submit"
                 disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
               >
-                {(createTemplateMutation.isPending || updateTemplateMutation.isPending) ? 'Salvando...' : {t('WorkSchedules.salvarTemplate')}}
+                {(createTemplateMutation.isPending || updateTemplateMutation.isPending) ? 'Salvando...' : 'Salvar Template'}
               </Button>
             </div>
           </form>

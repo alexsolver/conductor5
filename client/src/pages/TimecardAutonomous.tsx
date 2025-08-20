@@ -9,15 +9,12 @@ import { Clock, Play, Pause, Square, Calendar, FileText, CheckCircle } from 'luc
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useLocalization } from '@/hooks/useLocalization';
 
 /**
  * Timecard page specifically designed for Autonomous workers
  * Uses different terminology but same backend functionality as CLT timecard
  */
 export default function TimecardAutonomous() {
-  const { t } = useLocalization();
-
   const { terminology, isLoading: employmentLoading } = useEmploymentDetection();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -70,7 +67,7 @@ export default function TimecardAutonomous() {
     },
     onError: (error) => {
       toast({
-        title: t('TimecardAutonomous.erroNoRegistro'),
+        title: "❌ Erro no registro",
         description: "Não foi possível registrar a atividade",
         variant: "destructive",
       });

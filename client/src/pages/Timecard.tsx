@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { detectEmploymentType } from '@/lib/employmentDetection';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface TimeRecord {
   id: string;
@@ -60,8 +59,7 @@ interface MirrorRecord {
 }
 
 // Função para transformar dados do frontend para backend
-const transformTimecardData = (frontendData: any, t: (key: string) => string) => {
-
+const transformTimecardData = (frontendData: any) => {
   const now = new Date().toISOString();
   const payload: any = {
     isManualEntry: frontendData.deviceType !== 'web',
@@ -87,7 +85,7 @@ const transformTimecardData = (frontendData: any, t: (key: string) => string) =>
     try {
       payload.location = JSON.stringify(frontendData.location);
     } catch (e) {
-      console.warn(t('Timecard.errorSerializingLocationData'), e);
+      console.warn('Error serializing location data:', e);
       payload.location = null;
     }
   }
@@ -107,7 +105,6 @@ export default function Timecard() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLocalization();
 
   // Query para obter dados do usuário
   const { data: userInfo } = useQuery({
@@ -186,7 +183,7 @@ export default function Timecard() {
         },
         (error) => {
           setLocationError('Não foi possível obter a localização');
-          console.warn(t('Timecard.erroAoObterLocalizacao'), error);
+          console.warn('Erro ao obter localização:', error);
         }
       );
     }
@@ -197,7 +194,7 @@ export default function Timecard() {
     mutationFn: async (data: { recordType: string; deviceType: string; location?: any; notes?: string }) => {
       try {
         // Transformar dados do frontend para formato backend
-        const transformedData = transformTimecardData(data, t);
+        const transformedData = transformTimecardData(data);
         console.log('[TIMECARD-DEBUG] Sending data:', transformedData);
         
         const response = await apiRequest('POST', '/api/timecard/timecard-entries', transformedData);
@@ -223,7 +220,7 @@ export default function Timecard() {
     onSuccess: (result: any) => {
       console.log('Registro de ponto bem-sucedido:', result);
       toast({
-        title: t('Timecard.pontoRegistradoComSucesso'),
+        title: 'Ponto registrado com sucesso!',
         description: 'Seu registro foi salvo e processado.',
       });
       // Invalidar cache e forçar nova busca para atualizar status
@@ -231,15 +228,15 @@ export default function Timecard() {
       queryClient.refetchQueries({ queryKey: ['/api/timecard/current-status'] });
     },
     onError: (error: any) => {
-      console.error(t('Timecard.erroAoRegistrarPonto'), error);
+      console.error('Erro ao registrar ponto:', error);
       
-      let errorTitle = t('Timecard.erroAoRegistrarPonto');
+      let errorTitle = 'Erro ao registrar ponto';
       let errorMessage = 'Tente novamente em alguns instantes.';
       
       // Extract specific error messages
       if (error?.message) {
         if (error.message.includes('UNAUTHORIZED')) {
-          errorTitle = t('Timecard.erroDeAutenticacao');
+          errorTitle = 'Erro de Autenticação';
           errorMessage = 'Faça login novamente para continuar.';
         } else if (error.message.includes('VALIDATION_ERROR')) {
           errorTitle = 'Dados Inválidos';
@@ -311,7 +308,7 @@ export default function Timecard() {
     try {
       return format(new Date(dateString), 'HH:mm', { locale: ptBR });
     } catch (error) {
-      console.warn(t('Timecard.errorFormattingTime'), dateString, error);
+      console.warn('Error formatting time:', dateString, error);
       return '--:--';
     }
   };
@@ -321,7 +318,7 @@ export default function Timecard() {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
     } catch (error) {
-      console.warn(t('Timecard.errorFormattingDate'), dateString, error);
+      console.warn('Error formatting date:', dateString, error);
       return '--/--/----';
     }
   };

@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../../ui/badge'
 import { Textarea } from '../../ui/textarea'
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Plus, 
   Trash2, 
   AlertTriangle,
@@ -37,8 +36,6 @@ interface PropertyValidationRulesProps {
 }
 
 export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = ({
-  const { t } = useLocalization();
-
   fieldType,
   validationRules,
   onUpdate
@@ -258,7 +255,7 @@ export const PropertyValidationRules: React.FC<PropertyValidationRulesProps> = (
                 value={rule.message}
                 onChange={(e) => updateRule(index, { message: e.target.value })}
                 className="h-8"
-                placeholder={t('template-builder.digiteAMensagemDeErro')}
+                placeholder="Digite a mensagem de erro"
               />
             </div>
           </Card>

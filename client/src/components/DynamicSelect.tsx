@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface DynamicSelectProps {
   fieldName: string;
@@ -28,8 +27,6 @@ interface DynamicSelectProps {
 }
 
 export function DynamicSelect(props: DynamicSelectProps) {
-  const { t } = useLocalization();
-
   const {
     fieldName,
     value,
@@ -111,7 +108,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
       console.error('API returned an error:', fieldOptionsData.message);
       setFieldOptions([]);
     } else if (error) {
-      console.error({t('DynamicSelect.tsx.errorFetchingFieldOptions')}, error);
+      console.error('Error fetching field options:', error);
       setFieldOptions([]);
     } else {
       // If data is not yet loaded or is empty, ensure fieldOptions is an empty array
@@ -148,7 +145,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
     return (
       <div className="flex items-center justify-center p-2 border rounded border-destructive/20" {...cleanProps}>
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
-        <span className="text-sm text-destructive">{error ? {t('DynamicSelect.tsx.erroAoCarregarOpcoes')} : (fieldOptionsData?.message || {t('DynamicSelect.tsx.nenhumaOpcaoDisponivel')})}</span>
+        <span className="text-sm text-destructive">{error ? "Erro ao carregar opções" : (fieldOptionsData?.message || "Nenhuma opção disponível")}</span>
       </div>
     );
   }

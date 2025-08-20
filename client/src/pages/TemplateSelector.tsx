@@ -167,8 +167,7 @@ const templates: Template[] = [
 ];
 
 // Color Picker Component
-function ColorPicker({
- color, onChange, label }: { color: string; onChange: (color: string) => void; label: string }) {
+function ColorPicker({ color, onChange, label }: { color: string; onChange: (color: string) => void; label: string }) {
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">{label}</Label>
@@ -433,7 +432,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro ao aplicar tema",
         description: error.message,
         variant: "destructive",
       });
@@ -461,7 +460,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro ao resetar tema",
         description: error.message,
         variant: "destructive",
       });
@@ -628,7 +627,7 @@ export function TemplateSelector() {
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             disabled={!selectedTemplate || applyTemplateMutation.isPending}
           >
-            {selectedTemplate ? 'Tema Selecionado' : "texto"}
+            {selectedTemplate ? 'Tema Selecionado' : 'Selecione um Tema'}
           </Button>
           <Button 
             size="lg" 

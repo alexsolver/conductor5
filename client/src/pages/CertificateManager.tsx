@@ -8,7 +8,6 @@ import { useToast } from '../hooks/use-toast';
 import { Shield, Upload, Key, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function CertificateManager() {
-
   const { toast } = useToast();
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [privateKeyFile, setPrivateKeyFile] = useState<File | null>(null);
@@ -55,11 +54,11 @@ export default function CertificateManager() {
         setPassword('');
         setCertificateName('');
       } else {
-        throw new Error("texto");
+        throw new Error('Erro ao instalar certificado');
       }
     } catch (error) {
       toast({
-        title: "texto",
+        title: "Erro na Instalação",
         description: "Falha ao instalar o certificado digital",
         variant: "destructive"
       });

@@ -12,7 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { MessageCircle, Send, Reply, Edit, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface Comment {
   id: string;
@@ -30,9 +29,7 @@ interface CommentsSectionProps {
   articleId: string;
 }
 
-export function CommentsSection({
-  const { t } = useLocalization();
- articleId }: CommentsSectionProps) {
+export function CommentsSection({ articleId }: CommentsSectionProps) {
   const [newComment, setNewComment] = useState('');
   const [editingComment, setEditingComment] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -63,7 +60,7 @@ export function CommentsSection({
     },
     onSuccess: () => {
       toast({
-        title: {t('knowledge-base.sucesso')},
+        title: "Sucesso",
         description: "Comentário adicionado com sucesso"
       });
       setNewComment('');
@@ -75,8 +72,8 @@ export function CommentsSection({
     },
     onError: () => {
       toast({
-        title: {t('knowledge-base.erro')},
-        description: {t('knowledge-base.erroAoAdicionarComentario')},
+        title: "Erro",
+        description: "Erro ao adicionar comentário",
         variant: "destructive"
       });
     }

@@ -85,7 +85,6 @@ interface IntegrityCheck {
 }
 
 const moduleIcons = {
-
   auth: Shield,
   customers: Users,
   tickets: Ticket,
@@ -140,7 +139,7 @@ export default function ModuleIntegrityControl() {
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro na Verificação",
         description: error.message,
         variant: "destructive",
       });

@@ -73,7 +73,6 @@ interface ContractFilters {
 }
 
 export default function ContractManagement() {
-
   const [filters, setFilters] = useState<ContractFilters>({});
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -110,13 +109,13 @@ export default function ContractManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/contracts/dashboard-metrics'] });
       toast({
-        title: "texto",
+        title: "Sucesso",
         description: "Contrato excluído com sucesso",
       });
     },
     onError: () => {
       toast({
-        title: "texto",
+        title: "Erro",
         description: "Falha ao excluir contrato",
         variant: "destructive",
       });
@@ -280,7 +279,7 @@ export default function ContractManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="texto"
+                  placeholder="Buscar contratos..."
                   value={filters.search || ''}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="pl-10"

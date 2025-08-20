@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { useFieldColors } from "@/hooks/useFieldColors";
 import { cn } from "@/lib/utils";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface OptimizedBadgeProps {
   fieldName: string;
@@ -15,9 +14,7 @@ interface OptimizedBadgeProps {
 }
 
 // Memoized badge component with optimized rendering
-export const OptimizedBadge = memo<OptimizedBadgeProps>(({
-  const { t } = useLocalization();
- 
+export const OptimizedBadge = memo<OptimizedBadgeProps>(({ 
   fieldName, 
   value, 
   className = "", 
@@ -49,7 +46,7 @@ export const OptimizedBadge = memo<OptimizedBadgeProps>(({
       <Badge 
         variant="outline" 
         className={cn("inline-flex items-center gap-1", className)}
-        aria-label={ariaLabel || {t('tickets.carregandoFieldname')}}
+        aria-label={ariaLabel || `Carregando ${fieldName}`}
       >
         <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
         <span className="sr-only">Carregando...</span>

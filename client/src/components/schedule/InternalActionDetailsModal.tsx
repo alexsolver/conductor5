@@ -15,7 +15,6 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface InternalActionDetailsModalProps {
   internalAction: any;
@@ -23,9 +22,7 @@ interface InternalActionDetailsModalProps {
   onClose: () => void;
 }
 
-export default function InternalActionDetailsModal({
-  const { t } = useLocalization();
- 
+export default function InternalActionDetailsModal({ 
   internalAction, 
   isOpen, 
   onClose 
@@ -91,7 +88,7 @@ export default function InternalActionDetailsModal({
     },
     onSuccess: () => {
       toast({
-        title: {t('schedule.sucesso')},
+        title: "Sucesso",
         description: "Ação interna atualizada com sucesso",
       });
 
@@ -104,7 +101,7 @@ export default function InternalActionDetailsModal({
     },
     onError: (error: Error) => {
       toast({
-        title: {t('schedule.erro')},
+        title: "Erro",
         description: error.message || "Falha ao atualizar ação interna",
         variant: "destructive",
       });
@@ -114,7 +111,7 @@ export default function InternalActionDetailsModal({
   const handleSave = () => {
     if (!formData.actionType.trim()) {
       toast({
-        title: {t('schedule.erro')},
+        title: "Erro",
         description: "Tipo de ação é obrigatório",
         variant: "destructive",
       });

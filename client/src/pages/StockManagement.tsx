@@ -11,10 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useLocalization } from "@/hooks/useLocalization";
 import { apiRequest } from "@/lib/queryClient";
 import { 
-// import { useTranslation } from 'react-i18next';
   Package, 
   Warehouse, 
   TrendingUp, 
@@ -54,10 +52,8 @@ interface StockItem {
   createdAt: string;
 }
 
-// Helper functions (without hooks)
+// Helper functions
 const getStatusColor = (status: string) => {
-  const { t } = useLocalization();
-
   switch (status) {
     case 'ok': return 'bg-green-100 text-green-800';
     case 'low': return 'bg-yellow-100 text-yellow-800';
@@ -131,7 +127,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
-              <SelectValue placeholder="texto" />
+              <SelectValue placeholder="Selecione um item" />
             </SelectTrigger>
             <SelectContent>
               {items.map((item: any) => (
@@ -147,7 +143,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
-              <SelectValue placeholder="texto" />
+              <SelectValue placeholder="Selecione um armazém" />
             </SelectTrigger>
             <SelectContent>
               {warehouses.map((warehouse: any) => (
@@ -240,7 +236,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
-              <SelectValue placeholder="texto" />
+              <SelectValue placeholder="Selecione um item" />
             </SelectTrigger>
             <SelectContent>
               {items.map((item: any) => (
@@ -256,7 +252,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
-              <SelectValue placeholder="texto" />
+              <SelectValue placeholder="Selecione um armazém" />
             </SelectTrigger>
             <SelectContent>
               {warehouses.map((warehouse: any) => (
@@ -792,7 +788,7 @@ export function StockManagement() {
                   <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="texto" />
+                      <SelectValue placeholder="Todos os status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os status</SelectItem>
@@ -808,7 +804,7 @@ export function StockManagement() {
                   <Label htmlFor="warehouse">Armazém</Label>
                   <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="texto" />
+                      <SelectValue placeholder="Todos os armazéns" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os armazéns</SelectItem>
@@ -1121,7 +1117,7 @@ export function StockManagement() {
             <EditItemForm 
               item={selectedItem}
               onSubmit={(data) => {
-                console.log(t('StockManagement.editandoItem'), data);
+                console.log('Editando item:', data);
                 toast({ title: "Item atualizado com sucesso!" });
                 setIsEditItemOpen(false);
               }}
@@ -1191,7 +1187,7 @@ export function StockManagement() {
             <EditWarehouseForm 
               warehouse={selectedWarehouse}
               onSubmit={(data) => {
-                console.log("texto", data);
+                console.log('Editando armazém:', data);
                 toast({ title: "Armazém atualizado com sucesso!" });
                 setIsEditWarehouseOpen(false);
               }}
@@ -1221,7 +1217,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
     e.preventDefault();
     if (!name || !location) {
       toast({ 
-        title: "texto", 
+        title: "Erro", 
         description: "Nome e localização são obrigatórios",
         variant: "destructive" 
       });
@@ -1300,7 +1296,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Criando...' : "texto"}
+          {isLoading ? 'Criando...' : 'Criar Armazém'}
         </Button>
       </div>
     </form>
@@ -1407,7 +1403,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
     e.preventDefault();
     if (!name || !location) {
       toast({ 
-        title: "texto", 
+        title: "Erro", 
         description: "Nome e localização são obrigatórios",
         variant: "destructive" 
       });

@@ -36,7 +36,6 @@ interface HourBankMovement {
 }
 
 const movementTypeLabels = {
-
   credit: 'Crédito',
   debit: 'Débito',
   expiration: 'Expiração',
@@ -130,7 +129,7 @@ export default function HourBank() {
               <Label htmlFor="userId">Funcionário</Label>
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="texto" />
+                  <SelectValue placeholder="Selecione o funcionário" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="default">Selecione o funcionário</SelectItem>

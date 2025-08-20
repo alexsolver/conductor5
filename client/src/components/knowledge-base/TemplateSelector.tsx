@@ -27,7 +27,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Plus } from 'lucide-react';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface Template {
   id: string;
@@ -43,9 +42,7 @@ interface TemplateSelectorProps {
   selectedTemplate?: string;
 }
 
-export function TemplateSelector({
-  const { t } = useLocalization();
- onSelectTemplate, selectedTemplate }: TemplateSelectorProps) {
+export function TemplateSelector({ onSelectTemplate, selectedTemplate }: TemplateSelectorProps) {
   const [newTemplateOpen, setNewTemplateOpen] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateDescription, setNewTemplateDescription] = useState('');
@@ -78,7 +75,7 @@ export function TemplateSelector({
   const handleCreateTemplate = async () => {
     if (!newTemplateName.trim() || !newTemplateContent.trim()) {
       toast({
-        title: {t('knowledge-base.erro')},
+        title: "Erro",
         description: "Nome e conteúdo são obrigatórios",
         variant: "destructive"
       });
@@ -95,7 +92,7 @@ export function TemplateSelector({
 
       if (response.success) {
         toast({
-          title: {t('knowledge-base.sucesso')},
+          title: "Sucesso",
           description: "Template criado com sucesso"
         });
         setNewTemplateOpen(false);
@@ -107,8 +104,8 @@ export function TemplateSelector({
       }
     } catch (error) {
       toast({
-        title: {t('knowledge-base.erro')},
-        description: {t('knowledge-base.erroAoCriarTemplate')},
+        title: "Erro",
+        description: "Erro ao criar template",
         variant: "destructive"
       });
     }

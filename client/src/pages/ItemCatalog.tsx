@@ -119,8 +119,6 @@ interface Item {
 }
 
 const itemSchema = z.object({
-  // const { t } = useTranslation();
-
   name: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
   type: z.enum(["material", "service"]),
   integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal("")),
@@ -345,7 +343,6 @@ export default function ItemCatalog() {
             responseText.trim().startsWith('<html') || 
             responseText.includes('<script') ||
             responseText.includes('import { createHotContext }') ||
-
             responseText.includes('vite') ||
             responseText.includes('@vite/client')) {
           console.error('❌ [ItemCatalog] Received HTML/JavaScript instead of JSON - Vite interception detected');
@@ -404,8 +401,8 @@ export default function ItemCatalog() {
         console.log('Authentication error detected - components will handle auth state');
       } else {
         toast({
-          title: "Texto",
-          description: "Texto",
+          title: "Erro no catálogo",
+          description: "Erro ao carregar itens do catálogo. Tente novamente.",
           variant: "destructive"
         });
       }
@@ -436,7 +433,7 @@ export default function ItemCatalog() {
         console.log('🔗 Links carregados:', result);
         return result?.data || { customers: [], suppliers: [] };
       } catch (error) {
-        console.error(t('ItemCatalog.error'), error);
+        console.error('Erro ao carregar vínculos do item:', error);
         return { customers: [], suppliers: [] };
       }
     },
@@ -449,7 +446,7 @@ export default function ItemCatalog() {
       const response = await apiRequest('POST', '/api/materials-services/items', data);
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Texto");
+        throw new Error(error.message || 'Erro ao criar item');
       }
       return response.json();
     },
@@ -457,7 +454,7 @@ export default function ItemCatalog() {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: "Texto",
+        title: "Item criado com sucesso",
         description: "O item foi adicionado ao catálogo.",
       });
       setIsCreateModalOpen(false);
@@ -465,7 +462,7 @@ export default function ItemCatalog() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Texto",
+        title: "Erro ao criar item",
         description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -481,14 +478,14 @@ export default function ItemCatalog() {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: "Texto",
+        title: "Item atualizado com sucesso",
         description: "As alterações foram salvas.",
       });
       setCurrentView('item-details');
     },
     onError: () => {
       toast({
-        title: "Texto",
+        title: "Erro ao atualizar item",
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -503,13 +500,13 @@ export default function ItemCatalog() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       toast({
-        title: "Texto",
+        title: "Item excluído com sucesso",
         description: "O item foi removido do catálogo.",
       });
     },
     onError: () => {
       toast({
-        title: "Texto",
+        title: "Erro ao excluir item",
         description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -635,7 +632,7 @@ export default function ItemCatalog() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Texto"
+                placeholder="Buscar por nome, código ou descrição..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -707,8 +704,8 @@ export default function ItemCatalog() {
             <div className="text-center py-8">
               <div className="text-gray-500 mb-4">
                 {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
-                  ? "Texto"
-                  : "Texto"}
+                  ? 'Nenhum item encontrado com os filtros aplicados'
+                  : 'Nenhum item cadastrado no catálogo'}
               </div>
               {(!searchTerm && typeFilter === 'all' && statusFilter === 'all') && (
                 <Button onClick={() => window.location.reload()} variant="outline">
@@ -1165,7 +1162,7 @@ export default function ItemCatalog() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Texto" />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -1292,7 +1289,7 @@ export default function ItemCatalog() {
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Texto" />
+                          <SelectValue placeholder="Selecione itens filhos" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecionar item...</SelectItem>
@@ -1377,7 +1374,7 @@ export default function ItemCatalog() {
 
                             if (response.ok) {
                               toast({
-                                title: "Texto",
+                                title: "Sucesso",
                                 description: "Empresa vinculada com sucesso"
                               });
                               refetchItemLinks();
@@ -1386,8 +1383,8 @@ export default function ItemCatalog() {
                             }
                           } catch (error) {
                             toast({
-                              title: "Texto",
-                              description: "Texto",
+                              title: "Erro",
+                              description: "Erro ao vincular empresa",
                               variant: "destructive"
                             });
                           }
@@ -1427,7 +1424,7 @@ export default function ItemCatalog() {
 
                                 if (response.ok) {
                                   toast({
-                                    title: "Texto",
+                                    title: "Sucesso",
                                     description: "Empresa desvinculada com sucesso"
                                   });
                                   refetchItemLinks();
@@ -1436,8 +1433,8 @@ export default function ItemCatalog() {
                                 }
                               } catch (error) {
                                 toast({
-                                  title: "Texto",
-                                  description: "Texto",
+                                  title: "Erro",
+                                  description: "Erro ao desvincular empresa",
                                   variant: "destructive"
                                 });
                               }
@@ -1472,7 +1469,7 @@ export default function ItemCatalog() {
 
                             if (response.ok) {
                               toast({
-                                title: "Texto",
+                                title: "Sucesso",
                                 description: "Fornecedor vinculado com sucesso"
                               });
                               refetchItemLinks();
@@ -1481,8 +1478,8 @@ export default function ItemCatalog() {
                             }
                           } catch (error) {
                             toast({
-                              title: "Texto",
-                              description: "Texto",
+                              title: "Erro",
+                              description: "Erro ao vincular fornecedor",
                               variant: "destructive"
                             });
                           }
@@ -1522,7 +1519,7 @@ export default function ItemCatalog() {
 
                                 if (response.ok) {
                                   toast({
-                                    title: "Texto",
+                                    title: "Sucesso",
                                     description: "Fornecedor desvinculado com sucesso"
                                   });
                                   refetchItemLinks();
@@ -1531,8 +1528,8 @@ export default function ItemCatalog() {
                                 }
                               } catch (error) {
                                 toast({
-                                  title: "Texto",
-                                  description: "Texto",
+                                  title: "Erro",
+                                  description: "Erro ao desvincular fornecedor",
                                   variant: "destructive"
                                 });
                               }
@@ -1617,7 +1614,7 @@ export default function ItemCatalog() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Texto" />
+                            <SelectValue placeholder="Selecione o tipo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

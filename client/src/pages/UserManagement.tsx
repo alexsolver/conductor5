@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface UserStats {
 }
 
 export function UserManagement() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);

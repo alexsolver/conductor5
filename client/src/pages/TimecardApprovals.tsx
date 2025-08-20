@@ -13,7 +13,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { CheckCircle, XCircle, Clock, User, Calendar, MapPin, MessageSquare, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface PendingApproval {
   id: string;
@@ -33,8 +32,6 @@ interface PendingApproval {
 }
 
 export default function TimecardApprovals() {
-  const { t } = useLocalization();
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedApprovals, setSelectedApprovals] = useState<string[]>([]);
@@ -69,11 +66,11 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: t('TimecardApprovals.erro'),
+        title: "Erro",
         description: "Falha ao aprovar o registro.",
         variant: "destructive",
       });
-      console.error(t('TimecardApprovals.errorApprovingTimecard'), error);
+      console.error('Error approving timecard:', error);
     },
   });
 
@@ -102,11 +99,11 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: t('TimecardApprovals.erro'),
+        title: "Erro",
         description: "Falha ao rejeitar o registro.",
         variant: "destructive",
       });
-      console.error(t('TimecardApprovals.errorRejectingTimecard'), error);
+      console.error('Error rejecting timecard:', error);
     },
   });
 
@@ -125,11 +122,11 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: t('TimecardApprovals.erro'),
+        title: "Erro",
         description: "Falha ao aprovar os registros selecionados.",
         variant: "destructive",
       });
-      console.error(t('TimecardApprovals.errorBulkApprovingTimecards'), error);
+      console.error('Error bulk approving timecards:', error);
     },
   });
 
@@ -145,7 +142,7 @@ export default function TimecardApprovals() {
   const handleRejectConfirm = () => {
     if (!currentRejectId || !rejectionReason.trim()) {
       toast({
-        title: t('TimecardApprovals.erro'),
+        title: "Erro",
         description: "Motivo da rejeição é obrigatório.",
         variant: "destructive",
       });
@@ -162,8 +159,8 @@ export default function TimecardApprovals() {
   const handleBulkApprove = () => {
     if (selectedApprovals.length === 0) {
       toast({
-        title: t('TimecardApprovals.nenhumRegistroSelecionado'),
-        description: t('TimecardApprovals.selecioneAoMenosUmRegistroParaAprovar'),
+        title: "Nenhum registro selecionado",
+        description: "Selecione ao menos um registro para aprovar.",
         variant: "destructive",
       });
       return;

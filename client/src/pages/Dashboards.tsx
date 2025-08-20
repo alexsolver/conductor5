@@ -31,14 +31,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useLocalization } from '@/hooks/useLocalization';
 
 // ✅ 1QA.MD COMPLIANCE: Enhanced schema following Zendesk patterns
 const dashboardSchema = z.object({
-  // const { t } = useTranslation();
-
-
-  name: z.string().min(1, "Nome é obrigatório"),
+  name: z.string().min(1, "Dashboard name is required"),
   description: z.string().optional(),
   layoutType: z.enum(["grid", "flex", "masonry", "custom"]),
   isRealTime: z.boolean().default(false),
@@ -161,7 +157,7 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
     id: "customer-satisfaction",
     name: "Customer Satisfaction",
     description: "CSAT scores, feedback trends, and satisfaction analytics",
-    category: "General",
+    category: "Analytics",
     icon: Star,
     color: "bg-purple-500",
     widgets: 7,
@@ -173,7 +169,7 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
     id: "ticket-trends",
     name: "Ticket Trends",
     description: "Analyze ticket patterns, volume trends, and seasonal insights",
-    category: "General",
+    category: "Analytics",
     icon: BarChart3,
     color: "bg-indigo-500",
     widgets: 9,
@@ -204,7 +200,7 @@ const ZendeskBreadcrumbs = ({ currentView }: { currentView: string }) => (
     <span>Analytics</span>
     <ChevronRight className="w-4 h-4" />
     <span className="font-medium text-gray-900 dark:text-gray-100">
-      {currentView === "templates" ? "Templates" : t('Dashboards.dashboards')}
+      {currentView === "templates" ? "Dashboard Templates" : "Dashboards"}
     </span>
   </div>
 );
@@ -272,7 +268,7 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
     <div>
       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Browse by Category</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {["Support", "Performance", t('Dashboards.errors'), "Compliance"].map((category) => (
+        {["Support", "Performance", "Analytics", "Compliance"].map((category) => (
           <Card key={category} className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-4 text-center">
               <Folder className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -311,7 +307,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     onError: (error: any) => {
       console.error(`❌ [DASHBOARD-FAVORITE] Error:`, error);
       toast({ 
-        title: "texto", 
+        title: "Error updating favorite", 
         description: error.message || "Failed to update favorite status",
         variant: "destructive" 
       });
@@ -328,7 +324,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     },
     onSuccess: () => {
       toast({ 
-        title: "texto",
+        title: "Dashboard duplicated successfully",
         description: `A copy of "${dashboard.name}" has been created.`
       });
       onRefresh();
@@ -336,7 +332,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     onError: (error: any) => {
       console.error(`❌ [DASHBOARD-DUPLICATE] Error:`, error);
       toast({ 
-        title: "texto", 
+        title: "Error duplicating dashboard", 
         description: error.message || "Failed to duplicate dashboard",
         variant: "destructive" 
       });
@@ -353,15 +349,15 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     },
     onSuccess: () => {
       toast({ 
-        title: "texto",
-        description: `Dashboard "${dashboard.name}" has been deleted successfully.`
+        title: "Dashboard deleted successfully",
+        description: `Dashboard "${dashboard.name}" has been deleted.`
       });
       onRefresh();
     },
     onError: (error: any) => {
       console.error(`❌ [DASHBOARD-DELETE] Error:`, error);
       toast({ 
-        title: "texto", 
+        title: "Error deleting dashboard", 
         description: error.message || "Failed to delete dashboard",
         variant: "destructive" 
       });
@@ -391,7 +387,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
     } catch (error) {
       console.error(`❌ [DASHBOARD-OPEN] Error:`, error);
       toast({ 
-        title: "texto", 
+        title: "Error opening dashboard", 
         description: "Failed to open dashboard",
         variant: "destructive" 
       });
@@ -414,7 +410,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
         await navigator.clipboard.writeText(shareUrl);
         toast({ 
           title: "Share link copied",
-          description: "texto"
+          description: "Dashboard share link has been copied to clipboard."
         });
       } else {
         // Fallback for browsers without clipboard API
@@ -718,8 +714,8 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
     onSuccess: (response) => {
       console.log(`✅ [DASHBOARD-CREATE] Dashboard created successfully:`, response);
       toast({ 
-        title: "texto",
-        description: {t('Dashboards.dashboardFormgetvaluesnameHasBeenCreated')}
+        title: "Dashboard created successfully",
+        description: `Dashboard "${form.getValues().name}" has been created.`
       });
       
       // Reset everything and close modal
@@ -731,7 +727,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
     onError: (error: any) => {
       console.error(`❌ [DASHBOARD-CREATE] Error creating dashboard:`, error);
       toast({ 
-        title: "texto", 
+        title: "Error creating dashboard", 
         description: error.message || "Failed to create dashboard",
         variant: "destructive" 
       });
@@ -780,7 +776,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
   const handleNextStep = () => {
     if (currentStep === 0 && !selectedTemplate) {
       toast({ 
-        title: "texto", 
+        title: "Please select a template", 
         variant: "destructive" 
       });
       return;
@@ -923,7 +919,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       <FormControl>
                         <Textarea 
                           {...field} 
-                          placeholder="texto"
+                          placeholder="Describe what this dashboard will show..."
                           rows={3}
                         />
                       </FormControl>
@@ -941,7 +937,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       <FormControl>
                         <Input 
                           {...field} 
-                          placeholder="texto"
+                          placeholder="support, performance, analytics (comma separated)"
                         />
                       </FormControl>
                       <FormMessage />
@@ -1258,7 +1254,7 @@ export default function Dashboards() {
           {/* Templates View */}
           <TabsContent value="templates" className="mt-6">
             <ZendeskTemplateShowcase onSelectTemplate={(template) => {
-              console.log("texto", template);
+              console.log("Selected template:", template);
             }} />
           </TabsContent>
 
@@ -1364,7 +1360,7 @@ export default function Dashboards() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
-                      placeholder="texto"
+                      placeholder="Search dashboards..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"

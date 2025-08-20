@@ -106,7 +106,6 @@ interface ComplianceStats {
 }
 
 export default function ComplianceManagement() {
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -350,7 +349,7 @@ export default function ComplianceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAuditMutation.isPending}>
-                    {createAuditMutation.isPending ? 'Criando...' : "texto"}
+                    {createAuditMutation.isPending ? 'Criando...' : 'Criar Auditoria'}
                   </Button>
                 </div>
               </form>
@@ -420,7 +419,7 @@ export default function ComplianceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createCertificationMutation.isPending}>
-                    {createCertificationMutation.isPending ? 'Criando...' : "texto"}
+                    {createCertificationMutation.isPending ? 'Criando...' : 'Criar Certificação'}
                   </Button>
                 </div>
               </form>

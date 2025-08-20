@@ -22,9 +22,7 @@ interface AgrupamentoFormProps {
   isSubmitting?: boolean;
 }
 
-export default function AgrupamentoForm({
-  const { t } = useLocalization();
- onSubmit, onCancel, isSubmitting = false }: AgrupamentoFormProps) {
+export default function AgrupamentoForm({ onSubmit, onCancel, isSubmitting = false }: AgrupamentoFormProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -60,8 +58,8 @@ export default function AgrupamentoForm({
     
     if (!data.areasVinculadas || data.areasVinculadas.length === 0) {
       toast({
-        title: {t('locations.erroDeValidacao')},
-        description: {t('locations.selecionePeloMenosUmaAreaParaOAgrupamento')},
+        title: "Erro de validação",
+        description: "Selecione pelo menos uma área para o agrupamento.",
         variant: "destructive"
       });
       return;
@@ -108,7 +106,6 @@ export default function AgrupamentoForm({
       'raio': 'bg-orange-100 text-orange-800',
       'linha': 'bg-red-100 text-red-800',
       'importar_area': 'bg-gray-100 text-gray-800'
-import { useLocalization } from '@/hooks/useLocalization';
     };
     return colors[tipoArea] || 'bg-gray-100 text-gray-800';
   };
@@ -221,7 +218,7 @@ import { useLocalization } from '@/hooks/useLocalization';
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t('locations.buscarAreasPorNomeCodigoOuTipo')}
+                  placeholder="Buscar áreas por nome, código ou tipo..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -238,7 +235,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                   <div className="flex flex-col items-center justify-center h-32 text-center">
                     <MapPin className="h-8 w-8 text-muted-foreground mb-2" />
                     <p className="text-muted-foreground">
-                      {areasData.length === 0 ? {t('locations.nenhumaAreaCadastrada')} : {t('locations.nenhumaAreaEncontrada')}}
+                      {areasData.length === 0 ? 'Nenhuma área cadastrada' : 'Nenhuma área encontrada'}
                     </p>
                     {areasData.length === 0 && (
                       <p className="text-sm text-muted-foreground mt-1">
@@ -338,7 +335,7 @@ import { useLocalization } from '@/hooks/useLocalization';
               disabled={isSubmitting}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isSubmitting ? "Criando..." : {t('locations.criarAgrupamento')}}
+              {isSubmitting ? "Criando..." : "Criar Agrupamento"}
             </Button>
           </div>
         </form>

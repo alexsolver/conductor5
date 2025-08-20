@@ -22,7 +22,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface PublicationSchedulerProps {
   articleId: string;
@@ -30,9 +29,7 @@ interface PublicationSchedulerProps {
   onScheduled?: () => void;
 }
 
-export function PublicationScheduler({
-  const { t } = useLocalization();
- articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
+export function PublicationScheduler({ articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
   const [schedulerOpen, setSchedulerOpen] = useState(false);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
@@ -52,7 +49,7 @@ export function PublicationScheduler({
     },
     onSuccess: () => {
       toast({
-        title: {t('knowledge-base.sucesso')},
+        title: "Sucesso",
         description: "Publicação agendada com sucesso"
       });
       setSchedulerOpen(false);
@@ -65,8 +62,8 @@ export function PublicationScheduler({
     },
     onError: (error: any) => {
       toast({
-        title: {t('knowledge-base.erro')},
-        description: error.message || {t('knowledge-base.erroAoAgendarPublicacao')},
+        title: "Erro",
+        description: error.message || "Erro ao agendar publicação",
         variant: "destructive"
       });
     }
@@ -75,7 +72,7 @@ export function PublicationScheduler({
   const handleSchedule = () => {
     if (!scheduledDate || !scheduledTime) {
       toast({
-        title: {t('knowledge-base.erro')},
+        title: "Erro",
         description: "Data e hora são obrigatórias",
         variant: "destructive"
       });
@@ -86,7 +83,7 @@ export function PublicationScheduler({
     
     if (scheduledFor <= new Date()) {
       toast({
-        title: {t('knowledge-base.erro')},
+        title: "Erro",
         description: "A data deve ser no futuro",
         variant: "destructive"
       });

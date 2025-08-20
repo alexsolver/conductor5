@@ -70,7 +70,6 @@ interface BrandingSettings {
 }
 
 const defaultSettings: BrandingSettings = {
-
   logo: {
     url: "",
     darkUrl: "",
@@ -160,13 +159,13 @@ export default function TenantAdminBranding() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/branding'] });
       toast({
-        title: "texto",
+        title: "Configurações salvas",
         description: "As configurações de branding foram atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro ao salvar",
         description: error.message,
         variant: "destructive",
       });
@@ -250,7 +249,7 @@ export default function TenantAdminBranding() {
             className="gradient-primary text-white hover:opacity-90"
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveSettingsMutation.isPending ? 'Salvando...' : "texto"}
+            {saveSettingsMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
           </Button>
         </div>
       </div>
@@ -637,7 +636,7 @@ export default function TenantAdminBranding() {
                   <Input
                     value={settings.customization.footerText}
                     onChange={(e) => updateSetting('customization.footerText', e.target.value)}
-                    placeholder="texto"
+                    placeholder="© 2024 Minha Empresa. Todos os direitos reservados."
                   />
                 </div>
               </CardContent>

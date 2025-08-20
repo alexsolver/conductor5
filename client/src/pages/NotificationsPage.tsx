@@ -74,7 +74,6 @@ interface NotificationStats {
 
 // Form schemas
 const createNotificationSchema = z.object({
-
   type: z.string().min(1, 'Type is required'),
   severity: z.enum(['low', 'medium', 'high', 'critical']),
   title: z.string().min(1, 'Title is required').max(500, 'Title too long'),
@@ -179,7 +178,7 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       toast({
-        title: "texto",
+        title: 'Success',
         description: 'Notification created successfully'
       });
       setIsCreateOpen(false);
@@ -188,7 +187,7 @@ export default function NotificationsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
+        title: 'Error',
         description: error.message || 'Failed to create notification',
         variant: 'destructive'
       });
@@ -209,14 +208,14 @@ export default function NotificationsPage() {
     },
     onSuccess: (data: any) => {
       toast({
-        title: "texto",
+        title: 'Processing Complete',
         description: `Processed ${data.data?.processed || 0} notifications. Sent: ${data.data?.sent || 0}, Failed: ${data.data?.failed || 0}`
       });
       refetchNotifications();
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
+        title: 'Error',
         description: error.message || 'Failed to process notifications',
         variant: 'destructive'
       });
@@ -238,14 +237,14 @@ export default function NotificationsPage() {
     },
     onSuccess: () => {
       toast({
-        title: "texto",
+        title: 'Success',
         description: 'Notifications marked as read'
       });
       refetchNotifications();
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
+        title: 'Error',
         description: error.message || 'Failed to mark as read',
         variant: 'destructive'
       });
@@ -292,7 +291,7 @@ export default function NotificationsPage() {
             data-testid="button-process-notifications"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            {processMutation.isPending ? "texto" : 'Process Now'}
+            {processMutation.isPending ? 'Processing...' : 'Process Now'}
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
@@ -321,7 +320,7 @@ export default function NotificationsPage() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-notification-type">
-                                <SelectValue placeholder="texto" />
+                                <SelectValue placeholder="Select type" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -351,7 +350,7 @@ export default function NotificationsPage() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-notification-severity">
-                                <SelectValue placeholder="texto" />
+                                <SelectValue placeholder="Select severity" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -417,7 +416,7 @@ export default function NotificationsPage() {
                             { value: 'sms', label: 'SMS' },
                             { value: 'push', label: 'Push' },
                             { value: 'webhook', label: 'Webhook' },
-                            { value: 'dashboard_alert', label: "texto" }
+                            { value: 'dashboard_alert', label: 'Dashboard' }
                           ].map((channel) => (
                             <label 
                               key={channel.value} 
@@ -457,7 +456,7 @@ export default function NotificationsPage() {
                       disabled={createMutation.isPending}
                       data-testid="button-submit-create"
                     >
-                      {createMutation.isPending ? 'Creating...' : "texto"}
+                      {createMutation.isPending ? 'Creating...' : 'Create Notification'}
                     </Button>
                   </div>
                 </form>
@@ -496,7 +495,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, status: value }))
                   }>
                     <SelectTrigger data-testid="filter-status">
-                      <SelectValue placeholder="texto" />
+                      <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
@@ -515,7 +514,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, severity: value }))
                   }>
                     <SelectTrigger data-testid="filter-severity">
-                      <SelectValue placeholder="texto" />
+                      <SelectValue placeholder="All severities" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Severities</SelectItem>
@@ -533,7 +532,7 @@ export default function NotificationsPage() {
                     setFilters(prev => ({ ...prev, type: value }))
                   }>
                     <SelectTrigger data-testid="filter-type">
-                      <SelectValue placeholder="texto" />
+                      <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>

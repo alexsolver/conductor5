@@ -33,7 +33,6 @@ import {
   ChevronDown,
   ChevronRight
 } from "lucide-react";
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Schemas de validação
 const companySchema = z.object({
@@ -167,7 +166,6 @@ interface NumberingConfig {
 const TicketConfiguration: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLocalization();
   const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [activeTab, setActiveTab] = useState('hierarchy');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -303,6 +301,7 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany,
     staleTime: 0,
+    cacheTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchInterval: false,
@@ -489,14 +488,14 @@ const TicketConfiguration: React.FC = () => {
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ 
-        title: t('TicketConfiguration.opcaoAtualizadaComSucesso'),
+        title: "Opção atualizada com sucesso",
         description: "A opção foi atualizada no sistema."
       });
     },
     onError: (error) => {
       console.error('❌ Error updating field option:', error);
       toast({ 
-        title: t('TicketConfiguration.erroAoAtualizarOpcao'),
+        title: "Erro ao atualizar opção",
         description: "Não foi possível atualizar a opção.",
         variant: "destructive"
       });
@@ -518,14 +517,14 @@ const TicketConfiguration: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
       
       toast({ 
-        title: t('TicketConfiguration.statusAtualizadoComSucesso'),
+        title: "Status atualizado com sucesso",
         description: "A opção foi ativada/desativada."
       });
     },
     onError: (error) => {
       console.error('❌ Error updating field option status:', error);
       toast({ 
-        title: "texto",
+        title: "Erro ao atualizar status",
         description: "Não foi possível alterar o status da opção.",
         variant: "destructive"
       });
@@ -558,8 +557,8 @@ const TicketConfiguration: React.FC = () => {
     },
     onError: (error: any) => {
       toast({ 
-        title: "texto", 
-        description: error.message || "texto",
+        title: "Erro ao excluir opção", 
+        description: error.message || "Erro desconhecido",
         variant: "destructive" 
       });
     }
@@ -629,14 +628,14 @@ const TicketConfiguration: React.FC = () => {
       ]);
       
       toast({ 
-        title: "texto",
+        title: "Estrutura copiada com sucesso",
         description: `${result.summary || 'Toda a estrutura hierárquica foi copiada da empresa Default.'}`
       });
     },
     onError: (error: any) => {
       console.error('❌ Error copying hierarchy:', error);
       toast({ 
-        title: "texto",
+        title: "Erro ao copiar estrutura",
         description: error.message || "Não foi possível copiar a estrutura hierárquica.",
         variant: "destructive"
       });
@@ -758,7 +757,7 @@ const TicketConfiguration: React.FC = () => {
         <CardContent className="space-y-4">
           <Select value={selectedCompany} onValueChange={setSelectedCompany}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="texto" />
+              <SelectValue placeholder="Selecione uma empresa" />
             </SelectTrigger>
             <SelectContent>
               {companies.map((company: Company) => (
@@ -899,7 +898,7 @@ const TicketConfiguration: React.FC = () => {
                     <div className="relative">
                       <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <Input
-                        placeholder="texto"
+                        placeholder="Buscar categorias..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 w-64"
@@ -1212,7 +1211,6 @@ const TicketConfiguration: React.FC = () => {
                 key: 'priority', 
                 title: 'Prioridade', 
                 description: 'Defina os níveis de prioridade para classificar a importância dos tickets',
-
                 icon: AlertTriangle,
                 color: 'orange'
               },
@@ -1590,7 +1588,7 @@ const TicketConfiguration: React.FC = () => {
 
                     <Button type="submit" disabled={saveNumberingMutation.isPending}>
                       <Save className="w-4 h-4 mr-2" />
-                      {saveNumberingMutation.isPending ? 'Salvando...' : "texto"}
+                      {saveNumberingMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
                     </Button>
                   </form>
                 </Form>
@@ -1606,7 +1604,7 @@ const TicketConfiguration: React.FC = () => {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === 'category' && (editingItem.id ? "texto" : 'Nova Categoria')}
+              {editingItem?.type === 'category' && (editingItem.id ? 'Editar Categoria' : 'Nova Categoria')}
               {editingItem?.type === 'subcategory' && 'Nova Subcategoria'}
               {editingItem?.type === 'action' && 'Nova Ação'}
               {editingItem?.type === 'field-option' && 'Nova Opção de Campo'}
@@ -1713,7 +1711,7 @@ const TicketConfiguration: React.FC = () => {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione a categoria" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1807,7 +1805,7 @@ const TicketConfiguration: React.FC = () => {
                       <Select onValueChange={field.onChange} defaultValue={editingItem.subcategoryId || field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione a subcategoria" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1923,7 +1921,7 @@ const TicketConfiguration: React.FC = () => {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o campo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -1978,7 +1976,7 @@ const TicketConfiguration: React.FC = () => {
                         <Select onValueChange={field.onChange} value={field.value} required>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o tipo de status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>

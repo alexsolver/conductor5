@@ -31,7 +31,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const integrationConfigSchema = z.object({
-
   apiKey: z.string().min(1, "API Key é obrigatória"),
   baseUrl: z.string().optional().refine((val) => {
     if (!val || val === "") return true;
@@ -147,7 +146,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: "texto",
+        title: "Erro ao salvar configuração",
         description: errorMessage,
         variant: "destructive",
       });
@@ -189,7 +188,7 @@ export default function SaasAdminIntegrations() {
         console.error('❌ [SAAS-ADMIN-TEST] Test failed with data:', data);
         toast({
           title: "Teste falhou", 
-          description: data.error || data.message || "texto",
+          description: data.error || data.message || "Erro na integração",
           variant: "destructive",
         });
       }
@@ -197,7 +196,7 @@ export default function SaasAdminIntegrations() {
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-TEST] Erro no teste:', error);
 
-      let errorMessage = "texto";
+      let errorMessage = "Erro ao testar integração";
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
@@ -205,7 +204,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: "texto",
+        title: "Erro no teste",
         description: errorMessage,
         variant: "destructive",
       });
@@ -566,7 +565,7 @@ export default function SaasAdminIntegrations() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={saveConfigMutation.isPending}>
-                  {saveConfigMutation.isPending ? "Salvando..." : "texto"}
+                  {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
                 </Button>
               </div>
             </form>

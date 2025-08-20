@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ticket, Clock, Users, TrendingUp } from "lucide-react";
-import { useLocalization } from '@/hooks/useLocalization';
+import { useLocalization } from "@/hooks/useLocalization";
 
 export default function Dashboard() {
-  const { t } = useLocalization();
-
-  // Temporarily removing internationalization
+  const { t } = useTranslation();
+  const { formatDate, formatNumber } = useLocalization();
   
   const { data: statsResponse, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -49,25 +49,25 @@ export default function Dashboard() {
 
   const metrics = [
     {
-      title: t('Dashboard.ticketsAtivos'),
-      value: (stats?.activeTickets || 0).toLocaleString(),
+      title: t('dashboard.stats.active_tickets'),
+      value: formatNumber(stats?.activeTickets || 0),
       icon: Ticket,
       trend: "+12%",
     },
     {
-      title: "Resolvidos Hoje",
-      value: (stats?.resolvedToday || 0).toLocaleString(),
+      title: t('dashboard.stats.resolved_today'),
+      value: formatNumber(stats?.resolvedToday || 0),
       icon: Clock,
       trend: "+8%",
     },
     {
-      title: "Tempo Médio de Resolução",
+      title: t('dashboard.stats.avg_resolution_time'),
       value: `${stats?.avgResolutionTime || 0}h`,
       icon: TrendingUp,
       trend: "-15%",
     },
     {
-      title: "Agentes Online",
+      title: t('dashboard.stats.online_agents'),
       value: `${stats?.onlineAgents || 0}/${stats?.totalAgents || 0}`,
       icon: Users,
       trend: "100%",
@@ -78,8 +78,8 @@ export default function Dashboard() {
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard Principal</h1>
-          <p className="text-gray-600 dark:text-gray-400">Visão geral do seu sistema de suporte</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('dashboard.welcome')}</p>
         </div>
       </div>
 

@@ -39,7 +39,6 @@ interface Holiday {
 
 // Zod schema for form validation
 const holidayFormSchema = z.object({
-
   name: z.string().min(1, 'Nome do feriado é obrigatório'),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
   type: z.enum(['national', 'regional', 'corporate', 'optional'], {
@@ -131,7 +130,7 @@ export default function HolidayCalendar() {
     onError: (error: any) => {
       toast({
         variant: 'destructive',
-        title: "texto",
+        title: 'Erro ao criar feriado',
         description: error.response?.data?.message || 'Ocorreu um erro ao criar o feriado.'
       });
     }
@@ -326,7 +325,7 @@ export default function HolidayCalendar() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createHolidayMutation.isPending}>
-                      {createHolidayMutation.isPending ? 'Criando...' : "texto"}
+                      {createHolidayMutation.isPending ? 'Criando...' : 'Criar Feriado'}
                     </Button>
                   </div>
                 </form>
@@ -381,7 +380,7 @@ export default function HolidayCalendar() {
               <label className="text-sm font-medium">Tipo</label>
               <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="texto" />
+                  <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os tipos</SelectItem>

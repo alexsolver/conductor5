@@ -17,7 +17,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const createTenantSchema = z.object({
-
   name: z.string().min(1, "Nome é obrigatório"),
   subdomain: z.string().min(1, "Subdomínio é obrigatório").regex(/^[a-z0-9-]+$/, "Subdomínio deve conter apenas letras minúsculas, números e hífens"),
   settings: z.object({}).optional()
@@ -88,7 +87,7 @@ export default function SaasAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro ao criar tenant",
         description: error.message,
         variant: "destructive",
       });
@@ -156,7 +155,7 @@ export default function SaasAdmin() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createTenantMutation.isPending}>
-                    {createTenantMutation.isPending ? 'Criando...' : "texto"}
+                    {createTenantMutation.isPending ? 'Criando...' : 'Criar'}
                   </Button>
                 </div>
               </form>

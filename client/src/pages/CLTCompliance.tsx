@@ -72,7 +72,6 @@ interface DigitalKey {
 }
 
 export default function CLTCompliance() {
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -92,11 +91,11 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: "texto",
+        title: "Erro na Reconstituição",
         description: "Falha ao reconstituir cadeia de integridade",
         variant: "destructive"
       });
-      console.error("texto", error);
+      console.error('Erro na reconstituição:', error);
     }
   });
   const [selectedPeriod, setSelectedPeriod] = useState({
@@ -149,7 +148,7 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: "texto",
+        title: "Erro",
         description: `Falha ao gerar relatório: ${error.message}`,
         variant: "destructive"
       });

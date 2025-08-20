@@ -13,12 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { X, MapPin, Users, Calendar, Route } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from "@/hooks/use-toast";
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Multi-select components for relationships
-const ClientesMultiSelect = ({
-  const { t } = useLocalization();
- value = [], onChange }) => {
+const ClientesMultiSelect = ({ value = [], onChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -59,7 +56,7 @@ const ClientesMultiSelect = ({
     <div className="space-y-2">
       <div className="relative">
         <Input
-          placeholder={t('locations.buscarClientes')}
+          placeholder="Buscar clientes..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setIsOpen(true)}
@@ -160,7 +157,7 @@ const RegioesMultiSelect = ({ value = [], onChange }) => {
     <div className="space-y-2">
       <div className="relative">
         <Input
-          placeholder={t('locations.buscarRegioes')}
+          placeholder="Buscar regiões..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setIsOpen(true)}
@@ -276,7 +273,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       if (!token) {
         console.error('❌ [ROTA-DINAMICA-FORM] No access token found');
         toast({
-          title: {t('locations.erroDeAutenticacao')},
+          title: "Erro de Autenticação",
           description: "Token de acesso não encontrado. Faça login novamente.",
           variant: "destructive"
         });
@@ -287,7 +284,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       if (!data.nome || typeof data.nome !== 'string' || data.nome.trim().length === 0) {
         console.error('❌ [ROTA-DINAMICA-FORM] Nome field validation failed');
         toast({
-          title: {t('locations.erroDeValidacao')},
+          title: "Erro de Validação",
           description: "O campo 'Nome' é obrigatório e deve ser preenchido.",
           variant: "destructive"
         });
@@ -320,7 +317,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
         if (!responseText) {
           console.error('❌ [ROTA-DINAMICA-FORM] Empty response from server');
           toast({
-            title: {t('locations.erroDeComunicacao')},
+            title: "Erro de Comunicação",
             description: "O servidor não retornou dados. Tente novamente.",
             variant: "destructive"
           });
@@ -332,7 +329,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
             responseText.trim().startsWith('<html')) {
           console.error('❌ [ROTA-DINAMICA-FORM] Received HTML instead of JSON');
           toast({
-            title: {t('locations.erroDoServidor')},
+            title: "Erro do Servidor",
             description: "O servidor retornou uma página de erro. Verifique a configuração.",
             variant: "destructive"
           });
@@ -345,7 +342,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
       } catch (parseError) {
         console.error('❌ [ROTA-DINAMICA-FORM] JSON parsing error:', parseError);
         toast({
-          title: {t('locations.erroDeParsing')},
+          title: "Erro de Parsing",
           description: `Não foi possível interpretar a resposta do servidor: ${parseError.message}`,
           variant: "destructive"
         });
@@ -357,7 +354,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
         console.log('✅ [ROTA-DINAMICA-FORM] Rota dinâmica created successfully');
 
         toast({
-          title: {t('locations.sucesso')},
+          title: "Sucesso!",
           description: result.message || "Rota dinâmica criada com sucesso!",
           variant: "default"
         });
@@ -379,10 +376,10 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
           result: result
         });
 
-        const errorMessage = result?.message || result?.error || {t('locations.erroDesconhecidoDoServidor')};
+        const errorMessage = result?.message || result?.error || 'Erro desconhecido do servidor';
 
         toast({
-          title: {t('locations.erroAoCriarRotaDinamica')},
+          title: "Erro ao Criar Rota Dinâmica",
           description: errorMessage,
           variant: "destructive"
         });
@@ -393,14 +390,14 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
 
       if (networkError instanceof TypeError && networkError.message.includes('Failed to fetch')) {
         toast({
-          title: {t('locations.erroDeConexao')},
+          title: "Erro de Conexão",
           description: "Não foi possível conectar ao servidor. Verifique sua conexão de internet.",
           variant: "destructive"
         });
       } else {
         toast({
-          title: {t('locations.erroInesperado')},
-          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : {t('locations.erroDesconhecido')}}`,
+          title: "Erro Inesperado",
+          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : 'Erro desconhecido'}`,
           variant: "destructive"
         });
       }
@@ -571,7 +568,7 @@ export default function RotaDinamicaForm({ onSubmit, initialData, isLoading, onS
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Salvando...' : {t('locations.salvarRotaDinamica')}}
+          {isLoading ? 'Salvando...' : 'Salvar Rota Dinâmica'}
         </Button>
       </div>
     </form>

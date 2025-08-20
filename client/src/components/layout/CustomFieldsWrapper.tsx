@@ -12,7 +12,6 @@ import {
 import FieldLayoutManager from './FieldLayoutManager';
 import { DynamicFormRenderer } from './DynamicFormRenderer';
 import useFieldLayout from '@/hooks/useFieldLayout';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface CustomFieldsWrapperProps {
   moduleType: 'customers' | 'tickets' | 'beneficiaries' | 'habilidades' | 'materials' | 'services' | 'locais';
@@ -25,8 +24,6 @@ interface CustomFieldsWrapperProps {
 }
 
 export function CustomFieldsWrapper({
-  const { t } = useLocalization();
-
   moduleType,
   pageType,
   form,
@@ -223,7 +220,7 @@ export function CustomFieldsWrapper({
               <Settings className="h-4 w-4 text-purple-600 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-purple-900">🎯 Sistema Drag & Drop Ativo</p>
-                <p className="text-purple-700">Clique no botão {t('layout.editarLayout')} (canto inferior direito) para arrastar campos personalizados para o formulário</p>
+                <p className="text-purple-700">Clique no botão "Editar Layout" (canto inferior direito) para arrastar campos personalizados para o formulário</p>
               </div>
             </div>
             <div className="border-t border-purple-200 pt-3">

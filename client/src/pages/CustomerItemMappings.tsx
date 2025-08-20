@@ -12,7 +12,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Search, Package, DollarSign, User, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface CustomerItemMapping {
   id: string;
@@ -36,9 +35,6 @@ interface CustomerItemMapping {
 }
 
 export function CustomerItemMappings() {
-  const { t } = useLocalization();
-
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -127,14 +123,14 @@ export function CustomerItemMappings() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "texto");
+        throw new Error(errorData.message || 'Erro ao salvar mapeamento');
       }
       
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "texto",
+        title: "Sucesso",
         description: editingMapping ? "Mapeamento atualizado com sucesso!" : "Novo mapeamento criado com sucesso!"
       });
       setDialogOpen(false);
@@ -144,7 +140,7 @@ export function CustomerItemMappings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro",
         description: error.message,
         variant: "destructive"
       });
@@ -157,20 +153,20 @@ export function CustomerItemMappings() {
       const response = await apiRequest('DELETE', `/api/materials-services/customer-item-mappings/${mappingId}?tenantId=${tenantId}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "texto");
+        throw new Error(errorData.message || 'Erro ao deletar mapeamento');
       }
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "texto",
+        title: "Sucesso",
         description: "Mapeamento deletado com sucesso!"
       });
       refetch();
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro",
         description: error.message,
         variant: "destructive"
       });
@@ -232,7 +228,7 @@ export function CustomerItemMappings() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingMapping ? t('CustomerItemMappings.editar') : "Novo"}
+                  {editingMapping ? "Editar Mapeamento" : "Criar Novo Mapeamento"}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -245,7 +241,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="texto" />
+                        <SelectValue placeholder="Selecione uma empresa" />
                       </SelectTrigger>
                       <SelectContent>
                         {customerCompaniesData?.map((company: any) => (
@@ -264,7 +260,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="texto" />
+                        <SelectValue placeholder="Selecione um item" />
                       </SelectTrigger>
                       <SelectContent>
                         {itemsData?.data?.map((item: any) => (
@@ -334,7 +330,7 @@ export function CustomerItemMappings() {
                     id="notes"
                     value={formData.notes}
                     onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="texto"
+                    placeholder="Observações internas sobre este mapeamento"
                   />
                 </div>
 
@@ -343,7 +339,7 @@ export function CustomerItemMappings() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createMappingMutation.isPending}>
-                    {createMappingMutation.isPending ? "Salvando..." : "texto"}
+                    {createMappingMutation.isPending ? "Salvando..." : "Salvar"}
                   </Button>
                 </div>
               </form>
@@ -361,7 +357,7 @@ export function CustomerItemMappings() {
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="texto"
+                    placeholder="Buscar por SKU, nome, referência..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -388,7 +384,7 @@ export function CustomerItemMappings() {
                 <Label htmlFor="type-filter">Tipo de Item</Label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="texto" />
+                    <SelectValue placeholder="Todos os tipos" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-types">Todos os tipos</SelectItem>

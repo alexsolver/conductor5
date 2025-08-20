@@ -45,7 +45,6 @@ import NotificationPreferencesTab from "@/components/NotificationPreferencesTab"
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { UploadResult } from "@uppy/core";
-import { useLocalization } from '@/hooks/useLocalization';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -78,7 +77,6 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 export default function UserProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useLocalization();
   const [activeTab, setActiveTab] = useState("personal");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -175,7 +173,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PROFILE-UPDATE] Error details:', error);
       toast({
-        title: t('UserProfile.erroAoAtualizar'),
+        title: "Erro ao atualizar",
         description: "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
@@ -234,7 +232,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
       toast({
-        title: t('UserProfile.erroAoAtualizarFoto'),
+        title: "Erro ao atualizar foto",
         description: "Não foi possível atualizar sua foto de perfil.",
         variant: "destructive",
       });
@@ -270,7 +268,7 @@ export default function UserProfile() {
     },
     onError: (error: any) => {
       toast({
-        title: t('UserProfile.erroAoAlterarSenha'),
+        title: "Erro ao alterar senha",
         description: error.message || "Não foi possível alterar a senha.",
         variant: "destructive",
       });
@@ -292,7 +290,7 @@ export default function UserProfile() {
     },
     onError: () => {
       toast({
-        title: t('UserProfile.erroAoSalvar'),
+        title: "Erro ao salvar",
         description: "Não foi possível salvar as preferências.",
         variant: "destructive",
       });
@@ -310,7 +308,7 @@ export default function UserProfile() {
       };
     } catch (error) {
       toast({
-        title: t('UserProfile.erroNoUpload'),
+        title: "Erro no upload",
         description: "Não foi possível obter URL de upload.",
         variant: "destructive",
       });
@@ -496,7 +494,7 @@ export default function UserProfile() {
                           <FormDescription>
                             {user?.role !== 'saas_admin' 
                               ? "Apenas administradores podem alterar o email" 
-                              : (!isEditing ? "Clique em {t('UserProfile.editarPerfil')} para alterar o email" : "Digite seu email")}
+                              : (!isEditing ? "Clique em 'Editar Perfil' para alterar o email" : "Digite seu email")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -580,7 +578,7 @@ export default function UserProfile() {
                           <Select disabled={!isEditing} value={field.value} onValueChange={field.onChange}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('UserProfile.selecioneOFusoHorario')} />
+                                <SelectValue placeholder="Selecione o fuso horário" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -1200,7 +1198,7 @@ function PrivacyGdprTab() {
                   </div>
                   <Badge variant={request.status === 'completed' ? 'default' : 'secondary'}>
                     {request.status === 'pending' ? 'Pendente' : 
-                     request.status === 'processing' ? {t('UserProfile.processando')} : 'Concluído'}
+                     request.status === 'processing' ? 'Processando' : 'Concluído'}
                   </Badge>
                 </div>
               ))}

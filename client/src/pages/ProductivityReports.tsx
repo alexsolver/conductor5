@@ -45,7 +45,6 @@ interface ProductivitySummary {
 }
 
 export default function ProductivityReports() {
-
   const [filters, setFilters] = useState({
     startDate: format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
@@ -85,15 +84,15 @@ export default function ProductivityReports() {
   const getActivityTypeLabel = (type: string) => {
     const labels = {
       'view_ticket': 'Visualizar Tickets',
-      'edit_ticket': "texto",
-      'create_ticket': "texto",
+      'edit_ticket': 'Editar Tickets',
+      'create_ticket': 'Criar Tickets',
       'send_message': 'Enviar Mensagens',
       'view_customer': 'Visualizar Clientes',
-      'create_note': "texto",
-      'edit_note': "texto",
+      'create_note': 'Criar Nota',
+      'edit_note': 'Editar Nota',
       'view_notes': 'Visualizar Notas',
-      'create_internal_action': "texto",
-      'edit_internal_action': "texto",
+      'create_internal_action': 'Criar Ação Interna',
+      'edit_internal_action': 'Editar Ação Interna',
       'view_actions': 'Visualizar Ações',
     };
     return labels[type] || type;

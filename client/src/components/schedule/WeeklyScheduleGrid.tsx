@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import SimpleAvatar from '@/components/SimpleAvatar';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface Schedule {
   id: string;
@@ -42,8 +41,6 @@ interface WeeklyScheduleGridProps {
 }
 
 const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
-  const { t } = useLocalization();
-
   schedules,
   activityTypes,
   agents,
@@ -147,7 +144,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder={t('schedule.buscarTecnico')}
+              placeholder="Buscar técnico..."
               className="pl-10"
               value={searchAgent}
               onChange={(e) => setSearchAgent(e.target.value)}

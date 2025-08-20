@@ -55,7 +55,6 @@ interface Dashboard {
 }
 
 const widgetTypeIcons = {
-
   chart: BarChart3,
   table: Table,
   metric: LineChart,
@@ -99,7 +98,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           if (widgetType === 'table') {
             return {
               value: total,
-              label: "texto",
+              label: 'Total de Tickets',
               data: tickets.slice(0, 5).map((ticket: any) => ({
                 id: ticket.id,
                 title: ticket.title || `Ticket ${ticket.ticketNumber}`,
@@ -112,7 +111,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           
           return {
             value: total,
-            label: "texto",
+            label: 'Total de Tickets',
             change: Math.floor(Math.random() * 20) - 10, // Placeholder até implementar histórico
             lastUpdated: 'Dados reais do banco',
           };
@@ -135,7 +134,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: "texto",
+            label: 'Clientes Ativos',
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -146,7 +145,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: "texto",
+            label: 'Usuários no Sistema',
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -614,7 +613,7 @@ function DashboardView() {
       console.log('Saving dashboard configuration:', updatedConfig);
       
       toast({ 
-        title: "texto", 
+        title: "Dashboard saved", 
         description: "Your dashboard changes have been saved successfully." 
       });
       
@@ -622,7 +621,7 @@ function DashboardView() {
       setLocation(`/dashboard/${id}`);
     } catch (error) {
       toast({ 
-        title: "texto", 
+        title: "Save failed", 
         description: "There was an error saving your dashboard changes." 
       });
     }

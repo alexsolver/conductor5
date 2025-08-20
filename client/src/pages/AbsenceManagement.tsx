@@ -17,7 +17,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const absenceFormSchema = z.object({
-
   userId: z.string().min(1, 'Usuário é obrigatório'),
   absenceType: z.enum(['vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence']),
   startDate: z.string().min(1, 'Data inicial é obrigatória'),
@@ -66,7 +65,7 @@ const statusLabels = {
   pending: 'Pendente',
   approved: 'Aprovada',
   rejected: 'Rejeitada',
-  cancelled: "texto"
+  cancelled: 'Cancelada'
 };
 
 const statusColors = {
@@ -128,8 +127,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: 'Erro ao Criar Solicitação',
+        description: error.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     },
@@ -149,8 +148,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: 'Erro ao Aprovar',
+        description: error.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     },
@@ -170,8 +169,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: 'Erro ao Rejeitar',
+        description: error.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     },
@@ -254,7 +253,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o funcionário" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -279,7 +278,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -370,7 +369,7 @@ export default function AbsenceManagement() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione um substituto" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -392,7 +391,7 @@ export default function AbsenceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAbsenceRequestMutation.isPending}>
-                    {createAbsenceRequestMutation.isPending ? 'Criando...' : "texto"}
+                    {createAbsenceRequestMutation.isPending ? 'Criando...' : 'Criar Solicitação'}
                   </Button>
                 </div>
               </form>

@@ -35,7 +35,6 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch"
 import {
-import { useLocalization } from '@/hooks/useLocalization';
   Card,
   CardContent,
 } from "@/components/ui/card"
@@ -49,9 +48,7 @@ interface InternalActionModalProps {
   onStartTimer?: (ticketId: string) => Promise<void>;
 }
 
-export default function InternalActionModal({
-  const { t } = useLocalization();
- isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
+export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
@@ -183,7 +180,7 @@ export default function InternalActionModal({
       console.log('✅ Internal Action Created Successfully:', data);
 
       toast({
-        title: {t('tickets.sucesso')},
+        title: "Sucesso",
         description: "Ação interna adicionada com sucesso",
       });
 
@@ -198,7 +195,7 @@ export default function InternalActionModal({
     },
     onError: (error: any) => {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: error.message || "Falha ao adicionar ação interna",
         variant: "destructive",
       });
@@ -244,7 +241,7 @@ export default function InternalActionModal({
       console.log('✅ Internal Action Updated Successfully:', data);
 
       toast({
-        title: {t('tickets.sucesso')},
+        title: "Sucesso",
         description: "Ação interna atualizada com sucesso",
       });
 
@@ -259,7 +256,7 @@ export default function InternalActionModal({
     },
     onError: (error: any) => {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: error.message || "Falha ao atualizar ação interna",
         variant: "destructive",
       });
@@ -270,7 +267,7 @@ export default function InternalActionModal({
     // Validate required fields
     if (!formData.action_type) {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: "Por favor, selecione o tipo de ação interna",
         variant: "destructive",
       });
@@ -279,7 +276,7 @@ export default function InternalActionModal({
 
     if (!formData.agent_id || formData.agent_id === "__none__") {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: "Por favor, selecione um agente responsável",
         variant: "destructive",
       });
@@ -293,7 +290,7 @@ export default function InternalActionModal({
 
       if (endDate <= startDate) {
         toast({
-          title: {t('tickets.erro')},
+          title: "Erro",
           description: "A data de fim previsto deve ser posterior à data de início previsto",
           variant: "destructive",
         });
@@ -307,7 +304,7 @@ export default function InternalActionModal({
 
       if (endDate <= startDate) {
         toast({
-          title: {t('tickets.erro')},
+          title: "Erro",
           description: "A data de fim realizado deve ser posterior à data de início realizado",
           variant: "destructive",
         });
@@ -318,7 +315,7 @@ export default function InternalActionModal({
     // Validate numeric fields
     if (formData.estimated_hours && parseFloat(formData.estimated_hours) < 0) {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: "As horas estimadas não podem ser negativas",
         variant: "destructive",
       });
@@ -328,7 +325,7 @@ export default function InternalActionModal({
     // Validate text field lengths (based on typical database constraints)
     if (formData.title && formData.title.length > 255) {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: "O título não pode exceder 255 caracteres",
         variant: "destructive",
       });
@@ -337,7 +334,7 @@ export default function InternalActionModal({
 
     if (formData.description && formData.description.length > 65535) {
       toast({
-        title: {t('tickets.erro')},
+        title: "Erro",
         description: "A descrição é muito longa",
         variant: "destructive",
       });
@@ -375,11 +372,11 @@ export default function InternalActionModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            {editAction ? {t('tickets.editarAcaoInterna')} : 'Nova Ação Interna'}
+            {editAction ? 'Editar Ação Interna' : 'Nova Ação Interna'}
           </DialogTitle>
           <DialogDescription>
             {editAction 
-              ? {t('tickets.editeOsDadosDaAcaoInternaSelecionada')}
+              ? 'Edite os dados da ação interna selecionada.'
               : 'Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.'
             }
           </DialogDescription>
@@ -398,7 +395,7 @@ export default function InternalActionModal({
                     <Label htmlFor="action-type">Tipo de Ação *</Label>
                     <Select value={formData.action_type} onValueChange={(value) => setFormData(prev => ({ ...prev, action_type: value }))}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={t('tickets.selecioneOTipoDeAcao')} />
+                        <SelectValue placeholder="Selecione o tipo de ação..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="analysis">Análise</SelectItem>
@@ -419,7 +416,7 @@ export default function InternalActionModal({
                     <Label htmlFor="agent">Agente Responsável *</Label>
                     <Select value={formData.agent_id} onValueChange={(value) => setFormData(prev => ({ ...prev, agent_id: value }))}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={t('tickets.selecioneUmAgente')} />
+                        <SelectValue placeholder="Selecione um agente..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">-- Selecione um agente --</SelectItem>
@@ -775,7 +772,7 @@ export default function InternalActionModal({
                       <Send className="w-4 h-4 mr-2" />
                       {(editAction ? updateActionMutation.isPending : createActionMutation.isPending) 
                         ? "Salvando..." 
-                        : (editAction ? "Atualizar Ação" : {t('tickets.salvarAcao')})
+                        : (editAction ? "Atualizar Ação" : "Salvar Ação")
                       }
                     </Button>
                   </div>

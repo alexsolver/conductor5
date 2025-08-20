@@ -7,14 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useLocalization } from '@/hooks/useLocalization';
+import { useTranslation } from "react-i18next";
 
 
 export default function AuthPage() {
-  const { t } = useLocalization();
-
   const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
+  const { t } = useTranslation();
 
   // ✅ CRITICAL FIX: Não limpar tokens automaticamente na página de auth
   // Isso pode estar causando problemas durante o processo de login
@@ -189,7 +188,7 @@ export default function AuthPage() {
               Creating account...
             </>
           ) : (
-            t('AuthPage.criarConta')
+            "Create Account"
           )}
         </Button>
       </form>

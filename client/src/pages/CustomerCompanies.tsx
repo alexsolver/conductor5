@@ -34,7 +34,6 @@ import AssociateMultipleCustomersModal from "@/components/customers/AssociateMul
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
 
 const companySchema = z.object({
-
   name: z.string().min(1, "Nome da empresa é obrigatório"),
   displayName: z.string().optional(),
   description: z.string().optional(),
@@ -115,14 +114,14 @@ export default function Companies() {
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
-        title: "texto",
+        title: "Sucesso",
         description: "Empresa criada com sucesso!",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: "Erro",
+        description: error.message || "Erro ao criar empresa",
         variant: "destructive",
       });
     }
@@ -143,15 +142,15 @@ export default function Companies() {
       editForm.reset();
       if (!isOptimisticUpdate) {
         toast({
-          title: "texto",
+          title: "Sucesso",
           description: "Empresa atualizada com sucesso!",
         });
       }
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: "Erro",
+        description: error.message || "Erro ao atualizar empresa",
         variant: "destructive",
       });
     }
@@ -186,22 +185,22 @@ export default function Companies() {
       ]);
 
       toast({
-        title: "texto",
+        title: "Sucesso",
         description: "Empresa excluída com sucesso!",
       });
     },
     onError: (error: any) => {
-      console.error("texto", error);
+      console.error('Error deleting company:', error);
 
       // Revert optimistic update if it was applied
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
 
       const errorMessage = error?.response?.data?.message || 
                           error?.message || 
-                          "texto";
+                          "Erro ao excluir empresa";
 
       toast({
-        title: "texto",
+        title: "Erro",
         description: errorMessage,
         variant: "destructive",
       });
@@ -449,7 +448,7 @@ export default function Companies() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o tamanho" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -569,7 +568,7 @@ export default function Companies() {
                     disabled={createCompanyMutation.isPending}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
-                    {createCompanyMutation.isPending ? "Criando..." : "texto"}
+                    {createCompanyMutation.isPending ? "Criando..." : "Criar Empresa"}
                   </Button>
                 </div>
               </form>
@@ -583,7 +582,7 @@ export default function Companies() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder="texto"
+            placeholder="Buscar empresas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -784,11 +783,11 @@ export default function Companies() {
                               });
                               
                             } catch (error) {
-                              console.error("texto", error);
+                              console.error('Error updating Default company:', error);
                               // Revert optimistic update on error
                               queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
                               toast({
-                                title: "texto",
+                                title: "Erro",
                                 description: "Falha ao atualizar empresa. Tente novamente.",
                                 variant: "destructive"
                               });
@@ -813,7 +812,7 @@ export default function Companies() {
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
-                        {deleteCompanyMutation.isPending ? "Excluindo..." : "texto"}
+                        {deleteCompanyMutation.isPending ? "Excluindo..." : "Excluir"}
                       </Button>
                     );
                   })()}
@@ -922,7 +921,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione o tamanho" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1045,7 +1044,7 @@ export default function Companies() {
                   disabled={updateCompanyMutation.isPending}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  {updateCompanyMutation.isPending ? "Salvando..." : "texto"}
+                  {updateCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
                 </Button>
               </div>
             </form>

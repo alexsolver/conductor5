@@ -37,7 +37,6 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 const automationRuleSchema = z.object({
-
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string(),
   enabled: z.boolean().default(true),
@@ -117,7 +116,7 @@ export default function AutomationRules() {
     refetchOnWindowFocus: false,
     onError: (error: any) => {
       console.error('❌ [AutomationRules] Final error after retries:', error);
-      setLoadingError("texto"Serviço temporariamente indisponível'}`);
+      setLoadingError(`Erro ao carregar regras de automação: ${error?.message || 'Serviço temporariamente indisponível'}`);
     },
     onSuccess: (data) => {
       console.log('✅ [AutomationRules] Rules query successful:', data);
@@ -158,8 +157,8 @@ export default function AutomationRules() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: '❌ Erro',
+        description: error.message || 'Erro ao criar regra de automação',
         variant: 'destructive'
       });
     }
@@ -205,7 +204,7 @@ export default function AutomationRules() {
       testRuleMutation.mutate({ ruleId, testData: parsedTestData });
     } catch (error) {
       toast({
-        title: "texto",
+        title: '❌ Erro',
         description: 'Dados de teste inválidos (JSON malformado)',
         variant: 'destructive'
       });

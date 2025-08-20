@@ -27,7 +27,6 @@ import { z } from 'zod';
 
 // Schemas de validação
 const cookieConsentSchema = z.object({
-
   consentType: z.enum(['cookies_necessary', 'cookies_statistics', 'cookies_marketing', 'data_processing', 'communications', 'profiling', 'third_party_sharing']),
   granted: z.boolean(),
   consentVersion: z.string().min(1),
@@ -325,7 +324,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-consent-type">
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -412,7 +411,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-request-type">
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -454,7 +453,7 @@ export default function GdprCompliancePage() {
                     disabled={createDataSubjectRequest.isPending}
                     data-testid="button-create-request"
                   >
-                    {createDataSubjectRequest.isPending ? 'Criando...' : "texto"}
+                    {createDataSubjectRequest.isPending ? 'Criando...' : 'Criar Solicitação'}
                   </Button>
                 </form>
               </Form>
@@ -526,7 +525,7 @@ export default function GdprCompliancePage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-incident-severity">
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione a severidade" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -837,8 +836,8 @@ function PrivacyPolicyManagement() {
     onError: (error: any) => {
       console.error('❌ [CREATE-POLICY] Error:', error);
       toast({ 
-        title: "texto", 
-        description: error.message || "texto",
+        title: "Erro ao criar política", 
+        description: error.message || 'Erro desconhecido',
         variant: "destructive" 
       });
     }
@@ -1082,7 +1081,7 @@ function PrivacyPolicyManagement() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createPolicyMutation.isPending}>
-                  {createPolicyMutation.isPending ? "Criando..." : "texto"}
+                  {createPolicyMutation.isPending ? "Criando..." : "Criar Política"}
                 </Button>
               </DialogFooter>
             </form>

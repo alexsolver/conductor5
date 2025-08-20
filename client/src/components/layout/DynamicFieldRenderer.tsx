@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useLocalization } from '@/hooks/useLocalization';
 
 export interface CustomField {
   id: string;
@@ -37,8 +36,6 @@ interface DynamicFieldRendererProps {
 }
 
 export default function DynamicFieldRenderer({
-  const { t } = useLocalization();
-
   field,
   isEditMode = false,
   onUpdate,
@@ -141,7 +138,7 @@ export default function DynamicFieldRenderer({
         return (
           <Select value={fieldData.value} onValueChange={inputProps.onChange}>
             <SelectTrigger>
-              <SelectValue placeholder={fieldData.placeholder || {t('layout.selecioneUmaOpcao')}} />
+              <SelectValue placeholder={fieldData.placeholder || "Selecione uma opção"} />
             </SelectTrigger>
             <SelectContent>
               {fieldData.options?.map((option, index) => (

@@ -25,9 +25,7 @@ interface AreaFormProps {
 }
 
 // Componente para seleção de cores predefinidas
-const ColorPicker = ({
-  const { t } = useLocalization();
- value, onChange }) => {
+const ColorPicker = ({ value, onChange }) => {
   const coresPredefinidas = [
     { cor: "#3B82F6", nome: "Azul" },
     { cor: "#EF4444", nome: "Vermelho" },
@@ -298,12 +296,12 @@ const ArquivoUploader = ({ onArquivoUpload }) => {
         });
 
         toast({
-          title: {t('locations.arquivoCarregadoComSucesso')},
+          title: "Arquivo carregado com sucesso",
           description: `${file.name} foi processado`
         });
       } catch (error) {
         toast({
-          title: {t('locations.erroAoProcessarArquivo')},
+          title: "Erro ao processar arquivo",
           description: "Verifique se o arquivo está no formato correto",
           variant: "destructive"
         });
@@ -426,7 +424,6 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
         );
 
       case 'importar_area':
-import { useLocalization } from '@/hooks/useLocalization';
         return (
           <ArquivoUploader
             onArquivoUpload={(dadosArquivo) => {
@@ -551,7 +548,7 @@ import { useLocalization } from '@/hooks/useLocalization';
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('locations.selecioneOTipoDeArea')} />
+                          <SelectValue placeholder="Selecione o tipo de área" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -637,7 +634,7 @@ import { useLocalization } from '@/hooks/useLocalization';
               disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? "Criando..." : {t('locations.criarArea')}}
+              {isLoading ? "Criando..." : "Criar Área"}
             </Button>
           </div>
         </form>

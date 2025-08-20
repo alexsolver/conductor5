@@ -17,7 +17,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const createUserSchema = z.object({
-
   email: z.string().email("Email inválido"),
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().optional(),
@@ -109,7 +108,7 @@ export default function TenantAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro ao criar usuário",
         description: error.message,
         variant: "destructive",
       });
@@ -126,13 +125,13 @@ export default function TenantAdmin() {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/settings'] });
       setIsSettingsDialogOpen(false);
       toast({
-        title: "texto",
-        description: "texto",
+        title: "Configurações atualizadas",
+        description: "Configurações do workspace atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro ao atualizar configurações",
         description: error.message,
         variant: "destructive",
       });
@@ -192,7 +191,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                      {updateSettingsMutation.isPending ? 'Salvando...' : "texto"}
+                      {updateSettingsMutation.isPending ? 'Salvando...' : 'Salvar'}
                     </Button>
                   </div>
                 </form>
@@ -278,7 +277,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createUserMutation.isPending}>
-                      {createUserMutation.isPending ? 'Criando...' : "texto"}
+                      {createUserMutation.isPending ? 'Criando...' : 'Criar'}
                     </Button>
                   </div>
                 </form>

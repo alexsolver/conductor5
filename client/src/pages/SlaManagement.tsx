@@ -48,7 +48,6 @@ import {
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { QueryBuilderComponent } from '@/components/QueryBuilder';
 
-
 // SLA Schema imports - following 1qa.md
 import type {
   QueryRule,
@@ -140,7 +139,6 @@ interface SlaComplianceStats {
 }
 
 const slaDefinitionSchema = z.object({
-
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   type: z.enum(['SLA', 'OLA', 'UC']),
@@ -236,7 +234,7 @@ export default function SlaManagement() {
   // Queries para workflows
   const { data: workflows, isLoading: isLoadingWorkflows } = useQuery({
     queryKey: ['/api/sla/workflows'],
-    queryFn: () => apiRequest('/api/sla/workflows', { method: 'GET' }).then(res => res.json()),
+    queryFn: () => apiRequest('/api/sla/workflows').then(res => res.json()),
   });
 
   // Mutations
@@ -256,8 +254,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: "Erro",
+        description: error.message || "Erro ao criar SLA",
         variant: "destructive",
       });
     },
@@ -281,8 +279,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: "Erro",
+        description: error.message || "Erro ao atualizar SLA",
         variant: "destructive",
       });
     },
@@ -300,8 +298,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: "Erro",
+        description: error.message || "Erro ao excluir SLA",
         variant: "destructive",
       });
     },
@@ -337,8 +335,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: "Erro",
+        description: error.message || "Erro ao criar workflow",
         variant: "destructive",
       });
     },
@@ -1019,7 +1017,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-type">
-                        <SelectValue placeholder="texto" />
+                        <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1042,7 +1040,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-priority">
-                        <SelectValue placeholder="texto" />
+                        <SelectValue placeholder="Selecione a prioridade" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1279,7 +1277,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {isEdit ? 'Atualizar SLA' : "texto"}
+                {isEdit ? 'Atualizar SLA' : 'Criar SLA'}
               </>
             )}
           </Button>
@@ -1345,7 +1343,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-workflow-trigger">
-                        <SelectValue placeholder="texto" />
+                        <SelectValue placeholder="Selecione o evento" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

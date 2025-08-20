@@ -60,7 +60,6 @@ import {
 import { Link } from "wouter";
 
 export default function TeamManagement() {
-
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
@@ -202,7 +201,7 @@ export default function TeamManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
+        title: "Erro ao atualizar status",
         description: error?.message || "Falha ao atualizar o status do membro.",
         variant: "destructive",
       });
@@ -214,7 +213,7 @@ export default function TeamManagement() {
     console.log('TeamManagement - Opening edit dialog with member:', member);
     if (!member || !member.id) {
       toast({
-        title: "texto",
+        title: "Erro",
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -228,7 +227,7 @@ export default function TeamManagement() {
   const handleToggleMemberStatus = async (member: any) => {
     if (!member || !member.id) {
       toast({
-        title: "texto",
+        title: "Erro",
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -239,9 +238,9 @@ export default function TeamManagement() {
     try {
       toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
     } catch (error) {
-      console.error("texto", error);
+      console.error('Error toggling member status:', error);
       toast({
-        title: "texto",
+        title: "Erro",
         description: "Falha ao alterar status do membro",
         variant: "destructive",
       });
@@ -252,7 +251,7 @@ export default function TeamManagement() {
   const handleExportTeamData = () => {
     if (!teamMembers || teamMembers.length === 0) {
       toast({
-        title: "texto",
+        title: "Nenhum dado para exportar",
         description: "Não há membros da equipe para exportar.",
         variant: "destructive",
       });
@@ -298,7 +297,7 @@ export default function TeamManagement() {
       });
     } catch (error) {
       toast({
-        title: "texto",
+        title: "Erro na exportação",
         description: "Falha ao exportar os dados da equipe.",
         variant: "destructive",
       });
@@ -655,7 +654,7 @@ export default function TeamManagement() {
                   <Label htmlFor="department">Departamento</Label>
                   <Select value={filterDepartment} onValueChange={setFilterDepartment}>
                     <SelectTrigger>
-                      <SelectValue placeholder="texto" />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -691,7 +690,7 @@ export default function TeamManagement() {
                   <Label htmlFor="group">Grupo</Label>
                   <Select value={filterGroup} onValueChange={setFilterGroup}>
                     <SelectTrigger>
-                      <SelectValue placeholder="texto" />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -718,7 +717,7 @@ export default function TeamManagement() {
                   <Label htmlFor="status">Status</Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger>
-                      <SelectValue placeholder="texto" />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -852,7 +851,7 @@ export default function TeamManagement() {
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {teamMembers && teamMembers.length === 0 
-                          ? "texto"
+                          ? "Nenhum membro foi adicionado à equipe ainda."
                           : "Ajuste os filtros para encontrar membros da equipe."
                         }
                       </p>

@@ -6,6 +6,7 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,7 +24,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocalization } from '@/hooks/useLocalization';
 import { 
   ArrowLeft,
   Settings2, 
@@ -45,7 +45,6 @@ import {
   Layers3
 } from "lucide-react";
 import { useLocation } from "wouter";
-import { useLocalization } from '@/hooks/useLocalization';
 
 // Schema para configurações avançadas
 const advancedFieldSchema = z.object({
@@ -117,9 +116,9 @@ interface SLAConfiguration {
 }
 
 function TicketAdvancedConfiguration() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLocalization();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("field-management");
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -612,7 +611,7 @@ function TicketAdvancedConfiguration() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === 'field' && (editingItem.id ? t('TicketAdvancedConfiguration.editarCampo') : 'Novo Campo')}
+              {editingItem?.type === 'field' && (editingItem.id ? 'Editar Campo' : 'Novo Campo')}
               {editingItem?.type === 'option' && 'Nova Opção'}
               {editingItem?.type === 'sla' && 'Configurar SLA'}
             </DialogTitle>
@@ -661,7 +660,7 @@ function TicketAdvancedConfiguration() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -766,7 +765,7 @@ function TicketAdvancedConfiguration() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createFieldMutation.isPending || updateFieldMutation.isPending}>
-                    {editingItem.id ? 'Atualizar' : "texto"} Campo
+                    {editingItem.id ? 'Atualizar' : 'Criar'} Campo
                   </Button>
                 </div>
               </form>
@@ -911,7 +910,7 @@ function TicketAdvancedConfiguration() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione a prioridade" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

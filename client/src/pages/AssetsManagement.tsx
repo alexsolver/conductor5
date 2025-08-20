@@ -109,7 +109,6 @@ interface MaintenanceRecord {
 }
 
 export function AssetsManagement() {
-
   const [selectedTab, setSelectedTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -307,8 +306,8 @@ export function AssetsManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: "Erro",
+        description: error.message || "Erro ao criar ativo",
         variant: "destructive"
       });
     }
@@ -327,8 +326,8 @@ export function AssetsManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "texto",
-        description: error.message || "texto",
+        title: "Erro",
+        description: error.message || "Erro ao atualizar ativo",
         variant: "destructive"
       });
     }
@@ -518,7 +517,7 @@ export function AssetsManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="texto"
+              placeholder="Buscar ativos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -689,7 +688,7 @@ export function AssetsManagement() {
                 <Label htmlFor="category">Categoria *</Label>
                 <Select name="category" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="texto" />
+                    <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="computer">Computadores</SelectItem>
@@ -731,7 +730,7 @@ export function AssetsManagement() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={createAssetMutation.isPending}>
-                {createAssetMutation.isPending ? 'Criando...' : "texto"}
+                {createAssetMutation.isPending ? 'Criando...' : 'Criar Ativo'}
               </Button>
             </div>
           </form>

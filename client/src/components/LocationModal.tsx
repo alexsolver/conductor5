@@ -16,11 +16,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import MapSelector from './MapSelector';
 import { renderAddressSafely } from '@/utils/addressFormatter';
-import { useLocalization } from '@/hooks/useLocalization';
 
 const locationSchema = z.object({
-  const { t } = useLocalization();
-
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(['cliente', 'ativo', 'filial', 'tecnico', 'parceiro']),
   status: z.enum(['ativo', 'inativo', 'manutencao', 'suspenso']).default('ativo'),
@@ -108,7 +105,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
     },
     onError: (error: any) => {
       toast({
-        title: {t('LocationModal.tsx.erro')},
+        title: "Erro",
         description: error.message || "Não foi possível salvar a localização.",
         variant: "destructive"
       });
@@ -152,7 +149,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              {location?.id ? {t('LocationModal.tsx.editarLocalizacao')} : "Nova Localização"}
+              {location?.id ? "Editar Localização" : "Nova Localização"}
             </DialogTitle>
           </DialogHeader>
 
@@ -202,7 +199,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('LocationModal.tsx.selecioneOTipo')} />
+                                <SelectValue placeholder="Selecione o tipo" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -228,7 +225,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('LocationModal.tsx.selecioneOStatus')} />
+                              <SelectValue placeholder="Selecione o status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -431,7 +428,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('LocationModal.tsx.selecioneOFusoHorario')} />
+                              <SelectValue placeholder="Selecione o fuso horário" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -491,7 +488,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Salvando...' : location?.id ? 'Atualizar' : {t('LocationModal.tsx.criar')}}
+                  {mutation.isPending ? 'Salvando...' : location?.id ? 'Atualizar' : 'Criar'}
                 </Button>
               </div>
             </form>

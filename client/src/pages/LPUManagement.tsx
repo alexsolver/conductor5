@@ -78,7 +78,6 @@ interface LPUStats {
 }
 
 export default function LPUManagement() {
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -101,9 +100,9 @@ export default function LPUManagement() {
     retry: 3,
     staleTime: 30000,
     onError: (error) => {
-      console.error("texto", error);
+      console.error('Error fetching LPU stats:', error);
       toast({ 
-        title: "texto", 
+        title: 'Erro ao carregar estatísticas', 
         description: 'Verifique sua conexão e tente novamente',
         variant: 'destructive' 
       });
@@ -302,7 +301,7 @@ export default function LPUManagement() {
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Observações</Label>
-                  <Textarea name="notes" placeholder="texto" />
+                  <Textarea name="notes" placeholder="Informações adicionais sobre esta lista..." />
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
@@ -310,7 +309,7 @@ export default function LPUManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createPriceListMutation.isPending}>
-                    {createPriceListMutation.isPending ? 'Criando...' : "texto"}
+                    {createPriceListMutation.isPending ? 'Criando...' : 'Criar Lista'}
                   </Button>
                 </div>
               </form>
@@ -397,7 +396,7 @@ export default function LPUManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createRuleMutation.isPending}>
-                    {createRuleMutation.isPending ? 'Criando...' : "texto"}
+                    {createRuleMutation.isPending ? 'Criando...' : 'Criar Regra'}
                   </Button>
                 </div>
               </form>
@@ -476,7 +475,7 @@ export default function LPUManagement() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="texto"
+                placeholder="Buscar listas de preços..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -484,7 +483,7 @@ export default function LPUManagement() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="texto" />
+                <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>

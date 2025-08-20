@@ -7,7 +7,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { useLocalization } from '@/hooks/useLocalization';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,7 +25,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
-// import { useTranslation } from 'react-i18next';
   Settings, 
   Wrench, 
   Calendar, 
@@ -55,8 +53,6 @@ import {
 
 // Form Schemas following 1qa.md patterns
 const assetSchema = z.object({
-  // const { t } = useTranslation();
-
   tag: z.string().min(1, 'Tag é obrigatório'),
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
@@ -240,7 +236,6 @@ export default function ActivityPlanner() {
   // Asset Creation Dialog
   function CreateAssetDialog({ onSuccess }: { onSuccess: () => void }) {
     const [open, setOpen] = useState(false);
-    const { t } = useLocalization();
     
     const form = useForm<AssetFormData>({
       resolver: zodResolver(assetSchema),
@@ -271,7 +266,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: t('ActivityPlanner.erroAoCriarAtivo'), 
+          title: "Erro ao criar ativo", 
           description: error.message,
           variant: "destructive" 
         });
@@ -331,7 +326,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-asset-location">
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione uma localização" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -354,7 +349,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-asset-category">
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione uma categoria" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -501,7 +496,7 @@ export default function ActivityPlanner() {
                   data-testid="button-submit-asset"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
-                  {createAssetMutation.isPending ? "Criando..." : "texto"}
+                  {createAssetMutation.isPending ? "Criando..." : "Criar Ativo"}
                 </Button>
               </div>
             </form>
@@ -542,7 +537,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: "texto", 
+          title: "Erro ao criar plano", 
           description: error.message,
           variant: "destructive" 
         });
@@ -588,7 +583,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-plan-asset">
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione um ativo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -743,7 +738,7 @@ export default function ActivityPlanner() {
                   data-testid="button-submit-plan"
                   className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                 >
-                  {createPlanMutation.isPending ? "Criando..." : "texto"}
+                  {createPlanMutation.isPending ? "Criando..." : "Criar Plano"}
                 </Button>
               </div>
             </form>
@@ -785,7 +780,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: "texto", 
+          title: "Erro ao criar ordem de serviço", 
           description: error.message,
           variant: "destructive" 
         });
@@ -831,7 +826,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-asset">
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione um ativo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -935,7 +930,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-technician">
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione um técnico" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -958,7 +953,7 @@ export default function ActivityPlanner() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-plan">
-                            <SelectValue placeholder="texto" />
+                            <SelectValue placeholder="Selecione um plano" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1012,7 +1007,7 @@ export default function ActivityPlanner() {
                   data-testid="button-submit-wo"
                   className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
                 >
-                  {createWorkOrderMutation.isPending ? "Criando..." : "texto"}
+                  {createWorkOrderMutation.isPending ? "Criando..." : "Criar OS"}
                 </Button>
               </div>
             </form>
@@ -1215,7 +1210,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: "texto", 
+          title: "Erro ao atualizar status", 
           description: error.message,
           variant: "destructive" 
         });
@@ -1260,7 +1255,7 @@ export default function ActivityPlanner() {
                workOrder.status === 'scheduled' ? 'Agendada' :
                workOrder.status === 'in_progress' ? 'Em Andamento' :
                workOrder.status === 'paused' ? 'Pausada' :
-               workOrder.status === 'completed' ? 'Concluída' : "texto"}
+               workOrder.status === 'completed' ? 'Concluída' : 'Cancelada'}
               <MoreHorizontal className="w-3 h-3 ml-1" />
             </Button>
           </DropdownMenuTrigger>
@@ -1366,7 +1361,7 @@ export default function ActivityPlanner() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="texto"
+              placeholder="Buscar ativos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"

@@ -77,7 +77,6 @@ interface Customer {
 }
 
 const AgendaManager: React.FC = () => {
-
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<'timeline' | 'agenda'>('timeline');
   const [selectedAgentId, setSelectedAgentId] = useState<string>();
@@ -380,7 +379,7 @@ const AgendaManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
               <Select value={selectedClient} onValueChange={setSelectedClient}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="texto" />
+                  <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todas as empresas</SelectItem>
@@ -401,7 +400,7 @@ const AgendaManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
               <Select value={selectedGroup} onValueChange={setSelectedGroup}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="texto" />
+                  <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os grupos</SelectItem>
@@ -419,7 +418,7 @@ const AgendaManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Técnicos</label>
               <Select value={selectedAgents} onValueChange={setSelectedAgents}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="texto" />
+                  <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os técnicos</SelectItem>
@@ -440,7 +439,7 @@ const AgendaManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Título da Tarefa</label>
               <Input
                 type="text"
-                placeholder="texto"
+                placeholder="Buscar por título..."
                 value={taskTitleFilter}
                 onChange={(e) => setTaskTitleFilter(e.target.value)}
                 className="h-9"

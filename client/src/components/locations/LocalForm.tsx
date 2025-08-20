@@ -17,7 +17,6 @@ import { localSchema, type NewLocal } from "@/../../shared/schema-locations-new"
 import { useToast } from "@/hooks/use-toast";
 import LeafletMapSelector from "@/components/LeafletMapSelector";
 import MapSelector from '@/components/MapSelector';
-import { useLocalization } from '@/hooks/useLocalization';
 
 
 interface LocalFormProps {
@@ -75,9 +74,7 @@ const FUSOS_HORARIO = [
   'America/Noronha'
 ];
 
-export default function LocalForm({
-  const { t } = useLocalization();
- onSubmit, initialData, isLoading, onSuccess, onClose }: LocalFormProps) {
+export default function LocalForm({ onSubmit, initialData, isLoading, onSuccess, onClose }: LocalFormProps) {
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [token, setToken] = useState(() => localStorage.getItem('accessToken'));
@@ -250,7 +247,7 @@ export default function LocalForm({
       const validToken = await validateAndRefreshToken();
       if (!validToken) {
         toast({
-          title: {t('locations.erroDeAutenticacao')},
+          title: "Erro de Autenticação",
           description: "Não foi possível autenticar. Tente novamente.",
           variant: "destructive"
         });
@@ -335,7 +332,7 @@ export default function LocalForm({
     } catch (error) {
       console.error('❌ [CEP-LOOKUP] Error:', error);
       toast({
-        title: {t('locations.erroAoBuscarCep')},
+        title: "Erro ao buscar CEP",
         description: "Serviço temporariamente indisponível. Tente novamente.",
         variant: "destructive"
       });
@@ -372,7 +369,7 @@ export default function LocalForm({
     } catch (error) {
       console.error('❌ [GEOCODING] Error:', error);
       toast({
-        title: {t('locations.erroAoBuscarCoordenadas')},
+        title: "Erro ao buscar coordenadas",
         description: "Não foi possível obter as coordenadas do endereço",
         variant: "destructive"
       });
@@ -442,7 +439,7 @@ export default function LocalForm({
       const validToken = await validateAndRefreshToken();
       if (!validToken) {
         toast({
-          title: {t('locations.erroDeAutenticacao')},
+          title: "Erro de Autenticação",
           description: "Não foi possível autenticar. Tente novamente.",
           variant: "destructive"
         });
@@ -494,7 +491,7 @@ export default function LocalForm({
     } catch (error) {
       console.error('❌ [HOLIDAYS-FETCH] Error:', error);
       toast({
-        title: {t('locations.erroAoBuscarFeriados')},
+        title: "Erro ao buscar feriados",
         description: error instanceof Error ? error.message : "Tente novamente mais tarde",
         variant: "destructive"
       });
@@ -553,7 +550,7 @@ export default function LocalForm({
       if (!token) {
         console.error('❌ [LOCAL-FORM] No access token found');
         toast({
-          title: {t('locations.erroDeAutenticacao')},
+          title: "Erro de Autenticação",
           description: "Token de acesso não encontrado. Faça login novamente.",
           variant: "destructive"
         });
@@ -564,7 +561,7 @@ export default function LocalForm({
       if (!data.nome || typeof data.nome !== 'string' || data.nome.trim().length === 0) {
         console.error('❌ [LOCAL-FORM] Nome field validation failed');
         toast({
-          title: {t('locations.erroDeValidacao')},
+          title: "Erro de Validação",
           description: "O campo 'Nome' é obrigatório e deve ser preenchido.",
           variant: "destructive"
         });
@@ -605,7 +602,7 @@ export default function LocalForm({
         if (!responseText) {
           console.error('❌ [LOCAL-FORM] Empty response from server');
           toast({
-            title: {t('locations.erroDeComunicacao')},
+            title: "Erro de Comunicação",
             description: "O servidor não retornou dados. Tente novamente.",
             variant: "destructive"
           });
@@ -624,21 +621,21 @@ export default function LocalForm({
 
           // Tentar extrair informação de erro do HTML se possível
           const titleMatch = responseText.match(/<title>(.*?)<\/title>/i);
-          const errorTitle = titleMatch ? titleMatch[1] : {t('locations.erroDoServidor')};
+          const errorTitle = titleMatch ? titleMatch[1] : 'Erro do Servidor';
 
           let errorMessage = "O servidor retornou uma página de erro em vez de dados JSON.";
 
           // Verificar se é erro 500, 404, etc.
           if (response.status >= 500) {
-            errorMessage = {t('locations.erroInternoDoServidorPodeSerUmProblemaDeConfiguracaoDoBancoDeDadosOuSchema')};
+            errorMessage = "Erro interno do servidor. Pode ser um problema de configuração do banco de dados ou schema.";
           } else if (response.status === 404) {
             errorMessage = "Endpoint não encontrado. Verifique se a API está configurada corretamente.";
           } else if (response.status >= 400) {
-            errorMessage = {t('locations.erroDeRequisicaoVerifiqueOsDadosEnviados')};
+            errorMessage = "Erro de requisição. Verifique os dados enviados.";
           }
 
           toast({
-            title: {t('locations.errortitleResponsestatus')},
+            title: `${errorTitle} (${response.status})`,
             description: errorMessage,
             variant: "destructive"
           });
@@ -669,7 +666,7 @@ export default function LocalForm({
         });
 
         toast({
-          title: {t('locations.erroDeParsing')},
+          title: "Erro de Parsing",
           description: `Não foi possível interpretar a resposta do servidor: ${parseError.message}`,
           variant: "destructive"
         });
@@ -681,7 +678,7 @@ export default function LocalForm({
         console.log('✅ [LOCAL-FORM] Local created successfully');
 
         toast({
-          title: {t('locations.sucesso')},
+          title: "Sucesso!",
           description: result.message || "Local criado com sucesso!",
           variant: "default"
         });
@@ -703,12 +700,12 @@ export default function LocalForm({
           result: result
         });
 
-        const errorMessage = result?.message || result?.error || {t('locations.erroDesconhecidoDoServidor')};
+        const errorMessage = result?.message || result?.error || 'Erro desconhecido do servidor';
         const errorDetails = result?.details ? 
           result.details.map((d: any) => `${d.field}: ${d.message}`).join('\n') : '';
 
         toast({
-          title: {t('locations.erroAoCriarLocal')},
+          title: "Erro ao Criar Local",
           description: errorDetails ? 
             `${errorMessage}\n\nDetalhes:\n${errorDetails}` : 
             errorMessage,
@@ -721,14 +718,14 @@ export default function LocalForm({
 
       if (networkError instanceof TypeError && networkError.message.includes('Failed to fetch')) {
         toast({
-          title: {t('locations.erroDeConexao')},
+          title: "Erro de Conexão",
           description: "Não foi possível conectar ao servidor. Verifique sua conexão de internet.",
           variant: "destructive"
         });
       } else {
         toast({
-          title: {t('locations.erroInesperado')},
-          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : {t('locations.erroDesconhecido')}}`,
+          title: "Erro Inesperado",
+          description: `Ocorreu um erro inesperado: ${networkError instanceof Error ? networkError.message : 'Erro desconhecido'}`,
           variant: "destructive"
         });
       }
@@ -798,7 +795,7 @@ export default function LocalForm({
                 onValueChange={(value) => form.setValue('tipoClienteFavorecido', value)}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder={t('locations.selecioneOTipo')} />
+                  <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cliente">
@@ -824,7 +821,7 @@ export default function LocalForm({
                 onValueChange={(value) => form.setValue('tecnicoPrincipalId', value)}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder={t('locations.selecioneOTecnicoPrincipal')} />
+                  <SelectValue placeholder="Selecione o técnico principal" />
                 </SelectTrigger>
                 <SelectContent>
                   {teamMembers.map((member) => (
@@ -953,7 +950,7 @@ export default function LocalForm({
                   className="mb-0 flex items-center gap-2"
                 >
                   <Search className="h-4 w-4" />
-                  {loadingAddress ? 'Buscando...' : {t('locations.buscarCep')}}
+                  {loadingAddress ? 'Buscando...' : 'Buscar CEP'}
                 </Button>
               </div>
             </div>
@@ -1006,7 +1003,7 @@ export default function LocalForm({
                   onValueChange={(value) => form.setValue('tipoLogradouro', value)}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder={t('locations.selecioneOTipo')} />
+                    <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
                     {TIPOS_LOGRADOURO.map((tipo) => (
@@ -1163,7 +1160,7 @@ export default function LocalForm({
                 className="w-full"
               >
                 <Calendar className="h-4 w-4 mr-2" />
-                {loadingHolidays ? 'Buscando...' : {t('locations.buscarFeriados')}}
+                {loadingHolidays ? 'Buscando...' : 'Buscar Feriados'}
               </Button>
 
               {Object.values(selectedHolidays).some(arr => arr.some(h => h.incluir)) && (
@@ -1202,7 +1199,7 @@ export default function LocalForm({
             type="submit" 
             disabled={isLoading}
           >
-            {isLoading ? 'Salvando...' : {t('locations.salvarLocal')}}
+            {isLoading ? 'Salvando...' : 'Salvar Local'}
           </Button>
         </div>
       </form>

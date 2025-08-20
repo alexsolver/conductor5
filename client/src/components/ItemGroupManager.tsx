@@ -18,7 +18,6 @@ import { Badge } from './ui/badge';
 import { useToast } from '../hooks/use-toast';
 import { Checkbox } from './ui/checkbox';
 import { 
-import { useLocalization } from '@/hooks/useLocalization';
   Folder, 
   Plus, 
   Users, 
@@ -49,8 +48,6 @@ interface ItemGroupManagerProps {
 }
 
 export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
-  const { t } = useLocalization();
-
   selectedItems,
   onItemsUpdated
 }) => {
@@ -87,7 +84,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/item-groups'] });
       toast({
-        title: {t('ItemGroupManager.tsx.grupoCriadoComSucesso')},
+        title: "Grupo criado com sucesso",
         description: "O novo grupo foi criado e está disponível para uso.",
       });
       setIsCreateGroupOpen(false);
@@ -97,7 +94,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: {t('ItemGroupManager.tsx.erroAoCriarGrupo')},
+        title: "Erro ao criar grupo",
         description: "Ocorreu um erro ao criar o grupo. Tente novamente.",
         variant: "destructive",
       });
@@ -114,7 +111,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/item-groups'] });
       toast({
-        title: {t('ItemGroupManager.tsx.itensAtribuidosComSucesso')},
+        title: "Itens atribuídos com sucesso",
         description: "Os itens foram atribuídos ao grupo selecionado.",
       });
       setIsAssignGroupOpen(false);
@@ -122,7 +119,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: {t('ItemGroupManager.tsx.erroAoAtribuirItens')},
+        title: "Erro ao atribuir itens",
         description: "Ocorreu um erro ao atribuir os itens ao grupo.",
         variant: "destructive",
       });
@@ -139,7 +136,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onSuccess: () => {
       toast({
-        title: {t('ItemGroupManager.tsx.hierarquiaCriadaComSucesso')},
+        title: "Hierarquia criada com sucesso",
         description: "A relação pai/filho foi estabelecida entre os itens.",
       });
       setIsCreateHierarchyOpen(false);
@@ -149,7 +146,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: {t('ItemGroupManager.tsx.erroAoCriarHierarquia')},
+        title: "Erro ao criar hierarquia",
         description: "Ocorreu um erro ao estabelecer a relação pai/filho.",
         variant: "destructive",
       });

@@ -15,7 +15,6 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Clock, Save, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { useLocalization } from '@/hooks/useLocalization';
 
 interface Schedule {
   id?: string;
@@ -68,8 +67,6 @@ interface ScheduleModalProps {
 }
 
 const scheduleSchema = z.object({
-  const { t } = useLocalization();
-
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   agentId: z.string().min(1, 'Agente é obrigatório'),
@@ -198,7 +195,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <CalendarIcon className="h-5 w-5 mr-2" />
-            {schedule ? {t('schedule.editarAgendamento')} : 'Novo Agendamento'}
+            {schedule ? 'Editar Agendamento' : 'Novo Agendamento'}
           </DialogTitle>
         </DialogHeader>
 
@@ -250,7 +247,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('schedule.selecioneUmAgente')} />
+                          <SelectValue placeholder="Selecione um agente" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -275,7 +272,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('schedule.selecioneUmCliente')} />
+                          <SelectValue placeholder="Selecione um cliente" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -303,7 +300,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('schedule.selecioneOTipoDeAtividade')} />
+                        <SelectValue placeholder="Selecione o tipo de atividade" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -480,7 +477,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <FormLabel>Notas Internas</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder={t('schedule.informacoesParaUsoInternoDaEquipe')}
+                        placeholder="Informações para uso interno da equipe..."
                         rows={3}
                         {...field} 
                       />
@@ -498,7 +495,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <FormLabel>Notas do Cliente</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder={t('schedule.informacoesEspecificasDoCliente')}
+                        placeholder="Informações específicas do cliente..."
                         rows={3}
                         {...field} 
                       />
@@ -517,7 +514,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
               </Button>
               <Button type="submit">
                 <Save className="h-4 w-4 mr-2" />
-                {schedule ? 'Atualizar' : {t('schedule.criar')}} Agendamento
+                {schedule ? 'Atualizar' : 'Criar'} Agendamento
               </Button>
             </div>
           </form>

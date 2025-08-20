@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -59,6 +60,7 @@ type ProvisionTenantFormData = z.infer<typeof provisionTenantSchema>;
 type ConfigFormData = z.infer<typeof configSchema>;
 
 export default function TenantProvisioning() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -131,7 +133,7 @@ export default function TenantProvisioning() {
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro ao criar tenant",
         description: error.message,
         variant: "destructive",
       });
@@ -149,12 +151,12 @@ export default function TenantProvisioning() {
       setIsConfigDialogOpen(false);
       toast({
         title: "Configuração Atualizada",
-        description: "texto",
+        description: "Configurações de auto-provisioning atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "texto",
+        title: "Erro ao atualizar configuração",
         description: error.message,
         variant: "destructive",
       });
@@ -261,7 +263,7 @@ export default function TenantProvisioning() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="texto" />
+                              <SelectValue placeholder="Selecione o método" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -280,7 +282,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateConfigMutation.isPending}>
-                      {updateConfigMutation.isPending ? "Salvando..." : "texto"}
+                      {updateConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
                     </Button>
                   </div>
                 </form>
@@ -348,7 +350,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={provisionMutation.isPending}>
-                      {provisionMutation.isPending ? "Criando..." : "texto"}
+                      {provisionMutation.isPending ? "Criando..." : "Criar Tenant"}
                     </Button>
                   </div>
                 </form>
