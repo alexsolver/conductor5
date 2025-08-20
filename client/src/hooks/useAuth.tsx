@@ -50,32 +50,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
-      // ✅ 1QA.MD: Validação menos restritiva para evitar logout automático
-      const token = localStorage.getItem('accessToken');
-      
-      // ✅ CRITICAL FIX: Se não há token, retornar null sem fazer request
-      if (!token || 
-          token === 'null' || 
-          token === 'undefined' || 
-          token.trim() === '') {
-        console.log('🚫 [AUTH-QUERY] No valid token found, skipping auth check');
-        return null;
-      }
-
       try {
-        console.log('🔍 [AUTH-QUERY] Making auth check request...');
+        console.log('🔍 [AUTH-QUERY] Making auth check request with HTTP-only cookies...');
         
         const response = await fetch('/api/auth/user', {
           headers: {
-            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          credentials: 'include',
+          credentials: 'include', // Include HTTP-only cookies
         });
 
         if (!response.ok) {
           console.warn(`⚠️ [AUTH-QUERY] Auth check failed: ${response.status}`);
-          // Return null but don't clear tokens - let API interceptor handle refresh
           return null;
         }
 
@@ -84,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return userData || null;
       } catch (error) {
         console.warn('⚠️ [AUTH-QUERY] Auth query error:', error.message);
-        // Don't clear tokens on network errors following 1qa.md patterns
         return null;
       }
     },
@@ -96,100 +81,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnReconnect: false, // Disable refetch on reconnect to prevent logout during operations
   });
 
-  // Token refresh mechanism - ✅ 1QA.MD compliance
+  // Token refresh mechanism - HTTP-only cookies
   const attemptTokenRefresh = async (): Promise<boolean> => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    
-    // ✅ CRITICAL FIX: Validação rigorosa do refresh token
-    if (!refreshToken || 
-        refreshToken === 'null' || 
-        refreshToken === 'undefined' || 
-        refreshToken.trim() === '' ||
-        refreshToken === 'false') {
-      console.log('❌ [REFRESH] No valid refresh token available');
-      return false;
-    }
-
-    // ✅ Validar formato JWT do refresh token
-    const tokenParts = refreshToken.split('.');
-    if (tokenParts.length !== 3) {
-      console.error('❌ [REFRESH] Invalid refresh token JWT format');
-      localStorage.removeItem('refreshToken');
-      return false;
-    }
-
     try {
-      console.log('🔄 [REFRESH] Attempting token refresh...');
+      console.log('🔄 [REFRESH] Attempting token refresh with HTTP-only cookies...');
       
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ refreshToken }),
-        credentials: 'include',
+        credentials: 'include', // Send HTTP-only cookies
       });
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log('🔍 [REFRESH] Response structure:', Object.keys(responseData));
-        
-        // ✅ 1QA.MD: Handle backend response structure
-        if (responseData.success && responseData.data?.tokens) {
-          const { accessToken, refreshToken: newRefreshToken } = responseData.data.tokens;
-          
-          if (accessToken && 
-              accessToken !== 'null' && 
-              accessToken !== 'undefined' && 
-              accessToken.trim() !== '') {
-            
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('access_token', accessToken); // ✅ Dual format following 1qa.md
-            if (newRefreshToken && 
-                newRefreshToken !== 'null' && 
-                newRefreshToken !== 'undefined') {
-              localStorage.setItem('refreshToken', newRefreshToken);
-            }
-            console.log('✅ [REFRESH] Token refreshed successfully');
-            return true;
-          }
-        }
-        
-        // Fallback for direct token response
-        if (responseData.accessToken && 
-            responseData.accessToken !== 'null' && 
-            responseData.accessToken !== 'undefined') {
-          localStorage.setItem('accessToken', responseData.accessToken);
-          if (responseData.refreshToken && 
-              responseData.refreshToken !== 'null' && 
-              responseData.refreshToken !== 'undefined') {
-            localStorage.setItem('refreshToken', responseData.refreshToken);
-          }
-          console.log('✅ [REFRESH] Token refreshed (fallback)');
-          return true;
-        }
-        
-        console.error('❌ [REFRESH] Invalid refresh response structure:', responseData);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('tenantId');
-        return false;
+        console.log('✅ [REFRESH] Token refreshed successfully via HTTP-only cookies');
+        return true;
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ [REFRESH] Refresh failed:', response.status, errorData.message || response.statusText);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('tenantId');
         return false;
       }
     } catch (error) {
       console.error('❌ [REFRESH] Token refresh error:', error);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('tenantId');
       return false;
     }
   };
@@ -226,23 +141,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const responseData = await response.json();
         console.log('🔍 [LOGIN] Response data structure:', Object.keys(responseData));
         
-        // ✅ CRITICAL FIX - Handle multiple response formats
+        // ✅ HTTP-only cookies - tokens are now in cookies, just return user data
         if (responseData.success && responseData.data) {
-          // Structured response
-          console.log('✅ [LOGIN] Using structured response format');
+          console.log('✅ [LOGIN] Login successful - tokens stored in HTTP-only cookies');
           return {
             user: responseData.data.user,
-            accessToken: responseData.data.tokens.accessToken,
-            refreshToken: responseData.data.tokens.refreshToken,
             session: responseData.data.session
           };
-        } else if (responseData.user && responseData.accessToken) {
-          // Direct response format
-          console.log('✅ [LOGIN] Using direct response format');
+        } else if (responseData.user) {
+          console.log('✅ [LOGIN] Login successful (fallback format)');
           return {
             user: responseData.user,
-            accessToken: responseData.accessToken,
-            refreshToken: responseData.refreshToken,
             session: null
           };
         }
@@ -254,33 +163,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (result: { user: User; accessToken: string; refreshToken?: string; session?: any }) => {
-      console.log('✅ [LOGIN-SUCCESS] Storing tokens and user data');
+    onSuccess: (result: { user: User; session?: any }) => {
+      console.log('✅ [LOGIN-SUCCESS] User authenticated via HTTP-only cookies');
       
-      // ✅ CRITICAL FIX: Validar tokens antes de armazenar
-      if (!result.accessToken || result.accessToken === 'null' || result.accessToken === 'undefined') {
-        console.error('❌ [LOGIN-SUCCESS] Invalid access token received');
-        toast({
-          title: 'Login failed',
-          description: 'Invalid token received from server',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      localStorage.setItem('accessToken', result.accessToken);
-      localStorage.setItem('access_token', result.accessToken); // ✅ Dual format following 1qa.md
-      console.log('📦 [LOGIN-SUCCESS] Access token stored');
-      
-      if (result.refreshToken && result.refreshToken !== 'null' && result.refreshToken !== 'undefined') {
-        localStorage.setItem('refreshToken', result.refreshToken);
-        console.log('📦 [LOGIN-SUCCESS] Refresh token stored');
-      }
-      
-      // Store tenantId for quick access by components
-      if (result.user?.tenantId) {
+      // Store user's tenant ID for compatibility with existing code
+      if (result.user.tenantId) {
         localStorage.setItem('tenantId', result.user.tenantId);
-        console.log('📦 [LOGIN-SUCCESS] Tenant ID stored:', result.user.tenantId);
+        console.log('📦 [LOGIN-SUCCESS] Tenant ID stored for compatibility');
       }
       
       queryClient.setQueryData(['/api/auth/user'], result.user);
@@ -315,10 +204,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (result: { user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }) => {
-      localStorage.setItem('accessToken', result.accessToken);
-      localStorage.setItem('access_token', result.accessToken); // ✅ Dual format following 1qa.md
-      // Store tenantId for quick access by components
+    onSuccess: (result: { user: User; tenant?: { id: string; name: string; subdomain: string } }) => {
+      // Store tenantId for quick access by components (tokens are now HTTP-only cookies)
       if (result.user?.tenantId) {
         localStorage.setItem('tenantId', result.user.tenantId);
       }
@@ -353,16 +240,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       try {
-        await apiRequest('POST', '/api/auth/logout');
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Include HTTP-only cookies
+        });
       } catch (error) {
         console.warn('Logout API call failed:', error);
         // Continue with logout even if API call fails
       }
     },
     onSuccess: () => {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('access_token'); // ✅ Remove dual format following 1qa.md
-      localStorage.removeItem('refreshToken');
+      // Only clear tenant ID (tokens are handled by server clearing HTTP-only cookies)
       localStorage.removeItem('tenantId');
       queryClient.setQueryData(['/api/auth/user'], null);
       queryClient.clear();
@@ -374,7 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onError: (error: Error) => {
       console.error('Logout error:', error);
       // Still clear local state on error
-      localStorage.removeItem('accessToken');
+      localStorage.removeItem('tenantId');
       queryClient.setQueryData(['/api/auth/user'], null);
       queryClient.clear();
     },
@@ -399,145 +290,8 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
-  const [token, setToken] = React.useState(localStorage.getItem('accessToken'));
-  
-  // ✅ 1QA.MD: Auto refresh automático para evitar logout - versão menos agressiva
-  React.useEffect(() => {
-    // ✅ CRITICAL FIX: Não executar verificações automáticas logo após login
-    if (!context.user) {
-      return; // Não fazer nada se não há usuário autenticado
-    }
-
-    const checkTokenExpiry = async () => {
-      const currentToken = localStorage.getItem('accessToken');
-      
-      // ✅ CRITICAL FIX: Validação menos restritiva para evitar logout automático
-      if (!currentToken || 
-          currentToken === 'null' || 
-          currentToken === 'undefined' || 
-          currentToken.trim() === '') {
-        
-        console.warn('⚠️ [AUTO-REFRESH] No valid token found');
-        // ✅ Não forçar logout imediatamente, aguardar próxima verificação
-        return;
-      }
-      
-      try {
-        // ✅ Validar formato JWT antes de decodificar
-        const tokenParts = currentToken.split('.');
-        if (tokenParts.length !== 3) {
-          console.warn('⚠️ [AUTO-REFRESH] Invalid JWT format, will refresh on next API call');
-          return; // Deixar o refresh ser tratado pelo interceptor de API
-        }
-
-        // Decodificar token para verificar expiração
-        const payload = JSON.parse(atob(tokenParts[1]));
-        if (!payload.exp) {
-          console.warn('⚠️ [AUTO-REFRESH] Token without expiration');
-          return;
-        }
-
-        const expiresAt = payload.exp * 1000;
-        const now = Date.now();
-        const timeToExpiry = expiresAt - now;
-        
-        // ✅ 1QA.MD: Só renovar se expira em menos de 2 horas (menos agressivo)
-        if (timeToExpiry < 2 * 60 * 60 * 1000 && timeToExpiry > 5 * 60 * 1000) {
-          console.log('🔄 [AUTO-REFRESH] Token expiring soon, refreshing...', {
-            timeToExpiry: Math.round(timeToExpiry / 1000 / 60), // minutos
-            expiresAt: new Date(expiresAt).toISOString()
-          });
-          await refreshToken();
-        } else if (timeToExpiry <= 0) {
-          console.log('⏰ [AUTO-REFRESH] Token expired, will refresh on next API call');
-          // Não forçar logout, deixar o interceptor tratar
-        }
-      } catch (error) {
-        console.warn('⚠️ [AUTO-REFRESH] Error checking token expiry:', error.message);
-        // Não fazer nada, deixar o sistema continuar funcionando
-      }
-    };
-
-    // ✅ CRITICAL FIX: Aguardar 2 minutos antes de começar verificações automáticas - evitar logout durante operações
-    const initialDelay = setTimeout(() => {
-      checkTokenExpiry();
-    }, 120000); // 2 minutos
-
-    // ✅ Verificar a cada 10 minutos após o delay inicial para evitar logout durante operações
-    const interval = setInterval(checkTokenExpiry, 10 * 60 * 1000);
-    
-    return () => {
-      clearTimeout(initialDelay);
-      clearInterval(interval);
-    };
-  }, [context.user]);
-
-  const refreshToken = async () => {
-    try {
-      const refresh = localStorage.getItem('refreshToken');
-      
-      // ✅ CRITICAL FIX: Validação menos agressiva
-      if (!refresh || refresh === 'null' || refresh === 'undefined' || refresh.trim() === '') {
-        console.warn('❌ [REFRESH-TOKEN] No valid refresh token available');
-        return false; // Não forçar logout, apenas retornar false
-      }
-
-      console.log('🔄 [REFRESH-TOKEN] Attempting token refresh...');
-
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken: refresh }),
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('🔍 [REFRESH-TOKEN] Response structure:', Object.keys(data));
-        
-        // ✅ 1QA.MD: Handle backend response structure
-        let newAccessToken = null;
-        let newRefreshToken = null;
-
-        if (data.success && data.data?.tokens) {
-          // Structured response from backend
-          newAccessToken = data.data.tokens.accessToken;
-          newRefreshToken = data.data.tokens.refreshToken;
-        } else if (data.accessToken) {
-          // Direct response fallback
-          newAccessToken = data.accessToken;
-          newRefreshToken = data.refreshToken;
-        }
-
-        if (newAccessToken && newAccessToken !== 'null' && newAccessToken !== 'undefined') {
-          localStorage.setItem('accessToken', newAccessToken);
-          if (newRefreshToken && newRefreshToken !== 'null' && newRefreshToken !== 'undefined') {
-            localStorage.setItem('refreshToken', newRefreshToken);
-          }
-          setToken(newAccessToken);
-          console.log('✅ [REFRESH-TOKEN] Token refreshed successfully');
-          return true;
-        } else {
-          console.error('❌ [REFRESH-TOKEN] Invalid token received from server');
-          return false; // Não forçar logout
-        }
-      } else {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        console.warn('⚠️ [REFRESH-TOKEN] Failed to refresh token:', response.status, errorText);
-        return false; // Não forçar logout, apenas retornar false
-      }
-    } catch (error) {
-      console.warn('⚠️ [REFRESH-TOKEN] Error refreshing token:', error.message);
-      return false; // Não forçar logout em caso de erro
-    }
-  };
-
-  return {
-    ...context,
-    refreshToken,
-    token
-  };
+  // With HTTP-only cookies, authentication state is managed server-side
+  // No need for client-side token management
+  return context;
 }
 

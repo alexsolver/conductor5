@@ -27,6 +27,14 @@ export class AuthController {
 
       const result = await this.loginUseCase.execute(dto, ipAddress, userAgent);
 
+      // Set access token as httpOnly cookie
+      res.cookie('accessToken', result.tokens.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutes
+      });
+
       // Set refresh token as httpOnly cookie
       res.cookie('refreshToken', result.tokens.refreshToken, {
         httpOnly: true,
@@ -35,10 +43,17 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
+      // Return user data without tokens (they're now in cookies)
+      const responseData = {
+        ...result,
+        tokens: undefined // Remove tokens from response
+      };
+      delete responseData.tokens;
+
       res.json({
         success: true,
         message: 'Login successful',
-        data: result
+        data: responseData
       });
     } catch (error: any) {
       const statusCode = error.message.includes('Invalid') || error.message.includes('deactivated') ? 401 : 400;
@@ -53,13 +68,10 @@ export class AuthController {
 
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
-      // Try to get refresh token from body or cookie
-      const refreshTokenFromBody = req.body.refreshToken;
+      // Get refresh token from cookie (HTTP-only)
       const refreshTokenFromCookie = req.cookies?.refreshToken;
       
-      const refreshToken = refreshTokenFromBody || refreshTokenFromCookie;
-      
-      if (!refreshToken) {
+      if (!refreshTokenFromCookie) {
         res.status(400).json({
           success: false,
           message: 'Refresh token is required'
@@ -67,8 +79,16 @@ export class AuthController {
         return;
       }
 
-      const dto: RefreshTokenDTO = { refreshToken };
+      const dto: RefreshTokenDTO = { refreshToken: refreshTokenFromCookie };
       const result = await this.refreshTokenUseCase.execute(dto);
+
+      // Set new access token as httpOnly cookie
+      res.cookie('accessToken', result.tokens.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutes
+      });
 
       // Update refresh token cookie
       res.cookie('refreshToken', result.tokens.refreshToken, {
@@ -78,13 +98,21 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
+      // Return response without tokens (they're now in cookies)
+      const responseData = {
+        ...result,
+        tokens: undefined
+      };
+      delete responseData.tokens;
+
       res.json({
         success: true,
         message: 'Token refreshed successfully',
-        data: result
+        data: responseData
       });
     } catch (error: any) {
-      // Clear refresh token cookie on error
+      // Clear both cookies on error
+      res.clearCookie('accessToken');
       res.clearCookie('refreshToken');
       
       res.status(401).json({
@@ -110,7 +138,8 @@ export class AuthController {
 
       await this.logoutUseCase.execute(userId, dto);
 
-      // Clear refresh token cookie
+      // Clear both access and refresh token cookies
+      res.clearCookie('accessToken');
       res.clearCookie('refreshToken');
 
       res.json({

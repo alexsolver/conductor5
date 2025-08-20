@@ -25,17 +25,25 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     }
 
+    // Try to get token from cookie first (HTTP-only), then fallback to Authorization header
+    const tokenFromCookie = req.cookies?.accessToken;
     const authHeader = req.headers.authorization;
+    const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    
+    const token = tokenFromCookie || tokenFromHeader;
+    
     console.log('🔍 [JWT-AUTH] Processing request:', {
       method: req.method,
       path: req.path,
+      hasTokenCookie: !!tokenFromCookie,
       hasAuthHeader: !!authHeader,
-      authStart: authHeader?.substring(0, 20) || 'none',
-      authLength: authHeader?.length || 0
+      tokenSource: tokenFromCookie ? 'cookie' : (tokenFromHeader ? 'header' : 'none'),
+      tokenStart: token?.substring(0, 20) || 'none',
+      tokenLength: token?.length || 0
     });
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ [JWT-AUTH] No valid authorization header found');
+    if (!token) {
+      console.log('❌ [JWT-AUTH] No access token found in cookies or headers');
 
       // ✅ CRITICAL FIX - Ensure JSON response for API routes per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
@@ -47,8 +55,6 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       });
       return;
     }
-
-    const token = authHeader.substring(7);
 
     // ✅ CRITICAL FIX: Validação básica de token
     if (!token || 
@@ -220,13 +226,16 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 // Optional auth middleware (doesn't fail if no token)
 export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    // Try to get token from cookie first, then fallback to header
+    const tokenFromCookie = req.cookies?.accessToken;
     const authHeader = req.headers.authorization;
+    const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    
+    const token = tokenFromCookie || tokenFromHeader;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
       return next(); // Continue without user context
     }
-
-    const token = authHeader.substring(7);
     const container = DependencyContainer.getInstance();
     // Ensure tokenService is correctly typed or handled if missing
     const tokenService = container.tokenService; 
