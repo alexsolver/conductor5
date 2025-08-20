@@ -91,7 +91,7 @@
     "completedModules": 0,
     "failedModules": 0,
     "translationKeysAdded": 0,
-    "hardcodedTextsFound": 884988
+    "hardcodedTextsFound": 3811574
   },
   "lastBackup": "translation-backups/backup-initial-state-2025-08-20T12-12-09-516Z",
   "safetyChecks": {
@@ -99,5 +99,5 @@
     "frontendResponding": true,
     "criticalFunctionsWorking": true
   },
-  "lastUpdated": "2025-08-20T12:12:51.874Z"
+  "lastUpdated": "2025-08-20T12:14:59.108Z"
 }
