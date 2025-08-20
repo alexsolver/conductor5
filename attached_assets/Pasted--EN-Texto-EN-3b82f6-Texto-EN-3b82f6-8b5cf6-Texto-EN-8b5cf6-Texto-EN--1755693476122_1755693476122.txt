@@ -1,0 +1,112 @@
+{
+  "": "[EN] "
+}
+Texto
+[EN] 
+#3b82f6
+Texto
+[EN] #3b82f6
+#8b5cf6
+Texto
+[EN] #8b5cf6
+,
+Texto
+[EN] ,
+-
+Texto
+[EN] -
+/
+Texto
+[EN] /
+/api/approvals/instances/${instanceId}/decision
+Texto
+[EN] /api/approvals/instances/${instance Id}/decision
+/api/approvals/instances?${params}
+Texto
+[EN] /api/approvals/instances?${params}
+/api/automation-rules
+Texto
+[EN] /api/automation-rules
+/api/automation-rules/${ruleId}
+Texto
+[EN] /api/automation-rules/${rule Id}
+/api/automation-rules/${ruleId}/test
+Texto
+[EN] /api/automation-rules/${rule Id}/test
+/api/automation-rules/metrics/overview
+Texto
+[EN] /api/automation-rules/metrics/overview
+/api/contracts
+Texto
+[EN] /api/contracts
+/api/contracts/${contractId}
+Texto
+[EN] /api/contracts/${contract Id}
+/api/gdpr-compliance/cookie-consents
+Texto
+[EN] /api/gdpr-compliance/cookie-consents
+/api/gdpr-compliance/data-subject-requests
+Texto
+[EN] /api/gdpr-compliance/data-subject-requests
+/api/gdpr-compliance/export-user-data
+Texto
+[EN] /api/gdpr-compliance/export-user-data
+/api/gdpr-compliance/metrics
+Texto
+[EN] /api/gdpr-compliance/metrics
+/api/gdpr-compliance/reports
+Texto
+[EN] /api/gdpr-compliance/reports
+/api/gdpr-compliance/reports/${id}
+Texto
+[EN] /api/gdpr-compliance/reports/${id}
+/api/gdpr-compliance/security-incidents
+Texto
+[EN] /api/gdpr-compliance/security-incidents
+/api/internal-forms/submissions${formId ?
+Texto
+[EN] /api/internal-forms/submissions${form Id ?
+/api/locations
+Texto
+[EN] /api/locations
+/api/locations/${location.id}
+Texto
+[EN] Id}
+/api/materials-services/tickets/${ticketId}/consumed-items
+Texto
+[EN] /api/materials-services/tickets/${ticket Id}/consumed-items
+/api/sla/analytics/compliance
+Texto
+[EN] /api/sla/analytics/compliance
+/api/sla/definitions
+Texto
+[EN] /api/sla/definitions
+/api/sla/instances/active
+Texto
+[EN] /api/sla/instances/active
+/api/sla/instances/breached
+Texto
+[EN] /api/sla/instances/breached
+/api/sla/violations
+Texto
+[EN] /api/sla/violations
+/api/sla/workflows
+Texto
+[EN] /api/sla/workflows
+/api/user-management/invitations
+Texto
+[EN] /api/user-management/invitations
+/api/user-management/invitations/${invitationId}/resend
+Texto
+[EN] /api/user-management/invitations/${invitation Id}/resend
+/api/user-management/invitations/${invitationId}/revoke
+Texto
+[EN] /api/user-management/invitations/${invitation Id}/revoke
+/api/user-management/sessions/${sessionId}/terminate
+Texto
+[EN] /api/user-management/sessions/${session Id}/terminate
+/api/user-management/users/${userId}/sessions/terminate-all
+Texto
+[EN] /api/user-management/users/${user Id}/sessions/terminate-all
+4
+Texto
