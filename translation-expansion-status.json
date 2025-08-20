@@ -91,13 +91,13 @@
     "completedModules": 0,
     "failedModules": 0,
     "translationKeysAdded": 0,
-    "hardcodedTextsFound": 806
+    "hardcodedTextsFound": 884988
   },
-  "lastBackup": "translation-backups/backup-initial-state-2025-08-20T12-08-47-622Z",
+  "lastBackup": "translation-backups/backup-initial-state-2025-08-20T12-12-09-516Z",
   "safetyChecks": {
     "serverRunning": true,
     "frontendResponding": true,
     "criticalFunctionsWorking": true
   },
-  "lastUpdated": "2025-08-20T12:08:48.200Z"
+  "lastUpdated": "2025-08-20T12:12:51.874Z"
 }

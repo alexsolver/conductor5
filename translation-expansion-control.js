@@ -535,11 +535,24 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       
     case 'analyze':
       controller.startAnalysisPhase()
-        .then(() => controller.analyzeNextModule())
-        .then((result) => {
-          if (result) {
-            console.log(`✅ Módulo ${result.module.name} analisado: ${result.analysis.hardcodedTexts.length} textos encontrados`);
+        .then(async () => {
+          console.log('🔍 Analisando todos os módulos pendentes...');
+          let totalTexts = 0;
+          let analyzedCount = 0;
+          
+          while (true) {
+            const result = await controller.analyzeNextModule();
+            if (!result) break;
+            
+            analyzedCount++;
+            totalTexts += result.analysis.hardcodedTexts.length;
+            console.log(`   ✅ ${result.module.name}: ${result.analysis.hardcodedTexts.length} textos encontrados`);
           }
+          
+          console.log(`\n📊 ANÁLISE COMPLETA:`);
+          console.log(`   📁 Módulos analisados: ${analyzedCount}`);
+          console.log(`   📝 Total de textos hardcoded: ${totalTexts}`);
+          console.log(`   📋 Pronto para implementação segura!`);
         })
         .catch(console.error);
       break;
