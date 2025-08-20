@@ -3,6 +3,7 @@ import { MapPin, Navigation, Search, Plus, Minus, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface SimpleMapProps {
   initialLat: number;
@@ -24,7 +25,9 @@ interface SearchResult {
   lon: string;
 }
 
-function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
+function SimpleMapWithButtons({
+  // Localization temporarily disabled
+ initialLat, initialLng, addressData, onLocationSelect }: SimpleMapProps) {
   const defaultLat = initialLat || -23.550520; // São Paulo default
   const defaultLng = initialLng || -46.633308; // São Paulo default
   
@@ -131,17 +134,17 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
         });
       } else {
         toast({
-          title: "Nenhum resultado",
+          title: '[TRANSLATION_NEEDED]',
           description: "Não foi possível encontrar o endereço. Tente ser mais específico.",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.warn('Erro na busca:', error);
+      console.warn('[TRANSLATION_NEEDED]', error);
       
       toast({
-        title: "Erro na busca",
-        description: "Erro ao conectar com o serviço de busca. Tente novamente.",
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     } finally {
@@ -172,9 +175,9 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
         });
       },
       (error) => {
-        console.error('Erro na geolocalização:', error.message || error);
+        console.error('[TRANSLATION_NEEDED]', error.message || error);
         toast({
-          title: "Erro na geolocalização",
+          title: '[TRANSLATION_NEEDED]',
           description: "Não foi possível obter sua localização atual.",
           variant: "destructive"
         });
@@ -224,7 +227,7 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
       <div className="flex gap-2">
         <div className="flex-1">
           <Input
-            placeholder="Digite um endereço para buscar..."
+            placeholder='[TRANSLATION_NEEDED]'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => {

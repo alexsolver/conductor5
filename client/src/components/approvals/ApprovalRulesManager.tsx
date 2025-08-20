@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit, Trash2, Play, Pause } from 'lucide-react';
 import { CompanySelector } from './CompanySelector';
 import { apiRequest } from '@/lib/queryClient';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface ApprovalRule {
   id: string;
@@ -28,6 +29,8 @@ interface ApprovalRule {
 }
 
 export function ApprovalRulesManager() {
+  // Localization temporarily disabled
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
   const [newRule, setNewRule] = useState({
@@ -134,7 +137,7 @@ export function ApprovalRulesManager() {
   };
 
   const moduleTypes = [
-    { value: 'tickets', label: 'Tickets' },
+    { value: 'tickets', label: '[TRANSLATION_NEEDED]' },
     { value: 'materials', label: 'Materiais/Serviços' },
     { value: 'knowledge_base', label: 'Knowledge Base' },
     { value: 'timecard', label: 'Timecard' },
@@ -246,7 +249,7 @@ export function ApprovalRulesManager() {
                       disabled={createRuleMutation.isPending || !newRule.name}
                       data-testid="button-confirm-create"
                     >
-                      {createRuleMutation.isPending ? 'Criando...' : 'Criar Regra'}
+                      {createRuleMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
                     </Button>
                   </div>
                 </div>
@@ -385,7 +388,7 @@ export function ApprovalRulesManager() {
                   disabled={updateRuleMutation.isPending}
                   data-testid="button-confirm-edit"
                 >
-                  {updateRuleMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+                  {updateRuleMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
                 </Button>
               </div>
             </div>

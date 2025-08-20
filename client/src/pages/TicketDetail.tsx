@@ -12,7 +12,7 @@ import { DynamicBadge } from "@/components/DynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
 import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip } from "lucide-react";
 import { useLocation } from "wouter";
-import { useLocalization } from "@/hooks/useLocalization";
+// import useLocalization from "@/hooks/useLocalization";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
 
 interface Ticket {
@@ -210,7 +210,7 @@ export default function TicketDetail() {
     queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}/attachments`] });
     queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}`] });
     toast({
-      title: 'Upload successful',
+      title: '[TRANSLATION_NEEDED]',
       description: 'Files uploaded successfully.',
     });
   };
@@ -247,10 +247,10 @@ export default function TicketDetail() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('tickets.messages.not_found')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">'[TRANSLATION_NEEDED]'</h1>
           <Button onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t('tickets.actions.back_to_tickets')}
+            '[TRANSLATION_NEEDED]'
           </Button>
         </div>
       </div>
@@ -264,7 +264,7 @@ export default function TicketDetail() {
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={() => navigate('/tickets')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t('common.back')}
+            '[TRANSLATION_NEEDED]'
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -312,7 +312,7 @@ export default function TicketDetail() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <FileText className="h-5 w-5 mr-2" />
-                {t('tickets.description')}
+                '[TRANSLATION_NEEDED]'
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -329,18 +329,18 @@ export default function TicketDetail() {
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="attachments" className="flex items-center">
                 <Paperclip className="h-4 w-4 mr-2" />
-                {t('tickets.attachments')} ({attachments?.length || 0})
+                '[TRANSLATION_NEEDED]' ({attachments?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="communications" className="flex items-center">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                {t('tickets.communication')} ({communications?.length || 0})
+                '[TRANSLATION_NEEDED]' ({communications?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="notes">
-                {t('tickets.notes')} ({notes?.length || 0})
+                '[TRANSLATION_NEEDED]' ({notes?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="history" className="flex items-center">
                 <History className="h-4 w-4 mr-2" />
-                {t('tickets.history')}
+                '[TRANSLATION_NEEDED]'
               </TabsTrigger>
             </TabsList>
 
@@ -348,7 +348,7 @@ export default function TicketDetail() {
               {/* Upload Component */}
               <Card>
                 <CardHeader>
-                  <CardTitle>{t('tickets.upload_attachments')}</CardTitle>
+                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <TicketAttachmentUpload 
@@ -361,11 +361,11 @@ export default function TicketDetail() {
               {/* Existing Attachments */}
               <Card>
                 <CardHeader>
-                  <CardTitle>{t('tickets.existing_attachments')}</CardTitle>
+                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isAttachmentsLoading ? (
-                    <div className="text-center py-4">{t('common.loading_attachments')}</div>
+                    <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
                   ) : attachments && attachments.length > 0 ? (
                     <div className="space-y-3">
                       {attachments.map((attachment) => (
@@ -391,14 +391,14 @@ export default function TicketDetail() {
                             size="sm"
                             onClick={() => handleDownloadAttachment(attachment.id, attachment.originalName)}
                           >
-                            {t('common.download')}
+                            '[TRANSLATION_NEEDED]'
                           </Button>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      {t('tickets.messages.no_attachments')}
+                      '[TRANSLATION_NEEDED]'
                     </div>
                   )}
                 </CardContent>
@@ -408,11 +408,11 @@ export default function TicketDetail() {
             <TabsContent value="communications">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t('tickets.communication')}</CardTitle>
+                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isCommunicationsLoading ? (
-                    <div className="text-center py-4">{t('common.loading_communications')}</div>
+                    <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
                   ) : communications && communications.length > 0 ? (
                     <div className="space-y-4">
                       {communications.map((comm) => (
@@ -426,13 +426,13 @@ export default function TicketDetail() {
                             </span>
                           </div>
                           <p className="text-gray-700">{comm.content}</p>
-                          <p className="text-sm text-gray-500 mt-1">{t('common.by')}: {comm.authorName}</p>
+                          <p className="text-sm text-gray-500 mt-1">'[TRANSLATION_NEEDED]': {comm.authorName}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      {t('tickets.messages.no_communications')}
+                      '[TRANSLATION_NEEDED]'
                     </div>
                   )}
                 </CardContent>
@@ -442,11 +442,11 @@ export default function TicketDetail() {
             <TabsContent value="notes">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t('tickets.notes')}</CardTitle>
+                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isNotesLoading ? (
-                    <div className="text-center py-4">{t('common.loading_notes')}</div>
+                    <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
                   ) : notes && notes.length > 0 ? (
                     <div className="space-y-4">
                       {notes.map((note) => (
@@ -460,13 +460,13 @@ export default function TicketDetail() {
                             </span>
                           </div>
                           <p className="text-gray-700 whitespace-pre-wrap">{note.content}</p>
-                          <p className="text-sm text-gray-500 mt-2">{t('common.by')}: {note.authorName}</p>
+                          <p className="text-sm text-gray-500 mt-2">'[TRANSLATION_NEEDED]': {note.authorName}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      {t('tickets.messages.no_notes')}
+                      '[TRANSLATION_NEEDED]'
                     </div>
                   )}
                 </CardContent>
@@ -476,11 +476,11 @@ export default function TicketDetail() {
             <TabsContent value="history">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t('tickets.change_history')}</CardTitle>
+                  <CardTitle>'[TRANSLATION_NEEDED]'</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {isHistoryLoading ? (
-                    <div className="text-center py-4">{t('common.loading_history')}</div>
+                    <div className="text-center py-4">'[TRANSLATION_NEEDED]'</div>
                   ) : history && history.length > 0 ? (
                     <div className="space-y-3">
                       {history.map((entry) => (
@@ -490,13 +490,13 @@ export default function TicketDetail() {
                               <p className="font-medium text-gray-900">{entry.description}</p>
                               {entry.fieldName && (
                                 <p className="text-sm text-gray-600">
-                                  {t('tickets.field')}: {entry.fieldName}
+                                  '[TRANSLATION_NEEDED]': {entry.fieldName}
                                   {entry.oldValue && entry.newValue && (
                                     <span> • {entry.oldValue} → {entry.newValue}</span>
                                   )}
                                 </p>
                               )}
-                              <p className="text-sm text-gray-500">{t('common.by')}: {entry.performedByName}</p>
+                              <p className="text-sm text-gray-500">'[TRANSLATION_NEEDED]': {entry.performedByName}</p>
                             </div>
                             <span className="text-sm text-gray-500">
                               {formatDate(entry.createdAt)}
@@ -507,7 +507,7 @@ export default function TicketDetail() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      {t('tickets.messages.no_history')}
+                      '[TRANSLATION_NEEDED]'
                     </div>
                   )}
                 </CardContent>

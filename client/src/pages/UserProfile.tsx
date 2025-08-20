@@ -41,6 +41,7 @@ import {
   FileText,
   AlertTriangle
 } from "lucide-react";
+// import useLocalization from '@/hooks/useLocalization';
 import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -173,7 +174,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PROFILE-UPDATE] Error details:', error);
       toast({
-        title: "Erro ao atualizar",
+        title: 'Erro ao Atualizar',
         description: "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
@@ -232,7 +233,7 @@ export default function UserProfile() {
     onError: (error: any) => {
       console.error('[PHOTO-UPLOAD] Error details:', error);
       toast({
-        title: "Erro ao atualizar foto",
+        title: 'Erro ao Atualizar Foto',
         description: "Não foi possível atualizar sua foto de perfil.",
         variant: "destructive",
       });
@@ -268,7 +269,7 @@ export default function UserProfile() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao alterar senha",
+        title: 'Erro ao Alterar Senha',
         description: error.message || "Não foi possível alterar a senha.",
         variant: "destructive",
       });
@@ -290,7 +291,7 @@ export default function UserProfile() {
     },
     onError: () => {
       toast({
-        title: "Erro ao salvar",
+        title: 'Erro ao Salvar',
         description: "Não foi possível salvar as preferências.",
         variant: "destructive",
       });
@@ -308,7 +309,7 @@ export default function UserProfile() {
       };
     } catch (error) {
       toast({
-        title: "Erro no upload",
+        title: 'Erro no Upload',
         description: "Não foi possível obter URL de upload.",
         variant: "destructive",
       });
@@ -578,7 +579,7 @@ export default function UserProfile() {
                           <Select disabled={!isEditing} value={field.value} onValueChange={field.onChange}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o fuso horário" />
+                                <SelectValue placeholder="Selecione o Fuso Horário" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>

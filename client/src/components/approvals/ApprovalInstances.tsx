@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Clock, 
   CheckCircle, 
   XCircle, 
@@ -46,6 +47,8 @@ interface PaginatedResponse {
 }
 
 export function ApprovalInstances() {
+  // Localization temporarily disabled
+
   const [selectedInstance, setSelectedInstance] = useState<ApprovalInstance | null>(null);
   const [decisionDialog, setDecisionDialog] = useState<ApprovalInstance | null>(null);
   const [decision, setDecision] = useState<'approved' | 'rejected' | 'delegated'>('approved');
@@ -188,7 +191,7 @@ export function ApprovalInstances() {
                 data-testid="filter-status"
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos os status" />
+                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os status</SelectItem>
@@ -209,7 +212,7 @@ export function ApprovalInstances() {
                 data-testid="filter-module"
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos os módulos" />
+                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os módulos</SelectItem>
@@ -427,7 +430,7 @@ export function ApprovalInstances() {
                   disabled={processDecisionMutation.isPending || (decision === 'delegated' && !delegateTo)}
                   data-testid="button-confirm-decision"
                 >
-                  {processDecisionMutation.isPending ? 'Processando...' : 'Confirmar'}
+                  {processDecisionMutation.isPending ? '[TRANSLATION_NEEDED]' : 'Confirmar'}
                 </Button>
               </div>
             </div>

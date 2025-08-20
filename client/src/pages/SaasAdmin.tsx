@@ -15,8 +15,11 @@ import { z } from "zod";
 import { Plus, Users, Building, Settings, BarChart3, Shield } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+// import useLocalization from '@/hooks/useLocalization';
 
 const createTenantSchema = z.object({
+  // Localization temporarily disabled
+
   name: z.string().min(1, "Nome é obrigatório"),
   subdomain: z.string().min(1, "Subdomínio é obrigatório").regex(/^[a-z0-9-]+$/, "Subdomínio deve conter apenas letras minúsculas, números e hífens"),
   settings: z.object({}).optional()
@@ -87,7 +90,7 @@ export default function SaasAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao criar tenant",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message,
         variant: "destructive",
       });
@@ -155,7 +158,7 @@ export default function SaasAdmin() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createTenantMutation.isPending}>
-                    {createTenantMutation.isPending ? 'Criando...' : 'Criar'}
+                    {createTenantMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
                   </Button>
                 </div>
               </form>

@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Package, 
   Warehouse, 
   TrendingUp, 
@@ -54,6 +55,8 @@ interface StockItem {
 
 // Helper functions
 const getStatusColor = (status: string) => {
+  // Localization temporarily disabled
+
   switch (status) {
     case 'ok': return 'bg-green-100 text-green-800';
     case 'low': return 'bg-yellow-100 text-yellow-800';
@@ -127,7 +130,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um item" />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               {items.map((item: any) => (
@@ -143,7 +146,7 @@ function NewMovementForm({ onSubmit, isLoading }: { onSubmit: (data: any) => voi
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um armazém" />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               {warehouses.map((warehouse: any) => (
@@ -236,7 +239,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           <Label htmlFor="itemId">Item *</Label>
           <Select value={itemId} onValueChange={setItemId}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um item" />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               {items.map((item: any) => (
@@ -252,7 +255,7 @@ function AdjustmentForm({ onSubmit, isLoading }: { onSubmit: (data: any) => void
           <Label htmlFor="warehouseId">Armazém *</Label>
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um armazém" />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               {warehouses.map((warehouse: any) => (
@@ -788,7 +791,7 @@ export function StockManagement() {
                   <Label htmlFor="status">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos os status" />
+                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os status</SelectItem>
@@ -804,7 +807,7 @@ export function StockManagement() {
                   <Label htmlFor="warehouse">Armazém</Label>
                   <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos os armazéns" />
+                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os armazéns</SelectItem>
@@ -1117,7 +1120,7 @@ export function StockManagement() {
             <EditItemForm 
               item={selectedItem}
               onSubmit={(data) => {
-                console.log('Editando item:', data);
+                console.log('[TRANSLATION_NEEDED]', data);
                 toast({ title: "Item atualizado com sucesso!" });
                 setIsEditItemOpen(false);
               }}
@@ -1187,7 +1190,7 @@ export function StockManagement() {
             <EditWarehouseForm 
               warehouse={selectedWarehouse}
               onSubmit={(data) => {
-                console.log('Editando armazém:', data);
+                console.log('[TRANSLATION_NEEDED]', data);
                 toast({ title: "Armazém atualizado com sucesso!" });
                 setIsEditWarehouseOpen(false);
               }}
@@ -1217,7 +1220,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
     e.preventDefault();
     if (!name || !location) {
       toast({ 
-        title: "Erro", 
+        title: '[TRANSLATION_NEEDED]', 
         description: "Nome e localização são obrigatórios",
         variant: "destructive" 
       });
@@ -1296,7 +1299,7 @@ function NewWarehouseForm({ onSubmit, isLoading, onCancel }: {
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Criando...' : 'Criar Armazém'}
+          {isLoading ? 'Criando...' : '[TRANSLATION_NEEDED]'}
         </Button>
       </div>
     </form>
@@ -1403,7 +1406,7 @@ function EditWarehouseForm({ warehouse, onSubmit, onCancel }: {
     e.preventDefault();
     if (!name || !location) {
       toast({ 
-        title: "Erro", 
+        title: '[TRANSLATION_NEEDED]', 
         description: "Nome e localização são obrigatórios",
         variant: "destructive" 
       });

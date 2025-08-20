@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Layers,
   MousePointer,
   Grid3x3,
@@ -26,6 +27,8 @@ interface StatusBarProps {
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({
+  // Localization temporarily disabled
+
   selectedFieldsCount,
   totalFields,
   zoom,
@@ -61,7 +64,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           <span>
             {selectedFieldsCount > 0 
               ? `${selectedFieldsCount} selecionado${selectedFieldsCount > 1 ? 's' : ''}`
-              : 'Nenhum selecionado'
+              : '[TRANSLATION_NEEDED]'
             }
           </span>
         </div>

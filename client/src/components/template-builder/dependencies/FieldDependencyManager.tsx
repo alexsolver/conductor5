@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   GitBranch,
   Plus,
   Trash2,
@@ -58,7 +59,9 @@ interface FieldDependencyManagerProps {
 }
 
 const conditionOperators = [
-  { value: 'equals', label: 'É igual a', description: 'Valor exato' },
+  {
+  // Localization temporarily disabled
+ value: 'equals', label: 'É igual a', description: 'Valor exato' },
   { value: 'not_equals', label: 'É diferente de', description: 'Valor diferente' },
   { value: 'contains', label: 'Contém', description: 'Para textos' },
   { value: 'not_contains', label: 'Não contém', description: 'Para textos' },
@@ -80,7 +83,7 @@ const actionTypes = [
   { value: 'set_value', label: 'Definir Valor', description: 'Define valor específico' },
   { value: 'clear_value', label: 'Limpar Valor', description: 'Remove o valor' },
   { value: 'set_options', label: 'Definir Opções', description: 'Para campos select' },
-  { value: 'filter_options', label: 'Filtrar Opções', description: 'Filtra opções existentes' }
+  { value: 'filter_options', label: '[TRANSLATION_NEEDED]', description: 'Filtra opções existentes' }
 ];
 
 export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
@@ -345,7 +348,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">
-                    {editingDependency.id.includes('new-') ? 'Nova' : 'Editar'} Dependência
+                    {editingDependency.id.includes('new-') ? 'Nova' : '[TRANSLATION_NEEDED]'} Dependência
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -371,7 +374,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                         })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o campo" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                         <SelectContent>
                           {fields.map(field => (
@@ -393,7 +396,7 @@ export const FieldDependencyManager: React.FC<FieldDependencyManagerProps> = ({
                         })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o campo" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                         <SelectContent>
                           {fields

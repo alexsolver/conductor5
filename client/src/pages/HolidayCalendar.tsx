@@ -20,6 +20,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+// import useLocalization from '@/hooks/useLocalization';
 
 // Types
 interface Holiday {
@@ -39,6 +40,8 @@ interface Holiday {
 
 // Zod schema for form validation
 const holidayFormSchema = z.object({
+  // Localization temporarily disabled
+
   name: z.string().min(1, 'Nome do feriado é obrigatório'),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
   type: z.enum(['national', 'regional', 'corporate', 'optional'], {
@@ -130,7 +133,7 @@ export default function HolidayCalendar() {
     onError: (error: any) => {
       toast({
         variant: 'destructive',
-        title: 'Erro ao criar feriado',
+        title: '[TRANSLATION_NEEDED]',
         description: error.response?.data?.message || 'Ocorreu um erro ao criar o feriado.'
       });
     }
@@ -325,7 +328,7 @@ export default function HolidayCalendar() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createHolidayMutation.isPending}>
-                      {createHolidayMutation.isPending ? 'Criando...' : 'Criar Feriado'}
+                      {createHolidayMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
                     </Button>
                   </div>
                 </form>
@@ -380,7 +383,7 @@ export default function HolidayCalendar() {
               <label className="text-sm font-medium">Tipo</label>
               <Select value={selectedType || "all"} onValueChange={(value) => setSelectedType(value === "all" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos os tipos" />
+                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os tipos</SelectItem>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Type, Calendar, ToggleLeft, Hash, FileText, ChevronDown, 
   Settings, Palette, X, Edit3, Save, Trash2 
 } from "lucide-react";
@@ -36,6 +37,8 @@ interface DynamicFieldRendererProps {
 }
 
 export default function DynamicFieldRenderer({
+  // Localization temporarily disabled
+
   field,
   isEditMode = false,
   onUpdate,
@@ -138,7 +141,7 @@ export default function DynamicFieldRenderer({
         return (
           <Select value={fieldData.value} onValueChange={inputProps.onChange}>
             <SelectTrigger>
-              <SelectValue placeholder={fieldData.placeholder || "Selecione uma opção"} />
+              <SelectValue placeholder={fieldData.placeholder || '[TRANSLATION_NEEDED]'} />
             </SelectTrigger>
             <SelectContent>
               {fieldData.options?.map((option, index) => (

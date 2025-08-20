@@ -61,8 +61,8 @@ interface EditFieldFormData extends CreateFieldFormData {
 }
 
 const MODULE_TYPES = [
-  { value: 'customers', label: 'Clientes' },
-  { value: 'tickets', label: 'Tickets' },
+  { value: 'customers', label: '[TRANSLATION_NEEDED]' },
+  { value: 'tickets', label: '[TRANSLATION_NEEDED]' },
   { value: 'beneficiaries', label: 'Beneficiários' },
   { value: 'materials', label: 'Materiais' },
   { value: 'services', label: 'Serviços' },
@@ -136,8 +136,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: 'Erro',
-        description: 'Erro ao criar campo customizado.',
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: 'destructive'
       });
     }
@@ -169,8 +169,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: 'Erro',
-        description: 'Erro ao atualizar campo customizado.',
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: 'destructive'
       });
     }
@@ -199,8 +199,8 @@ export default function CustomFieldsAdministrator() {
     },
     onError: () => {
       toast({
-        title: 'Erro',
-        description: 'Erro ao remover campo customizado.',
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: 'destructive'
       });
     }
@@ -303,7 +303,7 @@ export default function CustomFieldsAdministrator() {
                       size="sm"
                       onClick={() => setEditingField(field)}
                       className="hover:bg-blue-50 hover:text-blue-700"
-                      title="Editar campo"
+                      title='[TRANSLATION_NEEDED]'
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -312,7 +312,7 @@ export default function CustomFieldsAdministrator() {
                       size="sm"
                       onClick={() => setFieldToDelete(field)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Excluir campo"
+                      title='[TRANSLATION_NEEDED]'
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -365,7 +365,7 @@ export default function CustomFieldsAdministrator() {
               </Label>
               <Select value={selectedModule} onValueChange={(value: ModuleType) => setSelectedModule(value)}>
                 <SelectTrigger className="w-56 bg-white border-gray-200">
-                  <SelectValue placeholder="Selecione um módulo" />
+                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                 </SelectTrigger>
                 <SelectContent>
                   {MODULE_TYPES.map((module) => (

@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Users, MapPin, Grid3X3, Search } from "lucide-react";
 import { agrupamentoSchema, type NewAgrupamento } from "@/../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface AgrupamentoFormProps {
   onSubmit: (data: NewAgrupamento) => void;
@@ -22,7 +23,9 @@ interface AgrupamentoFormProps {
   isSubmitting?: boolean;
 }
 
-export default function AgrupamentoForm({ onSubmit, onCancel, isSubmitting = false }: AgrupamentoFormProps) {
+export default function AgrupamentoForm({
+  // Localization temporarily disabled
+ onSubmit, onCancel, isSubmitting = false }: AgrupamentoFormProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -58,8 +61,8 @@ export default function AgrupamentoForm({ onSubmit, onCancel, isSubmitting = fal
     
     if (!data.areasVinculadas || data.areasVinculadas.length === 0) {
       toast({
-        title: "Erro de validação",
-        description: "Selecione pelo menos uma área para o agrupamento.",
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
       return;
@@ -218,7 +221,7 @@ export default function AgrupamentoForm({ onSubmit, onCancel, isSubmitting = fal
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar áreas por nome, código ou tipo..."
+                  placeholder='[TRANSLATION_NEEDED]'
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -235,7 +238,7 @@ export default function AgrupamentoForm({ onSubmit, onCancel, isSubmitting = fal
                   <div className="flex flex-col items-center justify-center h-32 text-center">
                     <MapPin className="h-8 w-8 text-muted-foreground mb-2" />
                     <p className="text-muted-foreground">
-                      {areasData.length === 0 ? 'Nenhuma área cadastrada' : 'Nenhuma área encontrada'}
+                      {areasData.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
                     </p>
                     {areasData.length === 0 && (
                       <p className="text-sm text-muted-foreground mt-1">
@@ -335,7 +338,7 @@ export default function AgrupamentoForm({ onSubmit, onCancel, isSubmitting = fal
               disabled={isSubmitting}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isSubmitting ? "Criando..." : "Criar Agrupamento"}
+              {isSubmitting ? "Criando..." : '[TRANSLATION_NEEDED]'}
             </Button>
           </div>
         </form>

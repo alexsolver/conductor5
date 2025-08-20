@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Search, Package, DollarSign, User, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+// import useLocalization from '@/hooks/useLocalization';
 
 interface CustomerItemMapping {
   id: string;
@@ -35,6 +36,8 @@ interface CustomerItemMapping {
 }
 
 export function CustomerItemMappings() {
+  // Localization temporarily disabled
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -130,7 +133,7 @@ export function CustomerItemMappings() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: editingMapping ? "Mapeamento atualizado com sucesso!" : "Novo mapeamento criado com sucesso!"
       });
       setDialogOpen(false);
@@ -140,7 +143,7 @@ export function CustomerItemMappings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message,
         variant: "destructive"
       });
@@ -159,14 +162,14 @@ export function CustomerItemMappings() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Mapeamento deletado com sucesso!"
       });
       refetch();
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message,
         variant: "destructive"
       });
@@ -228,7 +231,7 @@ export function CustomerItemMappings() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingMapping ? "Editar Mapeamento" : "Criar Novo Mapeamento"}
+                  {editingMapping ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -241,7 +244,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma empresa" />
+                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                       <SelectContent>
                         {customerCompaniesData?.map((company: any) => (
@@ -260,7 +263,7 @@ export function CustomerItemMappings() {
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione um item" />
+                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                       <SelectContent>
                         {itemsData?.data?.map((item: any) => (
@@ -330,7 +333,7 @@ export function CustomerItemMappings() {
                     id="notes"
                     value={formData.notes}
                     onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Observações internas sobre este mapeamento"
+                    placeholder='[TRANSLATION_NEEDED]'
                   />
                 </div>
 
@@ -339,7 +342,7 @@ export function CustomerItemMappings() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createMappingMutation.isPending}>
-                    {createMappingMutation.isPending ? "Salvando..." : "Salvar"}
+                    {createMappingMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}
                   </Button>
                 </div>
               </form>
@@ -357,7 +360,7 @@ export function CustomerItemMappings() {
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="Buscar por SKU, nome, referência..."
+                    placeholder='[TRANSLATION_NEEDED]'
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -384,7 +387,7 @@ export function CustomerItemMappings() {
                 <Label htmlFor="type-filter">Tipo de Item</Label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todos os tipos" />
+                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-types">Todos os tipos</SelectItem>

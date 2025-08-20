@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, AlertCircle } from 'lucide-react';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface CustomFieldMetadata {
   id: string;
@@ -34,6 +35,8 @@ interface DynamicCustomFieldsProps {
 }
 
 const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
+  // Localization temporarily disabled
+
   moduleType,
   entityId,
   values = {},
@@ -150,7 +153,7 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
             onValueChange={(newValue) => handleFieldChange(field.id, newValue)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione..." />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               {field.fieldOptions?.options?.map((option: any) => (

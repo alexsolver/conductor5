@@ -14,6 +14,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+// import useLocalization from '@/hooks/useLocalization';
 
 // Define the new interface for weekly schedules
 interface DaySchedule {
@@ -305,7 +306,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-CREATE-ERROR]:', error);
       toast({
-        title: 'Erro ao criar escala',
+        title: 'Erro ao Criar Escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -332,7 +333,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[SCHEDULE-UPDATE-ERROR]:', error);
       toast({
-        title: 'Erro ao atualizar escala',
+        title: 'Erro ao Atualizar Escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -353,7 +354,7 @@ function WorkSchedulesContent() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao excluir escala',
+        title: 'Erro ao Excluir Escala',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -380,7 +381,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-CREATE-ERROR]:', error);
       toast({
-        title: 'Erro ao criar template',
+        title: 'Erro ao Criar Template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -407,7 +408,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-UPDATE-ERROR]:', error);
       toast({
-        title: 'Erro ao atualizar template',
+        title: 'Erro ao Atualizar Template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -432,7 +433,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-DELETE-ERROR]:', error);
       toast({
-        title: 'Erro ao excluir template',
+        title: 'Erro ao Excluir Template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -458,7 +459,7 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro ao atribuir template',
+        title: 'Erro ao Atribuir Template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -829,7 +830,7 @@ function WorkSchedulesContent() {
     if (selectedUsers.length === 0) {
       toast({
         title: 'Erro',
-        description: 'Selecione pelo menos um funcionário.',
+        description: 'Selecione pelo menos um funcionário',
         variant: 'destructive',
       });
       return;
@@ -873,7 +874,7 @@ function WorkSchedulesContent() {
         resetForm();
 
         toast({
-          title: 'Sucesso!',
+          title: 'Sucesso',
           description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
         });
       } else {
@@ -882,8 +883,8 @@ function WorkSchedulesContent() {
     } catch (error: any) {
       console.error('[BULK-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro na atribuição em lote',
-        description: error?.message || 'Erro interno do servidor',
+        title: 'Erro na Atribuição em Lote',
+        description: error?.message || 'Erro Interno do Servidor',
         variant: 'destructive',
       });
     }
@@ -913,8 +914,8 @@ function WorkSchedulesContent() {
     } catch (error: any) {
       console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
       toast({
-        title: 'Erro ao atribuir template',
-        description: error?.message || 'Erro interno do servidor',
+        title: 'Erro ao Atribuir Template',
+        description: error?.message || 'Erro Interno do Servidor',
         variant: 'destructive',
       });
     }
@@ -926,8 +927,8 @@ function WorkSchedulesContent() {
       if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
       return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).filter(Boolean).join(', ');
     } catch (error) {
-      console.error('Error processing workDays:', error, workDays);
-      return 'Erro na formatação';
+      console.error('Error processing workdays:', error, workDays);
+      return 'Erro na Formatação';
     }
   };
 

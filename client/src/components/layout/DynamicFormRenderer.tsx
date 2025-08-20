@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   CalendarIcon,
   Type,
   AlignLeft,
@@ -43,6 +44,8 @@ interface DynamicFormRendererProps {
 }
 
 const getIconComponent = (iconName: string) => {
+  // Localization temporarily disabled
+
   const icons = {
     Type, AlignLeft, ChevronDown, Hash, CalendarIcon, CheckSquare, Mail, Phone,
     AlertTriangle, Circle, Tag, User, Building, MapPin, Users, Package, Truck, DollarSign
@@ -191,7 +194,7 @@ const renderFieldByType = (
                   disabled={isReadOnly}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={`Selecione ${field.label.toLowerCase()}`} />
+                    <SelectValue placeholder={'[TRANSLATION_NEEDED]'} />
                   </SelectTrigger>
                   <SelectContent>
                     {options.map((option: any) => (
@@ -231,7 +234,7 @@ const renderFieldByType = (
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formField.value ? 
                         format(new Date(formField.value), "PPP", { locale: ptBR }) : 
-                        `Selecione ${field.label.toLowerCase()}`
+                        '[TRANSLATION_NEEDED]'
                       }
                     </Button>
                   </PopoverTrigger>

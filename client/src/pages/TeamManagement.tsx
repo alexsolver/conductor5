@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+// import useLocalization from '@/hooks/useLocalization';
 
 // Import user management components from old system
 import { UserList } from "@/components/user-management/UserList";
@@ -60,6 +61,8 @@ import {
 import { Link } from "wouter";
 
 export default function TeamManagement() {
+  // Localization temporarily disabled
+
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
@@ -201,7 +204,7 @@ export default function TeamManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar status",
+        title: 'Erro ao Atualizar Status',
         description: error?.message || "Falha ao atualizar o status do membro.",
         variant: "destructive",
       });
@@ -213,7 +216,7 @@ export default function TeamManagement() {
     console.log('TeamManagement - Opening edit dialog with member:', member);
     if (!member || !member.id) {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -227,7 +230,7 @@ export default function TeamManagement() {
   const handleToggleMemberStatus = async (member: any) => {
     if (!member || !member.id) {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Dados do membro inválidos",
         variant: "destructive",
       });
@@ -240,7 +243,7 @@ export default function TeamManagement() {
     } catch (error) {
       console.error('Error toggling member status:', error);
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao alterar status do membro",
         variant: "destructive",
       });
@@ -251,7 +254,7 @@ export default function TeamManagement() {
   const handleExportTeamData = () => {
     if (!teamMembers || teamMembers.length === 0) {
       toast({
-        title: "Nenhum dado para exportar",
+        title: '[TRANSLATION_NEEDED]',
         description: "Não há membros da equipe para exportar.",
         variant: "destructive",
       });
@@ -297,7 +300,7 @@ export default function TeamManagement() {
       });
     } catch (error) {
       toast({
-        title: "Erro na exportação",
+        title: '[TRANSLATION_NEEDED]',
         description: "Falha ao exportar os dados da equipe.",
         variant: "destructive",
       });
@@ -654,7 +657,7 @@ export default function TeamManagement() {
                   <Label htmlFor="department">Departamento</Label>
                   <Select value={filterDepartment} onValueChange={setFilterDepartment}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
+                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -690,7 +693,7 @@ export default function TeamManagement() {
                   <Label htmlFor="group">Grupo</Label>
                   <Select value={filterGroup} onValueChange={setFilterGroup}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
+                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -717,7 +720,7 @@ export default function TeamManagement() {
                   <Label htmlFor="status">Status</Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
+                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -851,7 +854,7 @@ export default function TeamManagement() {
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {teamMembers && teamMembers.length === 0 
-                          ? "Nenhum membro foi adicionado à equipe ainda."
+                          ? '[TRANSLATION_NEEDED]'
                           : "Ajuste os filtros para encontrar membros da equipe."
                         }
                       </p>

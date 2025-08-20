@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useLocalization } from '@/hooks/useLocalization';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface LocalizationSettingsProps {
   variant?: 'full' | 'compact';
@@ -53,7 +53,7 @@ export function LocalizationSettings({
           <div className="space-y-2">
             <Label className="text-sm font-medium flex items-center gap-2">
               <Globe className="h-4 w-4" />
-              {t('settings.language')}
+              '[TRANSLATION_NEEDED]'
             </Label>
             <Select 
               value={currentLanguage?.code} 
@@ -85,7 +85,7 @@ export function LocalizationSettings({
           <div className="space-y-2">
             <Label className="text-sm font-medium flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              {t('settings.timezone')}
+              '[TRANSLATION_NEEDED]'
             </Label>
             <Select 
               value={currentTimezone?.code} 
@@ -128,7 +128,7 @@ export function LocalizationSettings({
           <div className="space-y-2">
             <Label className="text-sm font-medium flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              {t('settings.currency')}
+              '[TRANSLATION_NEEDED]'
             </Label>
             <Select 
               value={currentCurrency?.code} 
@@ -187,7 +187,7 @@ export function LocalizationSettings({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            {t('settings.title')} - Localization
+            '[TRANSLATION_NEEDED]' - Localization
           </CardTitle>
           <CardDescription>
             Configure your language, timezone, and regional preferences
@@ -201,7 +201,7 @@ export function LocalizationSettings({
           <div>
             <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
               <Globe className="h-4 w-4" />
-              {t('settings.language')}
+              '[TRANSLATION_NEEDED]'
             </h4>
             <Select 
               value={currentLanguage?.code} 
@@ -245,7 +245,7 @@ export function LocalizationSettings({
           <div>
             <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              {t('settings.timezone')}
+              '[TRANSLATION_NEEDED]'
             </h4>
             <Select 
               value={currentTimezone?.code} 
@@ -298,7 +298,7 @@ export function LocalizationSettings({
           <div>
             <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              {t('settings.currency')}
+              '[TRANSLATION_NEEDED]'
             </h4>
             <Select 
               value={currentCurrency?.code} 

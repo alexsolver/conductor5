@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Plus, 
   Search, 
   Building2, 
@@ -34,6 +35,8 @@ import AssociateMultipleCustomersModal from "@/components/customers/AssociateMul
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
 
 const companySchema = z.object({
+  // Localization temporarily disabled
+
   name: z.string().min(1, "Nome da empresa é obrigatório"),
   displayName: z.string().optional(),
   description: z.string().optional(),
@@ -114,14 +117,14 @@ export default function Companies() {
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Empresa criada com sucesso!",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar empresa",
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     }
@@ -142,15 +145,15 @@ export default function Companies() {
       editForm.reset();
       if (!isOptimisticUpdate) {
         toast({
-          title: "Sucesso",
+          title: '[TRANSLATION_NEEDED]',
           description: "Empresa atualizada com sucesso!",
         });
       }
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao atualizar empresa",
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     }
@@ -185,22 +188,22 @@ export default function Companies() {
       ]);
 
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Empresa excluída com sucesso!",
       });
     },
     onError: (error: any) => {
-      console.error('Error deleting company:', error);
+      console.error('[TRANSLATION_NEEDED]', error);
 
       // Revert optimistic update if it was applied
       queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
 
       const errorMessage = error?.response?.data?.message || 
                           error?.message || 
-                          "Erro ao excluir empresa";
+                          '[TRANSLATION_NEEDED]';
 
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
         variant: "destructive",
       });
@@ -448,7 +451,7 @@ export default function Companies() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tamanho" />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -568,7 +571,7 @@ export default function Companies() {
                     disabled={createCompanyMutation.isPending}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
-                    {createCompanyMutation.isPending ? "Criando..." : "Criar Empresa"}
+                    {createCompanyMutation.isPending ? "Criando..." : '[TRANSLATION_NEEDED]'}
                   </Button>
                 </div>
               </form>
@@ -582,7 +585,7 @@ export default function Companies() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder="Buscar empresas..."
+            placeholder='[TRANSLATION_NEEDED]'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -783,11 +786,11 @@ export default function Companies() {
                               });
                               
                             } catch (error) {
-                              console.error('Error updating Default company:', error);
+                              console.error('[TRANSLATION_NEEDED]', error);
                               // Revert optimistic update on error
                               queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
                               toast({
-                                title: "Erro",
+                                title: '[TRANSLATION_NEEDED]',
                                 description: "Falha ao atualizar empresa. Tente novamente.",
                                 variant: "destructive"
                               });
@@ -812,7 +815,7 @@ export default function Companies() {
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
-                        {deleteCompanyMutation.isPending ? "Excluindo..." : "Excluir"}
+                        {deleteCompanyMutation.isPending ? "Excluindo..." : '[TRANSLATION_NEEDED]'}
                       </Button>
                     );
                   })()}
@@ -921,7 +924,7 @@ export default function Companies() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tamanho" />
+                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1044,7 +1047,7 @@ export default function Companies() {
                   disabled={updateCompanyMutation.isPending}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  {updateCompanyMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                  {updateCompanyMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}
                 </Button>
               </div>
             </form>

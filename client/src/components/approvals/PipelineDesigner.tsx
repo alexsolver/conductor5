@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Plus, ArrowDown, Users, Clock, Settings } from 'lucide-react';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface ApprovalStep {
   id: string;
@@ -20,6 +21,8 @@ interface ApprovalStep {
 }
 
 export function PipelineDesigner() {
+  // Localization temporarily disabled
+
   const [steps, setSteps] = useState<ApprovalStep[]>([
     {
       id: '1',
@@ -38,13 +41,13 @@ export function PipelineDesigner() {
 
   const approverTypes = [
     { value: 'user', label: 'Usuário Específico' },
-    { value: 'group', label: 'Grupo de Usuários' },
+    { value: 'group', label: '[TRANSLATION_NEEDED]' },
     { value: 'role', label: 'Função/Cargo' },
     { value: 'hierarchy', label: 'Hierarquia (Manager Chain)' }
   ];
 
   const decisionModes = [
-    { value: 'ALL', label: 'Todos devem aprovar' },
+    { value: 'ALL', label: '[TRANSLATION_NEEDED]' },
     { value: 'ANY', label: 'Qualquer um pode aprovar' },
     { value: 'QUORUM', label: 'Quórum (X de N)' }
   ];

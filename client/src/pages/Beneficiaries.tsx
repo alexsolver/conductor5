@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+// import useLocalization from '@/hooks/useLocalization';
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,8 @@ import { apiRequest } from "@/lib/queryClient";
 
 // Schema for beneficiary creation/editing
 const beneficiarySchema = z.object({
+  // Localization temporarily disabled
+
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().min(1, "Sobrenome é obrigatório"),
   email: z.string().email("Email inválido"),
@@ -188,7 +191,7 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Favorecido criado com sucesso",
       });
       setIsCreateDialogOpen(false);
@@ -197,7 +200,7 @@ export default function Beneficiaries() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Falha ao criar favorecido",
         variant: "destructive",
       });
@@ -219,12 +222,12 @@ export default function Beneficiaries() {
       
       setShowCustomerSelector(false);
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Cliente associado com sucesso",
       });
     } catch (error) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "Falha ao associar cliente",
         variant: "destructive",
       });
@@ -241,12 +244,12 @@ export default function Beneficiaries() {
       setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
       
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Cliente desassociado com sucesso",
       });
     } catch (error) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "Falha ao desassociar cliente",
         variant: "destructive",
       });
@@ -261,7 +264,7 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Favorecido atualizado com sucesso",
       });
       setEditingBeneficiary(null);
@@ -271,7 +274,7 @@ export default function Beneficiaries() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Falha ao atualizar favorecido",
         variant: "destructive",
       });
@@ -286,14 +289,14 @@ export default function Beneficiaries() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Favorecido excluído com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/beneficiaries"], exact: false });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Falha ao excluir favorecido",
         variant: "destructive",
       });
@@ -363,7 +366,7 @@ export default function Beneficiaries() {
 
   // Handle edit
   const handleEdit = (beneficiary: Beneficiary) => {
-    console.log('Editing beneficiary:', beneficiary);
+    console.log('[TRANSLATION_NEEDED]', beneficiary);
     setEditingBeneficiary(beneficiary);
     
     // Map database fields to form fields
@@ -514,7 +517,7 @@ export default function Beneficiaries() {
                     </div>
                     <Select onValueChange={handleAddCustomer}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Escolha um cliente" />
+                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                       <SelectContent>
                         {((customersData as any)?.customers || []).filter((customer: any) => 
@@ -542,7 +545,7 @@ export default function Beneficiaries() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione um cliente" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -719,7 +722,7 @@ export default function Beneficiaries() {
             type="submit"
             disabled={createBeneficiaryMutation.isPending || updateBeneficiaryMutation.isPending}
           >
-            {editingBeneficiary ? "Atualizar" : "Criar"} Favorecido
+            {editingBeneficiary ? "Atualizar" : '[TRANSLATION_NEEDED]'} Favorecido
           </Button>
         </div>
       </form>
@@ -751,7 +754,7 @@ export default function Beneficiaries() {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingBeneficiary ? "Editar" : "Criar"} Favorecido
+                {editingBeneficiary ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'} Favorecido
               </DialogTitle>
               <DialogDescription>
                 {editingBeneficiary
@@ -813,7 +816,7 @@ export default function Beneficiaries() {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar favorecidos..."
+            placeholder='[TRANSLATION_NEEDED]'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"

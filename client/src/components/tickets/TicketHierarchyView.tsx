@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   GitBranch, 
   ChevronRight, 
   Plus,
@@ -27,7 +28,9 @@ interface TicketHierarchyViewProps {
   onViewTicket?: (ticketId: string) => void;
 }
 
-export default function TicketHierarchyView({ 
+export default function TicketHierarchyView({
+  // Localization temporarily disabled
+ 
   ticketId, 
   onCreateChild, 
   onViewTicket 
@@ -122,7 +125,7 @@ export default function TicketHierarchyView({
                     variant="ghost"
                     size="sm"
                     onClick={() => onCreateChild(ticket.id)}
-                    title="Criar chamado filho"
+                    title='[TRANSLATION_NEEDED]'
                   >
                     <Plus className="h-4 w-4" />
                   </Button>

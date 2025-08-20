@@ -11,6 +11,7 @@ import { Badge } from '../../ui/badge'
 import { Card, CardContent } from '../../ui/card'
 import { Alert, AlertDescription } from '../../ui/alert'
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   MapPin, 
   Navigation, 
   Search, 
@@ -40,6 +41,8 @@ interface LocationFieldProps {
 }
 
 export const LocationField: React.FC<LocationFieldProps> = ({
+  // Localization temporarily disabled
+
   field,
   value = {},
   onChange,
@@ -220,7 +223,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Digite um endereço para buscar..."
+              placeholder='[TRANSLATION_NEEDED]'
               className="pl-10"
               disabled={disabled}
             />

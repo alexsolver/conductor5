@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface FormValidationFeedbackProps {
   isValidating?: boolean;
@@ -12,6 +13,8 @@ interface FormValidationFeedbackProps {
 }
 
 export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
+  // Localization temporarily disabled
+
   isValidating = false,
   isValid = false,
   isInvalid = false,
@@ -52,7 +55,7 @@ export const FormValidationFeedback: React.FC<FormValidationFeedbackProps> = ({
       <div 
         className={cn("flex items-center gap-2 text-red-600 text-sm mt-1", className)}
         role="alert"
-        aria-label={`Erro em ${fieldName}: ${validationMessage}`}
+        aria-label={'[TRANSLATION_NEEDED]'}
         aria-live="assertive"
       >
         <AlertCircle className="h-3 w-3" aria-hidden="true" />

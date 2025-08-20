@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Select,
   SelectContent,
   SelectItem,
@@ -42,7 +43,9 @@ interface TemplateSelectorProps {
   selectedTemplate?: string;
 }
 
-export function TemplateSelector({ onSelectTemplate, selectedTemplate }: TemplateSelectorProps) {
+export function TemplateSelector({
+  // Localization temporarily disabled
+ onSelectTemplate, selectedTemplate }: TemplateSelectorProps) {
   const [newTemplateOpen, setNewTemplateOpen] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateDescription, setNewTemplateDescription] = useState('');
@@ -75,7 +78,7 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplate }: Templat
   const handleCreateTemplate = async () => {
     if (!newTemplateName.trim() || !newTemplateContent.trim()) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "Nome e conteúdo são obrigatórios",
         variant: "destructive"
       });
@@ -92,7 +95,7 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplate }: Templat
 
       if (response.success) {
         toast({
-          title: "Sucesso",
+          title: '[TRANSLATION_NEEDED]',
           description: "Template criado com sucesso"
         });
         setNewTemplateOpen(false);
@@ -104,8 +107,8 @@ export function TemplateSelector({ onSelectTemplate, selectedTemplate }: Templat
       }
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao criar template",
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }

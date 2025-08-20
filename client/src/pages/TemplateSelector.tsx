@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Check, Palette, Layout, Sparkles, Building2, Zap, Globe, Loader2, Settings, Moon, Sun, Sunset, Camera, Brush, Heart } from "lucide-react";
+// import useLocalization from '@/hooks/useLocalization';
 
 interface Template {
   id: string;
@@ -30,6 +31,8 @@ interface Template {
 
 const templates: Template[] = [
   {
+  // Localization temporarily disabled
+
     id: 'corporate-blue',
     name: 'Corporate Professional',
     description: 'Layout clássico e profissional com tons de azul corporativo',
@@ -432,7 +435,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao aplicar tema",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message,
         variant: "destructive",
       });
@@ -460,7 +463,7 @@ export function TemplateSelector() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao resetar tema",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message,
         variant: "destructive",
       });
@@ -627,7 +630,7 @@ export function TemplateSelector() {
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             disabled={!selectedTemplate || applyTemplateMutation.isPending}
           >
-            {selectedTemplate ? 'Tema Selecionado' : 'Selecione um Tema'}
+            {selectedTemplate ? 'Tema Selecionado' : '[TRANSLATION_NEEDED]'}
           </Button>
           <Button 
             size="lg" 

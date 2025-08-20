@@ -626,7 +626,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         onValueChange={(value: "clt" | "autonomo") => setFormData({ ...formData, employmentType: value })}
                       >
                         <SelectTrigger className="border-purple-300 dark:border-purple-600">
-                          <SelectValue placeholder="Selecione o tipo de emprego" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="clt">CLT (Consolidação das Leis do Trabalho)</SelectItem>

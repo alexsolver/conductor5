@@ -6,6 +6,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Select,
   SelectContent,
   SelectItem,
@@ -32,6 +33,8 @@ interface CompanySelectorProps {
 }
 
 export function CompanySelector({
+  // Localization temporarily disabled
+
   value,
   onValueChange,
   placeholder = "Selecionar empresa (opcional)",
@@ -101,7 +104,7 @@ export function CompanySelector({
         disabled={disabled || isLoading}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
+          <SelectValue placeholder={isLoading ? '[TRANSLATION_NEEDED]' : placeholder} />
         </SelectTrigger>
         
         <SelectContent>

@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Paperclip, Upload, X, File } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface TicketAttachmentUploadProps {
   ticketId: string;
@@ -16,7 +17,9 @@ interface FileWithPreview extends File {
   preview?: string;
 }
 
-export function TicketAttachmentUpload({ ticketId, onUploadComplete }: TicketAttachmentUploadProps) {
+export function TicketAttachmentUpload({
+  // Localization temporarily disabled
+ ticketId, onUploadComplete }: TicketAttachmentUploadProps) {
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [description, setDescription] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
@@ -53,7 +56,7 @@ export function TicketAttachmentUpload({ ticketId, onUploadComplete }: TicketAtt
     },
     onSuccess: (data) => {
       toast({
-        title: 'Upload successful',
+        title: '[TRANSLATION_NEEDED]',
         description: `${selectedFiles.length} file(s) uploaded successfully.`,
       });
       
@@ -193,7 +196,7 @@ export function TicketAttachmentUpload({ ticketId, onUploadComplete }: TicketAtt
         </Label>
         <Textarea
           id="attachment-description"
-          placeholder="Descreva o conteúdo do anexo ou adicione observações relevantes..."
+          placeholder='[TRANSLATION_NEEDED]'
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="min-h-[80px]"

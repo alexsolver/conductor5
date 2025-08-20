@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Layout, Type, Image, BarChart3, PieChart, LineChart, Table,
   Palette, Settings, Eye, Save, Undo, Redo, Grid, AlignLeft,
   AlignCenter, AlignRight, Bold, Italic, Underline, Plus,
@@ -24,6 +25,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 // Zendesk-style design components
 const DESIGN_COMPONENTS = [
   {
+  // Localization temporarily disabled
+
     id: 'text',
     name: 'Text',
     icon: Type,
@@ -88,7 +91,7 @@ const DESIGN_COMPONENTS = [
     category: 'data',
     description: 'Add KPI metric',
     defaultProps: {
-      title: 'Total Tickets',
+      title: '[TRANSLATION_NEEDED]',
       value: '1,234',
       trend: '+12%',
       trendDirection: 'up',
@@ -429,7 +432,7 @@ export default function AdvancedWYSIWYGDesigner({ onDesignChange, initialDesign,
                   onClick={() => setPreviewMode(!previewMode)}
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  {previewMode ? 'Edit' : 'Preview'}
+                  {previewMode ? '[TRANSLATION_NEEDED]' : 'Preview'}
                 </Button>
               </div>
             </div>

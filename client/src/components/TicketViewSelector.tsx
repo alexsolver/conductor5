@@ -6,13 +6,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Settings, Plus, Eye, Users, Filter } from 'lucide-react';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface TicketViewSelectorProps {
   currentViewId?: string;
   onViewChange: (viewId: string) => void;
 }
 
-export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSelectorProps) {
+export function TicketViewSelector({
+  // Localization temporarily disabled
+ currentViewId, onViewChange }: TicketViewSelectorProps) {
   const [isNewViewModalOpen, setIsNewViewModalOpen] = useState(false);
   const [isManageViewsOpen, setIsManageViewsOpen] = useState(false);
 
@@ -112,7 +115,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium">Nome da Visualização</label>
-                <Input placeholder="Ex: Meus Tickets Urgentes" />
+                <Input placeholder='[TRANSLATION_NEEDED]' />
               </div>
               <div>
                 <label className="text-sm font-medium">Descrição (opcional)</label>

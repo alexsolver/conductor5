@@ -15,8 +15,11 @@ import { z } from "zod";
 import { Plus, Users, Settings, BarChart3, Shield, Building, Mail } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+// import useLocalization from '@/hooks/useLocalization';
 
 const createUserSchema = z.object({
+  // Localization temporarily disabled
+
   email: z.string().email("Email inválido"),
   firstName: z.string().min(1, "Nome é obrigatório"),
   lastName: z.string().optional(),
@@ -108,7 +111,7 @@ export default function TenantAdmin() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao criar usuário",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message,
         variant: "destructive",
       });
@@ -125,13 +128,13 @@ export default function TenantAdmin() {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/settings'] });
       setIsSettingsDialogOpen(false);
       toast({
-        title: "Configurações atualizadas",
-        description: "Configurações do workspace atualizadas com sucesso!",
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao atualizar configurações",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message,
         variant: "destructive",
       });
@@ -191,7 +194,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateSettingsMutation.isPending}>
-                      {updateSettingsMutation.isPending ? 'Salvando...' : 'Salvar'}
+                      {updateSettingsMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
                     </Button>
                   </div>
                 </form>
@@ -277,7 +280,7 @@ export default function TenantAdmin() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={createUserMutation.isPending}>
-                      {createUserMutation.isPending ? 'Criando...' : 'Criar'}
+                      {createUserMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
                     </Button>
                   </div>
                 </form>

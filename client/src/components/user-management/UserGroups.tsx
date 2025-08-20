@@ -150,7 +150,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar grupo",
+        title: '[TRANSLATION_NEEDED]',
         description: error?.message || "Falha ao criar grupo",
         variant: "destructive",
       });
@@ -176,7 +176,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar grupo",
+        title: '[TRANSLATION_NEEDED]',
         description: error?.message || "Falha ao atualizar grupo",
         variant: "destructive",
       });
@@ -197,7 +197,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir grupo",
+        title: '[TRANSLATION_NEEDED]',
         description: error?.message || "Falha ao excluir grupo",
         variant: "destructive",
       });
@@ -229,10 +229,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
     onError: (error: any) => {
-      console.error("Error adding user to group:", error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao adicionar usuário ao grupo';
+      console.error('[TRANSLATION_NEEDED]', error);
+      const errorMessage = error?.message || error?.response?.data?.message || '[TRANSLATION_NEEDED]';
       toast({
-        title: "Erro ao adicionar usuário",
+        title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
         variant: "destructive",
       });
@@ -264,10 +264,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
     onError: (error: any) => {
-      console.error("Error removing user from group:", error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao remover usuário do grupo';
+      console.error('[TRANSLATION_NEEDED]', error);
+      const errorMessage = error?.message || error?.response?.data?.message || '[TRANSLATION_NEEDED]';
       toast({
-        title: "Erro ao remover usuário",
+        title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
         variant: "destructive",
       });
@@ -283,10 +283,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         await addUserToGroupMutation.mutateAsync({ groupId, userId });
       }
     } catch (error: any) {
-      console.error("Error toggling user in group:", error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao alterar usuário no grupo';
+      console.error('[TRANSLATION_NEEDED]', error);
+      const errorMessage = error?.message || error?.response?.data?.message || '[TRANSLATION_NEEDED]';
       toast({
-        title: "Erro na operação",
+        title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
         variant: "destructive",
       });
@@ -379,9 +379,9 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         setSelectedUsers(prev => [...prev, userId]);
       }
       
-      const errorMessage = error?.message || 'Erro na operação';
+      const errorMessage = error?.message || '[TRANSLATION_NEEDED]';
       toast({
-        title: "Erro na operação",
+        title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
         variant: "destructive",
       });
@@ -416,16 +416,16 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       }
 
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Membros do grupo atualizados com sucesso",
       });
 
       refetchGroups();
     } catch (error: any) {
-      console.error("Error updating group memberships:", error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao atualizar membros do grupo';
+      console.error('[TRANSLATION_NEEDED]', error);
+      const errorMessage = error?.message || error?.response?.data?.message || '[TRANSLATION_NEEDED]';
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
         variant: "destructive",
       });

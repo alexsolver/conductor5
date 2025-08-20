@@ -15,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { Plus, Edit, Trash2, Copy, Search, Filter, BarChart3, Users, Clock, Building2, Settings } from 'lucide-react';
+// import useLocalization from '@/hooks/useLocalization';
 
 // Import new components
 import CompanyTemplateSelector from '@/components/templates/CompanyTemplateSelector';
@@ -168,7 +169,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar template",
+        title: 'Erro ao Criar Template',
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -193,7 +194,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar template",
+        title: 'Erro ao Atualizar Template',
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -213,7 +214,7 @@ export default function TicketTemplates() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir template",
+        title: 'Erro ao Excluir Template',
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -397,7 +398,7 @@ export default function TicketTemplates() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar templates..."
+                  placeholder="Buscar Templates"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -431,8 +432,8 @@ export default function TicketTemplates() {
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {searchTerm || selectedCategory !== 'all' ? 
-              'Nenhum template encontrado com os filtros aplicados.' :
-              'Nenhum template encontrado. Crie o primeiro!'
+              'Nenhum Template Encontrado com os Filtros Aplicados' :
+              'Nenhum Template Encontrado - Crie o Primeiro'
             }
           </p>
         </div>

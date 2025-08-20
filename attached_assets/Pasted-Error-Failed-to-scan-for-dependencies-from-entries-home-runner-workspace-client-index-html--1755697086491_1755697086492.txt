@@ -1,0 +1,593 @@
+Error:   Failed to scan for dependencies from entries:
+  /home/runner/workspace/client/index.html
+
+  ✘ [ERROR] Expected ":" but found "{"
+
+    client/src/components/approvals/ApprovalGroupsManager.tsx:42:8:
+      42 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/components/approvals/ApprovalInstances.tsx:12:7:
+      12 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/components/approvals/UnifiedApprovalConfigurator.tsx:22:7:
+      22 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/components/internal-forms/InternalFormBuilder.tsx:17:8:
+      17 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/components/knowledge-base/CreateArticleDialog.tsx:23:8:
+      23 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected "}" but found "{"
+
+    client/src/components/knowledge-base/MediaUploadDialog.tsx:16:8:
+      16 │   const { t } = useLocalization();
+         │         ^
+         ╵         }
+
+
+✘ [ERROR] Expected "}" but found "{"
+
+    client/src/components/knowledge-base/TemplateCreateDialog.tsx:21:8:
+      21 │   const { t } = useLocalization();
+         │         ^
+         ╵         }
+
+
+✘ [ERROR] Expected "}" but found "{"
+
+    client/src/components/knowledge-base/WorkflowConfigurationDialog.tsx:39:8:
+      39 │   const { t } = useLocalization();
+         │         ^
+         ╵         }
+
+
+✘ [ERROR] Expected identifier but found "'layout.relatorios'"
+
+    client/src/components/layout/Sidebar.tsx:90:17:
+      90 │       { name: {t('layout.relatorios')}, href: "/timecard-reports",...
+         ╵                  ~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/components/schedule/ScheduleModal.tsx:71:8:
+      71 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/components/schedule/TimelineScheduleGrid.tsx:65:8:
+      65 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/components/schedule/WeeklyScheduleGrid.tsx:45:8:
+      45 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected identifier but found "'user-management.analyticsERelatorios'"
+
+    client/src/components/user-management/CustomRoles.tsx:83:18:
+      83 │   'analytics': {t('user-management.analyticsERelatorios')},
+         ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'user-management.configuracoes'"
+
+    client/src/components/user-management/UserActivity.tsx:131:21:
+      131 │       'settings': {t('user-management.configuracoes')},
+          ╵                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'user-management.erroAoCriarGrupo'"
+
+    client/src/components/user-management/UserGroups.tsx:153:18:
+      153 │         title: {t('user-management.erroAoCriarGrupo')},
+          ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "}" but found "{"
+
+    client/src/hooks/useAuth.tsx:49:8:
+      49 │   const { t } = useLocalization();
+         │         ^
+         ╵         }
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/AbsenceManagement.tsx:21:8:
+      21 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ActivityPlanner.tsx:28:7:
+      28 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/AssetManagement.tsx:15:7:
+      15 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'AuthPage.createAccount'"
+
+    client/src/pages/AuthPage.tsx:191:15:
+      191 │             {t('AuthPage.createAccount')}
+          ╵                ~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/Beneficiaries.tsx:46:8:
+      46 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/CLTCompliance.tsx:9:7:
+      9 │ import { useLocalization } from '@/hooks/useLocalization';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'CertificateManager.erroNaInstalacao'"
+
+    client/src/pages/CertificateManager.tsx:64:18:
+      64 │         title: {t('CertificateManager.erroNaInstalacao')},
+         ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/Companies.tsx:17:7:
+      17 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'Compliance.dashboard'"
+
+    client/src/pages/Compliance.tsx:60:12:
+      60 │     case {t('Compliance.dashboard')}:
+         ╵             ~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ComplianceManagement.tsx:17:7:
+      17 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ContractManagement.tsx:14:7:
+      14 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/CorporateExpenseManagement.tsx:33:8:
+      33 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected identifier but found "'CustomFieldsAdministrator.clientes'"
+
+    client/src/pages/CustomFieldsAdministrator.tsx:64:34:
+      64 │ ...: 'customers', label: {t('CustomFieldsAdministrator.clientes')} },
+         ╵                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'CustomerItemMappings.sucesso'"
+
+    client/src/pages/CustomerItemMappings.tsx:136:18:
+      136 │         title: {t('CustomerItemMappings.sucesso')},
+          ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'Customers.customersApiResponse'"
+
+    client/src/pages/Customers.tsx:28:21:
+      28 │       console.log({t('Customers.customersApiResponse')}, data);
+         ╵                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/DashboardView.tsx:7:7:
+      7 │ import { useLocalization } from '@/hooks/useLocalization';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/Dashboards.tsx:6:7:
+      6 │ import { useLocalization } from '@/hooks/useLocalization';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/GdprCompliancePage.tsx:31:8:
+      31 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/HolidayCalendar.tsx:43:8:
+      43 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/HourBank.tsx:40:8:
+      40 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/ItemCatalog.tsx:123:8:
+      123 │   const { t } = useLocalization();
+          │         ^
+          ╵         :
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/LPU.tsx:17:7:
+      17 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/LocationsNew.tsx:21:7:
+      21 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ModuleIntegrityControl.tsx:16:7:
+      16 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/NotificationsPage.tsx:17:7:
+      17 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/OmniBridge.tsx:16:7:
+      16 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ProductivityReports.tsx:9:7:
+      9 │ import { useLocalization } from '@/hooks/useLocalization';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ReportCreate.tsx:9:7:
+      9 │ import { useLocalization } from '@/hooks/useLocalization';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/ReportEdit.tsx:9:7:
+      9 │ import { useLocalization } from '@/hooks/useLocalization';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/Reports.tsx:5:7:
+      5 │ import { useLocalization } from '@/hooks/useLocalization';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/SaasAdmin.tsx:21:8:
+      21 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected identifier but found "'SaasAdminDisasterRecovery.sucesso'"
+
+    client/src/pages/SaasAdminDisasterRecovery.tsx:171:35:
+      171 │ ...                 status: {t('SaasAdminDisasterRecovery.sucesso')}
+          ╵                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/SaasAdminIntegrations.tsx:18:7:
+      18 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/SecuritySettings.tsx:13:7:
+      13 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/SlaManagement.tsx:21:7:
+      21 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/StockManagement.tsx:16:7:
+      16 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/SupplierManagement.tsx:15:7:
+      15 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'TeamManagement.erroAoAtualizarStatus'"
+
+    client/src/pages/TeamManagement.tsx:207:18:
+      207 │         title: {t('TeamManagement.erroAoAtualizarStatus')},
+          ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/TechnicalSkills.tsx:17:7:
+      17 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/TemplateSelector.tsx:34:8:
+      34 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/TenantAdmin.tsx:21:8:
+      21 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/TenantAdminBranding.tsx:14:7:
+      14 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/TenantAdminGeral.tsx:19:7:
+      19 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/TenantAdminIntegrations.tsx:9:7:
+      9 │ import { useLocalization } from '@/hooks/useLocalization';
+        │        ^
+        ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'TenantAdminWorkflows.sucesso'"
+
+    client/src/pages/TenantAdminWorkflows.tsx:394:33:
+      394 │                       status: {t('TenantAdminWorkflows.sucesso')},
+          ╵                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'TenantProvisioning.erroAoCriarTenant'"
+
+    client/src/pages/TenantProvisioning.tsx:136:18:
+      136 │         title: {t('TenantProvisioning.erroAoCriarTenant')},
+          ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'TicketAdvancedConfiguration.editarCampo'"
+
+    client/src/pages/TicketAdvancedConfiguration.tsx:614:69:
+      614 │ ...em.id ? {t('TicketAdvancedConfiguration.editarCampo')} : 'Novo...
+          ╵               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/TicketConfiguration.tsx:22:7:
+      22 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected identifier but found "'TicketDetails.informacoes'"
+
+    client/src/pages/TicketDetails.tsx:154:30:
+      154 │ ...asico", label: {t('TicketDetails.informacoes')}, icon: FileTex...
+          ╵                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/TicketMaterials.tsx:13:7:
+      13 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/TicketTemplates.tsx:32:8:
+      32 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/TicketsTable.tsx:39:8:
+      39 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+✘ [ERROR] Expected identifier but found "'Timecard.errorSerializingLocationData'"
+
+    client/src/pages/Timecard.tsx:91:22:
+      91 │       console.warn({t('Timecard.errorSerializingLocationData')}, e);
+         ╵                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'TimecardApprovalSettings.errorFetchingMemberCountForGroup'"
+
+    client/src/pages/TimecardApprovalSettings.tsx:115:27:
+      115 │ ....error({t('TimecardApprovalSettings.errorFetchingMemberCountFo...
+          ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'TimecardApprovals.erro'"
+
+    client/src/pages/TimecardApprovals.tsx:72:18:
+      72 │         title: {t('TimecardApprovals.erro')},
+         ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected identifier but found "'TimecardAutonomous.erroNoRegistro'"
+
+    client/src/pages/TimecardAutonomous.tsx:73:18:
+      73 │         title: {t('TimecardAutonomous.erroNoRegistro')},
+         ╵                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/TranslationManager.tsx:26:7:
+      26 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected "as" but found "{"
+
+    client/src/pages/UserProfile.tsx:23:7:
+      23 │ import { useLocalization } from '@/hooks/useLocalization';
+         │        ^
+         ╵        as
+
+
+✘ [ERROR] Expected ":" but found "{"
+
+    client/src/pages/WorkSchedules.tsx:80:8:
+      80 │   const { t } = useLocalization();
+         │         ^
+         ╵         :
+
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/home/runner/workspace/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/home/runner/workspace/node_modules/esbuild/lib/main.js:924:7)
+    at /home/runner/workspace/node_modules/esbuild/lib/main.js:936:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/home/runner/workspace/node_modules/esbuild/lib/main.js:935:54)
+    at handleRequest (/home/runner/workspace/node_modules/esbuild/lib/main.js:628:17)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/esbuild/lib/main.js:653:7)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/esbuild/lib/main.js:581:7)

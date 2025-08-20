@@ -60,7 +60,7 @@ export function Header() {
               className="flex items-center space-x-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
             >
               <BarChart3 className="h-5 w-5" />
-              <span className="font-medium">{t('navigation.dashboard')}</span>
+              <span className="font-medium">'[TRANSLATION_NEEDED]'</span>
             </Button>
           </Link>
           <Link href="/tickets">

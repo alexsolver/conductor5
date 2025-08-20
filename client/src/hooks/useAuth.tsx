@@ -2,6 +2,7 @@ import React, { createContext, ReactNode, useContext } from 'react';
 import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface User {
   id: string;
@@ -176,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('✅ [LOGIN-SUCCESS] Login completed successfully');
       
       toast({
-        title: 'Login successful',
+        title: 'Login Successful',
         description: `Welcome back, ${result.user.firstName || result.user.email}!`,
       });
     },
@@ -213,12 +214,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (result.tenant) {
         toast({
-          title: 'Workspace criado com sucesso!',
+          title: 'Workspace Criado com Sucesso',
           description: `Bem-vindo ao Conductor! Seu workspace "${result.tenant.name}" foi criado e você é o administrador.`,
         });
       } else {
         toast({
-          title: 'Registro realizado com sucesso',
+          title: 'Registro Realizado com Sucesso',
           description: `Bem-vindo ao Conductor, ${result.user.firstName || result.user.email}!`,
         });
       }

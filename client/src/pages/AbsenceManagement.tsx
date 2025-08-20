@@ -15,8 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+// import useLocalization from '@/hooks/useLocalization';
 
 const absenceFormSchema = z.object({
+  // Localization temporarily disabled
+
   userId: z.string().min(1, 'Usuário é obrigatório'),
   absenceType: z.enum(['vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence']),
   startDate: z.string().min(1, 'Data inicial é obrigatória'),
@@ -65,7 +68,7 @@ const statusLabels = {
   pending: 'Pendente',
   approved: 'Aprovada',
   rejected: 'Rejeitada',
-  cancelled: 'Cancelada'
+  cancelled: '[TRANSLATION_NEEDED]'
 };
 
 const statusColors = {
@@ -127,8 +130,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao Criar Solicitação',
-        description: error.message || 'Erro interno do servidor',
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: 'destructive',
       });
     },
@@ -148,8 +151,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao Aprovar',
-        description: error.message || 'Erro interno do servidor',
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: 'destructive',
       });
     },
@@ -169,8 +172,8 @@ export default function AbsenceManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Erro ao Rejeitar',
-        description: error.message || 'Erro interno do servidor',
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: 'destructive',
       });
     },
@@ -253,7 +256,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o funcionário" />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -278,7 +281,7 @@ export default function AbsenceManagement() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -369,7 +372,7 @@ export default function AbsenceManagement() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione um substituto" />
+                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -391,7 +394,7 @@ export default function AbsenceManagement() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createAbsenceRequestMutation.isPending}>
-                    {createAbsenceRequestMutation.isPending ? 'Criando...' : 'Criar Solicitação'}
+                    {createAbsenceRequestMutation.isPending ? 'Criando...' : '[TRANSLATION_NEEDED]'}
                   </Button>
                 </div>
               </form>

@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface Person {
   id: string;
@@ -28,7 +29,9 @@ interface PersonSelectorProps {
   className?: string;
 }
 
-export function PersonSelector({ 
+export function PersonSelector({
+  // Localization temporarily disabled
+ 
   value, 
   onValueChange, 
   placeholder = "Selecionar pessoa...", 
@@ -140,12 +143,12 @@ export function PersonSelector({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          <CommandInput placeholder="Digite para buscar..." />
+          <CommandInput placeholder='[TRANSLATION_NEEDED]' />
           <CommandEmpty>
             {!companyFilter || companyFilter === 'unspecified' 
-              ? "Selecione uma empresa primeiro para ver os clientes"
+              ? '[TRANSLATION_NEEDED]'
               : people.length === 0 
-              ? "Nenhuma pessoa encontrada para esta empresa"
+              ? '[TRANSLATION_NEEDED]'
               : "Digite para filtrar pessoas"
             }
           </CommandEmpty>
@@ -153,7 +156,7 @@ export function PersonSelector({
             {people.length > 0 && (
               <>
                 {allowedTypes.includes('user') && (
-                  <CommandGroup heading="Usuários">
+                  <CommandGroup heading='[TRANSLATION_NEEDED]'>
                     {people
                       .filter((person: Person) => person.type === 'user')
                       .map((person: Person) => (
@@ -181,7 +184,7 @@ export function PersonSelector({
                 )}
 
                 {allowedTypes.includes('customer') && (
-                  <CommandGroup heading="Clientes">
+                  <CommandGroup heading='[TRANSLATION_NEEDED]'>
                     {people
                       .filter((person: Person) => person.type === 'customer')
                       .map((person: Person) => (

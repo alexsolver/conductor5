@@ -11,12 +11,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Layers } from "lucide-react";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface TemplateCreateDialogProps {
   onSuccess?: () => void;
 }
 
-export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
+export function TemplateCreateDialog({
+  // Localization temporarily disabled
+ onSuccess }: TemplateCreateDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -38,7 +41,7 @@ export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
 
       if (response.ok) {
         toast({
-          title: "Sucesso",
+          title: '[TRANSLATION_NEEDED]',
           description: "Template criado com sucesso!",
         });
         setIsOpen(false);
@@ -49,8 +52,8 @@ export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
       }
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao criar template. Tente novamente.",
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     } finally {
@@ -98,7 +101,7 @@ export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
             <Label htmlFor="category">Categoria</Label>
             <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
               <SelectTrigger data-testid="select-template-category">
-                <SelectValue placeholder="Selecione uma categoria" />
+                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="FAQ">FAQ</SelectItem>
@@ -126,7 +129,7 @@ export function TemplateCreateDialog({ onSuccess }: TemplateCreateDialogProps) {
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading} data-testid="button-submit-template">
-              {isLoading ? "Criando..." : "Criar Template"}
+              {isLoading ? "Criando..." : '[TRANSLATION_NEEDED]'}
             </Button>
           </div>
         </form>

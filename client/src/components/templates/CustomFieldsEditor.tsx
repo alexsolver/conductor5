@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit3, Save, X } from 'lucide-react';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 export interface CustomField {
   id: string;
@@ -35,7 +36,9 @@ interface CustomFieldsEditorProps {
   readOnly?: boolean;
 }
 
-export default function CustomFieldsEditor({ fields, onChange, readOnly = false }: CustomFieldsEditorProps) {
+export default function CustomFieldsEditor({
+  // Localization temporarily disabled
+ fields, onChange, readOnly = false }: CustomFieldsEditorProps) {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [newField, setNewField] = useState<Partial<CustomField>>({
     name: '',
@@ -154,7 +157,7 @@ export default function CustomFieldsEditor({ fields, onChange, readOnly = false 
         <CardHeader className="pb-3">
           <div className="flex justify-between items-center">
             <CardTitle className="text-sm">
-              {isNew ? 'Novo Campo Customizado' : `Editando: ${field.label}`}
+              {isNew ? 'Novo Campo Customizado' : '[TRANSLATION_NEEDED]'}
             </CardTitle>
             <div className="flex gap-2">
               <Button size="sm" onClick={saveField}>

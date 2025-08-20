@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Activity, 
   Users, 
   MessageSquare, 
@@ -45,6 +46,8 @@ interface ProductivitySummary {
 }
 
 export default function ProductivityReports() {
+  // Localization temporarily disabled
+
   const [filters, setFilters] = useState({
     startDate: format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
@@ -84,15 +87,15 @@ export default function ProductivityReports() {
   const getActivityTypeLabel = (type: string) => {
     const labels = {
       'view_ticket': 'Visualizar Tickets',
-      'edit_ticket': 'Editar Tickets',
-      'create_ticket': 'Criar Tickets',
+      'edit_ticket': '[TRANSLATION_NEEDED]',
+      'create_ticket': '[TRANSLATION_NEEDED]',
       'send_message': 'Enviar Mensagens',
       'view_customer': 'Visualizar Clientes',
-      'create_note': 'Criar Nota',
-      'edit_note': 'Editar Nota',
+      'create_note': '[TRANSLATION_NEEDED]',
+      'edit_note': '[TRANSLATION_NEEDED]',
       'view_notes': 'Visualizar Notas',
-      'create_internal_action': 'Criar Ação Interna',
-      'edit_internal_action': 'Editar Ação Interna',
+      'create_internal_action': '[TRANSLATION_NEEDED]',
+      'edit_internal_action': '[TRANSLATION_NEEDED]',
       'view_actions': 'Visualizar Ações',
     };
     return labels[type] || type;

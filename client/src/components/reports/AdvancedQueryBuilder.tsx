@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Plus, X, Settings, Database, Filter, ChevronDown, ChevronRight,
   Calendar, Hash, Type, BarChart3, Users, Ticket, Building,
   Clock, Target, Zap, ArrowRight, Copy, Trash2, Move,
@@ -17,8 +18,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 
 // Zendesk-style Data Structure
 const ZENDESK_DATA_SCHEMA = {
+  // Localization temporarily disabled
+
   tickets: {
-    name: 'Tickets',
+    name: '[TRANSLATION_NEEDED]',
     icon: Ticket,
     color: 'text-blue-600',
     description: 'Support ticket data',
@@ -27,7 +30,7 @@ const ZENDESK_DATA_SCHEMA = {
       { id: 'subject', name: 'Subject', type: 'text', icon: Type },
       { id: 'status', name: 'Status', type: 'list', icon: Target, options: ['New', 'Open', 'Pending', 'Solved', 'Closed'] },
       { id: 'priority', name: 'Priority', type: 'list', icon: Zap, options: ['Low', 'Normal', 'High', 'Urgent'] },
-      { id: 'created_at', name: 'Created', type: 'datetime', icon: Calendar },
+      { id: 'created_at', name: '[TRANSLATION_NEEDED]', type: 'datetime', icon: Calendar },
       { id: 'updated_at', name: 'Updated', type: 'datetime', icon: Calendar },
       { id: 'solved_at', name: 'Solved', type: 'datetime', icon: Calendar },
       { id: 'assignee_id', name: 'Assignee', type: 'lookup', icon: Users, lookup: 'users' },
@@ -36,7 +39,7 @@ const ZENDESK_DATA_SCHEMA = {
     ]
   },
   users: {
-    name: 'Users',
+    name: '[TRANSLATION_NEEDED]',
     icon: Users,
     color: 'text-green-600',
     description: 'User and agent data',
@@ -45,7 +48,7 @@ const ZENDESK_DATA_SCHEMA = {
       { id: 'name', name: 'Name', type: 'text', icon: Type },
       { id: 'email', name: 'Email', type: 'text', icon: Type },
       { id: 'role', name: 'Role', type: 'list', icon: Target, options: ['End-user', 'Agent', 'Admin'] },
-      { id: 'created_at', name: 'Created', type: 'datetime', icon: Calendar },
+      { id: 'created_at', name: '[TRANSLATION_NEEDED]', type: 'datetime', icon: Calendar },
       { id: 'last_login_at', name: 'Last Login', type: 'datetime', icon: Calendar }
     ]
   },
@@ -57,7 +60,7 @@ const ZENDESK_DATA_SCHEMA = {
     fields: [
       { id: 'id', name: 'Organization ID', type: 'number', icon: Hash },
       { id: 'name', name: 'Name', type: 'text', icon: Type },
-      { id: 'created_at', name: 'Created', type: 'datetime', icon: Calendar }
+      { id: 'created_at', name: '[TRANSLATION_NEEDED]', type: 'datetime', icon: Calendar }
     ]
   }
 };
@@ -631,7 +634,7 @@ function FilterCard({ filter, onRemove, onUpdate }) {
           </SelectContent>
         </Select>
         <Input
-          placeholder="Filter value"
+          placeholder='[TRANSLATION_NEEDED]'
           value={filter.value}
           onChange={(e) => onUpdate({ value: e.target.value })}
         />

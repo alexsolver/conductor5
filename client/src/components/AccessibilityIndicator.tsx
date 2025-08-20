@@ -1,5 +1,6 @@
 import React from "react";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface AccessibilityIndicatorProps {
   isLoading?: boolean;
@@ -13,12 +14,14 @@ interface AccessibilityIndicatorProps {
 }
 
 export const AccessibilityIndicator: React.FC<AccessibilityIndicatorProps> = ({
+  // Localization temporarily disabled
+
   isLoading = false,
   isError = false,
   isSuccess = false,
-  loadingText = "Carregando...",
+  loadingText = '[TRANSLATION_NEEDED]',
   successText = "Carregado com sucesso",
-  errorText = "Erro ao carregar",
+  errorText = '[TRANSLATION_NEEDED]',
   ariaLabel,
   className = ""
 }) => {

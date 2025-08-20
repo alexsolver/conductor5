@@ -5,6 +5,7 @@ import { MapPin, Navigation, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -38,7 +39,9 @@ interface SearchResult {
   lon: string;
 }
 
-export function LeafletMap({ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapProps) {
+export function LeafletMap({
+  // Localization temporarily disabled
+ initialLat, initialLng, addressData, onLocationSelect }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -246,17 +249,17 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
         });
       } else {
         toast({
-          title: "Nenhum resultado",
+          title: '[TRANSLATION_NEEDED]',
           description: "Não foi possível encontrar o endereço. Tente ser mais específico.",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.warn('Search error:', error);
+      console.warn('[TRANSLATION_NEEDED]', error);
       
       toast({
-        title: "Erro na busca",
-        description: "Erro ao conectar com o serviço de busca. Tente novamente ou clique no mapa.",
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     } finally {
@@ -294,7 +297,7 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
       (error) => {
         console.error('Geolocation error:', error.message || error);
         toast({
-          title: "Erro na geolocalização",
+          title: '[TRANSLATION_NEEDED]',
           description: "Não foi possível obter sua localização atual.",
           variant: "destructive"
         });
@@ -349,7 +352,7 @@ export function LeafletMap({ initialLat, initialLng, addressData, onLocationSele
       <div className="flex gap-2">
         <div className="flex-1">
           <Input
-            placeholder="Digite um endereço para buscar..."
+            placeholder='[TRANSLATION_NEEDED]'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && searchLocation()}

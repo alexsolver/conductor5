@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { detectEmploymentType } from '@/lib/employmentDetection';
+// import useLocalization from '@/hooks/useLocalization';
 
 interface TimeRecord {
   id: string;
@@ -60,6 +61,8 @@ interface MirrorRecord {
 
 // Função para transformar dados do frontend para backend
 const transformTimecardData = (frontendData: any) => {
+  // Localization temporarily disabled
+
   const now = new Date().toISOString();
   const payload: any = {
     isManualEntry: frontendData.deviceType !== 'web',
@@ -220,7 +223,7 @@ export default function Timecard() {
     onSuccess: (result: any) => {
       console.log('Registro de ponto bem-sucedido:', result);
       toast({
-        title: 'Ponto registrado com sucesso!',
+        title: 'Ponto Registrado com Sucesso',
         description: 'Seu registro foi salvo e processado.',
       });
       // Invalidar cache e forçar nova busca para atualizar status
@@ -230,7 +233,7 @@ export default function Timecard() {
     onError: (error: any) => {
       console.error('Erro ao registrar ponto:', error);
       
-      let errorTitle = 'Erro ao registrar ponto';
+      let errorTitle = 'Erro ao registrar ponto:';
       let errorMessage = 'Tente novamente em alguns instantes.';
       
       // Extract specific error messages
@@ -318,7 +321,7 @@ export default function Timecard() {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
     } catch (error) {
-      console.warn('Error formatting date:', dateString, error);
+      console.warn('[TRANSLATION_NEEDED]', dateString, error);
       return '--/--/----';
     }
   };

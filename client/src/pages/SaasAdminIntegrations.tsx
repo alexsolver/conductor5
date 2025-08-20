@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Brain, 
   Bot, 
   Zap, 
@@ -31,6 +32,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const integrationConfigSchema = z.object({
+  // Localization temporarily disabled
+
   apiKey: z.string().min(1, "API Key é obrigatória"),
   baseUrl: z.string().optional().refine((val) => {
     if (!val || val === "") return true;
@@ -146,7 +149,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: "Erro ao salvar configuração",
+        title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
         variant: "destructive",
       });
@@ -188,7 +191,7 @@ export default function SaasAdminIntegrations() {
         console.error('❌ [SAAS-ADMIN-TEST] Test failed with data:', data);
         toast({
           title: "Teste falhou", 
-          description: data.error || data.message || "Erro na integração",
+          description: data.error || data.message || '[TRANSLATION_NEEDED]',
           variant: "destructive",
         });
       }
@@ -196,7 +199,7 @@ export default function SaasAdminIntegrations() {
     onError: (error: any) => {
       console.error('❌ [SAAS-ADMIN-TEST] Erro no teste:', error);
 
-      let errorMessage = "Erro ao testar integração";
+      let errorMessage = '[TRANSLATION_NEEDED]';
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
@@ -204,7 +207,7 @@ export default function SaasAdminIntegrations() {
       }
 
       toast({
-        title: "Erro no teste",
+        title: '[TRANSLATION_NEEDED]',
         description: errorMessage,
         variant: "destructive",
       });
@@ -565,7 +568,7 @@ export default function SaasAdminIntegrations() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={saveConfigMutation.isPending}>
-                  {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
+                  {saveConfigMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}
                 </Button>
               </div>
             </form>

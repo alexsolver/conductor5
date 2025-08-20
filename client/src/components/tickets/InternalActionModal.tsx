@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Dialog,
   DialogContent,
   DialogHeader,
@@ -48,7 +49,9 @@ interface InternalActionModalProps {
   onStartTimer?: (ticketId: string) => Promise<void>;
 }
 
-export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
+export default function InternalActionModal({
+  // Localization temporarily disabled
+ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
@@ -180,7 +183,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       console.log('✅ Internal Action Created Successfully:', data);
 
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Ação interna adicionada com sucesso",
       });
 
@@ -195,7 +198,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Falha ao adicionar ação interna",
         variant: "destructive",
       });
@@ -241,7 +244,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       console.log('✅ Internal Action Updated Successfully:', data);
 
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Ação interna atualizada com sucesso",
       });
 
@@ -256,7 +259,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Falha ao atualizar ação interna",
         variant: "destructive",
       });
@@ -267,7 +270,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     // Validate required fields
     if (!formData.action_type) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "Por favor, selecione o tipo de ação interna",
         variant: "destructive",
       });
@@ -276,7 +279,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
     if (!formData.agent_id || formData.agent_id === "__none__") {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "Por favor, selecione um agente responsável",
         variant: "destructive",
       });
@@ -290,7 +293,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
       if (endDate <= startDate) {
         toast({
-          title: "Erro",
+          title: '[TRANSLATION_NEEDED]',
           description: "A data de fim previsto deve ser posterior à data de início previsto",
           variant: "destructive",
         });
@@ -304,7 +307,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
       if (endDate <= startDate) {
         toast({
-          title: "Erro",
+          title: '[TRANSLATION_NEEDED]',
           description: "A data de fim realizado deve ser posterior à data de início realizado",
           variant: "destructive",
         });
@@ -315,7 +318,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     // Validate numeric fields
     if (formData.estimated_hours && parseFloat(formData.estimated_hours) < 0) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "As horas estimadas não podem ser negativas",
         variant: "destructive",
       });
@@ -325,7 +328,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     // Validate text field lengths (based on typical database constraints)
     if (formData.title && formData.title.length > 255) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "O título não pode exceder 255 caracteres",
         variant: "destructive",
       });
@@ -334,7 +337,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
     if (formData.description && formData.description.length > 65535) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "A descrição é muito longa",
         variant: "destructive",
       });
@@ -372,11 +375,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            {editAction ? 'Editar Ação Interna' : 'Nova Ação Interna'}
+            {editAction ? '[TRANSLATION_NEEDED]' : 'Nova Ação Interna'}
           </DialogTitle>
           <DialogDescription>
             {editAction 
-              ? 'Edite os dados da ação interna selecionada.'
+              ? '[TRANSLATION_NEEDED]'
               : 'Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.'
             }
           </DialogDescription>
@@ -395,7 +398,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     <Label htmlFor="action-type">Tipo de Ação *</Label>
                     <Select value={formData.action_type} onValueChange={(value) => setFormData(prev => ({ ...prev, action_type: value }))}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Selecione o tipo de ação..." />
+                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="analysis">Análise</SelectItem>
@@ -416,7 +419,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     <Label htmlFor="agent">Agente Responsável *</Label>
                     <Select value={formData.agent_id} onValueChange={(value) => setFormData(prev => ({ ...prev, agent_id: value }))}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Selecione um agente..." />
+                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">-- Selecione um agente --</SelectItem>

@@ -34,6 +34,7 @@ import {
   CheckCircle,
   XCircle
 } from "lucide-react";
+// import useLocalization from '@/hooks/useLocalization';
 
 // Schema for translation updates
 const updateTranslationSchema = z.object({
@@ -107,8 +108,8 @@ export default function TranslationManager() {
 
   // Atualizar form quando translations carregam
   useEffect(() => {
-    if (translationData?.translations) {
-      form.reset({ translations: translationData.translations });
+    if (translationData && (translationData as any).translations) {
+      form.reset({ translations: (translationData as any).translations });
     }
   }, [translationData, form]);
 
@@ -128,7 +129,7 @@ export default function TranslationManager() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao salvar traduções",
+        title: 'Erro ao Salvar Traduções',
         description: error.message,
         variant: "destructive",
       });
@@ -150,7 +151,7 @@ export default function TranslationManager() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao restaurar backup",
+        title: 'Erro ao Restaurar Backup',
         description: error.message,
         variant: "destructive",
       });
@@ -184,7 +185,7 @@ export default function TranslationManager() {
   };
 
   // Filtrar chaves baseado na busca
-  const filteredKeys = allKeysData?.keys?.filter((key: string) => 
+  const filteredKeys = (allKeysData as any)?.keys?.filter((key: string) => 
     key.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
@@ -213,7 +214,7 @@ export default function TranslationManager() {
             disabled={saveTranslationMutation.isPending}
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveTranslationMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+            {saveTranslationMutation.isPending ? "Salvando..." : 'Salvar Alterações'}
           </Button>
         </div>
       </div>
@@ -234,7 +235,7 @@ export default function TranslationManager() {
             {isLoadingLanguages ? (
               <div>Carregando idiomas...</div>
             ) : (
-              languagesData?.languages.map((lang: Language) => (
+              ((languagesData as any)?.languages || []).map((lang: Language) => (
                 <Button
                   key={lang.code}
                   variant={selectedLanguage === lang.code ? "default" : "outline"}
@@ -256,7 +257,7 @@ export default function TranslationManager() {
           <div className="relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Buscar chaves de tradução..."
+              placeholder='Buscar chaves de tradução'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -282,8 +283,8 @@ export default function TranslationManager() {
                 Editor de Traduções - {selectedLanguage}
               </CardTitle>
               <CardDescription>
-                {translationData?.lastModified && (
-                  <span>Última modificação: {new Date(translationData.lastModified).toLocaleString()}</span>
+                {(translationData as any)?.lastModified && (
+                  <span>Última modificação: {new Date((translationData as any).lastModified).toLocaleString()}</span>
                 )}
               </CardDescription>
             </CardHeader>
@@ -360,7 +361,7 @@ export default function TranslationManager() {
                     
                     if (data.success) {
                       toast({
-                        title: "Sucesso!",
+                        title: 'Sucesso',
                         description: data.message,
                       });
                       // Recarrega a página para ver as mudanças
@@ -370,11 +371,11 @@ export default function TranslationManager() {
                     }
                   } catch (error) {
                     toast({
-                      title: "Erro",
+                      title: 'Erro',
                       description: "Falha ao completar traduções automaticamente",
                       variant: "destructive"
                     });
-                    console.error('Error auto-completing translations:', error);
+                    console.error('Error autocompleting translations:', error);
                   }
                 }}
                 className="bg-green-600 hover:bg-green-700"
@@ -401,7 +402,7 @@ export default function TranslationManager() {
                   <div className="text-center py-8">Carregando chaves...</div>
                 ) : (
                   <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {allKeysData?.keys?.map((key: string) => (
+                    {((allKeysData as any)?.keys || []).map((key: string) => (
                       <div key={key} className="border rounded-lg p-4 flex items-center justify-between">
                         <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {key}
@@ -427,7 +428,7 @@ export default function TranslationManager() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {allKeysData?.keys?.length || 0}
+              {((allKeysData as any)?.keys || []).length}
             </div>
             <p className="text-xs text-muted-foreground">
               Chaves de tradução no sistema
@@ -442,7 +443,7 @@ export default function TranslationManager() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {languagesData?.languages?.length || 0}
+              {((languagesData as any)?.languages || []).length}
             </div>
             <p className="text-xs text-muted-foreground">
               Idiomas disponíveis

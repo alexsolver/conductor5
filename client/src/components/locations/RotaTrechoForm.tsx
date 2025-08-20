@@ -12,9 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Route, MapPin, Plus, Trash2, Edit } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 // Local selector component
-const LocalSelector = ({ value, onChange, label, placeholder, disabled = false }) => {
+const LocalSelector = ({
+  // Localization temporarily disabled
+ value, onChange, label, placeholder, disabled = false }) => {
   const { data: locais = [] } = useQuery({
     queryKey: ['/api/locations-new/local'],
     queryFn: async () => {
@@ -89,7 +92,7 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
             disabled={isFirst && previousDestination}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione o local de origem" />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               {availableLocals.map((local) => (
@@ -115,7 +118,7 @@ const SegmentForm = ({ segment, onSave, onCancel, availableLocals = [], isFirst 
           <Label>PARA (Local de Destino) *</Label>
           <Select value={localDestino} onValueChange={setLocalDestino}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione o local de destino" />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               {availableLocals.map((local) => (
@@ -314,7 +317,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 value={watchedValues.localAId}
                 onChange={(value) => setValue('localAId', value)}
                 label="Local A - Origem *"
-                placeholder="Selecione o local de origem da rota"
+                placeholder='[TRANSLATION_NEEDED]'
               />
               {errors.localAId && (
                 <p className="text-sm text-red-500 mt-1">{errors.localAId.message}</p>
@@ -326,7 +329,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
                 value={watchedValues.localBId}
                 onChange={(value) => setValue('localBId', value)}
                 label="Local B - Destino *"
-                placeholder="Selecione o local de destino da rota"
+                placeholder='[TRANSLATION_NEEDED]'
               />
               {errors.localBId && (
                 <p className="text-sm text-red-500 mt-1">{errors.localBId.message}</p>
@@ -481,7 +484,7 @@ export default function RotaTrechoForm({ onSubmit, isSubmitting, onCancel }) {
           type="submit" 
           disabled={isSubmitting || !isValidRoute()}
         >
-          {isSubmitting ? 'Salvando...' : 'Salvar Rota de Trecho'}
+          {isSubmitting ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
         </Button>
       </div>
     </form>

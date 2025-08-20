@@ -13,6 +13,7 @@ import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import { Alert, AlertDescription } from '../../ui/alert'
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Calculator, 
   Code, 
   TrendingUp, 
@@ -42,6 +43,8 @@ interface CalculatedFieldProps {
 }
 
 export const CalculatedField: React.FC<CalculatedFieldProps> = ({
+  // Localization temporarily disabled
+
   field,
   value,
   onChange,
@@ -352,7 +355,7 @@ export const useCalculatedFields = (fields: any[], formData: Record<string, any>
           // Por simplicidade, apenas copiando o valor
           newValues[field.id] = calculatedValues[field.id] || ''
         } catch (error) {
-          console.error(`Error calculating field ${field.id}:`, error)
+          console.error('[TRANSLATION_NEEDED]', error)
         }
       })
 

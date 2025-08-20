@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+// import useLocalization from '@/hooks/useLocalization';
 
 import { 
   CheckCircle, 
@@ -27,6 +28,8 @@ interface ComplianceItem {
 }
 
 function getStatusIcon(status: ComplianceItem["status"]) {
+  // Localization temporarily disabled
+
   switch (status) {
     case "implemented":
       return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -54,7 +57,7 @@ function getStatusBadge(status: ComplianceItem["status"]) {
 
 function getCategoryIcon(category: string) {
   switch (category) {
-    case "Dashboard":
+    case '[TRANSLATION_NEEDED]':
       return <BarChart className="h-5 w-5" />;
     case "Arquitetura":
       return <Layers className="h-5 w-5" />;
@@ -81,10 +84,10 @@ function getCategoryIcon(category: string) {
 
 const clearArchitectureItems: ComplianceItem[] = [
   // Dashboard de Monitoramento
-  { name: "Visualização em tempo real do status", status: "implemented", category: "Dashboard" },
-  { name: "Score de saúde (0-100%) por módulo", status: "implemented", category: "Dashboard" },
-  { name: "Indicadores visuais coloridos", status: "implemented", category: "Dashboard" },
-  { name: "Métricas do sistema completas", status: "partial", category: "Dashboard" },
+  { name: "Visualização em tempo real do status", status: "implemented", category: '[TRANSLATION_NEEDED]' },
+  { name: "Score de saúde (0-100%) por módulo", status: "implemented", category: '[TRANSLATION_NEEDED]' },
+  { name: "Indicadores visuais coloridos", status: "implemented", category: '[TRANSLATION_NEEDED]' },
+  { name: "Métricas do sistema completas", status: "partial", category: '[TRANSLATION_NEEDED]' },
   
   // Verificação Automática
   { name: "Escaneamento de arquivos críticos", status: "implemented", category: "Validação" },

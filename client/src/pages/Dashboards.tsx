@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Plus, Search, Filter, Grid, Layout, Eye, Edit, Trash2, Share2, Star, StarOff,
   Monitor, Tablet, Smartphone, Settings, Clock, Users, TrendingUp, AlertTriangle,
   CheckCircle, XCircle, MoreHorizontal, Copy, ExternalLink, Maximize, Minimize,
@@ -34,6 +35,8 @@ import { useToast } from "@/hooks/use-toast";
 
 // ✅ 1QA.MD COMPLIANCE: Enhanced schema following Zendesk patterns
 const dashboardSchema = z.object({
+  // Localization temporarily disabled
+
   name: z.string().min(1, "Dashboard name is required"),
   description: z.string().optional(),
   layoutType: z.enum(["grid", "flex", "masonry", "custom"]),
@@ -157,7 +160,7 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
     id: "customer-satisfaction",
     name: "Customer Satisfaction",
     description: "CSAT scores, feedback trends, and satisfaction analytics",
-    category: "Analytics",
+    category: '[TRANSLATION_NEEDED]',
     icon: Star,
     color: "bg-purple-500",
     widgets: 7,
@@ -169,7 +172,7 @@ const ZENDESK_DASHBOARD_TEMPLATES = [
     id: "ticket-trends",
     name: "Ticket Trends",
     description: "Analyze ticket patterns, volume trends, and seasonal insights",
-    category: "Analytics",
+    category: '[TRANSLATION_NEEDED]',
     icon: BarChart3,
     color: "bg-indigo-500",
     widgets: 9,
@@ -200,7 +203,7 @@ const ZendeskBreadcrumbs = ({ currentView }: { currentView: string }) => (
     <span>Analytics</span>
     <ChevronRight className="w-4 h-4" />
     <span className="font-medium text-gray-900 dark:text-gray-100">
-      {currentView === "templates" ? "Dashboard Templates" : "Dashboards"}
+      {currentView === "templates" ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
     </span>
   </div>
 );
@@ -230,7 +233,7 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
           >
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
-                <div className={`p-3 rounded-lg ${template.color} text-white`}>
+                <div className={"p-3 rounded-lg " + template.color + " text-white"}>
                   <template.icon className="w-6 h-6" />
                 </div>
                 <Badge variant="secondary" className="text-xs">
@@ -268,7 +271,7 @@ const ZendeskTemplateShowcase = ({ onSelectTemplate }: { onSelectTemplate: (temp
     <div>
       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Browse by Category</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {["Support", "Performance", "Analytics", "Compliance"].map((category) => (
+        {["Support", "Performance", '[TRANSLATION_NEEDED]', "Compliance"].map((category) => (
           <Card key={category} className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-4 text-center">
               <Folder className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -292,22 +295,22 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
   // ✅ 1QA.MD COMPLIANCE: FIXED Working toggle favorite mutation
   const toggleFavorite = useMutation({
     mutationFn: async () => {
-      console.log(`🔄 [DASHBOARD-FAVORITE] Toggling favorite for dashboard: ${dashboard.id}`);
-      const response = await apiRequest("POST", `/api/reports-dashboards/dashboards/${dashboard.id}/favorite`);
-      console.log(`✅ [DASHBOARD-FAVORITE] Response:`, response);
-      return response;
+      console.log("[DASHBOARD-FAVORITE] Toggling favorite for dashboard: ", dashboard.id);
+      const response = await apiRequest("POST", "/api/reports-dashboards/dashboards/" + dashboard.id + "/favorite");
+      // console.log("Response:", createResponse);
+      return createResponse;
     },
     onSuccess: () => {
       toast({ 
         title: dashboard.isFavorite ? "Removed from favorites" : "Added to favorites",
-        description: `Dashboard "${dashboard.name}" has been ${dashboard.isFavorite ? 'removed from' : 'added to'} favorites.`
+        description: "Dashboard has been " + (dashboard.isFavorite ? 'removed from' : 'added to') + " favorites."
       });
       onRefresh();
     },
     onError: (error: any) => {
-      console.error(`❌ [DASHBOARD-FAVORITE] Error:`, error);
+      console.error("[DASHBOARD-FAVORITE] Error:", error);
       toast({ 
-        title: "Error updating favorite", 
+        title: '[TRANSLATION_NEEDED]', 
         description: error.message || "Failed to update favorite status",
         variant: "destructive" 
       });
@@ -317,22 +320,22 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
   // ✅ 1QA.MD COMPLIANCE: FIXED Working duplicate mutation
   const duplicateDashboard = useMutation({
     mutationFn: async () => {
-      console.log(`🔄 [DASHBOARD-DUPLICATE] Duplicating dashboard: ${dashboard.id}`);
-      const response = await apiRequest("POST", `/api/reports-dashboards/dashboards/${dashboard.id}/duplicate`);
-      console.log(`✅ [DASHBOARD-DUPLICATE] Response:`, response);
-      return response;
+      console.log("[DASHBOARD-DUPLICATE] Duplicating dashboard: ", dashboard.id);
+      const response = await apiRequest("POST", "/api/reports-dashboards/dashboards/" + dashboard.id + "/duplicate");
+      // console.log("Response:", createResponse);
+      return createResponse;
     },
     onSuccess: () => {
       toast({ 
-        title: "Dashboard duplicated successfully",
-        description: `A copy of "${dashboard.name}" has been created.`
+        title: '[TRANSLATION_NEEDED]',
+        description: "A copy has been created."
       });
       onRefresh();
     },
     onError: (error: any) => {
-      console.error(`❌ [DASHBOARD-DUPLICATE] Error:`, error);
+      console.error("[DASHBOARD-DUPLICATE] Error:", error);
       toast({ 
-        title: "Error duplicating dashboard", 
+        title: '[TRANSLATION_NEEDED]', 
         description: error.message || "Failed to duplicate dashboard",
         variant: "destructive" 
       });
@@ -342,22 +345,22 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
   // ✅ 1QA.MD COMPLIANCE: FIXED Working delete mutation
   const deleteDashboard = useMutation({
     mutationFn: async () => {
-      console.log(`🔄 [DASHBOARD-DELETE] Deleting dashboard: ${dashboard.id}`);
-      const response = await apiRequest("DELETE", `/api/reports-dashboards/dashboards/${dashboard.id}`);
-      console.log(`✅ [DASHBOARD-DELETE] Response:`, response);
-      return response;
+      console.log("[DASHBOARD-DELETE] Deleting dashboard: ", dashboard.id);
+      const response = await apiRequest("DELETE", "/api/reports-dashboards/dashboards/" + dashboard.id);
+      // console.log("Response:", createResponse);
+      return createResponse;
     },
     onSuccess: () => {
       toast({ 
-        title: "Dashboard deleted successfully",
-        description: `Dashboard "${dashboard.name}" has been deleted.`
+        title: '[TRANSLATION_NEEDED]',
+        description: "Dashboard has been deleted."
       });
       onRefresh();
     },
     onError: (error: any) => {
-      console.error(`❌ [DASHBOARD-DELETE] Error:`, error);
+      console.error("[DASHBOARD-DELETE] Error:", error);
       toast({ 
-        title: "Error deleting dashboard", 
+        title: '[TRANSLATION_NEEDED]', 
         description: error.message || "Failed to delete dashboard",
         variant: "destructive" 
       });
@@ -376,18 +379,18 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
   // ✅ 1QA.MD COMPLIANCE: FIXED Working dashboard open handler
   const handleOpenDashboard = async () => {
     try {
-      console.log(`🔄 [DASHBOARD-OPEN] Opening dashboard: ${dashboard.id}`);
+      console.log("[DASHBOARD-OPEN] Opening dashboard: ", dashboard.id);
       
       // Track view count via API
-      await apiRequest("POST", `/api/reports-dashboards/dashboards/${dashboard.id}/view`);
-      console.log(`✅ [DASHBOARD-VIEW] View tracked for dashboard: ${dashboard.id}`);
+      await apiRequest("POST", "/api/reports-dashboards/dashboards/" + dashboard.id + "/view");
+      console.log("[DASHBOARD-VIEW] View tracked for dashboard: ", dashboard.id);
       
       // Navigate to dashboard
-      setLocation(`/dashboard/${dashboard.id}`);
+      setLocation("/dashboard/" + dashboard.id);
     } catch (error) {
-      console.error(`❌ [DASHBOARD-OPEN] Error:`, error);
+      console.error("[DASHBOARD-OPEN] Error:", error);
       toast({ 
-        title: "Error opening dashboard", 
+        title: '[TRANSLATION_NEEDED]', 
         description: "Failed to open dashboard",
         variant: "destructive" 
       });
@@ -396,21 +399,21 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
 
   // ✅ 1QA.MD COMPLIANCE: FIXED Working edit handler
   const handleEditDashboard = () => {
-    console.log(`🔄 [DASHBOARD-EDIT] Navigating to edit dashboard: ${dashboard.id}`);
-    setLocation(`/dashboard/${dashboard.id}/edit`);
+    console.log("[DASHBOARD-EDIT] Navigating to edit dashboard: ", dashboard.id);
+    setLocation("/dashboard/" + dashboard.id + "/edit");
   };
 
   // ✅ 1QA.MD COMPLIANCE: FIXED Working share handler
   const handleShareDashboard = async () => {
     try {
-      console.log(`🔄 [DASHBOARD-SHARE] Sharing dashboard: ${dashboard.id}`);
-      const shareUrl = `${window.location.origin}/dashboard/${dashboard.id}`;
+      console.log("[DASHBOARD-SHARE] Sharing dashboard: ", dashboard.id);
+      const shareUrl = window.location.origin + "/dashboard/" + dashboard.id;
       
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(shareUrl);
         toast({ 
           title: "Share link copied",
-          description: "Dashboard share link has been copied to clipboard."
+          description: "Share link has been copied to clipboard"
         });
       } else {
         // Fallback for browsers without clipboard API
@@ -420,17 +423,17 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
         });
       }
     } catch (error) {
-      console.error(`❌ [DASHBOARD-SHARE] Error:`, error);
+      console.error("[DASHBOARD-SHARE] Error:", error);
       toast({ 
         title: "Share link",
-        description: `${window.location.origin}/dashboard/${dashboard.id}`,
+        description: window.location.origin + "/dashboard/" + dashboard.id,
       });
     }
   };
 
   // ✅ 1QA.MD COMPLIANCE: FIXED Working delete confirmation
   const handleDeleteConfirmation = () => {
-    const confirmed = window.confirm(`Are you sure you want to delete "${dashboard.name}"? This action cannot be undone.`);
+    const confirmed = window.confirm("Are you sure you want to delete this item? This action cannot be undone.");
     if (confirmed) {
       deleteDashboard.mutate();
     }
@@ -647,7 +650,7 @@ const ZendeskDashboardCard = ({ dashboard, onRefresh }: { dashboard: Dashboard; 
             </Button>
             <span className="text-xs text-gray-500">
               {dashboard.lastViewedAt ? 
-                `Updated ${new Date(dashboard.lastViewedAt).toLocaleDateString()}` : 
+                "Updated " + new Date(dashboard.lastViewedAt).toLocaleDateString() + "" : 
                 'Never viewed'
               }
             </span>
@@ -698,7 +701,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
   // ✅ 1QA.MD COMPLIANCE: FIXED Create dashboard mutation with proper error handling
   const createDashboardMutation = useMutation({
     mutationFn: async (data: DashboardFormData) => {
-      console.log(`🔄 [DASHBOARD-CREATE] Creating dashboard with data:`, data);
+      console.log("[DASHBOARD-CREATE] Creating dashboard with data:", data);
       setIsSubmitting(true);
       
       const payload = {
@@ -707,15 +710,15 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
         templateId: selectedTemplate?.id,
       };
       
-      const response = await apiRequest("POST", "/api/reports-dashboards/dashboards", payload);
-      console.log(`✅ [DASHBOARD-CREATE] Response:`, response);
-      return response;
+      const createResponse = await apiRequest("POST", "/api/reports-dashboards/dashboards", payload);
+      // console.log("Response:", createResponse);
+      return createResponse;
     },
     onSuccess: (response) => {
-      console.log(`✅ [DASHBOARD-CREATE] Dashboard created successfully:`, response);
+      // console.log("Response:", createResponse);
       toast({ 
-        title: "Dashboard created successfully",
-        description: `Dashboard "${form.getValues().name}" has been created.`
+        title: '[TRANSLATION_NEEDED]',
+        description: "Dashboard has been created."
       });
       
       // Reset everything and close modal
@@ -725,9 +728,9 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
       onSuccess();
     },
     onError: (error: any) => {
-      console.error(`❌ [DASHBOARD-CREATE] Error creating dashboard:`, error);
+      console.error("[DASHBOARD-CREATE] Error creating dashboard:", error);
       toast({ 
-        title: "Error creating dashboard", 
+        title: '[TRANSLATION_NEEDED]', 
         description: error.message || "Failed to create dashboard",
         variant: "destructive" 
       });
@@ -745,13 +748,13 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
 
   // ✅ 1QA.MD COMPLIANCE: FIXED Form submission handler
   const onSubmit = (data: DashboardFormData) => {
-    console.log(`🔄 [DASHBOARD-CREATE] Form submitted with data:`, data);
+    console.log("[DASHBOARD-CREATE] Form submitted with data:", data);
     createDashboardMutation.mutate(data);
   };
 
   // ✅ 1QA.MD COMPLIANCE: FIXED Modal reset function
   const handleModalReset = () => {
-    console.log(`🔄 [DASHBOARD-CREATE] Resetting modal state`);
+    console.log("[DASHBOARD-CREATE] Resetting modal state");
     setOpen(false);
     setCurrentStep(0);
     setSelectedTemplate(null);
@@ -763,7 +766,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
   const handleModalChange = (newOpen: boolean) => {
     if (!newOpen && !isSubmitting) {
       // Only allow manual close when not submitting
-      console.log(`🔄 [DASHBOARD-CREATE] Manual modal close requested`);
+      console.log("[DASHBOARD-CREATE] Manual modal close requested");
       handleModalReset();
     } else if (newOpen) {
       // Allow opening
@@ -776,7 +779,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
   const handleNextStep = () => {
     if (currentStep === 0 && !selectedTemplate) {
       toast({ 
-        title: "Please select a template", 
+        title: '[TRANSLATION_NEEDED]', 
         variant: "destructive" 
       });
       return;
@@ -815,18 +818,18 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
             <div key={index} className="flex items-center">
               <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
                 index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
+              }Enter dashboard title"}>
                 <step.icon className="w-5 h-5" />
               </div>
               <span className={`ml-2 text-sm font-medium ${
                 index <= currentStep ? 'text-blue-600' : 'text-gray-500'
-              }`}>
+              }Enter dashboard title"}>
                 {step.title}
               </span>
               {index < steps.length - 1 && (
                 <div className={`w-12 h-px mx-4 ${
                   index < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                }`} />
+                }Enter dashboard title"} />
               )}
             </div>
           ))}
@@ -848,7 +851,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                   <Card 
                     className={`cursor-pointer transition-all ${
                       selectedTemplate?.id === "blank" ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'
-                    }`}
+                    }Enter dashboard title"}
                     onClick={() => setSelectedTemplate({ id: "blank", name: "Blank Dashboard" })}
                   >
                     <CardContent className="p-6 text-center">
@@ -866,12 +869,12 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       key={template.id}
                       className={`cursor-pointer transition-all ${
                         selectedTemplate?.id === template.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'
-                      }`}
+                      }Enter dashboard title"}
                       onClick={() => setSelectedTemplate(template)}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-lg ${template.color} text-white flex-shrink-0`}>
+                          <div className={"p-2 rounded-lg " + template.color + " text-white flex-shrink-0"}>
                             <template.icon className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -919,7 +922,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       <FormControl>
                         <Textarea 
                           {...field} 
-                          placeholder="Describe what this dashboard will show..."
+                          placeholder={"Enter
                           rows={3}
                         />
                       </FormControl>
@@ -937,7 +940,7 @@ const ZendeskCreateDashboardDialog = ({ onSuccess }: { onSuccess: () => void }) 
                       <FormControl>
                         <Input 
                           {...field} 
-                          placeholder="support, performance, analytics (comma separated)"
+                          placeholder={"Enter
                         />
                       </FormControl>
                       <FormMessage />
@@ -1115,13 +1118,13 @@ export default function Dashboards() {
   const { data: dashboardsResponse, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/reports-dashboards/dashboards"],
     queryFn: async () => {
-      console.log(`🔄 [DASHBOARDS-API] Fetching dashboards from API...`);
+      console.log(`🔄 [DASHBOARDS-API] Fetching dashboards from API...");
       try {
         const response = await apiRequest("GET", "/api/reports-dashboards/dashboards");
-        console.log(`✅ [DASHBOARDS-API] Response received:`, response);
-        return response;
+        // console.log("Response:", createResponse);
+        return createResponse;
       } catch (error) {
-        console.error(`❌ [DASHBOARDS-API] Error fetching dashboards:`, error);
+        console.error(`❌ [DASHBOARDS-API] Error fetching dashboards:", error);
         throw error;
       }
     },
@@ -1138,7 +1141,7 @@ export default function Dashboards() {
     }
     
     if (dashboardsResponse?.success && Array.isArray(dashboardsResponse?.data)) {
-      console.log(`✅ [DASHBOARDS-API] Using real API data: ${dashboardsResponse.data.length} dashboards`);
+      console.log("✅ [DASHBOARDS-API] Using real API data: " + dashboardsResponse.data.length + " dashboards");
       return dashboardsResponse.data.map((dashboard: any) => ({
         ...dashboard,
         tags: Array.isArray(dashboard.tags) ? dashboard.tags : (dashboard.tags ? [dashboard.tags] : []),
@@ -1154,7 +1157,7 @@ export default function Dashboards() {
       })) as Dashboard[];
     }
     
-    console.log(`⚠️ [DASHBOARDS-API] No data available, showing empty state`);
+    console.log(`⚠️ [DASHBOARDS-API] No data available, showing empty state");
     return [];
   })();
 
@@ -1191,7 +1194,7 @@ export default function Dashboards() {
 
   // ✅ 1QA.MD COMPLIANCE: FIXED Working refresh handler
   const handleRefresh = () => {
-    console.log(`🔄 [DASHBOARDS-REFRESH] Refreshing dashboards list...`);
+    console.log(`🔄 [DASHBOARDS-REFRESH] Refreshing dashboards list...");
     refetch();
   };
 
@@ -1219,7 +1222,7 @@ export default function Dashboards() {
                   Browse Templates
                 </Button>
                 <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
-                  <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={"w-4 h-4 mr-2 " + isLoading ? 'animate-spin' : '' + ""} />
                   Refresh
                 </Button>
                 <Button variant="outline">
@@ -1254,7 +1257,7 @@ export default function Dashboards() {
           {/* Templates View */}
           <TabsContent value="templates" className="mt-6">
             <ZendeskTemplateShowcase onSelectTemplate={(template) => {
-              console.log("Selected template:", template);
+              console.log('[TRANSLATION_NEEDED]', template);
             }} />
           </TabsContent>
 
@@ -1360,7 +1363,7 @@ export default function Dashboards() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
-                      placeholder="Search dashboards..."
+                      placeholder={"Enter
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"

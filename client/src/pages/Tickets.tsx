@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLocalization } from "@/hooks/useLocalization";
+// import useLocalization from "@/hooks/useLocalization";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -213,7 +213,7 @@ export default function Tickets() {
   const subcategories = (subcategoriesData as any)?.data || [];
   const actions = (actionsData as any)?.data || [];
 
-  console.log('Customers data:', { customersData, customers: customers.length });
+  console.log('[TRANSLATION_NEEDED]', { customersData, customers: customers.length });
 
   // Form setup with new schema
   const form = useForm<NewTicketModalData>({
@@ -279,7 +279,7 @@ export default function Tickets() {
           setFilteredCustomers(customers);
         }
       } catch (error) {
-        console.error('Error fetching customers for company:', error);
+        console.error('[TRANSLATION_NEEDED]', error);
         // Fallback: use all customers if API fails
         setFilteredCustomers(customers);
       }
@@ -406,7 +406,7 @@ export default function Tickets() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {t('tickets.messages.error_loading')}
+              '[TRANSLATION_NEEDED]'
             </h1>
             <p className="text-red-600 dark:text-red-400">
               {(error as any)?.message || t('common.error')}
@@ -416,13 +416,13 @@ export default function Tickets() {
         <Card>
           <CardContent className="p-12 text-center">
             <div className="text-red-500">
-              <div className="text-lg font-medium mb-2">{t('common.error')}</div>
-              <p className="text-sm mb-4">{t('tickets.messages.error_loading')}</p>
+              <div className="text-lg font-medium mb-2">'[TRANSLATION_NEEDED]'</div>
+              <p className="text-sm mb-4">'[TRANSLATION_NEEDED]'</p>
               <Button 
                 onClick={() => window.location.reload()}
                 variant="outline"
               >
-                {t('common.retry')}
+                '[TRANSLATION_NEEDED]'
               </Button>
             </div>
           </CardContent>
@@ -484,10 +484,10 @@ export default function Tickets() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {t('tickets.title')} ({ticketsCount})
+            '[TRANSLATION_NEEDED]' ({ticketsCount})
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {t('tickets.description')}
+            '[TRANSLATION_NEEDED]'
           </p>
         </div>
         <div className="flex space-x-2">
@@ -495,12 +495,12 @@ export default function Tickets() {
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
-                {t('tickets.new_ticket')}
+                '[TRANSLATION_NEEDED]'
               </Button>
             </DialogTrigger>
               <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
                 <DialogHeader className="flex-shrink-0 pb-4 border-b">
-                  <DialogTitle>{t('tickets.forms.create.title')}</DialogTitle>
+                  <DialogTitle>'[TRANSLATION_NEEDED]'</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
                   <Form {...form}>
@@ -511,7 +511,7 @@ export default function Tickets() {
                       name="companyId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.company')} *</FormLabel>
+                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]' *</FormLabel>
                           <Select 
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -523,13 +523,13 @@ export default function Tickets() {
                           >
                             <FormControl>
                               <SelectTrigger className="h-10">
-                                <SelectValue placeholder={t('tickets.forms.create.select_company')} />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
                           <SelectContent>
                             {companies.length === 0 ? (
                               <SelectItem value="no-companies" disabled>
-                                {t('tickets.forms.create.no_companies')}
+                                '[TRANSLATION_NEEDED]'
                               </SelectItem>
                             ) : (
                               companies.map((company: any) => (
@@ -551,7 +551,7 @@ export default function Tickets() {
                       name="customerId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.customer')} *</FormLabel>
+                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]' *</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             value={field.value}
@@ -570,14 +570,14 @@ export default function Tickets() {
                             </FormControl>
                           <SelectContent>
                             {customersLoading ? (
-                              <SelectItem value="loading" disabled>{t('tickets.messages.loading')}</SelectItem>
+                              <SelectItem value="loading" disabled>'[TRANSLATION_NEEDED]'</SelectItem>
                             ) : !selectedCompanyId ? (
                               <SelectItem value="no-company" disabled>
-                                {t('tickets.forms.create.first_select_company')}
+                                '[TRANSLATION_NEEDED]'
                               </SelectItem>
                             ) : filteredCustomers.length === 0 ? (
                               <SelectItem value="no-customers" disabled>
-                                {t('tickets.forms.create.no_customers_for_company')}
+                                '[TRANSLATION_NEEDED]'
                               </SelectItem>
                             ) : (
                               filteredCustomers.map((customer: any) => (
@@ -612,15 +612,15 @@ export default function Tickets() {
                     name="beneficiaryId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('tickets.beneficiary')}</FormLabel>
+                        <FormLabel>'[TRANSLATION_NEEDED]'</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('tickets.forms.create.select_beneficiary')} />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="__none__">{t('tickets.forms.create.no_beneficiary')}</SelectItem>
+                            <SelectItem value="__none__">'[TRANSLATION_NEEDED]'</SelectItem>
                             {favorecidos.map((favorecido: any) => (
                               <SelectItem key={favorecido.id} value={favorecido.id}>
                                 {favorecido.name || favorecido.fullName || favorecido.full_name || `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim()}
@@ -639,10 +639,10 @@ export default function Tickets() {
                       name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.subject')} *</FormLabel>
+                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]' *</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder={t('tickets.forms.create.subject_placeholder')} 
+                              placeholder='[TRANSLATION_NEEDED]' 
                               className="h-10"
                               {...field} 
                             />
@@ -658,7 +658,7 @@ export default function Tickets() {
                     name="category"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('tickets.category')} *</FormLabel>
+                        <FormLabel>'[TRANSLATION_NEEDED]' *</FormLabel>
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -668,7 +668,7 @@ export default function Tickets() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('tickets.forms.create.select_category')} />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -690,7 +690,7 @@ export default function Tickets() {
                     name="subcategory"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('tickets.subcategory')} *</FormLabel>
+                        <FormLabel>'[TRANSLATION_NEEDED]' *</FormLabel>
                         <Select 
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -706,9 +706,9 @@ export default function Tickets() {
                           </FormControl>
                           <SelectContent>
                             {!selectedCategoryId ? (
-                              <SelectItem value="no-category" disabled>{t('tickets.forms.create.first_select_category')}</SelectItem>
+                              <SelectItem value="no-category" disabled>'[TRANSLATION_NEEDED]'</SelectItem>
                             ) : subcategories.length === 0 ? (
-                              <SelectItem value="no-subcategories" disabled>{t('tickets.forms.create.no_subcategories')}</SelectItem>
+                              <SelectItem value="no-subcategories" disabled>'[TRANSLATION_NEEDED]'</SelectItem>
                             ) : (
                               subcategories.map((subcategory: any) => (
                                 <SelectItem key={subcategory.id} value={subcategory.id}>
@@ -729,7 +729,7 @@ export default function Tickets() {
                     name="action"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('tickets.action')} *</FormLabel>
+                        <FormLabel>'[TRANSLATION_NEEDED]' *</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           value={field.value}
@@ -742,9 +742,9 @@ export default function Tickets() {
                           </FormControl>
                           <SelectContent>
                             {!selectedSubcategoryId ? (
-                              <SelectItem value="no-subcategory" disabled>{t('tickets.forms.create.first_select_subcategory')}</SelectItem>
+                              <SelectItem value="no-subcategory" disabled>'[TRANSLATION_NEEDED]'</SelectItem>
                             ) : actions.length === 0 ? (
-                              <SelectItem value="no-actions" disabled>{t('tickets.forms.create.no_actions')}</SelectItem>
+                              <SelectItem value="no-actions" disabled>'[TRANSLATION_NEEDED]'</SelectItem>
                             ) : (
                               actions.map((action: any) => (
                                 <SelectItem key={action.id} value={action.id}>
@@ -766,13 +766,13 @@ export default function Tickets() {
                       name="priority"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('tickets.priority')} *</FormLabel>
+                          <FormLabel>'[TRANSLATION_NEEDED]' *</FormLabel>
                           <FormControl>
                             <DynamicSelect
                               fieldName="priority"
                               value={field.value}
                               onValueChange={field.onChange}
-                              placeholder={t('tickets.forms.create.select_priority')}
+                              placeholder='[TRANSLATION_NEEDED]'
                             />
                           </FormControl>
                           <FormMessage />
@@ -786,13 +786,13 @@ export default function Tickets() {
                       name="urgency"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('tickets.urgency')} *</FormLabel>
+                          <FormLabel>'[TRANSLATION_NEEDED]' *</FormLabel>
                           <FormControl>
                             <DynamicSelect
                               fieldName="urgency"
                               value={field.value}
                               onValueChange={field.onChange}
-                              placeholder={t('tickets.forms.create.select_urgency')}
+                              placeholder='[TRANSLATION_NEEDED]'
                             />
                           </FormControl>
                           <FormMessage />
@@ -807,10 +807,10 @@ export default function Tickets() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.description')} *</FormLabel>
+                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]' *</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder={t('tickets.forms.create.description_placeholder')}
+                              placeholder='[TRANSLATION_NEEDED]'
                               className="min-h-[80px] max-h-[120px] resize-none"
                               {...field} 
                             />
@@ -826,10 +826,10 @@ export default function Tickets() {
                       name="symptoms"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.symptoms')}</FormLabel>
+                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]'</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder={t('tickets.forms.create.symptoms_placeholder')}
+                              placeholder='[TRANSLATION_NEEDED]'
                               className="min-h-[60px] max-h-[100px] resize-none"
                               {...field} 
                             />
@@ -845,10 +845,10 @@ export default function Tickets() {
                       name="businessImpact"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.business_impact')}</FormLabel>
+                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]'</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder={t('tickets.forms.create.business_impact_placeholder')}
+                              placeholder='[TRANSLATION_NEEDED]'
                               className="min-h-[60px] max-h-[100px] resize-none"
                               {...field} 
                             />
@@ -864,10 +864,10 @@ export default function Tickets() {
                       name="workaround"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.workaround')}</FormLabel>
+                          <FormLabel className="text-sm font-medium">'[TRANSLATION_NEEDED]'</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder={t('tickets.forms.create.workaround_placeholder')}
+                              placeholder='[TRANSLATION_NEEDED]'
                               className="min-h-[60px] max-h-[100px] resize-none"
                               {...field} 
                             />
@@ -883,15 +883,15 @@ export default function Tickets() {
                     name="location"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('tickets.location')}</FormLabel>
+                        <FormLabel>'[TRANSLATION_NEEDED]'</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('tickets.forms.create.select_location_optional')} />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="__none__">{t('tickets.forms.create.no_specific_location')}</SelectItem>
+                            <SelectItem value="__none__">'[TRANSLATION_NEEDED]'</SelectItem>
                             {locations.map((location: any) => (
                               <SelectItem key={location.id} value={location.id}>
                                 {location.name || location.nome}
@@ -913,7 +913,7 @@ export default function Tickets() {
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
                   >
-                    {t('common.cancel')}
+                    '[TRANSLATION_NEEDED]'
                   </Button>
                   <Button
                     type="button"

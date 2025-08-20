@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Palette, 
   Upload, 
   Eye, 
@@ -70,6 +71,8 @@ interface BrandingSettings {
 }
 
 const defaultSettings: BrandingSettings = {
+  // Localization temporarily disabled
+
   logo: {
     url: "",
     darkUrl: "",
@@ -159,13 +162,13 @@ export default function TenantAdminBranding() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/branding'] });
       toast({
-        title: "Configurações salvas",
+        title: '[TRANSLATION_NEEDED]',
         description: "As configurações de branding foram atualizadas com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao salvar",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message,
         variant: "destructive",
       });
@@ -249,7 +252,7 @@ export default function TenantAdminBranding() {
             className="gradient-primary text-white hover:opacity-90"
           >
             <Save className="w-4 h-4 mr-2" />
-            {saveSettingsMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            {saveSettingsMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
           </Button>
         </div>
       </div>
@@ -636,7 +639,7 @@ export default function TenantAdminBranding() {
                   <Input
                     value={settings.customization.footerText}
                     onChange={(e) => updateSetting('customization.footerText', e.target.value)}
-                    placeholder="© 2024 Minha Empresa. Todos os direitos reservados."
+                    placeholder='[TRANSLATION_NEEDED]'
                   />
                 </div>
               </CardContent>

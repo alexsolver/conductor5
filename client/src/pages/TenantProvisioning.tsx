@@ -133,7 +133,7 @@ export default function TenantProvisioning() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao criar tenant",
+        title: 'Erro ao Criar Tenant',
         description: error.message,
         variant: "destructive",
       });
@@ -151,12 +151,12 @@ export default function TenantProvisioning() {
       setIsConfigDialogOpen(false);
       toast({
         title: "Configuração Atualizada",
-        description: "Configurações de auto-provisioning atualizadas com sucesso!",
+        description: 'Configurações de Autoprovisioning Atualizadas com Sucesso',
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao atualizar configuração",
+        title: 'Erro ao Atualizar Configuração',
         description: error.message,
         variant: "destructive",
       });
@@ -263,7 +263,7 @@ export default function TenantProvisioning() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o método" />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -282,7 +282,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={updateConfigMutation.isPending}>
-                      {updateConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
+                      {updateConfigMutation.isPending ? "Salvando..." : 'Salvar Configuração'}
                     </Button>
                   </div>
                 </form>
@@ -350,7 +350,7 @@ export default function TenantProvisioning() {
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={provisionMutation.isPending}>
-                      {provisionMutation.isPending ? "Criando..." : "Criar Tenant"}
+                      {provisionMutation.isPending ? "Criando..." : 'Criar Tenant'}
                     </Button>
                   </div>
                 </form>

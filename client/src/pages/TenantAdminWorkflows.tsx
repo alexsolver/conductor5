@@ -12,8 +12,11 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Workflow, Clock, Target, AlertCircle, Plus, Edit, Trash2, PlayCircle, PauseCircle } from "lucide-react";
+// import useLocalization from '@/hooks/useLocalization';
 
 export default function TenantAdminWorkflows() {
+  // Localization temporarily disabled
+
   return (
     <div className="space-y-8 p-8">
         {/* Header */}
@@ -48,7 +51,7 @@ export default function TenantAdminWorkflows() {
                       <Label htmlFor="trigger">Gatilho</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o gatilho" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="ticket-created">Ticket criado</SelectItem>
@@ -65,7 +68,7 @@ export default function TenantAdminWorkflows() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="actions">Ações</Label>
-                    <Textarea id="actions" placeholder="Descreva as ações a serem executadas" />
+                    <Textarea id="actions" placeholder='[TRANSLATION_NEEDED]' />
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch id="active" />

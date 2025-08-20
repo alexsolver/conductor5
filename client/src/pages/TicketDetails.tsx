@@ -5,9 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 import React from "react";
+// import useLocalization from '@/hooks/useLocalization';
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  // Localization temporarily disabled
+
   let timeout: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
@@ -148,7 +151,7 @@ const TicketDetails = React.memo(() => {
 
   // Basic information - consolidated into single tab
   const basicTabs = [
-    { id: "basico", label: "Informações", icon: FileText },
+    { id: "basico", label: 'Informações', icon: FileText },
   ];
 
   // Fetch ticket attachments - moved here to avoid initialization error
@@ -649,7 +652,7 @@ const TicketDetails = React.memo(() => {
     { id: "history", label: "Histórico", icon: History },
     {
       id: "internal-actions",
-      label: getTabLabel("Ações Internas", internalActionsData?.length),
+      label: getTabLabel('Ações Internas', internalActionsData?.length),
       icon: Settings
     },
     {
@@ -895,8 +898,8 @@ const TicketDetails = React.memo(() => {
       console.error('Failed to add note:', error);
 
       toast({
-        title: "Erro",
-        description: "Erro ao adicionar nota. Tente novamente.",
+        title: 'Erro',
+        description: 'Erro ao Adicionar Nota, Tente Novamente',
         variant: "destructive",
       });
     } finally {
@@ -968,22 +971,22 @@ const TicketDetails = React.memo(() => {
     } catch (error) {
       console.error('❌ [NOTES-FRONTEND] Failed to add note:', error);
 
-      let errorMessage = "Erro ao adicionar nota. Tente novamente.";
+      let errorMessage = 'Erro ao Adicionar Nota, Tente Novamente';
 
       if (error instanceof Error) {
         if (error.message.includes('DOCTYPE') || error.message.includes('HTML')) {
-          errorMessage = "Erro do servidor: resposta HTML recebida ao invés de JSON. Contate o administrador.";
+          errorMessage = 'Erro do Servidor - Resposta HTML recebida ao invés de JSON. Contate o administrador.';
         } else if (error.message.includes('application/json')) {
-          errorMessage = "Erro de formato de resposta do servidor. Contate o administrador.";
+          errorMessage = '[TRANSLATION_NEEDED]';
         } else if (error.message.includes('server configuration')) {
-          errorMessage = "Erro de configuração do servidor. Contate o administrador.";
+          errorMessage = '[TRANSLATION_NEEDED]';
         } else if (error.message.includes('server-side error')) {
-          errorMessage = "Erro interno do servidor. Tente novamente ou contate o administrador.";
+          errorMessage = '[TRANSLATION_NEEDED]';
         }
       }
 
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: errorMessage,
         variant: "destructive",
       });
@@ -1076,7 +1079,7 @@ const TicketDetails = React.memo(() => {
     },
     onSuccess: (data) => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Ticket atualizado com sucesso",
       });
 
@@ -1113,8 +1116,8 @@ const TicketDetails = React.memo(() => {
     onError: (error) => {
       console.error("❌ Mutation error:", error);
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar ticket",
+        title: 'Erro',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     },
@@ -1128,15 +1131,15 @@ const TicketDetails = React.memo(() => {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Ticket excluído com sucesso",
       });
       navigate("/tickets");
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao excluir ticket",
+        title: 'Erro',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     },
@@ -1150,7 +1153,7 @@ const TicketDetails = React.memo(() => {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Ação interna excluída com sucesso",
       });
 
@@ -1160,7 +1163,7 @@ const TicketDetails = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: error.message || "Falha ao excluir ação interna",
         variant: "destructive",
       });
@@ -1175,7 +1178,7 @@ const TicketDetails = React.memo(() => {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Nota excluída com sucesso",
       });
 
@@ -1185,7 +1188,7 @@ const TicketDetails = React.memo(() => {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: error.message || "Falha ao excluir nota",
         variant: "destructive",
       });
@@ -1211,7 +1214,7 @@ const TicketDetails = React.memo(() => {
     },
     onError: (error) => {
       toast({
-        title: "Erro ao remover vínculo",
+        title: '[TRANSLATION_NEEDED]',
         description: "Não foi possível remover o vínculo entre tickets.",
         variant: "destructive",
       });
@@ -1359,7 +1362,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="priority"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder="Selecione a prioridade"
+                            placeholder='[TRANSLATION_NEEDED]'
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1393,7 +1396,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="status"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder="Selecione o status"
+                            placeholder='[TRANSLATION_NEEDED]'
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1427,7 +1430,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="urgency"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder="Selecione a urgência"
+                            placeholder='[TRANSLATION_NEEDED]'
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1459,7 +1462,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="impact"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder="Selecione o impacto"
+                            placeholder='[TRANSLATION_NEEDED]'
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1499,7 +1502,7 @@ const TicketDetails = React.memo(() => {
                               form.setValue('subcategory', '');
                               form.setValue('action', '');
                             }}
-                            placeholder="Selecione a categoria"
+                            placeholder='[TRANSLATION_NEEDED]'
                             disabled={!isEditMode}
                             customerId={ticket?.companyId || ticket?.company_id}
                           />
@@ -1539,7 +1542,7 @@ const TicketDetails = React.memo(() => {
                               // Reset ação quando subcategoria muda
                               form.setValue('action', '');
                             }}
-                            placeholder="Selecione a subcategoria"
+                            placeholder='[TRANSLATION_NEEDED]'
                             disabled={!isEditMode || !form.watch('category')}
                             dependsOn={form.watch('category') || ticket?.category}
                             customerId={ticket?.companyId || ticket?.company_id}
@@ -1576,7 +1579,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="action"
                             value={field.value}
                             onValueChange={field.onChange}
-                            placeholder="Selecione a ação"
+                            placeholder='[TRANSLATION_NEEDED]'
                             disabled={!isEditMode || !form.watch('subcategory')}
                             dependsOn={form.watch('subcategory') || ticket?.subcategory}
                             customerId={ticket?.companyId || ticket?.company_id}
@@ -1768,7 +1771,7 @@ const TicketDetails = React.memo(() => {
                       <Select onValueChange={field.onChange} defaultValue={field.value || "general"}>
                         <FormControl>
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Selecione o tipo" />
+                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1876,7 +1879,7 @@ const TicketDetails = React.memo(() => {
                               }
                             }}
                             disabled={deleteNoteMutation.isPending}
-                            title="Excluir nota"
+                            title='[TRANSLATION_NEEDED]'
                           >
                             <Trash className="h-4 w-4 text-red-500" />
                           </Button>
@@ -2348,7 +2351,7 @@ const TicketDetails = React.memo(() => {
                                 setEditActionModalOpen(true);
                               }}
                               className="h-7 w-7 p-0"
-                              title="Editar ação interna"
+                              title='[TRANSLATION_NEEDED]'
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -2362,7 +2365,7 @@ const TicketDetails = React.memo(() => {
                               }}
                               className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
                               disabled={deleteInternalActionMutation.isPending}
-                              title="Excluir ação interna"
+                              title='[TRANSLATION_NEEDED]'
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -2763,7 +2766,7 @@ const TicketDetails = React.memo(() => {
       { name: 'Comunicações', loading: communicationsLoading },
       { name: 'Notas', loading: notesLoading },
       { name: 'Anexos', loading: attachmentsLoading },
-      { name: 'Ações', loading: actionsLoading }
+      { name: '[TRANSLATION_NEEDED]', loading: actionsLoading }
     ];
 
     const completed = states.filter(s => !s.loading).length;
@@ -2779,8 +2782,8 @@ const TicketDetails = React.memo(() => {
     const loadingItems = progress.states.filter(s => s.loading).map(s => s.name);
 
     if (loadingItems.length === 0) return "Carregamento concluído";
-    if (loadingItems.length === 1) return `Carregando ${loadingItems[0].toLowerCase()}...`;
-    return `Carregando ${loadingItems.length} itens... (${progress.percentage}%)`;
+    if (loadingItems.length === 1) return '[TRANSLATION_NEEDED]';
+    return '[TRANSLATION_NEEDED]';
   };
 
   if (isLoadingAnyData) {
@@ -2923,7 +2926,7 @@ const TicketDetails = React.memo(() => {
                   value={selectedCompany || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Selecione a empresa">
+                    <SelectValue placeholder='[TRANSLATION_NEEDED]'>
                       {(() => {
                         const currentValue = selectedCompany;
                         const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === currentValue);
@@ -3117,7 +3120,7 @@ const TicketDetails = React.memo(() => {
                     value={form.getValues('location') || ticket.location || ''}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione o local">
+                      <SelectValue placeholder='[TRANSLATION_NEEDED]'>
                         {(() => {
                           const currentValue = form.getValues('location') || ticket.location;
                           const location = locationsData?.data?.locations?.find((l: any) => l.id === currentValue);
@@ -3171,7 +3174,7 @@ const TicketDetails = React.memo(() => {
                       // Limpar responsável quando grupo muda
                       form.setValue('responsibleId', '');
                     }}
-                    placeholder="Selecione o grupo"
+                    placeholder='[TRANSLATION_NEEDED]'
                     disabled={!isEditMode}
                   />
                 ) : (
@@ -3364,11 +3367,11 @@ const TicketDetails = React.memo(() => {
                           onSubmit(formData);
                         } else {
                           const errorMessages = Object.entries(form.formState.errors)
-                            .map(([field, error]) => `${field}: ${error?.message || 'Erro de validação'}`)
+                            .map(([field, error]) => `${field}: ${error?.message || '[TRANSLATION_NEEDED]'}`)
                             .join('\n');
 
                           toast({
-                            title: "Erro de Validação",
+                            title: '[TRANSLATION_NEEDED]',
                             description: errorMessages ? `Por favor, corrija os seguintes erros:\n${errorMessages}` : "Dados do formulário são inválidos. Verifique todos os campos.",
                             variant: "destructive",
                           });
@@ -3377,20 +3380,20 @@ const TicketDetails = React.memo(() => {
                     }}
                     disabled={updateTicketMutation.isPending || !isEditMode}
                     className="relative"
-                    aria-label={updateTicketMutation.isPending ? "Salvando alterações..." : "Salvar alterações do ticket"}
+                    aria-label={updateTicketMutation.isPending ? "Salvando alterações..." : '[TRANSLATION_NEEDED]'}
                   >
                     {updateTicketMutation.isPending && (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div
                           className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
                           aria-hidden="true"
-                          aria-label="Carregando"
+                          aria-label='[TRANSLATION_NEEDED]'
                         ></div>
                       </div>
                     )}
                     <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2"}>
                       <Save className="h-4 w-4" />
-                      <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : "Salvar"}</span>
+                      <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : '[TRANSLATION_NEEDED]'}</span>
                     </div>
                   </Button>
                 </>
@@ -3536,7 +3539,7 @@ const TicketDetails = React.memo(() => {
             role="tab"
             aria-selected={activeTab === "internal-actions"}
             aria-controls="tab-content"
-            aria-label={`Ações Internas - ${internalActionsData?.length || 0} itens`}
+            aria-label={'[TRANSLATION_NEEDED]'}
           >
             <div className="flex items-center gap-3">
               <Settings className="h-4 w-4" />
@@ -3557,7 +3560,7 @@ const TicketDetails = React.memo(() => {
             role="tab"
             aria-selected={activeTab === "external-actions"}
             aria-controls="tab-content"
-            aria-label={`Ações Externas - 0 itens`}
+            aria-label={'[TRANSLATION_NEEDED]'}
           >
             <div className="flex items-center gap-3">
               <ExternalLink className="h-4 w-4" />
@@ -3647,7 +3650,7 @@ const TicketDetails = React.memo(() => {
                   <div className="flex items-center gap-2">
                     <div
                       className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
-                      title="SLA Warning: 85% decorrido"
+                      title='[TRANSLATION_NEEDED]'
                       data-testid="sla-led-indicator"
                     />
                     <span className="text-blue-900 font-medium text-xs">85% decorrido</span>

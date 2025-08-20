@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Dialog,
   DialogContent,
   DialogDescription,
@@ -21,6 +22,8 @@ import { Alert, AlertDescription } from '../ui/alert';
 // Example signature: const apiRequest = async (method: string, url: string, body?: any) => Promise<any>;
 
 interface Customer {
+  // Localization temporarily disabled
+
   id: string;
   firstName: string;
   lastName: string;
@@ -100,7 +103,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
 
       setCustomers(customersWithStatus);
     } catch (error: any) {
-      console.error('Error fetching customers:', error);
+      console.error('[TRANSLATION_NEEDED]', error);
       setError(error.message || 'Erro ao carregar clientes');
     } finally {
       setIsLoading(false);
@@ -227,7 +230,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
       }, 1500);
 
     } catch (error: any) {
-      console.error('Error associating customers:', error);
+      console.error('[TRANSLATION_NEEDED]', error);
       setError(error.message || 'Erro ao associar clientes');
     } finally {
       setIsSubmitting(false);
@@ -267,7 +270,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Buscar clientes por nome ou email..."
+                placeholder='[TRANSLATION_NEEDED]'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"

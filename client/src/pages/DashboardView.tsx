@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+// import useLocalization from '@/hooks/useLocalization';
   AlertCircle, ArrowLeft, RefreshCw, Share2, Maximize, BarChart3, Settings,
   PieChart, LineChart, Table, FileText, Monitor, Edit, Save, X, Plus, Grid, Trash2, CheckCircle
 } from "lucide-react";
@@ -55,6 +56,8 @@ interface Dashboard {
 }
 
 const widgetTypeIcons = {
+  // Localization temporarily disabled
+
   chart: BarChart3,
   table: Table,
   metric: LineChart,
@@ -98,7 +101,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           if (widgetType === 'table') {
             return {
               value: total,
-              label: 'Total de Tickets',
+              label: '[TRANSLATION_NEEDED]',
               data: tickets.slice(0, 5).map((ticket: any) => ({
                 id: ticket.id,
                 title: ticket.title || `Ticket ${ticket.ticketNumber}`,
@@ -111,7 +114,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
           
           return {
             value: total,
-            label: 'Total de Tickets',
+            label: '[TRANSLATION_NEEDED]',
             change: Math.floor(Math.random() * 20) - 10, // Placeholder até implementar histórico
             lastUpdated: 'Dados reais do banco',
           };
@@ -134,7 +137,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: 'Clientes Ativos',
+            label: '[TRANSLATION_NEEDED]',
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -145,7 +148,7 @@ function WidgetContent({ widget }: { widget: DashboardWidget }) {
         if (rawData.success && Array.isArray(rawData.data)) {
           return {
             value: rawData.data.length,
-            label: 'Usuários no Sistema',
+            label: '[TRANSLATION_NEEDED]',
             change: 0,
             lastUpdated: 'Dados reais do banco',
           };
@@ -613,7 +616,7 @@ function DashboardView() {
       console.log('Saving dashboard configuration:', updatedConfig);
       
       toast({ 
-        title: "Dashboard saved", 
+        title: '[TRANSLATION_NEEDED]', 
         description: "Your dashboard changes have been saved successfully." 
       });
       
@@ -621,7 +624,7 @@ function DashboardView() {
       setLocation(`/dashboard/${id}`);
     } catch (error) {
       toast({ 
-        title: "Save failed", 
+        title: '[TRANSLATION_NEEDED]', 
         description: "There was an error saving your dashboard changes." 
       });
     }

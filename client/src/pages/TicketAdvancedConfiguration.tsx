@@ -660,7 +660,7 @@ function TicketAdvancedConfiguration() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -910,7 +910,7 @@ function TicketAdvancedConfiguration() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione a prioridade" />
+                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

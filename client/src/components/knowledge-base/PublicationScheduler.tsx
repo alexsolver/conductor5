@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Dialog,
   DialogContent,
   DialogDescription,
@@ -29,7 +30,9 @@ interface PublicationSchedulerProps {
   onScheduled?: () => void;
 }
 
-export function PublicationScheduler({ articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
+export function PublicationScheduler({
+  // Localization temporarily disabled
+ articleId, currentStatus, onScheduled }: PublicationSchedulerProps) {
   const [schedulerOpen, setSchedulerOpen] = useState(false);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
@@ -49,7 +52,7 @@ export function PublicationScheduler({ articleId, currentStatus, onScheduled }: 
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Publicação agendada com sucesso"
       });
       setSchedulerOpen(false);
@@ -62,8 +65,8 @@ export function PublicationScheduler({ articleId, currentStatus, onScheduled }: 
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao agendar publicação",
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -72,7 +75,7 @@ export function PublicationScheduler({ articleId, currentStatus, onScheduled }: 
   const handleSchedule = () => {
     if (!scheduledDate || !scheduledTime) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "Data e hora são obrigatórias",
         variant: "destructive"
       });
@@ -83,7 +86,7 @@ export function PublicationScheduler({ articleId, currentStatus, onScheduled }: 
     
     if (scheduledFor <= new Date()) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "A data deve ser no futuro",
         variant: "destructive"
       });

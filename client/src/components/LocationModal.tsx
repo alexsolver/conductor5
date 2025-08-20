@@ -16,8 +16,11 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import MapSelector from './MapSelector';
 import { renderAddressSafely } from '@/utils/addressFormatter';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 const locationSchema = z.object({
+  // Localization temporarily disabled
+
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(['cliente', 'ativo', 'filial', 'tecnico', 'parceiro']),
   status: z.enum(['ativo', 'inativo', 'manutencao', 'suspenso']).default('ativo'),
@@ -105,7 +108,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Não foi possível salvar a localização.",
         variant: "destructive"
       });
@@ -149,7 +152,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              {location?.id ? "Editar Localização" : "Nova Localização"}
+              {location?.id ? '[TRANSLATION_NEEDED]' : "Nova Localização"}
             </DialogTitle>
           </DialogHeader>
 
@@ -199,7 +202,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -225,7 +228,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o status" />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -428,7 +431,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o fuso horário" />
+                              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -488,7 +491,7 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Salvando...' : location?.id ? 'Atualizar' : 'Criar'}
+                  {mutation.isPending ? 'Salvando...' : location?.id ? 'Atualizar' : '[TRANSLATION_NEEDED]'}
                 </Button>
               </div>
             </form>

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Plus, ArrowLeft, Save, Eye, Settings, Database, Palette, FileText,
   BarChart3, LineChart, PieChart, Grid, TrendingUp, CheckCircle2
 } from "lucide-react";
@@ -25,6 +26,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Enhanced schema for comprehensive report creation
 const reportSchema = z.object({
+  // Localization temporarily disabled
+
   name: z.string().min(1, "Report name is required"),
   description: z.string().optional(),
   dataSource: z.enum(["tickets", "customers", "users", "materials", "services", "timecard", "locations", "omnibridge"]),
@@ -73,7 +76,7 @@ export default function ReportCreate() {
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso!",
+        title: '[TRANSLATION_NEEDED]',
         description: "Relatório criado com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/reports-dashboards/reports"] });
@@ -81,7 +84,7 @@ export default function ReportCreate() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: error?.message || "Falha ao criar relatório.",
         variant: "destructive",
       });
@@ -324,7 +327,7 @@ export default function ReportCreate() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
-                                <SelectValue placeholder="Selecione a categoria" />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -357,7 +360,7 @@ export default function ReportCreate() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-access-level">
-                                <SelectValue placeholder="Selecione o nível de acesso" />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -383,7 +386,7 @@ export default function ReportCreate() {
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-data-source">
-                                    <SelectValue placeholder="Selecione a fonte de dados" />
+                                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -489,7 +492,7 @@ export default function ReportCreate() {
                               Configuração Básica
                             </h5>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
-                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba "Configurações Básicas".
+                              Para relatórios padrão, configure a fonte de dados e tipo de visualização na aba '[TRANSLATION_NEEDED]'.
                             </p>
                           </div>
                         </div>
@@ -541,7 +544,7 @@ export default function ReportCreate() {
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-schedule-type">
-                                  <SelectValue placeholder="Selecione o tipo" />
+                                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>

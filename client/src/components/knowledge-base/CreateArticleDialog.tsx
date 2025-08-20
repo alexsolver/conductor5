@@ -11,6 +11,7 @@ import { Plus, X, BookOpen, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModernRichTextEditor } from "./ModernRichTextEditor";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface CreateArticleDialogProps {
   isOpen: boolean;
@@ -18,14 +19,16 @@ interface CreateArticleDialogProps {
 }
 
 const categories = [
-  { value: 'technical_support', label: 'Suporte Técnico' },
+  {
+  // Localization temporarily disabled
+ value: 'technical_support', label: 'Suporte Técnico' },
   { value: 'configuration', label: 'Configuração' },
   { value: 'troubleshooting', label: 'Resolução de Problemas' },
   { value: 'policies', label: 'Políticas' },
   { value: 'procedures', label: 'Procedimentos' },
   { value: 'faq', label: 'Perguntas Frequentes' },
   { value: 'training', label: 'Treinamento' },
-  { value: 'integrations', label: 'Integrações' }
+  { value: 'integrations', label: '[TRANSLATION_NEEDED]' }
 ];
 
 const accessLevels = [
@@ -58,7 +61,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
     onSuccess: (result) => {
       if (result.success) {
         toast({
-          title: "✅ Artigo criado com sucesso!",
+          title: '[TRANSLATION_NEEDED]',
           description: "O artigo foi salvo na base de conhecimento.",
         });
 
@@ -74,7 +77,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         onClose();
       } else {
         toast({
-          title: "❌ Erro ao criar artigo",
+          title: '[TRANSLATION_NEEDED]',
           description: result.message || "Ocorreu um erro inesperado.",
           variant: "destructive",
         });
@@ -83,7 +86,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
     onError: (error) => {
       console.error('❌ [CREATE-ARTICLE] Error:', error);
       toast({
-        title: "❌ Erro ao criar artigo",
+        title: '[TRANSLATION_NEEDED]',
         description: error instanceof Error ? error.message : "Não foi possível criar o artigo. Tente novamente.",
         variant: "destructive",
       });
@@ -144,21 +147,21 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
       if (error instanceof Error) {
         if (error.message.includes('column') && error.message.includes('does not exist')) {
           toast({
-            title: "❌ Erro de configuração do banco de dados",
-            description: 'Erro de configuração do banco de dados. Contacte o suporte.',
+            title: '[TRANSLATION_NEEDED]',
+            description: '[TRANSLATION_NEEDED]',
             variant: "destructive",
           });
         } else {
           toast({
-            title: "❌ Erro ao criar artigo",
-            description: error.message || 'Erro interno do servidor',
+            title: '[TRANSLATION_NEEDED]',
+            description: error.message || '[TRANSLATION_NEEDED]',
             variant: "destructive",
           });
         }
       } else {
         toast({
-          title: "❌ Erro interno do servidor",
-          description: 'Erro interno do servidor',
+          title: '[TRANSLATION_NEEDED]',
+          description: '[TRANSLATION_NEEDED]',
           variant: "destructive",
         });
       }
@@ -203,7 +206,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
             </Label>
             <Select value={category} onValueChange={setCategory} required>
               <SelectTrigger data-testid="select-article-category">
-                <SelectValue placeholder="Selecione uma categoria" />
+                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (

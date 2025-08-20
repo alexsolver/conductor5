@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import ChatbotKanban from '@/components/omnibridge/ChatbotKanban';
 import {
+// import useLocalization from '@/hooks/useLocalization';
   MessageSquare,
   Mail,
   Phone,
@@ -120,6 +121,8 @@ interface Chatbot {
 
 // Helper functions for channel mapping
 function getChannelType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
+  // Localization temporarily disabled
+
   if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
     return 'email';
   }
@@ -439,8 +442,8 @@ export default function OmniBridge() {
             description: 'Configuração de email via IMAP/SMTP',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: 'Erro ao carregar',
-            lastActivity: 'Erro'
+            lastMessage: '[TRANSLATION_NEEDED]',
+            lastActivity: '[TRANSLATION_NEEDED]'
           },
           {
             id: 'whatsapp-business',
@@ -451,8 +454,8 @@ export default function OmniBridge() {
             description: 'API do WhatsApp Business',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: 'Erro ao carregar',
-            lastActivity: 'Erro'
+            lastMessage: '[TRANSLATION_NEEDED]',
+            lastActivity: '[TRANSLATION_NEEDED]'
           },
           {
             id: 'telegram-bot',
@@ -463,8 +466,8 @@ export default function OmniBridge() {
             description: 'Bot do Telegram para atendimento',
             status: 'disconnected',
             messageCount: 0,
-            lastMessage: 'Erro ao carregar',
-            lastActivity: 'Erro'
+            lastMessage: '[TRANSLATION_NEEDED]',
+            lastActivity: '[TRANSLATION_NEEDED]'
           }
         ]);
         setMessages([]);
@@ -543,10 +546,10 @@ export default function OmniBridge() {
 
         console.log(`✅ Canal ${channelId} ${enabled ? 'ativado' : 'desativado'} com sucesso`);
       } else {
-        console.error('Erro ao alterar status do canal:', response.status);
+        console.error('[TRANSLATION_NEEDED]', response.status);
       }
     } catch (error) {
-      console.error('Error toggling channel:', error);
+      console.error('[TRANSLATION_NEEDED]', error);
     }
   };
 
@@ -861,7 +864,7 @@ export default function OmniBridge() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar mensagens..."
+                placeholder='[TRANSLATION_NEEDED]'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -1215,7 +1218,7 @@ export default function OmniBridge() {
 
                         <div className="flex items-center justify-between text-sm">
                           <span>Última atividade:</span>
-                          <span className="text-muted-foreground">{channel.lastActivity || 'Nenhuma'}</span>
+                          <span className="text-muted-foreground">{channel.lastActivity || '[TRANSLATION_NEEDED]'}</span>
                         </div>
                       </div>
 
@@ -1338,7 +1341,7 @@ export default function OmniBridge() {
                                   <Badge key={index} variant="secondary" className="text-xs">
                                     {action.type === 'auto_reply' && 'Resposta automática'}
                                     {action.type === 'forward_message' && 'Encaminhar'}
-                                    {action.type === 'create_ticket' && 'Criar ticket'}
+                                    {action.type === 'create_ticket' && '[TRANSLATION_NEEDED]'}
                                     {action.type === 'send_notification' && 'Notificação'}
                                     {action.type === 'add_tags' && 'Adicionar tags'}
                                     {action.type === 'assign_agent' && 'Atribuir agente'}
@@ -1531,7 +1534,7 @@ export default function OmniBridge() {
               <Label htmlFor="rule-name">Nome da Regra</Label>
               <Input
                 id="rule-name"
-                placeholder="Ex: Resposta automática para novos clientes"
+                placeholder='[TRANSLATION_NEEDED]'
                 value={newRuleData.name}
                 onChange={(e) => setNewRuleData(prev => ({ ...prev, name: e.target.value }))}
               />
@@ -1554,7 +1557,7 @@ export default function OmniBridge() {
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, triggerType: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o gatilho" />
+                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="new_message">Nova mensagem</SelectItem>
@@ -1572,7 +1575,7 @@ export default function OmniBridge() {
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, actionType: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione a ação" />
+                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="auto_reply">Resposta automática</SelectItem>

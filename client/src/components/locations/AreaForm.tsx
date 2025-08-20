@@ -17,6 +17,7 @@ import { Map, Palette, Plus, Upload, Trash2, MapPin, Target, Route, FileText, Do
 import { areaSchema, type NewArea } from "@/../../shared/schema-locations-new";
 import { useToast } from "@/hooks/use-toast";
 import LeafletMapSelector from "@/components/LeafletMapSelector";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface AreaFormProps {
   onSubmit: (data: NewArea) => void;
@@ -25,7 +26,9 @@ interface AreaFormProps {
 }
 
 // Componente para seleção de cores predefinidas
-const ColorPicker = ({ value, onChange }) => {
+const ColorPicker = ({
+  // Localization temporarily disabled
+ value, onChange }) => {
   const coresPredefinidas = [
     { cor: "#3B82F6", nome: "Azul" },
     { cor: "#EF4444", nome: "Vermelho" },
@@ -296,12 +299,12 @@ const ArquivoUploader = ({ onArquivoUpload }) => {
         });
 
         toast({
-          title: "Arquivo carregado com sucesso",
+          title: '[TRANSLATION_NEEDED]',
           description: `${file.name} foi processado`
         });
       } catch (error) {
         toast({
-          title: "Erro ao processar arquivo",
+          title: '[TRANSLATION_NEEDED]',
           description: "Verifique se o arquivo está no formato correto",
           variant: "destructive"
         });
@@ -548,7 +551,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo de área" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -634,7 +637,7 @@ export default function AreaForm({ onSubmit, onCancel, isLoading = false }: Area
               disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? "Criando..." : "Criar Área"}
+              {isLoading ? "Criando..." : '[TRANSLATION_NEEDED]'}
             </Button>
           </div>
         </form>

@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   BookOpen, 
   Search, 
   Star, 
@@ -58,6 +59,8 @@ interface KnowledgeBaseArticle {
 }
 
 const categoryLabels: Record<string, string> = {
+  // Localization temporarily disabled
+
   technical_support: 'Suporte Técnico',
   troubleshooting: 'Solução de Problemas',
   user_guide: 'Guia do Usuário',
@@ -111,7 +114,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     },
     onSuccess: () => {
       toast({ 
-        title: '✅ Sucesso',
+        title: '[TRANSLATION_NEEDED]',
         description: 'Artigo vinculado ao ticket com sucesso'
       });
       queryClient.invalidateQueries({ queryKey: [`/api/knowledge-base/tickets/${ticketId}/related`] });
@@ -119,8 +122,8 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     onError: (error: any) => {
       console.error('❌ [KB-TAB] Error linking article:', error);
       toast({ 
-        title: '❌ Erro',
-        description: 'Erro ao vincular artigo ao ticket',
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: 'destructive'
       });
     },
@@ -137,7 +140,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     },
     onSuccess: () => {
       toast({ 
-        title: '✅ Sucesso',
+        title: '[TRANSLATION_NEEDED]',
         description: 'Avaliação registrada com sucesso'
       });
       // Refresh both queries
@@ -147,8 +150,8 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
     onError: (error: any) => {
       console.error('❌ [KB-TAB] Error rating article:', error);
       toast({ 
-        title: '❌ Erro',
-        description: 'Erro ao avaliar artigo',
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: 'destructive'
       });
     },
@@ -330,7 +333,7 @@ export const KnowledgeBaseTicketTab: React.FC<KnowledgeBaseTicketTabProps> = ({ 
           <div className="flex gap-3 mb-3">
             <div className="flex-1">
               <Input
-                placeholder="Buscar artigos na base de conhecimento..."
+                placeholder='[TRANSLATION_NEEDED]'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}

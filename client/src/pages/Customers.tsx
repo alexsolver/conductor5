@@ -10,8 +10,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CustomerModal } from "@/components/CustomerModal";
 import { useLocation } from "wouter";
 import { renderAddressSafely, formatCompanyDisplay, getFieldSafely, formatCustomerName } from "@/utils/addressFormatter";
+// import useLocalization from '@/hooks/useLocalization';
 
 export default function Customers() {
+  // Localization temporarily disabled
+
   const [, setLocation] = useLocation();
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -22,7 +25,7 @@ export default function Customers() {
       const { apiRequest } = await import('../lib/queryClient');
       const response = await apiRequest('GET', '/api/customers');
       const data = await response.json();
-      console.log('Customers API Response:', data);
+      console.log('[TRANSLATION_NEEDED]', data);
       return data;
     },
     retry: false,
@@ -99,7 +102,7 @@ export default function Customers() {
     }
   };
 
-  console.log('Customers data:', { customers, total, error, isLoading });
+  console.log('[TRANSLATION_NEEDED]', { customers, total, error, isLoading });
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);

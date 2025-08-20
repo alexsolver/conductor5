@@ -12,6 +12,7 @@ import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import { X } from 'lucide-react'
 import { FieldComponent } from '../DragDropCanvas'
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface SelectionFieldProps {
   field: FieldComponent
@@ -20,7 +21,9 @@ interface SelectionFieldProps {
   disabled?: boolean
 }
 
-export const SelectField: React.FC<SelectionFieldProps> = ({ 
+export const SelectField: React.FC<SelectionFieldProps> = ({
+  // Localization temporarily disabled
+ 
   field, 
   value = '', 
   onChange, 
@@ -46,7 +49,7 @@ export const SelectField: React.FC<SelectionFieldProps> = ({
         required={properties.required}
       >
         <SelectTrigger className={properties.cssClass}>
-          <SelectValue placeholder="Selecione uma opção..." />
+          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
         </SelectTrigger>
         <SelectContent>
           {options.map((option: any, index: number) => (

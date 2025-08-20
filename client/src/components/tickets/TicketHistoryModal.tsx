@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface TicketHistoryModalProps {
   ticketId: string;
@@ -32,6 +33,8 @@ interface HistoryEntry {
 }
 
 const getActionIcon = (type: string) => {
+  // Localization temporarily disabled
+
   switch (type) {
     case 'created':
     case 'ticket_created': return { icon: User, color: 'bg-green-100 text-green-600' };
@@ -170,7 +173,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
           <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
             <div className="flex-1 min-w-64">
               <Input
-                placeholder="Buscar por ação ou usuário..."
+                placeholder='[TRANSLATION_NEEDED]'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -221,8 +224,8 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                 <History className="mx-auto h-12 w-12 text-gray-400" />
                 <p className="mt-2 text-sm text-gray-500">
                   {searchTerm || filter !== "all" || timeFilter !== "all" 
-                    ? "Nenhuma ação encontrada com os filtros aplicados"
-                    : "Nenhum histórico disponível"
+                    ? '[TRANSLATION_NEEDED]'
+                    : '[TRANSLATION_NEEDED]'
                   }
                 </p>
               </div>

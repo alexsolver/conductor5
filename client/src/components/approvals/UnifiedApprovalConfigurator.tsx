@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Plus, Save, Settings, Users, Filter, Workflow, 
   Play, Trash2, Eye, Clock, AlertTriangle, Check,
   ArrowRight, ArrowDown, Move, X 
@@ -72,7 +73,9 @@ interface ApprovalRule {
 }
 
 const moduleTypes = [
-  { value: 'tickets', label: 'Tickets', fields: ['priority', 'category', 'estimatedCost', 'location', 'customerId', 'assignedTo'] },
+  {
+  // Localization temporarily disabled
+ value: 'tickets', label: '[TRANSLATION_NEEDED]', fields: ['priority', 'category', 'estimatedCost', 'location', 'customerId', 'assignedTo'] },
   { value: 'materials', label: 'Materiais/Serviços', fields: ['itemValue', 'supplierId', 'category', 'stockImpact', 'urgencyLevel'] },
   { value: 'knowledge_base', label: 'Knowledge Base', fields: ['articleType', 'visibilityLevel', 'contentSensitivity', 'authorId'] },
   { value: 'timecard', label: 'Timecard', fields: ['overtimeHours', 'approvalAmount', 'employeeLevel'] },
@@ -95,7 +98,7 @@ const operators = [
 ];
 
 const decisionModes = [
-  { value: 'ALL', label: 'Todos devem aprovar' },
+  { value: 'ALL', label: '[TRANSLATION_NEEDED]' },
   { value: 'ANY', label: 'Qualquer um pode aprovar' },
   { value: 'QUORUM', label: 'Quórum (X de N aprovadores)' }
 ];
@@ -167,7 +170,7 @@ export function UnifiedApprovalConfigurator() {
       console.log('✅ [SAVE-SUCCESS] Regra salva com sucesso:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/rules'] });
       toast({
-        title: "Regra salva com sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "A regra de aprovação foi criada e está ativa."
       });
       resetRule();
@@ -175,7 +178,7 @@ export function UnifiedApprovalConfigurator() {
     onError: (error: any) => {
       console.log('❌ [SAVE-ERROR] Erro ao salvar:', error);
       toast({
-        title: "Erro ao salvar regra",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Verifique os dados e tente novamente.",
         variant: "destructive"
       });
@@ -313,7 +316,7 @@ export function UnifiedApprovalConfigurator() {
             data-testid="button-preview-toggle"
           >
             <Eye className="h-4 w-4 mr-2" />
-            {isPreviewMode ? 'Editar' : 'Preview'}
+            {isPreviewMode ? '[TRANSLATION_NEEDED]' : 'Preview'}
           </Button>
           <Button
             onClick={() => {
@@ -331,7 +334,7 @@ export function UnifiedApprovalConfigurator() {
             data-testid="button-save-rule"
           >
             <Save className="h-4 w-4 mr-2" />
-            {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar Regra'}
+            {saveRuleMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
           </Button>
         </div>
       </div>
@@ -415,7 +418,7 @@ export function UnifiedApprovalConfigurator() {
                           id="rule-name"
                           value={currentRule.name}
                           onChange={(e) => setCurrentRule(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Ex: Aprovação Alto Valor Tickets"
+                          placeholder='[TRANSLATION_NEEDED]'
                           data-testid="input-rule-name"
                         />
                       </div>

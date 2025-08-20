@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from 'wouter';
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Plus, Search, Filter, MoreVertical, Play, Share, Download, 
   Eye, Edit, Trash2, Copy, Star, Clock, Users, BarChart3,
   LineChart, PieChart, Table, TrendingUp, Zap, Database,
@@ -26,6 +27,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 // Zendesk-style Quick Start Templates
 const ZENDESK_QUICK_TEMPLATES = [
   {
+  // Localization temporarily disabled
+
     id: "ticket-volume",
     name: "Ticket Volume",
     description: "Track ticket creation trends over time",
@@ -67,7 +70,7 @@ const ZENDESK_QUICK_TEMPLATES = [
 const ZENDESK_DATA_SOURCES = [
   {
     id: "tickets",
-    name: "Tickets",
+    name: '[TRANSLATION_NEEDED]',
     description: "Support tickets and related data",
     icon: Grid,
     tables: 45,
@@ -75,7 +78,7 @@ const ZENDESK_DATA_SOURCES = [
   },
   {
     id: "users",
-    name: "Users", 
+    name: '[TRANSLATION_NEEDED]', 
     description: "Customer and agent information",
     icon: Users,
     tables: 12,
@@ -121,7 +124,7 @@ export default function Reports() {
 
   // Zendesk-style Categories
   const categories = [
-    { id: "all", name: "All Categories", count: reports.length },
+    { id: "all", name: '[TRANSLATION_NEEDED]', count: reports.length },
     { id: "performance", name: "Performance", count: reports.filter(r => r.category === 'operational').length },
     { id: "team", name: "Team Analytics", count: reports.filter(r => r.category === 'hr').length },
     { id: "customer", name: "Customer Insights", count: reports.filter(r => r.category === 'analytical').length },
@@ -386,7 +389,7 @@ export default function Reports() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search reports and dashboards..."
+                placeholder='[TRANSLATION_NEEDED]'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -396,7 +399,7 @@ export default function Reports() {
           <div className="flex items-center space-x-4">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Categories" />
+                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (

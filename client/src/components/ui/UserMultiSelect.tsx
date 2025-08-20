@@ -3,6 +3,7 @@ import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Command,
   CommandEmpty,
   CommandGroup,
@@ -33,10 +34,12 @@ interface UserMultiSelectProps {
 }
 
 export function UserMultiSelect({
+  // Localization temporarily disabled
+
   value = [],
   onChange,
   users,
-  placeholder = "Selecionar usuários...",
+  placeholder = '[TRANSLATION_NEEDED]',
   className,
   disabled = false,
 }: UserMultiSelectProps) {
@@ -121,7 +124,7 @@ export function UserMultiSelect({
           </PopoverTrigger>
           <PopoverContent className="w-full p-0" align="start">
             <Command>
-              <CommandInput placeholder="Buscar usuários..." />
+              <CommandInput placeholder='[TRANSLATION_NEEDED]' />
               <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
               <CommandGroup className="max-h-64 overflow-y-auto">
                 {availableUsers.map((user) => (

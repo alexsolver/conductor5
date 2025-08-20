@@ -14,8 +14,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 const bulkAssignmentSchema = z.object({
+  // Localization temporarily disabled
+
   templateId: z.string().min(1, 'Template é obrigatório'),
   startDate: z.string().min(1, 'Data de início é obrigatória'),
   userIds: z.array(z.string()).min(1, 'Selecione pelo menos um funcionário'),
@@ -122,7 +125,7 @@ export default function BulkScheduleAssignment() {
     },
     onError: (error) => {
       toast({
-        title: 'Erro ao Aplicar Escala',
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || 'Tente novamente',
         variant: 'destructive',
       });
@@ -200,7 +203,7 @@ export default function BulkScheduleAssignment() {
                       <Select onValueChange={field.onChange} value={field.value} disabled={previewMode}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione um template" />
+                            <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

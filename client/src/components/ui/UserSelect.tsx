@@ -3,6 +3,7 @@ import { Check, ChevronsUpDown, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Command,
   CommandEmpty,
   CommandGroup,
@@ -32,6 +33,8 @@ interface UserSelectProps {
 }
 
 export function UserSelect({
+  // Localization temporarily disabled
+
   value,
   onChange,
   users,
@@ -69,7 +72,7 @@ export function UserSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Buscar usuário..." />
+          <CommandInput placeholder='[TRANSLATION_NEEDED]' />
           <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-y-auto">
             {/* Opção para limpar seleção */}

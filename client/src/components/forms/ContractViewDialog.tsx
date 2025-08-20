@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Eye, Calendar, DollarSign, FileText, Users, MapPin, Clock } from 'lucide-react';
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Dialog,
   DialogContent,
   DialogDescription,
@@ -19,12 +20,14 @@ import { Separator } from '@/components/ui/separator';
 
 // Status and types mapping
 const contractStatuses = [
-  { value: 'draft', label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
+  {
+  // Localization temporarily disabled
+ value: 'draft', label: 'Rascunho', color: 'bg-gray-100 text-gray-800' },
   { value: 'analysis', label: 'Análise', color: 'bg-yellow-100 text-yellow-800' },
   { value: 'approved', label: 'Aprovado', color: 'bg-blue-100 text-blue-800' },
   { value: 'active', label: 'Ativo', color: 'bg-green-100 text-green-800' },
   { value: 'finished', label: 'Finalizado', color: 'bg-gray-100 text-gray-800' },
-  { value: 'canceled', label: 'Cancelado', color: 'bg-red-100 text-red-800' },
+  { value: 'canceled', label: '[TRANSLATION_NEEDED]', color: 'bg-red-100 text-red-800' },
 ];
 
 const contractTypes = [

@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Settings, Users, Clock, CheckCircle, XCircle, Plus, Trash2, Edit, UserPlus, X } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+// import useLocalization from '@/hooks/useLocalization';
 
 interface ApprovalGroup {
   id: string;
@@ -48,6 +49,8 @@ interface User {
 }
 
 export default function TimecardApprovalSettings() {
+  // Localization temporarily disabled
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('settings');
@@ -138,14 +141,14 @@ export default function TimecardApprovalSettings() {
     },
     onSuccess: () => {
       toast({
-        title: "Configurações salvas",
+        title: 'Configurações Salvas',
         description: "As configurações de aprovação foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/settings'] });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao salvar as configurações.",
         variant: "destructive",
       });
@@ -170,7 +173,7 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao criar o grupo.",
         variant: "destructive",
       });
@@ -196,7 +199,7 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao atualizar o grupo.",
         variant: "destructive",
       });
@@ -224,11 +227,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao atualizar membros do grupo.",
         variant: "destructive",
       });
-      console.error('Error updating members:', error);
+      console.error('[TRANSLATION_NEEDED]', error);
     },
   });
 
@@ -246,11 +249,11 @@ export default function TimecardApprovalSettings() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao remover o grupo.",
         variant: "destructive",
       });
-      console.error('Error deleting group:', error);
+      console.error('[TRANSLATION_NEEDED]', error);
     },
   });
 
@@ -280,7 +283,7 @@ export default function TimecardApprovalSettings() {
   const handleCreateGroup = () => {
     if (!newGroupName.trim()) {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Nome do grupo é obrigatório.",
         variant: "destructive",
       });
@@ -296,7 +299,7 @@ export default function TimecardApprovalSettings() {
   const handleUpdateGroup = () => {
     if (!selectedGroup || !newGroupName.trim()) {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Nome do grupo é obrigatório.",
         variant: "destructive",
       });
@@ -434,7 +437,7 @@ export default function TimecardApprovalSettings() {
                   <Label>Requer aprovação para:</Label>
                   <div className="space-y-2">
                     {[
-                      { value: 'all', label: 'Todos os registros' },
+                      { value: 'all', label: '[TRANSLATION_NEEDED]' },
                       { value: 'inconsistencies', label: 'Inconsistências' },
                       { value: 'overtime', label: 'Horas extras' },
                       { value: 'absences', label: 'Faltas/atrasos' }
@@ -476,7 +479,7 @@ export default function TimecardApprovalSettings() {
                   onValueChange={(value) => handleSettingsChange('approvalGroupId', value || null)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um grupo" />
+                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum grupo selecionado</SelectItem>
@@ -553,11 +556,11 @@ export default function TimecardApprovalSettings() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedGroup ? 'Editar Grupo de Aprovação' : 'Criar Grupo de Aprovação'}
+                    {selectedGroup ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
                   </DialogTitle>
                   <DialogDescription>
                     {selectedGroup 
-                      ? 'Edite as informações do grupo de aprovação.'
+                      ? '[TRANSLATION_NEEDED]'
                       : 'Crie um novo grupo para organizar os aprovadores de timecard.'
                     }
                   </DialogDescription>
@@ -658,7 +661,7 @@ export default function TimecardApprovalSettings() {
                         onClick={handleUpdateMembers}
                         disabled={updateMembersMutation.isPending}
                       >
-                        {updateMembersMutation.isPending ? 'Salvando...' : 'Salvar Membros'}
+                        {updateMembersMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
                       </Button>
                     </div>
                   </div>

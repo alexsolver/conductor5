@@ -8,6 +8,7 @@ import { BookOpen, TrendingUp, Users, Clock, BarChart3, Eye, MessageSquare, Star
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface KnowledgeBaseMetrics {
   totalArticles: number;
@@ -40,6 +41,8 @@ interface KnowledgeBaseMetrics {
 }
 
 export function KnowledgeBaseWidget() {
+  // Localization temporarily disabled
+
   const [viewMode, setViewMode] = useState<'overview' | 'analytics' | 'activity'>('overview');
 
   const { data: metrics, isLoading, error } = useQuery({
@@ -87,14 +90,14 @@ export function KnowledgeBaseWidget() {
         popularArticles: [
           {
             id: '1',
-            title: 'Como Criar um Ticket de Suporte',
+            title: '[TRANSLATION_NEEDED]',
             views: 324,
             rating: 4.8,
             category: 'Tutorial'
           },
           {
             id: '2',
-            title: 'Configurações de Notificação',
+            title: '[TRANSLATION_NEEDED]',
             views: 298,
             rating: 4.5,
             category: 'Configuração'

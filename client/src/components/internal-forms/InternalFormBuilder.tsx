@@ -11,8 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 const formSchema = z.object({
+  // Localization temporarily disabled
+
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   category: z.string().min(1, "Categoria é obrigatória"),
@@ -45,8 +48,8 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
       onClose();
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao criar formulário.",
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     }
@@ -120,7 +123,7 @@ export function InternalFormBuilder({ onClose }: InternalFormBuilderProps) {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Bot,
   Plus,
   Settings,
@@ -137,7 +138,9 @@ interface Chatbot {
 // Node types with comprehensive options
 const nodeTypes = [
   // Triggers
-  { 
+  {
+  // Localization temporarily disabled
+ 
     id: 'trigger-message', 
     type: 'trigger', 
     name: 'Mensagem', 
@@ -840,10 +843,10 @@ export default function ChatbotVisualEditor() {
   });
 
   const nodeCategories = [
-    { id: 'all', name: 'Todos' },
+    { id: 'all', name: '[TRANSLATION_NEEDED]' },
     { id: 'trigger', name: 'Gatilhos' },
     { id: 'condition', name: 'Condições' },
-    { id: 'action', name: 'Ações' },
+    { id: 'action', name: '[TRANSLATION_NEEDED]' },
     { id: 'response', name: 'Respostas' },
     { id: 'integration', name: 'Integrações' },
     { id: 'ai', name: 'Inteligência Artificial' },
@@ -888,7 +891,7 @@ export default function ChatbotVisualEditor() {
               setSelectedChatbot(chatbot || null);
             }}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione um chatbot" />
+                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
               </SelectTrigger>
               <SelectContent>
                 {chatbots.map(chatbot => (
@@ -908,7 +911,7 @@ export default function ChatbotVisualEditor() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar nós..."
+                placeholder='[TRANSLATION_NEEDED]'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -1324,7 +1327,7 @@ export default function ChatbotVisualEditor() {
                               <Label>Prioridade do Gatilho</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione a prioridade" />
+                                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="1">1 - Mais Alta</SelectItem>
@@ -1374,7 +1377,7 @@ export default function ChatbotVisualEditor() {
                             </div>
                             <div>
                               <Label>Palavras Excludentes</Label>
-                              <Textarea placeholder="não, nunca, pare, cancele" rows={2} />
+                              <Textarea placeholder='[TRANSLATION_NEEDED]' rows={2} />
                               <p className="text-xs text-muted-foreground mt-1">Palavras que impedem a ativação do gatilho</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -1382,7 +1385,7 @@ export default function ChatbotVisualEditor() {
                                 <Label>Prioridade</Label>
                                 <Select>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Selecione a prioridade" />
+                                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="1">1 - Crítica</SelectItem>
@@ -1421,7 +1424,7 @@ export default function ChatbotVisualEditor() {
                               <Label>Modelo de IA</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o modelo" />
+                                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
@@ -1475,7 +1478,7 @@ export default function ChatbotVisualEditor() {
                               <Label>Método HTTP</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o método" />
+                                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="GET">GET</SelectItem>
@@ -1514,7 +1517,7 @@ export default function ChatbotVisualEditor() {
                               <Label>Tipo de Valor</Label>
                               <Select>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o tipo" />
+                                  <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="string">Texto</SelectItem>
@@ -1539,7 +1542,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Tipo de Condição</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="equals">Igual a</SelectItem>
@@ -1602,11 +1605,11 @@ export default function ChatbotVisualEditor() {
                           <div className="space-y-3">
                             <div>
                               <Label>Título do Menu</Label>
-                              <Input placeholder="Selecione uma opção" />
+                              <Input placeholder='[TRANSLATION_NEEDED]' />
                             </div>
                             <div>
                               <Label>Descrição</Label>
-                              <Textarea placeholder="Escolha uma das opções abaixo..." rows={2} />
+                              <Textarea placeholder='[TRANSLATION_NEEDED]' rows={2} />
                             </div>
                             <div>
                               <Label>Itens do Menu</Label>
@@ -1636,7 +1639,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Modelo de IA</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o modelo" />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
@@ -1677,7 +1680,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Tipo de Integração</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione a integração" />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="whatsapp">WhatsApp Business</SelectItem>
@@ -1714,7 +1717,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Tipo de Delay</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="fixed">Tempo Fixo</SelectItem>
@@ -1729,7 +1732,7 @@ export default function ChatbotVisualEditor() {
                           </div>
                           <div>
                             <Label>Mensagem de Aguardo</Label>
-                            <Input placeholder="Aguarde um momento..." />
+                            <Input placeholder='[TRANSLATION_NEEDED]' />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="show-typing" />
@@ -1749,7 +1752,7 @@ export default function ChatbotVisualEditor() {
                             <Label>Tipo de Validação</Label>
                             <Select>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
+                                <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="email">Email</SelectItem>
@@ -1783,7 +1786,7 @@ export default function ChatbotVisualEditor() {
                         <div className="space-y-3">
                           <div>
                             <Label>Configuração Personalizada</Label>
-                            <Textarea placeholder="Configurações específicas para este tipo de nó..." rows={4} />
+                            <Textarea placeholder='[TRANSLATION_NEEDED]' rows={4} />
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch id="enabled" />
@@ -1882,7 +1885,7 @@ export default function ChatbotVisualEditor() {
                       <Label>Comportamento de Falha</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o comportamento" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="stop">Parar fluxo</SelectItem>
@@ -1916,7 +1919,7 @@ export default function ChatbotVisualEditor() {
                       <Label>Condições para Ativação</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a condição" />
+                          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="always">Sempre</SelectItem>

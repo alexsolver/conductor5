@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "wouter";
 import {
+// import { useLocalization } from '@/hooks/useLocalization';
   Table,
   TableBody,
   TableCell,
@@ -90,6 +91,8 @@ const TicketRowSkeleton = () => (
 
 // Main Component
 export const ResponsiveTicketsTable = ({
+  // Localization temporarily disabled
+
   tickets = [],
   isLoading = false,
   onEdit,
@@ -123,7 +126,7 @@ export const ResponsiveTicketsTable = ({
 
 
   return (
-    <div className="rounded-md border overflow-hidden" role="region" aria-label="Tabela de tickets">
+    <div className="rounded-md border overflow-hidden" role="region" aria-label='[TRANSLATION_NEEDED]'>
       <Table>
         <TableHeader>
           <TableRow role="row">
@@ -236,7 +239,7 @@ export const ResponsiveTicketsTable = ({
                         <Button
                           variant="ghost"
                           className="h-8 w-8 p-0"
-                          aria-label={`Ações para ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
+                          aria-label={'[TRANSLATION_NEEDED]'}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>

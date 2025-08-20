@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Clock, 
   AlertTriangle, 
   Target, 
@@ -139,6 +140,8 @@ interface SlaComplianceStats {
 }
 
 const slaDefinitionSchema = z.object({
+  // Localization temporarily disabled
+
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   type: z.enum(['SLA', 'OLA', 'UC']),
@@ -254,8 +257,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar SLA",
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     },
@@ -279,8 +282,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao atualizar SLA",
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     },
@@ -298,8 +301,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao excluir SLA",
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     },
@@ -335,8 +338,8 @@ export default function SlaManagement() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar workflow",
+        title: '[TRANSLATION_NEEDED]',
+        description: error.message || '[TRANSLATION_NEEDED]',
         variant: "destructive",
       });
     },
@@ -1017,7 +1020,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-type">
-                        <SelectValue placeholder="Selecione o tipo" />
+                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1040,7 +1043,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-sla-priority">
-                        <SelectValue placeholder="Selecione a prioridade" />
+                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1277,7 +1280,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {isEdit ? 'Atualizar SLA' : 'Criar SLA'}
+                {isEdit ? 'Atualizar SLA' : '[TRANSLATION_NEEDED]'}
               </>
             )}
           </Button>
@@ -1343,7 +1346,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-workflow-trigger">
-                        <SelectValue placeholder="Selecione o evento" />
+                        <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

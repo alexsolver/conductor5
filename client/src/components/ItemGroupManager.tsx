@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/utils';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Dialog, 
   DialogContent, 
   DialogDescription, 
@@ -48,6 +49,8 @@ interface ItemGroupManagerProps {
 }
 
 export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
+  // Localization temporarily disabled
+
   selectedItems,
   onItemsUpdated
 }) => {
@@ -84,7 +87,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/item-groups'] });
       toast({
-        title: "Grupo criado com sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "O novo grupo foi criado e está disponível para uso.",
       });
       setIsCreateGroupOpen(false);
@@ -94,7 +97,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: "Erro ao criar grupo",
+        title: '[TRANSLATION_NEEDED]',
         description: "Ocorreu um erro ao criar o grupo. Tente novamente.",
         variant: "destructive",
       });
@@ -111,7 +114,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/item-groups'] });
       toast({
-        title: "Itens atribuídos com sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "Os itens foram atribuídos ao grupo selecionado.",
       });
       setIsAssignGroupOpen(false);
@@ -119,7 +122,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: "Erro ao atribuir itens",
+        title: '[TRANSLATION_NEEDED]',
         description: "Ocorreu um erro ao atribuir os itens ao grupo.",
         variant: "destructive",
       });
@@ -136,7 +139,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onSuccess: () => {
       toast({
-        title: "Hierarquia criada com sucesso",
+        title: '[TRANSLATION_NEEDED]',
         description: "A relação pai/filho foi estabelecida entre os itens.",
       });
       setIsCreateHierarchyOpen(false);
@@ -146,7 +149,7 @@ export const ItemGroupManager: React.FC<ItemGroupManagerProps> = ({
     },
     onError: () => {
       toast({
-        title: "Erro ao criar hierarquia",
+        title: '[TRANSLATION_NEEDED]',
         description: "Ocorreu um erro ao estabelecer a relação pai/filho.",
         variant: "destructive",
       });

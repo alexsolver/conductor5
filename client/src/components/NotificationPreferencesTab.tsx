@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Bell, 
   Mail, 
   MessageSquare, 
@@ -83,13 +84,15 @@ interface NotificationPreferences {
 }
 
 const NOTIFICATION_CHANNELS: NotificationChannel[] = [
-  { id: 'email', name: 'Email', icon: Mail, description: 'Receber por email' },
+  {
+  // Localization temporarily disabled
+ id: 'email', name: 'Email', icon: Mail, description: 'Receber por email' },
   { id: 'sms', name: 'SMS', icon: MessageSquare, description: 'Mensagem de texto' },
   { id: 'push', name: 'Push', icon: Smartphone, description: 'Notificação push' },
   { id: 'in_app', name: 'In-App', icon: Bell, description: 'Dentro da aplicação' },
   { id: 'webhook', name: 'Webhook', icon: Webhook, description: 'API webhook' },
   { id: 'slack', name: 'Slack', icon: MessageSquare, description: 'Canal Slack' },
-  { id: 'dashboard_alert', name: 'Dashboard', icon: Globe, description: 'Alerta no painel' }
+  { id: 'dashboard_alert', name: '[TRANSLATION_NEEDED]', icon: Globe, description: 'Alerta no painel' }
 ];
 
 const NOTIFICATION_TYPES: NotificationType[] = [
@@ -169,7 +172,7 @@ export default function NotificationPreferencesTab() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao Salvar",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Não foi possível salvar as preferências.",
         variant: "destructive",
       });
@@ -184,7 +187,7 @@ export default function NotificationPreferencesTab() {
     },
     onSuccess: () => {
       toast({
-        title: "Configurações Resetadas",
+        title: '[TRANSLATION_NEEDED]',
         description: "Suas preferências foram restauradas para os valores padrão.",
       });
       setIsModified(false);
@@ -192,7 +195,7 @@ export default function NotificationPreferencesTab() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao Resetar",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Não foi possível resetar as preferências.",
         variant: "destructive",
       });
@@ -411,7 +414,7 @@ export default function NotificationPreferencesTab() {
               data-testid="button-save-preferences"
             >
               <Save className="h-4 w-4 mr-2" />
-              {updatePreferencesMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+              {updatePreferencesMutation.isPending ? 'Salvando...' : '[TRANSLATION_NEEDED]'}
             </Button>
           )}
         </div>
@@ -705,7 +708,7 @@ export default function NotificationPreferencesTab() {
             data-testid="button-save-preferences-bottom"
           >
             <Save className="h-4 w-4 mr-2" />
-            {updatePreferencesMutation.isPending ? 'Salvando Preferências...' : 'Salvar Todas as Alterações'}
+            {updatePreferencesMutation.isPending ? 'Salvando Preferências...' : '[TRANSLATION_NEEDED]'}
           </Button>
         )}
       </div>

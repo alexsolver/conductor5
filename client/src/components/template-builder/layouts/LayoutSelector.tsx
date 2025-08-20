@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Layout,
   Grid,
   Columns,
@@ -57,6 +58,8 @@ interface LayoutSelectorProps {
 
 const predefinedLayouts: LayoutTemplate[] = [
   {
+  // Localization temporarily disabled
+
     id: 'simple-form',
     name: 'Formulário Simples',
     description: 'Layout básico com uma coluna para formulários simples',
@@ -65,7 +68,7 @@ const predefinedLayouts: LayoutTemplate[] = [
       sections: [
         {
           id: 'main',
-          title: 'Informações Principais',
+          title: '[TRANSLATION_NEEDED]',
           columns: 1,
           fields: [
             { type: 'text', colspan: 1, required: true },
@@ -152,7 +155,7 @@ const predefinedLayouts: LayoutTemplate[] = [
       sections: [
         {
           id: 'basic-info',
-          title: 'Informações Básicas',
+          title: '[TRANSLATION_NEEDED]',
           columns: 2,
           fields: [
             { type: 'text', colspan: 1, required: true },
@@ -175,7 +178,7 @@ const predefinedLayouts: LayoutTemplate[] = [
         },
         {
           id: 'additional',
-          title: 'Informações Adicionais',
+          title: '[TRANSLATION_NEEDED]',
           columns: 1,
           fields: [
             { type: 'textarea', colspan: 1 },
@@ -353,7 +356,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
   });
 
   const categoryLabels = {
-    all: 'Todos',
+    all: '[TRANSLATION_NEEDED]',
     basic: 'Básicos',
     advanced: 'Avançados',
     specialized: 'Especializados',
@@ -476,7 +479,7 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({
         <div className="flex space-x-4">
           <div className="flex-1">
             <Input
-              placeholder="Buscar layouts..."
+              placeholder='[TRANSLATION_NEEDED]'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

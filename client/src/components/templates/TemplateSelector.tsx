@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 import { Search, Star, Clock, Users, Filter } from 'lucide-react';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface TemplatePreview {
   id: string;
@@ -31,7 +32,9 @@ interface TemplateSelectorProps {
   onCancel: () => void;
 }
 
-export default function TemplateSelector({ 
+export default function TemplateSelector({
+  // Localization temporarily disabled
+ 
   companyId = 'all', 
   onSelectTemplate, 
   onCancel 
@@ -157,7 +160,7 @@ export default function TemplateSelector({
               <div className="relative">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar templates por nome ou descrição..."
+                  placeholder='[TRANSLATION_NEEDED]'
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -199,8 +202,8 @@ export default function TemplateSelector({
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {searchTerm || selectedCategory !== 'all' || showPopularOnly ? 
-              'Nenhum template encontrado com os filtros aplicados.' :
-              'Nenhum template disponível.'
+              '[TRANSLATION_NEEDED]' :
+              '[TRANSLATION_NEEDED]'
             }
           </p>
         </div>

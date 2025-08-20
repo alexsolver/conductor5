@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+// import useLocalization from '@/hooks/useLocalization';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,8 @@ import {
 } from "lucide-react";
 
 export default function Settings() {
+  // Localization temporarily disabled
+
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +59,7 @@ export default function Settings() {
 
   const handleSave = () => {
     toast({
-      title: "Settings saved",
+      title: '[TRANSLATION_NEEDED]',
       description: "Your settings have been updated successfully.",
     });
   };
@@ -554,7 +557,7 @@ export default function Settings() {
                       { name: "Salesforce", description: "Sync customer data with Salesforce", connected: true },
                       { name: "Shopify", description: "Connect with your Shopify store", connected: false },
                       { name: "HubSpot", description: "Sync contacts and deals", connected: false },
-                      { name: "Jira", description: "Create issues from tickets", connected: true },
+                      { name: "Jira", description: '[TRANSLATION_NEEDED]', connected: true },
                     ].map((integration) => (
                       <div key={integration.name} className="p-4 border rounded-lg">
                         <div className="flex items-center justify-between mb-2">

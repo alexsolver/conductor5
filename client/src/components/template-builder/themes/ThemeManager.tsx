@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Palette,
   Eye,
   Download,
@@ -101,6 +102,8 @@ interface ThemeManagerProps {
 
 const defaultThemes: Theme[] = [
   {
+  // Localization temporarily disabled
+
     id: 'default',
     name: 'Padrão',
     description: 'Tema padrão do sistema com cores neutras',
@@ -458,7 +461,7 @@ export const ThemeManager: React.FC<ThemeManagerProps> = ({
         const customThemes = updatedThemes.filter(t => t.isCustom);
         localStorage.setItem('customThemes', JSON.stringify(customThemes));
       } catch (error) {
-        console.error('Erro ao importar tema:', error);
+        console.error('[TRANSLATION_NEEDED]', error);
       }
     };
     reader.readAsText(file);

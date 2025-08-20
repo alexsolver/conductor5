@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, UserPlus, FileText, Settings } from "lucide-react";
+// import { useLocalization } from '@/hooks/useLocalization';
 
 const quickActions = [
   {
+  // Localization temporarily disabled
+
     id: "create-ticket",
-    label: "Create Ticket", 
+    label: '[TRANSLATION_NEEDED]', 
     icon: Plus,
   },
   {

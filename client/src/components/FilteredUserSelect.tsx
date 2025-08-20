@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface FilteredUserSelectProps {
   value?: string;
@@ -12,7 +13,9 @@ interface FilteredUserSelectProps {
   className?: string;
 }
 
-export function FilteredUserSelect({ 
+export function FilteredUserSelect({
+  // Localization temporarily disabled
+ 
   value, 
   onChange, 
   selectedGroupId,
@@ -66,7 +69,7 @@ export function FilteredUserSelect({
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder="Carregando usuários..." />
+          <SelectValue placeholder='[TRANSLATION_NEEDED]' />
         </SelectTrigger>
       </Select>
     );

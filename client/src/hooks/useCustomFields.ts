@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CustomField } from "@/components/layout/DynamicFieldRenderer";
+import { useLocalization } from '@/hooks/useLocalization';
 
 interface UseCustomFieldsProps {
   ticketId?: string;
@@ -10,7 +11,9 @@ interface UseCustomFieldsProps {
   entityId?: string;
 }
 
-export function useCustomFields({ ticketId, entityType = 'ticket', entityId }: UseCustomFieldsProps) {
+export function useCustomFields({
+  const { t } = useLocalization();
+ ticketId, entityType = 'ticket', entityId }: UseCustomFieldsProps) {
   const [fields, setFields] = useState<CustomField[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -60,7 +63,7 @@ export function useCustomFields({ ticketId, entityType = 'ticket', entityId }: U
     },
     onSuccess: () => {
       toast({
-        title: "Sucesso",
+        title: {t('common.sucesso')},
         description: "Campos customizados salvos com sucesso"
       });
       queryClient.invalidateQueries({ 
@@ -69,7 +72,7 @@ export function useCustomFields({ ticketId, entityType = 'ticket', entityId }: U
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro",
+        title: {t('common.erro')},
         description: error.message || "Falha ao salvar campos customizados",
         variant: "destructive"
       });
@@ -138,7 +141,7 @@ export function useCustomFields({ ticketId, entityType = 'ticket', entityId }: U
     setFields([]);
     toast({
       title: "Campos limpos",
-      description: "Todos os campos customizados foram removidos"
+      description: {t('common.todosOsCamposCustomizadosForamRemovidos')}
     });
   }, [toast]);
 

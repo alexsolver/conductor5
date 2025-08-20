@@ -9,6 +9,7 @@ import { MapPin, Plus, Trash2, Star, StarOff, Navigation } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import MapSelector from './MapSelector';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 interface CustomerLocationManagerProps {
   customerId: string;
@@ -36,7 +37,9 @@ interface CustomerLocation {
   };
 }
 
-export function CustomerLocationManager({ 
+export function CustomerLocationManager({
+  // Localization temporarily disabled
+ 
   customerId, 
   isOpen, 
   onClose, 
@@ -81,7 +84,7 @@ export function CustomerLocationManager({
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao adicionar localização",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Não foi possível associar a localização ao cliente.",
         variant: "destructive"
       });
@@ -106,7 +109,7 @@ export function CustomerLocationManager({
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao remover localização",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Não foi possível remover a localização do cliente.",
         variant: "destructive"
       });
@@ -129,7 +132,7 @@ export function CustomerLocationManager({
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao definir localização principal",
+        title: '[TRANSLATION_NEEDED]',
         description: error.message || "Não foi possível definir a localização como principal.",
         variant: "destructive"
       });
@@ -139,8 +142,8 @@ export function CustomerLocationManager({
   const handleAddLocation = () => {
     if (!selectedLocationId) {
       toast({
-        title: "Selecione uma localização",
-        description: "Escolha uma localização para associar ao cliente.",
+        title: '[TRANSLATION_NEEDED]',
+        description: '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
       return;
@@ -154,7 +157,7 @@ export function CustomerLocationManager({
     console.log('Removing location:', locationId);
     if (!locationId) {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: "ID da localização não encontrado.",
         variant: "destructive"
       });
@@ -221,7 +224,7 @@ export function CustomerLocationManager({
               <div className="flex-1">
                 <Select value={selectedLocationId} onValueChange={setSelectedLocationId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma localização existente..." />
+                    <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                   </SelectTrigger>
                   <SelectContent>
                     {availableLocations.map((location: any) => (

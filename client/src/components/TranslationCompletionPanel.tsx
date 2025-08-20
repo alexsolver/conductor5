@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Card, 
   CardContent, 
   CardDescription, 
@@ -45,6 +46,8 @@ interface CompletionReport {
 }
 
 export function TranslationCompletionPanel() {
+  // Localization temporarily disabled
+
   const { toast } = useToast();
   const [isCompleting, setIsCompleting] = useState(false);
   
@@ -78,7 +81,7 @@ export function TranslationCompletionPanel() {
     },
     onError: (error) => {
       toast({
-        title: "Erro na Tradução Automática",
+        title: '[TRANSLATION_NEEDED]',
         description: "Falha ao completar traduções automaticamente",
         variant: "destructive"
       });

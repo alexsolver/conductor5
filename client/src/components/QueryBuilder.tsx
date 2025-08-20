@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Filter } from 'lucide-react';
+// import { useLocalization } from '@/hooks/useLocalization';
 
 // SLA Schema imports - following 1qa.md
 import type {
@@ -21,7 +22,9 @@ import type {
 // ======================================
 
 const operatorOptions = [
-  { value: 'equals', label: 'Igual a' },
+  {
+  // Localization temporarily disabled
+ value: 'equals', label: 'Igual a' },
   { value: 'not_equals', label: 'Diferente de' },
   { value: 'greater_than', label: 'Maior que' },
   { value: 'greater_than_or_equal', label: 'Maior ou igual a' },
@@ -158,7 +161,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                     onValueChange={(val) => updateRule(index, { ...rule, field: val as TicketField })}
                   >
                     <SelectTrigger data-testid={`select-field-${index}`}>
-                      <SelectValue placeholder="Selecione o campo" />
+                      <SelectValue placeholder='[TRANSLATION_NEEDED]' />
                     </SelectTrigger>
                     <SelectContent>
                       {fieldOptions.map(option => (

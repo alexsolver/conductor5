@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
+// import useLocalization from '@/hooks/useLocalization';
   Shield, 
   FileCheck, 
   Database, 
@@ -72,6 +73,8 @@ interface DigitalKey {
 }
 
 export default function CLTCompliance() {
+  // Localization temporarily disabled
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -91,11 +94,11 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: "Erro na Reconstituição",
+        title: '[TRANSLATION_NEEDED]',
         description: "Falha ao reconstituir cadeia de integridade",
         variant: "destructive"
       });
-      console.error('Erro na reconstituição:', error);
+      console.error('[TRANSLATION_NEEDED]', error);
     }
   });
   const [selectedPeriod, setSelectedPeriod] = useState({
@@ -148,7 +151,7 @@ export default function CLTCompliance() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: '[TRANSLATION_NEEDED]',
         description: `Falha ao gerar relatório: ${error.message}`,
         variant: "destructive"
       });

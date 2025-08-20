@@ -3,6 +3,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
+// import { useLocalization } from '@/hooks/useLocalization';
   Settings, 
   Eye, 
   EyeOff, 
@@ -24,6 +25,8 @@ interface CustomFieldsWrapperProps {
 }
 
 export function CustomFieldsWrapper({
+  // Localization temporarily disabled
+
   moduleType,
   pageType,
   form,
@@ -220,7 +223,7 @@ export function CustomFieldsWrapper({
               <Settings className="h-4 w-4 text-purple-600 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-purple-900">🎯 Sistema Drag & Drop Ativo</p>
-                <p className="text-purple-700">Clique no botão "Editar Layout" (canto inferior direito) para arrastar campos personalizados para o formulário</p>
+                <p className="text-purple-700">Clique no botão '[TRANSLATION_NEEDED]' (canto inferior direito) para arrastar campos personalizados para o formulário</p>
               </div>
             </div>
             <div className="border-t border-purple-200 pt-3">

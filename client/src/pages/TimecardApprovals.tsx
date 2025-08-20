@@ -13,6 +13,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { CheckCircle, XCircle, Clock, User, Calendar, MapPin, MessageSquare, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+// import useLocalization from '@/hooks/useLocalization';
 
 interface PendingApproval {
   id: string;
@@ -32,6 +33,8 @@ interface PendingApproval {
 }
 
 export default function TimecardApprovals() {
+  // Localization temporarily disabled
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedApprovals, setSelectedApprovals] = useState<string[]>([]);
@@ -66,7 +69,7 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao aprovar o registro.",
         variant: "destructive",
       });
@@ -99,7 +102,7 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao rejeitar o registro.",
         variant: "destructive",
       });
@@ -122,7 +125,7 @@ export default function TimecardApprovals() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Falha ao aprovar os registros selecionados.",
         variant: "destructive",
       });
@@ -142,7 +145,7 @@ export default function TimecardApprovals() {
   const handleRejectConfirm = () => {
     if (!currentRejectId || !rejectionReason.trim()) {
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: "Motivo da rejeição é obrigatório.",
         variant: "destructive",
       });
@@ -159,8 +162,8 @@ export default function TimecardApprovals() {
   const handleBulkApprove = () => {
     if (selectedApprovals.length === 0) {
       toast({
-        title: "Nenhum registro selecionado",
-        description: "Selecione ao menos um registro para aprovar.",
+        title: 'Nenhum Registro Selecionado',
+        description: 'Selecione ao Menos um Registro para Aprovar',
         variant: "destructive",
       });
       return;

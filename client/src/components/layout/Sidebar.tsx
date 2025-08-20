@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useEmploymentDetection } from "@/hooks/useEmploymentDetection";
+// import { useLocalization } from "@/hooks/useLocalization";
 import { useState } from "react";
 import { 
   BarChart3, 
@@ -115,7 +116,7 @@ const baseNavigation: Array<{
   { name: "Compliance", href: "/compliance", icon: Shield },
   { name: "GDPR Compliance", href: "/gdpr-compliance", icon: Shield },
   {
-    name: "Reports",
+    name: "Relatórios",
     icon: PieChart,
     children: [
       { name: "Productivity Reports", href: "/productivity-reports", icon: PieChart },
@@ -179,7 +180,7 @@ const adminNavigation = [
 ];
 
 const secondaryNavigation = [
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Configurações", href: "/settings", icon: Settings },
   { name: "Security", href: "/security", icon: Shield },
   { name: "Help & Support", href: "/help", icon: HelpCircle },
 ];
@@ -352,7 +353,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 </div>
                 {!collapsed && (
                   <span className="text-sm font-medium text-white transition-opacity duration-300">
-                    {tenantData?.name || 'Carregando...'}
+                    {tenantData?.name || '[TRANSLATION_NEEDED]'}
                   </span>
                 )}
               </div>

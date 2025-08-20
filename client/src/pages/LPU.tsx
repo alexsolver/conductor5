@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import {
+// import useLocalization from '@/hooks/useLocalization';
   Plus, Search, Edit, Eye, Copy, Trash2, TrendingUp, DollarSign, Settings, BarChart3,
   FileText, Clock, CheckCircle, Calculator, X, Save, RotateCcw, Check, AlertCircle,
   History, Upload, Download, Users, Target, Percent, Hash, Calendar, Building,
@@ -80,6 +81,8 @@ interface LPUStats {
 }
 
 export default function LPU() {
+  // Localization temporarily disabled
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
@@ -162,8 +165,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar lista de preços",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -183,8 +186,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar lista de preços",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -204,8 +207,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir lista de preços",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -223,8 +226,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao duplicar lista de preços",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -244,8 +247,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar regra de precificação",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -265,8 +268,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar regra de precificação",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -285,8 +288,8 @@ export default function LPU() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir regra de precificação",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -301,14 +304,14 @@ export default function LPU() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({
-        title: "Regras aplicadas com sucesso!",
+        title: '[TRANSLATION_NEEDED]',
         description: `${data.affectedItems || 0} itens atualizados`
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao aplicar regras",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -375,7 +378,7 @@ export default function LPU() {
       <CardContent className="p-4">
         <h3 className="text-red-800 font-medium">{title}</h3>
         <p className="text-red-600 text-sm mt-1">
-          {error?.message || 'Erro desconhecido'}
+          {error?.message || '[TRANSLATION_NEEDED]'}
         </p>
       </CardContent>
     </Card>
@@ -406,7 +409,7 @@ export default function LPU() {
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-gray-900">Erro no Sistema LPU</h3>
             <p className="text-sm text-gray-600">
-              {errorMessage || 'Erro interno do servidor'}
+              {errorMessage || '[TRANSLATION_NEEDED]'}
             </p>
           </div>
           <div className="flex gap-2 justify-center">
@@ -586,7 +589,7 @@ export default function LPU() {
             <div className="relative w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar listas de preços..."
+                placeholder='[TRANSLATION_NEEDED]'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -603,7 +606,7 @@ export default function LPU() {
               <div className="text-center py-8">Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {priceLists.length === 0 ? "Nenhuma lista encontrada" : "Nenhum resultado para a busca"}
+                {priceLists.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
               </div>
             ) : (
               filteredPriceLists.map((list: PriceList) => (
@@ -698,7 +701,7 @@ export default function LPU() {
             <div className="relative w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar regras de precificação..."
+                placeholder='[TRANSLATION_NEEDED]'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -715,7 +718,7 @@ export default function LPU() {
               <div className="text-center py-8">Carregando regras...</div>
             ) : filteredPricingRules.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {pricingRules.length === 0 ? "Nenhuma regra configurada" : "Nenhum resultado para a busca"}
+                {pricingRules.length === 0 ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'}
               </div>
             ) : (
               filteredPricingRules.map((rule: PricingRule) => (
@@ -1316,7 +1319,7 @@ export default function LPU() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name}` : 'Criar Nova Versão'}
+              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name}` : '[TRANSLATION_NEEDED]'}
             </DialogTitle>
             <DialogDescription>
               Visualize o histórico de alterações e gerencie versões
@@ -1417,7 +1420,7 @@ function PriceListForm({
     // Enhanced validation
     if (!formData.name.trim()) {
       toast({
-        title: "Erro de Validação",
+        title: '[TRANSLATION_NEEDED]',
         description: "Nome da lista é obrigatório",
         variant: "destructive"
       });
@@ -1426,7 +1429,7 @@ function PriceListForm({
 
     if (formData.validTo && new Date(formData.validTo) <= new Date(formData.validFrom)) {
       toast({
-        title: "Erro de Validação",
+        title: '[TRANSLATION_NEEDED]',
         description: "Data de término deve ser posterior à data de início",
         variant: "destructive"
       });
@@ -1495,7 +1498,7 @@ function PriceListForm({
             onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione a moeda" />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
@@ -1526,7 +1529,7 @@ function PriceListForm({
           onValueChange={(value) => setFormData(prev => ({ ...prev, customerCompanyId: value === 'none' ? undefined : value }))}
         >
           <SelectTrigger>
-            <SelectValue placeholder={companiesLoading ? "Carregando empresas..." : "Selecione uma empresa"} />
+            <SelectValue placeholder={companiesLoading ? '[TRANSLATION_NEEDED]' : '[TRANSLATION_NEEDED]'} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Nenhuma empresa específica</SelectItem>
@@ -1552,7 +1555,7 @@ function PriceListForm({
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           rows={3}
-          placeholder="Observações sobre a lista de preços..."
+          placeholder='[TRANSLATION_NEEDED]'
         />
       </div>
 
@@ -1729,8 +1732,8 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao adicionar item",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -1749,8 +1752,8 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar item",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -1768,8 +1771,8 @@ function PriceListItemsView({
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao remover item",
-        description: error?.message || 'Erro desconhecido',
+        title: '[TRANSLATION_NEEDED]',
+        description: error?.message || '[TRANSLATION_NEEDED]',
         variant: "destructive"
       });
     }
@@ -1996,7 +1999,7 @@ function ApprovalWorkflowComponent({
               value={approvalNotes}
               onChange={(e) => setApprovalNotes(e.target.value)}
               rows={3}
-              placeholder="Adicione observações sobre a aprovação..."
+              placeholder='[TRANSLATION_NEEDED]'
             />
           </div>
 
@@ -2018,7 +2021,7 @@ function ApprovalWorkflowComponent({
               variant="destructive"
               onClick={() => {
                 toast({
-                  title: `${selectedForApproval.length} item(s) rejeitado(s)`,
+                  title: '[TRANSLATION_NEEDED]',
                   variant: "destructive"
                 });
                 setSelectedForApproval([]);
@@ -2199,7 +2202,7 @@ function PriceListItemForm({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um item do catálogo" />
+              <SelectValue placeholder='[TRANSLATION_NEEDED]' />
             </SelectTrigger>
             <SelectContent>
               {safeCatalogItems.length === 0 ? (

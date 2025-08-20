@@ -24,6 +24,7 @@ import {
   Wrench,
   Box
 } from 'lucide-react';
+// import useLocalization from '@/hooks/useLocalization';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -61,6 +62,8 @@ interface CostsSummary {
 }
 
 export default function TicketMaterials() {
+  // Localization temporarily disabled
+
   const { id: ticketId } = useParams();
   const [activeTab, setActiveTab] = useState('planned');
   const [plannedSubTab, setPlannedSubTab] = useState('all'); // all, material, service
@@ -611,9 +614,9 @@ export default function TicketMaterials() {
                             )}
                           </div>
                           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                            {plannedSubTab === 'all' ? 'Nenhum item planejado' :
-                             plannedSubTab === 'material' ? 'Nenhum material planejado' :
-                             'Nenhum serviço planejado'}
+                            {plannedSubTab === 'all' ? 'Nenhum Item Planejado' :
+                             plannedSubTab === 'material' ? 'Nenhum Material Planejado' :
+                             'Nenhum Serviço Planejado'}
                           </h3>
                           <p className="text-gray-500 mb-6">
                             {plannedSubTab === 'all' ? 'Adicione materiais e serviços para começar o planejamento.' :
@@ -712,7 +715,7 @@ export default function TicketMaterials() {
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione um item..." />
+                            <SelectValue placeholder="Selecione um Item" />
                           </SelectTrigger>
                           <SelectContent>
                             {(availableItems as any)?.data?.items?.map((item: any) => (
@@ -739,7 +742,7 @@ export default function TicketMaterials() {
                         <Textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
-                          placeholder="Observações sobre o planejamento..."
+                          placeholder="Observações sobre o Planejamento"
                         />
                       </div>
 
@@ -766,7 +769,7 @@ export default function TicketMaterials() {
                         <Label>Item</Label>
                         <Select value={selectedItem} onValueChange={setSelectedItem}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione um item..." />
+                            <SelectValue placeholder="Selecione um Item" />
                           </SelectTrigger>
                           <SelectContent>
                             {(availableItems as any)?.data?.items?.map((item: any) => (
@@ -793,7 +796,7 @@ export default function TicketMaterials() {
                         <Textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
-                          placeholder="Observações sobre o consumo..."
+                          placeholder='[TRANSLATION_NEEDED]'
                         />
                       </div>
 
