@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -81,8 +80,6 @@ interface LPUStats {
 }
 
 export default function LPU() {
-  const { t } = useTranslation();
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
@@ -161,11 +158,11 @@ export default function LPU() {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });
       setIsCreateDialogOpen(false);
-      toast({ title: t('messages.lista_de_preos_criada_com_sucesso') });
+      toast({ title: "Lista de preços criada com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('messages.erro_ao_criar_lista_de_preos'),
+        title: "Erro ao criar lista de preços",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -182,11 +179,11 @@ export default function LPU() {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       setIsEditDialogOpen(false);
       setSelectedPriceList(null);
-      toast({ title: t('messages.lista_de_preos_atualizada_com_sucesso') });
+      toast({ title: "Lista de preços atualizada com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('messages.erro_ao_atualizar_lista_de_preos'),
+        title: "Erro ao atualizar lista de preços",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -203,11 +200,11 @@ export default function LPU() {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });
       setIsDeleteDialogOpen(false);
       setItemToDelete(null);
-      toast({ title: t('messages.lista_de_preos_excluda_com_sucesso') });
+      toast({ title: "Lista de preços excluída com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('messages.erro_ao_excluir_lista_de_preos'),
+        title: "Erro ao excluir lista de preços",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -222,11 +219,11 @@ export default function LPU() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
-      toast({ title: t('messages.lista_de_preos_duplicada_com_sucesso') });
+      toast({ title: "Lista de preços duplicada com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('messages.erro_ao_duplicar_lista_de_preos'),
+        title: "Erro ao duplicar lista de preços",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -243,11 +240,11 @@ export default function LPU() {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });
       setIsCreateRuleDialogOpen(false);
-      toast({ title: t('messages.regra_de_precificao_criada_com_sucesso') });
+      toast({ title: "Regra de precificação criada com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('messages.erro_ao_criar_regra_de_precificao'),
+        title: "Erro ao criar regra de precificação",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -264,11 +261,11 @@ export default function LPU() {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
       setIsEditRuleDialogOpen(false);
       setSelectedPricingRule(null);
-      toast({ title: t('messages.regra_de_precificao_atualizada_com_sucesso') });
+      toast({ title: "Regra de precificação atualizada com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('messages.erro_ao_atualizar_regra_de_precificao'),
+        title: "Erro ao atualizar regra de precificação",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -284,11 +281,11 @@ export default function LPU() {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
       setIsDeleteRuleDialogOpen(false);
       setItemToDelete(null);
-      toast({ title: t('messages.regra_de_precificao_excluda_com_sucesso') });
+      toast({ title: "Regra de precificação excluída com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('messages.erro_ao_excluir_regra_de_precificao'),
+        title: "Erro ao excluir regra de precificação",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -304,13 +301,13 @@ export default function LPU() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({
-        title: t('messages.regras_aplicadas_com_sucesso'),
-        description: t('messages.dataaffecteditems_0_itens_atualizados')
+        title: "Regras aplicadas com sucesso!",
+        description: `${data.affectedItems || 0} itens atualizados`
       });
     },
     onError: (error: any) => {
       toast({
-        title: t('titles.erro_ao_aplicar_regras'),
+        title: "Erro ao aplicar regras",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -391,8 +388,8 @@ export default function LPU() {
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <div className="space-y-2">
-            <p className="text-lg font-medium text-gray-900">{t('messages.carregando_sistema_lpu')}/p>
-            <p className="text-sm text-gray-600">{t('messages.preparando_listas_de_preos_e_regras')}/p>
+            <p className="text-lg font-medium text-gray-900">Carregando Sistema LPU</p>
+            <p className="text-sm text-gray-600">Preparando listas de preços e regras...</p>
           </div>
         </div>
       </div>
@@ -407,13 +404,15 @@ export default function LPU() {
         <div className="text-center space-y-4 max-w-md">
           <div className="text-red-500 text-4xl">⚠️</div>
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-gray-900">{t('messages.erro_no_sistema_lpu')}/h3>
+            <h3 className="text-lg font-semibold text-gray-900">Erro no Sistema LPU</h3>
             <p className="text-sm text-gray-600">
               {errorMessage || 'Erro interno do servidor'}
             </p>
           </div>
           <div className="flex gap-2 justify-center">
-            <Button onClick={() =>{t('messages.windowlocationreload_variantoutline_recarregar_pgi')}</Button>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Recarregar Página
+            </Button>
             <Button onClick={() => {
               queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
               queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });
@@ -432,7 +431,7 @@ export default function LPU() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">LPU - Lista de Preços Unitários</h1>
-          <p className="text-muted-foreground">{t('messages.sistema_completo_de_gesto_de_listas_de_preos_e_reg')}/p>
+          <p className="text-muted-foreground">Sistema completo de gestão de listas de preços e regras de precificação</p>
         </div>
       </div>
 
@@ -440,13 +439,13 @@ export default function LPU() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview">{t('messages.viso_geral_1')}/TabsTrigger>
-          <TabsTrigger value="price-lists">{t('messages.listas_de_preos')}/TabsTrigger>
-          <TabsTrigger value="pricing-rules">{t('messages.regras_de_precificao')}/TabsTrigger>
-          <TabsTrigger value="associations">{t('messages.associaes_1')}/TabsTrigger>
-          <TabsTrigger value="advanced-config">{t('messages.configuraes_avanadas')}/TabsTrigger>
-          <TabsTrigger value="versions">{t('messages.verses')}/TabsTrigger>
-          <TabsTrigger value="analytics">{t('messages.anlises')}/TabsTrigger>
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="price-lists">Listas de Preços</TabsTrigger>
+          <TabsTrigger value="pricing-rules">Regras de Precificação</TabsTrigger>
+          <TabsTrigger value="associations">Associações</TabsTrigger>
+          <TabsTrigger value="advanced-config">Configurações Avançadas</TabsTrigger>
+          <TabsTrigger value="versions">Versões</TabsTrigger>
+          <TabsTrigger value="analytics">Análises</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -454,7 +453,7 @@ export default function LPU() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t('messages.total_de_listas')}/CardTitle>
+                <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -469,7 +468,7 @@ export default function LPU() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t('messages.regras_ativas')}/CardTitle>
+                <CardTitle className="text-sm font-medium">Regras Ativas</CardTitle>
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -484,7 +483,7 @@ export default function LPU() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t('messages.taxa_de_aprovao')}/CardTitle>
+                <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -499,7 +498,7 @@ export default function LPU() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{t('messages.pendente_aprovao')}/CardTitle>
+                <CardTitle className="text-sm font-medium">Pendente Aprovação</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -516,8 +515,8 @@ export default function LPU() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('messages.aes_rpidas_1')}/CardTitle>
-              <CardDescription>{t('messages.operaes_comuns_do_sistema_lpu')}/CardDescription>
+              <CardTitle>Ações Rápidas</CardTitle>
+              <CardDescription>Operações comuns do sistema LPU</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
@@ -587,7 +586,7 @@ export default function LPU() {
             <div className="relative w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('messages.buscar_listas_de_preos')}
+                placeholder="Buscar listas de preços..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -601,7 +600,7 @@ export default function LPU() {
 
           <div className="grid gap-4">
             {priceListsLoading ? (
-              <div className="text-center py-8">{t('messages.carregando_listas')}/div>
+              <div className="text-center py-8">Carregando listas...</div>
             ) : filteredPriceLists.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 {priceLists.length === 0 ? "Nenhuma lista encontrada" : "Nenhum resultado para a busca"}
@@ -669,7 +668,7 @@ export default function LPU() {
                               id: list.id,
                               data: { isActive: true }
                             });
-                            toast({ title: t('messages.lista_aprovada_e_ativada') });
+                            toast({ title: "Lista aprovada e ativada!" });
                           }}
                         >
                           <CheckCircle className="mr-1 h-3 w-3" />
@@ -699,7 +698,7 @@ export default function LPU() {
             <div className="relative w-72">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('messages.buscar_regras_de_precificao')}
+                placeholder="Buscar regras de precificação..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -713,7 +712,7 @@ export default function LPU() {
 
           <div className="grid gap-4">
             {rulesLoading ? (
-              <div className="text-center py-8">{t('messages.carregando_regras')}/div>
+              <div className="text-center py-8">Carregando regras...</div>
             ) : filteredPricingRules.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 {pricingRules.length === 0 ? "Nenhuma regra configurada" : "Nenhum resultado para a busca"}
@@ -758,8 +757,8 @@ export default function LPU() {
         <TabsContent value="associations" className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{t('messages.associao_de_regras')}/h2>
-              <p className="text-gray-600">{t('messages.associe_regras_de_precificao_s_listas_de_preos')}/p>
+              <h2 className="text-2xl font-bold text-gray-900">Associação de Regras</h2>
+              <p className="text-gray-600">Associe regras de precificação às listas de preços</p>
             </div>
           </div>
 
@@ -767,8 +766,8 @@ export default function LPU() {
             {/* Lista de Preços */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.listas_de_preos')}/CardTitle>
-                <CardDescription>{t('titles.selecione_uma_lista_para_gerenciar_suas_regras')}/CardDescription>
+                <CardTitle>Listas de Preços</CardTitle>
+                <CardDescription>Selecione uma lista para gerenciar suas regras</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -800,8 +799,8 @@ export default function LPU() {
             {/* Regras Disponíveis */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.regras_de_precificao')}/CardTitle>
-                <CardDescription>{t('messages.regras_disponveis_para_associao')}/CardDescription>
+                <CardTitle>Regras de Precificação</CardTitle>
+                <CardDescription>Regras disponíveis para associação</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -827,7 +826,7 @@ export default function LPU() {
           {selectedPriceListForRules && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.aplicar_regras_lista_selecionada')}/CardTitle>
+                <CardTitle>Aplicar Regras à Lista Selecionada</CardTitle>
                 <CardDescription>
                   Aplique as regras ativas aos itens da lista de preços selecionada
                 </CardDescription>
@@ -853,8 +852,8 @@ export default function LPU() {
         <TabsContent value="advanced-config" className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">{t('messages.configuraes_avanadas')}/h2>
-              <p className="text-muted-foreground">{t('messages.configuraes_detalhadas_de_margens_fatores_sazonais')}/p>
+              <h2 className="text-2xl font-bold">Configurações Avançadas</h2>
+              <p className="text-muted-foreground">Configurações detalhadas de margens, fatores sazonais e simulações</p>
             </div>
             <div className="flex space-x-2">
               <Button onClick={() => setIsPriceSimulatorOpen(true)} variant="outline">
@@ -873,7 +872,7 @@ export default function LPU() {
               priceListId={selectedPriceList.id}
               onSave={(margins) => {
                 console.log('Saving margin configuration:', margins);
-                toast({ title: t('messages.configuraes_de_margem_salvas_com_sucesso') });
+                toast({ title: "Configurações de margem salvas com sucesso!" });
               }}
             />
           ) : (
@@ -885,7 +884,10 @@ export default function LPU() {
                 </p>
                 <Button 
                   className="mt-4" 
-                  onClick={() =>{t('messages.setactivetabpricelists_ir_para_listas_de_preos')}</Button>
+                  onClick={() => setActiveTab("price-lists")}
+                >
+                  Ir para Listas de Preços
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -894,8 +896,8 @@ export default function LPU() {
         <TabsContent value="versions" className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">{t('messages.controle_de_verses')}/h2>
-              <p className="text-muted-foreground">{t('messages.gerenciar_verses_e_histrico_de_listas_de_preos')}/p>
+              <h2 className="text-2xl font-bold">Controle de Versões</h2>
+              <p className="text-muted-foreground">Gerenciar versões e histórico de listas de preços</p>
             </div>
             <Button onClick={() => setIsVersionDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -929,12 +931,12 @@ export default function LPU() {
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{t('labels.ltima_modificao')}/span>
+                      <span className="text-muted-foreground">Última modificação:</span>
                       <span>{new Date(list.updatedAt).toLocaleString()}</span>
                     </div>
 
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{t('labels.status_1')}/span>
+                      <span className="text-muted-foreground">Status:</span>
                       <Badge variant={list.isActive ? "default" : "secondary"}>
                         {list.isActive ? "Ativa" : "Inativa"}
                       </Badge>
@@ -944,15 +946,15 @@ export default function LPU() {
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
                           <div className="text-2xl font-bold text-blue-600">1</div>
-                          <div className="text-xs text-muted-foreground">{t('messages.verses')}/div>
+                          <div className="text-xs text-muted-foreground">Versões</div>
                         </div>
                         <div>
                           <div className="text-2xl font-bold text-green-600">{priceListItems.length}</div>
-                          <div className="text-xs text-muted-foreground">{t('titles.itens')}/div>
+                          <div className="text-xs text-muted-foreground">Itens</div>
                         </div>
                         <div>
                           <div className="text-2xl font-bold text-purple-600">0</div>
-                          <div className="text-xs text-muted-foreground">{t('messages.alteraes')}/div>
+                          <div className="text-xs text-muted-foreground">Alterações</div>
                         </div>
                       </div>
                     </div>
@@ -961,7 +963,7 @@ export default function LPU() {
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => {
                         const newVersion = (parseFloat(list.version) + 0.1).toFixed(1);
                         duplicatePriceListMutation.mutate(list.id);
-                        toast({ title: t('messages.nova_verso_newversion_criada') });
+                        toast({ title: `Nova versão ${newVersion} criada!` });
                       }}>
                         <Copy className="mr-1 h-3 w-3" />
                         Criar Nova Versão
@@ -981,8 +983,8 @@ export default function LPU() {
           {priceLists.length === 0 && (
             <div className="text-center py-12">
               <History className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium">{t('messages.nenhuma_lista_de_preos_encontrada')}/h3>
-              <p className="text-muted-foreground mb-4">{t('messages.crie_sua_primeira_lista_para_comear_o_controle_de_')}/p>
+              <h3 className="text-lg font-medium">Nenhuma lista de preços encontrada</h3>
+              <p className="text-muted-foreground mb-4">Crie sua primeira lista para começar o controle de versões</p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Criar Primeira Lista
@@ -994,8 +996,8 @@ export default function LPU() {
         <TabsContent value="analytics" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">{t('messages.anlises_e_relatrios')}/h2>
-              <p className="text-muted-foreground">{t('messages.insights_detalhados_sobre_precificao_e_performance')}/p>
+              <h2 className="text-2xl font-bold">Análises e Relatórios</h2>
+              <p className="text-muted-foreground">Insights detalhados sobre precificação e performance</p>
             </div>
             <div className="flex space-x-2">
               <Button variant="outline">
@@ -1015,7 +1017,7 @@ export default function LPU() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('messages.margem_mdia')}/p>
+                    <p className="text-sm text-muted-foreground">Margem Média</p>
                     <p className="text-2xl font-bold text-green-600">18.5%</p>
                   </div>
                   <Percent className="h-8 w-8 text-green-600" />
@@ -1023,7 +1025,7 @@ export default function LPU() {
                 <div className="flex items-center mt-2 text-sm">
                   <ArrowUp className="h-4 w-4 text-green-600 mr-1" />
                   <span className="text-green-600">+2.3%</span>
-                  <span className="text-muted-foreground ml-1">{t('messages.vs_ms_anterior')}/span>
+                  <span className="text-muted-foreground ml-1">vs mês anterior</span>
                 </div>
               </CardContent>
             </Card>
@@ -1032,14 +1034,14 @@ export default function LPU() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('messages.regras_aplicadas')}/p>
+                    <p className="text-sm text-muted-foreground">Regras Aplicadas</p>
                     <p className="text-2xl font-bold text-blue-600">{pricingRules.filter(r => r.isActive).length}</p>
                   </div>
                   <Calculator className="h-8 w-8 text-blue-600" />
                 </div>
                 <div className="flex items-center mt-2 text-sm">
                   <span className="text-blue-600">{Math.round((pricingRules.filter(r => r.isActive).length / pricingRules.length) * 100)}%</span>
-                  <span className="text-muted-foreground ml-1">{t('messages.das_regras_esto_ativas')}/span>
+                  <span className="text-muted-foreground ml-1">das regras estão ativas</span>
                 </div>
               </CardContent>
             </Card>
@@ -1048,14 +1050,14 @@ export default function LPU() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('messages.itens_com_preos')}/p>
+                    <p className="text-sm text-muted-foreground">Itens com Preços</p>
                     <p className="text-2xl font-bold text-purple-600">{priceListItems.length}</p>
                   </div>
                   <Package className="h-8 w-8 text-purple-600" />
                 </div>
                 <div className="flex items-center mt-2 text-sm">
                   <span className="text-purple-600">100%</span>
-                  <span className="text-muted-foreground ml-1">{t('messages.cobertura_de_preos')}/span>
+                  <span className="text-muted-foreground ml-1">cobertura de preços</span>
                 </div>
               </CardContent>
             </Card>
@@ -1064,7 +1066,7 @@ export default function LPU() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('messages.valor_mdio')}/p>
+                    <p className="text-sm text-muted-foreground">Valor Médio</p>
                     <p className="text-2xl font-bold text-orange-600">R$ 125,50</p>
                   </div>
                   <DollarSign className="h-8 w-8 text-orange-600" />
@@ -1072,7 +1074,7 @@ export default function LPU() {
                 <div className="flex items-center mt-2 text-sm">
                   <ArrowUp className="h-4 w-4 text-orange-600 mr-1" />
                   <span className="text-orange-600">+5.2%</span>
-                  <span className="text-muted-foreground ml-1">{t('messages.vs_ms_anterior')}/span>
+                  <span className="text-muted-foreground ml-1">vs mês anterior</span>
                 </div>
               </CardContent>
             </Card>
@@ -1082,8 +1084,8 @@ export default function LPU() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.performance_das_listas')}/CardTitle>
-                <CardDescription>{t('messages.comparativo_de_utilizao_e_eficincia')}/CardDescription>
+                <CardTitle>Performance das Listas</CardTitle>
+                <CardDescription>Comparativo de utilização e eficiência</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -1098,7 +1100,7 @@ export default function LPU() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">{Math.floor(Math.random() * 100) + 50}%</p>
-                        <p className="text-sm text-muted-foreground">{t('messages.utilizao')}/p>
+                        <p className="text-sm text-muted-foreground">utilização</p>
                       </div>
                     </div>
                   ))}
@@ -1108,29 +1110,29 @@ export default function LPU() {
 
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.tendncias_de_preos')}/CardTitle>
-                <CardDescription>{t('messages.evoluo_dos_preos_ao_longo_do_tempo')}/CardDescription>
+                <CardTitle>Tendências de Preços</CardTitle>
+                <CardDescription>Evolução dos preços ao longo do tempo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="p-3 border rounded-lg">
                       <div className="text-lg font-bold text-green-600">+12%</div>
-                      <div className="text-xs text-muted-foreground">{t('messages.ltimos_30_dias')}/div>
+                      <div className="text-xs text-muted-foreground">Últimos 30 dias</div>
                     </div>
                     <div className="p-3 border rounded-lg">
                       <div className="text-lg font-bold text-blue-600">+8%</div>
-                      <div className="text-xs text-muted-foreground">{t('messages.ltimos_90_dias')}/div>
+                      <div className="text-xs text-muted-foreground">Últimos 90 dias</div>
                     </div>
                     <div className="p-3 border rounded-lg">
                       <div className="text-lg font-bold text-purple-600">+15%</div>
-                      <div className="text-xs text-muted-foreground">{t('messages.ltimo_ano')}/div>
+                      <div className="text-xs text-muted-foreground">Último ano</div>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">{t('titles.materiais_1')}/span>
+                      <span className="text-sm">Materiais</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div className="bg-green-600 h-2 rounded-full" style={{ width: '75%' }}></div>
@@ -1140,7 +1142,7 @@ export default function LPU() {
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">{t('messages.servios_1')}/span>
+                      <span className="text-sm">Serviços</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
@@ -1150,7 +1152,7 @@ export default function LPU() {
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">{t('messages.mo_de_obra')}/span>
+                      <span className="text-sm">Mão de Obra</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div className="bg-purple-600 h-2 rounded-full" style={{ width: '85%' }}></div>
@@ -1167,8 +1169,8 @@ export default function LPU() {
           {/* Relatórios Personalizados */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('messages.relatrios_personalizados')}/CardTitle>
-              <CardDescription>{t('messages.gere_relatrios_especficos_para_suas_necessidades')}/CardDescription>
+              <CardTitle>Relatórios Personalizados</CardTitle>
+              <CardDescription>Gere relatórios específicos para suas necessidades</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1196,7 +1198,7 @@ export default function LPU() {
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t('messages.nova_lista_de_preos')}/DialogTitle>
+            <DialogTitle>Nova Lista de Preços</DialogTitle>
             <DialogDescription>
               Configure uma nova lista de preços com parâmetros específicos
             </DialogDescription>
@@ -1213,7 +1215,7 @@ export default function LPU() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t('messages.editar_lista_de_preos')}/DialogTitle>
+            <DialogTitle>Editar Lista de Preços</DialogTitle>
             <DialogDescription>
               Modifique as configurações da lista de preços
             </DialogDescription>
@@ -1236,7 +1238,7 @@ export default function LPU() {
       <Dialog open={isCreateRuleDialogOpen} onOpenChange={setIsCreateRuleDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('messages.nova_regra_de_precificao')}/DialogTitle>
+            <DialogTitle>Nova Regra de Precificação</DialogTitle>
             <DialogDescription>
               Configure uma nova regra para cálculo automático de preços
             </DialogDescription>
@@ -1253,7 +1255,7 @@ export default function LPU() {
       <Dialog open={isEditRuleDialogOpen} onOpenChange={setIsEditRuleDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('messages.editar_regra_de_precificao')}/DialogTitle>
+            <DialogTitle>Editar Regra de Precificação</DialogTitle>
             <DialogDescription>
               Modifique as configurações da regra de precificação
             </DialogDescription>
@@ -1297,7 +1299,7 @@ export default function LPU() {
       <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t('messages.workflow_de_aprovao')}/DialogTitle>
+            <DialogTitle>Workflow de Aprovação</DialogTitle>
             <DialogDescription>
               Gerencie aprovações para listas de preços e alterações
             </DialogDescription>
@@ -1334,14 +1336,14 @@ export default function LPU() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('messages.confirmar_excluso_1')}/AlertDialogTitle>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja excluir este {itemToDelete?.type === 'list' ? 'lista de preços' : 'regra de precificação'}?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setItemToDelete(null)}>{t('titles.cancelar_4')}/AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
               Excluir
             </AlertDialogAction>
@@ -1415,8 +1417,8 @@ function PriceListForm({
     // Enhanced validation
     if (!formData.name.trim()) {
       toast({
-        title: t('forms.erro_de_validao'),
-        description: t('messages.nome_da_lista_obrigatrio'),
+        title: "Erro de Validação",
+        description: "Nome da lista é obrigatório",
         variant: "destructive"
       });
       return;
@@ -1424,8 +1426,8 @@ function PriceListForm({
 
     if (formData.validTo && new Date(formData.validTo) <= new Date(formData.validFrom)) {
       toast({
-        title: t('forms.erro_de_validao'),
-        description: t('messages.data_de_trmino_deve_ser_posterior_data_de_incio'),
+        title: "Erro de Validação",
+        description: "Data de término deve ser posterior à data de início",
         variant: "destructive"
       });
       return;
@@ -1443,17 +1445,17 @@ function PriceListForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="name">{t('messages.nome_da_lista')}/Label>
+          <Label htmlFor="name">Nome da Lista</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             required
-            placeholder={t('messages.digite_o_nome_da_lista_de_preos')}
+            placeholder="Digite o nome da lista de preços"
           />
         </div>
         <div>
-          <Label htmlFor="version">{t('messages.verso_1')}/Label>
+          <Label htmlFor="version">Versão</Label>
           <Input
             id="version"
             value={formData.version}
@@ -1465,7 +1467,7 @@ function PriceListForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="validFrom">{t('messages.vlida_a_partir_de')}/Label>
+          <Label htmlFor="validFrom">Válida a partir de</Label>
           <Input
             id="validFrom"
             type="date"
@@ -1475,7 +1477,7 @@ function PriceListForm({
           />
         </div>
         <div>
-          <Label htmlFor="validTo">{t('messages.vlida_at_opcional')}/Label>
+          <Label htmlFor="validTo">Válida até (opcional)</Label>
           <Input
             id="validTo"
             type="date"
@@ -1487,13 +1489,13 @@ function PriceListForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="currency">{t('titles.moeda')}/Label>
+          <Label htmlFor="currency">Moeda</Label>
           <Select
             value={formData.currency}
             onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
           >
             <SelectTrigger>
-              <SelectValue placeholder={t('titles.selecione_a_moeda')} />
+              <SelectValue placeholder="Selecione a moeda" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
@@ -1503,7 +1505,7 @@ function PriceListForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="automaticMargin">{t('messages.margem_automtica')}/Label>
+          <Label htmlFor="automaticMargin">Margem Automática (%)</Label>
           <Input
             id="automaticMargin"
             type="number"
@@ -1512,13 +1514,13 @@ function PriceListForm({
             max="100"
             value={formData.automaticMargin || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, automaticMargin: e.target.value ? parseFloat(e.target.value) : undefined }))}
-            placeholder={t('messages.ex_105')}
+            placeholder="Ex: 10.5"
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="customerCompanyId">{t('titles.empresa_3')}/Label>
+        <Label htmlFor="customerCompanyId">Empresa</Label>
         <Select
           value={formData.customerCompanyId || 'none'}
           onValueChange={(value) => setFormData(prev => ({ ...prev, customerCompanyId: value === 'none' ? undefined : value }))}
@@ -1527,11 +1529,11 @@ function PriceListForm({
             <SelectValue placeholder={companiesLoading ? "Carregando empresas..." : "Selecione uma empresa"} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">{t('messages.nenhuma_empresa_especfica')}/SelectItem>
+            <SelectItem value="none">Nenhuma empresa específica</SelectItem>
             {companiesLoading ? (
-              <SelectItem value="loading" disabled>{t('messages.carregando_empresas')}/SelectItem>
+              <SelectItem value="loading" disabled>Carregando empresas...</SelectItem>
             ) : customerCompanies.length === 0 ? (
-              <SelectItem value="no-companies" disabled>{t('titles.nenhuma_empresa_encontrada')}/SelectItem>
+              <SelectItem value="no-companies" disabled>Nenhuma empresa encontrada</SelectItem>
             ) : (
               customerCompanies.map((company: any) => (
                 <SelectItem key={company.id} value={company.id}>
@@ -1544,13 +1546,13 @@ function PriceListForm({
       </div>
 
       <div>
-        <Label htmlFor="notes">{t('modals.observaes')}/Label>
+        <Label htmlFor="notes">Observações</Label>
         <Textarea
           id="notes"
           value={formData.notes}
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           rows={3}
-          placeholder={t('messages.observaes_sobre_a_lista_de_preos')}
+          placeholder="Observações sobre a lista de preços..."
         />
       </div>
 
@@ -1562,12 +1564,14 @@ function PriceListForm({
             checked={formData.isActive}
             onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
           />
-          <Label htmlFor="isActive">{t('messages.lista_ativa')}/Label>
+          <Label htmlFor="isActive">Lista Ativa</Label>
         </div>
 
         <div className="flex gap-2">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>{t('titles.cancelar_4')}</Button>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
           )}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (initialData ? "Atualizando..." : "Criando...") : (initialData ? "Atualizar Lista" : "Criar Lista")}
@@ -1609,44 +1613,44 @@ function PricingRuleForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="name">{t('messages.nome_da_regra')}/Label>
+          <Label htmlFor="name">Nome da Regra</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             required
-            placeholder={t('messages.nome_da_regra_de_precificao')}
+            placeholder="Nome da regra de precificação"
           />
         </div>
         <div>
-          <Label htmlFor="ruleType">{t('messages.tipo_de_regra')}/Label>
+          <Label htmlFor="ruleType">Tipo de Regra</Label>
           <Select value={formData.ruleType} onValueChange={(value) => setFormData(prev => ({ ...prev, ruleType: value }))}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="percentual">{t('titles.percentual')}/SelectItem>
-              <SelectItem value="fixo">{t('messages.valor_fixo')}/SelectItem>
-              <SelectItem value="escalonado">{t('titles.escalonada')}/SelectItem>
-              <SelectItem value="dinamico">{t('messages.dinmica')}/SelectItem>
+              <SelectItem value="percentual">Percentual</SelectItem>
+              <SelectItem value="fixo">Valor Fixo</SelectItem>
+              <SelectItem value="escalonado">Escalonada</SelectItem>
+              <SelectItem value="dinamico">Dinâmica</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div>
-        <Label htmlFor="description">{t('modals.descrio')}/Label>
+        <Label htmlFor="description">Descrição</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           rows={3}
-          placeholder={t('messages.descrio_detalhada_da_regra')}
+          placeholder="Descrição detalhada da regra..."
         />
       </div>
 
       <div>
-        <Label htmlFor="priority">{t('messages.prioridade_110')}/Label>
+        <Label htmlFor="priority">Prioridade (1-10)</Label>
         <Input
           id="priority"
           type="number"
@@ -1665,12 +1669,14 @@ function PricingRuleForm({
             checked={formData.isActive}
             onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
           />
-          <Label htmlFor="isActive">{t('messages.regra_ativa')}/Label>
+          <Label htmlFor="isActive">Regra Ativa</Label>
         </div>
 
         <div className="flex gap-2">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>{t('titles.cancelar_4')}</Button>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
           )}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (initialData ? "Atualizando..." : "Criando...") : (initialData ? "Atualizar Regra" : "Criar Regra")}
@@ -1719,11 +1725,11 @@ function PriceListItemsView({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists', priceList?.id, 'items'] });
       setIsAddItemDialogOpen(false);
-      toast({ title: t('messages.item_adicionado_com_sucesso') });
+      toast({ title: "Item adicionado com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('titles.erro_ao_adicionar_item'),
+        title: "Erro ao adicionar item",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -1739,11 +1745,11 @@ function PriceListItemsView({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists', priceList?.id, 'items'] });
       setEditingItem(null);
-      toast({ title: t('messages.item_atualizado_com_sucesso_1') });
+      toast({ title: "Item atualizado com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('titles.erro_ao_atualizar_item_1'),
+        title: "Erro ao atualizar item",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -1758,11 +1764,11 @@ function PriceListItemsView({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists', priceList?.id, 'items'] });
       setItemToDelete(null);
-      toast({ title: t('messages.item_removido_com_sucesso') });
+      toast({ title: "Item removido com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: t('titles.erro_ao_remover_item'),
+        title: "Erro ao remover item",
         description: error?.message || 'Erro desconhecido',
         variant: "destructive"
       });
@@ -1793,12 +1799,12 @@ function PriceListItemsView({
       </div>
 
       {isLoading || catalogLoading ? (
-        <div className="text-center py-8">{t('messages.carregando_itens_2')}/div>
+        <div className="text-center py-8">Carregando itens...</div>
       ) : items.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Package className="w-12 h-12 mx-auto mb-4" />
-          <p>{t('titles.nenhum_item_encontrado_nesta_lista')}/p>
-          <p className="text-sm mt-2">{t('messages.adicione_itens_para_comear_a_usar_a_lista_de_preos')}/p>
+          <p>Nenhum item encontrado nesta lista</p>
+          <p className="text-sm mt-2">Adicione itens para começar a usar a lista de preços</p>
           <Button className="mt-4" onClick={() => setIsAddItemDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Primeiro Item
@@ -1809,13 +1815,13 @@ function PriceListItemsView({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('titles.item_1')}/TableHead>
-                <TableHead>{t('titles.unidade_1')}/TableHead>
-                <TableHead>{t('messages.preo_unitrio')}/TableHead>
-                <TableHead>{t('messages.preo_especial')}/TableHead>
-                <TableHead>{t('messages.taxa_horria')}/TableHead>
-                <TableHead>{t('titles.status_8')}/TableHead>
-                <TableHead>{t('messages.aes_8')}/TableHead>
+                <TableHead>Item</TableHead>
+                <TableHead>Unidade</TableHead>
+                <TableHead>Preço Unitário</TableHead>
+                <TableHead>Preço Especial</TableHead>
+                <TableHead>Taxa Horária</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1866,7 +1872,7 @@ function PriceListItemsView({
       <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('messages.adicionar_item_lista')}/DialogTitle>
+            <DialogTitle>Adicionar Item à Lista</DialogTitle>
             <DialogDescription>
               Selecione um item do catálogo e defina os preços
             </DialogDescription>
@@ -1885,7 +1891,7 @@ function PriceListItemsView({
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('messages.editar_item_da_lista')}/DialogTitle>
+            <DialogTitle>Editar Item da Lista</DialogTitle>
             <DialogDescription>
               Modifique os preços e configurações do item
             </DialogDescription>
@@ -1907,13 +1913,13 @@ function PriceListItemsView({
       <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('messages.confirmar_remoo')}/AlertDialogTitle>
+            <AlertDialogTitle>Confirmar Remoção</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja remover este item da lista de preços? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setItemToDelete(null)}>{t('titles.cancelar_4')}/AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={() => itemToDelete && deleteItemMutation.mutate(itemToDelete.id)} className="bg-red-600 hover:bg-red-700">
               Remover
             </AlertDialogAction>
@@ -1942,7 +1948,7 @@ function ApprovalWorkflowComponent({
     <div className="space-y-4">
       <div className="border rounded-lg">
         <div className="p-4 border-b bg-gray-50">
-          <h3 className="font-medium">{t('messages.itens_pendentes_de_aprovao')}/h3>
+          <h3 className="font-medium">Itens Pendentes de Aprovação</h3>
           <p className="text-sm text-muted-foreground">{pendingApprovals.length} itens aguardando aprovação</p>
         </div>
 
@@ -1950,7 +1956,7 @@ function ApprovalWorkflowComponent({
           {pendingApprovals.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <CheckCircle className="w-12 h-12 mx-auto mb-4" />
-              <p>{t('messages.nenhum_item_pendente_de_aprovao')}/p>
+              <p>Nenhum item pendente de aprovação</p>
             </div>
           ) : (
             <div className="space-y-2 p-4">
@@ -1973,7 +1979,7 @@ function ApprovalWorkflowComponent({
                       Versão {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <Badge variant="secondary">{t('titles.pendente_2')}/Badge>
+                  <Badge variant="secondary">Pendente</Badge>
                 </div>
               ))}
             </div>
@@ -1984,13 +1990,13 @@ function ApprovalWorkflowComponent({
       {selectedForApproval.length > 0 && (
         <div className="space-y-4">
           <div>
-            <Label htmlFor="approvalNotes">{t('messages.observaes_da_aprovao')}/Label>
+            <Label htmlFor="approvalNotes">Observações da Aprovação</Label>
             <Textarea
               id="approvalNotes"
               value={approvalNotes}
               onChange={(e) => setApprovalNotes(e.target.value)}
               rows={3}
-              placeholder={t('messages.adicione_observaes_sobre_a_aprovao')}
+              placeholder="Adicione observações sobre a aprovação..."
             />
           </div>
 
@@ -1999,7 +2005,7 @@ function ApprovalWorkflowComponent({
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={() => {
                 // Simulate approval action here
-                toast({ title: t('messages.selectedforapprovallength_items_aprovados_com_suce') });
+                toast({ title: `${selectedForApproval.length} item(s) aprovado(s) com sucesso!` });
                 setSelectedForApproval([]);
                 setApprovalNotes('');
               }}
@@ -2012,7 +2018,7 @@ function ApprovalWorkflowComponent({
               variant="destructive"
               onClick={() => {
                 toast({
-                  title: t('messages.selectedforapprovallength_items_rejeitados'),
+                  title: `${selectedForApproval.length} item(s) rejeitado(s)`,
                   variant: "destructive"
                 });
                 setSelectedForApproval([]);
@@ -2027,7 +2033,9 @@ function ApprovalWorkflowComponent({
       )}
 
       <div className="flex justify-end">
-        <Button variant="outline" onClick={onClose}>{t('titles.fechar_1')}</Button>
+        <Button variant="outline" onClick={onClose}>
+          Fechar
+        </Button>
       </div>
     </div>
   );
@@ -2045,8 +2053,8 @@ function VersionHistoryComponent({
     return (
       <div className="text-center py-8">
         <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-muted-foreground">{t('messages.selecione_uma_lista_de_preos_para_ver_o_histrico')}/p>
-        <Button className="mt-4" onClick={onClose}>{t('titles.fechar_1')}/Button>
+        <p className="text-muted-foreground">Selecione uma lista de preços para ver o histórico</p>
+        <Button className="mt-4" onClick={onClose}> Fechar</Button>
       </div>
     );
   }
@@ -2081,7 +2089,7 @@ function VersionHistoryComponent({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">{priceList.name}</h3>
-          <p className="text-sm text-muted-foreground">{t('messages.histrico_completo_de_verses')}/p>
+          <p className="text-sm text-muted-foreground">Histórico completo de versões</p>
         </div>
       </div>
 
@@ -2100,7 +2108,7 @@ function VersionHistoryComponent({
               </div>
 
               <div className="flex space-x-2">
-                {index === 0 && <Badge variant="default">{t('titles.atual_1')}/Badge>}
+                {index === 0 && <Badge variant="default">Atual</Badge>}
                 {index > 0 && (
                   <Button variant="outline" size="sm" disabled={index === 0}>
                     <RotateCcw className="mr-1 h-3 w-3" />
@@ -2122,7 +2130,9 @@ function VersionHistoryComponent({
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={onClose}>{t('titles.fechar_1')}</Button>
+        <Button variant="outline" onClick={onClose}>
+          Fechar
+        </Button>
       </div>
     </div>
   );
@@ -2170,7 +2180,7 @@ function PriceListItemForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {!initialData && (
         <div>
-          <Label htmlFor="itemId">{t('messages.item_do_catlogo')}/Label>
+          <Label htmlFor="itemId">Item do Catálogo</Label>
           <Select
             value={formData.itemId}
             onValueChange={(value) => {
@@ -2189,11 +2199,11 @@ function PriceListItemForm({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder={t('messages.selecione_um_item_do_catlogo')} />
+              <SelectValue placeholder="Selecione um item do catálogo" />
             </SelectTrigger>
             <SelectContent>
               {safeCatalogItems.length === 0 ? (
-                <SelectItem value="no-items" disabled>{t('messages.nenhum_item_disponvel')}/SelectItem>
+                <SelectItem value="no-items" disabled>Nenhum item disponível</SelectItem>
               ) : (
                 safeCatalogItems.map((item) => (
                   <SelectItem key={item.id} value={item.id}>
@@ -2233,7 +2243,7 @@ function PriceListItemForm({
             min="0"
             value={formData.specialPrice === undefined ? '' : formData.specialPrice}
             onChange={(e) => setFormData(prev => ({ ...prev, specialPrice: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
-            placeholder={t('titles.opcional_1')}
+            placeholder="Opcional"
           />
         </div>
       </div>
@@ -2248,7 +2258,7 @@ function PriceListItemForm({
             min="0"
             value={formData.hourlyRate === undefined ? '' : formData.hourlyRate}
             onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
-            placeholder={t('messages.para_servios')}
+            placeholder="Para serviços"
           />
         </div>
         <div>
@@ -2260,7 +2270,7 @@ function PriceListItemForm({
             min="0"
             value={formData.travelCost === undefined ? '' : formData.travelCost}
             onChange={(e) => setFormData(prev => ({ ...prev, travelCost: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
-            placeholder={t('titles.opcional_1')}
+            placeholder="Opcional"
           />
         </div>
       </div>
@@ -2273,12 +2283,14 @@ function PriceListItemForm({
             checked={formData.isActive}
             onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
           />
-          <Label htmlFor="isActive">{t('messages.item_ativo')}/Label>
+          <Label htmlFor="isActive">Item Ativo</Label>
         </div>
 
         <div className="flex gap-2">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>{t('titles.cancelar_4')}</Button>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
           )}
           <Button type="submit" disabled={isLoading || (!initialData && !formData.itemId)}>
             {isLoading ? (initialData ? "Atualizando..." : "Adicionando...") : (initialData ? "Atualizar Item" : "Adicionar Item")}

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from 'react-i18next';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -133,22 +132,20 @@ const itemSchema = z.object({
 });
 
 const measurementUnits = [
-  { value: 'UN', label: t('titles.unidade_1') },
-  { value: 'M', label: t('titles.metro') },
-  { value: 'M2', label: t('messages.metro_quadrado') },
-  { value: 'M3', label: t('messages.metro_cbico') },
-  { value: 'KG', label: t('titles.quilograma') },
-  { value: 'L', label: t('titles.litro') },
-  { value: 'H', label: t('titles.hora') },
-  { value: 'PC', label: t('messages.pea') },
-  { value: 'CX', label: t('titles.caixa') },
-  { value: 'GL', label: t('messages.galo') },
-  { value: 'SET', label: t('titles.conjunto') }
+  { value: 'UN', label: 'Unidade' },
+  { value: 'M', label: 'Metro' },
+  { value: 'M2', label: 'Metro Quadrado' },
+  { value: 'M3', label: 'Metro Cúbico' },
+  { value: 'KG', label: 'Quilograma' },
+  { value: 'L', label: 'Litro' },
+  { value: 'H', label: 'Hora' },
+  { value: 'PC', label: 'Peça' },
+  { value: 'CX', label: 'Caixa' },
+  { value: 'GL', label: 'Galão' },
+  { value: 'SET', label: 'Conjunto' }
 ];
 
 export default function ItemCatalog() {
-  const { t } = useTranslation();
-
   // Estados principais
   const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'item-edit'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -223,8 +220,8 @@ export default function ItemCatalog() {
       if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
         console.error('❌ [ItemCatalog] No valid authentication token found');
         toast({
-          title: t('messages.sesso_expirada'),
-          description: t('messages.por_favor_faa_login_novamente'),
+          title: "Sessão expirada",
+          description: "Por favor, faça login novamente.",
           variant: "destructive"
         });
         // Don't force redirect following 1qa.md - let components handle auth state
@@ -309,8 +306,8 @@ export default function ItemCatalog() {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         toast({
-          title: t('messages.sesso_expirada'),
-          description: t('messages.por_favor_faa_login_novamente'),
+          title: "Sessão expirada",
+          description: "Por favor, faça login novamente.",
           variant: "destructive"
         });
         
@@ -404,8 +401,8 @@ export default function ItemCatalog() {
         console.log('Authentication error detected - components will handle auth state');
       } else {
         toast({
-          title: t('messages.erro_no_catlogo'),
-          description: t('messages.erro_ao_carregar_itens_do_catlogo_tente_novamente'),
+          title: "Erro no catálogo",
+          description: "Erro ao carregar itens do catálogo. Tente novamente.",
           variant: "destructive"
         });
       }
@@ -457,15 +454,15 @@ export default function ItemCatalog() {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: t('titles.item_criado_com_sucesso'),
-        description: t('messages.o_item_foi_adicionado_ao_catlogo'),
+        title: "Item criado com sucesso",
+        description: "O item foi adicionado ao catálogo.",
       });
       setIsCreateModalOpen(false);
       itemForm.reset();
     },
     onError: (error: Error) => {
       toast({
-        title: t('titles.erro_ao_criar_item'),
+        title: "Erro ao criar item",
         description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
@@ -481,15 +478,15 @@ export default function ItemCatalog() {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
-        title: t('titles.item_atualizado_com_sucesso'),
-        description: t('messages.as_alteraes_foram_salvas'),
+        title: "Item atualizado com sucesso",
+        description: "As alterações foram salvas.",
       });
       setCurrentView('item-details');
     },
     onError: () => {
       toast({
-        title: t('titles.erro_ao_atualizar_item_1'),
-        description: t('messages.tente_novamente_mais_tarde'),
+        title: "Erro ao atualizar item",
+        description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
@@ -503,14 +500,14 @@ export default function ItemCatalog() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       toast({
-        title: t('messages.item_excludo_com_sucesso'),
-        description: t('messages.o_item_foi_removido_do_catlogo'),
+        title: "Item excluído com sucesso",
+        description: "O item foi removido do catálogo.",
       });
     },
     onError: () => {
       toast({
-        title: t('titles.erro_ao_excluir_item'),
-        description: t('messages.tente_novamente_mais_tarde'),
+        title: "Erro ao excluir item",
+        description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
@@ -580,11 +577,11 @@ export default function ItemCatalog() {
         });
         if (!updateResponse.ok) throw new Error('Failed to update item');
 
-        toast({ title: t('titles.item_atualizado'), description: t('messages.informaes_e_vnculos_salvos') });
+        toast({ title: "Item atualizado", description: "Informações e vínculos salvos." });
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
         setCurrentView('item-details');
       } catch (error) {
-        toast({ title: t('titles.erro_ao_atualizar_1'), description: t('messages.tente_novamente'), variant: "destructive" });
+        toast({ title: "Erro ao atualizar", description: "Tente novamente.", variant: "destructive" });
       }
     } else {
       createItemMutation.mutate(data);
@@ -613,7 +610,7 @@ export default function ItemCatalog() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('messages.catlogo_de_itens')}/h1>
+          <h1 className="text-2xl font-bold text-gray-900">Catálogo de Itens</h1>
           <p className="text-sm text-gray-500 mt-1">
             {items.length} {items.length === 1 ? 'item encontrado' : 'itens encontrados'}
             {(searchTerm || typeFilter !== 'all' || statusFilter !== 'all') && ' (filtrado)'}
@@ -635,7 +632,7 @@ export default function ItemCatalog() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder={t('messages.buscar_por_nome_cdigo_ou_descrio')}
+                placeholder="Buscar por nome, código ou descrição..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -645,35 +642,35 @@ export default function ItemCatalog() {
             <div className="flex gap-2">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-32">
-                  <SelectValue placeholder={t('titles.tipo_5')} />
+                  <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('titles.todos_4')}/SelectItem>
-                  <SelectItem value="material">{t('titles.materiais_1')}/SelectItem>
-                  <SelectItem value="service">{t('messages.servios_1')}/SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="material">Materiais</SelectItem>
+                  <SelectItem value="service">Serviços</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-32">
-                  <SelectValue placeholder={t('titles.status_8')} />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('titles.todos_4')}/SelectItem>
-                  <SelectItem value="active">{t('titles.ativo_11')}/SelectItem>
-                  <SelectItem value="inactive">{t('titles.inativo_8')}/SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={hierarchyFilter} onValueChange={setHierarchyFilter}>
                 <SelectTrigger className="w-36">
-                  <SelectValue placeholder={t('titles.hierarquia')} />
+                  <SelectValue placeholder="Hierarquia" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('titles.todos_4')}/SelectItem>
-                  <SelectItem value="parent">{t('messages.apenas_pais')}/SelectItem>
-                  <SelectItem value="child">{t('messages.apenas_filhos')}/SelectItem>
-                  <SelectItem value="standalone">{t('titles.independentes')}/SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="parent">Apenas Pais</SelectItem>
+                  <SelectItem value="child">Apenas Filhos</SelectItem>
+                  <SelectItem value="standalone">Independentes</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -701,7 +698,7 @@ export default function ItemCatalog() {
           {loading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2">{t('messages.carregando_itens_2')}/span>
+              <span className="ml-2">Carregando itens...</span>
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-8">
@@ -711,7 +708,9 @@ export default function ItemCatalog() {
                   : 'Nenhum item cadastrado no catálogo'}
               </div>
               {(!searchTerm && typeFilter === 'all' && statusFilter === 'all') && (
-                <Button onClick={() =>{t('messages.windowlocationreload_variantoutline_recarregar_pgi_1')}</Button>
+                <Button onClick={() => window.location.reload()} variant="outline">
+                  Recarregar página
+                </Button>
               )}
             </div>
           ) : (
@@ -727,15 +726,15 @@ export default function ItemCatalog() {
                         />
                       </TableHead>
                     )}
-                    <TableHead>{t('titles.nome_5')}/TableHead>
-                    <TableHead className="w-24">{t('titles.tipo_5')}/TableHead>
-                    <TableHead className="w-32">{t('messages.cdigo_2')}/TableHead>
-                    <TableHead className="w-24">{t('titles.unidade_1')}/TableHead>
-                    <TableHead className="w-32">{t('titles.hierarquia')}/TableHead>
-                    <TableHead className="w-32">{t('titles.empresas')}/TableHead>
-                    <TableHead className="w-32">{t('titles.fornecedores')}/TableHead>
-                    <TableHead className="w-24">{t('titles.status_8')}/TableHead>
-                    <TableHead className="w-32">{t('messages.aes_8')}/TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead className="w-24">Tipo</TableHead>
+                    <TableHead className="w-32">Código</TableHead>
+                    <TableHead className="w-24">Unidade</TableHead>
+                    <TableHead className="w-32">Hierarquia</TableHead>
+                    <TableHead className="w-32">Empresas</TableHead>
+                    <TableHead className="w-32">Fornecedores</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
+                    <TableHead className="w-32">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -872,13 +871,13 @@ export default function ItemCatalog() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>{t('messages.confirmar_excluso_1')}/AlertDialogTitle>
+                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   Tem certeza que deseja excluir o item "{item.name}"?
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>{t('titles.cancelar_4')}/AlertDialogCancel>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => deleteItemMutation.mutate(item.id)}
                                   className="bg-red-600 hover:bg-red-700"
@@ -987,32 +986,32 @@ export default function ItemCatalog() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.informaes_gerais')}/CardTitle>
+                <CardTitle>Informações Gerais</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {selectedItem.integrationCode && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">{t('forms.cdigo_de_integrao')}/label>
+                      <label className="text-sm font-medium text-gray-500">Código de Integração</label>
                       <p className="text-sm mt-1">{selectedItem.integrationCode}</p>
                     </div>
                   )}
 
                   <div>
-                    <label className="text-sm font-medium text-gray-500">{t('messages.unidade_de_medida')}/label>
+                    <label className="text-sm font-medium text-gray-500">Unidade de Medida</label>
                     <p className="text-sm mt-1">{selectedItem.measurementUnit}</p>
                   </div>
 
                   {selectedItem.maintenancePlan && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">{t('messages.plano_de_manuteno')}/label>
+                      <label className="text-sm font-medium text-gray-500">Plano de Manutenção</label>
                       <p className="text-sm mt-1">{selectedItem.maintenancePlan}</p>
                     </div>
                   )}
 
                   {selectedItem.defaultChecklist && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">{t('messages.checklist_padro')}/label>
+                      <label className="text-sm font-medium text-gray-500">Checklist Padrão</label>
                       <p className="text-sm mt-1">{selectedItem.defaultChecklist}</p>
                     </div>
                   )}
@@ -1020,7 +1019,7 @@ export default function ItemCatalog() {
 
                 {selectedItem.description && (
                   <div>
-                    <label className="text-sm font-medium text-gray-500">{t('modals.descrio')}/label>
+                    <label className="text-sm font-medium text-gray-500">Descrição</label>
                     <p className="text-sm mt-1">{selectedItem.description}</p>
                   </div>
                 )}
@@ -1031,13 +1030,13 @@ export default function ItemCatalog() {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.vnculos_2')}/CardTitle>
+                <CardTitle>Vínculos</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Building className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">{t('titles.empresas')}/span>
+                    <span className="text-sm">Empresas</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.companiesCount || 0}</Badge>
                 </div>
@@ -1045,7 +1044,7 @@ export default function ItemCatalog() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Truck className="h-4 w-4 text-amber-600" />
-                    <span className="text-sm">{t('titles.fornecedores')}/span>
+                    <span className="text-sm">Fornecedores</span>
                   </div>
                   <Badge variant="secondary">{selectedItem.suppliersCount || 0}</Badge>
                 </div>
@@ -1054,7 +1053,7 @@ export default function ItemCatalog() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Layers className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm">{t('messages.itens_filhos')}/span>
+                      <span className="text-sm">Itens Filhos</span>
                     </div>
                     <Badge variant="secondary">{selectedItem.childrenCount || 0}</Badge>
                   </div>
@@ -1068,29 +1067,29 @@ export default function ItemCatalog() {
           <CardContent className="p-6">
             <Tabs defaultValue="hierarchy" className="w-full">
               <TabsList>
-                <TabsTrigger value="hierarchy">{t('messages.hierarquia_paifilho')}/TabsTrigger>
-                <TabsTrigger value="companies">{t('messages.empresas_vinculadas')}/TabsTrigger>
-                <TabsTrigger value="suppliers">{t('titles.fornecedores')}/TabsTrigger>
+                <TabsTrigger value="hierarchy">Hierarquia Pai-Filho</TabsTrigger>
+                <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
+                <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
               </TabsList>
 
               <TabsContent value="hierarchy" className="space-y-4 mt-6">
                 <div className="text-center py-8">
                   <Layers className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">{t('messages.funcionalidade_de_vnculos_paifilho_ser_implementad')}/p>
+                  <p className="text-gray-500">Funcionalidade de vínculos pai-filho será implementada</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="companies" className="space-y-4 mt-6">
                 <div className="text-center py-8">
                   <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">{t('messages.lista_de_empresas_vinculadas_ser_implementada')}/p>
+                  <p className="text-gray-500">Lista de empresas vinculadas será implementada</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="suppliers" className="space-y-4 mt-6">
                 <div className="text-center py-8">
                   <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">{t('messages.lista_de_fornecedores_ser_implementada')}/p>
+                  <p className="text-gray-500">Lista de fornecedores será implementada</p>
                 </div>
               </TabsContent>
             </Tabs>
@@ -1126,7 +1125,7 @@ export default function ItemCatalog() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold">Editar: {selectedItem.name}</h1>
-                <p className="text-gray-600">{t('messages.modificar_informaes_e_gerenciar_vnculos')}/p>
+                <p className="text-gray-600">Modificar informações e gerenciar vínculos</p>
               </div>
             </div>
           </div>
@@ -1136,7 +1135,7 @@ export default function ItemCatalog() {
           <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.informaes_bsicas_1')}/CardTitle>
+                <CardTitle>Informações Básicas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1145,9 +1144,9 @@ export default function ItemCatalog() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('messages.nome_do_item')}/FormLabel>
+                        <FormLabel>Nome do Item *</FormLabel>
                         <FormControl>
-                          <Input placeholder={t('titles.nome_do_item')} {...field} />
+                          <Input placeholder="Nome do item" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1159,16 +1158,16 @@ export default function ItemCatalog() {
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('messages.tipo_2')}/FormLabel>
+                        <FormLabel>Tipo *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('titles.selecione_o_tipo_8')} />
+                              <SelectValue placeholder="Selecione o tipo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="material">{t('titles.material')}/SelectItem>
-                            <SelectItem value="service">{t('messages.servio')}/SelectItem>
+                            <SelectItem value="material">Material</SelectItem>
+                            <SelectItem value="service">Serviço</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1181,9 +1180,9 @@ export default function ItemCatalog() {
                     name="integrationCode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('messages.cdigo_2')}/FormLabel>
+                        <FormLabel>Código</FormLabel>
                         <FormControl>
-                          <Input placeholder={t('messages.cdigo_de_integrao_2')} {...field} />
+                          <Input placeholder="Código de integração" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1195,11 +1194,11 @@ export default function ItemCatalog() {
                     name="measurementUnit"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('messages.unidade')}/FormLabel>
+                        <FormLabel>Unidade *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('titles.unidade_1')} />
+                              <SelectValue placeholder="Unidade" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -1219,9 +1218,9 @@ export default function ItemCatalog() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('modals.descrio')}/FormLabel>
+                      <FormLabel>Descrição</FormLabel>
                       <FormControl>
-                        <Textarea placeholder={t('messages.descrio_do_item')} {...field} />
+                        <Textarea placeholder="Descrição do item" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1234,7 +1233,7 @@ export default function ItemCatalog() {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">{t('messages.status_ativo')}/FormLabel>
+                        <FormLabel className="text-base">Status Ativo</FormLabel>
                         <FormDescription>
                           Item disponível para uso
                         </FormDescription>
@@ -1269,13 +1268,13 @@ export default function ItemCatalog() {
 
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.vnculos_hierrquicos')}/CardTitle>
+                <CardTitle>Vínculos Hierárquicos</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Campos para itens filhos com seleção múltipla */}
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">{t('messages.itens_filhos')}/label>
+                    <label className="text-sm font-medium">Itens Filhos</label>
                     <div className="mt-2">
                       <Select
                         value=""
@@ -1290,10 +1289,10 @@ export default function ItemCatalog() {
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('titles.selecione_itens_filhos')} />
+                          <SelectValue placeholder="Selecione itens filhos" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">{t('messages.selecionar_item')}/SelectItem>
+                          <SelectItem value="none">Selecionar item...</SelectItem>
                           {items.filter(item =>
                             item.id !== selectedItem?.id &&
                             !item.parentId &&
@@ -1350,18 +1349,18 @@ export default function ItemCatalog() {
 
             <Card>
               <CardHeader>
-                <CardTitle>{t('messages.vnculos_com_empresas_e_fornecedores')}/CardTitle>
+                <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <Tabs defaultValue="companies" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="companies">{t('messages.empresas_vinculadas')}/TabsTrigger>
-                    <TabsTrigger value="suppliers">{t('titles.fornecedores')}/TabsTrigger>
+                    <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
+                    <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="companies" className="space-y-4 mt-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium">{t('messages.empresas_vinculadas')}/h3>
+                      <h3 className="text-lg font-medium">Empresas Vinculadas</h3>
                       <Select
                         onValueChange={async (companyId) => {
                           if (!selectedItem?.id || !companyId || companyId === "none") return;
@@ -1375,8 +1374,8 @@ export default function ItemCatalog() {
 
                             if (response.ok) {
                               toast({
-                                title: t('titles.sucesso_5'),
-                                description: t('titles.empresa_vinculada_com_sucesso')
+                                title: "Sucesso",
+                                description: "Empresa vinculada com sucesso"
                               });
                               refetchItemLinks();
                             } else {
@@ -1384,8 +1383,8 @@ export default function ItemCatalog() {
                             }
                           } catch (error) {
                             toast({
-                              title: t('titles.erro_9'),
-                              description: t('titles.erro_ao_vincular_empresa'),
+                              title: "Erro",
+                              description: "Erro ao vincular empresa",
                               variant: "destructive"
                             });
                           }
@@ -1393,10 +1392,10 @@ export default function ItemCatalog() {
                         value="" // Always reset to allow multiple selections
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('messages.vincular_empresa')} />
+                          <SelectValue placeholder="Vincular Empresa" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">{t('messages.selecione_uma_empresa')}/SelectItem>
+                          <SelectItem value="none">Selecione uma empresa...</SelectItem>
                           {companies.filter(company =>
                             !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
                           ).map((company) => (
@@ -1425,8 +1424,8 @@ export default function ItemCatalog() {
 
                                 if (response.ok) {
                                   toast({
-                                    title: t('titles.sucesso_5'),
-                                    description: t('titles.empresa_desvinculada_com_sucesso')
+                                    title: "Sucesso",
+                                    description: "Empresa desvinculada com sucesso"
                                   });
                                   refetchItemLinks();
                                 } else {
@@ -1434,8 +1433,8 @@ export default function ItemCatalog() {
                                 }
                               } catch (error) {
                                 toast({
-                                  title: t('titles.erro_9'),
-                                  description: t('titles.erro_ao_desvincular_empresa'),
+                                  title: "Erro",
+                                  description: "Erro ao desvincular empresa",
                                   variant: "destructive"
                                 });
                               }
@@ -1456,7 +1455,7 @@ export default function ItemCatalog() {
 
                   <TabsContent value="suppliers" className="space-y-4 mt-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium">{t('messages.fornecedores_vinculados')}/h3>
+                      <h3 className="text-lg font-medium">Fornecedores Vinculados</h3>
                       <Select
                         onValueChange={async (supplierId) => {
                           if (!selectedItem?.id || !supplierId || supplierId === "none") return;
@@ -1470,8 +1469,8 @@ export default function ItemCatalog() {
 
                             if (response.ok) {
                               toast({
-                                title: t('titles.sucesso_5'),
-                                description: t('titles.fornecedor_vinculado_com_sucesso')
+                                title: "Sucesso",
+                                description: "Fornecedor vinculado com sucesso"
                               });
                               refetchItemLinks();
                             } else {
@@ -1479,8 +1478,8 @@ export default function ItemCatalog() {
                             }
                           } catch (error) {
                             toast({
-                              title: t('titles.erro_9'),
-                              description: t('titles.erro_ao_vincular_fornecedor'),
+                              title: "Erro",
+                              description: "Erro ao vincular fornecedor",
                               variant: "destructive"
                             });
                           }
@@ -1488,10 +1487,10 @@ export default function ItemCatalog() {
                         value="" // Always reset to allow multiple selections
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('messages.vincular_fornecedor')} />
+                          <SelectValue placeholder="Vincular Fornecedor" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">{t('messages.selecione_um_fornecedor')}/SelectItem>
+                          <SelectItem value="none">Selecione um fornecedor...</SelectItem>
                           {suppliers.filter(supplier =>
                             !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
                           ).map((supplier) => (
@@ -1520,8 +1519,8 @@ export default function ItemCatalog() {
 
                                 if (response.ok) {
                                   toast({
-                                    title: t('titles.sucesso_5'),
-                                    description: t('titles.fornecedor_desvinculado_com_sucesso')
+                                    title: "Sucesso",
+                                    description: "Fornecedor desvinculado com sucesso"
                                   });
                                   refetchItemLinks();
                                 } else {
@@ -1529,8 +1528,8 @@ export default function ItemCatalog() {
                                 }
                               } catch (error) {
                                 toast({
-                                  title: t('titles.erro_9'),
-                                  description: t('titles.erro_ao_desvincular_fornecedor'),
+                                  title: "Erro",
+                                  description: "Erro ao desvincular fornecedor",
                                   variant: "destructive"
                                 });
                               }
@@ -1560,9 +1559,9 @@ export default function ItemCatalog() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center space-x-2 text-sm text-gray-500">
-        <span>{t('messages.gesto')}/span>
+        <span>Gestão</span>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-gray-900">{t('messages.catlogo_de_itens')}/span>
+        <span className="font-medium text-gray-900">Catálogo de Itens</span>
         {selectedItem && (
           <>
             <ChevronRight className="h-4 w-4" />
@@ -1583,7 +1582,7 @@ export default function ItemCatalog() {
       }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t('messages.criar_novo_item')}/DialogTitle>
+            <DialogTitle>Criar Novo Item</DialogTitle>
             <DialogDescription>
               Preencha as informações essenciais para criar um novo item
             </DialogDescription>
@@ -1597,9 +1596,9 @@ export default function ItemCatalog() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.nome_do_item')}/FormLabel>
+                      <FormLabel>Nome do Item *</FormLabel>
                       <FormControl>
-                        <Input placeholder={t('titles.nome_do_item')} {...field} />
+                        <Input placeholder="Nome do item" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1611,16 +1610,16 @@ export default function ItemCatalog() {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.tipo_2')}/FormLabel>
+                      <FormLabel>Tipo *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('titles.selecione_o_tipo_8')} />
+                            <SelectValue placeholder="Selecione o tipo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="material">{t('titles.material')}/SelectItem>
-                          <SelectItem value="service">{t('messages.servio')}/SelectItem>
+                          <SelectItem value="material">Material</SelectItem>
+                          <SelectItem value="service">Serviço</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -1633,9 +1632,9 @@ export default function ItemCatalog() {
                   name="integrationCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.cdigo_2')}/FormLabel>
+                      <FormLabel>Código</FormLabel>
                       <FormControl>
-                        <Input placeholder={t('messages.cdigo_de_integrao_2')} {...field} />
+                        <Input placeholder="Código de integração" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1647,11 +1646,11 @@ export default function ItemCatalog() {
                   name="measurementUnit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.unidade')}/FormLabel>
+                      <FormLabel>Unidade *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('titles.unidade_1')} />
+                            <SelectValue placeholder="Unidade" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1671,9 +1670,9 @@ export default function ItemCatalog() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('modals.descrio')}/FormLabel>
+                    <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Textarea placeholder={t('messages.descrio_do_item')} {...field} />
+                      <Textarea placeholder="Descrição do item" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1686,7 +1685,7 @@ export default function ItemCatalog() {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">{t('messages.status_ativo')}/FormLabel>
+                      <FormLabel className="text-base">Status Ativo</FormLabel>
                       <FormDescription>
                         Item disponível para uso
                       </FormDescription>

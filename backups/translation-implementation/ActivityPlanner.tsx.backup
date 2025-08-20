@@ -5,7 +5,6 @@
  */
 
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -192,8 +191,6 @@ const priorityColors = {
 };
 
 export default function ActivityPlanner() {
-  const { t } = useTranslation();
-
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
@@ -261,7 +258,7 @@ export default function ActivityPlanner() {
     const createAssetMutation = useMutation({
       mutationFn: (data: AssetFormData) => apiRequest("POST", "/api/activity-planner/assets", data),
       onSuccess: () => {
-        toast({ title: t('titles.ativo_criado_com_sucesso') });
+        toast({ title: "Ativo criado com sucesso" });
         queryClient.invalidateQueries({ queryKey: ["/api/activity-planner/assets"] });
         setOpen(false);
         form.reset();
@@ -269,7 +266,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: t('titles.erro_ao_criar_ativo'), 
+          title: "Erro ao criar ativo", 
           description: error.message,
           variant: "destructive" 
         });
@@ -286,7 +283,7 @@ export default function ActivityPlanner() {
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t('messages.criar_novo_ativo')}/DialogTitle>
+            <DialogTitle>Criar Novo Ativo</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
@@ -297,7 +294,7 @@ export default function ActivityPlanner() {
                   name="tag"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.tag_do_ativo')}/FormLabel>
+                      <FormLabel>Tag do Ativo</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="EX: COMP-001" data-testid="input-asset-tag" />
                       </FormControl>
@@ -311,9 +308,9 @@ export default function ActivityPlanner() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.nome_do_ativo')}/FormLabel>
+                      <FormLabel>Nome do Ativo</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('messages.nome_descritivo')} data-testid="input-asset-name" />
+                        <Input {...field} placeholder="Nome descritivo..." data-testid="input-asset-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -325,11 +322,11 @@ export default function ActivityPlanner() {
                   name="locationId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.localizao_4')}/FormLabel>
+                      <FormLabel>Localização</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-asset-location">
-                            <SelectValue placeholder={t('messages.selecione_uma_localizao')} />
+                            <SelectValue placeholder="Selecione uma localização" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -348,11 +345,11 @@ export default function ActivityPlanner() {
                   name="categoryId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('titles.categoria_3')}/FormLabel>
+                      <FormLabel>Categoria</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-asset-category">
-                            <SelectValue placeholder={t('titles.selecione_uma_categoria_1')} />
+                            <SelectValue placeholder="Selecione uma categoria" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -371,7 +368,7 @@ export default function ActivityPlanner() {
                   name="criticality"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('titles.criticidade')}/FormLabel>
+                      <FormLabel>Criticidade</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-asset-criticality">
@@ -379,10 +376,10 @@ export default function ActivityPlanner() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="low">{t('titles.baixa_5')}/SelectItem>
-                          <SelectItem value="medium">{t('messages.mdia_4')}/SelectItem>
-                          <SelectItem value="high">{t('titles.alta_5')}/SelectItem>
-                          <SelectItem value="critical">{t('messages.crtica_2')}/SelectItem>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="critical">Crítica</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -395,7 +392,7 @@ export default function ActivityPlanner() {
                   name="serialNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.nmero_de_srie')}/FormLabel>
+                      <FormLabel>Número de Série</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="SN123456..." data-testid="input-asset-serial" />
                       </FormControl>
@@ -409,9 +406,9 @@ export default function ActivityPlanner() {
                   name="manufacturer"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('titles.fabricante')}/FormLabel>
+                      <FormLabel>Fabricante</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('messages.nome_do_fabricante')} data-testid="input-asset-manufacturer" />
+                        <Input {...field} placeholder="Nome do fabricante..." data-testid="input-asset-manufacturer" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -423,9 +420,9 @@ export default function ActivityPlanner() {
                   name="model"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('titles.modelo')}/FormLabel>
+                      <FormLabel>Modelo</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('messages.modelo_do_equipamento')} data-testid="input-asset-model" />
+                        <Input {...field} placeholder="Modelo do equipamento..." data-testid="input-asset-model" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -437,7 +434,7 @@ export default function ActivityPlanner() {
                   name="purchaseDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.data_de_compra')}/FormLabel>
+                      <FormLabel>Data de Compra</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} data-testid="input-asset-purchase-date" />
                       </FormControl>
@@ -451,7 +448,7 @@ export default function ActivityPlanner() {
                   name="warrantyExpiry"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.vencimento_da_garantia')}/FormLabel>
+                      <FormLabel>Vencimento da Garantia</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} data-testid="input-asset-warranty" />
                       </FormControl>
@@ -465,7 +462,7 @@ export default function ActivityPlanner() {
                   name="installationDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.data_de_instalao')}/FormLabel>
+                      <FormLabel>Data de Instalação</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} data-testid="input-asset-installation" />
                       </FormControl>
@@ -480,9 +477,9 @@ export default function ActivityPlanner() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('modals.descrio')}/FormLabel>
+                    <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder={t('messages.descrio_detalhada_do_ativo')} data-testid="input-asset-description" />
+                      <Textarea {...field} placeholder="Descrição detalhada do ativo..." data-testid="input-asset-description" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -490,13 +487,17 @@ export default function ActivityPlanner() {
               />
 
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() =>{t('messages.setopenfalse_cancelar')}</Button>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
                 <Button 
                   type="submit" 
                   disabled={createAssetMutation.isPending}
                   data-testid="button-submit-asset"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                >{t('messages.createassetmutationispending_criando_criar_ativo')}</Button>
+                >
+                  {createAssetMutation.isPending ? "Criando..." : "Criar Ativo"}
+                </Button>
               </div>
             </form>
           </Form>
@@ -528,7 +529,7 @@ export default function ActivityPlanner() {
     const createPlanMutation = useMutation({
       mutationFn: (data: MaintenancePlanFormData) => apiRequest("POST", "/api/activity-planner/maintenance-plans", data),
       onSuccess: () => {
-        toast({ title: t('messages.plano_de_manuteno_criado_com_sucesso') });
+        toast({ title: "Plano de manutenção criado com sucesso" });
         queryClient.invalidateQueries({ queryKey: ["/api/activity-planner/maintenance-plans"] });
         setOpen(false);
         form.reset();
@@ -536,7 +537,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: t('titles.erro_ao_criar_plano'), 
+          title: "Erro ao criar plano", 
           description: error.message,
           variant: "destructive" 
         });
@@ -553,7 +554,7 @@ export default function ActivityPlanner() {
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t('messages.criar_plano_de_manuteno')}/DialogTitle>
+            <DialogTitle>Criar Plano de Manutenção</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
@@ -564,9 +565,9 @@ export default function ActivityPlanner() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.nome_do_plano')}/FormLabel>
+                      <FormLabel>Nome do Plano</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('messages.nome_descritivo')} data-testid="input-plan-name" />
+                        <Input {...field} placeholder="Nome descritivo..." data-testid="input-plan-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -578,11 +579,11 @@ export default function ActivityPlanner() {
                   name="assetId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                      <FormLabel>Ativo</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-plan-asset">
-                            <SelectValue placeholder={t('titles.selecione_um_ativo')} />
+                            <SelectValue placeholder="Selecione um ativo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -601,7 +602,7 @@ export default function ActivityPlanner() {
                   name="triggerType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.tipo_de_gatilho')}/FormLabel>
+                      <FormLabel>Tipo de Gatilho</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-plan-trigger">
@@ -609,9 +610,9 @@ export default function ActivityPlanner() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="time">{t('titles.tempo_1')}/SelectItem>
-                          <SelectItem value="meter">{t('titles.medidor')}/SelectItem>
-                          <SelectItem value="condition">{t('messages.condio')}/SelectItem>
+                          <SelectItem value="time">Tempo</SelectItem>
+                          <SelectItem value="meter">Medidor</SelectItem>
+                          <SelectItem value="condition">Condição</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -624,9 +625,9 @@ export default function ActivityPlanner() {
                   name="triggerValue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.valor_do_gatilho')}/FormLabel>
+                      <FormLabel>Valor do Gatilho</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('messages.ex_30_dias_1000_horas')} data-testid="input-plan-trigger-value" />
+                        <Input {...field} placeholder="Ex: 30 dias, 1000 horas..." data-testid="input-plan-trigger-value" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -638,7 +639,7 @@ export default function ActivityPlanner() {
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('titles.prioridade_4')}/FormLabel>
+                      <FormLabel>Prioridade</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-plan-priority">
@@ -646,10 +647,10 @@ export default function ActivityPlanner() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="low">{t('titles.baixa_5')}/SelectItem>
-                          <SelectItem value="medium">{t('messages.mdia_4')}/SelectItem>
-                          <SelectItem value="high">{t('titles.alta_5')}/SelectItem>
-                          <SelectItem value="critical">{t('messages.crtica_2')}/SelectItem>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="critical">Crítica</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -662,7 +663,7 @@ export default function ActivityPlanner() {
                   name="estimatedDuration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.durao_estimada_horas')}/FormLabel>
+                      <FormLabel>Duração Estimada (horas)</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
@@ -682,9 +683,9 @@ export default function ActivityPlanner() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('modals.descrio')}/FormLabel>
+                    <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder={t('messages.descrio_detalhada_do_plano')} data-testid="input-plan-description" />
+                      <Textarea {...field} placeholder="Descrição detalhada do plano..." data-testid="input-plan-description" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -696,9 +697,9 @@ export default function ActivityPlanner() {
                 name="instructions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('messages.instrues_de_execuo')}/FormLabel>
+                    <FormLabel>Instruções de Execução</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder={t('messages.passo_a_passo_para_execuo')} data-testid="input-plan-instructions" />
+                      <Textarea {...field} placeholder="Passo a passo para execução..." data-testid="input-plan-instructions" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -711,7 +712,7 @@ export default function ActivityPlanner() {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">{t('messages.plano_ativo')}/FormLabel>
+                      <FormLabel className="text-base">Plano Ativo</FormLabel>
                       <div className="text-sm text-muted-foreground">
                         Ativar agendamento automático de manutenções
                       </div>
@@ -728,13 +729,17 @@ export default function ActivityPlanner() {
               />
 
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() =>{t('messages.setopenfalse_cancelar')}</Button>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
                 <Button 
                   type="submit" 
                   disabled={createPlanMutation.isPending}
                   data-testid="button-submit-plan"
                   className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                >{t('messages.createplanmutationispending_criando_criar_plano')}</Button>
+                >
+                  {createPlanMutation.isPending ? "Criando..." : "Criar Plano"}
+                </Button>
               </div>
             </form>
           </Form>
@@ -767,7 +772,7 @@ export default function ActivityPlanner() {
     const createWorkOrderMutation = useMutation({
       mutationFn: (data: WorkOrderFormData) => apiRequest("POST", "/api/activity-planner/work-orders", data),
       onSuccess: () => {
-        toast({ title: t('messages.ordem_de_servio_criada_com_sucesso') });
+        toast({ title: "Ordem de serviço criada com sucesso" });
         queryClient.invalidateQueries({ queryKey: ["/api/activity-planner/work-orders"] });
         setOpen(false);
         form.reset();
@@ -775,7 +780,7 @@ export default function ActivityPlanner() {
       },
       onError: (error) => {
         toast({ 
-          title: t('messages.erro_ao_criar_ordem_de_servio'), 
+          title: "Erro ao criar ordem de serviço", 
           description: error.message,
           variant: "destructive" 
         });
@@ -792,7 +797,7 @@ export default function ActivityPlanner() {
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t('messages.criar_ordem_de_servio')}/DialogTitle>
+            <DialogTitle>Criar Ordem de Serviço</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
@@ -803,9 +808,9 @@ export default function ActivityPlanner() {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.ttulo_da_os')}/FormLabel>
+                      <FormLabel>Título da OS</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('messages.ttulo_descritivo')} data-testid="input-wo-title" />
+                        <Input {...field} placeholder="Título descritivo..." data-testid="input-wo-title" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -817,11 +822,11 @@ export default function ActivityPlanner() {
                   name="assetId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('titles.ativo_11')}/FormLabel>
+                      <FormLabel>Ativo</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-asset">
-                            <SelectValue placeholder={t('titles.selecione_um_ativo')} />
+                            <SelectValue placeholder="Selecione um ativo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -840,7 +845,7 @@ export default function ActivityPlanner() {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.tipo_de_manuteno')}/FormLabel>
+                      <FormLabel>Tipo de Manutenção</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-type">
@@ -848,9 +853,9 @@ export default function ActivityPlanner() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="preventive">{t('titles.preventiva')}/SelectItem>
-                          <SelectItem value="corrective">{t('titles.corretiva')}/SelectItem>
-                          <SelectItem value="emergency">{t('messages.emergncia')}/SelectItem>
+                          <SelectItem value="preventive">Preventiva</SelectItem>
+                          <SelectItem value="corrective">Corretiva</SelectItem>
+                          <SelectItem value="emergency">Emergência</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -863,7 +868,7 @@ export default function ActivityPlanner() {
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('titles.prioridade_4')}/FormLabel>
+                      <FormLabel>Prioridade</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-priority">
@@ -871,11 +876,11 @@ export default function ActivityPlanner() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="low">{t('titles.baixa_5')}/SelectItem>
-                          <SelectItem value="medium">{t('messages.mdia_4')}/SelectItem>
-                          <SelectItem value="high">{t('titles.alta_5')}/SelectItem>
-                          <SelectItem value="critical">{t('messages.crtica_2')}/SelectItem>
-                          <SelectItem value="emergency">{t('messages.emergncia')}/SelectItem>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="critical">Crítica</SelectItem>
+                          <SelectItem value="emergency">Emergência</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -888,7 +893,7 @@ export default function ActivityPlanner() {
                   name="scheduledStart"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.datahora_de_incio')}/FormLabel>
+                      <FormLabel>Data/Hora de Início</FormLabel>
                       <FormControl>
                         <Input type="datetime-local" {...field} data-testid="input-wo-scheduled" />
                       </FormControl>
@@ -902,7 +907,7 @@ export default function ActivityPlanner() {
                   name="estimatedDuration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.durao_estimada_horas')}/FormLabel>
+                      <FormLabel>Duração Estimada (horas)</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
@@ -921,11 +926,11 @@ export default function ActivityPlanner() {
                   name="assignedTechnicianId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.tcnico_responsvel')}/FormLabel>
+                      <FormLabel>Técnico Responsável</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-technician">
-                            <SelectValue placeholder={t('messages.selecione_um_tcnico_1')} />
+                            <SelectValue placeholder="Selecione um técnico" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -944,15 +949,15 @@ export default function ActivityPlanner() {
                   name="maintenancePlanId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('messages.plano_de_manuteno_opcional')}/FormLabel>
+                      <FormLabel>Plano de Manutenção (Opcional)</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-wo-plan">
-                            <SelectValue placeholder={t('titles.selecione_um_plano')} />
+                            <SelectValue placeholder="Selecione um plano" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">{t('titles.nenhum_plano')}/SelectItem>
+                          <SelectItem value="none">Nenhum plano</SelectItem>
                           {maintenancePlans?.data && Array.isArray(maintenancePlans.data) && maintenancePlans.data.map((plan: MaintenancePlan) => (
                             <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
                           ))}
@@ -969,9 +974,9 @@ export default function ActivityPlanner() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('modals.descrio')}/FormLabel>
+                    <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder={t('messages.descrio_detalhada_do_problema')} data-testid="input-wo-description" />
+                      <Textarea {...field} placeholder="Descrição detalhada do problema..." data-testid="input-wo-description" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -983,9 +988,9 @@ export default function ActivityPlanner() {
                 name="instructions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('messages.instrues_de_execuo')}/FormLabel>
+                    <FormLabel>Instruções de Execução</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder={t('messages.procedimentos_e_instrues')} data-testid="input-wo-instructions" />
+                      <Textarea {...field} placeholder="Procedimentos e instruções..." data-testid="input-wo-instructions" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -993,13 +998,17 @@ export default function ActivityPlanner() {
               />
 
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() =>{t('messages.setopenfalse_cancelar')}</Button>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
                 <Button 
                   type="submit" 
                   disabled={createWorkOrderMutation.isPending}
                   data-testid="button-submit-wo"
                   className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
-                >{t('messages.createworkordermutationispending_criando_criar_os')}</Button>
+                >
+                  {createWorkOrderMutation.isPending ? "Criando..." : "Criar OS"}
+                </Button>
               </div>
             </form>
           </Form>
@@ -1015,7 +1024,7 @@ export default function ActivityPlanner() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">{t('messages.alocao_de_tcnicos')}/h3>
+          <h3 className="text-lg font-semibold">Alocação de Técnicos</h3>
           <div className="flex space-x-2">
             <Input 
               type="date" 
@@ -1047,7 +1056,7 @@ export default function ActivityPlanner() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">{t('labels.habilidades')}/p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Habilidades:</p>
                   <div className="flex flex-wrap gap-1">
                     {tech.skills?.map((skill, idx) => (
                       <Badge key={idx} variant="outline" className="text-xs">{skill}</Badge>
@@ -1060,11 +1069,11 @@ export default function ActivityPlanner() {
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span>OS-001 (09:00-11:00)</span>
-                      <Badge variant="outline" className="text-xs">{t('messages.em_andamento_1')}/Badge>
+                      <Badge variant="outline" className="text-xs">Em Andamento</Badge>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span>OS-002 (14:00-16:00)</span>
-                      <Badge variant="secondary" className="text-xs">{t('titles.agendada')}/Badge>
+                      <Badge variant="secondary" className="text-xs">Agendada</Badge>
                     </div>
                   </div>
                 </div>
@@ -1095,15 +1104,15 @@ export default function ActivityPlanner() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">{t('messages.cronograma_de_manutenes')}/h3>
+          <h3 className="text-lg font-semibold">Cronograma de Manutenções</h3>
           <div className="flex space-x-2">
             <Select value={viewMode} onValueChange={(value: 'calendar' | 'list') => setViewMode(value)}>
               <SelectTrigger className="w-32" data-testid="select-schedule-view">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="calendar">{t('messages.calendrio_1')}/SelectItem>
-                <SelectItem value="list">{t('titles.lista')}/SelectItem>
+                <SelectItem value="calendar">Calendário</SelectItem>
+                <SelectItem value="list">Lista</SelectItem>
               </SelectContent>
             </Select>
             <Input 
@@ -1123,7 +1132,7 @@ export default function ActivityPlanner() {
         {viewMode === 'calendar' ? (
           <div className="bg-white dark:bg-gray-900 rounded-lg border p-4">
             <div className="grid grid-cols-8 gap-2 mb-4">
-              <div className="font-medium text-center text-sm">{t('messages.horrio')}/div>
+              <div className="font-medium text-center text-sm">Horário</div>
               {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(day => (
                 <div key={day} className="font-medium text-center text-sm">{day}</div>
               ))}
@@ -1196,12 +1205,12 @@ export default function ActivityPlanner() {
       mutationFn: ({ id, data }: { id: string; data: Partial<WorkOrder> }) => 
         apiRequest("PATCH", `/api/activity-planner/work-orders/${id}`, data),
       onSuccess: () => {
-        toast({ title: t('titles.status_atualizado_com_sucesso_1') });
+        toast({ title: "Status atualizado com sucesso" });
         queryClient.invalidateQueries({ queryKey: ["/api/activity-planner/work-orders"] });
       },
       onError: (error) => {
         toast({ 
-          title: t('titles.erro_ao_atualizar_status_1'), 
+          title: "Erro ao atualizar status", 
           description: error.message,
           variant: "destructive" 
         });
@@ -1291,7 +1300,7 @@ export default function ActivityPlanner() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('messages.total_de_ativos')}/CardTitle>
+          <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
           <Settings className="h-4 w-4 text-blue-600" />
         </CardHeader>
         <CardContent>
@@ -1306,7 +1315,7 @@ export default function ActivityPlanner() {
 
       <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('messages.planos_ativos')}/CardTitle>
+          <CardTitle className="text-sm font-medium">Planos Ativos</CardTitle>
           <Calendar className="h-4 w-4 text-green-600" />
         </CardHeader>
         <CardContent>
@@ -1332,7 +1341,7 @@ export default function ActivityPlanner() {
 
       <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t('messages.eficincia')}/CardTitle>
+          <CardTitle className="text-sm font-medium">Eficiência</CardTitle>
           <CheckCircle className="h-4 w-4 text-purple-600" />
         </CardHeader>
         <CardContent>
@@ -1352,7 +1361,7 @@ export default function ActivityPlanner() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder={t('messages.buscar_ativos')}
+              placeholder="Buscar ativos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"
@@ -1444,7 +1453,7 @@ export default function ActivityPlanner() {
   const renderMaintenancePlans = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">{t('messages.planos_de_manuteno')}/h2>
+        <h2 className="text-2xl font-bold">Planos de Manutenção</h2>
         <CreateMaintenancePlanDialog onSuccess={() => {}} />
       </div>
       
@@ -1467,7 +1476,7 @@ export default function ActivityPlanner() {
   const renderWorkOrders = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">{t('messages.ordens_de_servio')}/h2>
+        <h2 className="text-2xl font-bold">Ordens de Serviço</h2>
         <CreateWorkOrderDialog onSuccess={() => {}} />
       </div>
 
@@ -1513,13 +1522,13 @@ export default function ActivityPlanner() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div className="flex items-center space-x-2">
                     <Settings className="h-4 w-4 text-gray-500" />
-                    <span className="text-muted-foreground">{t('labels.ativo')}/span>
+                    <span className="text-muted-foreground">Ativo:</span>
                     <span className="font-medium">Ativo-{workOrder.assetId}</span>
                   </div>
                   
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-gray-500" />
-                    <span className="text-muted-foreground">{t('labels.tcnico')}/span>
+                    <span className="text-muted-foreground">Técnico:</span>
                     <span className="font-medium">
                       {workOrder.assignedTechnicianId ? 'Atribuído' : 'Não atribuído'}
                     </span>
@@ -1527,7 +1536,7 @@ export default function ActivityPlanner() {
                   
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="text-muted-foreground">{t('labels.durao')}/span>
+                    <span className="text-muted-foreground">Duração:</span>
                     <span className="font-medium">{workOrder.estimatedDuration}h</span>
                   </div>
                 </div>
@@ -1535,7 +1544,7 @@ export default function ActivityPlanner() {
                 {workOrder.scheduledStart && (
                   <div className="flex items-center space-x-2 text-sm">
                     <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-muted-foreground">{t('labels.agendado')}/span>
+                    <span className="text-muted-foreground">Agendado:</span>
                     <span className="font-medium">
                       {new Date(workOrder.scheduledStart).toLocaleString()}
                     </span>
@@ -1577,7 +1586,7 @@ export default function ActivityPlanner() {
   const renderAnalytics = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">{t('messages.analytics_relatrios')}/h2>
+        <h2 className="text-2xl font-bold">Analytics & Relatórios</h2>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm" data-testid="button-export-analytics">
             <Download className="h-4 w-4 mr-2" />
@@ -1611,7 +1620,7 @@ export default function ActivityPlanner() {
             <Clock className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{t('messages.24h')}/div>
+            <div className="text-2xl font-bold text-blue-600">2.4h</div>
             <p className="text-xs text-muted-foreground">
               -18% vs mês anterior
             </p>
@@ -1620,7 +1629,7 @@ export default function ActivityPlanner() {
 
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('titles.disponibilidade')}/CardTitle>
+            <CardTitle className="text-sm font-medium">Disponibilidade</CardTitle>
             <CheckCircle className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -1633,11 +1642,11 @@ export default function ActivityPlanner() {
 
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('messages.custos_total')}/CardTitle>
+            <CardTitle className="text-sm font-medium">Custos Total</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{t('messages.r_247k')}/div>
+            <div className="text-2xl font-bold text-orange-600">R$ 24.7k</div>
             <p className="text-xs text-muted-foreground">
               -8% vs mês anterior
             </p>
@@ -1649,15 +1658,15 @@ export default function ActivityPlanner() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{t('messages.tendncia_de_manutenes')}/CardTitle>
-            <CardDescription>{t('messages.preventivas_vs_corretivas_ltimos_6_meses')}/CardDescription>
+            <CardTitle className="text-lg">Tendência de Manutenções</CardTitle>
+            <CardDescription>Preventivas vs Corretivas (últimos 6 meses)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded">
               <div className="text-center">
                 <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">{t('messages.grfico_de_tendncias')}/p>
-                <p className="text-xs text-gray-400">{t('messages.dados_simulados_para_demonstrao')}/p>
+                <p className="text-gray-500">Gráfico de tendências</p>
+                <p className="text-xs text-gray-400">Dados simulados para demonstração</p>
               </div>
             </div>
           </CardContent>
@@ -1665,15 +1674,15 @@ export default function ActivityPlanner() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{t('messages.distribuio_por_criticidade')}/CardTitle>
-            <CardDescription>{t('messages.ativos_por_nvel_de_criticidade')}/CardDescription>
+            <CardTitle className="text-lg">Distribuição por Criticidade</CardTitle>
+            <CardDescription>Ativos por nível de criticidade</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-sm">{t('messages.crtica_2')}/span>
+                  <span className="text-sm">Crítica</span>
                 </div>
                 <span className="text-sm font-medium">24%</span>
               </div>
@@ -1682,7 +1691,7 @@ export default function ActivityPlanner() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-sm">{t('titles.alta_5')}/span>
+                  <span className="text-sm">Alta</span>
                 </div>
                 <span className="text-sm font-medium">38%</span>
               </div>
@@ -1691,7 +1700,7 @@ export default function ActivityPlanner() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <span className="text-sm">{t('messages.mdia_4')}/span>
+                  <span className="text-sm">Média</span>
                 </div>
                 <span className="text-sm font-medium">26%</span>
               </div>
@@ -1700,7 +1709,7 @@ export default function ActivityPlanner() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">{t('titles.baixa_5')}/span>
+                  <span className="text-sm">Baixa</span>
                 </div>
                 <span className="text-sm font-medium">12%</span>
               </div>
@@ -1713,19 +1722,19 @@ export default function ActivityPlanner() {
       {/* Performance Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">{t('messages.performance_por_ativo')}/CardTitle>
-          <CardDescription>{t('messages.mtricas_detalhadas_dos_principais_ativos')}/CardDescription>
+          <CardTitle className="text-lg">Performance por Ativo</CardTitle>
+          <CardDescription>Métricas detalhadas dos principais ativos</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('titles.ativo_11')}/TableHead>
-                <TableHead>{t('titles.disponibilidade')}/TableHead>
+                <TableHead>Ativo</TableHead>
+                <TableHead>Disponibilidade</TableHead>
                 <TableHead>MTBF</TableHead>
                 <TableHead>MTTR</TableHead>
-                <TableHead>{t('messages.ltimas_os')}/TableHead>
-                <TableHead>{t('titles.status_8')}/TableHead>
+                <TableHead>Últimas OS</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1734,14 +1743,14 @@ export default function ActivityPlanner() {
                 <TableCell>
                   <div className="flex items-center space-x-2">
                     <span>99.2%</span>
-                    <Badge variant="outline" className="bg-green-50 text-green-700">{t('titles.excelente')}/Badge>
+                    <Badge variant="outline" className="bg-green-50 text-green-700">Excelente</Badge>
                   </div>
                 </TableCell>
                 <TableCell>145h</TableCell>
-                <TableCell>{t('messages.18h')}/TableCell>
+                <TableCell>1.8h</TableCell>
                 <TableCell>3</TableCell>
                 <TableCell>
-                  <Badge className="bg-green-100 text-green-800">{t('titles.operacional')}/Badge>
+                  <Badge className="bg-green-100 text-green-800">Operacional</Badge>
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -1749,14 +1758,14 @@ export default function ActivityPlanner() {
                 <TableCell>
                   <div className="flex items-center space-x-2">
                     <span>97.8%</span>
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700">{t('titles.bom')}/Badge>
+                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Bom</Badge>
                   </div>
                 </TableCell>
                 <TableCell>98h</TableCell>
-                <TableCell>{t('messages.32h')}/TableCell>
+                <TableCell>3.2h</TableCell>
                 <TableCell>5</TableCell>
                 <TableCell>
-                  <Badge className="bg-orange-100 text-orange-800">{t('messages.manuteno_1')}/Badge>
+                  <Badge className="bg-orange-100 text-orange-800">Manutenção</Badge>
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -1764,14 +1773,14 @@ export default function ActivityPlanner() {
                 <TableCell>
                   <div className="flex items-center space-x-2">
                     <span>94.5%</span>
-                    <Badge variant="outline" className="bg-orange-50 text-orange-700">{t('titles.regular')}/Badge>
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700">Regular</Badge>
                   </div>
                 </TableCell>
                 <TableCell>76h</TableCell>
-                <TableCell>{t('messages.41h')}/TableCell>
+                <TableCell>4.1h</TableCell>
                 <TableCell>7</TableCell>
                 <TableCell>
-                  <Badge className="bg-red-100 text-red-800">{t('messages.ateno')}/Badge>
+                  <Badge className="bg-red-100 text-red-800">Atenção</Badge>
                 </TableCell>
               </TableRow>
             </TableBody>

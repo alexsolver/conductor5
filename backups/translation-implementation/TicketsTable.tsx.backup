@@ -1159,8 +1159,8 @@ const TicketsTable = React.memo(() => {
   });
 
   // Função de renderização otimizada
-  const renderCell = useCallback((ticket: Ticket, key: string) => (
-    <TableCellComponent key={key} column={''} ticket={ticket} />
+  const renderCell = useCallback((column: any, ticket: Ticket, key?: string) => (
+    <TableCellComponent key={key || `${ticket.id}-${column.id}`} column={column} ticket={ticket} />
   ), []);
 
   // Otimizar comparação do TableCellComponent com comparação personalizada
