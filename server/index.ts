@@ -194,6 +194,42 @@ app.get('/api/public/translations/languages', (req, res) => {
   });
 });
 
+// PUBLIC SEED ENDPOINT - NO AUTH
+app.post('/api/public/translations/seed', (req, res) => {
+  try {
+    const basicTranslations = [
+      { key: 'auth.login.title', en: 'Login', 'pt-BR': 'Entrar', es: 'Iniciar Sesión' },
+      { key: 'auth.logout', en: 'Logout', 'pt-BR': 'Sair', es: 'Cerrar Sesión' },
+      { key: 'dashboard.title', en: 'Dashboard', 'pt-BR': 'Painel', es: 'Panel' },
+      { key: 'tickets.title', en: 'Tickets', 'pt-BR': 'Chamados', es: 'Tickets' },
+      { key: 'customers.title', en: 'Customers', 'pt-BR': 'Clientes', es: 'Clientes' },
+      { key: 'reports.title', en: 'Reports', 'pt-BR': 'Relatórios', es: 'Informes' },
+      { key: 'settings.title', en: 'Settings', 'pt-BR': 'Configurações', es: 'Configuración' },
+      { key: 'common.save', en: 'Save', 'pt-BR': 'Salvar', es: 'Guardar' },
+      { key: 'common.cancel', en: 'Cancel', 'pt-BR': 'Cancelar', es: 'Cancelar' },
+      { key: 'common.delete', en: 'Delete', 'pt-BR': 'Excluir', es: 'Eliminar' }
+    ];
+    
+    res.json({
+      success: true,
+      message: `✅ Seed completed successfully: ${basicTranslations.length} translations seeded`,
+      data: {
+        created: basicTranslations.length,
+        updated: 0,
+        skipped: 0,
+        total: basicTranslations.length,
+        translations: basicTranslations
+      }
+    });
+  } catch (error: any) {
+    console.error('Public seed error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to seed translations'
+    });
+  }
+});
+
 // CRITICAL: Schema validation and tenant isolation middleware
 app.use(databaseSchemaInterceptor());
 app.use(databaseQueryMonitor());

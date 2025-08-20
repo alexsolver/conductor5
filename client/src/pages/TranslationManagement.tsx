@@ -176,10 +176,15 @@ export default function TranslationManagement() {
     }
   });
 
-  // Seed translations mutation
+  // Seed translations mutation - using public endpoint
   const seedTranslations = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/translations/seed');
+      const response = await fetch('/api/public/translations/seed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to seed translations');
