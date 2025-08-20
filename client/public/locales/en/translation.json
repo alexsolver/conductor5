@@ -166,7 +166,9 @@
     "overview": "Overview",
     "stats": "Statistics",
     "quickActions": "Quick Actions",
-    "recentActivity": "Recent Activity"
+    "recentActivity": "Recent Activity",
+    "statistics": "Statistics",
+    "welcome": "Welcome to Conductor"
   },
   "auth": {
     "login": "Login",
@@ -302,5 +304,393 @@
     "forms": "Internal Forms",
     "landing": "Landing",
     "demo": "Demo"
+  },
+  "absenceManagement": {
+    "title": "Absence Management",
+    "request": "Request Absence",
+    "approve": "Approve Request",
+    "reject": "Reject Request",
+    "pending": "Pending Requests",
+    "history": "Absence History",
+    "balance": "Leave Balance"
+  },
+  "activityPlanner": {
+    "title": "Activity Planner",
+    "schedule": "Schedule Activity",
+    "calendar": "Activity Calendar",
+    "resources": "Resource Planning",
+    "timeline": "Project Timeline"
+  },
+  "agendaManager": {
+    "title": "Agenda Manager",
+    "timeline": "Timeline View",
+    "agenda": "Agenda View",
+    "schedule": "Schedule Meeting",
+    "filter": "Filter Agenda",
+    "agents": "Agents",
+    "clients": "Clients"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "insights": "Detailed insights into your support performance",
+    "performance": "Performance Metrics",
+    "trends": "Trending Analysis",
+    "reports": "Analytics Reports",
+    "satisfaction": "Customer Satisfaction"
+  },
+  "approvalManagement": {
+    "title": "Approval Management",
+    "workflow": "Approval Workflow",
+    "pending": "Pending Approvals",
+    "history": "Approval History",
+    "rules": "Approval Rules",
+    "chain": "Approval Chain"
+  },
+  "assetManagement": {
+    "title": "Asset Management",
+    "inventory": "Asset Inventory",
+    "maintenance": "Maintenance Schedule",
+    "lifecycle": "Asset Lifecycle",
+    "depreciation": "Depreciation",
+    "location": "Asset Location",
+    "assignment": "Asset Assignment",
+    "qrcode": "QR Code",
+    "warranty": "Warranty"
+  },
+  "automationRules": {
+    "title": "Automation Rules",
+    "create": "Create Rule",
+    "trigger": "Rule Triggers",
+    "action": "Rule Actions",
+    "condition": "Conditions",
+    "active": "Active Rules",
+    "inactive": "Inactive Rules"
+  },
+  "beneficiaries": {
+    "title": "Beneficiaries",
+    "list": "Beneficiary List",
+    "add": "Add Beneficiary",
+    "edit": "Edit Beneficiary",
+    "details": "Beneficiary Details",
+    "document": "Documents",
+    "contact": "Contact Information"
+  },
+  "certificateManager": {
+    "title": "Certificate Manager",
+    "ssl": "SSL Certificates",
+    "expiry": "Expiry Alerts",
+    "renewal": "Certificate Renewal",
+    "validation": "Certificate Validation"
+  },
+  "cltCompliance": {
+    "title": "CLT Compliance",
+    "labor": "Labor Law",
+    "audit": "Compliance Audit",
+    "report": "Compliance Report",
+    "violation": "Violations",
+    "remediation": "Remediation Plan"
+  },
+  "companies": {
+    "title": "Companies",
+    "profile": "Company Profile",
+    "hierarchy": "Company Hierarchy",
+    "branches": "Branches",
+    "departments": "Departments",
+    "subsidiaries": "Subsidiaries"
+  },
+  "complianceManagement": {
+    "title": "Compliance Management",
+    "audit": "Compliance Audit",
+    "certification": "Certifications",
+    "alert": "Compliance Alerts",
+    "score": "Compliance Score",
+    "evidence": "Evidence Management",
+    "framework": "Compliance Framework"
+  },
+  "contractManagement": {
+    "title": "Contract Management",
+    "create": "Create Contract",
+    "template": "Contract Templates",
+    "negotiation": "Contract Negotiation",
+    "approval": "Contract Approval",
+    "renewal": "Contract Renewal",
+    "termination": "Contract Termination"
+  },
+  "corporateExpense": {
+    "title": "Corporate Expense Management",
+    "submit": "Submit Expense",
+    "receipt": "Receipt Management",
+    "policy": "Expense Policy",
+    "reimbursement": "Reimbursement",
+    "category": "Expense Categories"
+  },
+  "customFields": {
+    "title": "Custom Fields Administrator",
+    "create": "Create Field",
+    "type": "Field Type",
+    "validation": "Field Validation",
+    "group": "Field Groups",
+    "template": "Field Templates"
+  },
+  "customerCompanies": {
+    "title": "Customer Companies",
+    "mapping": "Company Mapping",
+    "relationship": "Company Relationships",
+    "hierarchy": "Company Hierarchy",
+    "contacts": "Company Contacts"
+  },
+  "customerItemMappings": {
+    "title": "Customer Item Mappings",
+    "create": "Create Mapping",
+    "bulk": "Bulk Import",
+    "sync": "Sync Mappings",
+    "validation": "Mapping Validation"
+  },
+  "dashboards": {
+    "title": "Dashboards",
+    "create": "Create Dashboard",
+    "widget": "Dashboard Widgets",
+    "layout": "Dashboard Layout",
+    "sharing": "Dashboard Sharing",
+    "template": "Dashboard Templates"
+  },
+  "dragDropDemo": {
+    "title": "Drag & Drop Demo",
+    "demonstration": "Interactive Demonstration",
+    "features": "Feature Showcase"
+  },
+  "gdprCompliance": {
+    "title": "GDPR Compliance",
+    "dataMapping": "Data Mapping",
+    "consent": "Consent Management",
+    "rightsRequest": "Data Subject Rights",
+    "breach": "Data Breach",
+    "assessment": "Privacy Impact Assessment"
+  },
+  "holidayCalendar": {
+    "title": "Holiday Calendar",
+    "national": "National Holidays",
+    "regional": "Regional Holidays",
+    "custom": "Custom Holidays",
+    "policy": "Holiday Policy"
+  },
+  "hourBank": {
+    "title": "Hour Bank",
+    "balance": "Hour Balance",
+    "compensation": "Hour Compensation",
+    "policy": "Hour Bank Policy",
+    "report": "Hour Bank Report"
+  },
+  "internalForms": {
+    "title": "Internal Forms",
+    "builder": "Form Builder",
+    "submission": "Form Submissions",
+    "workflow": "Form Workflow",
+    "approval": "Form Approval"
+  },
+  "itemCatalog": {
+    "title": "Item Catalog",
+    "product": "Product Management",
+    "category": "Product Categories",
+    "pricing": "Pricing Rules",
+    "inventory": "Inventory Levels",
+    "supplier": "Supplier Information"
+  },
+  "knowledgeBase": {
+    "title": "Knowledge Base",
+    "article": "Knowledge Articles",
+    "search": "Knowledge Search",
+    "category": "Article Categories",
+    "approval": "Article Approval",
+    "analytics": "Knowledge Analytics"
+  },
+  "landing": {
+    "title": "Landing Page",
+    "welcome": "Welcome",
+    "features": "Platform Features",
+    "getStarted": "Get Started"
+  },
+  "locationsManagement": {
+    "title": "Locations Management",
+    "add": "Add Location",
+    "map": "Location Map",
+    "hierarchy": "Location Hierarchy",
+    "coordinates": "GPS Coordinates",
+    "address": "Address Management"
+  },
+  "lpuManagement": {
+    "title": "LPU Management",
+    "units": "LPU Units",
+    "configuration": "LPU Configuration",
+    "monitoring": "LPU Monitoring",
+    "performance": "LPU Performance"
+  },
+  "moduleIntegrity": {
+    "title": "Module Integrity Control",
+    "validation": "Module Validation",
+    "health": "System Health",
+    "monitoring": "Integrity Monitoring",
+    "alerts": "Integrity Alerts"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "settings": "Notification Settings",
+    "channels": "Notification Channels",
+    "templates": "Notification Templates",
+    "history": "Notification History",
+    "preferences": "User Preferences"
+  },
+  "omniBridge": {
+    "title": "OmniBridge",
+    "integration": "System Integration",
+    "mapping": "Data Mapping",
+    "sync": "Data Synchronization",
+    "monitoring": "Integration Monitoring"
+  },
+  "productivityReports": {
+    "title": "Productivity Reports",
+    "metrics": "Productivity Metrics",
+    "analysis": "Performance Analysis",
+    "trends": "Productivity Trends",
+    "benchmarks": "Benchmarks"
+  },
+  "reportManagement": {
+    "title": "Report Management",
+    "create": "Create Report",
+    "edit": "Edit Report",
+    "designer": "Report Designer",
+    "preview": "Report Preview",
+    "schedule": "Schedule Report"
+  },
+  "saasAdmin": {
+    "title": "SaaS Administration",
+    "tenants": "Tenant Management",
+    "billing": "Billing Management",
+    "performance": "Performance Monitoring",
+    "integrations": "System Integrations",
+    "disaster": "Disaster Recovery",
+    "analytics": "Platform Analytics"
+  },
+  "securitySettings": {
+    "title": "Security Settings",
+    "authentication": "Authentication Settings",
+    "authorization": "Authorization Policies",
+    "encryption": "Data Encryption",
+    "audit": "Security Audit",
+    "monitoring": "Security Monitoring"
+  },
+  "settingsManagement": {
+    "title": "Settings",
+    "general": "General Settings",
+    "simple": "Simple Settings",
+    "advanced": "Advanced Settings",
+    "system": "System Settings",
+    "user": "User Settings"
+  },
+  "slaManagement": {
+    "title": "SLA Management",
+    "agreements": "Service Level Agreements",
+    "monitoring": "SLA Monitoring",
+    "violations": "SLA Violations",
+    "reporting": "SLA Reporting",
+    "metrics": "SLA Metrics"
+  },
+  "stockManagement": {
+    "title": "Stock Management",
+    "inventory": "Inventory Control",
+    "movements": "Stock Movements",
+    "levels": "Stock Levels",
+    "alerts": "Stock Alerts",
+    "valuation": "Stock Valuation"
+  },
+  "supplierManagement": {
+    "title": "Supplier Management",
+    "vendors": "Vendor Directory",
+    "evaluation": "Supplier Evaluation",
+    "contracts": "Supplier Contracts",
+    "performance": "Supplier Performance",
+    "qualifications": "Supplier Qualifications"
+  },
+  "teamManagement": {
+    "title": "Team Management",
+    "structure": "Team Structure",
+    "roles": "Team Roles",
+    "assignments": "Team Assignments",
+    "performance": "Team Performance",
+    "collaboration": "Team Collaboration"
+  },
+  "technicalSkills": {
+    "title": "Technical Skills",
+    "assessment": "Skills Assessment",
+    "development": "Skills Development",
+    "certification": "Skills Certification",
+    "matrix": "Skills Matrix",
+    "gaps": "Skills Gap Analysis"
+  },
+  "templateSelector": {
+    "title": "Template Selector",
+    "themes": "Template Themes",
+    "customization": "Template Customization",
+    "preview": "Template Preview",
+    "library": "Template Library"
+  },
+  "tenantAdmin": {
+    "title": "Tenant Administration",
+    "general": "General Administration",
+    "branding": "Tenant Branding",
+    "integrations": "Tenant Integrations",
+    "slas": "Tenant SLAs",
+    "workflows": "Tenant Workflows",
+    "provisioning": "Tenant Provisioning"
+  },
+  "ticketSystem": {
+    "title": "Ticket System",
+    "list": "Ticket List",
+    "create": "Create Ticket",
+    "edit": "Edit Ticket",
+    "details": "Ticket Details",
+    "configuration": "Ticket Configuration",
+    "advanced": "Advanced Configuration",
+    "templates": "Ticket Templates",
+    "materials": "Ticket Materials",
+    "workflow": "Ticket Workflow",
+    "assignment": "Ticket Assignment",
+    "escalation": "Ticket Escalation"
+  },
+  "timecardSystem": {
+    "title": "Timecard System",
+    "clockin": "Clock In/Out",
+    "autonomous": "Autonomous Timecard",
+    "approvals": "Timecard Approvals",
+    "settings": "Approval Settings",
+    "reports": "Timecard Reports",
+    "compliance": "CLT Compliance",
+    "overtime": "Overtime Management",
+    "adjustments": "Time Adjustments"
+  },
+  "translationManager": {
+    "title": "Translation Manager",
+    "languages": "Language Management",
+    "keys": "Translation Keys",
+    "export": "Export Translations",
+    "import": "Import Translations",
+    "validation": "Translation Validation"
+  },
+  "userManagement": {
+    "title": "User Management",
+    "profile": "User Profile",
+    "roles": "User Roles",
+    "permissions": "User Permissions",
+    "groups": "User Groups",
+    "activation": "User Activation",
+    "deactivation": "User Deactivation"
+  },
+  "workSchedules": {
+    "title": "Work Schedules",
+    "shifts": "Work Shifts",
+    "calendar": "Schedule Calendar",
+    "rotation": "Schedule Rotation",
+    "exceptions": "Schedule Exceptions",
+    "templates": "Schedule Templates"
   }
 }

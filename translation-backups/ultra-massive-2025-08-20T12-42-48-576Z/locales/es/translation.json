@@ -1,0 +1,306 @@
+{
+  "common": {
+    "selectOption": "Seleccionar opción",
+    "noOptions": "Sin opciones",
+    "search": "Buscar...",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "open": "Abrir",
+    "showMore": "Mostrar más",
+    "showLess": "Mostrar menos"
+  },
+  "navigation": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "home": "Inicio",
+    "dashboard": "Panel"
+  },
+  "components": {
+    "userSelect": {
+      "placeholder": "Seleccionar usuario...",
+      "noResults": "No se encontraron usuarios",
+      "searchPlaceholder": "Buscar usuarios..."
+    },
+    "button": {
+      "loading": "Cargando...",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "close": "Cerrar",
+      "submit": "Enviar",
+      "reset": "Resetear",
+      "confirm": "Confirmar"
+    },
+    "breadcrumb": {
+      "home": "Inicio",
+      "dashboard": "Panel"
+    },
+    "input": {
+      "placeholder": "Ingrese texto...",
+      "required": "Este campo es obligatorio",
+      "invalid": "Entrada inválida",
+      "clear": "Limpiar",
+      "search": "Buscar..."
+    },
+    "select": {
+      "placeholder": "Seleccionar opción...",
+      "noOptions": "No hay opciones disponibles",
+      "search": "Buscar opciones...",
+      "clear": "Limpiar selección"
+    },
+    "dialog": {
+      "close": "Cerrar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "confirm": "Confirmar",
+      "delete": "Eliminar"
+    },
+    "table": {
+      "noData": "No hay datos disponibles",
+      "loading": "Cargando...",
+      "sortAsc": "Ordenar ascendente",
+      "sortDesc": "Ordenar descendente",
+      "filter": "Filtrar",
+      "search": "Buscar en tabla...",
+      "rowsPerPage": "Filas por página",
+      "showing": "Mostrando",
+      "of": "de",
+      "entries": "entradas"
+    }
+  },
+  "app": {
+    "name": "Conductor",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar"
+  },
+  "forms": {
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "email": "Por favor, ingrese una dirección de correo válida",
+      "minLength": "Se requieren mínimo {{count}} caracteres",
+      "maxLength": "Máximo {{count}} caracteres permitidos",
+      "numeric": "Por favor, ingrese un número válido",
+      "phone": "Por favor, ingrese un teléfono válido",
+      "date": "Por favor, ingrese una fecha válida"
+    },
+    "actions": {
+      "submit": "Enviar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "reset": "Restablecer",
+      "clear": "Limpiar Formulario",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "create": "Crear",
+      "update": "Actualizar",
+      "search": "Buscar",
+      "filter": "Filtrar"
+    },
+    "status": {
+      "saving": "Guardando...",
+      "loading": "Cargando...",
+      "success": "¡Éxito!",
+      "error": "Ocurrió un error",
+      "updated": "Actualizado exitosamente",
+      "created": "Creado exitosamente",
+      "deleted": "Eliminado exitosamente"
+    }
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Panel",
+      "welcome": "Bienvenido a Conductor",
+      "overview": "Resumen",
+      "statistics": "Estadísticas",
+      "recentActivity": "Actividad Reciente",
+      "quickActions": "Acciones Rápidas"
+    },
+    "customers": {
+      "title": "Clientes",
+      "list": "Lista de Clientes",
+      "add": "Agregar Cliente",
+      "edit": "Editar Cliente",
+      "search": "Buscar clientes...",
+      "noResults": "No se encontraron clientes",
+      "total": "Total de clientes"
+    },
+    "tickets": {
+      "title": "Tickets",
+      "list": "Lista de Tickets",
+      "create": "Crear Ticket",
+      "edit": "Editar Ticket",
+      "details": "Detalles del Ticket",
+      "status": "Estado",
+      "priority": "Prioridad",
+      "assignedTo": "Asignado a"
+    },
+    "users": {
+      "title": "Usuarios",
+      "list": "Lista de Usuarios",
+      "add": "Agregar Usuario",
+      "edit": "Editar Usuario",
+      "invite": "Invitar Usuario",
+      "roles": "Roles",
+      "permissions": "Permisos"
+    }
+  },
+  "modals": {
+    "confirm": {
+      "title": "Confirmar Acción",
+      "message": "¿Está seguro de que desea continuar?",
+      "delete": "¿Está seguro de que desea eliminar este elemento?",
+      "save": "¿Está seguro de que desea guardar los cambios?",
+      "cancel": "¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."
+    }
+  },
+  "dashboard": {
+    "title": "Panel",
+    "overview": "Resumen",
+    "stats": "Estadísticas",
+    "quickActions": "Acciones Rápidas",
+    "recentActivity": "Actividad Reciente"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar Sesión",
+    "forgotPassword": "Olvidé la Contraseña",
+    "resetPassword": "Restablecer Contraseña"
+  },
+  "users": {
+    "title": "Usuarios",
+    "list": "Lista de Usuarios",
+    "add": "Agregar Usuario",
+    "edit": "Editar Usuario",
+    "profile": "Perfil de Usuario",
+    "permissions": "Permisos",
+    "roles": "Roles"
+  },
+  "customers": {
+    "title": "Clientes",
+    "list": "Lista de Clientes",
+    "add": "Agregar Cliente",
+    "edit": "Editar Cliente",
+    "companies": "Empresas del Cliente",
+    "mappings": "Mapeos de Artículos"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "list": "Lista de Tickets",
+    "create": "Crear Ticket",
+    "edit": "Editar Ticket",
+    "details": "Detalles del Ticket",
+    "configuration": "Configuración de Tickets",
+    "templates": "Plantillas de Tickets",
+    "materials": "Materiales",
+    "advanced": "Configuración Avanzada"
+  },
+  "timecard": {
+    "title": "Tarjeta de Tiempo",
+    "autonomous": "Tarjeta Autónoma",
+    "approvals": "Aprobaciones de Tiempo",
+    "settings": "Configuraciones de Aprobación",
+    "reports": "Informes de Tiempo",
+    "compliance": "Cumplimiento CLT",
+    "hourBank": "Banco de Horas"
+  },
+  "assets": {
+    "title": "Activos",
+    "management": "Gestión de Activos",
+    "planner": "Planificador de Actividades",
+    "maintenance": "Mantenimiento",
+    "tracking": "Seguimiento de Activos"
+  },
+  "inventory": {
+    "title": "Inventario",
+    "catalog": "Catálogo de Artículos",
+    "stock": "Gestión de Stock",
+    "suppliers": "Gestión de Proveedores"
+  },
+  "financial": {
+    "title": "Financiero",
+    "expenses": "Gastos Corporativos",
+    "contracts": "Gestión de Contratos",
+    "billing": "Facturación"
+  },
+  "hr": {
+    "title": "RRHH",
+    "absence": "Gestión de Ausencias",
+    "teams": "Gestión de Equipos",
+    "skills": "Habilidades Técnicas",
+    "schedules": "Horarios de Trabajo",
+    "calendar": "Calendario de Feriados"
+  },
+  "operations": {
+    "title": "Operaciones",
+    "agenda": "Gestor de Agenda",
+    "automation": "Reglas de Automatización",
+    "omnibridge": "OmniBridge",
+    "lpu": "Gestión LPU",
+    "sla": "Gestión de SLA"
+  },
+  "admin": {
+    "title": "Administración",
+    "tenant": "Admin del Tenant",
+    "saas": "Admin SaaS",
+    "provisioning": "Aprovisionamiento de Tenant",
+    "branding": "Marca",
+    "integrations": "Integraciones",
+    "workflows": "Flujos de Trabajo",
+    "performance": "Rendimiento",
+    "disaster": "Recuperación de Desastres"
+  },
+  "compliance": {
+    "title": "Cumplimiento",
+    "management": "Gestión de Cumplimiento",
+    "gdpr": "Cumplimiento GDPR",
+    "security": "Configuraciones de Seguridad",
+    "certificates": "Gestor de Certificados",
+    "integrity": "Control de Integridad"
+  },
+  "reporting": {
+    "title": "Informes",
+    "reports": "Informes",
+    "create": "Crear Informe",
+    "edit": "Editar Informe",
+    "analytics": "Analíticas",
+    "dashboards": "Paneles",
+    "productivity": "Informes de Productividad"
+  },
+  "configuration": {
+    "title": "Configuración",
+    "settings": "Configuraciones",
+    "simple": "Configuraciones Simples",
+    "fields": "Campos Personalizados",
+    "templates": "Selector de Plantillas",
+    "notifications": "Notificaciones",
+    "translations": "Gestor de Traducciones"
+  },
+  "locations": {
+    "title": "Ubicaciones",
+    "new": "Nuevas Ubicaciones",
+    "management": "Gestión de Ubicaciones"
+  },
+  "knowledge": {
+    "title": "Base de Conocimiento",
+    "articles": "Artículos",
+    "search": "Buscar Conocimiento"
+  },
+  "specialized": {
+    "title": "Especializado",
+    "approvals": "Gestión de Aprobaciones",
+    "beneficiaries": "Beneficiarios",
+    "companies": "Empresas",
+    "forms": "Formularios Internos",
+    "landing": "Página de Inicio",
+    "demo": "Demo"
+  }
+}
